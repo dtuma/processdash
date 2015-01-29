@@ -114,19 +114,29 @@ public class WorkflowUtil {
         // application, but whose source workflow step no longer exists
         purgeDeletedWorkflowSteps(destWbs, destNode, workflows);
 
-        // make the inserted nodes visible if requested.
-        if (expandTargetNode)
-            destNode.setExpanded(true);
-        // recalculate the rows and the data in the WBS
-        destWbs.recalcRows(false, false);
-        destWbs.fireTableDataChanged();
-
         // make a list of the nodes that are now in place as a result of the
-        // application of this workflow, and return it
+        // application of this workflow
         List<WBSNode> finalDestNodes = new ArrayList();
         for (WBSNode n : destWbs.getDescendants(destNode))
             if (hasWorkflowSourceID(n, srcWorkflowIDs))
                 finalDestNodes.add(n);
+
+        // make the inserted nodes visible if requested.
+        if (expandTargetNode && !finalDestNodes.isEmpty()) {
+            destNode.setExpanded(true);
+            WBSNode node = finalDestNodes.get(0);
+            while (true) {
+                node = destWbs.getParent(node);
+                if (node == null || node == destNode)
+                    break;
+                node.setExpanded(true);
+            }
+        }
+
+        // recalculate the rows and the data in the WBS
+        destWbs.recalcRows(false, false);
+        destWbs.fireTableDataChanged();
+
         return finalDestNodes;
     }
 
