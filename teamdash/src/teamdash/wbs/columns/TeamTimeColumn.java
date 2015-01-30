@@ -513,9 +513,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     /** Get an array of IndivTime objects representing the amount of task time
      * each individual has for the given wbs node. */
     protected IndivTime[] getIndivTimes(WBSNode node) {
+        boolean isLeaf = wbsModel.isLeaf(node);
         IndivTime[] result = new IndivTime[teamMemberColumns.size()];
         for (int i = teamMemberColumns.size();   i-- > 0; )
-            result[i] = new IndivTime(node, teamMemberColumns.get(i),
+            result[i] = new IndivTime(node, isLeaf, teamMemberColumns.get(i),
                     teamMemberInitials[i]);
         return result;
     }
@@ -1257,7 +1258,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         boolean hasError;
         boolean completed;
 
-        public IndivTime(WBSNode node, int column, String initials) {
+        public IndivTime(WBSNode node, boolean isLeaf, int column, String initials) {
             this.node = node;
             this.column = column;
             Object value = dataModel.getValueAt(node, column);
@@ -1267,7 +1268,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
             this.ordinalAttrName = getMemberAssignedOrdinalAttrName(initials);
             this.ordinal = (int) safe(node.getNumericAttribute(ordinalAttrName));
-            this.hasError = value instanceof NumericDataValue
+            this.hasError = !isLeaf && value instanceof NumericDataValue
                     && ((NumericDataValue) value).errorMessage != null;
             if (time == 0 && ((NumericDataValue) value).isInvisible == false)
                 this.zeroButAssigned = true;
