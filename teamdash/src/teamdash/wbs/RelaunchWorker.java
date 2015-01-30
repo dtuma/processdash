@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -190,7 +190,7 @@ public class RelaunchWorker {
         // discard all transient attributes (including actual data and
         // calculated values)
         for (WBSNode node : wbs.getDescendants(wbs.getRoot()))
-            node.discardTransientAttributes(true);
+            node.discardTransientAttributes(true, true);
 
         // fire a WBS event to force the recalculation of all data columns
         wbs.fireTableRowsUpdated(0, 0);

@@ -411,27 +411,33 @@ public class WBSNode implements Cloneable {
 
 
 
-    /** Remove calculated/derived/actual data attributes from this node.
+    /**
+     * Remove calculated/derived/actual data attributes from this node.
      * 
-     * @param discardActualData if true, attributes representing actual data
-     *     will be discarded along with other transient attributes.  (If false,
-     *     they will be retained.)
+     * @param discardCalculations
+     *            if true, attributes representing the cached value of
+     *            calculations will be discarded. (If false, they will be
+     *            retained.)
+     * @param discardActualData
+     *            if true, attributes representing actual data will be
+     *            discarded. (If false, they will be retained.)
      */
-    public void discardTransientAttributes(boolean discardActualData) {
+    public void discardTransientAttributes(boolean discardCalculations,
+            boolean discardActualData) {
         Iterator i = attributes.keySet().iterator();
         while (i.hasNext()) {
             String attrName = (String) i.next();
             switch (getTransientAttrType(attrName)) {
 
             case ACTUAL_DATA_ATTR:
-                if (discardActualData == false)
-                    break;
-                // otherwise, fall through to the statement below, removing
-                // the attribute
+                if (discardActualData)
+                    i.remove();
+                break;
 
             case TRANSIENT_ATTR:
-                i.remove();
-
+                if (discardCalculations)
+                    i.remove();
+                break;
             }
         }
     }

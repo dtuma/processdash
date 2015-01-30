@@ -461,7 +461,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                     node.setUniqueID(getRoot().getUniqueID());
                     getRoot().setUniqueID(++maxID);
                 }
-                node.discardTransientAttributes(true);
+                node.discardTransientAttributes(true, true);
             }
         }
 

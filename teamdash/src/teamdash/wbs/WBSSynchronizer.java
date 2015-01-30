@@ -163,10 +163,14 @@ public class WBSSynchronizer {
 
 
     public boolean rerun() {
-        // discard previously loaded actual data, then rerun the reverse
-        // synchronization operation
-        for (WBSNode node : teamProject.getWBS().getWbsNodes())
-            node.discardTransientAttributes(true);
+        // discard previously loaded actual data so we can load the data fresh.
+        // (Don't discard transient data for the root node, because it contains
+        // metadata attributes we need to keep, and because it won't be the
+        // target of any reverse sync operation anyway.)
+        List<WBSNode> wbsNodes = teamProject.getWBS().getWbsNodes();
+        for (int i = wbsNodes.size(); i-- > 1; )
+            wbsNodes.get(i).discardTransientAttributes(false, true);
+        // run the reverse sync logic again
         run();
 
         // if the run() event did not trigger a recalc, we should
