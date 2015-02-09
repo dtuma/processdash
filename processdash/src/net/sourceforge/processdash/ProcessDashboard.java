@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2014 Tuma Solutions, LLC
+// Copyright (C) 1998-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -560,6 +560,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
         DashController.setDashboard(this);
+        Settings.setDatasetID(DashController.getDatasetID());
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
