@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -149,7 +148,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         teamMemberInitials = new String[newCols.size()];
         for (int i = 0; i < teamMemberInitials.length; i++)
             teamMemberInitials[i] = dataModel.getColumnName(newCols.get(i));
-        assignedToEditor.setInitials(Arrays.asList(teamMemberInitials));
     }
 
 
@@ -1638,7 +1636,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         public TableCellEditor getCellEditor() {
-            return assignedToEditor;
+            return new AssignedToCellEditor();
         }
     }
     public static final String RESOURCES_COL_ID = "Assigned To";
@@ -1665,15 +1663,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             super(new AssignedToComboBox(true));
             this.comboBox = (AssignedToComboBox) getComboBox();
         }
-        void setInitials(List<String> initials) {
-            comboBox.setInitialsList(initials);
-        }
         @Override
         public Component getTableCellEditorComponent(JTable table,
                 Object value, boolean isSelected, int row, int column) {
             // call super() so the editor setup timer will be restarted
             super.getTableCellEditorComponent(table, null, isSelected, row,
                 column);
+
+            // update the list of valid initials
+            comboBox.setInitialsList(Arrays.asList(teamMemberInitials));
 
             // tweak the text we will be displaying
             String text = (String) value;
@@ -1703,7 +1701,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             return comboBox.getTrackedChanges();
         }
     }
-    private AssignedToCellEditor assignedToEditor = new AssignedToCellEditor();
 
 
 

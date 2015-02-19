@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2013 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@ public class WBSFilterAction extends AbstractAction {
 
     private TextField nameFilter;
 
-    private TextField assignedToFilter;
+    private CompletingField assignedToFilter;
 
     private TaskStatusField taskStatusFilter;
 
@@ -124,6 +124,7 @@ public class WBSFilterAction extends AbstractAction {
         if (dialog == null)
             buildGui();
 
+        assignedToFilter.refreshValues();
         labelFilter.refreshValues();
         milestoneFilter.refreshValues();
         dialog.setVisible(true);
@@ -166,7 +167,7 @@ public class WBSFilterAction extends AbstractAction {
         lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Assigned_To"));
         panel.add(label);  layout.setConstraints(label, lc);
-        assignedToFilter = new TextField("Assigned To", "[^a-zA-Z]+");
+        assignedToFilter = new AssignedToField();
         panel.add(assignedToFilter); layout.setConstraints(assignedToFilter, vc);
 
         lc.gridy++;  vc.gridy++;
@@ -534,6 +535,35 @@ public class WBSFilterAction extends AbstractAction {
         public void keyTyped(KeyEvent e) {}
 
     }
+
+
+    /** A component which supports auto-complete for team member initials */
+    private class AssignedToField extends CompletingField {
+
+        private AssignedToComboBox valueField;
+
+        public AssignedToField() {
+            super("Assigned To", "[^a-zA-Z]+");
+        }
+
+        @Override
+        protected JComboBox getComboBox() {
+            valueField = (AssignedToComboBox) super.getComboBox();
+            valueField.setNumbersAllowed(false);
+            return valueField;
+        }
+
+        @Override
+        protected void clearValue() {
+            valueField.setFullText("");
+        }
+
+        public String getValue() {
+            String result = valueField.getFullText().trim();
+            return (result.length() > 0 ? result : null);
+        }
+    }
+
 
     private class TaskStatusField extends CompletingField {
 
