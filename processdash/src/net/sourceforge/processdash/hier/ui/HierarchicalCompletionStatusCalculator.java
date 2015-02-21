@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.hier.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,6 +35,7 @@ import java.util.Vector;
 
 import javax.swing.SwingUtilities;
 
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
@@ -42,6 +44,7 @@ import net.sourceforge.processdash.data.repository.RemoteException;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.PropertyKeyHierarchy;
 import net.sourceforge.processdash.util.LightweightSet;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 /** Looks at a hierarchy of tasks, and determines the completion status
  * of each task.
@@ -63,9 +66,9 @@ public class HierarchicalCompletionStatusCalculator implements DataListener {
 
     private PropertyKey root;
 
-    private Map statusIn;
+    private Map<String, Date> statusIn;
 
-    private Map statusOut;
+    private Map<String, Date> statusOut;
 
     private Set eventListeners;
 
@@ -88,14 +91,15 @@ public class HierarchicalCompletionStatusCalculator implements DataListener {
     }
 
     public boolean isCompleted(String path) {
-        Boolean result = null;
-        if (statusOut != null)
-            result = (Boolean) statusOut.get(path);
+        return getDateCompleted(path) != null;
+    }
 
-        if (result == null)
-            return false;
+    /** @since 2.1.7 */
+    public Date getDateCompleted(String path) {
+        if (statusOut == null)
+            return null;
         else
-            return result.booleanValue();
+            return statusOut.get(path);
     }
 
     public void reloadHierarchy() {
@@ -141,16 +145,12 @@ public class HierarchicalCompletionStatusCalculator implements DataListener {
         if (dataName.endsWith(COMPLETED)) {
             String path = dataName.substring(0, dataName.length()
                     - COMPLETED.length());
-            SimpleData value = e.getValue();
-            Object newValue;
-            if (value == null)
-                newValue = null;
-            else if (value.test())
-                newValue = Boolean.TRUE;
-            else
-                newValue = Boolean.FALSE;
-            Object oldValue = statusIn.put(path, newValue);
-            if (oldValue != newValue)
+            SimpleData dataValue = e.getValue();
+            Date newValue = null;
+            if (dataValue instanceof DateData && dataValue.test())
+                newValue = ((DateData) dataValue).getValue();
+            Date oldValue = statusIn.put(path, newValue);
+            if (NullSafeObjectUtils.EQ(oldValue, newValue) == false)
                 return true;
         }
 
@@ -177,24 +177,29 @@ public class HierarchicalCompletionStatusCalculator implements DataListener {
             }});
     }
 
-    private boolean recalc(PropertyKey key) {
+    private Date recalc(PropertyKey key) {
         int numChildren = hierarchy.getNumChildren(key);
         String path = key.path();
 
-        boolean childResult = true;
-        for (int i = numChildren; i-- > 0;)
-            childResult = recalc(hierarchy.getChildKey(key, i)) && childResult;
-
-        Boolean myStatus = (Boolean) statusIn.get(path);
-        if (myStatus == null) {
-            if (numChildren == 0)
-                myStatus = Boolean.FALSE;
-            else
-                myStatus = Boolean.valueOf(childResult);
+        Date childResult = null;
+        if (numChildren > 0) {
+            childResult = recalc(hierarchy.getChildKey(key, 0));
+            for (int i = numChildren; i-- > 1;)
+                childResult = getMaxCompletionDate(childResult,
+                    recalc(hierarchy.getChildKey(key, i)));
         }
 
+        Date myStatus = statusIn.get(path);
+        if (myStatus == null)
+            myStatus = childResult;
+
         statusOut.put(path, myStatus);
-        return myStatus.booleanValue();
+        return myStatus;
+    }
+
+    private Date getMaxCompletionDate(Date a, Date b) {
+        if (a == null || b == null) return null;
+        return (a.compareTo(b) > 0 ? a : b);
     }
 
     private void fireActionPerformed() {

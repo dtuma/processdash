@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2014 Tuma Solutions, LLC
+// Copyright (C) 1999-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,8 +30,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.TextAttribute;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -45,10 +48,12 @@ import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -57,9 +62,10 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.util.DateUtils;
 
 public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
-        ActionListener {
+        ActionListener, PropertyChangeListener {
 
     private ProcessDashboard dash;
 
@@ -85,6 +91,8 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private boolean useStrikethrough;
 
+    private long completionAge;
+
 
     // constants for use with the fonts[] array
 
@@ -93,6 +101,12 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
     private static final int SELECTED = 1;
 
     private static final int COMPLETED = 2;
+
+
+    private static final String SETTING_NAME = "userPref.hierarchyMenu.hiddenTaskAge";
+
+    private static final Resources resources = Resources
+            .getDashBundle("HierarchyEditor.Navigator");
 
 
     public HierarchyNavigator(ProcessDashboard dash, JMenuBar menuBar,
@@ -110,18 +124,20 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
         this.pathSepBorder = BorderFactory.createEmptyBorder(0, 1, 0, 2);
         this.pathSepWidth = getPathSep().getPreferredSize().width;
         this.useStrikethrough = Settings.getBool(STRIKETHROUGH_SETTING, true);
+        readCompletionAgeSetting();
 
         rebuildMenus();
 
         statusCalc.addActionListener(this);
         menuBar.addComponentListener(resizeHandler);
+        InternalSettings.addPropertyChangeListener(SETTING_NAME, this);
     }
 
     public void hierarchyChanged() {
         statusCalc.reloadHierarchy();
         if (hierMenus.get(0).updateToMatchHierarchy())
             relayoutMenus();
-        hierMenus.get(0).updateCompletionCheckmarks();
+        recalcCompletionStatus();
     }
 
     public void activeTaskChanged() {
@@ -131,7 +147,14 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == statusCalc)
-            hierMenus.get(0).updateCompletionCheckmarks();
+            recalcCompletionStatus();
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (SETTING_NAME.equals(evt.getPropertyName())) {
+            readCompletionAgeSetting();
+            recalcCompletionStatus();
+        }
     }
 
     public boolean selectNext() {
@@ -162,7 +185,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
         if (!hierMenus.isEmpty())
             hierMenus.get(0).dispose();
         hierMenus.clear();
-        new HierMenu(PropertyKey.ROOT);
+        new HierMenu(PropertyKey.ROOT, getGlobalCutoffDate());
         relayoutMenus();
     }
 
@@ -213,6 +236,25 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
         return result;
     }
 
+    private void recalcCompletionStatus() {
+        hierMenus.get(0).recalcCompletionStatus(getGlobalCutoffDate());
+    }
+
+    private Date getGlobalCutoffDate() {
+        Date eff = EVCalculator.getFixedEffectiveDate();
+        long now = (eff != null ? eff.getTime() : System.currentTimeMillis());
+        return new Date(now - completionAge);
+    }
+
+    private void readCompletionAgeSetting() {
+        try {
+            String setting = Settings.getVal(SETTING_NAME, "14");
+            completionAge = Integer.parseInt(setting) * DateUtils.DAYS;
+        } catch (Exception e) {
+            completionAge = 14 * DateUtils.DAYS;
+        }
+    }
+
 
     private class ResizeHandler extends ComponentAdapter {
         @Override
@@ -234,7 +276,9 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
 
         HierMenuItem selectedItem;
 
-        public HierMenu(PropertyKey node) {
+        Date cutoffDate;
+
+        public HierMenu(PropertyKey node, Date parentCutoffDate) {
             this.node = node;
             String path = node.path();
             if (path.length() > 0)
@@ -245,10 +289,13 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             setNarrowingEnabled(false);
             ToolTipTimingCustomizer.INSTANCE.install(this);
             hierMenus.add(this);
-            addMenuItemsForChildren();
+            calculateCutoffDate(parentCutoffDate);
+            createMenuItemsForChildren();
             if (allItems.isEmpty()) {
                 activeTaskModel.setNode(node);
                 relayoutMenus();
+            } else {
+                addMenuItemsForChildren();
             }
         }
 
@@ -286,9 +333,17 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             ToolTipTimingCustomizer.INSTANCE.uninstall(this);
         }
 
-        private void addMenuItemsForChildren() {
-            JMenu destMenu = this;
-            int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
+        private void calculateCutoffDate(Date parentCutoffDate) {
+            this.cutoffDate = parentCutoffDate;
+            Date myCompletionDate = statusCalc.getDateCompleted(node.path());
+            if (myCompletionDate != null) {
+                long myCutoffTime = myCompletionDate.getTime() - completionAge;
+                if (myCutoffTime < parentCutoffDate.getTime())
+                    this.cutoffDate = new Date(myCutoffTime);
+            }
+        }
+
+        private void createMenuItemsForChildren() {
             int numChildren = hier.getNumChildren(node);
             int selectedChild = hier.getSelectedChild(node);
             HierMenuItem selectedItem = null;
@@ -300,7 +355,43 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
                 if (i == selectedChild || selectedItem == null)
                     selectedItem = menuItem;
                 allItems.add(menuItem);
+            }
 
+            setSelectedItem(selectedItem);
+        }
+
+        private void addMenuItemsForChildren() {
+            List visibleItems = new ArrayList();
+            List hiddenItems = new ArrayList();
+            for (HierMenuItem item : allItems)
+                (item.hidden ? hiddenItems : visibleItems).add(item);
+
+            removeAll();
+            int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
+            buildSegmentedMenu(this, visibleItems, maxItemsPerMenu);
+
+            if (!hiddenItems.isEmpty()) {
+                if (visibleItems.isEmpty()) {
+                    // if ALL of the items are hidden, just add them to the
+                    // regular menu.
+                    buildSegmentedMenu(this, hiddenItems, maxItemsPerMenu);
+
+                } else {
+                    // otherwise, create a submenu and add the hidden items
+                    // there. Insert a separator if needed.
+                    if (!(this.getMenuComponent(0) instanceof HierMoreSubmenu))
+                        this.insertSeparator(0);
+                    JMenu completedItemsMenu = new HierCompletedSubmenu();
+                    this.insert(completedItemsMenu, 0);
+                    buildSegmentedMenu(completedItemsMenu, hiddenItems,
+                        maxItemsPerMenu);
+                }
+            }
+        }
+
+        private void buildSegmentedMenu(JMenu destMenu,
+                List<HierMenuItem> menuItems, int maxItemsPerMenu) {
+            for (HierMenuItem menuItem : menuItems) {
                 if (destMenu.getItemCount() + 1 >= maxItemsPerMenu) {
                     JMenu moreMenu = new HierMoreSubmenu();
                     destMenu.insert(moreMenu, 0);
@@ -310,8 +401,6 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
 
                 destMenu.add(menuItem);
             }
-
-            setSelectedItem(selectedItem);
         }
 
         private boolean setSelectedItem(HierMenuItem item) {
@@ -333,7 +422,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             // dispose and recreate the subsequent menus
             if (nextMenu != null)
                 nextMenu.dispose();
-            nextMenu = new HierMenu(item.node);
+            nextMenu = new HierMenu(item.node, this.cutoffDate);
             recalcTextTruncation();
             return true;
         }
@@ -344,11 +433,25 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
                     || (nextMenu != null && nextMenu.updateToMatchActiveTask());
         }
 
-        private void updateCompletionCheckmarks() {
+        private void recalcCompletionStatus(Date parentCutoffDate) {
+            // determine the cutoff date that should be used for deciding
+            // whether items should be moved to the "old completed" menu
+            calculateCutoffDate(parentCutoffDate);
+
+            // update the completion status of each of our menu items
+            boolean hiddenStatusChanged = false;
             for (HierMenuItem item : allItems)
-                item.updateCompletionCheckmark();
+                if (item.updateCompletionStatus())
+                    hiddenStatusChanged = true;
+
+            // if some of the menu items moved from hidden to non-hidden,
+            // rebuild the menu to account for the change
+            if (hiddenStatusChanged)
+                addMenuItemsForChildren();
+
+            // recurse and update completion statuses for the next menu
             if (nextMenu != null)
-                nextMenu.updateCompletionCheckmarks();
+                nextMenu.recalcCompletionStatus(this.cutoffDate);
         }
 
         private boolean updateToMatchHierarchy() {
@@ -360,6 +463,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
                 if (nextMenu != null)
                     nextMenu.dispose();
                 nextMenu = null;
+                createMenuItemsForChildren();
                 addMenuItemsForChildren();
                 if (!origText.equals(getText()))
                     needsResize = true;
@@ -431,7 +535,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
 
         private PropertyKey node;
 
-        private boolean selected, completed;
+        private boolean selected, completed, hidden;
 
         public HierMenuItem(HierMenu menu, PropertyKey node) {
             this.menu = menu;
@@ -439,7 +543,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             this.selected = this.completed = false;
             setText(node.name());
             setHorizontalTextPosition(SwingConstants.LEFT);
-            updateCompletionCheckmark();
+            updateCompletionStatus();
             addActionListener(this);
         }
 
@@ -448,9 +552,13 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             updateAppearance();
         }
 
-        private void updateCompletionCheckmark() {
-            completed = statusCalc.isCompleted(node.path());
+        private boolean updateCompletionStatus() {
+            Date completionDate = statusCalc.getDateCompleted(node.path());
+            completed = (completionDate != null);
+            boolean oldHidden = hidden;
+            hidden = completed && !completionDate.after(menu.cutoffDate);
             updateAppearance();
+            return (oldHidden != hidden);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -475,6 +583,15 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
     private class HierMoreSubmenu extends JMenu {
         private HierMoreSubmenu() {
             super(Resources.getGlobalBundle().getDlgString("More"));
+            setFont(fonts[PLAIN]);
+        }
+    }
+
+
+    private class HierCompletedSubmenu extends JMenu {
+        private HierCompletedSubmenu() {
+            super(resources.getString(completionAge == 0 ? "Completed_Items"
+                    : "Older_Completed_Items"));
             setFont(fonts[PLAIN]);
         }
     }

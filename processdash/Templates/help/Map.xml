@@ -178,6 +178,8 @@
                url="Topics/AdvancedTopics/PreferencesTool.html#i18nLevel" />
         <mapID target="prefs.largeFonts"
                url="Topics/AdvancedTopics/PreferencesTool.html#largeFonts" />
+        <mapID target="prefs.hiddenTaskAge"
+               url="Topics/AdvancedTopics/PreferencesTool.html#hideCompletedTasks" />
         <mapID target="prefs.addOns"
                url="Topics/AdvancedTopics/PreferencesTool.html#addOns" />
         <mapID target="prefs.backups"

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -89,8 +90,9 @@ public class BoundForm extends BoundMap {
 
     protected void addFormComponent(JComponent component, Element xml) {
         String label = getAttrOrResource(xml, null, "Label", null);
+        String suffix = getAttrOrResource(xml, null, "Suffix", null);
 
-        addFormComponent(component, label);
+        addFormComponent(component, label, suffix);
 
         String tooltip = getAttrOrResource(xml, null, "Tooltip", null);
         if (StringUtils.hasValue(tooltip))
@@ -131,6 +133,14 @@ public class BoundForm extends BoundMap {
                                         null,
                                         this.get(property)));
         }
+    }
+
+    protected void addFormComponent(JComponent component, String label,
+            String suffix) {
+        if (suffix != null)
+            component = BoxUtils.hbox(component, 5, suffix);
+
+        addFormComponent(component, label);
     }
 
     protected void addFormComponent(JComponent component, String label) {
