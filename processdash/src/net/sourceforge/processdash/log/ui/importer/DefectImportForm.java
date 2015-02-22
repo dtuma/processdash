@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
@@ -321,11 +322,20 @@ public class DefectImportForm extends BoundForm {
         String settingValue = Settings.getVal(fullSettingName);
         if (!StringUtils.hasValue(settingValue))
             settingValue = System.getProperty(settingName);
+        if (!StringUtils.hasValue(settingValue))
+            settingValue = getDefaultValueForSetting(settingName);
 
         if (persistentValues == null)
             persistentValues = new HashMap();
         persistentValues.put(id, fullSettingName);
         put(id, settingValue);
+    }
+
+    protected String getDefaultValueForSetting(String settingName) {
+        String dataName = "/Defect_Import/" + formId + "/Default "
+                + settingName;
+        SimpleData sd = dashboardContext.getData().getSimpleValue(dataName);
+        return (sd != null ? sd.format() : null);
     }
 
 

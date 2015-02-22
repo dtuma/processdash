@@ -1,6 +1,7 @@
 <defect-import-form>
 
     <textfield id="url"
+        width="25"
         setting="url" />
 
     <review-board
@@ -22,6 +23,7 @@
 
     <textfield id="review_request_id"
         resourceId="review_request_id2"
+        width="10"
         dataType="integer" />
 
     <default-inj-phase-selector />
