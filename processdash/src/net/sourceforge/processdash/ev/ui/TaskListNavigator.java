@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,8 @@ import net.sourceforge.processdash.data.repository.RemoteException;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListMerged;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.i18n.Resources;
@@ -104,6 +106,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     private String tooltipPrefix;
 
     private Set listeningToData;
+
+    private Set dependentTaskListNames;
 
     private JMenu overflowMenu;
 
@@ -158,6 +162,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     private class TaskListOpener extends SwingWorker {
 
         public TaskListOpener() {
+            currentTaskListOpener = this;
             menuBar.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         }
 
@@ -166,6 +171,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 return resources.getString("Navigator.Errors.None_Selected");
 
             String displayName = EVTaskList.cleanupName(taskListName);
+            dependentTaskListNames = new HashSet();
+            dependentTaskListNames.add(taskListName);
 
             for (int i = 5;   i-- > 0; ) {
                 try {
@@ -176,11 +183,16 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                         return resources.format(
                                 "Navigator.Errors.Not_Found_FMT", displayName);
 
-                    if (!(tl instanceof EVTaskListData))
+                    if (tl instanceof EVTaskListData) {
+                        ((EVTaskListData) tl).recalcLeavesOnly();
+                    } else if (tl instanceof EVTaskListRollup) {
+                        EVTaskListRollup tlr = (EVTaskListRollup) tl;
+                        addDependentTaskListNames(tlr);
+                        tlr.recalcLeavesOnly();
+                    } else
                         return resources.format("Navigator.Errors.Invalid_FMT",
                                 displayName);
 
-                    ((EVTaskListData) tl).recalcLeavesOnly();
                     tl.recalc();
 
                     return tl;
@@ -194,7 +206,19 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                     displayName);
         }
 
+        private void addDependentTaskListNames(EVTaskListRollup tlr) {
+            for (EVTaskList child : tlr.getSubSchedules()) {
+                dependentTaskListNames.add(child.getTaskListName());
+                if (child instanceof EVTaskListRollup)
+                    addDependentTaskListNames((EVTaskListRollup) child);
+            }
+        }
+
         public void finished() {
+            if (currentTaskListOpener != this)
+                return;
+            currentTaskListOpener = null;
+
             menuBar.setCursor(null);
 
             if (get() instanceof EVTaskList)
@@ -204,6 +228,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         }
 
     }
+    private volatile TaskListOpener currentTaskListOpener = null;
 
 
     public void hierarchyChanged() {
@@ -528,7 +553,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == EVTaskList.class && e.getActionCommand() != null
-                && e.getActionCommand().equals(taskListName))
+                && dependentTaskListNames != null
+                && dependentTaskListNames.contains(e.getActionCommand()))
             reloadTaskList();
         else if (e.getActionCommand() != null)
             activeTaskModel.setPath(e.getActionCommand());
@@ -671,7 +697,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
             DefaultMutableTreeNode root = (DefaultMutableTreeNode) getRoot();
 
             String[] taskListNames = EVTaskList.findTaskLists(
-                    context.getData(), true, false);
+                    context.getData(), false, false);
             if (taskListNames == null || taskListNames.length == 0)
                 throw new NoTaskListsFoundException();
 
@@ -707,6 +733,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
             String taskListName = obj.getValue();
             EVTaskList tl = EVTaskList.open(taskListName, context.getData(),
                     context.getHierarchy(), context.getCache(), false);
+            if (tl instanceof EVTaskListRollup)
+                tl = new EVTaskListMerged(tl, false, true, null);
             if (tl != null)
                 copyNodes(node, (EVTask) tl.getRoot());
             nodeStructureChanged(node);

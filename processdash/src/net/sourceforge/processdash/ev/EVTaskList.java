@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -592,7 +592,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (EVMetadata.Baseline.SNAPSHOT_ID.equals(key))
             setBaselineDataSource(getBaselineSnapshot());
 
-        if (RECALC_METDATADATA.contains(key))
+        if (RECALC_METDATADATA.contains(key) && recalcTimer != null)
             recalcTimer.restart();
 
         return result;
@@ -774,6 +774,10 @@ public class EVTaskList extends AbstractTreeTableModel
             while (i.hasNext())
                 ((RecalcListener) i.next()).evRecalculated(e);
         }
+    }
+    void useFastRecalcInterval() {
+        if (recalcTimer != null)
+            recalcTimer.setInitialDelay(10);
     }
     public void actionPerformed(ActionEvent e) {
         if (recalcTimer != null && e.getSource() == recalcTimer &&

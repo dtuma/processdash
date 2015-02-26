@@ -187,7 +187,7 @@ public class EVTaskListRollup extends EVTaskList {
         persistDataValue(newName, data, TASK_LISTS_DATA_NAME, list);
     }
 
-    public List getSubSchedules() {
+    public List<EVTaskList> getSubSchedules() {
         return Collections.unmodifiableList(evTaskLists);
     }
 
@@ -276,6 +276,11 @@ public class EVTaskListRollup extends EVTaskList {
     protected void finishMovingTaskUp(int pos) {
         Object taskList = evTaskLists.remove(pos);
         evTaskLists.insertElementAt(taskList, pos-1);
+    }
+
+    public void recalcLeavesOnly() {
+        this.calculator = new EVCalculatorLeavesOnlyRollup(this);
+        this.useFastRecalcInterval();
     }
 
     protected void fireEvRecalculated() {

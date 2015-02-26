@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -335,8 +335,7 @@ public class EVTaskListData extends EVTaskList
 
     public void recalcLeavesOnly() {
         this.calculator = new EVCalculatorLeavesOnly((EVTask) root);
-        if (this.recalcTimer != null)
-            this.recalcTimer.setInitialDelay(10);
+        useFastRecalcInterval();
     }
 
     public void setValueAt(Object value, Object node, int column) {

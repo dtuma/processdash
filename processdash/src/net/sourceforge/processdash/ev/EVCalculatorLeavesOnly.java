@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ public class EVCalculatorLeavesOnly extends EVCalculator {
         return defaultOrdinal;
     }
 
-    private void resetData(EVTask task) {
+    static void resetData(EVTask task) {
         task.actualDirectTime = task.planValue = 1;
         if (task.isEVLeaf())
             task.resetActualDate();

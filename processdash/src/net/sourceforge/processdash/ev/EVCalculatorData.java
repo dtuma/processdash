@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2013 Tuma Solutions, LLC
+// Copyright (C) 2003-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ public class EVCalculatorData extends EVCalculator {
     private Date effectiveDate, completionDate;
     private boolean rezeroAtStartDate;
     private boolean checkForFutureTimeLogDates;
+    private boolean disableConfidenceIntervals;
     private EVForecastDateCalculator replanDateCalculator;
     private EVForecastDateCalculator forecastDateCalculator;
 
@@ -186,6 +187,10 @@ public class EVCalculatorData extends EVCalculator {
                 (task.getChild(i), defaultOrdinal);
 
         return defaultOrdinal;
+    }
+
+    protected void setDisableConfidenceIntervals(boolean disabled) {
+        disableConfidenceIntervals = disabled;
     }
 
     protected void resetData() {
@@ -475,7 +480,7 @@ Value to recalculate
 
     private void createCostConfidenceInterval() {
         ConfidenceInterval costInterval = null;
-        if (completionDate == null)
+        if (completionDate == null && !disableConfidenceIntervals)
             costInterval = costIntervalProvider.getConfidenceInterval(taskList);
         schedule.getMetrics().setCostConfidenceInterval(costInterval);
     }
@@ -518,8 +523,8 @@ Value to recalculate
 
 
     private void createTimeErrConfidenceInterval() {
-        ConfidenceInterval timeErrInterval =
-            timeErrIntervalProvider.getConfidenceInterval(taskList);
+        ConfidenceInterval timeErrInterval = (disableConfidenceIntervals ? null
+                : timeErrIntervalProvider.getConfidenceInterval(taskList));
         schedule.getMetrics().setTimeErrConfidenceInterval(timeErrInterval);
     }
 
