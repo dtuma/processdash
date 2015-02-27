@@ -1,8 +1,0 @@
-= Appraisal cost of quality query
-
-qf=../compProj.rpt
-
-title=Appraisal Cost of Quality
-
-d1==% Appraisal COQ
-h1==Appraisal Cost %

@@ -1,9 +1,0 @@
-= Size Estimating Error query
-
-qf=../compProj.rpt
-
-title=Size Estimating Error
-
-h1==% Error
-d1==Size Estimating Error
-f1==100%

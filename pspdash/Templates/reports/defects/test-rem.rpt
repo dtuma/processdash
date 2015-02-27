@@ -1,7 +1,0 @@
-= Defects Removed in Test query
-
-qf=defects.rpt
-
-title=Defects Removed in Test
-
-d1==Test/Defect Density

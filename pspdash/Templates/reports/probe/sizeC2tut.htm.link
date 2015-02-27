@@ -1,7 +1,0 @@
-average.shtm
-x=C2
-purpose=Size
-xvar=estimated new and changed LOC
-yvar=new and changed LOC
-input=estimated object LOC
-output=estimated new and changed LOC

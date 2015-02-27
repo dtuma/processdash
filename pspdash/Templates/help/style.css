@@ -1,8 +1,0 @@
-/* stylesheet for help content when the PSP add-on is NOT installed */
-.sepnotice { display: block }
-sup { font-size: smaller }
-sub { font-size: smaller }
-blockquote.ital { font-style: italic; font-family: sans-serif; font-size: 95% }
-
-.ifpsp { display:none; color:white; font-size:0.1pt; margin:0pt }
-.unlesspsp { }

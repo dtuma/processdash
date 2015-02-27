@@ -1,2 +1,0 @@
-pspdash/data/IE*.java
-pspdash/data/OLEDB*.java

@@ -1,9 +1,0 @@
-= Yield query
-
-qf=../compProj.rpt
-
-title=Defect Removal Yield
-
-d1==Yield
-h1==Yield %
-f1==100%

@@ -1,9 +1,0 @@
-= % Postmortem Time query
-
-qf=../compProj.rpt
-
-title==% Postmortem Time
-units==%
-
-d1==PM/%/Time
-h1==%

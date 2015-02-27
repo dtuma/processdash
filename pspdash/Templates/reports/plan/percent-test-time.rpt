@@ -1,9 +1,0 @@
-= % Test Time query
-
-qf=../compProj.rpt
-
-title==% Test Time
-units==%
-
-d1==Test/%/Time
-h1==%

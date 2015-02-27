@@ -1,9 +1,0 @@
-= Time Estimating Error query
-
-qf=../compProj.rpt
-
-title=Time Estimating Error
-
-h1==%
-d1==Time Estimating Error
-f1==100%

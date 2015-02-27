@@ -1,8 +1,0 @@
-= Failure cost of quality query
-
-qf=../compProj.rpt
-
-title=Failure Cost of Quality
-
-d1==% Failure COQ
-h1==Failure Cost %

@@ -1,9 +1,0 @@
-= % Compile Time query
-
-qf=../compProj.rpt
-
-title==% Compile Time
-units==%
-
-d1==Compile/%/Time
-h1==%

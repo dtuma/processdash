@@ -1,7 +1,0 @@
-= Total Defect Density query
-
-qf=defects.rpt
-
-title=Total Defects
-
-d1==Defect Density

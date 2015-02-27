@@ -1,7 +1,0 @@
-= Defects Removed in Code Review query
-
-qf=defects.rpt
-
-title=Defects Removed in Code Review
-
-d1==Code Review/Defect Density

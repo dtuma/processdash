@@ -1,7 +1,0 @@
-= Defects Injected in Code query
-
-qf=defects.rpt
-
-title=Defects Injected in Code
-
-d1==Code/Defect Injection Density
