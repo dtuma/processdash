@@ -1367,7 +1367,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private void copyRelaunchFiles(File srcDir, File destDir)
             throws IOException {
         copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
-            "workflow.xml", "milestones.xml", "tabs.xml");
+            "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml");
         writeMergedUserDump(srcDir, destDir);
     }
 
