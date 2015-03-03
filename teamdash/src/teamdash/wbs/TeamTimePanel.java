@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -64,6 +65,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -119,6 +122,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showBalancedBar;
     /** Should the bars for each team member be shown, or hidden */
     private boolean showTeamMemberBars;
+    /** IDs of individuals who should receive bars, or null for no filter */
+    private Set<Integer> subteamFilter;
+    /** The name to display for the filtered subteam */
+    private String subteamName;
     /** The panel displaying milestone commit dates */
     private CommitDatePane commitDatePane;
     /** Should the bars show total project data, or just remaining project data */
@@ -308,6 +315,40 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
     }
 
+    public void applySubteamFilter(Set<Integer> subteamFilter,
+            String subteamName) {
+        this.subteamFilter = subteamFilter;
+        this.subteamName = subteamName;
+        this.teamList.setSubteamFilter(subteamFilter);
+
+        rebuildPanelContents();
+
+        ChangeEvent evt = new ChangeEvent(this);
+        for (ChangeListener l : listenerList.getListeners(ChangeListener.class))
+            l.stateChanged(evt);
+    }
+
+    public Set<Integer> getSubteamFilter() {
+        return subteamFilter;
+    }
+
+    public boolean isSubteamFiltered() {
+        return subteamFilter != null;
+    }
+
+    private String getTeamName() {
+        return (subteamName != null ? subteamName : "Team");
+    }
+
+    public void addSubteamFilterListener(ChangeListener l) {
+        listenerList.add(ChangeListener.class, l);
+    }
+
+    public void removeSubteamFilterListener(ChangeListener l) {
+        listenerList.remove(ChangeListener.class, l);
+    }
+
+
     private void rebuildPanelContents() {
         removeAll();  // remove all components from this container.
         teamMemberBars.clear();
@@ -379,6 +420,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         // create horizontal progress bars for each team member
         for (int i = 0;   i < teamMembers.size();   i++) {
             TeamMember m = (TeamMember) teamMembers.get(i);
+
+            // if a subteam filter is in place, and this individual is not
+            // included, do not create a bar for them.
+            if (subteamFilter != null && !subteamFilter.contains(m.getId()))
+                continue;
 
             // if we're only showing remaining time, and this team member's
             // schedule ends before the effective date, don't show a bar for
@@ -513,7 +559,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
      * wants it to be included in the calculation; otherwise return 0.
      */
     protected double getUnassignedTime() {
-        if (includeUnassigned == false)
+        if (includeUnassigned == false || subteamFilter != null)
             return 0;
         else if (balanceThroughMilestone > 0)
             return getUnassignedTimeThroughMilestone();
@@ -564,8 +610,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         } else {
             balancedLength = balancedDate.getTime() - leftTimeBoundary;
             maxScheduleLength = Math.max(maxScheduleLength, balancedLength);
-            String message = "Balanced Team " + getDateQualifier() + ": " +
-                dateFormat.format(balancedDate);
+            String message = "Balanced " + getTeamName() + " "
+                    + getDateQualifier() + ": "
+                    + dateFormat.format(balancedDate);
             if (balanceThroughMilestoneName != null) {
                 message = balanceThroughMilestoneName + " - Optimal " + message;
             }
@@ -1484,8 +1531,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         private Map<Integer, Double> teamMilestoneEffort;
 
         public TeamMilestoneBar() {
-            super(new TeamMember("Team (Balanced)", " Team ", Color.darkGray,
-                    0, teamList.getZeroDay()));
+            super(new TeamMember(getTeamName() + " (Balanced)", " Team ",
+                    Color.darkGray, 0, teamList.getZeroDay()));
             effectivePastHours = 0;
             hideTerminalMilestoneMark = true;
 
@@ -1522,7 +1569,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
         public void recalc(double totalHours) {
-            if (includeUnassigned)
+            if (includeUnassigned && subteamFilter == null)
                 addHoursToTeamMilestoneEffort(getUnassignedMilestoneTime());
 
             recalc();

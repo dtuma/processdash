@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** The list of team members */
     private ArrayList<TeamMember> teamMembers = new ArrayList();
+
+    /** An optional filter to use for date calculations */
+    private Set<Integer> subteamFilter;
 
     /** True if we should always keep an empty team member at the end of
      * the list */
@@ -281,7 +284,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     private int getEarliestStartWeek() {
         int result = Integer.MAX_VALUE;
         for (int i = getRowCount();  i-- > 0; )
-            result = Math.min(result, getScheduleAt(i).getStartWeek());
+            if (!subteamFilterExcludesRow(i))
+                result = Math.min(result, getScheduleAt(i).getStartWeek());
         if (result == Integer.MAX_VALUE)
             return 0;
         else
@@ -688,6 +692,15 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             getScheduleAt(i).setZeroDay(result);
     }
 
+    public void setSubteamFilter(Set<Integer> filter) {
+        this.subteamFilter = filter;
+    }
+
+    private boolean subteamFilterExcludesRow(int row) {
+        return (subteamFilter != null
+                && !subteamFilter.contains(get(row).getId()));
+    }
+
     public Date getDateForEffort(double hours) {
 
         int week = getEarliestStartWeek();
@@ -697,6 +710,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             boolean inMaintenancePeriod = true;
 
             for (int i = getRowCount();  i-- > 0; ) {
+                if (subteamFilterExcludesRow(i))
+                    continue;
                 WeekData wd = getScheduleAt(i).getWeekData(week);
                 if (wd.isInsideSchedule())
                     hoursThisWeek += wd.getHours();

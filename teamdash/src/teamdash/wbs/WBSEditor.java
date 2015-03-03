@@ -131,6 +131,7 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
 import teamdash.SaveListener;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.team.TeamMemberListEditor;
@@ -1072,6 +1073,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowPlanMenuItem(g));
         }
         if (isMode(MODE_PLAIN)) {
+            result.add(new SubteamBalancingMenu(
+                    teamProject.getTeamMemberList(), teamTimePanel));
             result.add(new BottomUpShowBalancedTeamBar());
             result.add(new BottomUpShowHoursPerWeekMenuItem());
             result.add(new BottomUpIncludeUnassignedMenuItem());
@@ -2788,11 +2791,16 @@ public class WBSEditor implements WindowListener, SaveListener,
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             addChangeListener(this);
+            teamTimePanel.addSubteamFilterListener(this);
             load("teamTimePanel.includeUnassignedTime");
+            stateChanged(null);
         }
 
         public void stateChanged(ChangeEvent e) {
-            teamTimePanel.setIncludeUnassigned(isSelected());
+            if (e == null || e.getSource() == teamTimePanel)
+                setEnabled(teamTimePanel.isSubteamFiltered() == false);
+            else
+                teamTimePanel.setIncludeUnassigned(isSelected());
         }
     }
 
