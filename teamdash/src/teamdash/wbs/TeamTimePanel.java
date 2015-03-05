@@ -332,12 +332,21 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         return subteamFilter;
     }
 
+    public String getSubteamName() {
+        return subteamName;
+    }
+
     public boolean isSubteamFiltered() {
         return subteamFilter != null;
     }
 
     private String getTeamName() {
-        return (subteamName != null ? subteamName : "Team");
+        if (subteamFilter == null)
+            return "Team";
+        else if (subteamName == null)
+            return "Subteam";
+        else
+            return subteamName;
     }
 
     public void addSubteamFilterListener(ChangeListener l) {

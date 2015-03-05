@@ -69,6 +69,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     /** The list of team members */
     private ArrayList<TeamMember> teamMembers = new ArrayList();
 
+    /** A model that holds information about named subteams */
+    private SubteamDataModel subteamModel;
+
     /** An optional filter to use for date calculations */
     private Set<Integer> subteamFilter;
 
@@ -120,6 +123,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** Creates an empty team member list. */
     public TeamMemberList() {
+        subteamModel = new SubteamDataModel();
         isDirty = false;
         startOnDayOfWeek = Calendar.SUNDAY;
         referenceDate = new Date();
@@ -130,6 +134,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     /** Create a team member list from the information in the given
      * XML element.  */
     public TeamMemberList(Element e) {
+        subteamModel = new SubteamDataModel();
+
         // read the "starting day of the week" from the XML, or choose a default
         if (e.hasAttribute(DAY_OF_WEEK_ATTR))
             startOnDayOfWeek = XMLUtils.getXMLInt(e, DAY_OF_WEEK_ATTR);
@@ -159,6 +165,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** Create a cloned copy of the given team member list */
     public TeamMemberList(TeamMemberList list) {
+        this.subteamModel = list.subteamModel;
         this.teamMembers = copyTeamMemberList(list.teamMembers);
         this.readOnly = list.readOnly;
         this.onlyEditableFor = list.onlyEditableFor;
@@ -167,6 +174,10 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         this.weekOffset = getDefaultWeekOffset();
         this.isDirty = false;
         recalcZeroDay();
+    }
+
+    public SubteamDataModel getSubteamModel() {
+        return subteamModel;
     }
 
     public void setReadOnly(boolean readOnly) {
