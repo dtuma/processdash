@@ -39,6 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JMenu;
@@ -55,6 +57,7 @@ import javax.swing.plaf.metal.MetalIconFactory;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.CheckboxList;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 
 import teamdash.wbs.IconFactory;
@@ -78,6 +81,9 @@ public class SubteamBalancingMenu extends JMenu implements
     /** A user interface for selecting a group of individuals */
     private PersonSelector personSelector;
 
+    /** A model for tracking the name of the active subteam */
+    private ComboBoxModel activeSubteamName;
+
     /** Icons for indicating which subteam is selected/inactive */
     private Icon selectedIcon, unselectedIcon;
 
@@ -87,7 +93,7 @@ public class SubteamBalancingMenu extends JMenu implements
 
     public SubteamBalancingMenu(TeamMemberList teamList,
             TeamTimePanel teamTimePanel, ChangeListener dirtyListener,
-            JMenuItem showTimePanelMenu) {
+            JMenuItem showTimePanelMenu, GuiPrefs prefs) {
         super(resources.getString("Balance_Menu"));
         this.teamList = teamList;
         this.teamTimePanel = teamTimePanel;
@@ -95,12 +101,21 @@ public class SubteamBalancingMenu extends JMenu implements
         this.showTimePanelHandler = new ShowTimePanelHandler(showTimePanelMenu);
         this.personSelector = new PersonSelector();
 
+        // restore the active subteam from the last editing session
+        activeSubteamName = new DefaultComboBoxModel();
+        prefs.load("teamTimePanel.activeSubteam", activeSubteamName);
+        String previousSubteam = (String) activeSubteamName.getSelectedItem();
+        if (previousSubteam != null)
+            applyNamedSubteam(previousSubteam);
+
+        // retrieve icons used for indicating the selected subteam
         selectedIcon = UIManager.getIcon("RadioButtonMenuItem.checkIcon");
         if (selectedIcon == null)
             selectedIcon = MetalIconFactory.getRadioButtonMenuItemIcon();
         unselectedIcon = IconFactory.getEmptyIcon(selectedIcon.getIconWidth(),
             selectedIcon.getIconHeight());
 
+        // create menus for creating and activating subteams
         add(new BalanceEntireTeam());
         add(new SelectIndividuals());
 
@@ -188,6 +203,7 @@ public class SubteamBalancingMenu extends JMenu implements
         }
 
         protected boolean isActiveSubteamMenu() {
+            activeSubteamName.setSelectedItem(teamTimePanel.getSubteamName());
             return !teamTimePanel.isSubteamFiltered();
         }
 

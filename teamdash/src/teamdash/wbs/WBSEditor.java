@@ -1075,7 +1075,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_PLAIN)) {
             result.add(new SubteamBalancingMenu(
                     teamProject.getTeamMemberList(), teamTimePanel,
-                    dirtyListener, showTeamTimePanelMenuItem));
+                    dirtyListener, showTeamTimePanelMenuItem, guiPrefs));
             result.add(new BottomUpShowBalancedTeamBar());
             result.add(new BottomUpShowHoursPerWeekMenuItem());
             result.add(new BottomUpIncludeUnassignedMenuItem());
