@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ public class TeamMemberClipData implements Serializable {
             StringWriter out = new StringWriter();
             out.write("<" + DOC_TAG + ">\n");
             for (TeamMember t : teamMembers) {
-                t.getAsXML(out, true);
+                t.getAsXML(out, true, null);
             }
             out.write("</" + DOC_TAG + ">\n");
             return out.toString();
@@ -79,7 +79,7 @@ public class TeamMemberClipData implements Serializable {
             List<TeamMember> result = new ArrayList();
             for (Element child : XMLUtils.getChildElements(e)) {
                 if (TeamMember.TAG_NAME.equals(child.getTagName()))
-                    result.add(new TeamMember(child, zeroDay));
+                    result.add(new TeamMember(child, zeroDay, null));
             }
             return result;
         } catch (Exception e) {

@@ -26,8 +26,10 @@ package teamdash.team;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -72,7 +74,7 @@ public class SubteamDataModel {
 
     public void saveSubteam(String subteamName, Set<Integer> subteamFilter) {
         namedSubteams.remove(subteamName);
-        if (subteamFilter != null)
+        if (subteamFilter != null && !subteamFilter.isEmpty())
             namedSubteams.put(subteamName, subteamFilter);
         fireChangeEvent();
     }
@@ -83,6 +85,45 @@ public class SubteamDataModel {
 
     public List<String> getSubteamNames() {
         return new ArrayList(namedSubteams.keySet());
+    }
+
+    public void addSubteamsForIndividual(Integer id, List<String> subteamNames) {
+        boolean madeChange = false;
+        for (String oneName : subteamNames) {
+            Set<Integer> oneFilter = namedSubteams.get(oneName);
+            if (oneFilter == null) {
+                oneFilter = new HashSet<Integer>();
+                namedSubteams.put(oneName, oneFilter);
+            }
+            if (oneFilter.add(id))
+                madeChange = true;
+        }
+        if (madeChange)
+            fireChangeEvent();
+    }
+
+    public List<String> getSubteamsForIndividual(Integer id) {
+        List<String> result = new ArrayList<String>();
+        for (Entry<String, Set<Integer>> e : namedSubteams.entrySet()) {
+            if (e.getValue().contains(id))
+                result.add(e.getKey());
+        }
+        return result;
+    }
+
+    public void copyFrom(SubteamDataModel model) {
+        namedSubteams.clear();
+        for (Entry<String, Set<Integer>> e : model.namedSubteams.entrySet())
+            namedSubteams.put(e.getKey(), new HashSet(e.getValue()));
+        fireChangeEvent();
+    }
+
+    public void copySubteamNameCapitalization(SubteamDataModel model) {
+        for (String name : model.namedSubteams.keySet()) {
+            Set<Integer> filter = namedSubteams.remove(name);
+            if (filter != null)
+                namedSubteams.put(name, filter);
+        }
     }
 
     public void addSubteamDataModelListener(Listener l) {

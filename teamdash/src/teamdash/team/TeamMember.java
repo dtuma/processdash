@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ package teamdash.team;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 
@@ -84,7 +86,7 @@ public class TeamMember implements Cloneable {
     }
 
     /** Create a team member object using data in the given XML element. */
-    public TeamMember(Element e, Date teamZeroDay) {
+    public TeamMember(Element e, Date teamZeroDay, SubteamDataModel subteams) {
         Map<String, String> attrs = XMLUtils.getAttributesAsMap(e);
         // extract the ID attribute from the element.
         this.id = XMLUtils.getXMLInt(e, ID_ATTR);
@@ -100,6 +102,11 @@ public class TeamMember implements Cloneable {
         if (XMLUtils.hasValue(attr)) try {
             color = Color.decode(attr);
         } catch (NumberFormatException nfe) {}
+        // extract subteam information
+        String subteamNames = attrs.remove(SUBTEAMS_ATTR);
+        if (subteams != null && XMLUtils.hasValue(subteamNames))
+            subteams.addSubteamsForIndividual(id,
+                Arrays.asList(subteamNames.split(SUBTEAMS_DELIM)));
         // extract schedule information
         this.schedule = new WeeklySchedule(e, teamZeroDay);
         // save extra, unrecognized attributes
@@ -197,7 +204,8 @@ public class TeamMember implements Cloneable {
     }
 
     /** Serialize this team member to XML and write it to the given Writer. */
-    public void getAsXML(Writer out, boolean dumpMode) throws IOException {
+    public void getAsXML(Writer out, boolean dumpMode, SubteamDataModel subteams)
+            throws IOException {
         out.write("  <"+TAG_NAME+" "+NAME_ATTR+"='");
         if (name != null)
             out.write(XMLUtils.escapeAttribute(name));
@@ -216,6 +224,11 @@ public class TeamMember implements Cloneable {
             out.write("' "+COLOR_ATTR+"='");
             if (color != null)
                 out.write(ColorCellEditor.encodeColor(color));
+        }
+        if (subteams != null) {
+            out.write("' " + SUBTEAMS_ATTR + "='");
+            out.write(XMLUtils.escapeAttribute(StringUtils.join(
+                subteams.getSubteamsForIndividual(id), SUBTEAMS_DELIM)));
         }
 
         if (extraAttributes != null && !extraAttributes.isEmpty()) {
@@ -305,6 +318,8 @@ public class TeamMember implements Cloneable {
     static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
     static final String INITIALS_ATTR = "initials";
     static final String COLOR_ATTR = "color";
+    static final String SUBTEAMS_ATTR = "subteams";
+    static final String SUBTEAMS_DELIM = ",\t";
     static final String EXTRA_ATTRS = "extraAttributes";
 
 }

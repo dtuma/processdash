@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,8 +28,10 @@ import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import teamdash.merge.AttributeMerger;
@@ -193,7 +195,11 @@ public class TeamMemberListMerger {
             int id = m.getId();
             if (changesMadeToIncomingIDs.containsKey(id))
                 id = changesMadeToIncomingIDs.get(id);
-            root.addChild(new TreeNode<Integer, Map>(id, m.getAsMap()));
+            Map<String, Object> map = m.getAsMap();
+            for (String subteamName : team.getSubteamModel()
+                    .getSubteamsForIndividual(m.getId()))
+                map.put(SUBTEAM_PREFIX + subteamName, Boolean.TRUE);
+            root.addChild(new TreeNode<Integer, Map>(id, map));
         }
         return root;
     }
@@ -365,12 +371,31 @@ public class TeamMemberListMerger {
         // create the new list of team members, and store it in our result.
         List mergedMembers = new ArrayList();
         for (TreeNode<Integer, Map> node : merger.getMergedTree().getChildren()) {
-            TeamMember m = new TeamMember(node.getID(), node.getContent(),
+            Map attrs = node.getContent();
+            result.getSubteamModel().addSubteamsForIndividual(node.getID(),
+                extractSubteamNames(attrs));
+            TeamMember m = new TeamMember(node.getID(), attrs,
                     result.getZeroDay());
             mergedMembers.add(m);
         }
         result.setTeamMembers(mergedMembers);
+        result.getSubteamModel().copySubteamNameCapitalization(
+            main.getSubteamModel());
 
+        return result;
+    }
+
+    private List<String> extractSubteamNames(Map<String, Object> attrs) {
+        List<String> result = new ArrayList();
+        for (Iterator<Entry<String, Object>> i = attrs.entrySet().iterator(); i
+                .hasNext();) {
+            Entry<String, Object> e = i.next();
+            if (e.getKey().startsWith(SUBTEAM_PREFIX)) {
+                if (e.getValue() != null)
+                    result.add(e.getKey().substring(SUBTEAM_PREFIX.length()));
+                i.remove();
+            }
+        }
         return result;
     }
 
@@ -447,6 +472,7 @@ public class TeamMemberListMerger {
 
     static final String ZERO_DAY = "zeroDay";
     private static final String INITIALS = TeamMember.INITIALS_ATTR;
+    private static final String SUBTEAM_PREFIX = "In Subteam ";
 
 
 }

@@ -155,7 +155,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         // construct the list of team members from the XML data
         NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
         for (int i = 0;   i < nodes.getLength();   i++)
-            teamMembers.add(new TeamMember((Element) nodes.item(i), zeroDay));
+            teamMembers.add(new TeamMember((Element) nodes.item(i), zeroDay,
+                    subteamModel));
 
         // determine what date to scroll to initially
         weekOffset = getDefaultWeekOffset();
@@ -165,7 +166,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** Create a cloned copy of the given team member list */
     public TeamMemberList(TeamMemberList list) {
-        this.subteamModel = list.subteamModel;
+        this.subteamModel = new SubteamDataModel();
         this.teamMembers = copyTeamMemberList(list.teamMembers);
         this.readOnly = list.readOnly;
         this.onlyEditableFor = list.onlyEditableFor;
@@ -436,7 +437,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         while (i.hasNext()) {
             TeamMember m = (TeamMember) i.next();
             if (!m.isEmpty())
-                m.getAsXML(out, false);
+                m.getAsXML(out, false, subteamModel);
         }
 
         out.write("</"+TAG_NAME+">\n");

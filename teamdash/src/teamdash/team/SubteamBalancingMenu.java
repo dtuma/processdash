@@ -69,6 +69,12 @@ public class SubteamBalancingMenu extends JMenu implements
     /** The list of team members on this project. */
     private TeamTimePanel teamTimePanel;
 
+    /** An object to be notified when we save changes */
+    private ChangeListener dirtyListener;
+
+    /** An object that displays the team time panel when the filter changes */
+    private ActionListener showTimePanelHandler;
+
     /** A user interface for selecting a group of individuals */
     private PersonSelector personSelector;
 
@@ -80,10 +86,13 @@ public class SubteamBalancingMenu extends JMenu implements
 
 
     public SubteamBalancingMenu(TeamMemberList teamList,
-            TeamTimePanel teamTimePanel) {
+            TeamTimePanel teamTimePanel, ChangeListener dirtyListener,
+            JMenuItem showTimePanelMenu) {
         super(resources.getString("Balance_Menu"));
         this.teamList = teamList;
         this.teamTimePanel = teamTimePanel;
+        this.dirtyListener = dirtyListener;
+        this.showTimePanelHandler = new ShowTimePanelHandler(showTimePanelMenu);
         this.personSelector = new PersonSelector();
 
         selectedIcon = UIManager.getIcon("RadioButtonMenuItem.checkIcon");
@@ -100,7 +109,25 @@ public class SubteamBalancingMenu extends JMenu implements
     }
 
     public void subteamDataModelChanged(SubteamDataModel.Event e) {
+        // recreate the subteam menus if needed
         rebuildSubteamMenus();
+
+        // check to see if the definition of the currently active subteam
+        // has changed. If so, tell the team time panel to reapply the filter.
+        String currentName = teamTimePanel.getSubteamName();
+        if (currentName != null) {
+            Set<Integer> currentFilter = teamTimePanel.getSubteamFilter();
+            Set<Integer> officialFilter = teamList.getSubteamModel()
+                    .getSubteamFilter(currentName);
+            if (officialFilter == null)
+                // the active subteam was deleted. Reapply the existing filter
+                // with a null name, so it will be labeled as "Subteam."
+                teamTimePanel.applySubteamFilter(currentFilter, null);
+            else if (!officialFilter.equals(currentFilter))
+                // the active subteam filter has been edited. Reapply so the
+                // team time panel shows the new subteam definition.
+                teamTimePanel.applySubteamFilter(officialFilter, currentName);
+        }
     }
 
     private void rebuildSubteamMenus() {
@@ -157,6 +184,7 @@ public class SubteamBalancingMenu extends JMenu implements
         BalanceEntireTeam() {
             super(resources.getString("Entire_Team"));
             setFont(getFont().deriveFont(Font.BOLD + Font.ITALIC));
+            addActionListener(showTimePanelHandler);
         }
 
         protected boolean isActiveSubteamMenu() {
@@ -174,6 +202,7 @@ public class SubteamBalancingMenu extends JMenu implements
 
         BalanceNamedSubteam(String subteamName) {
             super(subteamName);
+            addActionListener(showTimePanelHandler);
         }
 
         protected boolean isActiveSubteamMenu() {
@@ -261,9 +290,12 @@ public class SubteamBalancingMenu extends JMenu implements
                 if (!subteamFilter.equals(teamTimePanel.getSubteamFilter())
                         || name != null)
                     teamTimePanel.applySubteamFilter(subteamFilter, name);
-                if (name != null)
+                if (name != null) {
                     teamList.getSubteamModel().saveSubteam(name, subteamFilter);
+                    dirtyListener.stateChanged(new ChangeEvent(this));
+                }
             }
+            showTimePanelHandler.actionPerformed(null);
         }
 
         public void subteamNameChanged() {
@@ -274,8 +306,23 @@ public class SubteamBalancingMenu extends JMenu implements
         private String getSaveSubteamName() {
             if (saveSubteam.isSelected() == false)
                 return null;
-            String result = subteamName.getText().trim();
+            String result = subteamName.getText().trim().replace('\t', ' ');
             return (result.length() > 0 ? result : null);
+        }
+
+    }
+
+
+    private class ShowTimePanelHandler implements ActionListener {
+
+        private JMenuItem menuItem;
+
+        protected ShowTimePanelHandler(JMenuItem menuItem) {
+            this.menuItem = menuItem;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            menuItem.setSelected(true);
         }
 
     }

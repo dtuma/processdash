@@ -1074,7 +1074,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         if (isMode(MODE_PLAIN)) {
             result.add(new SubteamBalancingMenu(
-                    teamProject.getTeamMemberList(), teamTimePanel));
+                    teamProject.getTeamMemberList(), teamTimePanel,
+                    dirtyListener, showTeamTimePanelMenuItem));
             result.add(new BottomUpShowBalancedTeamBar());
             result.add(new BottomUpShowHoursPerWeekMenuItem());
             result.add(new BottomUpIncludeUnassignedMenuItem());
@@ -1153,6 +1154,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private void replaceTeamMemberList(TeamProject src) {
         teamProject.getTeamMemberList().copyFrom(src.getTeamMemberList());
+        teamProject.getTeamMemberList().getSubteamModel()
+                .copyFrom(src.getTeamMemberList().getSubteamModel());
         if (teamListEditor != null)
             teamListEditor.origListWasReplaced();
     }
