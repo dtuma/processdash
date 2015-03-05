@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -130,6 +130,7 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
         if (hashPersonNames) {
             line = replaceXmlAttr(line, "name", PersonMapper.HASH_PERSON_NAME);
             line = replaceXmlAttr(line, "initials", PersonMapper.HASH_INITIALS);
+            line = replaceXmlAttr(line, "subteams", PersonMapper.HASH_SUBTEAMS);
             line = discardXmlAttr(line, "serverIdentityData");
         }
 

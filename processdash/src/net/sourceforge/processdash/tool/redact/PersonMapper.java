@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,24 @@ public class PersonMapper {
     public static final StringMapper HASH_INITIALS = new StringMapper() {
         public String getString(String initials) {
             return hashInitials(initials);
+        }
+    };
+
+
+    public static String hashSubteamList(String list) {
+        if (list == null || list.trim().length() == 0)
+            return list;
+
+        String[] names = list.split(",(\t|&#9;)");
+        for (int i = 0; i < names.length; i++) {
+            names[i] = "Subteam " + RedactFilterUtils.hash(names[i]);
+        }
+        return StringUtils.join(Arrays.asList(names), ",&#9;");
+    }
+
+    public static final StringMapper HASH_SUBTEAMS = new StringMapper() {
+        public String getString(String str) {
+            return hashSubteamList(str);
         }
     };
 
