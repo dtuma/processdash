@@ -80,7 +80,7 @@ public class SubteamDataModel {
     }
 
     public Set<Integer> getSubteamFilter(String subteamName) {
-        return namedSubteams.get(subteamName);
+        return (subteamName == null ? null : namedSubteams.get(subteamName));
     }
 
     public List<String> getSubteamNames() {

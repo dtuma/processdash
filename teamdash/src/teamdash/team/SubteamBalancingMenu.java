@@ -23,11 +23,13 @@
 
 package teamdash.team;
 
+import static net.sourceforge.processdash.ui.lib.BoxUtils.GLUE;
 import static net.sourceforge.processdash.ui.lib.BoxUtils.hbox;
+import static net.sourceforge.processdash.ui.lib.BoxUtils.vbox;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Rectangle;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -39,23 +41,34 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.CheckboxList;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -75,11 +88,14 @@ public class SubteamBalancingMenu extends JMenu implements
     /** An object to be notified when we save changes */
     private ChangeListener dirtyListener;
 
-    /** An object that displays the team time panel when the filter changes */
-    private ActionListener showTimePanelHandler;
+    /** The menu that that displays the team time panel */
+    private JMenuItem showTimePanelMenu;
 
     /** A user interface for selecting a group of individuals */
     private PersonSelector personSelector;
+
+    /** A scroll pane showing the person selector */
+    private JScrollPane personSelectorPane;
 
     /** A model for tracking the name of the active subteam */
     private ComboBoxModel activeSubteamName;
@@ -98,15 +114,17 @@ public class SubteamBalancingMenu extends JMenu implements
         this.teamList = teamList;
         this.teamTimePanel = teamTimePanel;
         this.dirtyListener = dirtyListener;
-        this.showTimePanelHandler = new ShowTimePanelHandler(showTimePanelMenu);
+        this.showTimePanelMenu = showTimePanelMenu;
         this.personSelector = new PersonSelector();
+        this.personSelectorPane = new JScrollPane(personSelector);
+        this.personSelectorPane.setPreferredSize(new Dimension(150, 150));
 
         // restore the active subteam from the last editing session
         activeSubteamName = new DefaultComboBoxModel();
         prefs.load("teamTimePanel.activeSubteam", activeSubteamName);
         String previousSubteam = (String) activeSubteamName.getSelectedItem();
         if (previousSubteam != null)
-            applyNamedSubteam(previousSubteam);
+            applyNamedSubteamImpl(previousSubteam);
 
         // retrieve icons used for indicating the selected subteam
         selectedIcon = UIManager.getIcon("RadioButtonMenuItem.checkIcon");
@@ -118,8 +136,10 @@ public class SubteamBalancingMenu extends JMenu implements
         // create menus for creating and activating subteams
         add(new BalanceEntireTeam());
         add(new SelectIndividuals());
+        addSeparator();
+        add(new ManageSubteamsAction());
 
-        teamList.getSubteamModel().addSubteamDataModelListener(this);
+        getSubteamModel().addSubteamDataModelListener(this);
         rebuildSubteamMenus();
     }
 
@@ -132,8 +152,8 @@ public class SubteamBalancingMenu extends JMenu implements
         String currentName = teamTimePanel.getSubteamName();
         if (currentName != null) {
             Set<Integer> currentFilter = teamTimePanel.getSubteamFilter();
-            Set<Integer> officialFilter = teamList.getSubteamModel()
-                    .getSubteamFilter(currentName);
+            Set<Integer> officialFilter = getSubteamModel().getSubteamFilter(
+                currentName);
             if (officialFilter == null)
                 // the active subteam was deleted. Reapply the existing filter
                 // with a null name, so it will be labeled as "Subteam."
@@ -154,17 +174,34 @@ public class SubteamBalancingMenu extends JMenu implements
 
         // recreate the subteam menus from scratch and add them to our menu.
         int pos = 1;
-        for (String oneName : teamList.getSubteamModel().getSubteamNames())
+        for (String oneName : getSubteamModel().getSubteamNames())
             add(new BalanceNamedSubteam(oneName), pos++);
     }
 
     private void applyNamedSubteam(String subteamName) {
-        Set<Integer> subteamFilter = teamList.getSubteamModel()
-                .getSubteamFilter(subteamName);
+        applyNamedSubteamImpl(subteamName);
+        showTimePanel();
+    }
+
+    private void applyNamedSubteamImpl(String subteamName) {
+        Set<Integer> subteamFilter = getSubteamModel().getSubteamFilter(
+            subteamName);
         if (subteamFilter == null)
             subteamName = null;
 
         teamTimePanel.applySubteamFilter(subteamFilter, subteamName);
+    }
+
+    private SubteamDataModel getSubteamModel() {
+        return teamList.getSubteamModel();
+    }
+
+    private Frame getParentWindow() {
+        return (Frame) SwingUtilities.getWindowAncestor(teamTimePanel);
+    }
+
+    private void showTimePanel() {
+        showTimePanelMenu.setSelected(true);
     }
 
 
@@ -199,7 +236,6 @@ public class SubteamBalancingMenu extends JMenu implements
         BalanceEntireTeam() {
             super(resources.getString("Entire_Team"));
             setFont(getFont().deriveFont(Font.BOLD + Font.ITALIC));
-            addActionListener(showTimePanelHandler);
         }
 
         protected boolean isActiveSubteamMenu() {
@@ -208,7 +244,7 @@ public class SubteamBalancingMenu extends JMenu implements
         }
 
         public void actionPerformed(ActionEvent e) {
-            teamTimePanel.applySubteamFilter(null, null);
+            applyNamedSubteam(null);
         }
 
     }
@@ -218,7 +254,6 @@ public class SubteamBalancingMenu extends JMenu implements
 
         BalanceNamedSubteam(String subteamName) {
             super(subteamName);
-            addActionListener(showTimePanelHandler);
         }
 
         protected boolean isActiveSubteamMenu() {
@@ -234,15 +269,12 @@ public class SubteamBalancingMenu extends JMenu implements
 
     public class SelectIndividuals extends BalanceOptionMenu {
 
-        private Dimension scrollPaneSize;
-
         private JCheckBox saveSubteam;
 
         private JTextField subteamName;
 
         public SelectIndividuals() {
             super(resources.getString("Select_Individuals.Menu"));
-            scrollPaneSize = new Dimension(150, 150);
 
             saveSubteam = new JCheckBox(
                     resources.getString("Select_Individuals.Save_Subteam"));
@@ -270,34 +302,26 @@ public class SubteamBalancingMenu extends JMenu implements
         }
 
         public void actionPerformed(ActionEvent e) {
-            editSubteam();
-        }
-
-        private void editSubteam() {
             personSelector.loadStateFromTeamTimePanel();
-            personSelector.clearSelection();
-            JScrollPane sp = new JScrollPane(personSelector);
-            sp.setPreferredSize(scrollPaneSize);
-            personSelector.scrollRectToVisible(new Rectangle(0, 0));
-
             subteamName.setText(teamTimePanel.getSubteamName());
             saveSubteam.setSelected(false);
 
             String title = resources.getString("Select_Individuals.Title");
             Object[] message = new Object[] {
-                    resources.getString("Select_Individuals.Header"), sp,
+                    resources.getString("Select_Individuals.Header"),
+                    personSelectorPane,
                     hbox(6, personSelector.toggleAll), " ",
                     hbox(6, saveSubteam), hbox(40, subteamName),
                     new JOptionPaneTweaker.MakeResizable() };
 
-            int userChoice = JOptionPane.showConfirmDialog(
-                SwingUtilities.getWindowAncestor(teamTimePanel), message,
-                title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            scrollPaneSize = sp.getSize();
+            int userChoice = JOptionPane.showConfirmDialog(getParentWindow(),
+                message, title, JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+            personSelectorPane.setPreferredSize(personSelectorPane.getSize());
             if (userChoice != JOptionPane.OK_OPTION)
                 return;
 
-            Set<Integer> subteamFilter = personSelector.getFilter();
+            Set<Integer> subteamFilter = personSelector.getFilter(true);
             if (subteamFilter == null) {
                 teamTimePanel.applySubteamFilter(null, null);
 
@@ -307,11 +331,11 @@ public class SubteamBalancingMenu extends JMenu implements
                         || name != null)
                     teamTimePanel.applySubteamFilter(subteamFilter, name);
                 if (name != null) {
-                    teamList.getSubteamModel().saveSubteam(name, subteamFilter);
+                    getSubteamModel().saveSubteam(name, subteamFilter);
                     dirtyListener.stateChanged(new ChangeEvent(this));
                 }
             }
-            showTimePanelHandler.actionPerformed(null);
+            showTimePanel();
         }
 
         public void subteamNameChanged() {
@@ -324,21 +348,6 @@ public class SubteamBalancingMenu extends JMenu implements
                 return null;
             String result = subteamName.getText().trim().replace('\t', ' ');
             return (result.length() > 0 ? result : null);
-        }
-
-    }
-
-
-    private class ShowTimePanelHandler implements ActionListener {
-
-        private JMenuItem menuItem;
-
-        protected ShowTimePanelHandler(JMenuItem menuItem) {
-            this.menuItem = menuItem;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            menuItem.setSelected(true);
         }
 
     }
@@ -358,17 +367,31 @@ public class SubteamBalancingMenu extends JMenu implements
         }
 
         public void loadStateFromTeamTimePanel() {
-            reloadTeamMembers();
+            loadStateFromFilter(teamTimePanel.getSubteamFilter());
+        }
 
-            Set<Integer> filter = teamTimePanel.getSubteamFilter();
+        public void loadStateFromSubteam(String name) {
+            loadStateFromFilter(getSubteamModel().getSubteamFilter(name));
+        }
+
+        protected void loadStateFromFilter(Set<Integer> filter) {
+            reloadTeamMembers();
+            int scrollToRow = 0;
             if (filter == null) {
                 toggleAll.setSelected(true);
                 setAllChecked(true);
             } else {
                 toggleAll.setSelected(false);
-                for (int i = teamMembers.size(); i-- > 0;)
-                    setChecked(i, filter.contains(teamMembers.get(i).getId()));
+                setAllChecked(false);
+                for (int i = teamMembers.size(); i-- > 0;) {
+                    if (filter.contains(teamMembers.get(i).getId())) {
+                        setChecked(i, true);
+                        scrollToRow = i - 1;
+                    }
+                }
             }
+            personSelectorPane.getVerticalScrollBar().setValue(
+                getCellRect(Math.max(0, scrollToRow), 0, true).y);
         }
 
         private void reloadTeamMembers() {
@@ -379,13 +402,13 @@ public class SubteamBalancingMenu extends JMenu implements
             setItems(names);
         }
 
-        public Set<Integer> getFilter() {
+        public Set<Integer> getFilter(boolean rejectWholeTeam) {
             Set<Integer> filter = new HashSet<Integer>();
             for (int i = teamMembers.size(); i-- > 0;) {
                 if (getChecked(i))
                     filter.add(teamMembers.get(i).getId());
             }
-            if (filter.size() == teamMembers.size())
+            if (rejectWholeTeam && filter.size() == teamMembers.size())
                 return null;
             else
                 return filter;
@@ -396,6 +419,247 @@ public class SubteamBalancingMenu extends JMenu implements
                 setAllChecked(toggleAll.isSelected());
         }
 
+    }
+
+
+    private class ManageSubteamsAction extends AbstractAction {
+
+        ManagerDialog dialog;
+
+        private ManageSubteamsAction() {
+            super(resources.getString("Manage.Menu"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (dialog == null) {
+                dialog = new ManagerDialog();
+            } else {
+                dialog.setVisible(true);
+                dialog.toFront();
+            }
+        }
+
+    }
+
+
+    public class ManagerDialog extends JDialog implements
+            SubteamDataModel.Listener, ListSelectionListener {
+
+        private DefaultListModel model;
+
+        private JList subteamList;
+
+        private JButton newButton, editButton, deleteButton, balanceButton,
+                closeButton;
+
+        private JTextField subteamName;
+
+        private boolean savingChange;
+
+        private ManagerDialog() {
+            super(getParentWindow(), resources.getString("Manage.Title"), false);
+
+            model = new DefaultListModel();
+            subteamList = new JList(model);
+            subteamList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            subteamList.addListSelectionListener(this);
+            subteamList.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2)
+                        balanceSubteam();
+                }
+            });
+            rebuildListOfSubteams();
+            getSubteamModel().addSubteamDataModelListener(this);
+
+            JScrollPane sp = new JScrollPane(subteamList);
+            sp.setPreferredSize(new Dimension(150, 150));
+
+            newButton = makeButton("New", "newSubteam");
+            editButton = makeButton("Edit", "editSubteam");
+            deleteButton = makeButton("Delete", "deleteSubteam");
+            balanceButton = makeButton("Balance", "balanceSubteam");
+            closeButton = makeButton("Close", "closeDialog");
+            valueChanged(null);
+
+            subteamName = new JTextField();
+
+            BoxUtils buttons = vbox(newButton, GLUE, editButton, GLUE,
+                deleteButton, GLUE, balanceButton);
+            BoxUtils content = vbox(
+                hbox(resources.getString("Manage.Header"), GLUE),
+                hbox(sp, 10, buttons), 10, hbox(GLUE, closeButton, GLUE));
+            content.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            getContentPane().add(content);
+            pack();
+            setLocationRelativeTo(getParentWindow());
+            setVisible(true);
+        }
+
+        private JButton makeButton(String resKey, String method) {
+            String text = resources.getString("Manage." + resKey + ".Button");
+            JButton result = new JButton(text);
+            result.addActionListener(EventHandler.create(ActionListener.class,
+                this, method));
+            Dimension d = result.getPreferredSize();
+            d.width = 200;
+            result.setMaximumSize(d);
+            return result;
+        }
+
+        // handle changes to the selected item in the list
+        public void valueChanged(ListSelectionEvent e) {
+            boolean hasSelection = (subteamList.getSelectedIndex() != -1);
+            editButton.setEnabled(hasSelection);
+            deleteButton.setEnabled(hasSelection);
+            balanceButton.setEnabled(hasSelection);
+        }
+
+        // handle external changes to the subteam model
+        public void subteamDataModelChanged(SubteamDataModel.Event e) {
+            if (!savingChange)
+                rebuildListOfSubteams();
+        }
+
+        private void saveWithoutRebuildingSubteamList(String subteamName,
+                Set<Integer> subteamFilter) {
+            try {
+                savingChange = true;
+                getSubteamModel().saveSubteam(subteamName, subteamFilter);
+                dirtyListener.stateChanged(new ChangeEvent(this));
+            } finally {
+                savingChange = false;
+            }
+        }
+
+        private void rebuildListOfSubteams() {
+            String currentItem = (String) subteamList.getSelectedValue();
+            model.clear();
+            for (String name : getSubteamModel().getSubteamNames())
+                model.addElement(name);
+            subteamList.setSelectedValue(currentItem, true);
+        }
+
+        public void newSubteam() {
+            Set<Integer> filter = showEditDialog("Manage.New.Title", null);
+            if (filter != null) {
+                String name = getSaveName();
+                saveWithoutRebuildingSubteamList(name, filter);
+                applyNamedSubteam(name);
+                rebuildListOfSubteams();
+                subteamList.setSelectedValue(name, true);
+            }
+        }
+
+        public void editSubteam() {
+            String origName = (String) subteamList.getSelectedValue();
+            if (origName == null)
+                return;
+
+            Set<Integer> filter = showEditDialog("Manage.Edit.Title", origName);
+            if (filter != null) {
+                String newName = getSaveName();
+                saveWithoutRebuildingSubteamList(newName, filter);
+                applyNamedSubteam(newName);
+                if (!origName.equalsIgnoreCase(newName))
+                    saveWithoutRebuildingSubteamList(origName, null);
+                rebuildListOfSubteams();
+                subteamList.setSelectedValue(newName, true);
+            }
+        }
+
+        private Set<Integer> showEditDialog(String titleKey, String name) {
+            personSelector.loadStateFromSubteam(name);
+            subteamName.setText(name);
+
+            String title = resources.getString(titleKey);
+            Object message = new Object[] {
+                    hbox(resources.getString("Manage.Name"), 5, subteamName),
+                    Box.createVerticalStrut(5), personSelectorPane,
+                    hbox(6, personSelector.toggleAll),
+                    new JOptionPaneTweaker.MakeResizable() };
+
+            while (true) {
+                // display the dialog to the user
+                int userChoice = JOptionPane.showConfirmDialog(this, message,
+                    title, JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE);
+                personSelectorPane.setPreferredSize(personSelectorPane
+                        .getSize());
+
+                // if they didn't press OK, abort the operation
+                if (userChoice != JOptionPane.OK_OPTION)
+                    return null;
+
+                // display an error if they didn't enter a subteam name
+                String saveName = getSaveName();
+                if (saveName.length() == 0) {
+                    JOptionPane.showMessageDialog(this,
+                        resources.getString("Manage.Name_Empty.Message"),
+                        resources.getString("Manage.Name_Empty.Title"),
+                        JOptionPane.ERROR_MESSAGE);
+                    continue;
+                }
+
+                // display an error if they didn't select any people
+                Set<Integer> filter = personSelector.getFilter(false);
+                if (filter.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                        resources.getString("Manage.Subteam_Empty.Message"),
+                        resources.getString("Manage.Subteam_Empty.Title"),
+                        JOptionPane.ERROR_MESSAGE);
+                    continue;
+                }
+
+                // ask for confirmation before overwriting another subteam
+                if (!saveName.equalsIgnoreCase(name)
+                        && getSubteamModel().getSubteamFilter(saveName) != null) {
+                    String overwriteTitle = resources
+                            .getString("Manage.Overwrite.Title");
+                    String[] overwriteMessage = resources.formatStrings(
+                        "Manage.Overwrite.Message_FMT", saveName);
+                    userChoice = JOptionPane.showConfirmDialog(this,
+                        overwriteMessage, overwriteTitle,
+                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (userChoice != JOptionPane.YES_OPTION)
+                        continue;
+                }
+
+                return filter;
+            }
+        }
+
+        private String getSaveName() {
+            return subteamName.getText().trim().replace('\t', ' ');
+        }
+
+        public void deleteSubteam() {
+            String selectedSubteam = (String) subteamList.getSelectedValue();
+            if (selectedSubteam == null)
+                return;
+
+            // ask for confirmation before deleting the subteam
+            String title = resources.getString("Manage.Delete.Title");
+            String[] message = resources.formatStrings(
+                "Manage.Delete.Message_FMT", selectedSubteam);
+            int userChoice = JOptionPane.showConfirmDialog(this, message,
+                title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (userChoice == JOptionPane.YES_OPTION) {
+                model.removeElement(selectedSubteam);
+                saveWithoutRebuildingSubteamList(selectedSubteam, null);
+            }
+        }
+
+        public void balanceSubteam() {
+            String selectedSubteam = (String) subteamList.getSelectedValue();
+            if (selectedSubteam != null)
+                applyNamedSubteam(selectedSubteam);
+        }
+
+        public void closeDialog() {
+            setVisible(false);
+        }
     }
 
 }
