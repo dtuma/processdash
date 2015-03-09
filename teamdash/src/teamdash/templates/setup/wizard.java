@@ -959,11 +959,40 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         putValue(PROJECT_SCHEDULE_ID, teamScheduleID);
         putValue(RELAUNCH_SOURCE_PROJECT_ID, relaunchSourceID);
 
-        if (StringUtils.hasValue(relaunchSourcePath))
+        if (StringUtils.hasValue(relaunchSourcePath)) {
             putRelaunchValue(RELAUNCHED_PROJECT_FLAG, relaunchSourcePath,
                 ImmutableDoubleData.TRUE);
+            copyRelaunchableSettingsFrom(relaunchSourcePath);
+        }
 
         putValue("_Password_", ImmutableDoubleData.TRUE);
+    }
+
+    private void copyRelaunchableSettingsFrom(String relaunchSourcePath) {
+        ListData settingNames = ListData
+                .asListData(getSimpleValue(RELAUNCHABLE_SETTINGS));
+        if (settingNames == null || !settingNames.test())
+            return;
+
+        List<String> phases = ListData.asListData(getSimpleValue("Phase_List"))
+                .asList();
+        for (String oneName : (List<String>) settingNames.asList()) {
+            if (oneName.contains("*PHASE*")) {
+                for (String phase : phases)
+                    copyRelaunchableSetting(relaunchSourcePath,
+                        StringUtils.findAndReplace(oneName, "*PHASE*", phase));
+            } else {
+                copyRelaunchableSetting(relaunchSourcePath, oneName);
+            }
+        }
+    }
+
+    private void copyRelaunchableSetting(String sourcePath, String name) {
+        String srcDataName = DataRepository.createDataName(sourcePath, name);
+        SimpleData valueToCopy = getSimpleValue(srcDataName);
+        SimpleData currentValue = getSimpleValue(name);
+        if (valueToCopy != null && !valueToCopy.equals(currentValue))
+            putValue(name, valueToCopy);
     }
 
 
