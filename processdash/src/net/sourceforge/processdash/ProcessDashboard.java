@@ -1153,6 +1153,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 System.setProperty("user.language", altLanguage);
                 System.setProperty("user.origLanguage", origLanguage);
                 Locale.setDefault(newLocale);
+                Resources.setTargetLocale(newLocale);
                 JComponent.setDefaultLocale(newLocale);
                 resetResourceBundleCache();
             } catch (Exception e) {
