@@ -331,9 +331,9 @@ public class EVTaskListRollup extends EVTaskList {
                 new EVTaskChartEventAdapter(), this);
     }
 
-    public XYDataset getTeamMemberTimeRatioTrackingChartData() {
+    public XYDataset getTeamMemberTimeRatioTrackingChartData(int numDataPoints) {
         return new TimeRatioMemberTrackingChartData(
-                new EVTaskChartEventAdapter(), this);
+                new EVTaskChartEventAdapter(), this, numDataPoints);
     }
 
 

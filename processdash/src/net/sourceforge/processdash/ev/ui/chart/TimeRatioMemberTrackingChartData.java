@@ -30,14 +30,26 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 
 public class TimeRatioMemberTrackingChartData extends XYChartData implements
-        XYZDataset {
+        XYZDataset, DataPointLimitable {
 
     private EVTaskListRollup rollup;
+    private int maxDataPoints;
 
     public TimeRatioMemberTrackingChartData(ChartEventAdapter eventAdapter,
-            EVTaskListRollup rollup) {
+            EVTaskListRollup rollup, int maxDataPoints) {
         super(eventAdapter);
         this.rollup = rollup;
+        this.maxDataPoints = maxDataPoints;
+    }
+
+    public int getMaxDataPoints() {
+        return maxDataPoints;
+    }
+
+    public void setMaxDataPoints(int maxDataPoints) {
+        this.maxDataPoints = maxDataPoints;
+        recalc();
+        dataChanged();
     }
 
     public void recalc() {
@@ -48,7 +60,8 @@ public class TimeRatioMemberTrackingChartData extends XYChartData implements
             EVTaskList tl = rollup.getSubSchedule(i);
             EVSchedule subsched = tl.getSchedule();
             String seriesName = nameHelper.get(tl);
-            maybeAddSeries(subsched.getTimeRatioTrackingChartSeries(seriesName));
+            maybeAddSeries(subsched.getTimeRatioTrackingChartSeries(
+                seriesName, maxDataPoints));
         }
     }
 

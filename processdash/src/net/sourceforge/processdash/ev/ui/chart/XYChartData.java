@@ -113,6 +113,10 @@ public abstract class XYChartData extends AbstractXYDataset
         return getRangeBounds(includeInterval).getUpperBound();
     }
 
+    public void dataChanged() {
+        chartDataRecalcHelper.dataChanged();
+    }
+
     @Override
     public void addChangeListener(DatasetChangeListener l) {
         chartDataRecalcHelper.addChangeListener(l);

@@ -55,6 +55,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalCompletionDateChartData;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalTotalCostChartData;
+import net.sourceforge.processdash.ev.ui.chart.DataPointLimitable;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.ev.ui.chart.XYZChartSeries;
@@ -2300,7 +2301,7 @@ public class EVSchedule implements TableModel {
     }
     private class CompletedPeriodChartData extends XYChartData {
 
-        private CompletedPeriodsXYChartSeries oneSeries;
+        CompletedPeriodsXYChartSeries oneSeries;
 
         public CompletedPeriodChartData(ChartEventAdapter eventAdapter,
                                    CompletedPeriodsXYChartSeries series) {
@@ -2331,8 +2332,10 @@ public class EVSchedule implements TableModel {
      */
     private class TimeRatioTrackingChartSeries extends
             CompletedPeriodsXYChartSeries implements XYZChartSeries {
-        public TimeRatioTrackingChartSeries(String seriesKey) {
+        private int maxDataPoints;
+        public TimeRatioTrackingChartSeries(String seriesKey, int maxDataPoints) {
             super(seriesKey);
+            this.maxDataPoints = maxDataPoints;
         }
         @Override public Number getX(int itemIndex) {
             // actual/plan for completed tasks
@@ -2361,14 +2364,18 @@ public class EVSchedule implements TableModel {
                         completedPeriods.add(p);
                 }
             }
+
+            while (maxDataPoints > 0 && completedPeriods.size() > maxDataPoints)
+                completedPeriods.remove(0);
         }
     }
     private class TimeRatioTrackingChartData extends CompletedPeriodChartData
-            implements XYZDataset {
-        private TimeRatioTrackingChartData() {
+            implements XYZDataset, DataPointLimitable {
+        private TimeRatioTrackingChartData(int maxDataPoints) {
             super(new EVScheduleChartEventAdapter(),
                     new TimeRatioTrackingChartSeries(
-                            resources.getString("Schedule.Time_Ratio_Label")));
+                            resources.getString("Schedule.Time_Ratio_Label"),
+                            maxDataPoints));
         }
         public Number getZ(int seriesNum, int itemNum) {
             return ((XYZChartSeries) series.get(seriesNum)).getZ(itemNum);
@@ -2376,15 +2383,24 @@ public class EVSchedule implements TableModel {
         public double getZValue(int seriesNum, int itemNum) {
             return getZ(seriesNum, itemNum).doubleValue();
         }
+        public int getMaxDataPoints() {
+            return ((TimeRatioTrackingChartSeries) oneSeries).maxDataPoints;
+        }
+        public void setMaxDataPoints(int num) {
+            ((TimeRatioTrackingChartSeries) oneSeries).maxDataPoints = num;
+            recalc();
+            dataChanged();
+        }
     }
-    public XYChartSeries getTimeRatioTrackingChartSeries(String name) {
+    public XYChartSeries getTimeRatioTrackingChartSeries(String name,
+            int numDataPoints) {
         TimeRatioTrackingChartSeries result = new TimeRatioTrackingChartSeries(
-                name);
+                name, numDataPoints);
         result.recalc();
         return result;
     }
-    public XYChartData getTimeRatioTrackingChartData() {
-        return new TimeRatioTrackingChartData();
+    public XYChartData getTimeRatioTrackingChartData(int numDataPoints) {
+        return new TimeRatioTrackingChartData(numDataPoints);
     }
 
 }
