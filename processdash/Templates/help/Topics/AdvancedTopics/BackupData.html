@@ -1,0 +1,237 @@
+<html>
+<head>
+<title>Backing up Dashboard Data</title>
+<link rel=stylesheet type="text/css" href="../../style.css">
+<style>tt { font-size: 90% }</style>
+</head>
+<body>
+
+<h1>Backing up Dashboard Data</h1>
+
+<p>The metrics data you collect is very valuable information.  Accordingly,
+the dashboard provides several mechanisms for backing up this
+information.</p>
+
+<h2>Manual Data Backups</h2>
+
+<p>At any time, you can manually save a backup of your data by choosing
+&quot;C&nbsp;<img src="../../Images/rarrow.png">&nbsp;Tools&nbsp;<img
+     src="../../Images/rarrow.png">&nbsp;Save Data Backup&quot;.
+This will prompt you for the name of a ZIP file, and will save a full
+backup of your data to the given file.</p>
+
+<p>Optionally, you can choose to save your data as a &quot;Process
+Dashboard Backup&quot; file.  This format contains the exact same data
+as the ZIP file, but may be useful in organizations that forbid the
+attachment of ZIP files to email messages.</p>
+
+<p>Finally, you can choose to save your data as a &quot;Redacted Process
+Dashboard Backup&quot; file.  This format allows you to select various
+categories of information that should be scrambled or removed from the data
+backup.  This format can be useful if you need to protect the privacy of
+individuals or if you need to obscure proprietary information.  However, some
+types of data cannot be redacted; so if the original data is highly sensitive,
+you should still use caution and review the resulting backup carefully before
+releasing it.</p>
+
+
+<h3><a name="ViewBackup"></a>Viewing the data in a manual data backup</h3>
+
+<p>To view the data in a data backup, choose 
+&quot;C&nbsp;<img src="../../Images/rarrow.png">&nbsp;Tools&nbsp;<img
+     src="../../Images/rarrow.png">&nbsp;Open Dataset&quot;, and a file
+chooser window will open.  Choose a data backup file in ZIP or PDBK format,
+and a second Process Dashboard window will open, displaying the data from
+that file.  The data you view in that second window is transient/temporary
+data extracted from the backup; any changes you make will be discarded when
+the window is closed.</p>
+
+<p>In addition, the Process Dashboard "Tools for Team Leaders" include a
+program called the Quick Launcher.  You can drag a data backup file onto the
+Quick Launcher, and it will open a Process Dashboard window displaying the
+data inside.  This functionality works just like the Open Dataset option on
+the Tools menu, but does not require another Process Dashboard window to be
+open first.</p>
+
+<h3>Restoring data from manual data backups</h3>
+
+<p>A data backup is just a ZIP file, containing the data in your personal
+data directory (along with some additional information).  If you have lost
+or corrupted your personal data and you wish to restore your data from a
+backup, take these steps:</p>
+
+<ol>
+
+<li><a name="RestoreSteps">Shut down the dashboard</a>.  <b>It is
+    imperative that the dashboard NOT be running</b> while you perform the
+    steps below.</li>
+
+<li>Extract the contents of your data backup file into your personal
+    <a href="../Troubleshooting/FAQ.html#WhereData">data directory</a>,
+    overwriting the files that are there.</li>
+
+<li>Restart the Process Dashboard.</li>
+
+</ol>
+
+<h2>Automatic, External Backups</h2>
+
+<p>The mechanism described above is very useful for interpersonal
+communication.  But for disaster recovery, it is important to have an
+automated backup strategy.  If your computer and hard drive were to crash,
+you wouldn't want to discover that your most recent backup was several
+weeks old.</p>
+
+<p>Thus, the dashboard has a mechanism for making backups on a regular
+basis.  To configure an automatic backup, take these steps:</p>
+
+<ol>
+
+<li>Click on the "C" menu and choose &quot;Tools&nbsp;<img
+    src="../../Images/rarrow.png">&nbsp;Preferences&quot;.</li>
+
+<li>In the User Preferences dialog, select the &quot;Backups&quot;
+    category.  A table will be displayed, showing a list of external
+    locations where backups should be saved.</li>
+
+<li>Click the "Add" button to add a new backup location. Specify the
+    full name of a backup ZIP file where you would like data to be
+    saved, then click OK.</li>
+
+</ol>
+
+<p>Each time the dashboard is shut down, it will create a backup ZIP file
+and save it to the location you've requested.  If you are in the habit of
+leaving the dashboard running overnight, it will also save this backup each
+evening between midnight and 1 AM.  The backup ZIP file will be overwritten
+each time, so at any point in time the external backup file will contain a
+copy of your most recent data.</p>
+
+<p>If you want to keep a history of backup files, include the
+word<tt> %date </tt>in the name of your backup file. (Make certain to type
+this exactly as written: a percent sign followed by the word "date" in all
+lower case.) The current date (YYYY-MM-DD) will be included in the name of
+the file, so backups from dates in the past will not be overwritten.  This
+can be particularly useful for the Team Dashboard, as a way to maintain a
+record of how the team plan has changed over time.  If you use this
+technique, keep in mind that no old backups will be discarded, so the list
+of backup files could grow very large over time.  You may need to visit the
+directory periodically and purge old backups that are no longer needed.</p>
+
+<p>The backups created by this process are identical to the backups created
+by the manual "Save Data Backup" operation. Thus, they can be viewed in the
+Quick Launcher, and the mechanism for restoring from a backup is the
+same.</p>
+
+<h3>Additional Uses</h3>
+
+<p>Many teams choose to use backup files for a secondary purpose.
+Specifically, a process coach, team leader, or PSP instructor may need to
+look at the data for a particular individual, so they can troubleshoot data
+entry problems or mentor the individual in their process improvement
+efforts.  The automatic external backups and manual data backups provide a
+simple way to support this particular need.</p>
+
+<p>Accordingly, your team may decide to agree upon a particular network
+directory, then have each individual save an automatic backup to that
+directory.  This would provide a disaster recovery plan if a team member's
+computer were to crash.  In addition, it could enable your coach or
+planning manager to examine data for a particular individual if
+necessary.</p>
+
+<p>If you choose to follow this approach, consideration should be given to
+data privacy concerns.  For example, you might consider configuring the
+permissions on the given network directory to prevent read access by
+arbitrary individuals.  On the other hand, if your organization follows
+high-maturity practices and does not abuse personal data for inappropriate
+purposes, this may not be a significant concern.  Each organization must
+make these decisions based on their organizational climate.  If
+organizational data privacy concerns outweigh the benefits of information
+sharing, you may wish to lock down the permissions so that data backups can
+only be read by the individual who created them.</p>
+
+
+
+<h2>Automatic, Internal Backups</h2>
+
+<p>The mechanisms above can be very useful for disaster recovery, such as
+the loss of your hard drive.  But occasionally you may encounter other
+problems.  For example, you might accidentally delete a large portion of
+your task hierarchy.  Or you might encounter a rare bug in the Process
+Dashboard that corrupts your data.  In these cases, by the time you shut
+down the Process Dashboard, your external backup would already be
+overwritten with the problem data.</p>
+
+<p>To address these types of problems, the Process Dashboard automatically
+maintains a set of internal backups that reflect changes made to your data
+over the past few weeks.  Each time the dashboard starts up or shuts down,
+and at least once daily, the dashboard will zip up the files containing
+your data.  This ZIP file is stored in a "backup" subdirectory underneath
+your <a href="../Troubleshooting/FAQ.html#WhereData">data
+directory</a>.</p>
+
+<p>If you look in this "backup" directory, you will typically notice many
+ZIP files.  The most recent file is a <b>full</b> backup of your data,
+similar to a manual data backup.  Earlier files are not full backups - they
+are incremental backups, containing only the files that changed between two
+points in time.</p>
+
+<p>Incremental backups are not preserved forever.  By default, the dashboard
+will retain backups for three weeks.  (This timeframe can be changed via the
+<a href="PreferencesTool.html">preferences editor</a>.)</p>
+
+
+<h3>Restoring data from automatic, periodic backups</h3>
+
+<p>If you decided that your data had been corrupted in some way, and you
+wanted to restore your data to some earlier point in time, you would follow
+the steps below.  (Make certain you understand these instructions
+completely before you begin, and <b>use extreme caution</b> when following
+them; incorrect actions could result in permanent data corruption!
+<b>Proceed at your own risk.</b>)</p>
+
+<ol>
+
+<li><a name="RestoreSteps">Shut down the dashboard</a>.  <b>It is
+    imperative that the dashboard NOT be running</b> while you perform the
+    steps below.</li>
+
+<li>View the contents of your "backup" directory, and sort the files so
+    they appear in chronological order.  The names assigned to the files
+    are designed to help you perform this sort correctly.</li>
+
+<li>Use a ZIP extraction tool to extract the contents of the most recent
+    ZIP file, placing the files into your data directory.  This will
+    overwrite files that are already present in that directory.</li>
+
+<li>Next, extract the second-to-last ZIP file, also placing the results
+    into your data directory, and overwriting files.  Continue in this
+    manner, working your way backward through the ZIP files, until you
+    reach the file representing the moment in time you wish to restore
+    to.</li>
+
+<li>At this point, you may restart the dashboard.  It should reflect the
+    newly restored data, but please note the following:</li>
+
+    <ul>
+
+    <li>Any data that was collected after your selected &quot;restore
+        point&quot; will no longer be present in your dashboard.  (After
+        all, you've just intentionally restored the data to that earlier
+        point in time.)</li>
+
+    <li>The very act of starting the dashboard will cause it to create a
+        new incremental backup file, capturing the changes you made in
+        steps 3-4 above.  Thus, if you realize that you did not restore to
+        the correct instant in time, you will need to start again at <a
+        href="#RestoreSteps">Step 1</a>, shutting down the dashboard,
+        sorting the new list of backup files, and reextracting all of the
+        incremental backups in order.</li>
+
+    </ul>
+
+</ol>
+
+
+</body>
+</html>

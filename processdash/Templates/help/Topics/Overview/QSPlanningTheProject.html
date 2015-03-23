@@ -1,0 +1,117 @@
+<HTML>
+<head>
+<TITLE>Planning a project</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<h1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP--><a name="head"></a>Step 2: Planning the project</h1>
+
+<P>Now that the project exists, we can start the planning of our work.  We
+will begin by selecting our our newly created project via the
+<a href="../Execution/HierarchyMenus.html">active task selector</a>.  The
+dashboard will automatically select the first step in the PSP2.1 process,
+which is Planning.  Next we will click the
+<a href="../Execution/PlayPause.html">play button</a> on the dashboard to
+start timing our planning activities.  When the play button is pressed, a
+quiet "clicking" sound will be heard.  This sound will be heard anytime the
+dashboard switches phases of activity while the clock is running.</p>
+
+<P align="center"><img src="../../Images/QSChoosingPlanning.png"></p>
+
+<p>The PSP provides scripts for planning, development, postmortem work, etc.,
+so let's go look at the planning script for our new PSP2.1 project.  We do
+this by clicking the script button and choosing "PSP2.1 Planning Script" from
+the script menu.  The planning script will appear in a web browser.</p>
+
+<p>Reading through the script, we see that once we understand the requirements
+for this program, we need to do a size estimate.  To guide our estimation, we
+can use the PROBE method.  Following the <U>PROBE method</u> link on the
+planning script brings up the PROBE Estimating Script.</p>
+
+<p>Reading through this script we see that once we have produced a conceptual 
+design, we need to fill out the Size Estimating Template.  The dashboard 
+provides both the template itself and the instruction script for its use.  
+Following the link for the <U>Size Estimating Template</u> brings up a 
+dynamic HTML version of the template.  For ready reference, the template has 
+a link near the top to display the Size Estimating Template instructions 
+form.  If you click on this link, a second browser will be started so that 
+you can have the instructions and the template side by side on your screen.  
+For more information on the Size Estimating Template, see the <a 
+href="../Planning/UsingSizeEstimatingTemplate.html">Size Estimating 
+Template</a> help topic.</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSShowSizeEstimatingTemplateTop.png"></p>
+
+<P>The Size Estimating Template Instructions direct us to count the base LOC 
+and enter it in the Base Parts section if this is an enhancement of a previous
+program.  We're modifying an existing program, so we use the
+<a href="../PostmortemAnalysis/LOCCounter.html">LOC counter</a> to measure
+the size of the components we plan to modify, and enter that number in this
+section.</p>
+
+<P>The Parts Additions section will be the places for most of our
+estimating.  Based on our conceptual design, we enter several lines
+describing the work we plan to do.  For each item, we estimate the type,
+number of methods, and LOC estimates.  The "add more rows for new objects"
+link will expand the form with more entries if chosen.</p>
+
+<P>We don't anticipate reusing any code, so we will skip that section.</P>
+
+<P>Moving on to the size calculation, we need to calculate the estimated added 
+&amp; modified LOC using PROBE. There are at least two ways to do this: with
+the PROBE Wizard or with the PROBE tool. (The PROBE Wizard automates
+the standard PSP PROBE process, and is simpler to use; the PROBE tool is
+more complex to use but provides more power for custom statistical
+analyses.)  Most people will want to use the PROBE Wizard for all their
+planning needs, so we will use the wizard for this example.  After you
+complete the top portion of the Size Estimating Template, you can launch
+the PROBE wizard by clicking on the hyperlink halfway down the page.</P>
+
+<p class="ifpsp" align="center"><img src="../../Images/ProbeWizardLink.png"></p>
+
+<P>The PROBE Wizard consists of a series of dialogs that guide you through 
+the PROBE process.</P>
+
+<p align="center"><img src="../../Images/QSProbeWizardStartup.png"></p>
+
+<P>The PROBE script gives several ways to calculate an estimate. The PROBE
+Wizard displays these methods side by side and ranks them, advising us
+which method may be the most reliable. By simply following the prompts, we
+decide in this example to select method C2 for size and then choose C2 for
+time. As we make these choices, the resulting values are automatically
+written into the appropriate fields of the Size Estimating Template.</p>
+
+<p class="ifpsp">After our planning efforts on this form it looks like
+the following:</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSSizeEstimatingTemplateDone.png"></p>
+
+<P>When we bring up the Project Plan Summary, we see that the planning data 
+is all entered automatically.  Time to click the little done button on the 
+dashboard and move on into design!</p>
+
+<p align="center"><img src="../../Images/QSFinishPlanning.png"></p>
+
+<P>Note also that when the dashboard moves into a new phase while the timer 
+is running, a little "clicking" noise is made.  This little bit of feedback 
+assures us that the timer is still running.</p>
+
+
+<div class="hideInBook">
+<P>Next step: <a href="QSDesigningTheProgram.html">Designing the program</A></P>
+
+<P>Jump to step:<BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QuickStart.html">START</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSCreatingTheProject.html">1. Creating the project</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#head">2. Planning the project</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSDesigningTheProgram.html">3. Designing the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSWritingTheCode.html">4. Writing the code</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSCompilingTheProgram.html">5. Compiling the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSTestingTheProgram.html">6. Testing the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSPostmortem.html">7. Postmortem</a>
+</P>
+</div>
+
+</BODY>
+</HTML>

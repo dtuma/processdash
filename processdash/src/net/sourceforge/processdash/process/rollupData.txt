@@ -1,0 +1,66 @@
+// -*- mode:c -*-
+
+// Flag this data set as a rollup.
+[Rollup Tag] = tag;
+[ROLLUP_ID Rollup Tag] = tag;
+[Historical Data Tag] = tag;
+undefine([Simple Project Tag]);
+
+/*
+ * Cancel the "rollup eligible" tag.  (Note - is this really what we
+ * want to do?  This makes it where people cannot roll-up rolled-up
+ * data.  Usually, they wouldn't want to - in fact, it might normally
+ * be tricky to avoid doubly rolling up data.  If we go ahead and
+ * cancel the rollup eligible tag, people could always just overwrite
+ * the [Rollup_List] element with the exact list of things they want
+ * rolled up.)
+ */
+undefine([ROLLUP_ID Rollup Eligible]);
+
+// Compute a global list of all projects which can be rolled up with
+// this consolidator.
+[/ROLLUP_ID/Project List] = search("/", "ROLLUP_ID Rollup Eligible");
+
+// Compute a global list of all rollup datasets created using this
+// consolidator.
+[/ROLLUP_ID/Rollup Instance List] = search("/", "ROLLUP_ID Rollup Tag");
+
+// Start To Date data as of noon GMT on January 1, 1970
+[Rollup As Of Date] = @43200000;
+[Rollup_Date_Filter_On] = 1;
+
+// Make it easy to filter by language
+[Rollup_Language] = "";
+[Rollup_Language_Filter_On] = 0;
+
+// Make it easy to filter by keyword
+[Rollup_Keyword] = "";
+[Rollup_Keyword_Filter_On] = 0;
+
+// Make it easy to filter by prefix
+[Rollup_Prefix] = "";
+[Rollup_Prefix_Filter_On] = 0;
+
+// Calculate a default filter expression
+[Rollup_Filter_Prototype] = join
+   (" and\n", 
+    iff([Rollup_Date_Filter_On], "[Completed] > [{Rollup As Of Date}]"),
+    iff([Rollup_Language_Filter_On],
+	"[Project/Language] == \"" & esc([Rollup_Language]) & "\""),
+    iff([Rollup_Keyword_Filter_On],
+	"match(\"|" & esc([Rollup_Keyword]) & "|i\", [Project/Keywords])"),
+    iff([Rollup_Prefix_Filter_On],
+	"startsWith(\"" & esc([Rollup_Prefix]) & "\")"),
+    iff([Rollup_Date_Filter_On] || [Rollup_Language_Filter_On] ||
+	[Rollup_Prefix_Filter_On] || [Rollup_Keyword_Filter_On],
+	null, "true"));
+
+// By default, select all of the projects that have been marked Completed
+// *after* the "Rollup As Of Date".
+[Rollup_Filter] = "[Completed] > [{Rollup As Of Date}]";
+
+// Filter the list of projects based upon the rollup filter.
+[Rollup_List] =
+    filter(eval([Rollup_Filter], [_]), [/ROLLUP_ID/Project List]);
+
+[Printable_Rollup_List] = join("\n", [Rollup_List]);

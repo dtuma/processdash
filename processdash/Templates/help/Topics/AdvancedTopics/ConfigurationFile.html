@@ -1,0 +1,369 @@
+<HTML>
+<head>
+<TITLE>Advanced Configuration Settings</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Advanced Configuration Settings</H1>
+
+<p>The <a href="PreferencesTool.html">preferences editor</a> displays
+several categories of commonly-used user preferences.  Most people will
+find those settings adequate for their needs.</p>
+
+<p>However, the dashboard supports many other configurable parameters.  The
+list below describes a small set of those parameters that some people may
+find useful.</p>
+
+<p>If you want to configure one of the settings below, open the
+<a href="PreferencesTool.html">preferences editor</a> and select the
+"Advanced" section.  Click the Add button to add a parameter, then enter
+the name setting and the value you wish to configure.  Then save the
+changes.  In most cases, you will need to restart the dashboard for your
+changes to take effect.</p>
+
+<ul>
+
+ <li><strong>browser.command</strong><br>
+   Command used to bring up HTML browser.  On Windows and Mac OS X, the
+   dashboard attempts to launch your default browser, so this command is
+   generally not required.  On Unix/Linux, the dashboard will launch
+   firefox by default, so you can use this parameter to select
+   a different browser.<BR>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>a command line.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>On Windows and Mac OS X
+      platforms, uses the system default web browser.  On Unix/Linux
+      systems, uses "firefox".</td></tr>
+    <tr valign="top"><td NOWRAP>Examples:</td>
+        <td>browser.command = /usr/local/bin/opera</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="datasetMode"></a><strong>datasetMode</strong><br>
+   Flag indicating whether this is a team or personal dataset.  Personal
+   datasets display the user inteface with a thin toolbar and allow the
+   logging of time, size, defects, and other metrics.  Team datasets show a
+   larger user inteface allowing the creation of team projects, which
+   calculate roll-ups of data from multiple individuals.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>team</i> or <i>personal</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>datasetMode = team</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="dateFormat"></a><strong>dateFormat</strong><br>
+   Display format for date fields.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A list of recognized date formats, separated by 
+      the | character.  The first format in the list will be used when 
+      displaying dates.  For valid format syntax, see the documentation for 
+      java.text.SimpleDateFormat in the Sun Java Developer Kit.
+      </td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>MM/dd/yyyy</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat = dd/MM/yyyy</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="dateTimeFormat"></a><strong>dateTimeFormat</strong><br>
+   Display format for date and time fields.<br>
+   <table border=0><tr valign="top"><td NOWRAP>Format:</td><td>A list of 
+      recognized date formats, separated by the | character.  The first 
+      format in the list will be used when displaying date-times.  For valid 
+      format syntax, see the documentation for java.text.SimpleDateFormat in 
+      the Sun Java Developer Kit.
+      </td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>MMM dd, yyyy hh:mm:ss aaa</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat = MMM dd, yyyy hh:mm</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="defectDialogAutostart"></a><strong>defectDialog.autostart</strong><br>
+   Controls whether to start the defect timer when opening a new defect dialog.<br>
+   If this property is set to "true", clicking the defect button on the main
+   dashboard window will cause the defect dialog box to come up with 
+   the timer already running.  Any other value for this property means the 
+   user must manually press the "Start Timing" button to begin the timer for 
+   fixing the defect.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.autostart = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="defectDialogPhaseMap"></a><strong>defectDialog.phaseMap</strong><br>
+   Describes common defect injection/removal patterns.  Each pair is 
+   interpreted to mean "Often defects are injected in phase A, and removed in 
+   phase B."  When you remove a defect during phase B of a process, it will 
+   then use phase A as the default injection phase.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>It should be a list of phase 
+      pairs; the pairs should be separated from each other by "|" 
+      characters.  Each pair should be of the form "phase A=&gt;phase 
+      B".</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>HLD=&gt;Design|Design=&gt;Test</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.phaseMap = HLD=&gt;Design|Code=&gt;Test</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="defectDialogRestrictSequence"></a><strong>defectDialog.restrictSequence</strong><br>
+   If this property is set to true, the defect dialog will check injection 
+   and removal phases to ensure that defects are NOT removed before they are 
+   injected.  (You might want to disable this feature if you make use of 
+   iterative processes where the real-life task sequence does not strictly 
+   follow the order the of nodes in the hierarchy.)<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.restrictSequence = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>ev.dependencies.compareDates</strong><br>
+   Which calculated date should be used when displaying/comparing projected
+   dates for dependent tasks?<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>plan</i>, <i>replan</i>, or <i>forecast</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>replan</tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.dependencies.compareDates = forecast</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>ev.sortCompletedTasks</strong><br>
+
+    As you complete tasks in an earned value schedule, the dashboard will use
+    that information to improve the quality of the planned completion dates
+    for the remaining tasks.  It does this by internally reordering the list
+    of tasks so completed tasks appear at the beginning of the task list, in
+    the order they were actually completed.  To disable this behavior, and
+    calculate planned completion dates based on explicit task order alone, set
+    this to false.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.sortCompletedTasks = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>excel.exportMethod</strong><br>
+   The method to use for exporting data into Excel. If this is set to "mime", 
+   data will be exported to Excel using mime types; in practical terms, this
+   means that the data you see in Excel will be a snapshot.  If this is set to
+   "iqy", tables will be exported using a Microsoft Internet Web Query (.IQY) 
+   file; in practical terms, this means that Excel can dynamically requery
+   the dashboard to get updated data.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>mime</i> or <i>iqy</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>iqy</i> if your browser is 
+      Internet Explorer, and <i>mime</i> otherwise. (This is because other
+      browsers don't correctly handle .IQY files.)</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>excel.exportMethod = iqy</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>forms.useHoursMinutes</strong><br>
+   Controls the display of time values of dashboard forms.  By default,
+   times are displayed in hours:minutes (for example, "1:30" for one hour
+   and thirty minutes).  This is a change from earlier versions of the
+   dashboard, which displayed times as a number of minutes (for example, 
+   "90").  This setting makes it possible to revert back to the prior
+   formatting.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>forms.useHoursMinutes = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="http.allowRemote"></a><strong>http.allowRemote</strong><br>
+   Controls remote access to the dashboard's built-in webserver.<br>
+   If true, the dashboard will allow connections from other machines.<br>
+   If false, the dashboard will reject all HTTP connections unless they come 
+   from "localhost".<br>
+   Note that password settings (such as those set on shared/published
+   earned value schedules) establish exceptions that override this setting.
+   Thus, if you have set this to true, setting a password will deny 
+   connection attempts that do not correctly identify the password.
+   Conversely, you can leave this set to false, and setting a password
+   will allow connection attempts that correctly supply the password.<br>
+   If you <i>never</i> want other people to be able to connect to your
+   dashboard (whether they know a password or not), set this parameter
+   to <code>"never"</code>. This will make it impossible for other
+   computers to see your dashboard.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>never</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote = true</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>http.hostname</strong><br>
+   Most of the time, you interact with the dashboard web server by viewing
+   a web page that begins with "http://localhost".  This works fine when
+   the dashboard and the web browser are both running on the same computer.
+   Sometimes, though, it is desirable to construct a URL for other people
+   to use (for example, when publishing or sharing an earned value schedule).
+   The dashboard will ascertain the name of your computer and use that to
+   construct the URL; this process should work 99% of the time. If, however,
+   the dashboard deduces an incorrect name for your computer, you can use
+   this setting to override the built-in name deduction logic.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>hostname</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>none</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.hostname = mycompany.com</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><strong>http.port</strong><br>
+   The port number where the dashboard should listen for incoming http 
+   connections.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>Number</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>2468</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.port = 3000</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pauseButtonHistorySize"></a><strong>pauseButton.historySize</strong><br>
+   The maximum number of entries which should be retained in the play/pause 
+   button's history list.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>Number</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>10</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.historySize = 20</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pauseButtonQuiet"></a><strong>pauseButton.quiet</strong><br>
+   If this property is set to "true", the Play/Pause button will not provide 
+   any audible feedback. By default, the Play/Pause button will make a
+   clicking sound whenever you start the timer or change tasks with the
+   timer running.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.quiet = true</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pauseButtonCompact"></a><strong>pauseButton.compact</strong><br>
+   Controls the appearance of the play/pause button on the dashboard.<br>
+   If true, a single button with both play and pause icons will be displayed.
+   If false (the default), two separate toggle buttons will be displayed.<br>
+   <table border="0">
+    <tbody><tr valign="top"><td nowrap="nowrap">Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td nowrap="nowrap">Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td nowrap="nowrap">Example:</td><td>pauseButton.compact = true</td></tr>
+   </tbody></table>
+ </li>
+ <br>
+
+ <li><a name="probeDialogOnlyCompleted"></a><strong>probeDialog.onlyCompleted</strong><br>
+   Controls implicit filtering of data by the PROBE tool.<br>
+   If true, the PROBE tool only correlates data from completed projects.<br>
+   If false, the PROBE tool will use all available data.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>probeDialog.onlyCompleted = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixC"></a><strong>pspdiff.suffix.c</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the C/Java LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".c .h .java") which signal that a file 
+      contains C/Java source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.c .cpp .c++ .h .java</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.c = .c .h .cxx .hxx</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixCobol"></a><strong>pspdiff.suffix.cobol</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the Cobol LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".cob") which signal that a file contains 
+      Pascal source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.cob .cbl</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal = .p .pas</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixPascal"></a><strong>pspdiff.suffix.pascal</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the Pascal LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".p") which signal that a file contains 
+      Pascal source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.pas</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal = .p .pas</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixSh"></a><strong>pspdiff.suffix.sh</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the perl/sh LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".sh") which signal that a file contains perl 
+      or sh source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.pl .sh .bash</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sh = .sh .pl .pm</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="pspdiffSuffixSql"></a><strong>pspdiff.suffix.sql</strong><br>
+   The pspdiff LOC counter built into the dashboard has support for several 
+   common language syntaxes.  You can tell it which language to pick based on 
+   the suffix of the filename.  This rule lets you control which suffixes 
+   will cause the pspdiff tool to use the SQL/Ada LOC counting rules.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td>A space-separated list of 
+      filename extensions (e.g. ".sql") which signal that a file 
+      contains perl or sh source code.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>.sql .ada .adb .ads</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sql = .sql .ada</td></tr>
+   </table>
+ </li>
+ <br>
+
+</ul>
+
+</BODY>
+</HTML>
+

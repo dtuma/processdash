@@ -1,0 +1,117 @@
+<!--#server-parsed -->
+<HTML>
+<head>
+<TITLE>Problem with browser</TITLE>
+<style>
+ li { padding-bottom: .5cm }
+ pre { margin-left: 1cm }
+</style>
+</head>
+<BODY>
+
+<H1>Problem with browser</H1>
+
+<P>We're sorry, but your browser is not currently capable of
+supporting the dashboard's data integration features.
+
+<P>The dashboard <b>can</b> integrate with the following browsers:
+
+<ul>
+
+<li><a href="http://www.microsoft.com/windows/ie/default.htm">Internet
+    Explorer</a> 4.0 or greater <i>(on Windows systems only)</i>
+
+<li><a href="http://home.netscape.com/download/archive.html">Netscape 4.7</a>
+    <i>(on most platforms)</i>, and 
+    <a href="http://home.netscape.com/download">higher versions of
+    Netscape</a> <i>(on Windows systems)</i>
+
+</ul>
+
+<p>Don't worry - you can still keep using your current web browser as
+the system-default, and use a different web browser with the
+dashboard. To correct this problem, print this page and follow the
+instructions below:</p>
+
+<ol>
+
+<li>Choose between the options listed above, and make certain you have an
+appropriate browser installed on your system.
+
+<li><i>(Windows)</i> If you installed an appropriate browser <b>and</b>
+made that browser your system default, you're done. Otherwise, continue.
+
+<li>Shut down the dashboard if it is running.
+
+<li>Open your configuration file (which is located at 
+<code><!--#include file="/control/showenv.class?config" --></code>)
+and add one of the following lines to that file:
+
+<pre>browser.command=<font color="#FF0000">C:/Program Files/Internet Explorer/IExplore.exe</font></pre>
+
+if you want the dashboard to display scripts and forms in Internet Explorer, or
+
+<pre>browser.command=<font color="#FF0000">C:/Program Files/Netscape/Communicator/Program/Netscape.exe</font></pre>
+
+to use Netscape. <b>NOTE: make certain to edit the browser path</b> (the
+part in red above) so it correctly points to the executable for the browser
+you wish to use. To separate directory names, use either a forward slash
+(&quot;<code><font color="#FF0000">/</font></code>&quot;) or a double
+backslash (&quot;<code><font color="#FF0000">\\</font></code>&quot;).
+
+<li>Restart the dashboard, and open any script or form.  The script/form
+should appear in your newly designated browser.<br><br><b>Troubleshooting:</b>
+<ul>
+
+<li>If the form opens in the same browser as before, then you either failed
+to correctly locate your configuration file, or you mistyped the
+&quot;<code>browser.command=</code>&quot; portion of the configuration
+line.  Go back to step 3, but be more careful in step 4 to correctly open
+and edit the file.
+
+<li>If you receive an error dialog, then you most likely made an error in
+the line you added to the configuration file.  Open your configuration file
+(<code><!--#include file="/control/showenv.class?config" --></code>)
+and doublecheck that you specified the correct path and filename to your
+web browser. Remember that you must separate directory names either with
+forward slashes (&quot;<code><font color="#FF0000">/</font></code>&quot;)
+or double backslashes (&quot;<code><font
+ color="#FF0000">\\</font></code>&quot;).
+
+</ul>
+
+</ol>
+
+<!--#if ERROR_MESSAGE -->
+
+<hr><h2>Diagnostic Information</h2>
+
+<!--#if HTTP_USER_AGENT -->
+
+<p>You are using the following browser:</p>
+
+<PRE><!--#echo var="HTTP_USER_AGENT" encoding="html" --></PRE>
+
+<!--#endif-->
+
+<!--#if JAVA_VERSION -->
+
+<p>Your browser's java environment is:</p>
+
+<PRE><!--#echo var="JAVA_VERSION" encoding="html" --></PRE>
+
+<!--#endif-->
+
+<p>When attempting to initialize the data integration features, your
+browser encountered the following error:</p>
+
+<PRE><!--#echo var="ERROR_MESSAGE" encoding="html" --></PRE>
+
+<p>This information may help dashboard developers to pinpoint the
+problem your browser is having, and work around that problem in a
+future release of the dashboard.</p>
+
+<!--#endif-->
+
+</BODY>
+</HTML>

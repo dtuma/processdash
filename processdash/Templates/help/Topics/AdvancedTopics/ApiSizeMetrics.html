@@ -1,0 +1,188 @@
+<HTML>
+<head>
+<TITLE>Size Metrics API</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Size Metrics API</H1>
+
+<table border cellpadding="7">
+
+<tr><td valign="top"><b>Name</b></td>
+<td><tt>sizeMetrics</tt></td></tr>
+
+<tr><td valign="top"><b>URI</b></td>
+<td><tt>/api/sizeMetrics</tt></td></tr>
+
+<tr><td valign="top"><b>URL Example</b></td>
+<td><tt>http://localhost:2468/api/sizeMetrics</tt></td></tr>
+
+<tr><td valign="top"><b>Description</b></td>
+<td>This API makes it possible to store new actual size measurements into the
+Size Inventory Form for a team project.</td></tr>
+
+<tr><td valign="top"><b>Context</b></td>
+<td>Personal dashboard only, within the context of a Team Project</td></tr>
+
+<tr><td valign="top"><b>HTTP Methods</b></td>
+<td><ul style="margin-bottom:0px">
+<li><a href="#post">POST</a> - adds a new row of actual size data to the Size
+    Inventory Form</li>
+</ul></td></tr>
+
+</table>
+
+<h2><a name="post"></a>HTTP POST</h2>
+
+<p>Adds a new row of actual size data to the Size Inventory Form.</p>
+
+<p>This API can be called multiple times in succession to add multiple new
+rows to the Size Inventory Form.  (Note: when multiple rows like these are
+present for a particular WBS item, they will be summed when the data is rolled
+up to the team level.)</p>
+
+<p>At the moment, this API only supports size metrics recorded by an
+individual onto the Size Inventory Form of a team project.  Other size metric
+types, such as the Size Estimating Template of a PSP task, are not currently
+supported.</p>
+
+<p>By default, invocations of this POST method will be rejected unless they
+originate from the same computer where the Process Dashboard is running.  This
+policy can be disabled by <a href="PreferencesTool.html#advanced">setting an
+advanced preference</a> with the name <tt>api.sizeMetrics.allowRemote</tt> and
+the value <tt>true</tt>.</p>
+
+<h3>Request Parameters</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Field</th><th>Type</th><th>Description</th></tr>
+
+
+<tr><td valign="top"><b>hierarchyPath</b> (optional)</td>
+<td valign="top">String</td>
+
+<td>The full dashboard hierarchy path to the project and component/task where
+the size metric should be stored. (Example:
+<tt>/Project/My&nbsp;Team&nbsp;Project/Component&nbsp;A/Code</tt>).
+
+<p>The path must name a component or task within a team project.  The root
+node of the team project is not allowed.  If the personal project plan
+contains "PSP Task" objects, paths to/within those PSP task objects are also
+not allowed.  Any other WBS item path is an acceptable target.  (If in doubt,
+you can view a complete list of valid paths for a given team project by
+opening the Size Inventory Form and scrolling to the bottom of the page.)</p>
+
+<p>This parameter is optional.  If omitted, the default is to use the path of
+the WBS task which is currently selected in the Process Dashboard toolbar.
+(But note: that currently selected task must also meet the criteria described
+above for the size measurement to be stored successfully.)</p></td></tr>
+
+
+<tr><td valign="top"><b>description</b> (optional)</td>
+<td valign="top">String</td>
+
+<td>A short, human readable description of this size measurement, which will
+be written into the Description field of the new Size Inventory Form
+row. (Example: "Perforce Changelist #1234")</td></tr>
+
+
+<tr><td valign="top"><b>sizeUnits</b> (optional)</td>
+<td valign="top">String</td>
+
+<td>The size units for this size measurement.  The value must be a valid size
+metric as defined in the metrics collection framework used by this Team
+Project. (For a list of valid values, look at the drop-down list on the "Size
+Units" field of the Size Inventory Form, and discard the "Inspected *"
+variants.)
+
+<p>This value is optional; if omitted, the API will assume "New &amp; Changed
+LOC." (The abbreviation "LOC" can also be used as an alias for this size
+metric.)</p></td></tr>
+
+
+<tr><td valign="top"><b>actSize</b> (required)</td>
+<td valign="top">Number</td>
+
+<td>The numeric size value which should be stored into the "Actual" column of
+the Size Inventory Form.</td></tr>
+
+
+<tr><td valign="top"><b>notify</b> (optional)</td>
+<td valign="top">Boolean</td>
+
+<td>If true, the Process Dashboard window will display a notification to the
+user, letting them know that size measurements were added to their Size
+Inventory Form.  They will be able to click on the notification to see an
+abbreviated version of the Size Inventory Form with the new rows highlighted.
+
+<p>If this API is called several times in rapid succession to add multiple
+size measures to a particular team project, the user will only see one
+notification summarizing all of the rows that were added.</p></td></tr>
+
+
+</table>
+
+
+
+<h3>Errors</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Error Code</th><th>Description</th></tr>
+
+<tr><td valign="top"><tt>unsupported-target-path</tt></td>
+
+<td>The <tt>hierarchyPath</tt> parameter (or the current task path, if that
+parameter is missing) does not point to a legal node in a team project.  See
+the requirements described in the "Request Parameters" table above.</td></tr>
+
+
+<tr><td valign="top"><tt>parameter-missing</tt></td>
+
+<td>The required <tt>actSize</tt> parameter was not supplied</td></tr>
+
+
+<tr><td valign="top"><tt>parameter-invalid</tt></td>
+
+<td>One of the parameters does not have a valid value:
+<ul style="margin:0px">
+
+<li>The <tt>actSize</tt> parameter is not a valid number</li>
+
+<li>The <tt>sizeUnits</tt> parameter does not name a valid size metric in the
+metrics collection framework for this team project</li>
+
+</ul></td></tr>
+
+</table>
+
+
+
+<h3>Results</h3>
+
+<p><b>application/json</b> - successful completion</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "ok"
+}</pre></td></tr></table>
+
+
+<p><b>application/json</b> - error example</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "fail"
+    "err" : {
+        "code" : "parameter-invalid",
+        "msg" : "The 'actSize' parameter value 'one' is not a valid number",
+        "param" : "actSize"
+    }
+}</pre></td></tr></table>
+
+
+
+</BODY>
+</HTML>

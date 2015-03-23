@@ -1,0 +1,167 @@
+# PSPProperties file:properties file
+# format: PropertyKey<parentKey><name>=Prop[defectLog] \
+#         [timeLog][scriptFile][dataFile][status] \
+#         [selected][numChildren(N)][child0]...[childN-1]
+#
+
+
+
+######################################################################
+### Property keys for the 1995 version of the course
+######################################################################
+
+PropertyKey<top><PSP for Engineers (1995 version)>=Prop[][pspForEng][][pspForEng/dataFile.txt][>][0][13][PropertyKey<top/PSP for Engineers (1995 version)><1A>][PropertyKey<top/PSP for Engineers (1995 version)><2A>][PropertyKey<top/PSP for Engineers (1995 version)><3A>][PropertyKey<top/PSP for Engineers (1995 version)><4A>][PropertyKey<top/PSP for Engineers (1995 version)><5A>][PropertyKey<top/PSP for Engineers (1995 version)><6A>][PropertyKey<top/PSP for Engineers (1995 version)><R4>][PropertyKey<top/PSP for Engineers (1995 version)><7A>][PropertyKey<top/PSP for Engineers (1995 version)><8A>][PropertyKey<top/PSP for Engineers (1995 version)><9A>][PropertyKey<top/PSP for Engineers (1995 version)><10A (PSP2.1)>][PropertyKey<top/PSP for Engineers (1995 version)><10A (PSP3)>][PropertyKey<top/PSP for Engineers (1995 version)><R5>]
+
+
+# Program 1A
+
+PropertyKey<top/PSP for Engineers (1995 version)><1A>=Prop[true][PSP0][][pspForEng/1A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/1A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/1A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/1A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/1A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/1A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/1A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/1A><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 2A
+
+PropertyKey<top/PSP for Engineers (1995 version)><2A>=Prop[true][PSP0.1-PFE-2A][pspForEng/2A/summary.htm;pspForEng/2A/script.htm][pspForEng/2A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/2A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/2A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/2A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/2A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/2A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/2A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Planning>=Prop[][][pspForEng/2A/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Design>=Prop[][][pspForEng/2A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Code>=Prop[][][pspForEng/2A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Compile>=Prop[][][pspForEng/2A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Test>=Prop[][][pspForEng/2A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/2A><Postmortem>=Prop[][][pspForEng/2A/postmort.htm][][ME<>][0][0]
+
+
+# Program 3A
+
+PropertyKey<top/PSP for Engineers (1995 version)><3A>=Prop[true][PSP0.1][][pspForEng/3A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/3A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/3A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/3A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/3A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/3A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/3A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/3A><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 4A
+
+PropertyKey<top/PSP for Engineers (1995 version)><4A>=Prop[true][PSP1-PFE-4A][pspForEng/4A/summary.htm;pspForEng/4A/sizeest.class;pspForEng/4A/script.htm][pspForEng/4A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/4A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/4A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/4A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/4A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/4A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/4A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Planning>=Prop[][][pspForEng/4A/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Design>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Code>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Compile>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Test>=Prop[][][pspForEng/4A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/4A><Postmortem>=Prop[][][pspForEng/4A/postmort.htm][][ME<>][0][0]
+
+
+# Program 5A
+
+PropertyKey<top/PSP for Engineers (1995 version)><5A>=Prop[true][PSP1.1-PFE-5A][pspForEng/5A/summary.htm;pspForEng/5A/sizeest.class;pspForEng/5A/script.htm][pspForEng/5A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/5A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/5A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/5A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/5A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/5A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/5A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Planning>=Prop[][][pspForEng/5A/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Design>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Code>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Compile>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Test>=Prop[][][pspForEng/5A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/5A><Postmortem>=Prop[][][pspForEng/5A/postmort.htm][][ME<>][0][0]
+
+
+# Program 6A
+
+PropertyKey<top/PSP for Engineers (1995 version)><6A>=Prop[true][PSP1.1][][pspForEng/6A/dataFile.txt][M<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers (1995 version)/6A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/6A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/6A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/6A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/6A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/6A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/6A><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Report R4
+
+PropertyKey<top/PSP for Engineers (1995 version)><R4>=Prop[true][Generic][generic/summary.class][pspForEng/R4/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers (1995 version)/R4><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/R4><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/R4><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/R4><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+
+# Program 7A
+
+PropertyKey<top/PSP for Engineers (1995 version)><7A>=Prop[true][PSP2-PFE-7A][pspForEng/7A/summary.htm;pspForEng/7A/sizeest.class;pspForEng/7A/script.htm][pspForEng/7A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers (1995 version)/7A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Design Review>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Code Review>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/7A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Planning>=Prop[][][pspForEng/7A/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Design>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Design Review>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Code>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Code Review>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Compile>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Test>=Prop[][][pspForEng/7A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/7A><Postmortem>=Prop[][][pspForEng/7A/postmort.htm][][ME<>][0][0]
+
+
+# Program 8A
+
+PropertyKey<top/PSP for Engineers (1995 version)><8A>=Prop[true][PSP2.1-PFE-8A][pspForEng/8A/summary.htm;pspForEng/8A/sizeest.class;pspForEng/8A/script.htm][pspForEng/8A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers (1995 version)/8A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Design Review>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Code Review>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/8A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Planning>=Prop[][][pspForEng/8A/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Design>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Design Review>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Code>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Code Review>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Compile>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Test>=Prop[][][pspForEng/8A/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/8A><Postmortem>=Prop[][][pspForEng/8A/postmort.htm][][ME<>][0][0]
+
+
+# Program 9A
+
+PropertyKey<top/PSP for Engineers (1995 version)><9A>=Prop[true][PSP2.1][][pspForEng/9A/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers (1995 version)/9A><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Design>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Design Review>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Code>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Code Review>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Test>][PropertyKey<top/PSP for Engineers (1995 version)/9A><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/9A><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 10A (PSP2.1)
+
+PropertyKey<top/PSP for Engineers (1995 version)><10A (PSP2.1)>=Prop[true][PSP2.1][][pspForEng/10A2/dataFile.txt][M<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Design>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Design Review>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Code>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Code Review>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Test>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP2.1)><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 10A (PSP3)
+
+PropertyKey<top/PSP for Engineers (1995 version)><10A (PSP3)>=Prop[true][PSP3][][pspForEng/10A/dataFile.txt][M<PSP3cycle(-1)<HLD Inspection(3)][0][5][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><HLD>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><HLD Review>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><PSP3cycle>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><Postmortem>]
+
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><HLD>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><HLD Review>=Prop[][][][][ME<>][0][0]
+
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><PSP3cycle>=Prop[][PSP3cycle][][psp3/cycleData.txt][<Design Inspection(2)<Code Inspection(-2)>PSP3][0][7][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Design>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Design Review>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Code>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Code Review>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Compile>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Test>][PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Reassessment>]
+
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)/PSP3cycle><Reassessment>=Prop[][][][][ME<>][0][0]
+
+PropertyKey<top/PSP for Engineers (1995 version)/10A (PSP3)><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Report R5
+
+PropertyKey<top/PSP for Engineers (1995 version)><R5>=Prop[true][Generic][generic/summary.class][pspForEng/R5/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers (1995 version)/R5><Planning>][PropertyKey<top/PSP for Engineers (1995 version)/R5><Postmortem>]
+PropertyKey<top/PSP for Engineers (1995 version)/R5><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers (1995 version)/R5><Postmortem>=Prop[][][][][ME<>][0][0]

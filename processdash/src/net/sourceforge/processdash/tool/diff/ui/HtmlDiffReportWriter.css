@@ -1,0 +1,67 @@
+<style type="text/css">
+
+body {
+    background-color: #ffffff;
+}
+
+div.metrics table {
+    margin-bottom: 2em;
+}
+div.metrics table td {
+    white-space: nowrap;
+}
+
+div.metrics table td span.setHelp {
+    padding-right: 21px;
+    text-decoration: none;
+}
+div.metrics table td:hover span.setHelp {
+    cursor: move;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAANkE3LLaAgAAAaFJREFUeJyFkb9OG0EQh781B3JzioR0Ig0SFPAEiRQ3KIpsCVkUQMEDIAoQFFGq0FDQhIoOKUqRgi5FuhTs5QFMHiA0NAdGIHH8Mzmi4DMzKWyfOXyX/KrdmdlvfzNjyNHG+3faPW9ubZu8Ogdgbf5Fufpy/Hs3uN8YZXZhBYDb6BxAXz2rJ4+Wt/zh40bjGsAAfP6wqdMlD4CPe4fMLqxwG51zGZ4BcBQE3ISnLE9PALBXC1lc3zCJAwDnd/uHtaki9YNPuIDbyY2NACMD3JwcdCJeuoXHCq/uuPCqeS0zGn7rn8FjnXhV3ryewhkqpuK+71MqlajVgPqPbMDF1S/wwJjsobuu24a0r4NAXOgm72PJtZ0FsdY2Uw7iuJUUiQgFBdUetFKp4Pt+HzA9g451hfaCtZdSVcrlMsYYjDEJLBugioqiqjyViOA4vWdPttABiCAiqRa6sH8D5CEpilst0PRgVbVvQw7Al6+7b39OPq82Y7mbWZqZu2/GUhwYKoj0b0Y1u7VE1lqNouiP/kfWWs2YAQRBsArs5H+ROFkH+Att99BK1T3CFwAAAABJRU5ErkJggg==");
+    background-position: center right;
+    background-repeat: no-repeat;
+}
+
+pre {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+table.locDiff td {
+    white-space: pre;
+    font-family: monospace;
+    font-size: 10pt;
+}
+span.comment {
+    color: #32cd32;
+}
+
+td.locDelHdr {
+    background-color: #ff0000;
+}
+td.locDelBody {
+    text-decoration: line-through;
+    color: #ff0000;
+}
+td.locDelBody span.comment {
+    color: #ff00ff;
+}
+
+td.locAddHdr {
+    background-color: #0000ff;
+}
+
+td.locAddBody {
+    color: #0000ff;
+    font-weight: bold;
+}
+td.locAddBody span.comment {
+    color: #32cdcc;
+}
+</style>
+
+<!-- IE 7 and below do not support "data:" URLs, so we offer an alternative -->
+<!--[if lte IE 7]><style type="text/css">
+    div.metrics table td:hover span.setHelp {
+        background-image: url("http://www.processdash.com/diffSetHelpIcon");
+    }
+</style><![endif]-->

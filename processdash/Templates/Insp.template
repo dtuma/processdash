@@ -1,0 +1,60 @@
+#############################################################################
+## Process Dashboard - Data Automation Tool for high-maturity processes
+## Copyright (C) 2001-2003 Tuma Solutions, LLC
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## as published by the Free Software Foundation; either version 3
+## of the License, or (at your option) any later version.
+##
+## Additional permissions also apply; see the README-license.txt
+## file in the project root directory for more information.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+## 
+## The author(s) may be contacted at:
+##     processdash@tuma-solutions.com
+##     processdash-devel@lists.sourceforge.net
+
+#############################################################################
+## Title:	$Id$
+## Author:	Ken Raisor <kraisor@ulaf3>
+## Created:	Mon Jan  5 16:34:18 1998
+##
+## Description: Template file for PSP process scripts.
+##
+## lines in this file have the following format:
+##    PropertyKey<parentKey><name>=Prop[defectLogFlag][ID][scriptFile] \
+##	   [dataFile][status*][selected][numChildren(N)][child0]...[childN-1]
+##
+## * status = [M][E][<allowedChildIDList(#)][>requiredParentIDList]
+##   M indicates that this node may NOT be moved.
+##   E indicates that this node may NOT be edited / renamed.
+##   <allowedChildIDList   = <aChildID(#)<allowedChildIDList | <aChildID(#)
+##   <aChildID = if present, child ID MUST match an aChildID in the list.
+##   (#) is an optional field, if present, it indicates the offset at which to
+##      insert a new child.  A positive # indicates offset from the beginning
+##      (i.e., (2) indicates that the child should be inserted as child 2),
+##      while a negative # indicates offset from the end (i.e., (-1) 
+##      indicates that the child should be inserted just before the last 
+##      child).  This is only applied / enforced at insertion time.
+##   >requiredParentIDList = >rParentID>requiredParentIDList | >rParentID
+##   >rParentID = if present, parent ID MUST match an rParentID in the list.
+##   All ids refer to the contents of the ID field (listed above).
+##
+
+##
+## Template for an Inspection.
+##
+
+PropertyKey<top><Inspection>=Prop[true][Inspection][Inspection/script.htm][Inspection/dataFile.txt][<][0][4][PropertyKey<top/Inspection><Planning>][PropertyKey<top/Inspection><Design Inspection>][PropertyKey<top/Inspection><Code Inspection>][PropertyKey<top/Inspection><Postmortem>]
+PropertyKey<top/Inspection><Planning>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Design Inspection>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Code Inspection>=Prop[][][Inspection/script.htm][][ME<>][0][0]
+PropertyKey<top/Inspection><Postmortem>=Prop[][][Inspection/script.htm][][ME<>][0][0]

@@ -1,0 +1,677 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+
+This web page helps to test the data integration mechanism.
+
+ Test input elements:
+  - checkboxes (date, normal)
+  - text field (date, number, text)
+  - text area (text)
+  - select (no values, string values, numeric values, set to blank)
+
+ For each, check that it will 
+  - respond to user input
+  - respond to data repository
+  - handle read-only state
+
+ TODO
+
+ Check that "hidden, active" fields 
+  - get updates from the repository
+  - refresh the form when data changes
+
+ Check that multiple frames AND multiple windows don't cause problems.
+
+-->
+
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="/style.css">
+<title>Test Data Integration</title>
+
+
+</head>
+<body>
+
+<h1>Test Data Integration</h1>
+
+<form name=plan>
+
+<input type=button name="Run" value="Run Test" onClick="runTest()">
+
+<table>
+
+<tr>
+<td></td>
+<td><b>Responds to user</b></td>
+<td><b>Responds to repository</b></td>
+<td><b>Read only</b></td>
+</tr>
+
+<tr><td colspan=4><h2>Dates</h2></td></tr>
+
+<tr>
+<td>Checkboxes</td>
+<td>1 <input type=checkbox name="[test//date]d"></td>
+<td>2 <input type=checkbox name="[test//date]d"></td>
+<td>3 <input type=checkbox name="[test//date]dr"></td>
+</tr>
+
+<tr>
+<td>Text fields</td>
+<td>4 <input type=text size=7 name="[test//date]d"></td>
+<td>5 <input type=text size=7 name="[test//date]d"></td>
+<td>6 <input type=text size=7 name="[test//date]dr"></td>
+</tr>
+
+<tr><td colspan=4><h2>Numbers</h2></td></tr>
+
+<tr>
+<td>Text fields</td>
+<td>7 <input type=text size=7 name="[test//number]"></td>
+<td>8 <input type=text size=7 name="[test//number]"></td>
+<td>9 <input type=text size=7 name="[test//number]r"></td>
+</tr>
+
+<tr>
+<td>Percentage Text fields</td>
+<td>10 <input type=text size=7 name="[test//number]%"></td>
+<td>11 <input type=text size=7 name="[test//number]%"></td>
+<td>12 <input type=text size=7 name="[test//number]%r"></td>
+</tr>
+
+<tr>
+<td>Select</td>
+<td>13 <select name="[test//number]o">
+<option value="">
+<option value="1.1">One
+<option value="2.2">Two
+<option value="3.3">Three
+</select></td>
+<td>14 <select name="[test//number]o">
+<option value="">
+<option value="1.1">One
+<option value="2.2">Two
+<option value="3.3">Three
+</select></td>
+<td>15 <select name="[test//number]or">
+<option value="">
+<option value="1.1">One
+<option value="2.2">Two
+<option value="3.3">Three
+</select></td>
+</tr>
+
+<tr>
+<td>Checkboxes</td>
+<td>16 <input type=checkbox name="[test//number]"></td>
+<td>17 <input type=checkbox name="[test//number]"></td>
+<td>18 <input type=checkbox name="[test//number]r"></td>
+</tr>
+
+<tr><td colspan=4><h2>Strings</h2></td></tr>
+
+<tr>
+<td>Text fields</td>
+<td>19 <input type=text size=7 name="[test//string]s"></td>
+<td>20 <input type=text size=7 name="[test//string]s"></td>
+<td>21 <input type=text size=7 name="[test//string]sr"></td>
+</tr>
+
+<tr>
+<td>Text area</td>
+<td>22 <textarea rows=4 cols=10 name="[test//string]s"></textarea></td>
+<td>23 <textarea rows=4 cols=10 name="[test//string]s"></textarea></td>
+<td>24 <textarea rows=4 cols=10 name="[test//string]sr"></textarea></td>
+</tr>
+
+<tr>
+<td>Select (no value)</td>
+<td>25 <select name="[test//string]s">
+<option>
+<option>Foo
+<option>Bar
+<option>Baz
+</select></td>
+<td>26 <select name="[test//string]s">
+<option>
+<option>Foo
+<option>Bar
+<option>Baz
+</select></td>
+<td>27 <select name="[test//string]sr">
+<option>
+<option>Foo
+<option>Bar
+<option>Baz
+</select></td>
+</tr>
+
+<tr>
+<td>Select (string values)</td>
+<td>28 <select name="[test//string]s">
+<option value="">
+<option value="-foo-">Foo
+<option value="-bar-">Bar
+<option value="-baz-">Baz
+</select></td>
+<td>29 <select name="[test//string]s">
+<option value="">
+<option value="-foo-">Foo
+<option value="-bar-">Bar
+<option value="-baz-">Baz
+</select></td>
+<td>30 <select name="[test//string]sr">
+<option value="">
+<option value="-foo-">Foo
+<option value="-bar-">Bar
+<option value="-baz-">Baz
+</select></td>
+</tr>
+
+</table></form>
+
+<h2>Test Script</h2>
+
+<form name="script"><textarea name="NOT_DATA" rows=4 cols=60>
+
+    // Test the Date fields
+    dataDelay = 9 * baseDelay;
+
+    // to begin with, none of the date fields should have a value.
+    checkDateFields(false);
+    // check the first checkbox.
+    setChecked(dateCheckUser, true);
+    // now, all of the date fields should have a value.
+    checkDateFields(true);
+    dateValue = elements[dateTextUser].value;
+    // try unchecking the third (read-only) checkbox.
+    setChecked(dateCheckRO, false);
+    // all of the date fields should still have a value.
+    checkDateFields(true);
+
+    // uncheck the first checkbox.
+    setChecked(dateCheckUser, false);
+    // now none of the date fields should have a value.
+    checkDateFields(false);
+    // try clicking the third (read-only) checkbox again.
+    setChecked(dateCheckRO, true);
+    // the date fields should still not have a value.
+    checkDateFields(false);
+
+    // manually enter a value 
+    setValue(dateTextUser, dateValue);
+    // now the date fields should all have values.
+    checkDateFields(true);
+    assert(elements[dateTextRep].value, dateValue, dateTextRep+" should have value "+dateValue);
+    // try to manually blank out (read-only) field dateTextRO.
+    setValue(dateTextRO, "");
+    // the date fields should still all have values.
+    checkDateFields(true);
+    assert(elements[dateTextRep].value, dateValue, dateTextRep+" should have value "+dateValue);
+
+    // blank out element dateTextUser.
+    setValue(dateTextUser, "");
+    // the date fields should no longer have values.
+    checkDateFields(false);
+    // try to manually enter a value in (read-only) field dateTextRO.
+    setValue(dateTextRO, dateValue);
+    // the date fields should still not have values.
+    checkDateFields(false);
+
+
+    // Test the Number fields
+    dataDelay = 12 * baseDelay;
+
+    // all the number fields should be empty to start.
+    checkNumberFieldsEmpty();
+    // enter 1.1 in field numUser
+    setValue(numUser, "1.1");
+    // check for correct values.
+    checkNumberFields("1.1", "110%", 1, true);
+    // enter 2.2 in field numUser
+    setValue(numUser, "2.2");
+    // check for correct values.
+    checkNumberFields("2.2", "220%", 2, true);
+    // try to enter 3.3 in numRO
+    setValue(numRO, "3.3");
+    // check that values haven't changed.
+    checkNumberFields("2.2", "220%", 2, true);
+    // try to null out numRO
+    setValue(numRO, "");
+    // check that values haven't changed.
+    checkNumberFields("2.2", "220%", 2, true);
+    // try to enter "foo" in numUser
+    setValue(numUser, "foo");
+    // check that values haven't changed.
+    checkNumberFields("2.2", "220%", 2, true);
+    // enter -0.01 in numUser
+    setValue(numUser, "-0.01");
+    // check for correct values.
+    checkNumberFields("-0.01", "-1%", -1, true);
+    // enter 0 in numUser
+    setValue(numUser, "000");
+    // check for correct values.
+    checkNumberFields("0", "0%", -1, false);
+    // null out numUser
+    setValue(numUser, "");
+    // check for empty values.
+    checkNumberFieldsEmpty();
+    // try to enter 3.3 in numRO
+    setValue(numRO, "3.3");
+    // check that values haven't changed.
+    checkNumberFieldsEmpty();
+
+    // enter 110% in field pctUser
+    setValue(pctUser, " 110%");
+    // check for correct values.
+    checkNumberFields("1.1", "110%", 1, true);
+    // enter 330 in field pctUser
+    setValue(pctUser, "00330 ");
+    // check for correct values.
+    checkNumberFields("3.3", "330%", 3, true);
+    // try to enter 220% in pctRO
+    setValue(pctRO, "220%");
+    // check that values haven't changed.
+    checkNumberFields("3.3", "330%", 3, true);
+    // try to null out pctRO
+    setValue(pctRO, "");
+    // check that values haven't changed.
+    checkNumberFields("3.3", "330%", 3, true);
+    // try to enter "blah" in pctUser
+    setValue(pctUser, "blah");
+    // check that values haven't changed.
+    checkNumberFields("3.3", "330%", 3, true);
+    // enter -6.2 in pctUser
+    setValue(pctUser, "-6.2");
+    // check for correct values.
+    checkNumberFields("-0.06", "-6.2%", -1, true);
+    // enter 0 in pctUser
+    setValue(pctUser, "-0");
+    // check for correct values.
+    checkNumberFields("0", "0%", -1, false);
+    // enter -921% in pctUser
+    setValue(pctUser, "-921 %");
+    // check for correct values.
+    checkNumberFields("-9.21", "-921%", -1, true);
+    // null out pctUser
+    setValue(pctUser, "");
+    // check for empty values.
+    checkNumberFieldsEmpty();
+    // try to enter 330% in pctRO
+    setValue(pctRO, "330");
+    // check that values haven't changed.
+    checkNumberFieldsEmpty();
+
+    // select Two from numSelUser
+    setSelIndex(numSelUser, 2);
+    // check for correct values.
+    checkNumberFields("2.2", "220%", 2, true);
+    // select Three from field numSelUser
+    setSelIndex(numSelUser, 3);
+    // check for correct values.
+    checkNumberFields("3.3", "330%", 3, true);
+    // try to enter One in numSelRO
+    setSelIndex(numSelRO, 1);
+    // check that values haven't changed.
+    checkNumberFields("3.3", "330%", 3, true);
+    // try to null out numSelRO
+    setSelIndex(numSelRO, 0);
+    // check that values haven't changed.
+    checkNumberFields("3.3", "330%", 3, true);
+    // null out numSelUser
+    setSelIndex(numSelUser, 0);
+    // check for empty values.
+    checkNumberFieldsEmpty();
+    // try to enter Two in numSelRO
+    setSelIndex(numSelRO, 2);
+    // check for empty values.
+    checkNumberFieldsEmpty();
+
+    // check numCheckUser
+    setChecked(numCheckUser, true);
+    // check for correct values.
+    checkNumberFields("1", "100%", -1, true);
+    // try to uncheck numCheckRO
+    setChecked(numCheckRO, false);
+    // check that values haven't changed.
+    checkNumberFields("1", "100%", -1, true);
+    // try again to uncheck numCheckRO
+    setChecked(numCheckRO, false);
+    // check that values haven't changed.
+    checkNumberFields("1", "100%", -1, true);
+    // uncheck numCheckUser
+    setChecked(numCheckUser, false);
+    // check for correct values.
+    checkNumberFields("0", "0%", -1, false);
+    // try to check numCheckRO
+    setChecked(numCheckRO, true);
+    // check that values haven't changed.
+    checkNumberFields("0", "0%", -1, false);
+    // null out numUser
+    setValue(numUser, "");
+    // check for empty values.
+    checkNumberFieldsEmpty();
+
+
+    // Test the String fields
+    dataDelay = 12 * baseDelay;
+
+    // all the string fields should be empty to start.
+    checkStringFieldsEmpty();
+    // set strTextUser to Foo
+    setValue(strTextUser, "Foo");
+    // check for correct values
+    checkStringFields("Foo", 1, -1);
+    // set strTextUser to -bar-
+    setValue(strTextUser, "-bar-");
+    // check for correct values
+    checkStringFields("-bar-", -1, 2);
+    // try setting strTextRO to -baz-
+    setValue(strTextRO, "-baz-");
+    // check that values haven't changed
+    checkStringFields("-bar-", -1, 2);
+    // try nulling strTextRO
+    setValue(strTextRO, "");
+    // check that values haven't changed
+    checkStringFields("-bar-", -1, 2);
+    // set strTextUser to a bizzare string
+    setValue(strTextUser, weirdString);
+    // check for correct values
+    checkStringFields(weirdString, -1, -1);
+    // null out strTextUser
+    setValue(strTextUser, "");
+    // check that all fields are empty
+    checkStringFieldsEmpty();
+    // try to set strTextRO to -bar- 
+    setValue(strTextRO, "-bar-");
+    // check that all fields are still empty
+    checkStringFieldsEmpty();
+
+    // set strAreaUser to Foo
+    setValue(strAreaUser, "Foo");
+    // check for correct values
+    checkStringFields("Foo", 1, -1);
+    // set strAreaUser to -bar-
+    setValue(strAreaUser, "-baz-");
+    // check for correct values
+    checkStringFields("-baz-", -1, 3);
+    // try setting strAreaRO to -bar-
+    setValue(strAreaRO, "-baz-");
+    // check that values haven't changed
+    checkStringFields("-baz-", -1, 3);
+    // try nulling strAreaRO
+    setValue(strAreaRO, "");
+    // check that values haven't changed
+    checkStringFields("-baz-", -1, 3);
+    // set strAreaUser to a bizarre string
+    setValue(strAreaUser, weirdString);
+    // check for correct values
+    checkStringFields(weirdString, -1, -1);
+    // null out strAreaUser
+    setValue(strAreaUser, "");
+    // check that all fields are empty
+    checkStringFieldsEmpty();
+    // try to set strAreaRO to -bar- 
+    setValue(strAreaRO, "-bar-");
+    // check that all fields are still empty
+    checkStringFieldsEmpty();
+
+    // select Foo from strSelUser
+    setSelIndex(strSelUser, 1);
+    // check for correct values.
+    checkStringFields("Foo", 1, -1);
+    // select Baz from field strSelUser
+    setSelIndex(strSelUser, 3);
+    // check for correct values.
+    checkStringFields("Baz", 3, -1);
+    // try to enter Bar in strSelRO
+    setSelIndex(strSelRO, 2);
+    // check that values haven't changed.
+    checkStringFields("Baz", 3, -1);
+    // try to null out strSelRO
+    setSelIndex(strSelRO, 0);
+    // check that values haven't changed.
+    checkStringFields("Baz", 3, -1);
+    // null out strSelUser
+    setSelIndex(strSelUser, 0);
+    // check for empty values.
+    checkStringFieldsEmpty();
+    // try to enter Baz in strSelRO
+    setSelIndex(strSelRO, 3);
+    // check for empty values.
+    checkStringFieldsEmpty();
+
+    // select Foo from strSelVUser
+    setSelIndex(strSelVUser, 1);
+    // check for correct values.
+    checkStringFields("-foo-", -1, 1);
+    // select Baz from field strSelVUser
+    setSelIndex(strSelVUser, 3);
+    // check for correct values.
+    checkStringFields("-baz-", -1, 3);
+    // try to enter Bar in strSelVRO
+    setSelIndex(strSelVRO, 2);
+    // check that values haven't changed.
+    checkStringFields("-baz-", -1, 3);
+    // try to null out strSelVRO
+    setSelIndex(strSelVRO, 0);
+    // check that values haven't changed.
+    checkStringFields("-baz-", -1, 3);
+    // null out strSelVUser
+    setSelIndex(strSelVUser, 0);
+    // check for empty values.
+    checkStringFieldsEmpty();
+    // try to enter Baz in strSelVRO
+    setSelIndex(strSelVRO, 3);
+    // check for empty values.
+    checkStringFieldsEmpty();
+
+</textarea>
+
+</form>
+
+
+<script language=JavaScript src="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</script>
+
+<script language=JavaScript>
+
+    var baseDelay = 200, dataDelay = 1200;
+    var elements = document.forms[0].elements;
+    var testSteps;
+    var currentStep;
+    var failed;
+    var delay;
+    var dateValue;
+    var weirdString = "~!@#$%^&*()_<>\"\"`-=_+{}|[]\\;\':,./<>?";
+
+
+    var dateCheckUser = 1, dateCheckRep = 2, dateCheckRO = 3;
+    var dateTextUser  = 4, dateTextRep  = 5, dateTextRO  = 6;
+
+    var numUser = 7,  numRep = 8,  numRO = 9;
+    var pctUser = 10, pctRep = 11, pctRO = 12;
+    var numSelUser   = 13, numSelRep   = 14, numSelRO   = 15;
+    var numCheckUser = 16, numCheckRep = 17, numCheckRO = 18;
+
+    var strTextUser = 19, strTextRep = 20, strTextRO = 21;
+    var strAreaUser = 22, strAreaRep = 23, strAreaRO = 24;
+    var strSelUser  = 25, strSelRep  = 26, strSelRO  = 27;
+    var strSelVUser = 28, strSelVRep = 29, strSelVRO = 30;
+
+    var scriptText = 31;
+
+    if (location.search != "") {
+        eval("baseDelay = " + location.search.substring(1));
+    }
+
+    function assert(expect, actual, failureMessage) {
+        if (expect != actual) {
+	    failed = true;
+	    window.alert(currentStep + ": " + failureMessage);
+        }
+    }
+
+    function runTest() {
+        failed = false;
+	loadSteps();
+	runTestStep(0);
+    }
+
+    function loadSteps() {
+        var script = document.forms[1].elements[0];
+        testSteps = script.value.split("\n");
+    }
+
+    function runTestStep(num) {
+        if (num < testSteps.length) {
+	    currentStep = testSteps[num];
+	    window.status = currentStep;
+	    delay = 1;
+            eval(currentStep);
+	    if (!failed) {
+	        num++;
+	        window.setTimeout("runTestStep("+num+")", delay);
+            }
+        } else {
+	    window.alert("Success!");
+        }
+    }
+
+    function setChecked(num, checked) {
+        elements[num].checked = checked;
+	changeNotifyElem(elements[num]);
+	delay = dataDelay;
+    }
+
+    function setValue(num, value) {
+        elements[num].value = value;
+	changeNotifyElem(elements[num]);
+	delay = dataDelay;
+    }
+
+    function setSelIndex(num, value) {
+        elements[num].selectedIndex = value;
+	changeNotifyElem(elements[num]);
+	delay = dataDelay;
+    }
+
+    function checkDateFields(hasValue) {
+        var checked = (hasValue ? " checked" : " unchecked");
+        assert(hasValue, elements[dateCheckUser].checked,
+	       dateCheckUser+" should be"+checked);
+        assert(hasValue, elements[dateCheckRep].checked,
+	       dateCheckRep+" should be"+checked);
+        assert(hasValue, elements[dateCheckRO].checked, 
+	       dateCheckRO+" should be"+checked);
+
+        var be_empty = (hasValue ? " have data" : " be empty");
+        assert(hasValue, elements[dateTextUser].value != "",
+	       dateTextUser+" should"+be_empty);
+        assert(hasValue, elements[dateTextRep].value != "",
+	       dateTextRep+" should"+be_empty);
+        assert(hasValue, elements[dateTextRO].value != "", 
+               dateTextRO+" should"+be_empty);
+    }
+
+    function getSelIdx(num) {
+        if (elements[num].selectedIndex > 0)
+	    return elements[num].selectedIndex;
+	else
+	    return 0;
+    }
+    function checkNumberFields(num, pct, selIndex, checked) {
+        assert(num, elements[numUser].value, numUser+" should be "+num);
+        assert(num, elements[numRep].value, numRep+" should be "+num);
+        assert(num, elements[numRO].value, numRO+" should be "+num);
+
+        assert(pct, elements[pctUser].value, pctUser+" should be "+pct);
+        assert(pct, elements[pctRep].value, pctRep+" should be "+pct);
+        assert(pct, elements[pctRO].value, pctRO+" should be "+pct);
+
+	if (selIndex >= 0) {
+            assert(selIndex, getSelIdx(numSelUser),
+	           numSelUser+" should select item "+selIndex);
+            assert(selIndex, getSelIdx(numSelRep),
+	           numSelRep+" should select item "+selIndex);
+            assert(selIndex, getSelIdx(numSelRO),
+	           numSelRO+" should select item "+selIndex);
+        }
+
+	var _checked = (checked ? " checked" : " unchecked");
+        assert(checked, elements[numCheckUser].checked,
+               numCheckUser+" should be"+_checked);
+        assert(checked, elements[numCheckRep].checked,
+               numCheckRep+" should be"+_checked);
+        assert(checked, elements[numCheckRO].checked,
+               numCheckRO+" should be"+_checked);
+    }
+    function checkNumberFieldsEmpty() {
+        checkNumberFields("?????", "?????", 0, false);
+    }
+
+    function checkStringFields(text, selIndex, selVIndex) {
+        assert(text, elements[strTextUser].value,
+               strTextUser+" should be "+text);
+        assert(text, elements[strTextRep].value,
+               strTextRep+" should be "+text);
+        assert(text, elements[strTextRO].value,
+               strTextRO+" should be "+text);
+
+        assert(text, elements[strTextUser].value,
+               strTextUser+" should be "+text);
+        assert(text, elements[strTextRep].value,
+               strTextRep+" should be "+text);
+        assert(text, elements[strTextRO].value,
+               strTextRO+" should be "+text);
+
+	if (selIndex >= 0) {
+            assert(selIndex, getSelIdx(strSelUser),
+	           strSelUser+" should select item "+selIndex);
+            assert(selIndex, getSelIdx(strSelRep),
+	           strSelRep+" should select item "+selIndex);
+            assert(selIndex, getSelIdx(strSelRO),
+	           strSelRO+" should select item "+selIndex);
+        }
+
+	if (selVIndex >= 0) {
+            assert(selVIndex, getSelIdx(strSelVUser),
+	           strSelVUser+" should select item "+selVIndex);
+            assert(selVIndex, getSelIdx(strSelVRep),
+	           strSelVRep+" should select item "+selVIndex);
+            assert(selVIndex, getSelIdx(strSelVRO),
+	           strSelVRO+" should select item "+selVIndex);
+        }
+    }
+    function checkStringFieldsEmpty() {
+        checkStringFields("", 0, 0);
+    }
+
+
+</script>
+
+</body>
+</html>

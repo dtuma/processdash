@@ -1,0 +1,102 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+<!--#resources bundle="EV.Report.Customize" -->
+
+<html><head>
+<title><!--#echo Title --></title>
+<link rel=stylesheet type="text/css" href="/style.css">
+<link rel=stylesheet type="text/css" href="/reports/ev.css">
+<script type="text/javascript" src="/lib/prototype.js"></script>
+<script type="text/javascript" src="/lib/scriptaculous.js"></script>
+</head><body>
+<h3><!--#echo Title --></h3>
+
+<form action="ev.class" method="POST">
+<input type="hidden" name="customize" value="1">
+<input type="hidden" name="tlid" value="<!--#echo tlid -->">
+
+<table>
+
+<tr><td valign="top"><input name="hidePlanLine"
+        <!--#if [settings//hidePlanLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Plan_HTML encoding=none --></td></tr>
+
+<tr><td valign="top"><input name="hideReplanLine"
+        <!--#if [settings//hideReplanLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Replan_HTML encoding=none --></td></tr>
+
+<tr><td valign="top"><input name="hideForecastLine"
+        <!--#if [settings//hideForecastLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Forecast_HTML encoding=none --></td></tr>
+
+<!--#if hasBaseline -->
+<tr><td valign="top"><input name="hideBaseline"
+        <!--#if [settings//hideBaseline] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Baseline_HTML encoding=none --></td></tr>
+<!--#endif-->
+
+<!--#if isRollup -->
+<tr><td valign="top"><input name="hideAssignedTo"
+        <!--#if [settings//hideAssignedTo] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Assigned_To_HTML encoding=none --></td></tr>
+<!--#endif-->
+
+<!--#if showLabelFilter -->
+<tr><td></td><td><!--#echo var=Show_Label_HTML encoding=none --><br/>
+    <input name="labelFilter" type="text" size="30" style="margin-left:1cm"
+        value="<!--#echo [settings//labelFilter] -->"></td></tr>
+<!--#endif-->
+
+<tr><td></td><td><!--#include file="ev.class?chartOptions" -->
+    <!--#parameter name="QUERY_STRING" --></td></tr>
+
+</table>
+
+<script>
+    Sortable.create('chartOrderBlockShow', {
+        tag: 'div',
+        only: 'chartOrderItem',
+        containment: ['chartOrderBlockShow', 'chartOrderBlockHide'],
+        dropOnEmpty: true
+    });
+    Sortable.create('chartOrderBlockHide', {
+        tag: 'div',
+        only: 'chartOrderItem',
+        containment: ['chartOrderBlockShow', 'chartOrderBlockHide'],
+        dropOnEmpty: true
+    });
+</script>
+
+<table width="100%"><tr><td width="100%" align="right">
+    <input type="submit" name="OK" value="<!--#echo OK -->">
+    <input type="submit" name="Cancel" value="<!--#echo Cancel -->">
+</td></tr></table></form>
+
+</body></html>

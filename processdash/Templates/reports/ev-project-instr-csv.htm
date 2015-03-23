@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Export to Microsoft Project - Instructions</title>
+<link rel='stylesheet' type='text/css' href='/style.css'>
+<meta http-equiv='Refresh' content='1;URL=ev.class?csv'>
+<style>
+li.padAbove { padding-top:7px; }
+li.padBelow { padding-bottom:7px; }
+li.pad { padding-top:7px; padding-bottom:7px }
+</style>
+</head>
+<body>
+<h1>Export to Microsoft Project - Instructions</h1>
+
+<p>This page will assist you in exporting a snapshot of your earned
+value plan to Microsoft Project.  Follow the steps below:
+
+<ol>
+
+<li class="padBelow">Earned value data is exported to a Microsoft Project
+CSV file.  The download of this file may start automatically; if it does
+not, <a href="ev.class?csv">click here</a>.  Save this file onto your
+computer.</li>
+
+<li class="pad">In Microsoft Project, create a new, empty project.
+Choose &quot;Project <img src="/help/Images/rarrow.png"> Project
+Information...&quot; In the dialog that appears, change the
+&quot;Schedule from&quot; field to &quot;Project Finish Date&quot; and
+click OK.</li>
+
+<li class="pad">In Microsoft Project, choose &quot;File <img
+src="/help/Images/rarrow.png"> Open&quot; and select the file you
+saved in the first step.  You may have to change the &quot;Files of
+type&quot; selector in order to see the CSV file.  Click the Open
+button.</li>
+
+<li class="pad">An &quot;Import Wizard&quot; will appear.  When the
+wizard asks whether you would like to create a new map or use an
+existing map, choose the &quot;New Map&quot; option.</li>
+
+<li class="pad">On the next screen of the wizard, select the option to
+&quot;Append the data to the active project.&quot;</li>
+
+<li class="padAbove">Click Next through the remaining screens,
+accepting all the suggested default values:</li>
+
+   <ul>
+   <li>Import Task data</li>
+   <li>The import <b>does</b> include headers</li>
+   <li>The text delimiter is the comma (&quot;<tt>,</tt>&quot;)</li>
+   <li class="padBelow">On the &quot;Map tasks data&quot; page, the
+       wizard should automatically determine the data fields to use;
+       nothing needs to be changed</li>
+   </ul>
+
+<li class="pad">On the final screen, click the Finish button.
+<i>(Optional: Before clicking the Finish button, you can save the map
+you just defined for future use.  Keep in mind, however, that future
+releases of the dashboard may export additional data fields.  When you
+upgrade the dashboard in the future, it is advisable to recreate a new
+map, as described on this page.)</i></li>
+
+<li class="pad">You may see a warning that task start dates precede
+the start date of the project, or that task end dates fall after the
+finish date of the project.  These warnings are harmless and can be
+ignored.</li>
+
+<li class="pad">A new project will be created and populated with the
+current data from your earned value plan.  If you wish, you can save
+this project for future use.  Keep in mind that this is only a
+snapshot of your earned value project.  The data in this snapshot will
+not be refreshed when you make progress in the future.  Also, changes
+made in this Microsoft Project file will not be reflected in the
+dashboard.</li>
+
+</ol></p>
+
+<hr>
+
+<p>The XML file format was introduced in Microsoft Project 2003.  If
+you are using MS Project 2003 or later, you are encouraged to use the
+newer <a href="ev-project-instr.htm">XML format</a> instead.</p>
+
+</body>
+</html>

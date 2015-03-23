@@ -1,0 +1,22 @@
+a.treeTableFolder {
+    position: absolute;
+    vertical-align: baseline;
+    left: -15px;
+    top: 2px;
+    outline: none;
+}
+
+img.treeTableDoc {
+    position: absolute;
+    vertical-align: baseline;
+    left: -15px;
+    top: 2px;
+}
+
+a.treeTableExpandAll {
+    position: absolute;
+    vertical-align: baseline;
+    left: -20px;
+    top: 2px;
+    outline: none;
+}

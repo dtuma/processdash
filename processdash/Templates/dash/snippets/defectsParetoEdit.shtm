@@ -1,0 +1,16 @@
+<b><!--#echo Chart_Type.Prompt --></b>
+<!--#foreach name="Which" values=",Bar,Disc," #-->
+<span class="cmsIndent"><input type="radio" name="$$$_ChartType"
+    <!--#if ChartType eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'Bar' -->checked
+    <!--#endif--><!--#endif#-->
+    value="Which">&nbsp;<!--#echo Chart_Type.Which --></span>
+<!--#endfor-->
+
+<p><input type="checkbox" name="$$$_Show_Num_Defects"
+    <!--#if Show_Num_Defects || defaults -->checked<!--#endif#-->
+    >&nbsp;<b><!--#echo Show_Num_Defects_Prompt --></b></p>
+
+<p class="cmsNoBottomMargin"><input type="checkbox" name="$$$_Show_Fix_Time"
+    <!--#if Show_Fix_Time || defaults -->checked<!--#endif#-->
+    >&nbsp;<b><!--#echo Show_Fix_Time_Prompt --></b></p>

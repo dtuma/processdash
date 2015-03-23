@@ -1,0 +1,33 @@
+=
+= Common data definitions for all 10 programs
+=
+
+= Identify this project as a program in a PSP for Engineers course.
+
+[PspForEngV2_Program] == TAG;
+
+
+= Register an extra script to appear for instructors
+
+[PspForEng_Instr_Script] = "cms/pspForEng3/instr/grading";
+
+
+= Use "/To Date/PSP/All" for PROBE data, even when a different
+= subset prefix is in effect (e.g. 7A - 10A).
+
+[PROBE_SUBSET] = "/To Date/PSP/All";
+
+
+= Inherit the language setting from the "PSP for Engineers" datafile.
+
+[Project/Language] = [../Project/Language];
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Estimated Base LOC=?NaN
+Estimated Deleted LOC=?NaN
+Estimated Modified LOC=?NaN
+Base LOC=?NaN
+Deleted LOC=?NaN
+Modified LOC=?NaN

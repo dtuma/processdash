@@ -1,0 +1,180 @@
+<HTML>
+<head>
+<TITLE>Tracking Task Dependencies</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+
+<BODY>
+
+<h1>Tracking Task Dependencies</h1>
+
+<p>Creating a schedule with the <a href="UsingTaskSchedule.html">Task and
+Schedule</a> tool, and tracking your progress with earned value, is an
+excellent way to stay on track and deliver your work on time.  But when you
+are working as part of a team, it is also important to coordinate with your
+team members.  This is especially true if your team member needs to use
+something that you are producing (or vice versa).  To facilitate this type of
+coordination, the dashboard will allow you to define and track task
+dependencies.  <i><b>Note:</b> if you are not working as a member of a team,
+you probably don't need to declare task dependencies.</i></p>
+
+<p>Task dependencies are a way of stating, &quot;<i>this</i> task cannot start
+until <i>those</i> tasks are finished.&quot; You can define dependencies
+between tasks that appear in earned value schedules.  Once defined, the
+dashboard will help you to track the status of these dependencies, as
+described below. However, the presence of dependencies does not currently
+alter the earned value calculations in any way.  In particular, <b>the
+dashboard does not use these dependencies to perform any sort of critical path
+analysis</b>.  If you use "Flat View" to specify task order, the dashboard
+does not prevent you from reordering tasks before their predecessors.  These
+capabilities may be added in the future.  But at the current time, task
+dependencies are simply a way of showing you the information you need in order
+to coordinate with your teammates more effectively.</p>
+
+<p>There are two different ways you can define task dependencies:<ul>
+
+<li>When your team is planning a team project, you can define dependencies
+in the Work Breakdown Struture Editor.</li>
+
+<li>When you view an earned value schedule in the
+<a href="UsingTaskSchedule.html">Task and Schedule</a> window, you can
+define dependencies by double-clicking on a cell in the "Dep" column.</li></ul>
+
+Most teams will use the first approach almost exclusively.</p>
+
+<p>Once you've defined a task dependency, the dashboard will display icons to
+indicate the presence and status of dependent tasks.  If a task has a
+dependency, one of the following icons will be displayed:</p>
+
+
+<table style="margin-left: 1cm; margin-right: 1cm">
+
+<tr><td nowrap><b style="color:red">???</b></td>
+    <td>This depends on at least one other task, but status information
+        for that task is not available.</td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td><img src="../../../Images/stop.gif"></td>
+    <td>This depends on at least one other task that still has not been
+        completed.</td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td valign="top" style="padding-top:6px"><img src="../../../Images/warningRed.gif"></td>
+    <td><a name="redWarning"></a>This depends on at least one other task that
+        still has not been completed - and unfortunately, it does not look
+        like the dependent task(s) will be ready as soon as you need them to
+        be.<a href="#misordered">*</a></td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td><img src="../../../Images/check.gif"></td>
+    <td>All of the dependencies for this task have been completed.</td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td><img src="../../../Images/group.gif"></td>
+    <td>Other people are waiting for you to complete this task.</td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td valign="top" style="padding-top:6px"><img src="../../../Images/warning.gif"></td>
+    <td><a name="yellowWarning"></a>Other people are waiting for you to
+        complete this task - and unfortunately, it does not look like you
+        will complete this task in time to meet their needs.<a
+        href="#misordered">*</a></td></tr>
+
+</table>
+
+
+
+<p>These icons are displayed in the "Dep" column of the task list when it
+appears in the Task and Schedule window, the earned value report, or the
+earned value weekly view.  In addition, the icon will be displayed on the main
+dashboard window when you select a task that has a related dependency:</p>
+
+<p align="center"><img src="../../Images/MainWindowDependencyIndicator.png"></p>
+
+<p>You can place your mouse over these icons for detailed status information.
+(When you see a dependency icon in your web browser, you'll need to click as
+well.)  The detailed status will show you all the dependent tasks (if there is
+more than one), the completion status of each, the names of the individuals
+assigned to the task, the projected<a href="#projectedDate">**</a> completion
+date, and the task's percentage complete.</p>
+
+
+<h2><A NAME="misordered"></A>Misordered Dependencies</h2>
+
+<p>As described above, task dependencies are a way of stating,
+&quot;<i>this</i> task cannot start until <i>those</i> tasks are
+finished.&quot; Accordingly, when task dependencies are present, it becomes
+necessary to work on tasks in a particular order.</p>
+
+<p>However, the dashboard does not perform any critical path analysis on your
+task dependencies, and it does not attempt to compute the optimal order in
+which tasks should be performed.  Thus, you must collaborate with your
+teammates to determine the best task order.</p>
+
+<p>Once you decide which tasks you will be working on first, second, etc, you
+should use the <a href="TaskScheduleSteps.html#flatView">flat view</a> of your
+task list to record this order in the dashboard.  The dashboard will then use
+this order to compute projected completion dates for each task.</p>
+
+<p>Once all team members have performed this step, the dashboard will compare
+the projected<a href="#projectedDate">**</a> task dates to see if any
+dependent tasks have been placed out of order.  For example, imagine the
+following scenario:</p>
+
+  <ul>
+
+  <li>Person A is working on Task A, and is projected to complete it
+      by June 1.</li>
+
+  <li>Person B is working on Task B, and is projected to complete it
+      by May 1.</li>
+
+  <li>Task B cannot start until Task A is complete</li>
+
+  </ul>
+
+<p>Obviously, the tasks are misordered!  In this case, Person A would see a
+<a href="#yellowWarning">yellow warning sign</a> next to Task A, with a
+message "Other individuals need this task earlier than it is projected to
+finish."  Person B would see a <a href="#redWarning">red warning sign</a>
+next to Task B, with a message "This dependent task is not projected to
+finish in time."</p>
+
+<p>When you see these warning icons, it is a sign that you need to coordinate
+with your team members to resolve the problem!  It is possible that the other
+individual just hasn't bothered to record the task order in their <a
+href="TaskScheduleSteps.html#flatView">flat view</a> yet.  Or, it could be an
+indication of a serious scheduling problem.  Either way, a conversation with
+your team member is in order.  If your team uses task dependencies, it is
+best for each team member to use flat view faithfully so the dashboard can
+provide the most useful information for team collaboration.</p>
+
+<h2><A NAME="projectedDate"></A>Dependency Dates</h2>
+
+<p> By default, the dashboard uses the calculated "Replan" date as the
+"Projected" date for dependency tracking purposes.  This means:</p>
+
+<ul>
+
+  <li>When you request details for a dependency, the dates displayed are
+      replan dates.</li>
+
+  <li>When two tasks are compared for misordering, the comparison is made
+      between the replan dates for the two tasks.</li>
+
+</ul>
+
+<p>The "Replan" date is a good choice for dependency tracking purposes because
+it takes actual data into account, but is not typically as volatile as the
+forecast date.  If you prefer to use "Plan" or "Forecast" dates for dependency
+tracking purposes instead, specify a value for the
+<tt>ev.dependencies.compareDates</tt> setting in the
+<a href="../AdvancedTopics/ConfigurationFile.html">preferences editor</a>.</p>
+
+</body>
+</html>

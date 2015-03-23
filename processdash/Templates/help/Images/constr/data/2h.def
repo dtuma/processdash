@@ -1,0 +1,13 @@
+1	Syntax	Code	Code	1.0	 	typo	01/01/2003
+2	Syntax	Code	Code	1.0	 	typo	01/01/2003
+3	Syntax	Code	Code	1.0	 	typo	01/01/2003
+4	Syntax	Code	Code	1.0	 	typo	01/01/2003
+5	Syntax	Code	Code	1.0	 	typo	01/01/2003
+6	Syntax	Code	Code	1.0	 	typo	01/01/2003
+7	Syntax	Code	Code	1.0	 	typo	01/01/2003
+8	Syntax	Code	Code	1.0	 	typo	01/01/2003
+9	Syntax	Code	Compile	1.0	 	typo	01/01/2003
+10	Syntax	Code	Compile	1.0	 	typo	01/01/2003
+11	Function	Code	Test	4.0	 	Don't count occurrences of "procedure" or "function" in comments	01/01/2003
+12	Function	Code	Test	2.0	 	Don't count occurrences of "procedure" or "function" in comments	01/01/2003
+13	Syntax	Test	Test	2.0	10	missing semicolon	01/01/2003

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="510"
+   height="410"
+   id="svg10801"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="ProbeToolStart.svg">
+  <defs
+     id="defs10803" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.94811052"
+     inkscape:cx="252.03247"
+     inkscape:cy="207.72266"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     width="510px"
+     height="410px"
+     inkscape:window-width="853"
+     inkscape:window-height="573"
+     inkscape:window-x="524"
+     inkscape:window-y="424" />
+  <metadata
+     id="metadata10806">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="3"
+       x="2"
+       id="image10849"
+       height="350"
+       width="400"
+       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ProbeToolStart.png"
+       xlink:href="ProbeToolStart.png" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="24.142857"
+       y="382.6954"
+       id="text10852"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10854"
+         x="24.142857"
+         y="382.6954">Linear regression</tspan><tspan
+         sodipodi:role="line"
+         x="24.142857"
+         y="401.4454"
+         id="tspan10856">calculation metrics</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="186.04762"
+       y="382.6954"
+       id="text10858"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10860"
+         x="186.04762"
+         y="382.6954">Averaging</tspan><tspan
+         sodipodi:role="line"
+         x="186.04762"
+         y="401.4454"
+         id="tspan10862">calculation metrics</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 119.38095,322.83145 L 93.385842,367.8563"
+       id="path10864" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 199.65306,224.87227 L 222.78231,367.72941"
+       id="path10866" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="418.30518"
+       y="38.477779"
+       id="text10868"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10870"
+         x="418.30518"
+         y="38.477779">Estimation</tspan><tspan
+         sodipodi:role="line"
+         x="418.30518"
+         y="57.227779"
+         id="tspan10872">method</tspan><tspan
+         sodipodi:role="line"
+         x="418.30518"
+         y="75.977779"
+         id="tspan10874">choice</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="418.70068"
+       y="103.10004"
+       id="text10876"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10878"
+         x="418.70068"
+         y="103.10004">Independent</tspan><tspan
+         sodipodi:role="line"
+         x="418.70068"
+         y="121.85004"
+         id="tspan10880">variable (X)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="418.70068"
+       y="151.95325"
+       id="text10882"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10884"
+         x="418.70068"
+         y="151.95325">Dependent</tspan><tspan
+         sodipodi:role="line"
+         x="418.70068"
+         y="170.70325"
+         id="tspan10886">variable (Y)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="418.3418"
+       y="200.80646"
+       id="text10888"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10890"
+         x="418.3418"
+         y="200.80646">Prediction</tspan><tspan
+         sodipodi:role="line"
+         x="418.3418"
+         y="219.55646"
+         id="tspan10892">interval</tspan><tspan
+         sodipodi:role="line"
+         x="418.3418"
+         y="238.30646"
+         id="tspan10894">entry</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="418.3418"
+       y="268.40967"
+       id="text10896"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan10898"
+         x="418.3418"
+         y="268.40967">Estimate</tspan><tspan
+         sodipodi:role="line"
+         x="418.3418"
+         y="287.15967"
+         id="tspan10900">entry</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 391.4898,42.559337 L 417.34014,42.559337"
+       id="path10902" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 390.12925,68.409677 L 417.34014,95.620561"
+       id="path10904" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 384.68708,99.702195 L 413.87685,150.26037"
+       id="path10906" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 262.2381,129.63417 L 411.89796,193.57975"
+       id="path10908" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 132.9864,133.7158 L 413.2585,269.77023"
+       id="path10910" />
+  </g>
+</svg>

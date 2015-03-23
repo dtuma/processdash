@@ -1,0 +1,81 @@
+#include <psp2.1/dataFile.txt>
+= Data for /Project/Legacy/Product 1/SCR 42
+Base_Additions_List=="
+Base_Parts/0/Actual Base=345.0
+Base_Parts/0/Actual Deleted=5.0
+Base_Parts/0/Actual Modified=4.0
+Base_Parts/0/Base=345.0
+Base_Parts_List=="0
+Code Review/Completed=@1157826047468
+Code Review/Defects Removed==8.0
+Code Review/Time==120.0
+Code/Completed=@1157825792781
+Code/Defects Injected==8.0
+Code/Time==361.0
+Compile/Completed=@1157826072000
+Compile/Defects Removed==1.0
+Compile/Time==37.0
+Design Review/Completed=@1157825790015
+Design Review/Defects Removed==4.0
+Design Review/Started=@1157821655562
+Design Review/Time==91.0
+Design/Completed=@1157821655531
+Design/Defects Injected==6.0
+Design/Started=@1157821289156
+Design/Time==191.0
+Estimated New & Changed LOC/Beta0=25.970137314097244
+Estimated New & Changed LOC/Beta1=1.0783886809777548
+Estimated New & Changed LOC/Interval Percent=0.7
+Estimated New & Changed LOC/LPI=165.87772695282726
+Estimated New & Changed LOC/Probe Method="A
+Estimated New & Changed LOC/R Squared=0.8724798921056829
+Estimated New & Changed LOC/Range=36.408959701132886
+Estimated New & Changed LOC/UPI=238.69564635509303
+Estimated New & Changed LOC=202.28668665396015
+Estimated Time/Beta0=139.72146667271076
+Estimated Time/Beta1=5.421029965093616
+Estimated Time/Interval Percent=0.7
+Estimated Time/LPI=988.3692180395867
+Estimated Time/Probe Method="B
+Estimated Time/R Squared=0.8377891710132903
+Estimated Time/Range=247.95443852374484
+Estimated Time/UPI=1484.2780950870763
+Estimated Time=1236.3236565633315
+New Objects/0/Actual LOC=61.0
+New Objects/0/Description="Logic for new calculation
+New Objects/0/LOC=54.0
+New Objects/0/Methods=1.0
+New Objects/0/Relative Size="Very Large
+New Objects/0/Type="Calculation
+New Objects/1/Actual LOC=37.0
+New Objects/1/Description="Presentation templates
+New Objects/1/LOC=43.2
+New Objects/1/Methods=2.0
+New Objects/1/Relative Size="Large
+New Objects/1/Type="I/O
+New Objects/2/Actual LOC=53.0
+New Objects/2/Description="Customization UI
+New Objects/2/LOC=28.9
+New Objects/2/Methods=1.0
+New Objects/2/Relative Size="Very Small
+New Objects/2/Type="I/O
+New Objects/3/Actual LOC=37.0
+New Objects/3/Description="Customization data structures
+New Objects/3/LOC=26.5
+New Objects/3/Methods=3.0
+New Objects/3/Relative Size="Medium
+New Objects/3/Type="Data
+New_Objects_List=="0123
+PROBE_LIST=="/Non Project/Historical Data/Program 1/Non Project/Historical Data/Program 2/Non Project/Historical Data/Program 3/Non Project/Historical Data/Program 4/Non Project/Historical Data/Program 5/Non Project/Historical Data/Program 6/Non Project/Historical Data/Program 7/Non Project/Historical Data/Program 8/Non Project/Historical Data/Program 9/Non Project/Historical Data/Program 10
+Planning/Started=@1157820815625
+Planning/Time==121.0
+Postmortem/Completed=@1157827821984
+Postmortem/Time==23.0
+Project/Language="Java
+Reused_Objects_List=="0
+Started=@1157820815625
+Test/Completed=@1157826916640
+Test/Defects Injected==1.0
+Test/Defects Removed==2.0
+Test/Time==201.0
+Total LOC=558.0

@@ -1,0 +1,72 @@
+=
+= This report generates a table of useful PSP data for all completed projects.
+=
+
+qf=compProj.rpt
+
+
+d1==Estimated New & Changed LOC
+
+d2==New & Changed LOC
+
+d3==Estimated Time
+
+d4==Time
+
+d5==Estimated Defects Injected
+
+d6==Defects Injected
+
+= Time in phase
+
+d7==Planning/Time
+
+d8==Design/Time
+
+d9==Design Review/Time
+
+d10=Code/Time
+
+d11=Code Review/Time
+
+d12=Compile/Time
+
+d13=Test/Time
+
+d14=PM/Time
+
+= Defects Injected
+
+d15==Planning/Defects Injected
+
+d16==Design/Defects Injected
+
+d17==Design Review/Defects Injected
+
+d18=Code/Defects Injected
+
+d19=Code Review/Defects Injected
+
+d20=Compile/Defects Injected
+
+d21=Test/Defects Injected
+
+d22=PM/Defects Injected
+
+= Defects Removed
+
+d23==Planning/Defects Removed
+
+d24==Design/Defects Removed
+
+d25==Design Review/Defects Removed
+
+d26=Code/Defects Removed
+
+d27=Code Review/Defects Removed
+
+d28=Compile/Defects Removed
+
+d29=Test/Defects Removed
+
+d30=PM/Defects Removed

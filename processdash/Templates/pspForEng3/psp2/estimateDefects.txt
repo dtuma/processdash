@@ -1,0 +1,34 @@
+==
+== Estimate the number of defects injected and removed by phase
+==
+
+= Calculate the nominal number of defects we expect in this program.
+
+[Estimated Defect Density] =
+    lookup([Previous_Program] &/ "Defect Density To Date");
+[Estimated Defects per KLOC] = [Estimated Defect Density];
+[Estimated_Defect_Count] = 
+    [Estimated New & Changed KLOC] * [Estimated Defects per KLOC];
+[Estimated Defects Injected] = [Estimated_Defect_Count];
+[Estimated Defects Removed] = [Estimated_Defect_Count];
+
+
+
+= Use percentages from the previous project to estimate defects
+
+#define estimatePhaseData(Phase)					      \
+  [Phase/Estimated Defects Injected] = 					      \
+        [Estimated_Defect_Count] *					      \
+        lookup([Previous_Program] &/ "Phase/%/Defects Injected To Date");     \
+  [Phase/Estimated Defects Removed] = 					      \
+        [Estimated_Defect_Count] *					      \
+        lookup([Previous_Program] &/ "Phase/%/Defects Removed To Date");
+
+estimatePhaseData(Planning);
+estimatePhaseData(Design);
+estimatePhaseData(Design Review);
+estimatePhaseData(Code);
+estimatePhaseData(Code Review);
+estimatePhaseData(Compile);
+estimatePhaseData(Test);
+estimatePhaseData(Postmortem);

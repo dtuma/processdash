@@ -1,0 +1,87 @@
+div.evChartItem {
+    width: 400px;
+    height: 300px;
+    float: left;
+    margin: 10px;
+}
+
+div.licenseFooter {
+    border: 4px double black;
+    padding: 5px;
+}
+
+div.evChartItem div.licenseFooter {
+    text-align: center;
+}
+
+div.licenseStatusNotNeeded {
+    display: none;
+}
+
+div.evChartItem div.licenseStatusCurrent {
+    border: none;
+    font-size: small;
+}
+
+div.evChartItem div.licenseStatusGrace {
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: #ff9999;
+}
+
+div.evChartItem div.licenseStatusTrial {
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: #ccffcc;
+}
+
+div.evChartItem div.licenseStatusNoneFound,
+div.evChartItem div.licenseStatusExpired {
+    margin: 25% 10%;
+}
+
+div#chartOrderBlock {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+div#chartOrderBlockShow, div#chartOrderBlockHide {
+    min-height: 30px;
+}
+
+span.chartOrderTooltip {
+    font-weight: bold;
+    color: #f50;
+    cursor: help;
+}
+
+div.chartOrderItem {
+    margin: 2px 2px 2px 40px;
+    border: 1px solid black;
+    padding: 3px;
+    cursor: move;
+    background-color: #ccccff;
+    font-size: smaller;
+}
+
+div.chartOrderItem.standardChartItem {
+    background-color: #fff;
+    cursor: inherit;
+}
+
+div.singleChartWrapper {
+    position: relative;
+}
+div.singleChartHolder {
+    padding-top: 20px;
+}
+div.singleChartSelector {
+    position: absolute; 
+    top: 0px;
+    width: 700px;
+    text-align: center;
+}
+
+td.behindSchedule {
+    background-color: #ffcccc
+}

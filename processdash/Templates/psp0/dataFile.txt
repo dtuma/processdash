@@ -1,0 +1,105 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 1998-2007 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+==
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for a PSP0 process. 
+==
+*/
+
+/*
+ * The following element identifies the data in this file as belonging to
+ * a PSP0 process.
+ */
+
+#include <psp0/pspData.txt>
+[psp0] == TAG;
+[PSP0] == TAG;
+
+
+
+/*
+ * Calculate combined data for the simple review phases.
+ */
+
+#define combine(Data) 							\
+   [Design/Combined Data] = [Design/Data] + [Design Review/Data];	\
+   [Code/Combined Data]   = [Code/Data] + [Code Review/Data]
+
+combine(Time);
+combine(Defects Injected);
+combine(Defects Removed);
+
+
+
+/*
+ * Make estimated time an editable value.
+ */
+
+[Estimated Time] = ?NaN;
+
+
+/*
+ * Generate estimated phase times.  Although these don't appear on the
+ * plan summary, they help the earned value task and schedule
+ * functionality to work as expected for PSP0 projects.
+ */
+
+[Planning/Estimated Time]   = 0.05 * [Estimated Time];
+[Design/Estimated Time]     = 0.25 * [Estimated Time];
+[Design Review/Estimated Time] = 0;
+[Code/Estimated Time]       = 0.50 * [Estimated Time];
+[Code Review/Estimated Time] = 0;
+[Compile/Estimated Time]    = 0.05 * [Estimated Time];
+[Test/Estimated Time]       = 0.10 * [Estimated Time];
+[Postmortem/Estimated Time] = 0.05 * [Estimated Time];
+
+
+/*
+ * Alias Postmortem data to PM
+ */
+
+[PM/Time]             = [Postmortem/Time];
+[PM/Defects Injected] = [Postmortem/Defects Injected];
+[PM/Defects Removed]  = [Postmortem/Defects Removed];
+
+
+
+
+/*
+ * Freeze flags for the planning phase and the entire project
+ */
+
+[FreezeFlag/.*Estimated.*] == [Planning/Completed] or [Completed];
+[FreezeFlag/.* To Date]    == [Completed];
+
+
+
+/*
+ * Constants for use with external document integration
+ */
+[FILES_XML] = ",/pspDoc/custom.xml,/pspDoc/files.xml,";
+[PSP Project Document Directory] = "?????";

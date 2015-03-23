@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<pdashCmsPage>
+
+<pageTitle>Project Plan Summary</pageTitle>
+
+<pageHeading>
+
+<snippet instanceId="1" type="pdash.pageHeading" version="1.0" />
+
+<snippet instanceId="2" type="pdash.processAdvisor" version="1.0" />
+
+</pageHeading>
+
+
+<snippet instanceId="116" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Project Settings</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="101" type="pdash.simpleProjectSettings" version="1.0" />
+
+<snippet instanceId="117" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Program Size</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="123" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Base LOC</param>
+      <param name="DisplayName">Base</param>
+    </item>
+    <item>
+      <param name="DataName">Deleted LOC</param>
+      <param name="DisplayName"> Deleted</param>
+    </item>
+    <item>
+      <param name="DataName">Modified LOC</param>
+      <param name="DisplayName"> Modified</param>
+    </item>
+    <item>
+      <param name="DataName">Added LOC</param>
+      <param name="DisplayName"> Added</param>
+    </item>
+    <item>
+      <param name="DataName">Reused LOC</param>
+      <param name="DisplayName"> Reused</param>
+    </item>
+    <item>
+      <param name="DataName">New &amp; Changed LOC</param>
+      <param name="DisplayName">Added + Modified</param>
+    </item>
+    <item>
+      <param name="DataName">Total LOC</param>
+      <param name="DisplayName">Total</param>
+    </item>
+  </enum>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+  <param name="ShowToDateCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="118" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Time and Defects</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="119" type="pdash.metricsPhaseTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Time</param>
+    </item>
+    <item>
+      <param name="DataName">Defects Injected</param>
+    </item>
+    <item>
+      <param name="DataName">Defects Removed</param>
+    </item>
+  </enum>
+  <param name="PhaseGroup">All</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowActualPctCol">on</param>
+  <param name="ShowPlanCol">on</param>
+  <param name="ShowTotalRow">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="120" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Time</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Time in Phase</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="121" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Defects Injected</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Injected</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="122" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Defects Removed</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Removed</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="124" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Add Your Own Sections Here</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="125" type="pdash.editHelp" version="1.0" />
+
+<pageFooter>
+
+<snippet instanceId="9" type="pspProc.userSummaryInfo" version="1.0" />
+
+</pageFooter>
+
+
+</pdashCmsPage>

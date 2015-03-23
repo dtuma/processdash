@@ -1,0 +1,20 @@
+1	Interface	Design	Design Review	1.0	 	no need to use generics; unconstrained array types ought to work ok.	01/01/2003
+2	Syntax	Code	Compile	1.0	 	create array type before using	01/01/2003
+3	Syntax	Design	Compile	10.0	 	Ada has a limitation on array discriminants that I was not previously aware of.  Need to rework the Gauss_Matrix type	01/01/2003
+4	Syntax	Code	Compile	12.0	 	forgot record element specifier everywhere it occurred	01/01/2003
+5	Environment	Code	Compile	2.0	 	Need to include u_rand in library path	01/01/2003
+6	Data	Code	Compile	1.0	 	Need explicit typecast	01/01/2003
+7	Syntax	Code	Compile	1.0	 	remove "+ 1"	01/01/2003
+8	Syntax	Code	Compile	1.0	 	need "1 .."	01/01/2003
+9	Function	Code	Test	4.0	 	Forgot a line of logic in the multiply_row method	01/01/2003
+10	Data	Design	Code	4.0	 	Ada won't allow unconstrained arrays like I hoped; need to buffer with pointers	01/01/2003
+11	Assignment	Code	Compile	1.0	 	"Range" not a valid identifier name	01/01/2003
+12	Data	Code	Compile	2.0	 	Need explicit typecast	01/01/2003
+13	Syntax	Code	Compile	1.0	 	name misspelled	01/01/2003
+14	Data	Code	Compile	1.0	 	Need typecast	01/01/2003
+15	Syntax	Code	Compile	1.0	 	misspell	01/01/2003
+16	Data	Code	Compile	1.0	 	typecast	01/01/2003
+17	Data	Code	Test	2.0	 	init arrays to 0	01/01/2003
+18	Syntax	Code	Test	2.0	 	wrong var name	01/01/2003
+19	Data	Code	Test	5.0	 	init arrays to 0	01/01/2003
+20	Function	Code	Test	4.0	 	wrong var used	01/01/2003

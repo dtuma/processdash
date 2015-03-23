@@ -1,0 +1,12 @@
+/* bizzarro styles that make IE 5.5 - 6 draw fixed headers and footers */
+
+div#fixedHeader {
+    position: absolute;
+    top: expression( ( 0 + ( ignoreMe = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop ) ) + 'px' );
+}
+
+div#fixedFooter {
+    position: absolute;
+    bottom: auto;
+    top: expression( ( 0 - fixedFooter.offsetHeight + ( document.documentElement.clientHeight ? document.documentElement.clientHeight : document.body.clientHeight ) + ( ignoreMe = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop ) ) + 'px' );
+}

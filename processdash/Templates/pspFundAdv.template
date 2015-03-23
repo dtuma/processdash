@@ -1,0 +1,112 @@
+# PSPProperties file:properties file
+# format: PropertyKey<parentKey><name>=Prop[defectLog] \
+#         [timeLog][scriptFile][dataFile][status] \
+#         [selected][numChildren(N)][child0]...[childN-1]
+#
+
+
+
+######################################################################
+### Property keys for the PSP Fundamentals & Advanced courses
+######################################################################
+
+PropertyKey<top><PSP Fundamentals & Advanced>=Prop[][pspFundAdv][][pspForEng3/rootData.txt][][0][9][PropertyKey<top/PSP Fundamentals & Advanced><Student Profile>][PropertyKey<top/PSP Fundamentals & Advanced><Program 1>][PropertyKey<top/PSP Fundamentals & Advanced><Program 2>][PropertyKey<top/PSP Fundamentals & Advanced><Program 3>][PropertyKey<top/PSP Fundamentals & Advanced><Program 4>][PropertyKey<top/PSP Fundamentals & Advanced><Program 5>][PropertyKey<top/PSP Fundamentals & Advanced><Program 6>][PropertyKey<top/PSP Fundamentals & Advanced><Program 7>][PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>]
+
+
+# Student Profile
+
+PropertyKey<top/PSP Fundamentals & Advanced><Student Profile>=Prop[][pfeStudentProfile][][pspForEng3/profileData.txt][<>][0][0]
+
+
+# Program 1
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 1>=Prop[true][PSP0][][pspForEng3/psp0/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 1><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 2
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 2>=Prop[true][PSP1][][pspForEng3/psp1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 2><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 3
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 3>=Prop[true][PSP2][][pspForEng3/psp2/dataFile2.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 3><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 4
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 4>=Prop[true][PSP2][][pspForEng3/psp2/dataFileB2.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 5
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 5>=Prop[true][PSP2.1][][pspForEng3/psp2.1/dataFile2.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 6
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 6>=Prop[true][PSP2.1][][pspForEng3/psp2.1/dataFile2.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 6><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 7
+
+PropertyKey<top/PSP Fundamentals & Advanced><Program 7>=Prop[true][PSP2.1][][pspForEng3/psp2.1/dataFile2.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Analysis Report
+
+PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>=Prop[true][Generic][][pspForEng3/report/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Postmortem>=Prop[][][][][ME<>][0][0]

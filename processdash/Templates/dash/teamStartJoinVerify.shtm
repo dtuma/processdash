@@ -1,0 +1,77 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Import Team Process Definition</h2>
+
+<form action='teamStart.class' method='post'>
+<input type='hidden' name='page' value='join'>
+
+<p>Individuals typically use one of the PSP processes to do their
+work.  In contrast, a team project must use a team-oriented process.
+Among other things, a team-oriented process provides a metrics
+framework that controls how team data will be rolled up.</p>
+
+<p class=error>This team project is based on a process that you have
+never used before.  Before proceeding, the dashboard must import the
+definition of this process.  Please switch back to your main dashboard
+window; it should be displaying a dialog asking for permission to
+import the new process definition.</p>
+
+<p>After you click OK on the &quot;Import Template&quot; permission
+dialog, click the &quot;Continue&quot; button below.</p>
+
+<input type="hidden" name="Team_URL"
+       value="<!--#echo [setup//Team_URL] -->">
+<input type="hidden" name="Template_ID"
+       value="<!--#echo [setup//Template_ID] -->">
+<input type="hidden" name="Template_Path"
+       value="<!--#echo [setup//Template_Path] -->">
+<input type="hidden" name="Template_Path_UNC"
+       value="<!--#echo [setup//Template_Path_UNC] -->">
+<input type="hidden" name="Continuation_URI"
+       value="<!--#echo [setup//Continuation_URI] -->">
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Cancel'
+       onClick='window.close();'>&nbsp;&nbsp;
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=retry value='Continue'>
+
+</td></tr></table>
+
+</form>
+</body>

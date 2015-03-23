@@ -1,0 +1,7 @@
+<!--#if DefaultSectionHeading #-->
+    <input type="hidden" name="$$$_DefaultSectionHeading" value="true"><!--#endif#-->
+
+<b><!--#if Edit_Single_Section_Mode --><!--#echo Name.Standalone_Label #-->
+<!--#elif Edit_TOC_Mode --><!--#echo Name.TOC_Label #-->
+<!--#else --><!--#echo Name.Label --><!--#endif--></b>&nbsp;<input type="text" name="$$$_Name" 
+    size="40" value="<!--#echo Name -->" />

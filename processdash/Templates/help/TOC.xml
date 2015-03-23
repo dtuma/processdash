@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<toc version="1.0">
+  <tocitem image="DashIcon" target="QuickOverview" text="Process Dashboard Help">
+    <tocitem image="BookIcon" target="QuickOverview" text="Overview">
+      <tocitem image="PageIcon" target="GoalsOfPSPAndDashboard" text="The overall goals of the PSP and the Process Dashboard"/>
+      <tocitem image="PageIcon" target="HowToInstall" text="Installation instructions"/>
+      <tocitem image="PageIcon" target="Help" text="Getting help"/>
+
+      <tocitem image="BookIcon" target="QuickStart" text="Quick start example: PSP2.1">
+         <tocitem image="PageIcon" target="QSCreatingTheProject" text="Step 1: Creating the project"/>
+         <tocitem image="PageIcon" target="QSPlanningTheProject" text="Step 2: Planning the project"/>
+         <tocitem image="PageIcon" target="QSDesigningTheProgram" text="Step 3: Designing the program"/>
+         <tocitem image="PageIcon" target="QSWritingTheCode" text="Step 4: Writing the code"/>
+         <tocitem image="PageIcon" target="QSCompilingTheProgram" text="Step 5: Compiling the program"/>
+         <tocitem image="PageIcon" target="QSTestingTheProgram" text="Step 6: Testing the program"/>
+         <tocitem image="PageIcon" target="QSPostmortem" text="Step 7: Postmortem"/>
+      </tocitem>
+
+      <tocitem image="PageIcon" target="ChangeLog" text="Change history"/>
+      <tocitem image="BookIcon" target="Licenses" text="License Information">
+        <tocitem image="PageIcon" target="GPL" text="GNU General Public License"/>
+        <tocitem image="PageIcon" target="LGPL" text="GNU Lesser General Public License"/>
+        <tocitem image="PageIcon" target="Apache" text="Apache License"/>
+        <tocitem image="PageIcon" target="MIT" text="MIT License"/>
+        <tocitem image="PageIcon" target="BSD" text="BSD License"/>
+        <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
+        <tocitem image="PageIcon" target="DOM4J" text="DOM4J License"/>
+        <tocitem image="PageIcon" target="Colt" text="Colt License"/>
+        <tocitem image="PageIcon" target="Overlib" text="Overlib License"/>
+        <tocitem image="PageIcon" target="LicenseExtras" text="Charting and Reporting Plug-in License"/>
+        <tocitem image="BookIcon" target="Separation" text="PSP Processes">
+          <tocitem image="PageIcon" target="LicensePSP" text="PSP Materials License"/>
+        </tocitem>
+      </tocitem>
+    </tocitem>
+
+    <tocitem image="BookIcon" target="Planning" text="Planning">
+      <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
+      <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
+      <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
+      <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
+      <tocitem image="PageIcon" target="UsingProbeWizard" text="Using the PROBE Wizard"/>
+      <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
+      <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
+        <tocitem image="PageIcon" target="TaskScheduleSteps" text="Creating a schedule step by step"/>
+        <tocitem image="PageIcon" target="TaskScheduleDates" text="Earned value date calculations"/>
+        <tocitem image="BookIcon" target="TaskScheduleCharts" text="Using the earned value charts" mergetype="javax.help.SortMerge">
+          <tocitem image="PageIcon" target="EV.cumDirectTimeChart" text="Cumulative Direct Time"/>
+          <tocitem image="PageIcon" target="EV.cumValueChart" text="Cumulative Earned Value"/>
+          <tocitem image="PageIcon" target="EV.cumCombinedChart" text="Earned Value vs. Cost"/>
+        </tocitem>
+        <tocitem image="PageIcon" target="TaskScheduleDependencies" text="Tracking task dependencies"/>
+        <tocitem image="PageIcon" target="TaskScheduleRanges" text="Prediction Ranges in the Task &amp; Schedule Tool"/>
+      </tocitem>
+      <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
+    </tocitem>
+
+    <tocitem image="BookIcon" target="Execution" text="Running the Dashboard">
+      <tocitem image="PageIcon" target="HierarchyMenus" text="Selecting the active task"/>
+      <tocitem image="PageIcon" target="PlayPause" text="Using the Play/Pause button to time your work"/>
+      <tocitem image="PageIcon" target="PercentSpentIndicator" text="The Percent Spent Indicator"/>
+      <tocitem image="PageIcon" target="AccessingScripts" text="Accessing the online scripts and forms"/>
+      <tocitem image="PageIcon" target="EnteringDefects" text="Entering Defects"/>
+      <tocitem image="PageIcon" target="NoteIndicator" text="Entering Notes"/>
+      <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion checkbox"/>
+      <tocitem image="PageIcon" target="ConfigureMenu" text="The 'C' (configuration) menu"/>
+      <tocitem image="PageIcon" target="UsingTimeLogEditor" text="Editing Time data" />
+      <tocitem image="PageIcon" target="UsingDefectLogEditor" text="Editing Defect data"/>
+      <tocitem image="PageIcon" target="SystemTray" text="The System Tray Icon"/>
+    </tocitem>
+
+    <tocitem image="BookIcon" target="PostmortemAnalysis" text="Postmortem Analysis">
+      <tocitem image="PageIcon" target="LOCCounter" text="Counting LOC"/>
+      <tocitem image="PageIcon" target="DataChartsAndReports" text="Creating reports and charts"/>
+      <tocitem image="PageIcon" target="ExportingData" text="Importing/Exporting data"/>
+    </tocitem>
+
+    <tocitem image="PageIcon" target="FAQ" text="Troubleshooting / FAQ"/>
+
+    <tocitem image="BookIcon" target="AdvancedTopics" text="Advanced Topics">
+      <tocitem image="PageIcon" target="TeamUse" text="Team Use"/>
+      <tocitem image="PageIcon" target="BackupData" text="Backing up Dashboard Data"/>
+      <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
+      <tocitem image="BookIcon" target="PreferencesTool" text="Editing Preferences">
+         <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>
+      </tocitem>
+      <tocitem image="PageIcon" target="DatabaseOverview" text="Database Support"/>
+      <tocitem image="PageIcon" target="CustomJSPs" text="Custom JSP Reports"/>
+      <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
+      <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
+      <tocitem image="PageIcon" target="CustomLOCCounter" text="Defining a custom LOC counter"/>
+      <tocitem image="PageIcon" target="DefiningOwnProcesses" text="Defining your own custom processes"/>
+      <tocitem image="PageIcon" target="ApiSizeMetrics" text="REST API for Size Metrics"/>
+
+      <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->
+
+         <!-- tocitem image="PageIcon" target="ThinkProcessesThrough" text="Think your process through carefully"/ -->
+         <!-- tocitem image="PageIcon" target="CreateProcessStepByStep" text="Making a simple process step by step"/ -->
+         <!-- tocitem image="BookIcon" target="ProcessDefinitionArch" text="The process definition architecture" -->
+            <!-- tocitem image="PageIcon" target="TemplateXmlFiles" text="The -template.xml files"/ -->
+            <!-- tocitem image="PageIcon" target="HTMLScriptsAndForms" text="HTML process scripts and forms"/ -->
+            <!-- tocitem image="BookIcon" target="Data-CalcFormulaFiles" text="Data/calculation formula files" -->
+               <!-- tocitem image="PageIcon" target="FittingDataTogether" text="How the data fits together"/ -->
+               <!-- tocitem image="PageIcon" target="DataFileSyntax" text="Data file syntax"/ -->
+               <!-- tocitem image="PageIcon" target="DataFileFunctions" text="Available functions"/ -->
+            <!-- /tocitem -->
+         <!-- tocitem image="PageIcon" target="CustomDefectTypeStandard" text="Defining a custom Defect Type Standard for your process"/ -->
+      <!-- /tocitem -->
+
+    </tocitem>
+  </tocitem>
+</toc>

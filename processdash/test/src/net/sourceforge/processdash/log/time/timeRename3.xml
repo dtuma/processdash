@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<timeLogEntries>
+  <time path="/Project/Dy4-181 BSP Build&#10;/Project/Dy4-181 BSP Builds" flag="R" />
+  <time path="/Project&#10;/Foo/Bar" flag="R" />
+  <time path="/Blah&#10;/Qwerty" flag="R" />
+</timeLogEntries>

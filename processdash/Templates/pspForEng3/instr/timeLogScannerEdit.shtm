@@ -1,0 +1,14 @@
+<b>Check for time missing from the following phases:</b><br/>
+
+<!--#foreach name='Phase' list='[Phase_List]' -->
+<div class="cmsIndent"><input type="checkbox" name="$$$_CheckPhase"
+    <!--#if CheckPhase || defaults -->checked<!--#endif#-->
+    >&nbsp;Phase</div>
+<!--#endfor-->
+
+<p><b>If time is missing, display the following message:</b><br/>
+<textarea class="cmsIndent" rows="2" cols="60"
+     name="$$$_Message"><!--#if defaults #-->
+<!--#echo Default_Error_Message #-->
+<!--#else--><!--#echo Message --><!--#endif#-->
+</textarea>

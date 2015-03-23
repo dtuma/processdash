@@ -1,0 +1,1716 @@
+<HTML>
+<head>
+<TITLE>Change History</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Change History</H1>
+
+
+<h2>Features new in version 2.1</h2>
+
+<ul>
+
+
+<li>The Process Dashboard's internal web server has been enhanced to support
+Java servlets and JSPs.  This makes it possible to
+<a href="../AdvancedTopics/CustomJSPs.html">develop custom reports</a> using
+standard Java technologies, and run them against the project data in the Team
+Dashboard.</li>
+
+<li>Significant new features have been added for Common Team Workflows:
+
+    <ul>
+
+    <li>In the WBS Editor, different icons are now used to visually
+	distinguish tasks that were created by the application of a workflow.
+	This makes it possible to track the process origin of a particular
+	task in the plan.</li>
+
+    <li>In the Team Dashboard, a new "Workflow Process Analysis" report is
+        provided on the script menu.  This report shows the time spent in each
+        step of the workflow, along with high-level metrics such as cost of
+        quality and historical productivity rates.</li>
+
+    <li>When defining a workflow, teams can now add a special "Personal PROBE
+        Planning" element.  This element enables the assigned individual to
+        use the Size Estimating Template and PROBE Wizard to generate size and
+        time estimates for their work.  It also provides a personal Project
+        Plan Summary for the component, as well as a "To Date" report showing
+        aggregate metrics for other components that the individual has
+        produced using this workflow.</li>
+
+    <li>The Common Team Workflows window will now allow teams to prepopulate
+        workflows with labels and notes.  To do this, teams can click a button
+        in the top-right corner of the workflows table to select the optional
+        workflow columns they wish to edit.</li>
+
+    <li>The embedded database in the Team Dashboard now includes information
+        about the workflows that were used to generate various tasks in a
+        project plan.</li>
+
+    </ul></li>
+
+<li>A new Relaunch Wizard is provided to help teams prepare for team project
+relaunch meetings.  This Relaunch Wizard:
+
+    <ul>
+
+    <li>Creates a new Team Project to hold the plan for the new iteration, and
+        invites team members to join this new project iteration.</li>
+
+    <li>Copies the workflows, milestones, and team member schedules from the
+        old plan to the new plan.</li>
+
+    <li>Copies incomplete components and tasks from the old plan to the new
+        plan, and adjusts the planned times of in-progress tasks to account
+        for work that has already been performed.</li>
+
+    <li>Marks the old project as closed, indicating that no additional work
+        will be performed there.  The next Sync WBS operation will help team
+        members to close the remaining tasks on the old project.</li>
+
+    </ul></li>
+
+<li>Milestones receive significantly improved support within earned value
+schedules:
+
+    <ul>
+
+    <li>A new Milestones chart is available for earned value schedules in both
+        the team and personal dashboard.  This chart displays a horizontal bar
+        for each milestone, comparing projected progress to the milestone
+        commit dates.  When the plan is not projected to satisfy a given
+        milestone date, you can click on the corresponding bar and view a
+        Gantt chart to determine which tasks are responsible for the
+        slip.</li>
+
+    <li>The Task &amp; Schedule window, EV report, and weekly report display a
+        new Milestone column (rather than folding milestone data into the
+        Labels column).</li>
+
+    <li>When a task is projected to miss a milestone commit date, the new
+        Milestone column will visually flag an error and provide a tooltip
+        with more information.</li>
+
+    <li>In Flat View, an individual can check a box to highlight all of the
+        tasks associated with a particular milestone.  When they do this, a
+        dashed line is drawn over the list of tasks to illustrate the commit
+        date when tasks must be completed.  These features help the individual
+        as they rearrange tasks to meet the deadline.</li>
+
+    </ul></li>
+
+<li>The enhanced charts are now available for all teams to use free of
+charge.</li>
+
+
+<!-- ** MEDIUM ********************************************************** -->
+
+<li>The Weekly EV Report has always displayed the total actual time logged
+against each completed and in-progress task.  Now, it also displays the amount
+of time that was logged to each task during the week in question.  This makes
+it possible to distinguish between active and idle tasks.</li>
+
+<li>When filtering a report in the Team Dashboard, two new tokens are
+automatically available.  "Completed_Tasks" filters the report to display the
+tasks that have been marked complete, and "Completed_Components" filters the
+report to show data from team project components that are 100% complete.</li>
+
+<li>The active task selector has been redesigned to make better use of
+available space, and to better support complex projects with deep work
+breakdown structures.  The main window now displays as much of the active task
+name as possible, and the portions that do not fit are displayed in an
+overflow menu.</li>
+
+<li>It is now possible to move time log entries to a different task by
+dragging and dropping rows in the time log editor.</li>
+
+<li>The Task &amp; Schedule dialog now provides new options for working with
+multiple baselines:
+
+    <ul>
+
+    <li>You can now save multiple baselines for an EV schedule, providing a
+        name and optional comment for each one.</li>
+
+    <li>You can view the list of baselines that have been saved for a
+        schedule, edit their details, and delete them if necessary.</li>
+
+    <li>You can review the saved baselines for a schedule and select the one
+        that should be "active" for the purposes of charts, reports, and
+        calculations.</li>
+
+    </ul></li>
+
+<li>When individuals join a team project, they will experience a new
+streamlined joining process:
+
+    <ul>
+
+    <li>Instead of being presented with page after page of questions, they
+        will see a single form that collects all the necessary
+        information.</li>
+
+    <li>The new form provides reasonable default values whenever possible.
+        Fields that need attention are visually highlighted so they stand out
+        from the fields that already have a workable default value.</li>
+
+    <li>As they click on various fields, context-sensitive help is displayed
+        to explain the data that is needed.</li>
+
+    </ul></li>
+
+<!-- ** MINOR ********************************************************** -->
+
+<li>New performance tunings were added to improve the startup and shutdown
+time of large team and personal dashboards.</li>
+
+<li>The "Find Task" functionality (available in the personal dashboard by
+typing Ctrl-F) has been improved for better usability.  Completed tasks are
+indicated with a strikethrough, and past projects can be collapsed so they do
+not participate in the search operation.</li>
+
+<li>A new option in the Team Member List makes it easy to move the start date
+of the entire team at once.  This option is provided in the "Team Schedule
+Settings" window that appears when you click the date customization
+hyperlink.</li>
+
+<li>The WBS Editor has traditionally displayed values with only one digit of
+precision after the decimal point.  When numbers in a plan were smaller than
+0.1, unusual rounding errors would sometimes occur.  These problems have been
+corrected.</li>
+
+<li>Additional keyboard shortcuts are now available for many actions in the
+WBS Editor.</li>
+
+<li>A new user preference enables the main window's title bar to display
+timing information for the currently active task.</li>
+
+<li>When an individual is participating in more than one team project
+simultaneously, they can create an EV Rollup in their personal dashboard to
+display a consolidated plan for their work.  Now, the Task &amp; Schedule
+window for that EV Rollup provides special support for balancing available
+task hours across the various projects.  Clicking on the PT (planned time)
+column for a schedule row opens an interactive dialog for visually
+reallocating time and managing the total amount of time that has been
+committed across all of the projects.</li>
+
+<li>If an individual leaves the timer running for several hours, the
+dashboard will now display a warning message asking if they did this
+intentionally.  This can help individuals catch their mistake if they forget
+to stop the timer (for example, if they leave it running overnight).</li>
+
+<li>The Task &amp; Schedule dialog now has an "Expand All" option on the View
+menu.</li>
+
+</ul>
+
+
+<h2>Features new in version 2.0</h2>
+
+<ul>
+
+<li>The Process Dashboard now includes a powerful new 
+<a href="../AdvancedTopics/Database.html">Data Warehouse</a> component.  This
+component stores team project data in a relational database, making it
+possible for external analysis and reporting tools to access project data via
+SQL queries.</li>
+
+<li>The various reports, charts, and calculations in the Team Dashboard have
+been rewritten to take advantage of the Data Warehouse component.  As a
+result, Team Dashboard reports are displayed 100 to 1000 times faster than
+before.  Team Dashboard memory usage has also decreased significantly.
+Together, these improvements introduce a dramatic change in the scalability of
+the Team Dashboard for large and long-running project teams.</li>
+
+<li>For over a decade, the Team Dashboard has reused the same graphical user
+interface as the "personal" Dashboard.  With this release, the Team Dashboard
+now displays a redesigned user interface that focuses on the needs of coaches,
+team leaders, team role managers, and other users of consolidated team data.
+The new interface provides quick access to team tools and reports, improving
+productivity of existing teams, and reducing the learning curve for teams that
+are new to the Process Dashboard.</li>
+
+<li>Historically, some teams have observed extremely long startup times for
+the Team Dashboard - especially when opening the data over a VPN, WAN, or
+other slow network.  This version introduces a change to the storage strategy
+for team projects, enabling significantly faster startup times for the Team
+Dashboard.</li>
+
+<li>When the Team Dashboard and Process Dashboard shut down, a task runs to
+export data for various team projects.  Historically, as more team projects
+are added to a particular dashboard, this export step takes longer and longer.
+In this version, the export task has been streamlined significantly, allowing
+the dashboard to shut down much faster.</li>
+
+<li>Significant improvements have been made to the efficiency of the earned
+value calculation logic, enabling earned value reports to display much faster
+than before.</li>
+
+<li>The Defect Log Editor now includes an option to import defects from the
+Review Board code review tool.</li>
+
+<li>A new REST API has been provided that makes it possible for external tools
+(running on the same computer as the personal Process Dashboard) to add
+entries to the Size Inventory Form for a Team Project.</li>
+
+<li>The splash screen appears more quickly after clicking an icon to launch
+the Process Dashboard.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.15</h2>
+
+<ul>
+
+<li>It is now possible for multiple individuals to edit the Work Breakdown
+Structure at the same time:
+
+    <ul>
+
+    <li>When you save changes to the WBS, the application will check to see if
+        other individuals have recently saved changes as well.  If they have,
+        the save operation will merge their changes into your view.</li>
+
+    <li>If you wish to merge other people's recently saved changes into your
+        view without saving your own in-progress edits, a new "Refresh Data"
+        option is available on the "File" menu for this purpose.</li>
+
+    <li>In either case, if the merge identifies editing conflicts (where you
+        and another individual have made conflicting edits to the same value),
+        warning messages will be displayed.  These warnings include hyperlinks
+        that help you to locate and recover from the editing conflict.</li>
+
+    </ul></li>
+
+<li>The Work Breakdown Structure Editor now includes a feature to save data to
+a ZIP file.  This feature can be used to:
+
+    <ul>
+
+    <li>Create multiple alternative plans during a launch</li>
+
+    <li>Explore what-if replanning scenarios in the middle of a team
+        project iteration</li>
+
+    <li>Save edits if the network server is temporarily unreachable</li>
+
+    <li>Copy components tasks, milestones, team members, and workflows
+        into a new team project iteration</li>
+
+    </ul></li>
+
+<li>Many other significant changes were made to the Work Breakdown Structure
+Editor:
+
+    <ul>
+
+    <li>The WBS Editor now includes a filtering function. This makes it
+        possible to focus in on the set of components and tasks that contain
+        certain words in the name or notes, that are assigned to various
+        people, that are complete/incomplete, or that have certain labels or
+        milestones.</li>
+
+    <li>The WBS Editor now includes a search feature.  This makes it possible
+        to quickly find components or tasks whose name or notes contain
+        particular words.</li>
+
+    <li>The colored balancing bars in the WBS Editor have been enhanced to
+        calculate dates that align more closely to the "Replan" dates in the
+        team earned value report.</li>
+
+    <li>The colored balancing bars can now display the typical number of hours
+        per week each team member has in their schedule.  A new menu option
+        makes it possible to toggle this display on and off.</li>
+
+    <li>On the colored balancing bars, it is now possible to hide the colored
+        diamonds and commit date lines for selected milestones.  This can help
+        reduce clutter when many intermediate milestones are present.</li>
+
+    <li>In the WBS Editor, the Task Details tab now contains a "Data Problems"
+        column.  When a coach, planning manager, quality manager, or other
+        individual discovers a problem for a particular component or task,
+        they can type a description of the problem in this field.  Doing so
+        will display a red highlight behind the component/task, making it
+        easier to bring the item to the attention of another individual.</li>
+
+    <li>Move Up and Move Down buttons are now provided on the toolbar of the
+        WBS Editor Milestones window.</li>
+
+    <li>The "Task Time" tab of the WBS Editor includes a column called "Task
+        Size." When you create tasks underneath a component, the numbers in
+        this column are automatically inherited from that component.  Now,
+        these numbers are editable as well, so you can override the size for
+        a particular task.</li>
+
+    <li>The WBS Editor's memory footprint has been changed to help improve
+        performance for teams with very large work breakdown structures.</li>
+
+    <li>Historically, if a Team Dashboard was opened in read-only mode, the
+        read-only flag would also propagate to any WBS Editor windows that
+        were opened.  This linkage has been broken.  As a result, an
+        individual can now open the Team Dashboard in read-only mode (for
+        example, to view team rollups), and then open the WBS Editor to make
+        changes if problems are noted.</li>
+
+    </ul></li>
+
+<li>During a project launch, teams commonly need to perform high-level
+capacity planning - for example, to estimate the end-to-end project schedule
+and to choose the scope for various project iterations.  Several changes have
+been made to facilitate this activity:
+
+    <ul>
+
+    <li>The WBS balancing panel now includes a "Team" row in addition to the
+        colored bars for each team member.  This new team row displays the
+        balanced completion dates for each milestone, making it easier to
+        distribute work across a series of future iterations.</li>
+
+    <li>In earlier versions of the dashboard, teams would have to create
+        "placeholder" tasks to record time estimates for this future work.
+        Now, rough time estimates (and milestones) can be entered directly on
+        WBS components that have no subtasks, and the vertical black balancing
+        bar will take these time estimates into account.</li>
+
+    <li>Teams may wish to enter vacation time or other schedule exceptions in
+        the WBS Editor Team Member List months in advance.  In the past, this
+        would cause the team earned value charts to extend artificially far
+        into the future (to include the week when the exception was recorded).
+        The earned value charts have been enhanced to avoid this problem.</li>
+
+    </ul></li>
+
+<li>Several changes have been made to improve the usability of the user
+interface:
+
+    <ul>
+
+    <li>Historically, clicking the script button has opened the "default"
+        script, form, or report for the currently active task.  To view the
+        menu of other available scripts and forms, it was necessary to click
+        the small down-arrow to the right of the script button.  In practice,
+        however, opening the script menu is a far more common action.
+        Accordingly, the behavior of the main script button has been changed
+        to open the menu instead of opening the default script.  For users who
+        prefer the former behavior, a checkbox is provided in the Tools &gt;
+        Preferences window to revert back.</li>
+
+    <li>In the Task &amp; Schedule window, it is now possible to choose the
+        set of columns you prefer to see in the Task list.  This can reduce
+        clutter and make it easier to focus on the information that is most
+        important to you.  In addition, if the table columns are resized or
+        rearranged, these changes will be remembered the next time you open
+        that task list.</li>
+
+    <li>Several common items on the script menu have been given clearer,
+        simpler names to reduce confusion and to lower the learning curve for
+        people who are beginning their first team project.</li>
+
+    <li>The Preferences tool now includes an option to enable large fonts
+        throughout the application.</li>
+
+    </ul></li>
+
+<li>Several enhancements have been made to the charts and reports:
+
+    <ul>
+
+    <li>The Weekly EV Report has always included "Previous" and "Next" links
+        to scroll forward and backward in time.  Now, it also includes a link
+        for jumping directly to a specific date.</li>
+
+    <li>When applying a label filter to the Team Project Rollup Plan Summary,
+        autocompletion support is now provided as you type.</li>
+
+    <li>The Tasks In Progress chart is now configurable, allowing you to
+        change the red overspent rings to either black or white.</li>
+
+    <li>When viewing the Kanban chart for a team, you can now filter the list
+        of tasks by assigned individual.</li>
+
+    </ul></li>
+
+<li>Several enhancements have been made to the LOC Counting support:
+
+    <ul>
+
+    <li>The LOC counter now includes support for counting changes made to
+        files in a subversion repository.  The count can include uncommitted
+        changes made to a working copy as well as changes made in past
+        revisions.  Multiple past revisions can be listed, and need not be not
+        consecutive.</li>
+
+    <li>The LOC Counter report is often used during the postmortem phase of a
+        PSP project to measure added, deleted, and modified lines of code.
+        Now, individuals can drag data from that report and drop it onto a row
+        in the Size Estimating Template to apply actual size metrics.</li>
+
+    </ul></li>
+
+<li>When creating tasks and workflows in the WBS, it is a best practice to use
+a PSP Task to represent detailed software development activities.  Several
+improvements have been made to this support:
+
+    <ul>
+
+    <li>In the WBS, a PSP Task can be followed by Design and Code Inspection
+        tasks to represent the associated peer reviews.  When this pattern has
+        been followed, the Task &amp; Schedule "Flat&nbsp;View" will now
+        automatically insert the inspections into the correct order within the
+        phases of the PSP task.</li>
+
+    <li>The dashboard has always allowed individuals to configure multiple
+        collections of "To Date" data that can be used to track different
+        types of work.  Now, new options on the Team Project Parameters and
+        Settings page allow individuals to select which "To Date" rollup they
+        would like to use for new PSP tasks.</li>
+
+    </ul></li>
+
+<li>Teams sometimes encounter, fix, and log defects that should not
+technically count against their quality metrics.  (For example, they might fix
+a defect in legacy code that they inherited from some external source.)
+Individuals can now enter <tt>0</tt> in the "Fix Count" field of the defect
+dialog to indicate that a defect should not count against quality metrics such
+as yield or defect density.</li>
+
+<li>If you drag-and-drop an empty directory onto the Quick Launcher, it will
+now ask you if you wish to create a new Team or Personal dataset there.</li>
+
+<li>When saving a data backup file, it has historically been possible to save
+in either ZIP or PDBK format.  Now, a third option is available: "Redacted
+Process Dashboard Backup."  Choosing this format allows you to select various
+categories of data (for example, names of individuals, projects and tasks)
+that should be scrambled or removed from the backup.  This can be a useful
+tool to protect privacy or confidentiality.</li>
+
+
+
+</ul>
+
+<h2>Features new in version 1.14</h2>
+
+<ul>
+
+<li>Significant changes were made to the earned value support:
+
+    <ul>
+
+    <li>It is now possible to customize the set of charts that appear on the
+        earned value report.  In addition, clicking on these charts now opens
+        a page displaying a larger chart with helpful instructions on how the
+        chart can be used and interpreted.</li>
+
+    <li>The Earned Value report now includes a "More Charts" hyperlink.
+        Clicking on this link makes it possible to see all of the EV charts
+        in the web browser.  (Previously, many of these charts were only
+        available in the "Chart" dialog of the Task &amp; Schedule
+        window.)</li>
+
+    <li>New charts have been added to display the Earned Value Trend and the
+        Direct Time Trend.</li>
+
+    <li>The earned value report now includes a "Kanban View" of the tasks
+        that have been completed recently, the tasks that are in progress,
+        and the tasks that are planned for the near future.</li>
+
+    <li>By default, the bars on the Gantt charts depict dates from the
+        Forecast column of the task list.  Now, a configuration button makes
+        it possible to depict Plan, Replan, or Baseline dates instead.</li>
+
+    <li>In the past, the Weekly EV report used generic phrases such as "Tasks
+        Completed This Week."  This wording was confusing for views of data
+        in the past or the future.  These section headings have been altered
+        to be clearer and more descriptive.</li>
+
+    <li>New topics have been added to the online help for each of the earned
+        value charts.  These topics explain how to interpret the data in each
+        chart, and provide helpful analysis tips for people who are new to
+        earned value tracking.</li>
+
+    <li>A new help topic has been added that explains the difference between
+        Plan, Replan, and Forecast dates.  This help topic explains these
+        three calculations in detail, so users can understand and appreciate
+        the differences between the dates that are generated.</li>
+
+    </ul></li>
+
+<li>The WBS now has a special "personal editing mode."  When the WBS is
+opened from a personal dashboard instead of the Team Dashboard (and the team
+leader has not disabled edits by team members), the WBS becomes aware of the
+individual who opened it, and changes its behavior:
+
+    <ul>
+
+    <li>Newly created tasks are automatically assigned to the individual who
+        opened the WBS.</li>
+
+    <li>If the individual makes a change that affects one of their coworkers,
+        the WBS will display a warning and offer to undo the change.</li>
+
+    <li>The individual is only allowed to edit their own row in the Team
+        Member List.</li>
+
+    <li>The individual can disable these features if desired by toggling a
+        checkbox in the "Team" menu.  (So for example, these new features
+        will not prevent a Planning Manager from making changes to their
+        coworker's tasks.)</li>
+
+    </ul></li>
+
+<li>Numerous changes were made to provide better support for the SEI PSP
+courses:
+
+    <ul>
+
+    <li>A new Student Profile element has been added to the PSP course
+        assignment sequence, giving students an opportunity to answer
+        questions about their job position, experience, and so on.</li>
+
+    <li>The Analysis Report exercises now allow the use of the Size
+        Estimating Template and PROBE.</li>
+
+    <li>"To Date" metrics are no longer reset on the first PSP2 project in a
+        PSP Fundamentals &amp; Advanced course.</li>
+
+    <li>During the PSP course, PROBE Method D for Size will require students
+        to use their Estimated Proxy Size verbatim; they will not be allowed
+        to edit the number.</li>
+
+    <li>During the PSP course, the PROBE Wizard will not offer PROBE Method
+        C1 for Size as a selectable option.</li>
+
+    <li>The final page of the PROBE Wizard has always performed a sanity
+        check on the planned productivity. If it is unrealistic, the wizard
+        prints a warning message and takes the user back to reevaluate their
+        estimates.  Unfortunately, that warning message was easy to overlook,
+        resulting in confusion when the PROBE wizard looped back to the
+        earlier pages.  The buttons and messages on the sanity check page
+        have been altered to make it more clear that a planning error may be
+        present.</li>
+
+    <li>When students are allowed to edit the quality plan and they produce
+        phase times that do not sum up properly, an error message is now
+        displayed on the Project Plan Summary.</li>
+
+    <li>Student data can now be exported to an XML file.</li>
+
+    </ul></li>
+
+<li>When capturing defect data, individuals can now:
+
+    <ul>
+
+    <li>Make a single entry to represent several related defects that were
+        found and fixed simultaneously.</li>
+
+    <li>Mark a defect as "pending" (i.e. found, but not yet removed).</li>
+
+    <li>Alter the date associated with the defect entry.</li>
+
+    </ul></li>
+
+<li>Several usability enhancements have been made to the WBS Editor and the
+    team project integration features:
+
+    <ul>
+
+    <li>The Team Project Setup Wizard will now provide suggested default
+        values for the team process, the name of the EV schedule, and the
+        location of the Team Project Network Directory.</li>
+
+    <li>If an individual enters their initials incorrectly when joining a
+        team project, the "Sync to WBS" operation will detect this error and
+        display a message, helping them to correct it.</li>
+
+    <li>Actual Size is now displayed in the WBS Editor for each component in
+        the hieararchy.</li>
+
+    <li>The charts in the Rollup Plan Summary report will now use
+        consistent colors to represent the various phases in the standard
+        metrics collection frameworks.  This makes it easier to correlate
+        data between several charts.</li>
+
+    <li>When a note is attached to the root node of the project in the WBS
+        Editor, that note will now be copied down into the personal plans of
+        each individual.  This can be used to record helpful project-specific
+        URLs for team use.</li>
+
+    <li>In the past, if a node was deleted from the WBS and a new node was
+        created in its place with the same name, the Sync to WBS operation
+        would perform a similar delete/recreate operation.  Now, the Sync to
+        WBS attempts to detect this scenario and reuse the existing node
+        instead of deleting/recreating it.  (Note: deleting/recreating nodes
+        in the WBS is still discouraged; but now when the mistake occurs, the
+        consequence should be less severe.)</li>
+
+    <li>In the past, the WBS editor would display a confirmation prompt every
+        time you request to delete a node.  Now, the WBS Editor will only
+        display this confirmation prompt when the node to be deleted has
+        actual time associated with it - and the warning message has been
+        altered to describe this new condition.</li>
+
+    <li>In the past, when a leaf task in the WBS was subdivided, the next
+        "sync to WBS" operation would often result in a "top-down-bottom-up"
+        error in the personal plan of the affected individual.  This problem
+        has been corrected.</li>
+
+    </ul></li>
+
+<li>Significant changes were made to the installer for the Process Dashboard:
+
+    <ul>
+
+    <li>The installer can now create application shortcuts for many
+        users on Unix and Linux platforms.</li>
+
+    <li>On 64-bit Windows, sometimes the installer would not create Process
+        Dashboard shortcuts.  This problem has been corrected.</li>
+
+    <li>If a user has less than 800MB of memory (for example, because they
+        are running in a virtual machine), the Process Dashboard shortcuts
+        would fail to start the application.  The installer has been adjusted
+        to create shortcuts that work on systems with limited memory.
+        (Note that the Process Dashboard does not require or use that much
+        memory; the problem was with the shortcut icon itself, not the
+        application.)</li>
+
+    </ul></li>
+
+<li>Several changes have been made to improve compatibility with various
+programs and operating systems:
+
+    <ul>
+
+    <li>The "Export to Excel" hyperlinks have been tweaked to improve
+        compatibility with a variety of web browsers and with newer versions
+        of Microsoft Office.</li>
+
+    <li>On some versions of Unix (for example, Solaris and RedHat), the
+        Process Dashboard would sometimes appear to hang at the splash
+        screen.  This was occurring when a dialog box was displayed (to
+        prompt for some type of input), because the Unix window manager was
+        improperly stacking the dialog box behind the splash screen.  This
+        problem has been corrected.</li>
+
+    <li>If the dashboard data directory was unreachable (for example, because
+        it was on a network drive that was unavailable), or if other
+        operating-system-specific problems prevented the dashboard from
+        locking the data, the dashboard was incorrectly displaying a message
+        claiming that someone on another computer had locked the data.  This
+        error message has been corrected and clarified.</li>
+
+    <li>The "Import Defects from Code Collaborator" feature was not working
+        against Code Collaborator version 6.  This problem has been
+        corrected.</li>
+
+    </ul></li>
+
+<li>The "Generic" process template now allows the use of the Size Estimating
+Template and PROBE.  (This functionality will appear for projects created
+using the Generic process template <b>after</b> upgrading to version
+1.14.)</li>
+
+<li>The "C &gt; Tools" menu now includes an "Open Dataset" option, giving all
+users the ability to open data backup ZIP files.</li>
+
+<li>When users filter the Time Log Editor to display the current week, they
+can now easily select which day of the week to use as the starting
+point.</li>
+
+<li>In the past, when a user made a change to a data value within the Process
+Dashboard, that change might take 30 seconds to appear on the Project Plan
+Summary form in their web browser.  Now, these changes will appear in the web
+browser immediately.</li>
+
+<li>The LOC counter that is built in to the Process Dashboard will now count
+lines appropriately even when comment indicators appear within string
+literals.</li>
+
+<li>When all the tasks in a earned value task list share a common path prefix
+(common for team projects), the Flat View will extract that common prefix,
+making the display easier to read.</li>
+
+<li>In the defect log editor, a combo box displays the defect type standard
+that has been set at each level of the hierarchy. In the past, when a defect
+type standard had been set at the team project level, nothing was displayed
+in this combo box for individual, leading people to think that their standard
+had not taken effect. Now, this combo box will display the name of the defect
+type standard that was set by the team project, minimizing confusion.</li>
+
+</ul>
+
+<h2>Features new in version 1.13</h2>
+
+<ul>
+
+<li>Several enhancements have been made in the Work Breakdown Structure
+Editor:
+
+    <ul>
+
+    <li>A strikethrough font is now used in the "Assigned To" column to
+    indicate which individuals have completed a multi-person task.</li>
+
+    <li>"Move Up" and "Move Down" buttons have been added to the
+    toolbar.</li>
+
+    <li>The Team Member List will now allow you to reorder individual team
+    members using drag-and-drop.</li>
+
+    <li>If you are starting a new project iteration, you can now use Ctrl-C
+    and Ctrl-V to copy and paste team members from the old team member list
+    to the new team member list.</li>
+
+    <li>In the past, when individual team members open the WBS from their
+    personal dashboard, the WBS Editor would sometimes unexpectedly open in
+    read-only mode.  This problem has been corrected.</li>
+
+    <li>In the past, the Team Dashboard's Team Project Parameters and
+    Settings page displayed a checkbox allowing the team leader to decide
+    whether team members could edit the WBS.  This checkbox has been moved
+    into the Work Breakdown Structure Editor itself, in the "Edit &gt;
+    Preferences" dialog.  As a result, if a team leader has locked down the
+    WBS (forbidding edits by team members), they will need to reaffirm this
+    choice in the "Edit &gt; Preferences" dialog of the WBS Editor after
+    upgrading to version 1.13</li>
+
+    <li>If you insert a workflow underneath a component that has a LOC size
+    estimate, the Code task in that workflow will automatically inherit
+    that size estimate.</li>
+
+    <li>The selection colors have been modified to produce better
+    readability on Mac OS X.</li>
+
+    </ul></li>
+
+<li>Several enhancements have been made in the WBS Common Team Workflows
+window:
+
+    <ul>
+
+    <li>It is now possible to define a workflow that distributes time
+    across various phases using percentages, even if your team does not use
+    size estimates or historical productivity rates.</li>
+
+    <li>The keyboard accessibility of the Common Team Workflows editor has
+    been improved.  Keystrokes such as Tab, Enter, Delete, Ctrl-C, Ctrl-V,
+    and Ctrl-X will now assume intuitive, spreadsheet-like behaviors when
+    the focus is not in the first column.</li>
+
+    <li>The Task Size Units column now supports autocompletion.</li>
+
+    </ul></li>
+
+
+<li>Several enhancements have been made in the Task &amp; Schedule
+window:
+
+    <ul>
+
+    <li>When an individual views one of their personal earned value task
+    lists in the Task &amp; Schedule window, they will see a "Notes"
+    column that allows them to view and edit the notes associated with
+    each component or task.</li>
+
+    <li>When an individual views one of their personal earned value task
+    lists in the Task &amp; Schedule window, the schedule pane (in the
+    lower portion of the window) now contains a "Notes" column.  This
+    column can be used to record the reason why a particular week has an
+    unusual number of planned or actual direct task hours.</li>
+
+    <li>A strikethrough font is now used to indicate tasks that are 100%
+    complete.</li>
+
+    <li>When you toggle from "Tree View" to "Flat View" and back, the
+    currently selected task will be preserved.</li>
+
+    </ul></li>
+
+<li>The Defect Log Editor now provides a feature to Import defects from the
+system clipboard.  This can be used to copy and paste defects from an
+external source, like an Excel spreadsheet or a web page.</li>
+
+<li>The "Tools &gt; Preferences" dialog now shows an "Always on Top"
+option.  (This feature will only appear if you are using Java 1.6 or
+higher.)</li>
+
+<li>If you pause the timer on the main dashboard toolbar, it will pause the
+"Fix Time" timer on the currently active defect dialog as well.  If you
+subsequently resume the main dashboard timer, it will resume the defect fix
+timer as well.</li>
+
+<li>The dashboard has always allowed you to set an "END" date for a
+personal earned value schedule.  (This feature is typically used to record
+the date when an individual will unequivocally leave a project team, due to
+an impending reassignment.)  When an individual with an END date is
+assigned too much work, their personal schedule may project that certain
+tasks will "never" be completed.  Although that information is useful at an
+individual level, it can result in a frustrating lack of insight at the
+team level.  Now, when one of these schedules is a part of a team schedule,
+the team rollup schedule will hypothetically rebalance these tasks to the
+rest of the team, calculate the date when the rest of the team might
+complete the tasks, and display that completion date in the team's "merged"
+view.  The "Assigned To" column for such a task will indicate that the task
+has been hypothetically rebalanced to the team.</li>
+
+</ul>
+
+<h2>Features new in version 1.12</h2>
+
+<ul>
+
+<li>Since version 1.7, the dashboard has included a team metrics collection
+framework called "Software Systems Development." To avoid any potential
+copyright violations, that metrics framework has used a different set of
+process phases than the TSP<sup>(SM)</sup>.  Beginning with version 1.12,
+we are happy to announce that the Software Engineering Institute has
+granted us permission to distribute a TSP-compatible metrics framework.
+This new framework will reduce the learning curve for TSP teams as they
+first begin to use the Process Dashboard.</li>
+
+<li>Process Dashboard installers are now provided to support the assignment
+sequence of the PSP<sup>(SM)</sup> Fundamentals and Advanced courses.</li>
+
+<li>It is now possible to attach HTTP URLs to the elements in a Common Team
+Workflow.  This can be used to associate organizational process scripts or
+wiki pages that describe the steps in a workflow.  (Note: this feature is
+only available for team projects that are created using Process Dashboard
+1.12 or later.)</li>
+
+<li>Data from earned value schedules can now be exported to Microsoft
+Project in the new MS Office XML format.</li>
+
+<li>The "Status of Team Member Metrics" page has always displayed the date
+when each team member last exported their metrics.  Now, it also displays
+the date they last performed a "Sync to WBS" operation.</li>
+
+<li>In the past, the components and tasks in a rolled-up team EV schedule
+would sometimes not appear in the same order that they appear in the WBS.
+The reporting logic has been enhanced so the EV schedule will follow the
+WBS element ordering more closely.</li>
+
+<li>Charts have been added to the PSP project plan summary forms to display
+time, defects, and PQI.</li>
+
+<li>In the WBS Editor Team Member List, the column headers now display dates
+in a locale-sensitive manner for non-US teams.</li>
+
+<li>Teams can optionally choose to have the WBS Editor prompt for read-only
+mode on startup.  (This option can be controlled on a project-by-project
+basis.)</li>
+
+<li>In the WBS Editor and in the EV reports, when a percent complete number
+is greater than 99.5% but less than 100%, it will be rounded down to 99%.
+This helps to avoid confusion, since 100% will now only appear for tasks
+that are truly complete.</li>
+
+<li>The EV Report will now display a warning message if tasks have been
+marked complete in the future, or if time has been logged in the future.
+This can help in the troubleshooting of problems caused by data entry
+typos.</li>
+
+<li>On the Weekly EV Report, the "Tasks Completed Last Week" table now
+displays a total row.</li>
+
+<li>Some international dashboard users have seen problems with corruption
+of accented characters in the Team Dashboard.  A new feature is provided in
+the Preferences dialog to help those teams.</li>
+
+<li>In the personal dashboard, the Team Project Tools and Settings page has
+previously included a checkbox to "Include all WBS components and documents
+in sync operations."  This checkbox represented obsolete functionality, and
+now only causes problems when individuals enable it out of curiosity.  To
+avoid those problems, the feature has been removed.</li>
+
+<li>Teams that have upgraded to a recent version of the Code Collaborator
+server were finding that defect types were no longer being transferred by
+the "Import from Code Collaborator" feature.  This problem has been
+corrected.</li>
+
+<li>A bug was affecting the date-based filtering of entries in the Time Log
+(for example, when you request to view time log entries for "Today").  This
+bug has been corrected.</li>
+
+<li>The Perforce LOC counter can now count LOC in integration changelists.
+This functionality is designed to support the workflow where an individual
+makes changes in a personal sandbox, then integrates those changes back to
+the main line of development.  In that case, the individual can point the
+LOC counter at the changelist where the files were integrated back to the
+mainline, and receive a LOC count of the effective changes.</li>
+
+<li>Installers are now available in EXE format for use on Windows systems.
+These EXEs can simplify the installation process for users who previously
+encountered problems with filesystem permissions in Windows Vista.</li>
+
+</ul>
+
+<h2>Features new in version 1.11</h2>
+
+<ul>
+
+<li>URLs can now be attached to any component or task in the dashboard.
+Just use the WBS Editor or the dashboard to edit the free-text note
+associated with a particular item, and enter a URL within the body of the
+note.  The dashboard will discover the embedded URLs and add them to the
+script menu for easy, one-click access.</li>
+
+<li>A new Preferences dialog is available on the "C &gt; Tools" menu,
+providing easy access to the most common configuration settings.</li>
+
+<li>Several enhancements were made to the usability of the WBS Editor:
+
+  <ul>
+
+  <li>Pressing the Enter key in the WBS Editor typically inserts a new
+      task.  A new button is now provided to toggle this behavior on and
+      off.</li>
+
+  <li>The WBS Editor now uses a strikethrough font to highlight tasks that
+      are 100% complete.</li>
+
+  <li>A "New Tab" button is now displayed, providing one-click access to
+      the functionality on the WBS Editor "Tabs" menu.</li>
+
+  </ul></li>
+
+
+<li>Significant enhancements have been made to the PSP materials in the
+Process Dashboard:
+
+  <ul>
+
+  <li>The PSP scripts and forms in the Process Dashboard have been updated
+      to match the materials in the 2005 book, <i>A&nbsp;Self-Improvement
+      Process for Software Engineers</i>.  (Up to now, they have been based
+      upon the 1995 book, <i>A&nbsp;Discipline for Software
+      Engineering</i>.)  With this change, the scripts, forms, and wizards
+      now match the materials and terminology used in the most recent PSP
+      courses from the SEI.  (Note: the PSP materials are now released as a
+      separate download from the Process Dashboard.)</li>
+
+  <li>On the Size Estimating Template, the estimated size of an "added
+      part" will be computed automatically after an engineer estimates its
+      type, relative size, and number of items.  Engineers can create their
+      own size-per-item lookup tables in support of this
+      functionality.</li>
+
+  <li>On the Size Estimating Template, an interactive chart now appears to
+      help engineers visualize the relationship between estimated base,
+      added, deleted, and modified size.  Engineers can drag handles on a
+      slider to visually estimate base additions, modifications, and
+      deletions as a percentage of base program size.</li>
+
+  <li>The PSP Project Plan Summary forms are now customizable, in support
+      of personal process improvement goals.</li>
+
+  </ul></li>
+
+<li>Significant changes have been made in support of the PSP for Engineers
+courses:
+
+  <ul>
+
+  <li>A new "Grading Helper" has been created for PSP Instructors.  After
+      installing a special "PSP Instructor" add-on, this grading helper
+      will appear in the script menu for PSP course assignments.  The
+      grading helper automates many of the data analysis tasks and
+      consistency checks that are part of the grading process.  Instructors
+      can customize the form to match their grading preferences.</li>
+
+  <li>The dashboard traditionally baselines "Planned" and "To Date" project
+      data at specific points during a project.  Although this strategy is
+      very helpful for the planning and tracking of real-world project
+      work, it becomes an impediment to the quick-turnaround learning
+      objectives of the PSP course, because the "frozen" values prevent
+      students from correcting errors in earlier assignments.  To address
+      this problem, this "freezing" mechanism has now been disabled for the
+      assignments in the PSP course.</li>
+
+  <li>It is now much easier for students to create the quality plan for
+      their first PSP2 assignment.</li>
+
+  <li>Error messages now appear on the Project Plan Summary form to
+      warn engineers about common mistakes.  For example, if students
+      forget to enter the actual size of Program 1, an error message
+      will appear on their Program 2 Project Plan Summary form.</li>
+
+  </ul></li>
+
+<li>When you first create a team project, the Team Project Setup Wizard
+prompts you for the name of a directory where team data should be stored.
+Later in the project, you may discover that you need to move these files to
+a different location on the network.  A new feature makes this
+possible.</li>
+
+<li>The dashboard has always included advanced earned value features to
+support iterative project planning.  Unfortunately, some teams would
+inadvertently trigger these advanced features by choosing a start date in
+the future (for example, the week <i>after</i> their project launch).  To
+avoid this confusion, the iterative planning feature must now be explicitly
+enabled in the "Tools &gt; Schedule Options" dialog of the Task &amp;
+Schedule window.</li>
+
+<li>Geographically diverse teams - such as teams split between India and
+the United States - would sometimes see inconsistent data in the earned
+value reports.  New time-zone awareness logic has been added to address
+these problems.</li>
+
+<li>The defect log now includes an "Import from Code Collaborator"
+button.  Teams that use Collaborator
+(<u class="url">http://smartbear.com/</u>) can take advantage of this
+new import feature to reduce double-entry of defect data.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.10</h2>
+
+<ul>
+
+<li>The Process Dashboard is now released under version 3 of the GNU
+General Public License.</li>
+
+
+<li><a name="newStyle"></a>For new team projects, created after the
+installation of this update, a new task structure will be used:
+
+  <ul>
+
+  <li>Previously, the process phase of a task (e.g. Planning, Code, Test,
+      etc) was recorded via a final "stub" that appeared at the end of each
+      task in the hierarchy.  Now, these stubs are no longer created.  This
+      change reduces clutter, makes it easier to subdivide existing tasks,
+      and reduces the memory usage of the Process Dashboard.</li>
+
+  <li>In a new-style team project, individuals will have a project plan
+      summary report similar to the one on the team side: it can be edited
+      to include custom charts, reports, and tables of data.</li>
+
+  <li><b>Important:</b> Data from new-style and old-style team projects
+      <b>can</b> still be rolled up together into master projects.</li>
+
+  </ul></li>
+
+
+<li>For a <a href="#newStyle">new-style</a> team project that is underway,
+new columns will appear in the Work Breakdown Structure Editor to display
+actual metrics:
+
+  <ul class="tight">
+  <li>Actual time spent on each task</li>
+  <li>Actual completion date</li>
+  <li>Percent complete </li>
+  <li>Percent spent</li>
+  </ul>
+
+Among other things, this makes it possible to see which tasks have been
+completed, which are in progress, and which have not yet started.</li>
+
+
+<li>When changes are made in the WBS, individuals use the "Sync to WBS"
+operation to copy those changes into their personal plan.  In a <a
+href="#newStyle">new-style</a> team project, the synchronization is now
+bidirectional.  When individuals make changes to the following data in
+their personal plan, the changes will be propagated back into the WBS
+automatically:
+
+  <ul class="tight">
+  <li>Changes to the planned time for tasks</li>
+  <li>Changes to the planned hours in the schedule</li>
+  <li>Changes to task notes/comments</li>
+  <li>Changes to the phase type of a task (e.g. Planning, Code, etc.)</li>
+  </ul></li>
+
+
+<li>The colored bars in the WBS Editor are a useful tool for balancing work
+between team members.  For a <a href="#newStyle">new-style</a> team project
+that is underway, these bars can now be toggled between two modes:
+
+  <ul class="tight">
+
+  <li><u>Show End-to-End Plan</u>: This mode takes all tasks into account.
+      The dates calculated for each team member will correspond to the
+      "Planned Completion Date" for that individual in their personal
+      earned value schedule.</li>
+
+  <li><u>Show Remaining Work</u>: This mode subtracts out tasks that have
+      already been completed, as well as effort spent on in-progress work.
+      The dates calculated for each team member will correspond to the
+      "Replanned Completion Date" for that individual in their personal
+      earned value schedule.</li>
+
+  </ul>
+
+The new "Remaining Work" mode is a powerful way to rebalance work during a
+relaunch.  Teams can also use it throughout a project iteration to
+continually rebalance work.</li>
+
+<li>The Process Dashboard now supports baselines for earned value data.
+You can save a baseline for any earned value schedule, then view baseline
+metrics in the task list and EV charts.</li>
+
+<li>The WBS Editor now includes support for project milestones:
+
+  <ul class="tight">
+
+  <li>It is possible to define a list of project milestones, and
+      optionally enter commit dates</li>
+
+  <li>Each component and/or task in the WBS can be assigned to a
+      particular milestone</li>
+
+  <li>Marks appear on the colored balancing bars to indicate when
+      each individual could potentially finish their work for each
+      milestone</li>
+
+  <li>The colored balancing bars can be configured to balance work
+      for the entire project or just for the next milestone(s)</li>
+
+  <li>Future milestones can be marked as "deferred," and the sync
+      operation will not copy the associated tasks into team member
+      plans.</li>
+
+  </ul></li>
+
+<li id="taskNotes">A new icon on the main toolbar makes it easy to attach
+free-text notes to any component or task in the Process Dashboard.  On a
+team project, these notes are shared by the team, and accessible in the WBS
+Editor.</li>
+
+<li>Play and pause now appear as separate toggle buttons.</li>
+
+<li>A new "timing reminder" feature is available.  This feature can
+periodically display pop-up alerts, reminding the user to start or stop
+their timer or to change the active task.  <i>(This feature is not enabled
+by default, but can be turned on by individuals who wish to use it. To
+enable this feature, right-click on the tray icon and choose "Reminder &gt;
+Enable Reminder.")</i></li>
+
+<li>The WBS Editor now allows you to enter detailed schedules for each team
+member, to include start dates, end dates, and planned time exceptions on
+specific weeks.  This information is bidirectionally synchronized with each
+individual's personal earned value schedule.</li>
+
+<li>Previously, the WBS Editor would not allow you to assign a task to an
+individual until a time estimate had been entered for the task.  Now, it is
+possible to assign a task to an individual even while the task's time
+estimate is still zero.  Agile project teams may use this feature to
+support on-the-fly cost estimation.</li>
+
+<li>The Team Dashboard Users Manual is now included in the dashboard's
+searchable online help.</li>
+
+<li>When starting a new project or iteration, you can now bring forward the
+data from historical earned value schedules.  As a result, the dashboard
+can calculate forecast dates and prediction ranges during a team project
+launch, even before any actual data has been collected.</li>
+
+<li>The weekly earned value report now includes a "Tasks In Progress"
+section.  This section displays tasks that have been started but not yet
+completed, making it easier to spot problems such as overspent tasks.</li>
+
+
+<li>Historically, "PSP Tasks" were required if a team wanted to capture
+planned and actual LOC for their project.  Now, LOC can be captured for
+"code" tasks as well.</li>
+
+<li>Installation and operation of the dashboard on Mac OS X is greatly
+improved.</li>
+
+<li>On Unix/Linux systems, the default web browser has been changed from
+Netscape to Firefox.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.9</h2>
+
+<ul>
+
+<li>The Process Dashboard now displays an icon in the system tray:
+
+  <ul>
+
+  <li>Users can click on the icon to start/stop the timer, and tell from a
+      glance at the icon whether the timer is running.</li>
+
+  <li>The tooltip on the icon displays the active task.  Ctrl-click on the
+      icon allows the user to select a new active task.</li>
+
+  <li>The popup menu on the tray icon provides quick access to many commonly
+      used dashboard features.</li>
+
+  </ul></li>
+
+<li>In the Team Dashboard, you can now expand the weekly earned value
+report to show data for each individual team member.  This resulting
+report can be very useful in weekly team meetings.</li>
+
+<li>The play/pause button now displays new icons that make it easier
+to determine whether the timer is running or stopped.</li>
+
+<li>Tasks labels (assigned in the WBS Editor) are now displayed for each
+task when you open an earned value plan in the Task &amp; Schedule window
+or view a report in your browser.</li>
+
+<li>Warning icons now appear when a task is planned to be completed
+before its dependencies.</li>
+
+<li>Since version 1.7.1b-9, team members have been able to open the
+Work Breakdown Structure directly from their personal dashboard.  A
+preference on the Team Project Parameters and Settings page controls
+whether individuals should be allowed to make changes to the WBS.
+Previously, this setting defaulted to "read-only," but with this
+release, the default is to <b>allow</b> edits.  Teams that wish to
+keep the WBS read-only will need to adjust the value of this setting
+after upgrading.</li>
+
+<li>A new project-specific parameter allows teams to disable
+(permanently or temporarily) the alerts telling individuals that they
+need to sync to the work breakdown structure.</li>
+
+<li>Several common operations have been optimized, and now require much
+less time.  For example, the dashboard may start in half the time, and
+export data in one-fifth the time.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.8</h2>
+
+<ul>
+
+ <li>Several enhancements to the team functionality:<ul>
+
+   <li>Individuals can now open the team Work Breakdown Structure directly
+   from their personal dashboard, via a new option on the script menu.</li>
+
+   <li>If an individual needs to perform a "Synchronize to WBS" operation,
+   they will receive an alert shortly after starting the dashboard.</li>
+
+   <li> It is now possible to view the rolled up time log for team and master
+   projects.</li>
+
+   <li>The Team Project Parameters and Settings page now allows each team to
+   select the set of phases they wish to appear in team forms, charts, and
+   reports.</li>
+
+   <li> It is now possible to define a defect type standard at the team level
+   for shared use by the members of a team project.</li>
+ 
+ </ul></li>
+
+ <li>Several enhancements to earned value support:<ul>
+
+   <li>Forecast dates are calculated for every task in the EV schedule.</li>
+
+   <li>A new "Replan" column has been added to the earned value task list,
+   displaying the planned dates that would result if you were to "replan from
+   today."</li>
+
+   <li> In addition to the "Chart" button, the Task & Schedule window now
+   contains a "Filtered Chart" button. This button will display a filtered
+   view of the earned value charts and statistics, for the selected portion of
+   the hierarchical task list.</li>
+
+   <li>On the "Combined" earned value chart, the "Actual Time" line has been
+   replaced with an "Actual Cost" line. With this change, the three lines on
+   that chart are now displaying traditional BCWS, BCWP, and ACWP
+   metrics.</li>
+
+   <li>Drag-and-drop can be used to reorder tasks in the Flat View of an
+   earned value schedule.</li>
+
+ </ul></li>
+
+ <li>A new option has been added to the "C > Tools" menu, allowing the user to
+   save a backup of their data directory to a file.</li>
+
+ <li>A new Quick Launcher tool is provided for quickly opening a dashboard
+   instance without making a shortcut first.</li>
+
+ <li>A new visual indicator has been added to the main Process Dashboard
+   toolbar, displaying the percent spent for the current task.</li>
+
+ <li>When a user manually enters interrupt time in their time log, the delta
+   time is now adjusted accordingly.</li>
+
+</ul>
+
+<h2>Features new in version 1.7</h2>
+
+<ul>
+
+ <li>The Process Dashboard now contains extensive, powerful 
+   functionality to support project teams, including:<ul>
+
+   <li>Support for team projects (to roll-up metrics and schedule data
+     from several individuals) and master projects (to roll-up metrics
+     and schedule data from several teams)</li>
+
+   <li>Streamlined project planning tools enable rapid creation of
+     balanced, top-down team project plans</li>
+
+   <li>Powerful reporting tools allow the creation of custom forms,
+     charts, and reports that analyze project metrics and earned value
+     at the team level</li>
+
+   <li>Tracking of task dependencies assists with coordination of work
+     within and across project teams</li>
+
+   </ul></li>
+
+ <li>The Process Dashboard now contains extensive support for
+   internationalization.  A Localization Tool is provided to help
+   users translate dashboard messages into their native language, and
+   share those translations with other users.</li>
+
+ <li>Memory usage and startup time have been reduced dramatically for
+   individuals with many historical projects.</li>
+
+ <li>The dashboard contains several enhancements to earned value
+   functionality:<ul>
+
+   <li>A new task navigation option makes it easier to work through
+     the tasks in an earned value plan.</li>
+
+   <li>The plan and forecast lines on the earned value charts can be
+     toggled off.</li>
+
+   <li>The earned value report can display your task list
+     hierarchically, and display rolled-up calculations such as
+     "percent complete" at various levels.</li>
+
+   <li>Export a GANTT chart of an earned value plan to MS Project</li>
+
+   <li>Export an HTML snapshot of an earned value plan, for status
+       reporting and collaboration</li>
+
+   </ul></li>
+
+ <li>The Data Analysis center has been enhanced to support custom
+   processes.  Users who define a custom process will see customized
+   versions of Report 3, 4, and 5 for their process.</li>
+
+ <li>The Process Dashboard now integrates with a wide variety of web
+   browsers on all platforms.  In particular, Unix/Linux users no
+   longer need to use an older version of Netscape to view dashboard
+   forms.</li>
+
+ <li>The dashboard can be opened in read-only mode, making it possible
+   for a mentor/coach to look at dashboard data without worrying about
+   accidentally changing data.</li>
+
+ <li>It is now very safe to use a networked directory for storage of
+   dashboard data;  the logic that saves changes will detect and
+   recover from sporadic network outages.</li>
+
+ <li>Time values are displayed on dashboard forms in hours and
+   minutes.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.6 (released September 1, 2003)</h2>
+
+<ul>
+
+ <li>The dashboard contains several innovative enhancements to earned
+   value functionality:<ul>
+
+   <li>The earned value tool in the dashboard can now calculate
+     estimated prediction intervals for forecast completion date and
+     forecast cost.  These intervals compare your planned progress to
+     your actual progress using numerical methods and approximate
+     pivotal statistics, computing a range of dates within which your
+     project is likely to finish.  The dashboard can calculate these
+     ranges both for individual earned value schedules and for
+     rolled-up team schedules.</li>
+
+   <li>Traditional PSP earned value planning addresses only
+     &quot;direct time,&quot; omitting time spent on recurring
+     activities (such as weekly meetings) and ongoing activities (such
+     as communicating with customers and management, or participating
+     on committees).  Unfortunately, &quot;direct time&quot; is an
+     unfamiliar metric for many organizations, which are accustomed to
+     tracking &quot;project time&quot; instead. As a result, senior
+     managers in some organizations take issue with earned value plans
+     that reflect only 15-20 direct hours per week.<br>
+
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To help development teams
+     avoid this potential misunderstanding, the dashboard now provides
+     an innovative new feature: &quot;level of effort&quot; tasks can
+     be added to earned value task lists.  Although these tasks don't
+     affect the earned value calculations, they do allow you to create
+     a schedule that accounts for all of your &quot;project time&quot;
+     - and this can help when you present plans to management for
+     approval.  To add &quot;level of effort&quot; tasks to an earned
+     value plan, just enter percentages for these tasks in the
+     &quot;planned time&quot; column instead of durations.  (Planned
+     direct time for the periods in the schedule is then calculated
+     automatically by reducing the planned total time by the
+     appropriate percentage.)  To help you enhance the accuracy of
+     future estimates, &quot;actual time&quot; for &quot;level of
+     effort&quot; tasks is also displayed as a percentage.</li>
+
+   <li>Earned value task lists in the dashboard have always been
+     hierarchically organized.  When the list of tasks for a
+     particular project differs from the structure of your dashboard
+     hierarchy, new features in the earned value tool allow you to
+     &quot;prune&quot; and reorder tasks to better describe the work
+     that needs to be done.</li>
+
+   <li>At times in the middle of a project, you may decide that you
+     wish to &quot;re-plan&quot; the remaining tasks and start with a
+     fresh earned value schedule.  The dashboard now makes this
+     simple: just change the starting date on your earned value
+     schedule to the current date.  All work performed before the
+     starting date of the schedule will be factored out of earned
+     value calculations automatically.</li>
+
+ </ul></li>
+
+ <li>The &quot;Data Analysis&quot; center now allows you to generate
+   custom charts and reports, simply by selecting options from
+   drop-down lists.  The data in these custom charts and reports can
+   also be exported to Excel for further custom analysis.</li>
+
+ <li>The time log now includes a column for the entry of optional
+   comments.</li>
+
+ <li>It is now possible to create and edit custom defect type
+   standards.</li>
+
+</ul>
+
+
+<h2>Features new in version 1.5 (released October 3, 2002)</h2>
+<ul>
+ <li>The dashboard is now compatible with version 1.4 and higher of
+   the Java Runtime Environment.</li>
+
+ <li>The dashboard now contains support for Netscape 6 and higher on
+   Windows platforms, and is also compatible with the Sun Java Plug-in
+   in Internet Explorer.</li>
+
+ <li>The task and schedule planning tool now contains built-in support
+   for collaboration! You can share your schedules with your
+   co-workers, your manager, and/or your customer, and keep them
+   up-to-date on your progress.  If you are working on a project with
+   other people, you can roll up your individual schedules to create
+   an earned value schedule for the project.</li>
+
+ <li>The task and schedule planning tool helps you to avoid several
+   common planning mistakes.</li>
+
+ <li>The hierarchy editor now includes a toolbar to facilitate the
+  editing of your work breakdown structure.</li>
+
+ <li>Numerous user interface enhancements make the hierarchy editor,
+   the time log editor, and the defect log editor easier to use.</li>
+
+</ul>
+
+<h2>Features new in version 1.4 (released February 22, 2002)</h2>
+<ul>
+ <li>Creating custom processes has never been easier - now you can create  
+   your own process definitions for use with the dashboard by writing a simple 
+   XML file.</li>
+
+ <li>Task and schedule features help you to track your work using earned 
+   value, and calculate forecasts for cost and schedule.</li>
+
+ <li>New "data rollup" templates allow you to roll-up data from
+   multiple projects. This feature makes it possible to:
+  <ul>
+   <li>Roll up psp data to the project level.</li>
+   <li>Create multiple subsets of "To Date" data (for example, representing 
+      different programming languages). The "To Date" data mechanism now 
+      allows you to select, for each project, which subset should be used for 
+      automatic calculations.</li>
+  </ul>
+ </li>
+
+ <li>External documents are now integrated into the process scripts - click 
+   on hyperlinks for documents like the PIP form, the Issue Tracking Log, 
+   etc. and the appropriate document will be opened for the project you're 
+   working on.</li>
+
+ <li>A new "PROBE Wizard" simplifies the PROBE process, and provides advice 
+   on which PROBE method is most appropriate.</li>
+
+ <li>You can now export forms (like the Project Plan Summary or the Size 
+   Estimating Template) to Excel for additional, custom analysis. If you want 
+   to show your data to others, or save copies of forms for project 
+   documentation, you can also export these forms to static HTML 
+   documents.</li>
+
+ <li>You can now "unlock" the read-only data on forms if you want to override 
+   any of the calculations that the dashboard automatically performs for 
+   you.</li>
+
+ <li>The hierarchy editor now allows you to move nodes/projects. Cut and paste 
+   operations make it possible to reorganize your work breakdown structure.</li>
+
+ <li>The drop-down list on the script button now displays choices like 
+   "Project Plan Summary" instead of listing the names of process phases. In 
+   addition, a "script browser" makes it easy to open a script/form for any 
+   project in your hierarchy without needing to navigate to that project 
+   first.</li>
+
+ <li>Checkmarks in the hierarchy menus make it easy to see which phases / 
+   projects have been marked complete.</li>
+
+ <li>The "pspdiff" program (which calculates added / deleted / modified 
+   physical LOC counts) is now incorporated into the dashboard.</li>
+
+ <li>A major overhaul of the internal data calculation engine allows the 
+   dashboard to recalculate data up to 10 times faster.</li>
+
+ <li>If you insert "Design Review" or "Code Review" phases into a PSP0 - 
+   PSP1.1 project, these phases will automatically appear on the project plan 
+   summary and in the process scripts.</li>
+
+ <li>The text "ERROR" in the dashboard forms has been changed to "#VALUE!" or 
+   "#DIV/0!" to behave more like Excel.</li>
+
+ <li>An entry to enter the Total LOC was added to the Size Estimating 
+   Template screen.  This only makes sense since you have to enter nearly all 
+   other actual LOC measures on this form.</li>
+
+ <li>Help was implemented via a sub menu.  Other items on the Help sub menu 
+   allow you to submit bug reports online and navigate to the user online 
+   help forum.</li>
+</ul>
+
+<h2>Features new in version 1.3.1 (released August 14, 2001)</h2>
+
+<ul>
+ <li>Version 1.3.1 was released to address a high-priority bug present in 
+   version 1.3.  No significant new features were added to 1.3 for this 
+   release.</li>
+</ul>
+
+<h2>Features new in version 1.3 (released July 16, 2001)</h2>
+
+<ul>
+ <li>The dashboard now includes greatly enhanced online help! Improved help 
+   has been the #1 requested feature by you, the user community. We are 
+   therefore pleased to offer indexed, searchable online help with ten times 
+   the content of version 1.2.</li>
+
+ <li>The dashboard now includes a "Generic" process.  When you use the 
+   generic process to perform a task, it allows you to:
+  <ul>
+   <li>Choose any list of phases, with custom names</li>
+   <li>Decide whether or not it makes sense to track defects for the task</li>
+   <li>Decide whether or not it makes sense to measure size for the task, and 
+      choose a custom unit of size measurement.</li>
+  </ul>
+
+  The dashboard then provides a customized Project Plan Summary Form for your 
+   custom process.</li>
+
+ <li>The dashboard now contains a mechanism for freezing baselined data. When 
+   you mark the planning phase of a project complete, all the data in the 
+   "Plan" column of the Project Plan Summary form will freeze and stop 
+   recalculating. Similarly, when you mark the project complete, all the data 
+   in the "To Date" column will freeze and stop recalculating. This makes it 
+   possible to view the report again in the future without having the numbers 
+   changing in the report.</li>
+
+ <li>The dashboard can now notify you when updates are released, either to 
+   the dashboard itself or to the add-on process sets you have installed.</li>
+
+ <li>The PROBE tool now contains a drop-down box for quickly exploring PROBE 
+   methods A, B, and C.</li>
+
+ <li>The Play/Pause button now has a drop-down menu for quickly jumping to a 
+   task where you have recently logged time. If you often bounce back and 
+   forth between tasks for different projects, this feature makes your life 
+   easier.</li>
+
+ <li>Numerous bug fixes make the Time Log Editor more robust.</li>
+
+ <li>The Time Log Editor now makes it easy to quickly filter your view of the 
+   time log to "Today", "This Week", or "This Month". Forward and backward 
+   buttons let you scroll to look at different time periods.</li>
+
+ <li>The play/pause button and the hierarchy menus now provide audible 
+   feedback to help you keep track of whether the dashboard is timing or 
+   paused.</li>
+
+ <li>The previous version of the dashboard would only write entries to the 
+   time log when you changed phases; now, the time log is updated 
+   continually. The data in your time log and your project plan summary forms 
+   is never more than a minute old.</li>
+
+ <li>When you find yourself fixing several defects at once (which can happen 
+   often due to "fix defects" and "related defects"), the dashboard provides 
+   better assistance.  It automatically ensures that only one defect timer is 
+   running at a time, and maintains a stack of "interrupted" defects.</li>
+
+ <li>The Defect Log Editor now allows defects to be deleted. It also supports 
+   quick filtering to see the defects which were injected or removed in a 
+   given phase.</li>
+
+ <li>Timer icons have been placed on the HTML forms to allow navigation among 
+   the phases of development without having to reach all the way up to the 
+   hierarchy menus.</li>
+
+ <li>A method was added that will allow driving of the dashboard by another 
+   program.  This will allow IDE developers to add support for the 
+   dashboard from within their programming environments.</li>
+</ul>
+
+<h2>Features new in version 1.2 (released April 20, 2001)</h2>
+
+<ul>
+ <li>The dashboard now includes support for ALL the standard PSP processes 
+   (PSP0, PSP0.1, PSP1.0, PSP1.1, PSP2.0, PSP2.1, and PSP3.0). All of the 
+   online PSP process scripts and forms have been edited to conform as 
+   closely as possible to the originals in the PSP book.</li>
+
+ <li>The dashboard now displays charts and reports! Choose the "Data Analysis" 
+   option on the "C" menu, and dozens of standard charts and reports are 
+   available (including ALL the tables required by reports R3, R4, and R5, 
+   and ALL the charts currently drawn by the SEI's "Student Workbook" Excel 
+   spreadsheet). With a single click, export data to Excel for further 
+   analysis.</li>
+
+ <li>The PROBE tool is now simpler to use. Previously, it would allow you to 
+   explore the correlation between any two data items; unfortunately, this 
+   made it cumbersome for everyday use. Now, by default, it only displays the 
+   data items traditionally used by the PSP PROBE methodology.</li>
+
+ <li>The PSP0 - PSP1.1 processes now support optional "Design Review" and 
+   "Code Review" phases.</li>
+
+ <li>Errors in several calculations have been corrected. Also, the "To Date" 
+   data calculations have been completely revamped and are now working 
+   properly.</li>
+
+ <li>Data calculation efficiency has been improved.</li>
+
+ <li>With the addition of the standard PSP processes, the SCR/DCR processes 
+   are no longer shipped with the dashboard. If are a current dashboard user, 
+   and you have been using the SCR/DCR processes, your existing SCR/DCR 
+   projects WILL still work. If you wish to continue creating projects that 
+   use the SCR/DCR processes in the future, please download the SCR/DCR 
+   process separately.</li>
+</ul>
+
+<h2>Features new in version 1.1 (released February 9, 2001)</h2>
+
+<ul>
+ <li>Version 1.1 contained enhancements that made the tool significantly 
+   easier to install.</li>
+</ul>
+
+</BODY>
+</HTML>

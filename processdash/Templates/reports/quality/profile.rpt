@@ -1,0 +1,15 @@
+= Radar Quality Profile Chart
+
+for=.
+
+t1==Target Design/Code Ratio
+
+t2==Target Code Review/Code Ratio
+
+t3==Target Compile Defect Density
+r3==on
+
+t4==Target Test Defect Density
+r4==on
+
+t5==Target Design Review/Design Ratio

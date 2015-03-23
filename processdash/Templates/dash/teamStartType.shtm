@@ -1,0 +1,77 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2002-2003 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+<!--#if READ_ONLY -->
+<meta http-equiv='Refresh' content='0;URL=teamStartReadOnly.shtm'>
+<!--#endif-->
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select Project Setup Type</h2>
+
+<form action='teamStart.class' method='post'>
+<input type='hidden' name='page' value='type'>
+
+<p>Setting up a team project is a two-step process.  First, a team
+leader or project manager uses this setup wizard to create a
+centralized &quot;team project.&quot; Next, individual team members
+use this setup wizard to join the team project.</p>
+
+<p>Which would you like to do?</p>
+
+<table>
+
+<tr>
+<td align=center><input type=submit name=createTeamProject
+    value='Team Leader'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I am a team leader or project manager, and I would like to create 
+    a team project.</td>
+</tr>
+
+<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+<tr>
+<td align=center><input type=submit name='joinTeamProject'
+    value='Individual'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I am an individual, and I would like to join a team project.</td>
+</tr>
+
+</table>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=cancel value='Cancel'
+       onClick='window.close();'>
+</td></tr></table>
+
+</form>
+</body>

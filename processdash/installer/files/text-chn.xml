@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+
+<langpack>
+    <str id="DataDirPanel.empty_datadir">你必须选择一个数据目录。</str>
+    <str id="DataDirPanel.info">选择一个保存你个人的度量数据的目录： </str>
+    <str id="LicencePanel.deselect.message1">你表明了你并不统一此许可协议。 你是否愿意从安装列表中删除这些模块</str>
+    <str id="LicencePanel.deselect.message2">呢？</str>
+    <str id="LicencePanel.deselect.title">取消包的选择？</str>
+    <str id="PackageDownloader.error.info1">此包： </str>
+    <str id="PackageDownloader.error.info2">不能被下载，并且尚未安装。 发生此问题的原因可能是因为你没有连接到因特网，或者你在防火墙后面。 为了解决此问题， 请另行下载并运行离线安装程序。</str>
+    <str id="PackageDownloader.error.title">安装警告</str>
+    <str id="PackageDownloader.info1">正在下载 &quot;</str>
+    <str id="PackageDownloader.title">下载中...</str>
+    <str id="ShutdownDashboardPanel.error.info">本安装程序检测到一个Process Dashboard的实例正在本机运行。
+在继续之前，你必须将其关闭。</str>
+    <str id="ShutdownDashboardPanel.error.title">Process Dashboard正在运行中</str>
+    <str id="ShutdownDashboardPanel.info">如果你目前正在运行Process Dashboard， 安装新文件可能导致无法预料的错误。 
+因此，强烈建议你关闭Process Dashboard，如果它现在正在运行的话。</str>
+    <str id="TeamDataDirPanel.empty_datadir">你必须选择一个数据目录。</str>
+    <str id="TeamDataDirPanel.info">请为团队配置数据选择一个目录：</str>
+    <str id="TeamDataDirPanel.message">你所选择的目录将被用于为Team Dashboard保存配置信息。
+
+大多数团队应该选择一个共享的网络目录，并且其中的文件
+应当能被团队的所有成员访问。</str>
+    <str id="installer.javaversion.info">你需要升级你的Java运行环境！ 
+{0} {1} 要求版本{2}或者更高的Java运行环境。 你目前运行的Java运行环境的版本为{3}.
+       要下载一个更新版本的Java运行环境， 请访问   {4}
+然后再运行本安装程序。</str>
+    <str id="installer.javaversion.title">不能安装{0}</str>
+    <str id="CondHTMLLicencePanel0.header">你已经选择了安装{0,choice,1#module|2#modules}:
+          {1}
+
+
+出版商授权使用的条件是： 用户必须同意下面的许可证协议，才可以下载或安装{0,choice,1#this module|2#these modules}:</str>
+    <str id="CondHTMLLicencePanel1.header">你已经选择了安装由Sun Microsystems编写的JavaHelp(TM)软件。 要下载并安装此可选模块， 你必须同意下面的许可证协议。</str>
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the following optional {0,choice,1#module|2#modules}, written by Tuma Solutions:
+          {1}
+
+To download and install {0,choice,1#this module|2#these modules}, you must consent to the following license agreement.</str>
+    <str id="TargetPanel.warn">The directory already exists. The Process Dashboard installation in the given directory will be safely updated with new and changed application files. Is this what you would like to do?</str>
+    <str id="application.name">过程度量板</str>
+    <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="extras">Charting and Reporting Extensions</str>
+    <str id="javaHelp.description">来自Sun Microsystems的帮助浏览器
+
+此模块并非Process Dashboard的全部功能所要求的。当然，安装此模块能够有效地浏览Process Dashboard的帮助文档，包括进行全文检索。
+
+此模块的版权是属于Sun Microsystems的，是非开放源码的。 Sun Microsystems要求你同意一个额外的许可协议，然后才能下载并安装此模块。</str>
+    <str id="javaHelp">JavaHelp(TM)帮助浏览器</str>
+    <str id="pdash.description">Process Dashboard的核心应用
+
+Process Dashboard是在GNU General Public License许可下进行分发的。</str>
+    <str id="pdash">Process Dashboard</str>
+    <str id="pspForEng.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP for Engineers I &amp; II.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pspForEng">PSP(SM) for Engineers</str>
+    <str id="pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pspFundAdv">PSP(SM) Fundamentals &amp; Advanced</str>
+    <str id="pspInstrTools.description">Tools to assist instructors of the PSP courses</str>
+    <str id="pspInstrTools">PSP(SM) Instructor Tools</str>
+    <str id="pspProc.description">Templates, scripts, and forms supporting the Personal Software Process(SM).
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pspProc">PSP(SM)过程</str>
+    <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
+    <str id="teamTools">Tools for Team Leaders</str>
+    <str id="tpidw.description">Relational Database Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will significantly improve the performance and scalability of the application, and will enable external access to project data via SQL queries.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="tpidw">Relational Database Extensions</str>
+
+</langpack>

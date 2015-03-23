@@ -1,0 +1,141 @@
+<HTML>
+<head>
+<TITLE>Entering Process Data</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Entering Process Data</H1>
+<P>There are two main ways of entering data into the Process Dashboard.  The 
+first is through various input tools and dialogs provided by the dashboard 
+(e.g. the <a href="../Execution/EnteringDefects.html">defect dialog</a>, the 
+<A HREF="../Execution/UsingTimeLogEditor.html">time log editor</A>, etc.).</p>
+
+<p>The second is through various process forms.  The scripts and forms are 
+provided through an integrated web interface.  See the <a 
+href="../Execution/AccessingScripts.html">Accessing Process Scripts</a> help 
+topic for more info on how to access the scripts and forms.  To find out more 
+information about the different process scripts and forms that are available, 
+see the <a href="../Overview/ProcessScripts.html">process scripts</a> help 
+topic.</p>
+
+
+<h2>The nature of the dashboard forms</h2>
+<P>The dashboard forms are implemented via static and sometimes dynamic HTML 
+pages. Unlike the HTML forms you see on the internet, the forms on these HTML 
+pages are "live" at all times, much like a spreadsheet. You can type values 
+in the input fields and other fields will recalculate automatically, even if 
+those fields are in different browser windows. There is no need to press any 
+kind of "submit data" button.</P> 
+
+<P>After typing in a value, you must generally "leave" that input field to 
+signal that you are finished entering information. Pressing the "Tab" key (to 
+move to the next input field) or clicking anywhere else on the page is 
+generally sufficient. As soon as the "input cursor" leaves the field in 
+question, the dashboard will automatically pick up your data, recalculate 
+related data items, and save your data for future sessions.</P>
+
+<P>If you enter an invalid value for a data item (for example, typing "foo" 
+in an input field that is expecting a number), the dashboard will reject the 
+invalid value and restore the previous value for that input field.</P>
+
+<p>The dashboard uses various visual cues to show you where data is missing 
+or where a calculated value could not be completed.  Here is a partial screen 
+shot of a dashboard form that shows several of the ways the 
+dashboard indicates incomplete or bad data:</p>
+
+<p class="figure"><img src="../../Images/ShowMissingFields.png"></p>
+
+<P><a name="missing"></a>When a required data value is <I>missing</I>, the 
+dashboard will display "<code>?????</code>". This is an indication that you 
+still need to enter a value for that data item. Therefore, you should ensure 
+that there are no "<code>?????</code>" symbols in the Plan column of your 
+project plan summary before marking the Planning phase complete. Similarly, 
+make certain you fill in all missing values in the Actual column of your 
+project plan summary before marking the project complete.</P>
+
+<P>If the dashboard cannot recalculate a formula because the formula 
+references a missing ("<code>?????</code>") or otherwise invalid data value, 
+it will display "<code>#VALUE!</code>" as the result of the calculation.  
+When you see "<code>#VALUE!</code>" in a dashboard form, it almost 
+<I>always</I> means that there is a "<code>?????</code>" field somewhere that 
+you still need to fill in.</P>
+
+<P>If the dashboard recalculates a formula and encounters a divide-by-zero 
+error, it will display "<code>#DIV/0!</code>" as the result of the 
+calculation. Divide-by-zero errors are common when you first begin using the 
+dashboard, since you will not have any historical data.</P> 
+
+<P>To make all this possible, the dashboard software actually contains a very 
+small HTTP server embedded within it.  This server allows communication 
+between the HTML pages and the process data that is tracked by the 
+dashboard.  If you close the dashboard program while one of the HTML forms is 
+open, the form will reset and display "<code>NO CONNECTION</code>". You can 
+reestablish the connection simply by restarting the dashboard, then telling 
+your browser to reload the HTML page.</P>
+
+<H2>Frozen Calculations</H2>
+
+<P>If you edit the value in an input field, and related data items don't 
+recalculate, the data is probably <I>frozen</I>. Remember that when you mark 
+the planning phase of a PSP project complete, all the Planned data elements 
+are baselined and stop recalculating.  Similarly, when you mark a PSP project 
+complete, the Actual and To Date data elements will freeze and stop 
+recalculating. So if you expect formulas to recalculate and they don't, check 
+to make certain that the planning phase and the entire project are <U>not</U> 
+marked complete. For more information, see the <A 
+HREF="DataFreezing.html">Data Freezing</A> help topic.</P> 
+
+<a name="unlock"></a><h2>Read-only data fields</h2>
+
+<P>The Process Dashboard automatically calculates many data elements for
+you.  Normally, these calculated data values are not directly editable, but
+rather they will update when other data elements to which they are related
+get updated.  If you are using a recent web browser, these values are
+displayed with a grey background.</p>
+
+<P>Sometimes you may decide that you want to override one or more of these 
+calculated values.  You can "unlock" these read-only data elements by 
+clicking on the "<u>Unlock read-only data</u>" link at the bottom of the 
+page.  Unlocking read-only data will make all the elements on the page 
+editable, allowing you to override calculated values with your own.</p> 
+
+<P>Unlocking read-only data is useful for times when you intentionally want 
+to override a calculation, but it is not without risk.  Once you have 
+overridden a calculation, it will no longer automatically update in response 
+to changes in related data items.  In addition, related calculations may no 
+longer add up like you would normally expect.  Therefore, this feature should 
+be used with caution.</p> 
+
+<p>After you have overridden a calculation with some value, you may decide 
+that you want the old calculation back.  Just type <code>DEFAULT</code> in 
+the input field, and when you leave the field the old calculation will be 
+restored.</p>
+
+<a name="exporting"></a><h2>Exporting form data</h2>
+
+<p>When you open a dashboard form, the form connects to the process dashboard
+to retrieve the most up-to-date values for all the data elements on the page.
+If you choose the &quot;File <img src="../../Images/rarrow.png"> Save&quot;
+option from your browser, you will find that only the form is saved; the values
+contained in the form are not.  If you want to save an electronic copy of a
+dashboard form (for example, to email to a coworker, or to save with project
+documentation), click the "Export to HTML" link at the bottom of the page.  The
+dashboard will create an HTML version of the form containing a <i>snapshot</i>
+of your data.  This HTML snapshot can be saved using the &quot;File <img
+src="../../Images/rarrow.png"> Save&quot; option of your browser.</p>
+
+<p>If you would like to perform additional analysis on the data in a 
+dashboard form, use the "Export to Excel" link at the bottom of the page. 
+This will open the form in Excel, where you can reference the data in Excel 
+charts and equations. For more information on the Excel export feature, see 
+the <A HREF="../PostmortemAnalysis/ExportingData.html#excel">Exporting your 
+data</A> help topic.</p>
+
+<p><b>Important:</b> the Excel version of the form contains <i>exported</i> 
+data only.  If you edit values in the Excel spreadsheet, your changes will 
+not be imported back into the Process Dashboard. To change a data value in 
+the Process Dashboard, you must make the change in a dashboard form.</p> 
+
+</BODY>
+</HTML>

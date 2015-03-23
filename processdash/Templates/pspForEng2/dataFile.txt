@@ -1,0 +1,55 @@
+#include <ROLLUP:PSP>
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP for Engineers v2 process. 
+==
+
+pspForEngV2==TAG
+PSPFORENGV2==TAG
+node==TAG
+
+
+== Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.
+
+[Project_List] = filter(startsWith([^]), [/PSP/Project List]);
+
+
+== Check to see if the user wants To Date data restarted.  (This choice
+== would be saved with the data for program P5.)
+
+[P5_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_P5_TAG"), [Project_List]));
+[Reset_To_Date_Data] = indirect([P5_Program_Name] &/ "Reset_To_Date_Data");
+
+= Based on that user choice, decide which rollup should be used by 
+= programs P5 - P8.
+
+[Rollup_Name] = iff([Reset_To_Date_Data], [^], "/To Date/PSP/All");
+
+
+== Make *this* rollup sum projects from higher PSP processes under this node.
+
+[Rollup_Filter] = "([psp2] || [psp2.1] || [psp3]) && [Completed]";
+[Rollup_List]   = filter(eval([Rollup_Filter], [_]), [Project_List]);
+
+== Since *this* is a fairly odd rollup, we don't want it to appear as
+== a rollup choice on plan summary forms.
+
+undefine([PSP Rollup Tag]);
+
+
+==
+== Copy the "Project/Language" setting from program P1
+==
+
+[P1_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_P1_TAG"), [Project_List]));
+[Project/Language] = lookup([P1_Program_Name] &/ "Project/Language");
+
+
+==
+== Don't display the percent spent indicator for the PSP programs.
+==
+
+[Show_Percent_Spent_Indicator] = 0;

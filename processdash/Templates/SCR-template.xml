@@ -1,0 +1,111 @@
+<?xml version='1.0'?>
+
+<!--
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2001-2003 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+-->
+
+<!--
+   Note: this file serves two purposes:
+
+    1) It is incorporated into the dashboard "as is" to provide legacy
+       support of SCR/DCR/Inspection processes to users that have old
+       SCR/DCR/Inspection projects in their hierarchies.  This legacy
+       support takes two forms:
+       - defining HTML pages to display for the script button
+       - defining auto-generated data for these processes
+
+    2) To generate the SCR/DCR add-on process template, lines containing
+           imaginary="true"
+       will be removed, yielding templates that a user can insert into
+       their hierarchy.  Note that since a "dumb" filter is used to
+       accomplish this process, care should be taken NOT to write any
+       XML on the same line as the "imaginary" attribute (unless of
+       course you want that XML to disappear when creating the add-on
+       process template).
+
+-->
+
+<dashboard-process-template>
+
+  <template name="SCR" defectLog="true" htmlID="top" defineRollup="no"
+	    imaginary="true"
+            dataFile="SCR/dataFile.txt" constraints="{SCRcycle(-2)">
+    <html ID="sum"  title="SCR Project Summary"    href="SCR/summary.htm"/>
+    <html ID="top"  title="SCR Process Script"     href="SCR/script.htm"/>
+
+    <phase name="Planning"      type="plan"/>
+    <phase name="Design"	type="hld"/>
+    <phase name="Design Review" type="hldr"/>
+    <phase name="Postmortem"    type="pm"/>
+    <phase name="CPT&amp;E"	type="it"/>
+  </template>
+
+  <template name="SCRcycle" htmlID="top" defineRollup="no"
+            imaginary="true"
+            dataFile="SCRcycle/dataFile.txt" constraints="{}SCR">
+    <html ID="sum"  title="SCR Cycle Summary"    href="SCRcycle/summary.htm"/>
+    <html ID="top"  title="SCR Cycle Script"     href="SCRcycle/script.htm"/>
+
+    <phase name="Design"            type="dld"/>
+    <phase name="Design Review"     type="dldr"/>
+    <phase name="Design Inspection" type="dldinsp"/>
+    <phase name="Code"		    type="code"/>
+    <phase name="Code Review"       type="cr"/>
+    <phase name="Compile"           type="comp"/>
+    <phase name="Code Inspection"   type="codeinsp"/>
+    <phase name="Test"              type="ut"/>
+    <phase name="Reassess"          type="pm"/>
+  </template>
+
+  <template name="DCR" defectLog="true" htmlID="top" defineRollup="no"
+            imaginary="true"
+	    dataFile="DCR/dataFile.txt">
+    <html ID="sum" title="DCR Project Planning Summary"
+                   href="DCR/summary.htm"/>
+    <html ID="top"  title="DCR Script" href="DCR/script.htm"/>
+    <html ID="plan" title="DCR Planning Script" href="DCR/planning.htm"/>
+    <html ID="post" title="DCR Postmortem Script" href="DCR/postmort.htm"/>
+
+    <phase name="Planning" type="plan" htmlID="plan"/>
+    <phase name="Design" type="hld"/>
+    <phase name="Design Review" type="hldr"/>
+    <phase name="Design Inspection" type="hldrinsp"/>
+    <phase name="Postmortem" type="pm" htmlID="post"/>
+  </template>
+
+  <template name="Inspection" defectLog="true" htmlID="top"
+            imaginary="true"
+	    defineRollup="no" dataFile="Inspection/dataFile.txt">
+    <html ID="sum" href="Inspection/summary.htm"/>
+    <html ID="top" href="Inspection/script.htm"/>
+
+    <phase name="Planning" type="plan"/>
+    <phase name="Design Inspection" type="dldinsp"/>
+    <phase name="Code Inspection" type="codeinsp"/>
+    <phase name="Postmortem" type="pm"/>
+  </template>
+
+</dashboard-process-template>

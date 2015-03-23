@@ -1,0 +1,12 @@
+#include <generic/dataFile3.txt>
+
+= By default, don't bother with defects for the report.  The student can
+= always override this if they want to.
+
+[Generic - Show Defects] = false;
+
+
+= Tweak the behavior of the PROBE Wizard.
+
+[PROBE_READ_ONLY_SIZE_METHOD_D] == true;
+[PROBE_DISALLOW_SIZE_METHOD_C1] == true;

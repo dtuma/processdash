@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspForEng.PhaseSumProblemTest
+Expression==[Phase_Sum_Problem]
+TrueMessageType==Error
+TrueMessage==${PhaseSumProblemTest.Error_Message}

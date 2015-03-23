@@ -1,0 +1,207 @@
+<html>
+<head>
+<title>Prediction Ranges in the Task &amp; Schedule Tool</title>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<body>
+
+<h1>Prediction Ranges in the Task &amp; Schedule Tool</h1>
+
+<p>The task and schedule tool has always been capable of calculating
+metrics that help you determine whether your project is on cost and
+under budget.  The three metrics that are the most useful for this
+purpose are:<ul>
+
+<li><b>Forecast Cost</b>: Estimates the hours of effort your total
+  project will require.</li>
+
+<li><b>Forecast Completion Date</b>: Estimates the date you will most
+  likely finish the project, if you continue to make progress in a manner
+  similar to the work you have completed so far.</li>
+
+<li><b>Optimized Forecast Completion Date</b>: This forecast only
+  appears when you are rolling up schedules from more than one person.
+  It estimates the date you could most likely finish the project, if
+  future progress is similar to past progress, and if you are able to
+  optimally rebalance the overall workload.</li>
+
+</ul>
+
+In general, these metrics are calculated using standard earned value
+formulas that can be found in project management textbooks. For more
+details, see the help topic on <a href="TaskScheduleDates.html">earned
+value date calculations</a>.</p>
+
+<p>In addition, the dashboard also contains a powerful, advanced feature: it
+can calculate prediction ranges for these forecast values.</p>
+
+<p>The forecast ranges in the Process Dashboard are prediction intervals that
+approximate 70% probability.  But it would be a mistake to interpret these
+ranges as a 70% prediction of the date your project will finish.  A better
+interpretation is:</p>
+
+<p style="margin-left: 1cm; font-style:italic">Your plan was not perfect; some
+of the estimates were incorrect.  If the list of remaining tasks is complete,
+and future tasks show the same <b>average</b> estimation error, the project
+could possibly complete on XXXX.  <b>However</b>, that average calculation is
+just a rough approximation, because many completed tasks were higher and lower
+than the average.  If you had worked on tasks in a slightly different order,
+it is possible that a different average would have occurred, resulting in a
+very different forecast.  After analyzing the variation in your estimating
+errors, it seems that the forecast line could have just as easily (with 70%
+probability) fallen between YYYY and ZZZZ.  If this range is wide, you should
+take the current forecast with a grain of salt.</p>
+
+<p>Forecast ranges <b>are an innovation developed by the Process Dashboard
+team.</b> Since these calculations are new and innovative, the formulas and
+algorithms are not widely known.  Discriminating users such as yourself will
+want to understand how these values are calculated before trusting/accepting
+them, so the algorithms are described below.</p>
+
+<p>Some of the algorithms used by the dashboard to calculate earned
+value ranges require a non-statistical approximation to be made as
+part of the calculations.  This approximation may slightly increase
+the percentage error of the calculated range.  In general, the
+variance introduced by this approximation is much smaller than the
+variances that are present in a typical software engineering project,
+so the approximation is mathematically acceptable.  Also, the
+approximation will cause the dashboard to err on the side of producing
+more conservative (&quot;wider&quot;) forecast ranges.  But the bottom
+line is that you should not treat the calculated ranges as being
+&quot;statistically valid;&quot; instead, you should view them as
+being &quot;engineering approximations.&quot;</p>
+
+<p><b>And as always, any forecast or prediction based on historical
+data should only be trusted if the future work is similar to the
+completed work.  If you have reason to believe that the estimates made
+for future tasks are fundamentally different than the estimates made
+for tasks that have been completed, you should use the resulting
+forecasts with extreme caution, if at all.</b></p>
+
+<h2 NO_NUMBER><a name="cost"></a>Forecast Cost Range</h2>
+
+<p>Traditional earned value calculations generate forecast total cost
+based on the assumption that the cost performance index (CPI) for
+<u>completed</u> tasks is a predictor of the CPI for the
+<u>remaining</u> tasks.  To calculate the forecast cost range for a
+schedule, the dashboard simply analyzes how the completed tasks have
+varied around the current CPI, and uses that information to estimate
+the potential variability of the CPI for the remaining tasks.</p>
+
+<p>Specifically, the dashboard examines the relationship between
+&quot;Planned Direct Time&quot; and &quot;Actual Direct Time&quot; for
+all of the tasks in your task list that have been <b>completed</b>.  A
+scatterplot of these points is created, and a line is fit to these
+points. <!-- Since PSP earned value analysis encourages individuals to
+subdivide tasks until they are around 10 hours each, the best fit line
+becomes meaningless (it would generally be nearly vertical around the
+&quot;x&nbsp;=&nbsp;10&nbsp;hours&quot; line, and its exact slope and
+position can vary dramatically based upon how the tasks are
+subdivided).  Instead, a line is fitted to the points by forcing the
+intercept to zero and the slope to the reciprocal of the schedule's
+cost performance index (this is the approximation described in the
+disclaimer above). --> The sum-squared variance of the points from the
+line is then used to calculate a prediction interval based upon a
+students-T distribution with n-2 degrees of freedom (where n is the
+number of completed tasks).  Finally, the double-sided interval with
+probability 70% is used to calculate upper and lower ranges for CPI.
+This CPI range is applied to the original estimates for the tasks in
+the schedule that have not yet been completed, and the actual times
+for completed tasks are added back in to generate the upper and lower
+boundaries of a range that approximates 70% probability for total
+cost.</p>
+
+<p>To generate the forecast cost range for a rolled-up/team schedule,
+the dashboard uses a monte-carlo simulation with several hundred
+trials, and sums up the forecast costs of each subschedule for each
+trial.</p>
+
+<h2 NO_NUMBER><a name="date"></a>Forecast Completion Date Range</h2>
+
+<p>To calculate a accurate range estimates for the forecast completion
+date, it is necessary to consider variations in both cost <b>and</b>
+schedule.  Possible variations in cost are adequately described by the
+probability density function of the cost range calculated above.  To
+characterize schedule variations, the dashboard analyzes the completed
+time periods in the schedule.  For each period, the planned direct
+time is divided by the actual direct time to generate &quot;direct
+time performance index&quot; (DTPI), a metric which is a
+mathematically related to the &quot;time estimating error&quot; for
+the period.  The dashboard then calculates a weighted log-normal mean
+and standard deviation of these ratios.  A confidence interval for
+this log-normal distribution is calculated using Angus's parametric
+bootstrap method, providing a probability density function for
+DTPI.</p>
+
+<p>With these two probability density functions at hand, a monte-carlo
+simulation is once again used to characterize the range of the
+forecast completion date.  In each trial, a total cost is randomly
+generated from the total cost probability density function, and a DTPI
+is randomly generated from the DTPI probability density function.  A
+hypothetical earned value schedule is created by copying the existing
+earned value schedule.  The planned direct times for each historical
+period in this trial schedule are set to the actual direct time spent
+in the period, and the planned direct times for future periods are
+divided by the random sample for DTPI.  Normal earned value
+extrapolation techniques are then used to estimate when this
+randomized hypothetical schedule would reach the given random sample
+for total cost.  The resulting date is stored as a single sample for
+random forecast completion date; two thousand trials are conducted to
+characterize the density function for forecast completion date, and
+this density function is used to generate the upper and lower
+boundaries of a range that approximates 70% probability.</p>
+
+<p>To generate forecast completion date ranges for rolled-up/team
+schedules, monte-carlo simulations are used once again.  In each
+trial, each subschedule is randomly seeded using the approach
+described above, yielding a random forecast completion date for each
+subschedule.  In the dashboard, &quot;Forecast Completion Date&quot;
+is the date the schedule is projected to complete if no rebalancing is
+performed, so the chronologically latest of these dates in a given
+trial becomes a single random sample for forecast team completion
+date.  &quot;Optimized Forecast Completion Date&quot; instead takes
+each of the randomized hypothetical subschedules and rolls them
+together to create a single team schedule.  This randomized
+hypothetical team schedule is then extrapolated to determine when the
+random total forecast cost would be reached; the resulting
+extrapolation becomes a single random sample for optimized forecast
+team completion date.  Several hundred trials are performed to
+characterize the probability distribution functions for &quot;Forecast
+Completion Date&quot; and &quot;Optimized Forecast Completion
+Date,&quot; and these density functions are used to generate the upper
+and lower boundaries of ranges that approximate 70% probability.</p>
+
+<h2><a name="when"></a>When are Prediction Ranges Calculated?</h2>
+
+<p>By default, the dashboard can only calculate prediction ranges if:
+
+<ul>
+<li>You have completed at least three tasks in your task list, and</li>
+<li>You have completed at least three periods in your schedule.</li>
+</ul>
+
+When calculating a rolled-up team schedule, each subschedule will need
+to meet these criteria before prediction ranges can be calculated for
+the team schedule.</p>
+
+<p>After calculating a prediction range, the dashboard applies several
+heuristic tests to determine its validity.  If any of these tests
+indicates that the prediction range is not viable, it will be
+discarded and no range will be displayed on the chart.</p>
+
+<p>Therefore, if ranges are not displayed for your schedule, it does
+not indicate an error - it just indicates that the data in your
+schedule can not be used to calculate a meaningful prediction range.</p>
+
+<p>In this case, you can choose to calculate ranges anyway based on
+historical dashboard data.  Choose Tools&nbsp;&#8594;&nbsp;Schedule
+Options, then put a check mark next to the option for historical data.
+(You can edit this option at the personal level, the team level, or
+both.)  The dashboard will use the historical data you choose to
+calculate forecast ranges for cost and schedule.  These calculations
+can be performed even before you begin work on the tasks in this
+schedule!  When this schedule contains sufficient data, the
+calculations will switch to prefer the current data over the
+historical data.</p>
+
+</body></html>

@@ -1,0 +1,15 @@
+<b><!--#echo Title_Prompt --></b>&nbsp;<input type="text" name="$$$_Title"
+    value="<!--#echo Title -->" size="50">
+
+<p><b><!--#echo Y_Axis_Prompt --></b>&nbsp;<input type="text" size="50"
+    name="$$$_YAxisLabel" value="<!--#echo YAxisLabel -->"></p>
+
+<b><!--#echo Metrics_Prompt --></b>
+<div class='cmsIndent'><!--#include file="/dash/snippets/editList" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" value="/dash/snippets/metricSimple.shtm" -->
+    <!--#parameter name="valuesUri" encoding="relUri"
+                   value="../../dash/snippets/metricsTable?listMetrics" -->
+    <!--#parameter name="newItemPrompt" var="Add_Metric_Prompt"
+                   encoding="html" -->
+</div>

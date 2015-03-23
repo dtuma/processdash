@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.psp.StudataExporter
+qf=/pspForEng/studata.rpt
+for==[///STUDATA_List]
+where==[PSP Project]
+where==[Time] > 0

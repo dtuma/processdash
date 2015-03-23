@@ -1,0 +1,15 @@
+<!--#resources bundle="CMS" -->
+<!--#replace token="ErrorKey" var="err" -->
+<html>
+<head>
+<title><!--#echo Save_Page.Errors.ErrorKey.Title --></title>
+</head>
+<body>
+
+<h1><!--#echo Save_Page.Errors.ErrorKey.Title --></h1>
+
+<p><!--#echo Save_Page.Errors.ErrorKey.Message --></p>
+
+</body>
+</html>
+<!--#endreplace-->

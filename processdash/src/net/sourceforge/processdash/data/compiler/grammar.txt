@@ -1,0 +1,283 @@
+
+Package net.sourceforge.processdash.data.compiler;
+
+Helpers
+
+    all = [0 .. 0xffff];
+    not_crlf = [all - [10 + 13]];
+    digit = ['0' .. '9'];
+    nondigit = ['_' + [['a' .. 'z'] + ['A' .. 'Z']]];
+    digit_sequence = digit+;
+    not_star = [all - '*'];
+    not_star_slash = [not_star - '/'];
+
+    sign = '+' | '-';
+    float = digit_sequence? '.' digit_sequence;
+    integer = digit_sequence '.'?;
+    unusual_num = 'NaN' | '-'? 'Infinity';
+
+    cr = 13;
+    lf = 10;
+    tab = 9;
+    eol_pat = cr | lf | cr lf;
+
+    escape_sequence = '\' ''' | '\"' | '\\' | '\r' | '\n' | '\t' | '\[' | '\]' | '\/';
+
+    i_char = [not_crlf - [['[' + ']'] + '\']] | escape_sequence; //'
+    i_char_sequence = i_char+;
+
+    s_char = [not_crlf - ['"' + '\']] | escape_sequence | ('\' eol_pat);
+    s_char_sequence = s_char+;
+
+    old_style_continue_char = [not_crlf - ['=' + 9]];
+    old_style_inital_char = [old_style_continue_char -  ['[' + ' ']];
+    old_style_identifier = old_style_inital_char old_style_continue_char*;
+    old_style_equals = '=' | '==';
+
+    a = ['a' + 'A'];
+    b = ['b' + 'B'];
+    c = ['c' + 'C'];
+    d = ['d' + 'D'];
+    e = ['e' + 'E'];
+    f = ['f' + 'F'];
+    g = ['g' + 'G'];
+    h = ['h' + 'H'];
+    i = ['i' + 'I'];
+    j = ['j' + 'J'];
+    k = ['k' + 'K'];
+    l = ['l' + 'L'];
+    m = ['m' + 'M'];
+    n = ['n' + 'N'];
+    o = ['o' + 'O'];
+    p = ['p' + 'P'];
+    q = ['q' + 'Q'];
+    r = ['r' + 'R'];
+    s = ['s' + 'S'];
+    t = ['t' + 'T'];
+    u = ['u' + 'U'];
+    v = ['v' + 'V'];
+    w = ['w' + 'W'];
+    x = ['x' + 'X'];
+    y = ['y' + 'Y'];
+    z = ['z' + 'Z'];
+
+    and = a n d;
+    or = o r;
+    not = n o t;
+    search = s e a r c h;
+    eq = e q;
+    neq = n e q;
+    lt = l t;
+    lteq = l t e q;
+    gt = g t;
+    gteq = g t e q;
+    undefine = u n d e f i n e;
+    null = n u l l;
+    tag = t a g;
+    filter = f i l t e r;
+    map = m a p;
+    iff = i f f;
+    nvl = n v l;
+    nvlz = n v l z;
+    true = t r u e;
+    false = f a l s e;
+    exclude = e x c l u d e;
+
+States
+   b, // beginning of line
+   i; // inline
+
+Tokens
+
+    {b, i->b} eol = eol_pat;
+
+    {b->i, i} comma = ',';
+    {b->i, i} l_par = '(';
+    {b->i, i} r_par = ')';
+    {b->i, i} l_brace = '{';
+    {b->i, i} r_brace = '}';
+    {b->i, i} mult = '*';
+    {b->i, i} div = '/';
+    {b->i, i} plus = '+';
+    {b->i, i} minus = '-';
+    {b->i, i} concat = '&';
+    {b->i, i} pathconcat = '&/';
+    {b->i, i} logic_not = '!' | not;
+    {i}       eq = '==' | eq;
+    {i}       equal = '=';
+
+    {b->i, i} neq = '!=' | '<>' | neq;
+    {b->i, i} lt = '<' | lt;
+    {b->i, i} lteq = '<=' | lteq;
+    {b->i, i} gt = '>' | gt;
+    {b->i, i} gteq = '>=' | gteq;
+    {b->i, i} logic_and = '&&' | and;
+    {b->i, i} logic_or = '||' | or;
+    {b->i, i} semicolon = ';';
+
+    {b->i, i} identifier = '[' i_char_sequence ']';
+    {b->i, i} string_literal = '?'? '"' s_char_sequence? '"';
+    {b->i, i} zero_literal = '0' | '0.0';
+    {b->i, i} undef_number_literal = '?NaN';
+    {b->i, i} number_literal = '?'? (float | integer | unusual_num);
+    {b->i, i} date_literal = '?'? '@' digit_sequence;
+    {b->i, i} null = null;
+    {b->i, i} true = true;
+    {b->i, i} false = false;
+    {b->i, i} tag = tag;
+    {b->i, i} search = search;
+    {b->i, i} undefine = undefine;
+    {b->i, i} exclude = exclude;
+    {b->i, i} script1_function_name = filter | map;
+    {b->i, i} scriptarg_function_name = iff | nvl | nvlz;
+    {b->i, i} function_name = nondigit+;
+
+    {b->i, i} blank = (tab | ' ')+;
+    {b->i, i} slash_slash_comment = '//' not_crlf*;
+    {b->i, i} slash_star_comment =
+        '/*' not_star* '*'+ (not_star_slash not_star* '*'+)* '/';
+    {b->i} initial_equals_comment = '=' not_crlf*;
+
+    {b->i} old_style_declaration =
+        old_style_identifier old_style_equals not_crlf+;
+    {b->i} include_directive = '#include <' not_crlf+ '>';
+
+
+Ignored Tokens
+    
+    blank, eol,
+    slash_star_comment, slash_slash_comment, initial_equals_comment;
+
+
+Productions
+
+  datafile = declaration*;
+
+  declaration =
+    {empty} semicolon |
+    {new_style} identifier assignop value semicolon |
+    {old_style} old_style_declaration |
+    {search} identifier assignop search l_par
+         [start]:string_literal [c1]:comma [tag]:string_literal [c2]:comma
+         [expression]:value r_par semicolon |
+    {simple_search} identifier assignop search l_par [start]:string_literal
+         [c1]:comma [tag]:string_literal r_par semicolon |
+    {undefine} undefine l_par identifier_list r_par semicolon |
+    {include} include_directive exclude_clause? ;
+
+  exclude_clause =
+    exclude l_par exclude_list r_par;
+
+  assignop =
+    {normal} equal |
+    {read_only} eq;
+
+  value =
+    {null} null |
+    {tag} tag |
+//  {block} block |
+    {expression} expression;
+
+//  block =
+//    {simple} l_brace script r_brace;
+
+  script =
+    {simple} value;
+
+  expression =
+    {numeric} level7_expr;
+
+  level7_expr =
+    {null} level6_expr |
+    {binary} [left]:level7_expr [op]:logic_or [right]:level6_expr;
+
+  level6_expr =
+    {null} level5_expr |
+    {binary} [left]:level6_expr [op]:logic_and [right]:level5_expr;
+
+  level5_expr =
+    {null} level4_expr |
+    {true} true |
+    {false} false |
+    {binary} [left]:level4_expr [op]:relop [right]:level4_expr;
+
+  relop =
+    {eq}   eq |
+    {neq}  neq |
+    {lt}   lt |
+    {lteq} lteq |
+    {gt}   gt |
+    {gteq} gteq;
+
+  level4_expr =
+    {null} level3_expr |
+    {string} string_literal |
+    {date} date_literal |
+    {binary1} [left]:level4_expr [op]:stringop [right]:level3_expr |
+    {binary2} [left]:level4_expr [op]:stringop [right]:string_literal;
+
+  stringop =
+    {concat} concat |
+    {pathconcat} pathconcat;
+
+  level3_expr =
+    {null} level2_expr |
+    {binary} [left]:level3_expr [op]:addop [right]:level2_expr;
+
+  addop =
+    {plus} plus |
+    {minus} minus;
+
+  level2_expr =
+    {null} level1_expr |
+    {binary} [left]:level2_expr [op]:multop [right]:level1_expr;
+
+  multop =
+    {mult} mult |
+    {div} div;
+
+  level1_expr =
+    {null} term |
+    {unary_not} [op]:logic_not [right]:term |
+    {unary_minus} [op]:minus [right]:term;
+
+  term =
+    {zero} zero_literal |
+    {undef_num} undef_number_literal |
+    {number} number_literal |
+    {identifier} identifier |
+    {call} function_call |
+    {expr} l_par expression r_par;
+
+
+  function_call =
+    {script1} script1_function_name l_par script comma arglist? r_par |
+    {scriptarg} scriptarg_function_name l_par expression comma 
+         scriptlist? r_par |
+    function_name l_par arglist? r_par;
+
+  arglist =
+    value arglist_tail*;
+
+  arglist_tail =
+    comma value;
+
+  scriptlist =
+    script scriptlist_tail*;
+
+  scriptlist_tail =
+    comma script;
+
+  identifier_list =
+    identifier identifier_list_tail*;
+
+  identifier_list_tail =
+    comma identifier;
+
+  exclude_list =
+    {identifier} identifier exclude_list_tail* |
+    {string} string_literal exclude_list_tail*;
+
+  exclude_list_tail =
+    {identifier} comma identifier |
+    {string} comma string_literal;

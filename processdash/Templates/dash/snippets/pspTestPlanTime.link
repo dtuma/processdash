@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testPlanTime.disabled
+Expression==[Planning_Is_Done] && ![Estimated Time]
+TrueMessageType==Error
+TrueMessage==${PSPTestPlanTime.Error_Message}

@@ -1,0 +1,7 @@
+class:net.sourceforge.processdash.ui.web.psp.ProbeItemSizeHistogram
+width=600
+height=200
+title=PROBE Item Size Histogram
+hideLegend=t
+html=true
+initGradColor=#ddddff

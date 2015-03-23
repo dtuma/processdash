@@ -1,0 +1,10 @@
+1	Checking	Design	Design Review	2.0	 	need to check for valid number of elements	01/01/2003
+2	Interface	Design	Code	1.0	 	need to include degrees of freedom in chi_distribution function	01/01/2003
+3	Data	Code	Code Review	2.0	 	Need to predeclare type for ada array before using	01/01/2003
+4	Interface	Code	Code Review	1.0	 	Strong typing: need to cast from Number to Float and back.	01/01/2003
+5	Syntax	Code	Code Review	1.0	 	Need "end if;"	01/01/2003
+6	Environment	Code	Code Review	1.0	 	rename main procedure from psp_7_main to psp_9_main	01/01/2003
+7	Syntax	Code	Compile	1.0	 	() not []	01/01/2003
+8	Syntax	Code	Compile	1.0	 	Ada doesn't like dividing by a negative constant	01/01/2003
+9	Function	Code	Test	1.0	 	subtract probability from 1.0 to agree with book	01/01/2003
+10	Function	Design	Test	53.0	 	Bad design assumption: since n is divisible by 5, use 5 for S and hardcode constants	01/01/2003

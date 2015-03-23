@@ -1,0 +1,95 @@
+<?xml version='1.0'?>
+
+<!--
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2009-2015 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+
+This file contains the description of widgets present in the UI
+preferences a category.
+
+-->
+
+<preferences-form>
+    <grouping id="window">
+        <textfield id="window.title"
+                   setting="window.title"
+                   helpId="prefs.windowTitle" />
+
+        <row id="window.title.include" ifPropIsSet="personalMode">
+
+            <checkbox id="window.title.include.time"
+                      setting="userPref.window.title.includeTime" />
+
+            <checkbox id="window.title.include.play"
+                      setting="userPref.window.title.includePlay" />
+
+        </row>
+
+        <checkbox id="window.alwaysOnTop"
+                  setting="window.alwaysOnTop"
+                  helpId="prefs.alwaysOnTop"
+                  requires="java version 1.6" />
+    </grouping>
+
+    <grouping id="systemTray" requires="java version 1.6"
+              helpId="prefs.systemTray">
+        <checkbox id="systemTray.enabled"
+                  setting="systemTray.disabled"
+                  inverted="true" />
+
+        <checkbox id="systemTray.minimizeToTray"
+                  setting="systemTray.minimizeToTray"
+                  disabledIf="systemTray.disabled" />
+    </grouping>
+
+    <translationLevel id="i18nLevel" requires="java version 1.6"
+              setting="userPref.i18n.masterLevel"
+              requiresRestart="true"
+              ifPropIsSet="i18n"
+              helpId="prefs.i18nLevel" />
+
+    <checkbox id="useLargeFonts"
+              setting="userPref.useLargeFonts"
+              unlessPropIsSet="os.mac"
+              requiresRestart="true"
+              helpId="prefs.largeFonts" />
+
+    <checkbox id="scriptButton.clickOpensDefault"
+              setting="userPref.scriptButton.clickOpensDefault"
+              ifPropIsSet="personalMode"
+              helpId="AccessingScripts.clickOpensDefault" />
+
+    <checkbox id="completionCheckbox.autoSelectNext"
+              setting="userPref.completionCheckbox.autoSelectNext"
+              ifPropIsSet="personalMode"
+              helpId="CompletionButton" />
+
+    <textfield id="hiddenTaskAge"
+              setting="userPref.hierarchyMenu.hiddenTaskAge"
+              dataType="integer" width="2"
+              ifPropIsSet="personalMode"
+              helpId="prefs.hiddenTaskAge" />
+
+</preferences-form>

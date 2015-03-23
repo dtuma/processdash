@@ -1,0 +1,89 @@
+<HTML>
+<head>
+<TITLE>Postmortem</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<h1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP--><a name="head"></a>Step 7: Postmortem</h1>
+
+<P>The PSP provides Postmortem scripts for all of the PSP levels.  To get to
+the postmortem for the current program, we can click the link at the bottom of
+the development script.  Alternatively, click the script button on the
+dashboard and choose the option for the postmortem script.</p>
+
+<P>After making sure that the postmortem entry criteria are met, the next step
+is to enter the actual size data for the program.  You may find the
+dashboard's <a href="../PostmortemAnalysis/LOCCounter.html">LOC counter</a>
+useful for measuring added, deleted, and modified lines of code.  Enter the
+actual values for base, deleted, modified, total, base additions, new, reused,
+and total LOC on the Size Estimating Template form, which can be reached by
+clicking the appropriate link from the postmortem script.</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOC.png"></p>
+
+<p>Some people do not care to enter detailed actual size data on the Size
+Estimating Template.  Those numbers shown above can safely be skipped as long
+as you faithfully enter summarized actual size data on the Project Plan
+Summary:</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOCPPS.png"></p>
+
+<p>During postmortem, you should also review the numbers on the other pages of
+the Project Plan Summary form.  If any numbers seem suspect, make appropriate
+corrections in the <a href="../Execution/UsingTimeLogEditor.html">time</a> and
+<a href="../Execution/UsingDefectLogEditor.html">defect</a> log editors.</p>
+
+<P class="ifpsp" align="center"><img src="../../Images/QSProjectPlanSummary.png"></p>
+
+<P>Once the actual size information has been entered and other metrics have
+been reviewed for correctness, we can mark the postmortem phase complete.  If
+you have faithfully marked all of the PSP phases complete, the dashboard will
+mark the project itself complete as well.  We can double check that it has
+been marked by looking at the Project Completion checkbox on the Project Plan
+Summary.</p>
+
+<p align="center"><img src="../../Images/QSCheckProjectComplete.png"></p>
+
+<p>If you marked all of the phases complete, but the Project Complete checkbox
+still is not checked, this would indicate that you had already overridden this
+automatic behavior.  You can learn more about the relationship between marking
+the phases complete and marking the entire project complete by reading the <a
+href="../Execution/CompletionButton.html">Using the completion checkbox</a>
+help topic.</p>
+
+<P>The Process Dashboard also offers several other aids for analyzing
+postmortem data.  Choosing PSP Data Analysis from the "C" menu will open the
+web browser to a set of pages that contain many useful graphs of process
+data.</P>
+
+<p align="center"><img src="../../Images/DataAnalysisScreen.png"></p>
+
+<P>This Data Analysis page provides several different categories of charts to 
+allow easy analysis of various metrics measured in the PSP.  Clicking on one 
+of the chart thumbnails in the right pane will bring up a full-sized view of 
+that chart.  For more information on the types of data that can be analyzed 
+via these reports and graphs, see the <a 
+href="../PostmortemAnalysis/DataChartsAndReports.html">Creating Reports and 
+Charts</a> help topic.</p>
+
+<P>That's it for this example.  We hope it has been helpful.</p>
+
+
+<div class="hideInBook">
+<P>Jump to step:<BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QuickStart.html">START</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSCreatingTheProject.html">1. Creating the project</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSPlanningTheProject.html">2. Planning the project</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSDesigningTheProgram.html">3. Designing the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSWritingTheCode.html">4. Writing the code</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSCompilingTheProgram.html">5. Compiling the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSTestingTheProgram.html">6. Testing the program</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#head">7. Postmortem</a>
+</P>
+</div>
+
+<!-- DISCLAIMER -->
+
+</BODY>
+</HTML>

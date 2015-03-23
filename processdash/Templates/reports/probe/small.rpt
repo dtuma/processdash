@@ -1,0 +1,16 @@
+=
+= Shared specifications for a small probe chart.
+=
+
+width=100
+height=115
+initGradColor=#c6c3c6
+finalGradColor=#c6c3c6
+=#d6d3ce
+=#c0c0c0
+
+title=   
+titleFontSize=8
+hideLegend=true
+hideTickLabels=true
+axisLabelFontSize=6

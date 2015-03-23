@@ -1,0 +1,171 @@
+<HTML>
+<head>
+<TITLE>Counting LOC</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Counting LOC</H1>
+
+<p>Measuring size is an important step in the PSP Postmortem phase. If you 
+don't pause in your project postmortem to measure the number of added, 
+deleted, and modified LOC, you may forever lose the opportunity to capture 
+these metrics. It only takes a few moments, and provides you with valuable 
+data for future planning efforts.</p> 
+
+<P>You may already have a LOC counter that you use on a regular basis. (In 
+fact, most people who complete the PSP training course write a LOC counter 
+during the training.) If you do need a LOC counter, one is built into the 
+dashboard.</p>
+
+<h2>The LOC Counter Tool</h2>
+
+<p>You can access this LOC counter by selecting the appropriate option from
+the &quot;C <img border="0" src="../../Images/rarrow.png" width="12"
+height="9"> Tools&quot; menu.  The LOC Counter Tool can count code in several
+different ways.</p>
+
+<h3>Counting LOC in regular files</h2>
+
+<p>The "Files" tab of the LOC Counter allows you to count LOC in a single
+file or in a directory.  It also allows you to compare two different files or
+directories to see how many lines of code were added, modified, and deleted.
+Just select the appropriate option at the top, then select the files or
+directories in the fields below. Then press the Count button.</p>
+
+<p align="center"><img src="../../Images/LocCounterFiles.png"></p>
+
+<h3>Counting LOC changes from Subversion</h3>
+
+<p>If you use subversion for version control of your source code, the "SVN"
+tab makes it easy to count the number of lines of code that were added,
+deleted, and modified by a particular set of changes.  To begin, select the
+directory on your computer that contains your subversion working copy.</p>
+
+<p align="center"><img src="../../Images/LocCounterSvn.png"></p>
+
+<p>Then, several counting options are provided:</p>
+
+<ul>
+
+<li>You can count the changes that have been made in the local working copy,
+that have not yet been committed to SVN.</li>
+
+<li>You can enter one or more revisions to count.  For example, imagine that
+you have been working on a particular software change for a period of time.
+Following an iterative development approach, you have completed portions of
+the work and committed them at different times as revisions 5, 7, 10, 11, and
+12. (Presumably someone else on your team committed unrelated changes as
+revisions 6, 8, and 9.) You could enter "5, 7, 10-12" in this box, and the
+LOC counter would show you the changes and LOC counts that were associated
+with your work.</li>
+
+<li>Some teams follow a convention where they include a special token in
+their commit message.  For example, while working on Software Change Request
+#42, you might include the token "SCR42" in the log message each time you
+commit changes.  Once you have finished work on the Software Change Request,
+you could enter "SCR42" in the third field on this form.  (Perl-style regular
+expressions are also supported if you check the appropriate box.)  The
+dashboard would find all of the revisions whose log message contained that
+string, and would perform a count just as if those revision numbers had been
+typed into the previous field.</li>
+
+</ul>
+
+<p>The options above can be used together: for example, to count the changes
+in several committed revisions as well as local modifications.  After you
+have selected the desired options, press the Count button.</p>
+
+<h2>The Quick LOC Counter</h2>
+
+<p>The LOC Counter Tool described above provides powerful options for LOC
+counting.  For quick/simple counting needs, a web-based interface is also
+provided.  You can open this web-based interface by pointing your web browser
+to <u>http://localhost:2468/dash/pspdiff.htm</u>.</p>
+
+<p class="ifpsp">In addition, a link to this LOC counter is included in the
+Postmortem scripts for PSP0.1 and up.</P>
+
+<p class="ifpsp" align="center"><img src="../../Images/PspDiffLink.png"></p>
+
+<p>The web interface allows you to count a single file or compare two files
+to each other.  For more sophisticated needs, a hyperlink at the bottom of
+the page is provided to open the full-featured LOC Counter Tool.</p>
+
+<p align="center"><img src="../../Images/LocCounterWeb.png"></p>
+
+<p>The web interface will alternatively allow you to copy and paste code
+snippets that should be counted or compared.  When you do this, keep in mind
+that the counter can no longer examine your filenames (e.g.
+"<tt>foo.java</tt>" or "<tt>foo.cpp</tt>"), so it may have a difficult time
+determining which programming language syntax to use for the count.  In that
+case, you may need to enter explicit LOC Counting Options in the field at the
+top of the form.</p>
+
+<h2>The LOC Counter Report</h2>
+
+<p>After using any of the tools above, the dashboard will generate a report
+showing the number of physical LOC that you have added, deleted, and
+modified. It also displays a "redlined" version of the modified files, which
+can be very useful for peer reviews.</p>
+
+<p>When you use the full-featured LOC Counter Tool, the top of the report
+will also show summary tables listing the files that were added, modified, or
+deleted, with individual LOC counts for each file.</p>
+
+<h2>Entering PSP Size Data</h2>
+
+<p>If you are using the PSP
+<a href="../Planning/UsingSizeEstimatingTemplate.html">Size Estimating
+Template</a>, you can drag items from the LOC Report summary tables and drop
+them onto rows of the Size Estimating Template.  The actual LOC for the file
+in question will be applied to the target row in the Size Estimating Template.
+(This this feature is most useful if your conceptual design lists items at a
+file-level granularity or above.  If you prefer to create separate rows in the
+Size Estimating Template for each added or modified method, you will need to
+perform your own manual accounting of the LOC for each Size Estimating row.)
+You can drag several items from the LOC report onto the same row of the Size
+Estimating Template, and the actual LOC contributions from each file will be
+summed.  If you drop a file onto the wrong row, you can drag it to a different
+row or delete it entirely.</p>
+
+<p>Entering actual LOC on the Size Estimating Template is a good way to
+improve your planning performance.  As you apply the actual LOC to the rows of
+the Size Estimating Template, compare the actuals to your original plan.  The
+differences can help you to understand the types of planning errors you
+typically make, which can help you to improve your plans in the future.</p>
+
+<p>However, the data on the Size Estimating Template is <b>not</b> the
+official source of information for computing the size of a PSP program.  The
+official source is the Actual Added and Modified field in the "Size" section
+of the PSP Project Plan Summary form.</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOCPPS.png"></p>
+
+<p>The actual Added and Modified field is calculated from the values that
+appear in the actual Base, Deleted, Modified, Reused, and Total Size fields on
+the Project Plan Summary form.  During postmortem, you should open the Project
+Plan Summary form and enter these values.  This task is generally very fast
+and easy, because these aggregate numbers are readily available in a table
+near the top of the LOC Counter Report.</p>
+
+<p>To receive good analyses from the PSP, it is <b>very important</b> for the
+"Actual Added and Modified" field to contain the right size.  Therefore, you
+should always open the PSP Project Plan Summary form during the Postmortem
+phase of each PSP project and enter these values, even if you don't take the
+time to fill out the Actual columns of the Size Estimating Template.</p>
+
+<h2>Advanced Usage</h2>
+
+<p>Several configuration settings are provided to control the behavior of the
+LOC counter.  For more information, see the 
+<a href="../AdvancedTopics/ConfigurationFile.html">Advanced Configuration
+Settings</a> help topic.</p>
+
+<P>The LOC counter that is built into the Process Dashboard is extendable to 
+allow user defined LOC counting rules.  For more information, see the
+<a href="../AdvancedTopics/CustomLOCCounter.html">custom LOC counter</a>
+help topic.</P>
+
+</BODY>
+</HTML>

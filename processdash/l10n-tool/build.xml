@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<project default="dist" basedir=".">
+
+  <property name="src"   value="src"/>
+  <property name="bin"   value="bin"/>
+  <property name="dist"  value="dist"/>
+  <property name="debug" value="on"/>
+
+  <property name="compile.target" value="1.5"/>
+
+  <target name="compile">
+    <mkdir dir="${bin}"/>
+    <javac srcdir="${src}" destdir="${bin}" debug="${debug}"
+           target="${compile.target}"/>
+  </target>
+
+  <target name="dist" depends="compile">
+    <mkdir dir="${dist}"/>
+    <jar destfile="${dist}/jrc-editor.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class" 
+	    value="org.zaval.tools.i18n.translator.Main"/>
+        <!-- attribute name="Class-Path" value="."/ -->
+      </manifest>
+
+      <fileset dir="${bin}" excludes="*.properties"/>
+      <zipfileset dir="images" prefix="org/zaval/images"/>
+      <zipfileset dir="${src}" includes="*.properties"
+          prefix="org/zaval/tools/i18n/translator"/>
+    </jar>
+  </target>
+
+  <target name="clean">
+    <delete dir="${bin}"/>
+  </target>
+
+  <target name="javacc-files">
+    <javacc target="${src}/org/zaval/tools/i18n/translator/JavaParser.jj"
+        javacchome="c:/java/javacc2.1"/>
+    <javacc target="${src}/org/zaval/tools/i18n/translator/UtfParser.jj"
+        javacchome="c:/java/javacc2.1"/>
+  </target>
+
+</project>

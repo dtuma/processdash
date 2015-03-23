@@ -1,0 +1,237 @@
+#############################################################################
+## Process Dashboard - Data Automation Tool for high-maturity processes
+## Copyright (C) 2001-2003 Tuma Solutions, LLC
+## 
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## as published by the Free Software Foundation; either version 3
+## of the License, or (at your option) any later version.
+##
+## Additional permissions also apply; see the README-license.txt
+## file in the project root directory for more information.
+## 
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+## 
+## The author(s) may be contacted at:
+##     processdash@tuma-solutions.com
+##     processdash-devel@lists.sourceforge.net
+
+
+#
+# This file contains documentation for each user setting.  When saving
+# user preferences, the documentation string will be written out as a
+# comment immediately preceeding the particular setting.
+#
+
+autoRealization=Policy for auto-realization of data. To save time and \
+	memory, formulas are not immediately calculated when the dashboard \
+	opens.  Instead, they are calculated (realized) at some later time. \
+	This realization always occurs automatically when their value must \
+	be displayed for the first time on a chart, form, or report.  In \
+	addition, a background process runs when the the dashboard starts, \
+	and slowly calculates formulas.  If this setting has the value \
+	"full", all data will be automatically realized by this background \
+	process.  If this setting has the value "min", only global (e.g. \
+	"To Date") data is auto-realized (the default). If this setting has \
+	the value "none", no data will be auto-realized.  If you are on a \
+	slow computer, and you notice irritating delays the first time you \
+	view a chart, form, or report, try using the "full" option.  If \
+	you experience irritating delays when saving edits to the hierarchy, \
+	try using the "min" or "none" options.
+
+autoUpdate.disabled=If this property is set to "true", the dashboard will \
+	not automatically perform a monthly check for updated versions \
+	of the dashboard software or the add-on process sets.
+
+autoUpdate.lastCheckDate=This is the last date when the dashboard was able \
+	to successfully check for updated versions of the dashboard software \
+	and add-on process sets.  (Measured in milliseconds since Jan 1, 1970.)
+
+autoUpdate.proxyPassword=When running in the context of an auto-redirecting \
+	HTTP proxy server, use this password to authenticate.
+
+autoUpdate.proxyUsername=When running in the context of an auto-redirecting \
+	HTTP proxy server, use this username to authenticate.
+
+autoUpdate.remind=Remind the user about available software updates the next \
+	time the dashboard starts, even if a check has been performed recently.
+
+browser.command=The command to execute to run an HTML browser for script \
+	files. If left unset, the default will be Netscape on non-windows \
+	platforms (netscape must be in your path), or the system default \
+	browser on Windows.
+
+browser.readonly.color=In Internet Explorer, read-only data elements on \
+	forms will be flagged with this background color.
+
+console.showMenuOption=If this property is set to "true", the help menu \
+	will contain an option for displaying debugging output.
+
+dataFreezing.disabled=If this property is set to "true", the data \
+	freezing/thawing mechanism will be disabled.
+
+dateFormat=A list of recognized date formats, separated by the | character. \
+	The first format in the list will be used when displaying dates. \
+	For valid format syntax, see the documentation for \
+	java.text.SimpleDateFormat in the Sun Java Developer Kit.
+
+dateTimeFormat=A list of recognized date-time formats, separated by the | \
+	character. The first format in the list will be used when \
+	displaying date-times.  For valid format syntax, see the \
+	documentation for java.text.SimpleDateFormat in the Sun Java \
+	Developer Kit.
+
+defectDialog.autostart=If this property is set to "true", the defect dialog \
+	box will come up with the timer already running.  Any other value \
+	for this property means the user must manually press the "Start \
+	Timing" button to begin the timer for fixing the defect.
+
+defectDialog.phaseMap=The following property describes common defect \
+	injection/removal patterns.  It should be a list of phase pairs; \
+	the pairs should be separated from each other by "|" characters. \
+	Each pair should be of the form "phase A=>phase B"; each pair is \
+	interpreted to mean "Often defects are injected in phase A, and \
+	removed in phase B."  When you remove a defect during phase B of a \
+	process, it will then use phase A as the default injection phase.
+
+defectDialog.restrictSequence=If this property is set to "true" (the \
+	default), the defect dialog will check injection and removal phases \
+	to ensure that defects are NOT removed before they are injected. \
+	(You might want to disable this feature if you make use of iterative \
+	processes where the real-life task sequence does not strictly follow \
+	the order the of nodes in the hierarchy.)
+
+defectTypeStandard=The name of the default defect type standard.
+
+excel.exportMethod=The method to use for exporting data into Excel. If this \
+	is set to "mime", tables will be exported to Excel using a mime-type. \
+	If this is set to "iqy", tables will be exported using a Microsoft \
+	Internet Web Query (.IQY) file.  Set this to "none" if you don't \
+	have Excel and don't care to see the "Export to Excel" link \
+	underneath tables.  If left unset, the export method will be icy \
+	if your browser is Internet Explorer, and mime otherwise.
+
+export.data=A set of instructions for automatic export of data. This property \
+	should be a series of export instructions, separated by the vertical \
+	bar character '|'.  Each export instruction is of the form \
+	"filename=>path-list".  The filename is the destination for data \
+	export.  The path-list is a semicolon ";" separated list of \
+	hierarchy prefixes that should be exported; data elements whose \
+	names begin with one of these prefixes will be exported to the \
+	named file.
+
+ev.enableRollup=If true, enable the rollup of earned value.
+
+ev.showCumulativeTaskData=If true, show the "cumulative planned value" \
+	and "cumulative planned time" columns in the earned value task \
+	list. These columns are hidden by default.
+
+ev.simpleForecastDate=If true, use simple, published earned value formulas \
+	to calculate "independent forecast date".  By default, use the \
+	additional information present in the schedule to improve the \
+	quality of the forecast.
+
+ev.sortCompletedTasks=If false, the planned completion dates for tasks \
+	in an earned value plan will be generated based upon their order \
+	alone.  By default, the task list will be automatically sorted so \
+	completed tasks appear at the beginning of the list, in the order \
+	they were completed.
+
+ev.numDependencyWeeks=The number of weeks in the future to look when \
+	displaying unsatisfied task dependencies.
+
+extDoc.openMethod=If this is set to "redirect", then an HTTP redirect \
+	message will be used to open external documents.
+
+forms.useHoursMinutes=If this is set to "true", the dashboard forms will \
+    display time values as hours:minutes.  Setting this to "false" will \
+    display time values as a number of minutes.  Default is "true".
+
+hiddenData=Data names to be suppressed from user-visible data lists (by \
+	default).  This property should be a series of regular expressions \
+	matching data names, separated by the vertical bar character '|'.
+
+http.allowRemote=For data privacy reasons, http connections are rejected \
+	unless they originate from localhost.  To accept http connections \
+	from remote hosts, set this property to true.
+
+http.hostname=When the dashboard crafts an URL to an item on this \
+	dashboard instance, it will use this host name.
+
+http.port=The port number where the dashboard should listen for incoming \
+	http connections.  If left unset, port 2468 will be used. (Note: \
+	the port one number less than this port - typically 2467 - must be \
+	available also, for incoming data connections.)
+
+import.directories=The following property lists automatic data import \
+	directories.  It should be a list of prefix/directory pairs; the \
+	pairs should be separated from each other by "|" characters.  Each \
+	pair should be of the form "prefix=>directory/path"; each pair is \
+	interpreted to mean "watch directory/path for files, and import \
+	them into the dashboard with a name beginning with "/prefix/".
+
+pauseButton.historySize=The maximum number of entries which should be \
+	retained in the play/pause button's history list.
+
+pauseButton.showCurrent=If this property is set to "true", the Play/Pause \
+	button will display the current state (i.e., while paused, it will \
+	display the PAUSE symbol).  Otherwise, the button will display the \
+	effect of a click (i.e., while paused, it will display the PLAY \
+	symbol).
+
+pauseButton.quiet=If this property is set to "true", the Play/Pause button \
+	will not provide any audible feedback.
+
+probeDialog.dataList=If this property is set to "simple", the PROBE dialog \
+	will only display data elements relating to the standard PROBE \
+	methods A,B,C, and D. If this setting has any other value, PROBE will \
+	display an exhaustive list of data element choices for correlating.
+
+probeDialog.onlyCompleted=If this property is set to "true", the probe \
+	dialog box will automatically filter the list of data points so \
+	that it only contains tasks which are marked as completed.
+
+probeWizard.strictTimeMethods=If this property is set to "true", the \
+	probe wizard will strictly adhere to printed calculation errors \
+	in the PROBE script.  By default, the probe wizard will correct \
+	errors in the calculations.
+
+pspdiff.suffix.c=a space-separated list of filename extensions (e.g. \
+	".c .h .java") which signal that a file contains C/Java source code.
+
+pspdiff.suffix.cobol=a space-separated list of filename extensions (e.g. \
+	".cob .cbl") which signal that a file contains COBOL source code.
+
+pspdiff.suffix.pascal=a space-separated list of filename extensions (e.g. \
+	".pas") which signal that a file contains Pascal source code.
+
+pspdiff.suffix.sh=a space-separated list of filename extensions (e.g. \
+	".pl .sh") which signal that a file contains perl or sh source code.
+
+pspdiff.suffix.sql=a space-separated list of filename extensions (e.g. \
+	".sql .ada") which signal that a file contains SQL or Ada source code.
+
+stateFile=The default location for the user's state file.
+
+systemTray.disabled=If this property is set to "true", the dashboard will \
+	not display an icon in the system tray.
+
+templates.directory=Supplemental locations of system-wide template files. \
+	This can be a semicolon-separated list of directories that contain \
+	dashboard process template and supporting files. Each entry in \
+	the list should end in "/Templates".
+
+timelog.updateInterval=The dashboard saves the current time log entry \
+	periodically.  This setting specifies the number of minutes it \
+	should wait between saves.
+
+window.maxWidth=The dashboard automatically resizes itself to remain \
+	an optimally small size.  If the dashboard takes up too much \
+	horizontal space, this setting can be used to constrain the \
+	maximum allowable width of the main dashboard window.

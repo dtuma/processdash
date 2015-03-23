@@ -1,0 +1,378 @@
+<?xml version="1.0"?>
+
+
+<!-- ===================================================================
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2001-2014 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+========================================================================
+
+   Build file for Process Dashboard Installer
+
+Notes:
+   This is a build file for use with the Jakarta Ant build tool.
+
+
+Prerequisites:
+
+   * jakarta-ant from http://jakarta.apache.org
+
+
+Build Instructions:
+   To build, run
+
+     ant <target>
+
+   on the directory where this file is located with the target you want.
+
+
+Most useful targets:
+
+Authors:
+  David Tuma
+
+==================================================================== -->
+
+
+<project default="dist" basedir=".">
+
+    <property name="processdash" value=".."/>
+    <property file="${processdash}/build.properties"/>
+    <property file="${processdash}/lib/version.properties"/>
+
+    <property name="version" value="${dashboard-version}"/>
+    <property name="launch4j.dir" location="launch4j" />
+
+    <!-- the the IZPACK home directory -->
+    <property name="izpack.dir" value="IzPack"/>
+    <property name="izpack-installer.jar" value="${izpack.dir}/lib/installer.jar"/>
+    <property name="izpack-compiler.jar" value="${izpack.dir}/lib/standalone-compiler.jar"/>
+    <property name="files.dir" value="files"/>
+    <property name="izpack-custom.jar" value="${files.dir}/izpack-customizations.jar"/>
+    <property name="mergeSettings.jar" value="${files.dir}/mergeSettings.jar"/>
+    <property name="cleanupMacData.jar" value="${files.dir}/cleanupMacData.jar"/>
+    <property name="pspdash.jar" value="${processdash}/dist/pspdash.jar"/>
+    <property name="custom-src" value="src"/>
+    <property name="compile.target" value="1.5"/>
+
+
+    <target name="init" depends="-izpack-custom-compile">
+        <!-- Get the complete path to the current directory -->
+        <pathconvert property="installer.dir" dirSep="/">
+            <path><pathelement location="."/></path>
+        </pathconvert>
+        <!-- create the dist directory if it doesn't exist -->
+        <property name="dist" value="${installer.dir}/../dist"/>
+        <mkdir dir="${dist}"/>
+        <!-- Allows us to use the IzPack Ant task -->
+        <taskdef name="izpack" classpath="${izpack-compiler.jar}"
+            classname="com.izforge.izpack.ant.IzPackTask"/>
+        <!-- Allows us to use the launch4j Ant task -->
+        <taskdef name="launch4j"
+            classname="net.sf.launch4j.ant.Launch4jTask"
+            classpath="${launch4j.dir}/launch4j.jar" />
+        <!-- Check to see if we are running on Windows -->
+        <condition property="isWindows"><os family="windows"/></condition>
+    </target>
+
+
+    <target name="-izpack-custom-compile" depends="-izpack-custom-depend"
+            description="Recompile the dashboard-specific IzPack code"
+            unless="izpackCustom.upToDate">
+        <javac srcdir="${custom-src}" destdir="${custom-src}"
+               debug="true" source="1.5" target="1.5">
+            <classpath>
+                <pathelement location="${izpack-installer.jar}"/>
+                <pathelement location="${mergeSettings.jar}"/>
+                <pathelement location="${cleanupMacData.jar}"/>
+                <pathelement location="${pspdash.jar}"/>
+            </classpath>
+        </javac>
+        <jar destfile="${izpack-custom.jar}" duplicate="fail"
+             basedir="${custom-src}" includes="**/*.class">
+            <zipfileset src="${pspdash.jar}"
+                includes="net/sourceforge/processdash/util/RuntimeUtils*"/>
+        </jar>
+    </target>
+    <target name="-izpack-custom-depend">
+        <uptodate property="izpackCustom.upToDate" targetfile="${izpack-custom.jar}">
+            <srcfiles dir="src"/>
+        </uptodate>
+    </target>
+    <target name="izpack-custom-clean">
+        <delete file="${izpack-custom.jar}"/>
+        <delete><fileset dir="${custom-src}" includes="**/*.class"/></delete>
+    </target>
+
+
+
+    <target name="install.xml"
+            description="Create an install.xml file to feed to IzPack">
+        <!-- filter the install.xml file based on the flags given -->
+	<property name="install.flags" value=""/>
+	<property name="helpFlag" value=""/>
+	<property name="extrasFlag" value=""/>
+	<delete file="${install.file}" quiet="true" />
+        <xslt in="install.xml" out="${install.file}" style="filter.xslt">
+            <param name="flags"
+                   expression="${install.flags}${helpFlag}${extrasFlag}"/>
+        </xslt>
+
+        <!-- configure the version number of the dashboard -->
+        <replace file="${install.file}" token="@version@"
+	         value="${dashboard.version}"/>
+
+        <!-- possibly insert additional resource definitions -->
+        <property name="additional.resources" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional resources --&gt;"
+	         value="${additional.resources}"/>
+
+        <!-- possibly insert additional files to the main pack  -->
+        <property name="additional.core.files" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional core files --&gt;"
+	         value="${additional.core.files}"/>
+
+        <!-- possibly insert additional pack definitions -->
+        <property name="additional.packs" value=""/>
+        <replace file="${install.file}"
+	         token="&lt;!-- additional packs --&gt;"
+	         value="${additional.packs}"/>
+
+        <!-- provide the choice to build a PSP course installer with -->
+	<!-- alternate assignments sets -->
+	<property name="pspForEng.userdata" value="pspForEng3/userdata"/>
+        <replace file="${install.file}" token="@userDataDir@"
+	         value="${pspForEng.userdata}"/>
+    </target>
+
+
+
+    <target name="install-reg.xml"
+            description="Create an install.xml file for a regular installer">
+        <antcall target="install.xml">
+            <param name="install.file" value="install-reg.xml"/>
+	</antcall>
+    </target>
+
+    <target name="-izpack" depends="init,-izpack.jar,-izpack.exe"/>
+
+    <target name="-izpack.jar">
+        <property name="izpack.output"
+            value="pdash-install-${qualifier}-${dashboard-version}"/>
+        <property name="izpack.type" value="standard"/>
+        <izpack input="${installer.dir}/${izpack.input}"
+            output="${dist}/${izpack.output}.jar"
+            installerType="${izpack.type}"
+            basedir="${installer.dir}" izPackDir="${izpack.dir}/"/>
+    </target>
+
+    <target name="-izpack.exe" if="isWindows" unless="no-exe-needed">
+        <property name="launch4j.config" value="files/launch4j-config.xml"/>
+        <launch4j configFile="${launch4j.config}"
+            jar="${dist}/${izpack.output}.jar"
+            outfile="${dist}/${izpack.output}.exe"/>
+    </target>
+
+    <target name="offline" depends="init,install-reg.xml"
+            description="Create an offline installer for the dashboard">
+        <property name="qualifier" value="offline"/>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-reg.xml"/>
+        </antcall>
+    </target>
+
+    <target name="instructor" depends="init"
+            description="Create materials for use by PSP instructors">
+        <!-- Create a CD that instructors can give to PFE students -->
+        <loadfile property="custom-inst-pfe"
+		  srcFile="files/custom-install-pfe.ini"/>
+        <antcall target="install-CD">
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+	    <param name="qualifier" value="pfe-student"/>
+	    <param name="custom-install.extra" value="${custom-inst-pfe}"/>
+	    <param name="delete-cd-file" value="t"/>
+	    <param name="no-exe-needed" value="t"/>
+	</antcall>
+
+        <!-- Create a CD that instructors can give to PFA students -->
+        <loadfile property="custom-inst-pfa"
+		  srcFile="files/custom-install-pfa.ini"/>
+        <antcall target="install-CD">
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+	    <param name="qualifier" value="pfa-student"/>
+	    <param name="custom-install.extra" value="${custom-inst-pfa}"/>
+	    <param name="delete-cd-file" value="t"/>
+	    <param name="no-exe-needed" value="t"/>
+	</antcall>
+
+	<!-- Create an installer that installs instructor tools -->
+        <antcall target="install.xml">
+            <param name="install.file" value="install-instr.xml"/>
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspInstrTools,noProc"/>
+	</antcall>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-instr.xml"/>
+            <param name="qualifier" value="instrTools"/>
+        </antcall>
+	<delete file="install-instr.xml"/>
+
+	<!-- Create an installer that students can download for themselves -->
+        <antcall target="install.xml">
+            <param name="install.file" value="install-student.xml"/>
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr"/>
+	</antcall>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-student.xml"/>
+            <param name="qualifier" value="student"/>
+        </antcall>
+	<delete file="install-student.xml"/>
+    </target>
+
+
+    <target name="install-CD" depends="init"
+            description="Create an installation CD for the dashboard">
+        <fail unless="jreInstDir"
+            message="The jreInstDir property must be set to build a CD"/>
+        <fail unless="jreInstExe"
+            message="The jreInstExe property must be set to build a CD"/>
+        <available file="${jreInstDir}/${jreInstExe}" property="have.JREinst"/>
+	<fail unless="have.JREinst" 
+            message="No JRE installer found at '${jreInstDir}/${jreInstExe}'"/>
+
+        <antcall target="install.xml">
+            <param name="install.file" value="install-cd.xml"/>
+	</antcall>
+
+	<copy file="files/custom-install.ini" tofile="cd-custom.ini"/>
+	<property name="custom-install.extra" value=""/>
+	<echo file="cd-custom.ini" append="true"
+	    message="${custom-install.extra}"/>
+
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-cd.xml"/>
+        </antcall>
+
+        <antcall target="-package-CD">
+            <param name="izpack.input" value="install-cd.xml"/>
+        </antcall>
+
+	<delete file="install-cd.xml"/>
+	<delete file="cd-custom.ini"/>
+        <antcall target="-install-CD-delete"/>
+    </target>
+
+    <target name="-package-CD" depends="init">
+	<echo file="cd-config.ini">1.6
+${jreInstExe}
+pdash-install-${qualifier}-${dashboard-version}.jar
+</echo>
+
+	<zip destfile="${dist}/pdash-${qualifier}-cd-${dashboard-version}.zip">
+	    <fileset dir="files" includes="setup.exe autorun.inf"/>
+	    <zipfileset dir="."
+	        includes="cd-config.ini"
+		fullpath="data/config.ini"/>
+	    <zipfileset dir="${dist}"
+	        includes="pdash-install-${qualifier}-${dashboard-version}.jar"
+		prefix="data"/>
+	    <zipfileset dir="."
+	        includes="cd-custom.ini"
+		fullpath="data/custom-install.ini"/>
+	    <zipfileset dir="${jreInstDir}"
+	        includes="${jreInstExe}"
+		prefix="data"/>
+	</zip>
+
+	<delete file="cd-config.ini"/>
+    </target>
+
+    <target name="-install-CD-delete" if="delete-cd-file">
+      <delete file="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar" quiet="true"/>
+    </target>
+
+
+    <target name="compile" depends="clean,offline,instructor">
+      <delete quiet="true" file="install-reg.xml"/>
+    </target>
+
+    <target name="dist" depends="prepare,compile"/>
+
+    <target name="dist-CD" depends="prepare,clean,install-CD">
+      <delete quiet="true" file="install-reg.xml"/>
+    </target>
+
+    <target name="prepare">
+
+        <!-- print an error unless the PSP process file is built -->
+	<available file="../dist/pspProc2.jar" property="have.pspProc.jar"/>
+	<fail unless="have.pspProc.jar"
+	    message="pspProc2.jar is missing - to ignore, run &quot;ant plain&quot;"/>
+
+	<!-- print an error unless the PSP for Engineers file is built -->
+	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>
+	<fail unless="have.pspForEng.jar" message="pspForEng.jar is missing"/>
+
+	<!-- print an error unless the dashboard jarfile is built -->
+	<available file="../dist/pspdash.jar" property="have.pspdash.jar"/>
+	<fail unless="have.pspdash.jar" message="pspdash.jar is missing"/>
+
+	<!-- determine whether the context-sensitive help was built -->
+	<available file="../dist/dashHelp.jar" property="helpFlag" value=" "/>
+	<property name="helpFlag" value=",noHelp"/>
+
+	<!-- determine whether the extras jarfile is present -->
+	<available file="../dist/extras.jar" property="extrasFlag"
+                   value=",extras"/>
+    </target>
+
+
+
+
+    <target name="plain"
+        description="Create an installer that does not contain psp processes">
+        <property name="have.pspProc.jar" value="ignore"/>
+        <property name="install.flags" value="noProc"/>
+	<antcall>
+            <target name="prepare"/>
+            <target name="offline"/>
+	</antcall>
+    </target>
+
+    <target name="noExtras">
+        <property name="extrasFlag" value=" "/>
+    </target>
+
+
+    <target name="clean" depends="izpack-custom-clean">
+        <delete quiet="true" file="install-reg.xml"/>
+        <delete quiet="true" file="install-cd.xml"/>
+    </target>
+
+</project>

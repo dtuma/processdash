@@ -1,0 +1,132 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2003 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for rollup of PSP data. 
+==
+*/
+
+#include <psp3/dataFile.txt>
+
+[PSP To Date Data] = TAG;
+
+// The rollup set does not need these PSP3-specific elements.
+undefine([PSP3_Cycles], [PSP3 Tag], [PSP3], [psp3],
+	 [Cycles/Time], [Cycles/Estimated Time],
+	 [Cycles/Defects Injected], [Cycles/Estimated Defects Injected],
+	 [Cycles/Defects Removed], [Cycles/Estimated Defects Removed]);
+
+
+// We do not want to let users edit a Size Estimating Template for a
+// rollup.  The rollup set therefore does not need these data elements
+// (inherited from the size estimating template).
+undefine([Size Estimating Template Tag], 
+	 [Est_Base_Additions],     [Base_Additions],
+	 [Est_New_Objects],        [New_Objects],
+	 [Est_Reused_Objects],     [Reused_Objects], 
+	 [Est_New_Reused_Objects], [New_Reused_Objects],
+	 [Estimated Max LOC], [Estimated Min LOC],
+	 [Estimated Max Time], [Estimated Min Time],
+#define probeData(Data)                                                      \
+	 [Estimated Data/Beta0], [Estimated Data/Beta1],                     \
+	 [Estimated Data/Range], [Estimated Data/Interval Percent],          \
+	 [Estimated Data/Probe Method], [Estimated Data/R Squared]
+	 probeData(New & Changed LOC),
+	 probeData(Time),
+	 [Estimated Total LOC/Range]);
+
+
+// Redefine these LOC elements as simple numbers, so they will be rolled-up
+// with a simple summation.
+
+[Estimated Time]             = 0;
+[Estimated Defects Injected] = 0;
+[Estimated Defects Removed]  = 0;
+
+[Estimated Base Additions LOC] = 0;
+[Estimated New Objects LOC]    = 0;
+[Estimated Reused LOC]         = 0;
+[Estimated New Reused LOC]     = 0;
+
+[Base Additions LOC] = 0;
+[New Objects LOC]    = 0;
+[Reused LOC]         = 0;
+[New Reused LOC]     = 0;
+
+[New & Changed LOC]  = 0;
+
+// Alias this data element; this will cause PSP projects to (correctly)
+// get the "ESTIMATED Time To Date" element they have been expecting.
+
+[ESTIMATED Time] = [Estimated Time];
+
+
+// Redefine phase data as literal values instead of equations, so they
+// will be summed plainly.
+
+#define fixPhase(Phase)                                 \
+  undefine([Phase/node], [Phase/leaf]);		        \
+  [Phase/Estimated Time]             = 0;               \
+  [Phase/Estimated Defects Injected] = 0;		\
+  [Phase/Estimated Defects Removed]  = 0;               \
+  [Phase/Time]             = 0;                         \
+  [Phase/Defects Injected] = 0;                         \
+  [Phase/Defects Removed]  = 0;
+
+fixPhase(Planning);
+fixPhase(HLD);
+fixPhase(HLD Review);
+fixPhase(Design);
+fixPhase(Design Review);
+fixPhase(Code);
+fixPhase(Code Review);
+fixPhase(Compile);
+fixPhase(Test);
+fixPhase(Reassessment);
+fixPhase(Postmortem);
+
+
+// Compute percentages to use as normalizing factors when spreading
+// time and defects across various sets of PSP phases.
+
+[PSP3cycle_Phases] == ",Design,Design Review,Code,Code Review,Compile,Test,";
+[PSP0-2_Phases] == ",Planning,Postmortem,";
+[PSP3_Phases] == ",HLD,HLD Review,";
+
+#define normalize(Data)							      \
+    [Normalization %/Data/PSP3cycle] =					      \
+        sumFor("Data", [PSP3cycle_Phases]) / [Data];			      \
+    [Normalization %/Data/PSP0-2] = [Normalization %/Data/PSP3cycle] +	      \
+        sumFor("Data", [PSP0-2_Phases]) / [Data];			      \
+    [Normalization %/Data/PSP3] = [Normalization %/Data/PSP0-2] +	      \
+        sumFor("Data", [PSP3_Phases]) / [Data];
+
+normalize(Time);
+normalize(Defects Injected);
+normalize(Defects Removed);

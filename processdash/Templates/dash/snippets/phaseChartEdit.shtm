@@ -1,0 +1,41 @@
+<b><!--#echo Title_Prompt --></b>&nbsp;<input type="text" name="$$$_Title"
+    value="<!--#echo Title -->" size="50">
+
+<p><b><!--#echo Type_Prompt --></b><br/>
+<!--#foreach name="Which" values=",Pie,Line,Bar," #-->
+<span class="cmsIndent"><input type="radio" name="$$$_ChartType"
+    <!--#if ChartType eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'Pie' -->checked
+    <!--#endif--><!--#endif#-->
+
+    <!--#if 'Which' eq 'Pie' -->onclick="Element.hide('$$$_YAxisSel');"
+    <!--#else-->onclick="Element.show('$$$_YAxisSel');"
+    <!--#endif#-->
+    value="Which">&nbsp;<!--#echo Snippet.Charts.Which --></span>
+<!--#endfor--></p>
+
+<p id="$$$_YAxisSel"
+    <!--#if ChartType eq 'Pie' || defaults #-->
+    style="display:none"<!--#endif#-->
+    ><b><!--#echo Y_Axis_Prompt #--></b>&nbsp;<input type="text" size="50"
+    name="$$$_YAxisLabel" value="<!--#echo YAxisLabel -->"></p>
+
+<p><b><!--#echo Phases_Prompt --></b><br/>
+<!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
+<span class="cmsIndent"><input type="radio" name="$$$_PhaseGroup"
+    <!--#if PhaseGroup eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked
+    <!--#endif--><!--#endif#-->
+    value="Which">&nbsp;<!--#echo Snippet.Phases.Which --></span>
+<!--#endfor--></p>
+
+<b><!--#echo Metrics_Prompt --></b>
+<div class='cmsIndent'><!--#include file="editList" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" encoding="relUri"
+                   value="metricSimple.shtm" -->
+    <!--#parameter name="valuesUri" encoding="relUri"
+                   value="listMetrics?phases" -->
+    <!--#parameter name="newItemPrompt" encoding="html"
+                   var="Add_Metric_Prompt" -->
+</div>

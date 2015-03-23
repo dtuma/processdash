@@ -1,0 +1,124 @@
+= Export a table of data that can be copied and pasted into the STU# 
+= spreadsheet distributed by the SEI (for use with the PSP class)
+
+qf==/reports/compProj.rpt
+title==Student Data
+footerComment==If you export this report to Excel, you can copy and paste the numerical data above into the SEI STU##.xls spreadsheets.
+
+d1==[/Owner]
+h1==Student Name
+
+= Plan vs Actual Size
+d2==Estimated New & Changed LOC
+h2==EstLOC
+d3==New & Changed LOC
+h3==ActLOC
+
+= Plan vs Actual Time
+d4==Estimated Time
+h4==EstMin
+d5==Time
+h5==ActMin
+
+= Plan vs Actual Defects
+d6==Estimated Defects Removed
+h6==EstDef
+d7==Defects Removed
+h7==ActDef
+
+
+= Plan vs Actual Time in Phase
+d8==Planning/Estimated Time
+h8==PlanEstTime
+d9==Planning/Time
+h9==PlanActTime
+d10==Design/Estimated Time
+h10==DldEstTime
+d11==Design/Time
+h11==DldActTime
+d12==Design Review/Estimated Time
+h12==DldrEstTime
+d13==Design Review/Time
+h13==DldrActTime
+d14==Code/Estimated Time
+h14==CodeEstTime
+d15==Code/Time
+h15==CodeActTime
+d16==Code Review/Estimated Time
+h16==CrEstTime
+d17==Code Review/Time
+h17==CrActTime
+d18==Compile/Estimated Time
+h18==CompEstTime
+d19==Compile/Time
+h19==CompActTime
+d20==Test/Estimated Time
+h20==TestEstTime
+d21==Test/Time
+h21==TestActTime
+d22==Postmortem/Estimated Time
+h22==PmEstTime
+d23==Postmortem/Time
+h23==PmActTime
+
+
+= Plan vs Actual Defects Injected by Phase
+d24==Planning/Estimated Defects Injected
+h24==PlanEstInj
+d25==Planning/Defects Injected
+h25==PlanActInj
+d26==Design/Estimated Defects Injected
+h26==DldEstInj
+d27==Design/Defects Injected
+h27==DldActInj
+d28==Design Review/Estimated Defects Injected
+h28==DldrEstInj
+d29==Design Review/Defects Injected
+h29==DldrActInj
+d30==Code/Estimated Defects Injected
+h30==CodeEstInj
+d31==Code/Defects Injected
+h31==CodeActInj
+d32==Code Review/Estimated Defects Injected
+h32==CrEstInj
+d33==Code Review/Defects Injected
+h33==CrActInj
+d34==Compile/Estimated Defects Injected
+h34==CompEstInj
+d35==Compile/Defects Injected
+h35==CompActInj
+d36==Test/Estimated Defects Injected
+h36==TestEstInj
+d37==Test/Defects Injected
+h37==TestActInj
+
+
+= Plan vs Actual Defects Removed by Phase
+d38==Planning/Estimated Defects Removed
+h38==PlanEstRem
+d39==Planning/Defects Removed
+h39==PlanActRem
+d40==Design/Estimated Defects Removed
+h40==DldEstRem
+d41==Design/Defects Removed
+h41==DldActRem
+d42==Design Review/Estimated Defects Removed
+h42==DldrEstRem
+d43==Design Review/Defects Removed
+h43==DldrActRem
+d44==Code/Estimated Defects Removed
+h44==CodeEstRem
+d45==Code/Defects Removed
+h45==CodeActRem
+d46==Code Review/Estimated Defects Removed
+h46==CrEstRem
+d47==Code Review/Defects Removed
+h47==CrActRem
+d48==Compile/Estimated Defects Removed
+h48==CompEstRem
+d49==Compile/Defects Removed
+h49==CompActRem
+d50==Test/Estimated Defects Removed
+h50==TestEstRem
+d51==Test/Defects Removed
+h51==TestActRem

@@ -1,0 +1,15 @@
+= Historical estimated and actual size and time query
+
+qf=compProj.rpt
+
+
+
+d1==Estimated Object LOC
+
+d2==Estimated New & Changed LOC
+
+d3==New & Changed LOC
+
+d4==Estimated Time
+
+d5==Time

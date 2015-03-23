@@ -1,0 +1,13 @@
+.popupInfo {
+    position: relative;
+    height: 0;
+    z-index: 1;
+}
+
+.popupInfo table {
+    position: absolute;
+    right: 0;
+    display: none;
+    border: 1px solid black;
+    background-color: #ccccff
+}

@@ -1,0 +1,353 @@
+<!--#resources bundle="Templates.Generic" -->
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<HTML>
+<HEAD>
+<link rel="stylesheet" type="text/css" href="/style.css">
+<link rel="stylesheet" type="text/css" href="/dash/snippets/alert.css">
+<TITLE><!--#echo Title --></TITLE>
+<SCRIPT>
+    function openCustomizationWindow() {
+        window.open ('custom.shtm', 'customize',
+            'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');
+    }
+</SCRIPT>
+</HEAD>
+<BODY>
+
+<H1><!--#echo PATH_TRANSLATED --></H1>
+<H2><!--#echo Title --></H2>
+
+<!--#if [Phase_Sum_Problem] -->
+<div class="alertError" style="margin-bottom: 16px">
+    <!--#echo Phase_Sum_Problem_Message -->
+</div>
+<!--#endif-->
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE="Generic Tag">
+<INPUT TYPE=hidden NAME="[Dynamic_Phases]!">
+
+<TABLE>
+<TR>
+<TD><!--#echo Summary.Project_Owner --></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+<TR>
+<TD>Start Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+</TR>
+<TR>
+<TD>Completion Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Completed	du"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
+</TR>
+</TABLE>
+
+<INPUT CLASS=doNotPrint TYPE="button" onClick="openCustomizationWindow();"
+       VALUE="<!--#echo Customize_Button -->">
+
+<!--#if ![Dynamic_Phases] -->
+<div class="doNotPrint alertInfo" style="margin-top: 16px">
+    <I><!--#echo var="Friendly_Help_HTML" encoding="none" --></I>
+</div>
+<!--#endif-->
+
+<P><TABLE>
+
+<TR>
+<TD><B>Summary</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Estimating_Error_Percent --></B></TD>
+</TR>
+
+<!--#if [Generic - Show Size] -->
+<TR>
+<TD>Productivity (<!--#echo var="Productivity_Units_FMT"
+	arg0="Units" -->)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Productivity"></TD>
+<TD></TD>
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>Time</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error	%"></TD>
+</TR>
+
+<!--#if [Generic - Show Size] -->
+
+<!--#if ![Generic - Show SET] -->
+<TR>
+<TD><!--#echo Size --> (<!--#echo Units -->)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error	%"></TD>
+</TR>
+<!--#endif Not Show SET-->
+
+<!--#if [Generic - Show Defects] -->
+<TR>
+<TD><!--#echo var="Defect_Density_Units_FMT" arg0="Unit" --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defect Density"></TD>
+<TD></TD>
+</TR>
+<!--#endif Show Defects-->
+
+<!--#endif Show Size-->
+
+<!--#if [Generic - Show SET] -->
+
+<TR><TD>&nbsp;</TD></TR>
+
+<TR>
+<TD><B><!--#echo Size --> (<!--#echo Units -->)</B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo Summary.Base_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Base Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Base Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo Summary.Deleted_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Deleted Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Deleted Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo Summary.Modified_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Modified Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Modified Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo Summary.Added_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Added Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Added Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo Summary.Reused_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Reused Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Reused Size"></TD>
+<TD ALIGN=CENTER><B><!--#echo Estimating_Error_Percent --></B></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.Added_&_Modified_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Added &amp; Modified Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Added &amp; Modified Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error	%"></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.Total_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Total Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Total Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.New_Reusable_Size --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New Reused Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New Reused Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Estimated_Proxy_Size --> (E)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Proxy Size"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Proxy Size"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.Size_UPI --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Size"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.Size_LPI --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Size"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<!--#endif Show SET-->
+
+<TR><TD>&nbsp;</TD></TR>
+
+<TR>
+<TD ALIGN=LEFT><B><!--#echo Summary.Time_In_Phase --></B></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>Actual %</B></TD>
+</TR>
+
+<!--#foreach name=Phase list=Phases -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Time"></TD>
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<TD></TD>
+</TR>
+
+<!--#if [Generic - Show SET] -->
+
+<TR>
+<TD><!--#echo Summary.Time_UPI --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max Time"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Summary.Time_LPI --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min Time"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<!--#endif Show SET -->
+
+<!--#if [Generic - Show Defects] -->
+<TR><TD>&nbsp;</TD></TR>
+
+<TR>
+<TD><B>Defects Injected</B></TD>
+<TD ALIGN=CENTER></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>Actual %</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Injection_Rate --></B></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;Before Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Before Development/%/Defects Injected"></TD>
+<TD></TD>
+</TR>
+
+<!--#foreach name=Phase list=Phases -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected per Hour"></TD>
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected"></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Injected per Hour"></TD>
+</TR>
+
+<TR><TD>&nbsp;</TD></TR>
+
+<TR>
+<TD><B>Defects Removed</B></TD>
+<TD ALIGN=CENTER></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER><B>Actual %</B></TD>
+<TD ALIGN=CENTER><B><!--#echo Removal_Rate --></B></TD>
+</TR>
+
+<!--#foreach name=Phase list=Phases -->
+<TR>
+<TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed per Hour"></TD>
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>&nbsp;&nbsp;&nbsp;&nbsp;Total Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed"></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Defects Removed per Hour"></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;&nbsp;After Development</TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="After Development/Defects Removed"></TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<!--#endif-->
+
+</TABLE>
+</FORM>
+
+<span class="doNotPrint"><HR>
+<!--#echo Summary.View_Log_Begin -->
+<A HREF="../reports/timelog.class">Time Log</A>
+<!--#if [Generic - Show Defects] -->
+<!--#echo Summary.View_Log_Separator -->
+<A HREF="../reports/defectlog.class">Defect Log</A>
+<!--#endif-->
+<!--#echo Summary.View_Log_End -->
+</span>
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <programGroup defaultName="Process Dashboard" location="applications"/>
+  <skipIfNotSupported/>
+  <defaultCurrentUser/>
+  
+  <shortcut
+     name="Process Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     type="Application"
+     encoding="UTF-8"
+     target="${JAVA_HOME}/bin/java"
+     commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH/pspdash.jar&quot;"
+     workingDirectory="$DATA_PATH"
+     description="Process Dashboard"
+     iconFile="$INSTALL_PATH/dashicon.png"
+     iconIndex="0"
+     initialState="normal"/>
+
+  <shortcut
+     name="Team Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     type="Application"
+     encoding="UTF-8"
+     target="${JAVA_HOME}/bin/java"
+     commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH/pspdash.jar&quot; &quot;-location=$TEAM_DATA_PATH&quot;"
+     description="Process Dashboard instance containing your team data"
+     iconFile="$INSTALL_PATH/teamicon.png"
+     iconIndex="0"
+     initialState="normal">
+       <createForPack name="teamTools"/>
+  </shortcut>
+
+  <shortcut
+     name="Quick Launcher for Process Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     type="Application"
+     encoding="UTF-8"
+     target="${JAVA_HOME}/bin/java"
+     commandLine="-cp &quot;$INSTALL_PATH/pspdash.jar&quot; net.sourceforge.processdash.tool.quicklauncher.QuickLauncher"
+     description="Launch Process Dashboard instances for data in ZIP files or arbitrary directories"
+     iconFile="$INSTALL_PATH/launcher.ico"
+     iconIndex="0"
+     initialState="normal">
+       <createForPack name="teamTools"/>
+       <createForPack name="pspInstrTools"/>
+  </shortcut>
+
+   <shortcut
+     name="Uninstall Process Dashboard"
+     programGroup="yes"
+     desktop="no"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     type="Application"
+     encoding="UTF-8"
+     target="${JAVA_HOME}/bin/java"
+     commandLine="-jar &quot;$INSTALL_PATH/Uninstaller/uninstaller.jar&quot;"
+     description="Process Dashboard Uninstaller"/>
+  
+</shortcuts>

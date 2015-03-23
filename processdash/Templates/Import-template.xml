@@ -1,0 +1,51 @@
+<?xml version='1.0'?>
+
+<!--
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2001-2003 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+
+This file contains the template definitions for the standard PSP processes.
+
+-->
+
+<dashboard-process-template>
+  <template name="Import PSP Data" ID="Import PSP Data" htmlID="sum"
+            usesRollup="PSP" dataFile="import/dataFile.txt" constraints="{">
+    <html ID="sum" title="Import PSP Project Data" href="import/import.htm"/>
+
+    <phase name="Planning"      imaginary="true" type="plan"/>
+    <phase name="HLD"           imaginary="true" type="hld"/>
+    <phase name="HLD Review"    imaginary="true" type="hldr"/>
+    <phase name="Design"        imaginary="true" type="dld"/>
+    <phase name="Design Review" imaginary="true" type="dldr"/>
+    <phase name="Code"          imaginary="true" type="code"/>
+    <phase name="Code Review"   imaginary="true" type="cr"/>
+    <phase name="Compile"       imaginary="true" type="comp"/>
+    <phase name="Test"          imaginary="true" type="ut"/>
+    <phase name="Postmortem"    imaginary="true" type="pm"/>
+    <phase name="Data Entry"                     type="pm"/>
+  </template>
+
+</dashboard-process-template>

@@ -1,0 +1,104 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2003 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+
+=============================================================================
+== Title:	$Id$
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for a SCR Cycle process. 
+==
+*/
+
+#include <psp0/pspData.txt>
+
+/*
+ * The following elements identify the data in this file as belonging to
+ * a SCR Cycle process. 
+ */
+
+[SCRCYCLE] = TAG;
+[scrcycle] = TAG;
+[node] = TAG;
+[PSP Rollup Eligible] = TAG;	/* do we really want to do this? */
+
+
+
+/*
+ * Data Elements to track Time.
+ */
+
+[Estimated Max Time] = 0;
+[Estimated Min Time] = 0;
+
+
+/*
+ * Data Elements to track LOC.
+ */
+
+// Estimated LOC
+
+Estimated Base Additions LOC==![(+	~Base Additions/LOC \d+)]
+Estimated New Objects LOC==![(+	~New Objects/LOC \d+)]
+Estimated Reused LOC==![(+	~Reused Objects/LOC \d+)]
+Estimated New Reused LOC==![(+	~New Objects/New Reused LOC \d+)]
+
+[Estimated Base LOC] = 0;
+[Estimated Deleted LOC] = 0;
+[Estimated Modified LOC] = 0;
+[Projected LOC] = [Estimated Base Additions LOC] + [Estimated New Objects LOC];
+[Estimated Object LOC] = [Projected LOC] + [Estimated Modified LOC];
+[Estimated New & Changed LOC] = 0;
+[Estimated Max New & Changed LOC] = 0;
+[Estimated Min New & Changed LOC] = 0;
+[Estimated Added LOC] =
+    [Estimated New & Changed LOC] - [Estimated Modified LOC];
+[Estimated Total LOC] = [Estimated Base LOC] + [Estimated Reused LOC]
+    + [Estimated Added LOC] - [Estimated Deleted LOC];
+[Estimated Max LOC] = 0;
+[Estimated Min LOC] = 0;
+[Estimated KLOC] = [Estimated Total LOC] / 1000;
+
+[Estimated % New Reused] =
+    [Estimated New Reused LOC] / [Estimated New & Changed LOC];
+[Estimated % Reused] =
+    [Estimated Reused LOC] / [Estimated Total LOC];
+
+
+// Actual LOC
+
+[Base LOC] = 0;
+[Deleted LOC] = 0;
+[Modified LOC] = 0;
+[Added LOC] = [LOC] + [Deleted LOC] - [Base LOC] - [Reused LOC];
+[Reused LOC] = 0;
+[New & Changed LOC] = [Added LOC] + [Modified LOC];
+[New Reused LOC] = 0;
+[LOC] = 0;
+[Total LOC] = [LOC];
+[KLOC] = [LOC] / 1000;
+
+[% New Reused] = [New Reused LOC] / [New & Changed LOC];
+[% Reused] = [Reused LOC] / [LOC];

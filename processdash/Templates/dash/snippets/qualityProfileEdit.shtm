@@ -1,0 +1,9 @@
+<b><!--#echo Which.Prompt --></b><br/>
+<!--#foreach name="Type" values=",Actual,Plan," #-->
+<span class="cmsIndent"><input type="radio" name="$$$_Which"
+    <!--#if Which eq 'Type' -->checked
+    <!--#elif defaults --><!--#if 'Type' eq 'Actual' -->checked
+    <!--#endif--><!--#endif#-->
+
+    value="Type">&nbsp;<!--#echo Which.Type --></span>
+<!--#endfor-->

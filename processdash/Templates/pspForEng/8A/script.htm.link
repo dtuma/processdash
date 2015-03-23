@@ -1,0 +1,4 @@
+class:net.sourceforge.processdash.ui.web.psp.PspForEngFilter
+srcDir=psp2.1
+destDir=pspForEng/8A
+filterToken=cut8A

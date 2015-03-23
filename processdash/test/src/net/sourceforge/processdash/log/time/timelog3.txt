@@ -1,0 +1,5 @@
+PropertyKey<top/Project/Dy4-181 BSP Build/Test Task><Test>	Start Time: Sep 03, 2004 10:35:10 AM	Elapsed Time: 900	Interruption Time: 0	comment number one
+PropertyKey<top/Project/Gen2 MPA Build for VxWorks/Test Task><Test>	Start Time: Sep 03, 2004 10:37:37 AM	Elapsed Time: 720	Interruption Time: 20
+PropertyKey<top/Project/Requirements/Serial IO/RRW><Reqts>	Start Time: Sep 03, 2004 01:09:53 PM	Elapsed Time: 44	Interruption Time: 0	comment number two
+PropertyKey<top/Project/Requirements/FDDI bus/Inspect><Reqts Inspect>	Start Time: Sep 03, 2004 02:42:45 PM	Elapsed Time: 14	Interruption Time: 0	comment number three
+PropertyKey<top/Project/Requirements/Utility bus/RRW><Reqts>	Start Time: Sep 09, 2004 01:21:47 PM	Elapsed Time: 151	Interruption Time: 0	commentnumber four

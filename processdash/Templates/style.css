@@ -1,0 +1,46 @@
+/* this enforces the black on white look even on unix */
+BODY { color: black;
+      background-color: white }
+
+/* Remove the annoying space that appears above and below lists */
+UL { margin-top: 0pt; margin-bottom: 0pt }
+OL { margin-top: 0pt; margin-bottom: 0pt }
+
+/* do not add unnecessary extra space at the bottom of forms */
+form { margin-bottom: 0px }
+
+/* map tags should not affect layout. (Firefox in standards mode
+   seems to think otherwise) */
+map { display: none }
+
+/* style for instructions that are new to the current PSP level */
+.newPsp { font-style: italic;
+          font-weight: bold }
+
+/* style for instructions that don't really apply to the dashboard, or to 
+   things that the dashboard takes care of automatically */
+.nonDash { color: #C0C0C0 }
+
+/* style for instructions that are specific to the dashboard */
+.dash { color: #007000 }
+
+/* style for inconspicuous hyperlinks */
+a.plain:link    { color:#000080; text-decoration:none }
+a.plain:visited { color:#000080; text-decoration:none }
+a.plain:hover   { color:blue; text-decoration:underline }
+
+/* style for items which should be omitted when printing a document. */
+@media print { .doNotPrint { display: none } }
+
+/* style for items which should only be displayed when printing a document. */
+@media screen { .printOnly { display: none } }
+
+/* style for read only items on a form */
+.readOnlyElem { background-color: #CCCCCC }
+
+/* style hint to Excel for time formatting */
+.timeFmt { vnd.ms-excel.numberformat: [h]\:mm }
+
+/* styles for the span containing CMS control buttons */
+.cmsToolbar { float: right;  margin-left: 10px; margin-bottom: 5px }
+@media print { .cmsToolbar { display: none } }

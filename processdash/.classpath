@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="installer/src"/>
+	<classpathentry kind="src" path="test/src"/>
+	<classpathentry kind="src" path="lib/src"/>
+	<classpathentry kind="src" path="l10n-tool/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="lib/image4j.jar"/>
+	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar" sourcepath="/ANT_HOME/apache-ant-1.7.0-src.zip"/>
+	<classpathentry kind="var" path="JDK_HOME/jre/lib/plugin.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/kxml-2.2.1-mod.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/json_simple.jar"/>
+	<classpathentry kind="lib" path="lib/svgSalamander.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jcalendar-1.3.2.jar" sourcepath="misc/zips/jcalendar-1.3.2.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/datatips.jar" sourcepath="lib/datatips.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/colt.jar" sourcepath="lib/colt.jar"/>
+	<classpathentry kind="lib" path="lib/com-apple-eawt.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jcommon-1.0.23.jar" sourcepath="misc/zips/jcommon-1.0.23.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.19.jar" sourcepath="misc/zips/jfreechart-1.0.19.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/ws-commons-util-1.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-client-3.1.1.jar" sourcepath="lib/xmlrpc-client-3.1.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-common-3.1.1.jar" sourcepath="lib/xmlrpc-common-3.1.1-sources.jar"/>
+	<classpathentry kind="lib" path="installer/IzPack/lib/installer.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar" sourcepath="misc/zips/jetty-8.1.15-src.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

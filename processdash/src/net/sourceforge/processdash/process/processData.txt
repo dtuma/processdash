@@ -1,0 +1,125 @@
+// -*- mode:c -*-
+
+[TEMPLATE_ID Tag] == TAG;
+[Process_ID] = "TEMPLATE_ID";
+[Simple Project Tag] == TAG;
+
+[CPI] = [Estimated Time] / [Time];
+
+[Time Estimating Error] = ([Time] - [Estimated Time]) / [Estimated Time];
+
+// Process quality metrics
+
+#ifdef PROCESS_HAS_YIELD
+
+[Yield] = constrain(0, 1, sumFor("Defects Removed",  [Yield_Phase_List]) /
+	           sumFor("Defects Injected", [Yield_Phase_List]));
+[Estimated Yield] = constrain(0, 1,
+    sumFor("Estimated Defects Removed",  [Yield_Phase_List]) /
+    sumFor("Estimated Defects Injected", [Yield_Phase_List]));
+
+#endif // PROCESS_HAS_YIELD
+
+
+#ifdef PROCESS_HAS_APPRAISAL
+    [Estimated % Appraisal COQ] =
+        sumFor("Estimated Time", [Appraisal_Phase_List]) / [Estimated Time];
+    [% Appraisal COQ] = sumFor("Time", [Appraisal_Phase_List]) / [Time];
+
+#ifndef PROCESS_HAS_FAILURE
+    [Estimated % COQ] = [Estimated % Appraisal COQ];
+    [% COQ] = [% Appraisal COQ];
+
+#endif // !PROCESS_HAS_FAILURE
+#endif // PROCESS_HAS_APPRAISAL
+
+#ifdef PROCESS_HAS_FAILURE
+    [Estimated % Failure COQ] =
+        sumFor("Estimated Time", [Failure_Phase_List]) / [Estimated Time];
+    [% Failure COQ] = sumFor("Time", [Failure_Phase_List]) / [Time];
+
+#ifdef PROCESS_HAS_APPRAISAL
+    [Estimated AFR] = [Estimated % Appraisal COQ] / [Estimated % Failure COQ];
+    [AFR] = [% Appraisal COQ] / [% Failure COQ];
+
+    [Estimated % COQ]= [Estimated % Appraisal COQ] + [Estimated % Failure COQ];
+    [% COQ] = [% Appraisal COQ] + [% Failure COQ];
+
+#else
+    [Estimated % COQ] = [Estimated % Failure COQ];
+    [% COQ] = [% Failure COQ];
+
+#endif // PROCESS_HAS_APPRAISAL
+#endif // PROCESS_HAS_FAILURE
+
+
+#ifdef PROCESS_HAS_SIZE
+
+    // Size metrics
+
+    [SIZE_METRIC_NAME] == "Size";
+    [SIZE_METRIC_NAME_ABBR] == "Size";
+    [AGGR_SIZE_METRIC_NAME] == [SIZE_METRIC_NAME];
+    [AGGR_SIZE_METRIC_NAME_ABBR] == [SIZE_METRIC_NAME_ABBR];
+    [PROBE_INPUT_SIZE_METRIC_NAME] == "Unadjusted Estimated Size";
+    [PROBE_TARGET_SIZE_METRIC_NAME] = [SIZE_METRIC_NAME];
+
+    [Estimated Size] = ?NaN;
+    [Size] = ?NaN;
+    [Size Estimating Error] = ([Size] - [Estimated Size]) / [Estimated Size];
+
+    [Estimated Aggregate Size] = [Estimated Size];
+    [Aggregate Size] = [Size];
+
+    [Estimated Productivity] = 60 * [Estimated Size] / [Estimated Time];
+    [Productivity] = 60 * [Size] / [Time];
+
+#endif // PROCESS_HAS_SIZE
+
+#ifdef PROCESS_HAS_DEFECTS
+
+    // Supplemental defect metrics
+
+    [Before Development/Defects Injected] == 0;
+    [Before Development/Estimated Defects Injected] = 0;
+
+    [After Development/Defects Removed] = 0;
+    [After Development/Estimated Defects Removed] = 0;
+
+#ifdef PROCESS_HAS_SIZE
+
+    [Estimated Defect Density] =
+        [Estimated Defects Removed] / [Estimated Aggregate Size];
+    [Defect Density] = [Defects Removed] / [Aggregate Size];
+
+#endif // PROCESS_HAS_SIZE
+#endif // PROCESS_HAS_DEFECTS
+
+#ifdef LAST_FAILURE_PHASE
+
+    // Remove the definitions for these elements. They have no meaning.
+    [LAST_FAILURE_PHASE/Estimated DRL] = null;
+    [LAST_FAILURE_PHASE/DRL] = null;
+
+    // Define a string constant in case people want to build expressions
+    // that reference the last failure phase.
+    [Last_Failure_Phase] == "LAST_FAILURE_PHASE";
+
+#endif
+
+#ifdef USES_ROLLUP_ID
+
+    [Use_Rollup] == "USES_ROLLUP_ID";
+    [USES_ROLLUP_ID Rollup Eligible] = tag;
+
+#endif // USES_ROLLUP_ID
+
+#ifdef DEFINE_ROLLUP_ID
+
+    [DEFINE_ROLLUP_ID Rollup Eligible] = tag;
+
+#endif // DEFINE_ROLLUP_ID
+
+[Project_WBS_ID]    = inherit("Project_WBS_ID");
+
+[FILES_XML] = "/TEMPLATE_ID/files.xml";

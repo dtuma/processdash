@@ -1,0 +1,11 @@
+#include <psp0/dataFile.txt>
+undefine([Use_Rollup]);
+
+// We intentionally do not include <pspForEng2/progData.txt>
+
+[PSPFORENG_P1_TAG] = TAG;
+
+
+= Register an extra script to appear for instructors
+
+[PspForEng_Instr_Script] = "cms/pspForEng3/instr/grading";

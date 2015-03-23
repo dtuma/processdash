@@ -1,0 +1,176 @@
+<HTML>
+<head>
+<TITLE>Importing and Export Data</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Exporting Data</H1>
+
+<H2>Exporting Team Project Data</H2>
+
+<p>If you are participating on a team project, the dashboard will
+automatically export your team project data on a periodic basis.  However,
+there may be times that you wish to publish your latest data immediately (for
+example, if you are on your way to a team meeting).  Just click the script
+menu and choose the "Export My Data Now" option.</p>
+
+<H2>Advanced: Exporting Non-Project Data</H2>
+
+<p>If you have been collecting data that is not part of a team project,
+you can export that data if you wish.  Just
+choose &quot;Tools&nbsp;<img src="../../Images/rarrow.png">&nbsp;Export&quot;
+from the <a href="../Execution/ConfigureMenu.html">configuration menu</a>.</p>
+
+<p class="figure"><img src="../../Images/ExportWizardStart.png"></p>
+
+<p>To export data, choose the "Export Project Metrics" option. The
+following page will be displayed:</p>
+
+<p class="figure"><img src="../../Images/ExportWizardMetrics.png"></p>
+
+<p>This screen allows you to choose the file where data will be exported,
+and the projects in your hierarchy that should be included in the export.
+When you click "Next", data for the selected projects will be exported to
+the designated file.  This will include metrics data (e.g. the data visible
+on the plan summary form), defect data (e.g. the data visible in the defect
+log), and earned value data (if any of the selected projects are contained
+in any earned value task lists).</p>
+
+<p>If you would like this data to be exported automatically each time
+the dashboard shuts down, choose "Yes" on the final checkbox.  This
+will add this export operation to a permanent list of automatic
+exports.  You can view that list, and alter its contents, by choosing
+the "Manage Automatic Exports" option on the initial page of the Data
+Export Wizard.</p>
+
+<p class="figure"><img src="../../Images/ExportWizardManage.png"></p>
+
+<p><b>Advanced:</b> Individuals who are interested in viewing/reusing
+the data in these exported files are free to do so; the export file is
+a simple ZIP archive with XML files inside.  Keep in mind, however,
+that this file format is subject to change in future versions of the
+dashboard.</p>
+
+<H1>Importing Data</H1>
+
+<p>Files that have been exported by the dashboard (as described above)
+can be imported by the Data Import Wizard.  To open the Data Import Wizard,
+choose &quot;Tools&nbsp;<img src="../../Images/rarrow.png">&nbsp;Import&quot;
+from the <a href="../Execution/ConfigureMenu.html">configuration menu</a>.</p>
+
+<p class="figure"><img src="../../Images/ImportWizardStart.png"></p>
+
+<p>To import data, choose the "Import Project Metrics" option.</p>
+
+<p class="figure"><img src="../../Images/ImportWizardMetrics.png"></p>
+
+<p>This screen allows you to choose a directory containing files that
+should be imported.  The directory will be scanned for files previously
+exported by the dashboard (such files should have the ".pdash" suffix).
+The data in the files will be imported into the dashboard's data repository
+with the prefix chosen.</p>
+
+<p>Metrics data imported in this way will be visible to tools like
+<a href="../Planning/UsingProbeWizard.html">PROBE</a>, the
+<a href="DataChartsAndReports.html#charts">Data Analysis Center</a>, and
+<a href="../AdvancedTopics/MultipleToDateData.html">data rollup templates</a>.
+Earned value data imported in this way can be added to 
+<a href="../Planning/UsingTaskSchedule.html#createNew">earned value
+roll-ups</a>.  This provides many possibilities for rolling up data to the
+team level, and for analyzing data trends across projects.</p>
+
+<p>If you would like the data to be imported the next time the dashboard
+starts, select Yes on the final checkbox.  This will add the import
+operation to a permanent list of automatic imports. You can view that list,
+and alter its contents, by choosing the "Manage Automatic Imports" option
+on the initial page of the Data Import Wizard.</p>
+
+<p class="figure"><img src="../../Images/ImportWizardManage.png"></p>
+
+<h1><a name="excel"></a>Exporting data to Excel (PC only)</h1>
+<p>Many of the reporting forms in the dashboard have links that say "Export 
+to Excel...".  When this link is clicked, an Excel sheet will come up that 
+contains the data from that form.</p>
+
+<p>By default, the data will be exported <b>dynamically</b> as a linked
+workbook.  When the workbook opens, Excel will connect to the dashboard and
+retrieve the data items.  At any time, you can ask Excel to refresh the data
+by right-clicking on the data and choosing "Refresh."  This dynamic refresh
+behavior can be very powerful.  For example, you can create additional sheets
+in the workbook to analyze and chart the raw data, then save the workbook.  In
+the future, you can make sure the dashboard is running, reopen this workbook,
+and ask Excel to refresh the data.  Excel will reload the raw data and your
+charts will update.</p>
+
+<p><A NAME="static"></A>In some web browsers, that dynamic behavior may not
+work properly.  In that case, you can try switching to a <b>static</b> export.
+The static export will show the values of process variables at the instant
+that the export was done.  For instructions on configuring for static
+exports, see the <A
+HREF="../Troubleshooting/FAQ.html#BadExcel">related FAQ</A>.</p>
+
+<P>The "Export to Excel..." option will appear on 
+<UL>
+ <li><a href="../Planning/EnteringData.html">dashboard forms</a> such as
+   the Project Plan Summary form</li>
+ <li>tables that are displayed by clicking on a graphical chart (see <a 
+   href="DataChartsAndReports.html#charts">Data Charts and Reports</a> for
+   more information)</li>
+ <li>the table that is displayed when you click on the "historical data" link 
+   from a PSP1.0 or higher process script</li>
+ <li>the HTML time log</li>
+ <li>the HTML defect log</li>
+ <li>the HTML report that is displayed when you click the
+  &quot;Report&quot; button on the <A
+  HREF="../Planning/UsingTaskSchedule.html">task &amp; schedule tool</A></li>
+ <li>...and many other reports</li>
+</ul>
+
+<h1><a name="importPSP"></a>Importing Historical PSP Data</h1>
+
+<p>If you have PSP data from historical projects, and you would like to import
+them into the dashboard so they contribute to your &quot;To Date&quot; data,
+PROBE calculations, and &quot;Data Analysis&quot; charts/reports, you can use
+the &quot;Import PSP Data&quot; template.&nbsp; To enter your
+historical data into the dashboard, follow these steps:</p>
+
+<ol>
+
+  <li>Open the <a href="../Planning/UsingHierarchyEditor.html">Hierarchy
+    Editor</a>.</li>
+
+  <li>Highlight a node in your hierarchy like "Non Project", then click
+    &quot;Edit&nbsp;<img src="../../Images/rarrow.png" border="0" width="12"
+    height="9"> Add Template&nbsp;<img src="../../Images/rarrow.png"
+    border="0" width="12" height="9"> Import PSP Data&quot;.  <i>(If there is
+    no "Import PSP Data" option in your "Add Template" menu, then you may
+    need to <a href="../Overview/ProcessScripts.html#psp">install the PSP
+    scripts and forms</a>.)</i>
+    A new node will be created in your hierarchy. Give it a descriptive name;
+    you might choose names like "Program 1" if you are entering data from a
+    PSP course.</li>
+
+  <li>Repeat step 2 for each PSP project whose data you wish to import.</li>
+
+  <li>Choose &quot;File&nbsp;<img src="../../Images/rarrow.png" border="0"
+    width="12" height="9"> Save&quot;, then &quot;File&nbsp;<img
+    src="../../Images/rarrow.png" border="0" width="12" height="9">
+    Close&quot; to close the hierarchy editor.</li>
+
+  <li>Navigate to one of the projects you just created, then click the script
+    button.  An abbreviated project plan summary will appear. The fields on
+    this summary are editable; enter your historical data for the given
+    project.</li>
+
+  <li>Repeat step 5 for each imported project.</li>
+
+</ol>
+
+<p>The data entry is a manual process, but not a time-consuming one; it
+should be possible to enter the data from an entire PSP course in about 15
+minutes.</p>
+
+
+</BODY>
+</HTML>

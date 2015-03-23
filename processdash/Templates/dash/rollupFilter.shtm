@@ -1,0 +1,93 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+--><!--#resources bundle="Templates.Filter" -->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="/style.css">
+<TITLE><!--#echo Title --></TITLE>
+
+<SCRIPT>
+   function setvalue() {
+      document.forms[0].elements[11].value =
+         document.forms[0].elements[10].value;
+      changeNotifyElem(document.forms[0].elements[11]);
+   }
+</SCRIPT>
+
+</HEAD>
+<BODY>
+
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2><!--#echo Title --></H2>
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE="Rollup Tag">
+
+<TABLE>
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Date_Filter_On">&nbsp;<!--#echo
+    var="Date_Prompt_HTML" encoding="none" --></td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup As Of Date]d"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Language_Filter_On">&nbsp;<!--#echo 
+    var="Language_Prompt_HTML" encoding="none" --></td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Language]s"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Keyword_Filter_On">&nbsp;<!--#echo
+    var="Keywords_Prompt_HTML" encoding="none"  --></td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Keyword]s"></TD>
+</TR>
+
+<TR>
+<TD><INPUT TYPE=checkbox NAME="Rollup_Prefix_Filter_On">&nbsp;<!--#echo
+    var="Path_Prompt_HTML" encoding="none"  --></td>
+<TD><INPUT TYPE=text SIZE=25 NAME="[Rollup_Prefix]s"></TD>
+</TR>
+<tr><td align=center colspan=2><input type=button onclick="setvalue();"
+    value="<!--#echo Filter_Button -->"></td></tr>
+</TABLE>
+
+<input type=hidden name="[Rollup_Filter_Prototype]s">
+
+<P><!--#echo var="Direct_Edit_Prompt_HTML" encoding="none" --><BR>
+<textarea rows=4 cols=80 name="[Rollup_Filter]s"></textarea><BR>
+
+<P><!--#echo var="Result_Header_HTML" encoding="none" --><BR>
+<textarea rows=10 cols=80 name="[Printable_Rollup_List]s"></textarea>
+
+</FORM>
+
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

@@ -1,0 +1,54 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2002-2009 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+
+=============================================================================
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Fri Jan 30 16:08:52 1998
+==
+== Description: This is the data file for a PSP1 process.
+==
+*/
+
+#include <psp0.1/dataFile.txt>
+undefine([PSP0.1 Tag], [psp0.1], [PSP0.1]);
+[psp1] == TAG;
+[PSP1] == TAG;
+[Process_ID] = "PSP1";
+
+
+/*
+ * Include data elements needed by the size estimating template.
+ */
+
+#include <psp1/sizeestData.txt>
+
+
+/*
+ * Aliases for overall process metrics.
+ */
+
+[Estimated LOC per Hour] = [Estimated Productivity];
+[LOC per Hour]           = [Productivity];
+[Defects per KLOC]       = [Defect Density];

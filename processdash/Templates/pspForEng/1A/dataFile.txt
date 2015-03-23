@@ -1,0 +1,14 @@
+#include <psp0/dataFile.txt>
+undefine([Use_Rollup]);
+
+// We intentionally do not include <pspForEng/progData.txt>
+
+[PSPFORENG_1A_TAG] = TAG;
+
+// Copy the LOC metrics calculated for us by our parent.
+
+[Reused LOC]        = nvl([../1A_calc/Reused LOC], 0);
+[New & Changed LOC] = nvl([../1A_calc/New & Changed LOC], 0);
+[Total LOC]         = nvl([../1A_calc/Total LOC], 0);
+[New Reused LOC]    = nvl([../1A_calc/New Reused LOC], 0);
+[Added LOC]         = [New & Changed LOC];

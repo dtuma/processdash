@@ -1,0 +1,72 @@
+#include <ROLLUP:PSP>
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP for Engineers process. 
+==
+
+pspForEng==TAG
+PSPFORENG==TAG
+node==TAG
+
+
+== Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.
+
+[Project_List] = filter(startsWith([^]), [/PSP/Project List]);
+
+
+== Check to see if the user wants To Date data restarted.  (This choice
+== would be saved with the data for program 7A.)
+
+[7A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_7A_TAG"), [Project_List]));
+[Reset_To_Date_Data] = indirect([7A_Program_Name] &/ "Reset_To_Date_Data");
+
+= Based on that user choice, decide which rollup should be used by 
+= programs 7A - 10A.
+
+[Rollup_Name] = iff([Reset_To_Date_Data], [^], "/To Date/PSP/All");
+
+
+== Make *this* rollup sum projects from higher PSP processes under this node.
+
+[Rollup_Filter] = "([psp2] || [psp2.1] || [psp3]) && [Completed]";
+[Rollup_List]   = filter(eval([Rollup_Filter], [_]), [Project_List]);
+
+== Since *this* is a fairly odd rollup, we don't want it to appear as
+== a rollup choice on plan summary forms.
+
+undefine([PSP Rollup Tag]);
+
+
+= There is no place for students to enter size data for program 1A.
+= Therefore, we will calculate it on their behalf from data entered in
+= program 2A.
+
+[2A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_2A_TAG"), [Project_List]));
+
+#define calc1Afrom2A(Data) [1A_calc/Data] =		\
+    indirect([2A_Program_Name] &/ "Data To Date") - 	\
+    indirect([2A_Program_Name] &/ "Data");
+
+calc1Afrom2A(Reused LOC)
+calc1Afrom2A(New & Changed LOC)
+calc1Afrom2A(Total LOC)
+calc1Afrom2A(New Reused LOC)
+
+
+==
+== Copy the "Project/Language" setting from program 1A
+==
+
+[1A_Program_Name] =
+    index(0, filter(indirect([_] &/ "PSPFORENG_1A_TAG"), [Project_List]));
+[Project/Language] = indirect([1A_Program_Name] &/ "Project/Language");
+
+
+==
+== Don't display the percent spent indicator for the PSP programs.
+==
+
+[Show_Percent_Spent_Indicator] = 0;

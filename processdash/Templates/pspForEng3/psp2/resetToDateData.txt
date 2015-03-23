@@ -1,0 +1,8 @@
+=
+= Filter the list of "prior programs" so it only contains the PSP2 and PSP2.1
+= projects.  Then use the resulting list for "To Date" calculations.
+=
+
+[To_Date_Past_Programs_List] = 
+    filter(lookup([_] &/ "PSP2") || lookup([_] &/ "PSP2.1"),
+           [Previous_Programs_List]);

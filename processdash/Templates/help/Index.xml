@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE index
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Index Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/index_1_0.dtd">
+
+<index version="1.0">
+ <indexitem text=".pspdash" target="ConfigurationFile"/>
+ <indexitem text="?????" target="MissingFields"/>
+ <indexitem text="#DIV/0!" target="MissingFields"/>
+ <indexitem text="#VALUE!" target="MissingFields"/>
+ <indexitem text="add-on processes" target="HowToInstall.addon"/>
+ <indexitem text="autoRealization" target="ConfigurationFile.autoRealization"/>
+ <indexitem text="autoUpdate" target="ConfigurationFile.autoUpdate"/>
+ <indexitem text="average" target="UsingProbeTool.average"/>
+ <indexitem text="base LOC" target="UsingSizeEstimatingTemplate.baseLOC"/>
+ <indexitem text="base additions" target="UsingSizeEstimatingTemplate.baseAdditions"/>
+ <indexitem text="bug report" target="BugReport"/>
+ <indexitem text="C menu" target="ConfigureMenu"/>
+ <indexitem text="change history" target="ChangeLog"/>
+ <indexitem text="charts" target="DataChartsAndReports"/>
+ <indexitem text="completion checkbox" target="CompletionButton"/>
+ <indexitem text="confidence interval" target="UsingProbeTool.interval"/>
+ <indexitem text="configuration file" target="ConfigurationFile"/>
+ <indexitem text="correlation test" target="UsingProbeTool.correlation"/>
+ <indexitem text="counting LOC" target="LOCCounter"/>
+ <indexitem text="cyclic development" target="UsingHierarchyEditor.cyclic"/>
+ <indexitem text="defects" target="EnteringDefects">
+  <indexitem text="defect dialog" target="EnteringDefects">
+   <indexitem text="autostart" target="ConfigurationFile.defectDialog.autostart"/>
+   <indexitem text="phaseMap" target="ConfigurationFile.defectDialog.phaseMap"/>
+   <indexitem text="restrictSequence" target="ConfigurationFile.defectDialog.restrictSequence"/>
+  </indexitem>
+  <indexitem text="defect log" target="UsingDefectLogEditor"/>
+  <indexitem text="fix defect" target="EnteringDefects.fixDefects"/>
+  <indexitem text="fixing multiple defects" target="EnteringDefects.fixingMultipleDefects"/>
+  <indexitem text="timing" target="EnteringDefects.timing"/>
+ </indexitem>
+ <indexitem text="dateFormat" target="ConfigurationFile.dateFormat"/>
+ <indexitem text="earned value" target="UsingTaskSchedule">
+   <indexitem text="level of effort tasks" target="TaskScheduleSteps.loe"/>
+   <indexitem text="prediction ranges" target="TaskScheduleRanges"/>
+ </indexitem>
+ <indexitem text="entering data" target="EnteringData"/>
+ <indexitem text="exporting data" target="ExportingData">
+  <indexitem text="from forms" target="ExportingFromForms"/>
+ </indexitem>
+ <indexitem text="freezing data" target="CompletionButton.freeze"/>
+ <indexitem text="frequently asked questions" target="FAQ"/>
+ <indexitem text="generic process" target="ProcessScripts.generic"/>
+ <indexitem text="goals" target="GoalsOfPSPAndDashboard"/>
+ <indexitem text="help" target="Help">
+  <indexitem text="online" target="HelpForum"/>
+ </indexitem>
+ <indexitem text="hierarchy editor" target="UsingHierarchyEditor"/>
+ <indexitem text="hierarchy menus" target="HierarchyMenus"/>
+ <indexitem text="installation" target="HowToInstall"/>
+ <indexitem text="JavaHelp" target="Help"/>
+ <indexitem text="LOC (lines of code) counter" target="LOCCounter"/>
+ <indexitem text="linear regression" target="UsingProbeTool.regression"/>
+ <indexitem text="multiple to-date data" target="MultipleToDateData"/>
+ <indexitem text="navigating" target="HierarchyMenus"/>
+ <indexitem text="new objects" target="UsingSizeEstimatingTemplate.newObjects"/>
+ <indexitem text="object LOC" target="UsingSizeEstimatingTemplate.objectLOC"/>
+ <indexitem text="overview" target="QuickOverview"/>
+ <indexitem text="planned value" target="UsingTaskSchedule"/>
+ <indexitem text="planning" target="Planning"/>
+ <indexitem text="play/pause button" target="PlayPause">
+  <indexitem text="historySize" target="ConfigurationFile.pauseButton.historySize"/>
+  <indexitem text="pull down" target="PlayPause.pullDown"/>
+  <indexitem text="quiet" target="ConfigurationFile.pauseButton.quiet"/>
+ </indexitem>
+ <indexitem text="postmortem" target="PostmortemAnalysis"/>
+ <indexitem text="prediction interval" target="UsingProbeTool.interval"/>
+ <indexitem text="PROBE tool" target="UsingProbeTool">
+  <indexitem text="chart" target="UsingProbeTool.chart"/>
+  <indexitem text="filtering data" target="UsingProbeTool.filter"/>
+  <indexitem text="onlyCompleted" target="ConfigurationFile.probeDialog.onlyCompleted"/>
+ </indexitem>
+ <indexitem text="PROBE wizard" target="UsingProbeWizard"/>
+ <indexitem text="process scripts" target="ProcessScripts">
+  <indexitem text="modifying" target="DashboardFindsFiles"/>
+  <indexitem text="sharing changes" target="DashboardFindsFiles.sharing"/>
+  <indexitem text="making new" target="DefiningOwnProcesses"/>
+ </indexitem>
+ <indexitem text="progress" target="UsingTaskSchedule.progress"/>
+ <indexitem text="project tree" target="UsingHierarchyEditor"/>
+ <indexitem text="projection" target="UsingProbeTool.projection"/>
+ <indexitem text="proxy server" target="HowToInstall"/>
+ <indexitem text="PSP" target="GoalsOfPSPAndDashboard.psp"/>
+ <indexitem text="pspdash.ini" target="ConfigurationFile"/>
+ <indexitem text="quick start" target="QuickStartPSP1"/>
+ <indexitem text="read-only data" target="UnlockReadOnly"/>
+ <indexitem text="regression" target="UsingProbeTool.regression"/>
+ <indexitem text="reports" target="DataChartsAndReports"/>
+ <indexitem text="reused objects" target="UsingSizeEstimatingTemplate.reusedObjects"/>
+ <indexitem text="rollup data set" target="MultipleToDateData">
+  <indexitem text="filtering" target="MultipleToDateData.filter"/>
+ </indexitem>
+ <indexitem text="schedule" target="UsingTaskSchedule"/>
+ <indexitem text="script button" target="AccessingScripts">
+  <indexitem text="pull down" target="AccessingScripts.pullDown"/>
+  <indexitem text="script browser" target="AccessingScripts.scriptBrowser"/>
+ </indexitem>
+ <indexitem text="significance" target="UsingProbeTool.significance"/>
+ <indexitem text="size estimating template" target="UsingSizeEstimatingTemplate"/>
+ <indexitem text="task and schedule tool" target="UsingTaskSchedule"/>
+ <indexitem text="time card" target="UsingTimeLogEditor.TimeCardView"/>
+ <indexitem text="time estimation" target="UsingSizeEstimatingTemplate.time"/>
+ <indexitem text="time log" target="UsingTimeLogEditor">
+  <indexitem text="date filter" target="UsingTimeLogEditor.dateFilter"/>
+  <indexitem text="summarize" target="UsingTimeLogEditor.summarize"/>
+  <indexitem text="time card" target="UsingTimeLogEditor.TimeCardView"/>
+  <indexitem text="updateInterval" target="ConfigurationFile.timelog.updateInterval"/>
+ </indexitem>
+ <indexitem text="timer, dashboard" target="PlayPause">
+  <indexitem text="sound" target="PlayPause.sound"/>
+ </indexitem>
+ <indexitem text="timer, defect" target="EnteringDefects.timing"/>
+ <indexitem text="timer, icon" target="AccessingScripts.scriptIcons"/>
+ <indexitem text="timer process" target="ProcessScripts.timer"/>
+ <indexitem text="troubleshooting" target="FAQ"/>
+ <indexitem text="TSP" target="GoalsOfPSPAndDashboard.tsp"/>
+ <indexitem text="web server" target="QuickOverview.webServer"/>
+ <indexitem text="work breakdown structure" target="UsingHierarchyEditor"/>
+</index>

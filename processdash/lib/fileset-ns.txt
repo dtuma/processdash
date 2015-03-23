@@ -1,0 +1,5 @@
+net/sourceforge/processdash/data/applet/ns/*.java
+net/sourceforge/processdash/data/applet/js/JSCheckboxField.java
+net/sourceforge/processdash/data/applet/js/JSField.java
+net/sourceforge/processdash/data/applet/js/JSFieldManager.java
+net/sourceforge/processdash/data/applet/dom/*.java

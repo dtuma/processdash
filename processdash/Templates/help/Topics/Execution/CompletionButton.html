@@ -1,0 +1,63 @@
+<HTML>
+<head>
+<TITLE>Using the Task Completion Checkbox</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Using the Task Completion Checkbox</H1>
+
+<P>As you complete the activities for a given task, you should mark
+that task as completed via the completion checkbox.</P>
+
+<p class="figure"><img src="../../Images/PointToCompletionButton.png"></p>
+
+<P>When you mark a task complete with this checkbox, the dashboard will
+automatically change the currently active task to the next process step in the
+current component.  (This behavior can be disabled with the
+<a href="../AdvancedTopics/PreferencesTool.html#selectNext">Preferences
+Editor</a>.)  If the timer is currently running, it will automatically stop
+recording time for the given task and start the timing of the next task.  For
+more information on using the timer, see the <a href="PlayPause.html">Using
+the Play/Pause button</A> help topic.</P>
+
+<P>Tasks marked as complete will show a little checkmark in the completion
+checkbox.  (If you hover the mouse over the checked box, the tooltip will tell
+you exactly what date and time the task was marked complete.)</P>
+
+<P>If you need to go back to a previous phase in a given process, you can 
+still do so even if the completion checkbox has been pressed. The dashboard 
+will still accumulate time in whatever task you make current.  (It will
+display a warning to make certain you're not logging time to the completed
+task by mistake, but you can safely dismiss this dialog.)</P>
+
+<h2 NO_NUMBER>Marking a <i>task</i> complete vs marking the <i>project</i>
+complete</h2>
+
+<p>By default, a PSP project will be considered complete when all the phases
+in the project have been marked complete. However, if you manually edit the
+project completion date on the plan summary form (either via the input field
+or the checkbox), then you have manually overridden this behavior. From then
+on, the project completion status must be edited manually; it will no longer
+respond to changes in phase completion status. (Actually, you can restore the
+default behavior by typing <code><b>DEFAULT</b></code> in the project
+completion date input field on the plan summary form.)</p>
+
+<h2 NO_NUMBER>Why should I bother marking tasks/projects complete?</h2>
+
+<P>It is worth remembering that the "To Date" data entries, the data analysis
+reports, and the PROBE tool only use data from components that are marked
+complete, so it is good to make a habit of marking your components and tasks
+complete, either with the completion checkbox or via the Project Plan Summary
+form.</p>
+
+<P>Also remember that the Task and Schedule tool tracks your progress by
+looking to see which tasks have been marked complete, so it is good to make a
+habit of marking tasks complete.  To help you keep track of what has and
+hasn't been marked complete, the task selection menus will use a strikethrough
+font to display the name of completed tasks.</p>
+
+<p class="figure"><img src="../../Images/HierarchyMenus3.png"></p>
+
+</BODY>
+</HTML>

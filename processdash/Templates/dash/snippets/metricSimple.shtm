@@ -1,0 +1,29 @@
+<!--#resources bundle='CMS' -->
+<div class="metric IEFloatHack" id="$$$_###_div">
+<a href="#" onclick="Element.remove('$$$_###_div'); return false;"
+   title="<!--#echo Edit_Page.Delete_Item.Tooltip -->"
+   class="cmsDeleteButton" style="margin-top:1px"></a>
+
+<!--#if !DisplayName -->
+<a href="#" class="cmsEditButton14" id="$$$_###_editBtn"
+   title="<!--#echo Edit_Page.Edit_Item.Tooltip -->"
+   onclick="Element.hide('$$$_###_editBtn'); Element.show('$$$_###_editReg'); return false;"
+   style="margin-top:1px"></a>
+<!--#endif-->
+
+<!--#replace token="/" value=" / " post=true #-->
+<!--#echo var="DataName" encoding="translate,html" #-->
+<!--#endreplace-->
+
+<input type='hidden' name='$$$_###_DataName'
+       value='<!--#echo DataName -->'/>
+<!-- ### -->
+
+<span style="<!--#if !DisplayName -->display:none; <!--#endif#-->
+    white-space:nowrap" class="cmsIndent" id="$$$_###_editReg">
+<b><!--#echo Edit_Page.Label_Prompt --></b>&nbsp;<input 
+    type='text' size='30' name='$$$_###_DisplayName'
+    value="<!--#echo DisplayName -->"/>
+</span>
+
+</div>

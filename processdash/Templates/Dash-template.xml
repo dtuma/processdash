@@ -1,0 +1,395 @@
+<?xml version='1.0'?>
+
+<!--
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2001-2014 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+
+-->
+
+<dashboard-process-template>
+
+  <!-- miscellaneous processes that are shipped with the dashboard -->
+
+  <template name="Timer" ID="Timer" defineRollup="no"
+            dataFile="Timer/dataFile.txt" href="Timer/script.htm"/>
+
+  <template name="Imaginary Legacy Generic Template" ID="Generic"
+            defectLog="true" defineRollup="no" imaginary="true"
+            dataFile="generic/dataFile2.txt" htmlID="sum"
+	    constraints="{Generic Phase(-1)">
+    <html ID="sum" title="Generic Project Planning Summary"
+          href="generic/summary.class"/>
+
+    <phase name="Planning" type="plan"/>
+    <phase name="Postmortem" type="pm"/>
+  </template>
+
+  <template name="Generic" ID="Generic" defectLog="true" defineRollup="no"
+            dataFile="generic/dataFile3.txt" htmlID="sum"
+	    constraints="{Generic Phase(-1)">
+    <html ID="sum" title="Generic Project Planning Summary"
+          href="generic/summary.class"/>
+
+    <phase name="Planning" type="plan"/>
+    <phase name="Postmortem" type="pm"/>
+  </template>
+
+  <template name="Generic Phase" ID="Generic Phase"
+            defineRollup="no" href="none"
+            dataFile="generic/phaseData.txt" constraints="{}Generic" />
+
+
+  <!-- definitions for background tasks that are provided by the dashboard -->
+
+  <background-task ordinal="500"
+     class="net.sourceforge.processdash.FileBackupManager$BGTask"
+     settingPrefix="backup" enabledWith="backup.enabled"/>
+
+  <background-task ordinal="5000"
+     class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
+     settingPrefix="export" disabledWith="export.disableAutoExport"/>
+
+  <background-task runAtStartup="true" whenDefault="0"
+     class="net.sourceforge.processdash.util.UsageLogger"
+     settingPrefix="usageLogger"/>
+
+  <background-task whenDefault="0"
+     class="net.sourceforge.processdash.log.time.ImportedTimeLogManager$CacheMinder"
+     settingPrefix="importedTimeLogCacheMinder"/>
+
+  <background-task ordinal="501" whenDefault="*"
+     class="net.sourceforge.processdash.util.ThreadMonitor$PrintDeadlockTask"
+     settingPrefix="deadlockMonitor"/>
+
+  <background-task ordinal="502" runAtStartup="true" whenDefault="8,12,16,20"
+     class="net.sourceforge.processdash.ui.web.dash.TeamStartNotifier"
+     settingPrefix="teamJoinNotifier" requires="personalMode"/>
+
+  <background-task runAtStartup="true" whenDefault="-1"
+     class="net.sourceforge.processdash.tool.export.mgr.AutoExportTrigger"
+     forTag="PROBE Task" settingPrefix="probeAutoExport"
+     disabledWith="export.disableAutoExport">
+        <onDataChange>Workflow Completed</onDataChange>
+  </background-task>
+
+
+  <!-- definitions for snippets that are provided by the dashboard -->
+
+  <snippet id="pdash.addNew" version="1.0" category="hidden">
+    <resources>CMS.Snippet.AddNew</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/addNew</uri>
+  </snippet>
+
+  <snippet id="pdash.editHelp" version="1.0" category="hidden">
+    <resources>CMS.Snippet.EditHelp</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/editHelp.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.pageHeading" version="1.0" category="hidden">
+    <resources>CMS.Snippet.PageHeading</resources>
+    <context>*</context>
+    <mode>toc</mode>
+    <mode>edit</mode>
+    <uri>/dash/snippets/pageHeading.shtm</uri>
+    <uri mode="toc">/dash/snippets/pageHeadingTOC.shtm</uri>
+    <uri mode="edit">/dash/snippets/pageHeadingEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.sectionHeading" version="1.0" category="general">
+    <resources>CMS.Snippet.SectionHeading</resources>
+    <context>*</context>
+    <mode>toc</mode>
+    <mode>edit</mode>
+    <uri>/dash/snippets/sectionHeading.shtm</uri>
+    <uri mode="toc">/dash/snippets/sectionHeadingTOC.shtm</uri>
+    <uri mode="edit">/dash/snippets/sectionHeadingEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.simpleProjectSettings" version="1.0" category="forms">
+    <resources>CMS.Snippet.ProjectSettings</resources>
+    <context>Simple Project Tag</context>
+    <uri>/dash/snippets/projectSettings.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.metricsTable" version="1.0" category="forms">
+    <resources>Analysis.MetricsTable</resources>
+    <context>Simple Project Tag</context>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/metricsTable</uri>
+    <uri mode="edit">/dash/snippets/metricsTableEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.metricsPhaseTable" version="1.0" category="forms">
+    <resources>Analysis.MetricsPhaseTable</resources>
+    <context>Simple Project Tag</context>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/metricsPhaseTable</uri>
+    <uri mode="edit">/dash/snippets/metricsPhaseTableEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.metricsPhaseTablePSP2" version="1.0" category="hidden">
+    <resources>Analysis.MetricsPhaseTable</resources>
+    <context>PSP2</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/metricsPhaseTablePSP2</uri>
+    <uri mode="edit">/dash/snippets/metricsPhaseTableEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.phaseChart" version="1.0" category="charts">
+    <resources>Analysis.PhaseChart</resources>
+    <context>Simple Project Tag</context>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/phaseChart</uri>
+    <uri mode="edit">/dash/snippets/phaseChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.radarChart" version="1.0" category="charts">
+    <resources>Analysis.RadarChart</resources>
+    <context>Simple Project Tag</context>
+    <context>Rollup Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/radarChart</uri>
+    <uri mode="edit">/dash/snippets/radarChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.histXYChart" version="1.0" category="charts">
+    <resources>Analysis.HistXYChart</resources>
+    <context>Historical Data Tag</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/histXYChart</uri>
+    <uri mode="edit">/dash/snippets/histXYChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.qualityProfile" version="1.0" category="charts">
+    <resources>Analysis.QualityProfile</resources>
+    <context>Quality Profile Capable</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/qualityProfile</uri>
+    <uri mode="edit">/dash/snippets/qualityProfileEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectDensity" version="1.0" category="reports">
+    <resources>Analysis.DefectDensity</resources>
+    <context>Historical Data Tag</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report3?for=auto&amp;R3chromeless&amp;noDisclaimer&amp;hideD22</uri>
+    <uri mode="edit">/dash/snippets/heading.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectFixTimes" version="1.0" category="reports">
+    <resources>Analysis.DefectFixTimes</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report3?for=auto&amp;R3chromeless&amp;noDisclaimer&amp;hideD21</uri>
+    <uri mode="edit">/dash/snippets/heading.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsByPhaseAndType" version="1.0" category="reports">
+    <resources>Analysis.DefectsByPhaseAndType</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report4?for=auto&amp;R4chromeless&amp;noDisclaimer&amp;hideD24</uri>
+    <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsByCompiler" version="1.0" category="reports">
+    <resources>Analysis.DefectsByCompiler</resources>
+    <context>Has Compile Phase</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report4?for=auto&amp;R4chromeless&amp;noDisclaimer&amp;hideD23</uri>
+    <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectsPareto" version="1.0" category="charts">
+    <resources>Analysis.DefectsPareto</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/reports/analysis/report5?snippet</uri>
+    <uri mode="edit">/dash/snippets/defectsParetoEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.defectLog" version="1.0" category="reports">
+    <resources>Defects.Report</resources>
+    <context>*</context>
+    <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
+  </snippet>
+
+  <snippet id="pdash.timeLog" version="1.0" category="reports">
+    <resources>Time.Report</resources>
+    <!-- 
+         Note: the time log snippet is only enabled for "Simple Projects"
+         at this time. In particular, it can not be added to any team
+         project planning summary, because it cannot support the filtering
+         techniques that are used by those forms.
+      -->
+    <context>Simple Project Tag</context>
+    <uri>/reports/timelog.class?noDisclaimer</uri>
+  </snippet>
+
+  <snippet id="pdash.testExpression" version="1.0" category="reports">
+    <resources>Analysis.TestExpression</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/testExpression</uri>
+    <uri mode="edit">/dash/snippets/testExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.rangeExpression" version="1.0" category="reports">
+    <resources>Analysis.RangeExpression</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/rangeExpression</uri>
+    <uri mode="edit">/dash/snippets/rangeExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.evReport" version="1.0" category="reports">
+    <resources>EV.Report.Snippet</resources>
+    <context>EV Project Tag</context>
+    <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto&amp;pathFilterAuto</uri>
+  </snippet>
+
+  <snippet id="pdash.ev.cumValueChart" version="1.0" category="ev">
+    <resources>EV.Snippet.Earned_Value_Chart</resources>
+    <context>Earned Value Context</context>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$Value</widget>
+    <help id="EV.cumValueChart"
+          uri="/help/Topics/Planning/EV-cumValueChart.html"/>
+  </snippet>
+
+  <snippet id="pdash.ev.cumDirectTimeChart" version="1.0" category="ev">
+    <resources>EV.Snippet.Direct_Hours_Chart</resources>
+    <context>Earned Value Context</context>
+    <context>!Filtered Earned Value Context</context>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$DirectTime</widget>
+    <help id="EV.cumDirectTimeChart"
+          uri="/help/Topics/Planning/EV-cumDirectTimeChart.html"/>
+  </snippet>
+
+  <snippet id="pdash.ev.cumCombinedChart" version="1.0" category="ev">
+    <resources>EV.Snippet.Combined_Chart</resources>
+    <context>Earned Value Context</context>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$Combined</widget>
+    <help id="EV.cumCombinedChart"
+          uri="/help/Topics/Planning/EV-cumCombinedChart.html"/>
+  </snippet>
+
+  <snippet id="pdash.ev.statisticsTable" version="1.0" category="ev">
+    <resources>EV.Snippet.Statistics_Table</resources>
+    <context>Earned Value Context</context>
+    <widget>net.sourceforge.processdash.ev.ui.EVMetricsWidget</widget>
+  </snippet>
+
+  <!-- Snippets associated with the Process Advisor -->
+
+  <snippet id="pdash.processAdvisor" version="1.0" category="hidden">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <pageFilter mode="view">net.sourceforge.processdash.ui.web.reports.snippets.ProcessAdvisor</pageFilter>
+  </snippet>
+
+  <!-- Other miscellaneous items provided by the dashboard -->
+
+  <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>
+
+  <defect-importer id="clipboard"
+     resources="Defects.ImportForm.Clipboard"
+     specLocation="dash/clipboard-defect-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
+  <defect-importer id="codeCollab"
+     resources="Defects.ImportForm.CodeCollab"
+     specLocation="dash/code-collab-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
+  <defect-importer id="reviewBoard"
+     resources="Defects.ImportForm.ReviewBoard"
+     specLocation="dash/review-board-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
+  <scriptSource dataName="Process_URLs"/>
+
+  <scriptSource dataName="User URLs"/>
+
+  <scriptSource
+     class="net.sourceforge.processdash.templates.ui.WebAppScriptSource"/>
+
+  <scriptSource
+     class="net.sourceforge.processdash.hier.ui.HierarchyNoteScriptSource"/>
+
+  <sizeMetricApi id="mcfSizeMetricApiHandler"
+     class="net.sourceforge.processdash.ui.web.api.McfSizeMetricApiHandler" />
+
+  <messageHandler
+     class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
+
+  <messageHandler
+     class="net.sourceforge.processdash.ev.TaskListAltererMessageHandler"/>
+
+  <messageHandler requires="personalMode"
+     class="net.sourceforge.processdash.ui.web.dash.TeamStartMessageHandler"/>
+
+  <messageHandler
+     class="net.sourceforge.processdash.ui.web.api.ApiMessageRepeater"/>
+
+ <!-- definitions for the preferences dialog. -->
+ 
+    <preferences-pane id="pdash.ui"
+                      categoryID="ui"
+                      priority="1000"
+                      specFile="prefs/ui.xml"
+                      resources="Tools.Prefs.UI" />
+                      
+    <preferences-pane id="pdash.Addons"
+                      categoryID="addons"
+                      priority="500"
+                      specFile="prefs/addons.xml"
+                      resources="Tools.Prefs.Add_Ons" />
+                      
+    <preferences-pane id="pdash.misc"
+                      categoryID="misc"
+                      priority="20"
+                      specFile="prefs/misc.xml"
+                      resources="Tools.Prefs.Misc" />
+                      
+    <preferences-pane id="pdash.backups"
+                      categoryID="backups"
+                      priority="100"
+                      specFile="prefs/backups.xml"
+                      resources="Tools.Prefs.Backups" />
+                      
+    <preferences-pane id="pdash.advanced"
+                      categoryID="advanced"
+                      priority="0"
+                      specFile="prefs/advanced.xml"
+                      resources="Tools.Prefs.Advanced" />
+                      
+</dashboard-process-template>

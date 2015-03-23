@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<langpack>
+
+    <str id="application.name">Process Dashboard</str>
+
+    <str id="pdash">Process Dashboard</str>
+    <str id="pdash.description">The core Process Dashboard application.
+
+The Process Dashboard is distributed under the terms of the GNU General Public License.</str>
+
+
+    <str id="pspProc">PSP(SM) Processes</str>
+    <str id="pspProc.description">Templates, scripts, and forms supporting the Personal Software Process(SM).
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+
+
+    <str id="pspForEng">PSP(SM) for Engineers</str>
+    <str id="pspForEng.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP for Engineers I &amp; II.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+
+
+    <str id="pspFundAdv">PSP(SM) Fundamentals &amp; Advanced</str>
+    <str id="pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+
+
+    <str id="pspInstrTools">PSP(SM) Instructor Tools</str>
+    <str id="pspInstrTools.description">Tools to assist instructors of the PSP courses</str>
+
+
+    <str id="javaHelp">JavaHelp(TM) Help Browser</str>
+    <str id="javaHelp.description">Help browser from Sun Microsystems.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced browsing of the Process Dashboard help documentation, including full-text search capabilities.
+
+The contents of this module are copyrighted by Sun Microsystems and are not open source.  Sun Microsystems requires that you consent to an additional license agreement to download and install this module.</str>
+
+
+    <str id="extras">Charting and Reporting Extensions</str>
+    <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+
+
+    <str id="tpidw">Relational Database Extensions</str>
+    <str id="tpidw.description">Relational Database Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will significantly improve the performance and scalability of the application, and will enable external access to project data via SQL queries.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+
+
+    <str id="teamTools">Tools for Team Leaders</str>
+    <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
+
+
+    <str id="CondHTMLLicencePanel0.header">You have chosen to install the following {0,choice,1#module|2#modules}:
+&#160;          {1}
+
+The publisher has granted this permission on the condition that users consent to the following license agreement before downloading or installing {0,choice,1#this module|2#these modules}:</str>
+
+
+    <str id="CondHTMLLicencePanel1.header">You have chosen to install the JavaHelp(TM) software, written by Sun Microsystems.  To download and install this optional module, you must consent to the following license agreement.</str>
+
+
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the following optional {0,choice,1#module|2#modules}, written by Tuma Solutions:
+&#160;          {1}
+
+To download and install {0,choice,1#this module|2#these modules}, you must consent to the following license agreement.</str>
+
+    <!-- Conditional License Panel strings -->
+    <str id="LicencePanel.deselect.title" txt="Deselect Packages?"/>
+    <str id="LicencePanel.deselect.message1" txt="You have indicated that you do not consent to this license\nagreement.  Would you like to remove the module(s)"/>
+    <str id="LicencePanel.deselect.message2" txt="from the installation list?"/>
+
+    <!-- Data Dir Panel strings -->
+    <str id="DataDirPanel.info" txt="Select a directory for your personal metrics data :"/>
+    <str id="DataDirPanel.empty_datadir" txt="You must select a data directory."/>
+
+    <!-- Team Data Dir Panel strings -->
+    <str id="TeamDataDirPanel.info" txt="Select a directory for team configuration data :"/>
+    <str id="TeamDataDirPanel.message">
+The directory you select will be used to store configuration
+information for the Team Dashboard.
+  
+Most teams should choose a shared network directory,
+where the files will be accessible to all members of
+the team.
+  
+If several people (for example: team leader, planning
+manager, coach) all need access to the Team Dashboard,
+they should all enter the same network directory path
+in this field.
+    </str>
+    <str id="TeamDataDirPanel.empty_datadir" txt="You must select a data directory."/>
+
+    <!-- Shutdown Dashboard Panel strings -->
+    <str id="ShutdownDashboardPanel.info">
+If you are running the Process Dashboard right now,
+installing new files can cause unpredictable errors.  It is
+therefore imperative that you shut down the Dashboard if it
+is currently running.
+ 
+If you are installing the Process Dashboard for the first
+time, or if you are not currently running the Process
+Dashboard, you can ignore this warning.
+ 
+Otherwise, shut down any currently running instances of the
+Process Dashboard before you click the &quot;Next&quot; button.</str>
+
+    <str id="ShutdownDashboardPanel.error.info">
+This installer has detected that an instance
+of the Process Dashboard is currently running
+on this machine.  You must shut it down before
+you can proceed.</str>
+
+    <str id="ShutdownDashboardPanel.error.title" txt="Process Dashboard Running"/>
+
+    <str id="TargetPanel.warn">The directory already exists. The Process Dashboard installation in the given directory will be safely updated with new and changed application files. Is this what you would like to do?</str>
+
+</langpack>

@@ -1,0 +1,53 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2003 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+==
+*/
+
+[Owner] = "${/ProcessDashboard:Enter_your_name}";
+
+// Rename the old [To Date As Of] tag to [To Date/PSP/All/Rollup As Of Date]
+To D[a]te As Of=>~To Date/PSP/All/Rollup As Of Date
+
+
+/*
+ * Define a generic defect type standard
+ */
+
+[Defect Type Standard/Generic] = "10|20|30|40|50|60|70|80|90|100";
+
+
+/*
+ * Default guidelines for the quality profile
+ */
+
+[Target Design/Code Ratio] = 1.0;
+
+[Target Design Review/Design Ratio] = 0.5;
+
+[Target Code Review/Code Ratio] = 0.5;
+
+[Target Test Defect Density] = 5;
+
+[Target Compile Defect Density] = 10;

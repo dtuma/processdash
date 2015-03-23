@@ -1,0 +1,94 @@
+<!--#server-parsed --><!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+--><!--#resources bundle="Analysis" -->
+<html>
+
+<head>
+<title>Chart</title>
+
+<style>
+body { margin: 0pt; padding: 0pt }
+div  { margin: 0pt; padding: 0pt }
+img  { margin: 0pt; padding: 0pt; border: 0pt }
+</style>
+
+<script type='text/javascript' src='/lib/prototype.js'></script>
+<script type='text/javascript' src='/lib/overlib.js'></script>
+<script language="JavaScript">
+
+// Construct a value for the SRC attribute of an image.
+function imgSrc() {
+    var w,h;
+    if (document.body && document.body.clientWidth) {
+	w = document.body.clientWidth;
+	h = document.body.clientHeight;
+    } else if (document.documentElement    // Explorer 6 Strict Mode
+            && document.documentElement.clientHeight) {
+	w = document.documentElement.clientWidth;
+	h = document.documentElement.clientHeight;
+    } else if (self.innerHeight) {     // all except Explorer
+	w = self.innerWidth;
+	h = self.innerHeight;
+    }
+
+    var chart = "line.class";
+    if (window.location.search.indexOf("chart=xy") != -1)
+        chart = "xy.class";
+    else if (window.location.search.indexOf("chart=pie") != -1)
+        chart = "pie.class";
+    else if (window.location.search.indexOf("chart=bar") != -1)
+        chart = "bar.class";
+    else if (window.location.search.indexOf("chart=radar") != -1)
+        chart = "radar.class";
+    return (chart + window.location.search + "&width="+w + "&height="+h);
+}
+
+function imgHtmlSrc() {
+    var href = "table.class" + window.location.search;
+    return imgSrc() + "&html&href=" + encodeURIComponent(href)
+            +  "&imgid=chart&tooltip=" 
+            + encodeURIComponent("<!--#echo var='Full_Page_Detail_Instruction'
+                                       encoding='html,javaStr' -->");
+}
+
+// Resize the chart, in response to the window/frame being resized.
+var resizeToken = 0;
+function resizeChart(token) {
+    if (token == resizeToken) {
+        new Ajax.Updater('chart', imgHtmlSrc());
+    }
+}
+function deferredResize() {
+    var newToken = ++resizeToken;
+    self.setTimeout("resizeChart("+newToken+")", 100);
+}
+window.onresize = deferredResize;
+
+</script>
+
+</head>
+
+<body scroll="no"><div id="chart"></div><script>
+    resizeChart(0);
+</script></body></html>

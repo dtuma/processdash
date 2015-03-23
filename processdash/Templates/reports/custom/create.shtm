@@ -1,0 +1,175 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="/style.css">
+<title>Create Custom Chart/Report</title>
+<style>
+    input { margin-left: 1cm }
+    select { margin-left: 1cm }
+</style>
+
+<script>
+   var SILENT = true;
+
+   function visitPage(href) {
+      var url = window.location.href;
+      var pos = url.indexOf("//reports/custom/");
+      url = url.substring(0, pos+10) + href;
+      window.location.href = url;
+   }
+
+   function formValue(pos) {
+      var elem = document.forms[0].elements[pos];
+      if (elem.type == "select-one") {
+         var val = elem.options[elem.selectedIndex].value;
+	 if (!val) val = elem.options[elem.selectedIndex].text;
+         return escape(val);
+      } else if (elem.type == "text")
+         return escape(elem.value);
+      else
+         return "";
+   }
+
+   function drawIt() {
+      var type = "<!--#echo [_Cust_Type] -->";
+      if (type == "" || type == "none") {
+         alert("Please select a chart/report type.");
+	 return;
+      }
+
+      var url;
+      if (type == "report")
+         url = "table.class?qf=custom/report.rpt";
+      else {
+         url = "full.htm?qf=custom/" + type + ".rpt&chart=";
+	 if (type == "scatter") { url = url + "xy"; }
+	 else if (type == "trend") { url = url + "line"; }
+	 else if (type == "pieToDate") { url = url + "pie"; }
+	 else if (type == "barToDate") { url = url + "bar"; }
+      }
+      url = url + "&title=" + formValue(2);
+      var elemNum = 1;
+      var formPos = 3;
+      var val;
+      while (formPos < (document.forms[0].length - 1)) {
+         val = formValue(formPos);
+         if (val != "") {
+             url = url + "&d" + elemNum + "=" + val;
+             elemNum++;
+         }
+         formPos++;
+      }
+      if (type == "scatter") {
+         if (elemNum < 3) {
+            alert("Please select two data elements.");
+	    return;
+         }
+      } else if (elemNum < 2) {
+         alert("Please select at least one data element.");
+	 return;
+      }
+
+      visitPage(url);
+   }
+
+</script>
+
+</head>
+<body>
+
+<h1>Create Custom Chart/Report</h1>
+
+<form>
+
+<input class=left type=hidden name="requiredTag" value="Rollup Tag">
+
+<select style="margin-left: 0cm" name="_Cust_Type	s!">
+<option value="none"     >Select a chart/report type...
+<option value="trend"    >Trend chart of completed projects
+<option value="scatter"  >Scatter plot of completed projects
+<option value="report"   >Table of data from completed projects
+<option value="pieToDate">Pie plot of &quot;To Date&quot; data
+<option value="barToDate">Bar chart of &quot;To Date&quot; data
+</select>
+
+<!--#if not [_Cust_Type] || [_Cust_Type] eq 'none' -->
+
+<p>Select a chart/report type to generate a custom chart.
+
+<!--#else-->
+
+<p>Choose a title for the <!--#if [_Cust_Type] eq 'report' -->
+    report<!--#else-->chart<!--#endif-->:<br>
+<input type=text name="_Cust_Title	s">
+
+<!--#if [_Cust_Type] eq 'scatter' -->
+
+<p>Select the data element for the X axis:<br>
+<!--#include file="../../dash/selectElem.class?name=_Cust_x%09s" -->
+
+<p>Select the data element for the Y axis:<br>
+<!--#include file="../../dash/selectElem.class?name=_Cust_y%09s" -->
+
+<!--#else-->
+
+<p>Select the data element(s) to display:<br>
+<!--#if not defined numLines -->
+  <!--#set var=numLines value='2' -->
+<!--#endif-->
+
+<!--#foreach name=line values=",1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34," #-->
+    <!--#if 'line' le numLines #-->
+    <!--#include file="../../dash/selectElem.class?name=_Cust_line%09s" --><br>
+    <!--#endif-->
+<!--#endfor-->
+
+<!--#if numLines lt '30' -->
+     <!--#incr numLines --><!--#incr numLines -->
+     <!--#incr numLines --><!--#incr numLines -->
+     <a style="margin-left: 1cm"
+        href="create.shtm?numLines=<!--#echo numLines -->">More...</a><br>
+<!--#endif-->
+
+<!--#endif-->
+
+<!--#if [_Cust_Type] eq 'report' #-->
+<p><input name=r type=button value="Generate Report..." onclick="drawIt();">
+<!--#else-->
+<p><input name=r type=button value="Generate Chart..." onclick="drawIt();">
+<!--#endif-->
+
+<!--#endif-->
+
+</form>
+
+
+<script language=JavaScript src="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</script>
+
+</body>
+</html>

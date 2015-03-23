@@ -1,0 +1,72 @@
+<html>
+<head>
+<title>Export to Microsoft Project - Instructions</title>
+<link rel='stylesheet' type='text/css' href='/style.css'>
+<style>
+li.padAbove { padding-top:7px; }
+li.padBelow { padding-bottom:7px; }
+li.pad { padding-top:7px; padding-bottom:7px }
+</style>
+</head>
+<body>
+<h1>Export to Microsoft Project - Instructions</h1>
+
+<p>This page will assist you in exporting a snapshot of your earned
+value plan to Microsoft Project.  Follow the steps below:
+
+
+<ol>
+
+<li class="padBelow">Earned value data is exported to a Microsoft Project
+XML file.  To produce this file, choose from the options below. Then click
+the "Save" button to save the file to your computer.
+
+    <form method="post" action="ev.class">
+    <input type="hidden" name="msProjXml" value="t">
+    <input type="hidden" name="showSaveAs" value="t">
+
+    <table style="margin-left: 1cm; margin-top: 10px" cellspacing="6">
+    <tr><td>Pull start and finish dates from which dashboard column:</td>
+        <td><select name="dateStyle">
+	    <option>Plan</option>
+	    <option selected>Replan</option>
+	    <option>Forecast</option></select></td></tr>
+
+    <tr><td align="center"><input type="submit" name="Save" value="Save"></td></tr>
+    </table>
+    </form>
+    </li>
+
+<li class="pad">In Microsoft Project, choose &quot;File <img
+src="/help/Images/rarrow.png"> Open&quot; and select the file you
+saved in the first step.  You may have to change the &quot;Files of
+type&quot; selector in order to see the XML file.  Click the Open
+button.</li>
+
+<li class="pad">An Import Wizard will appear; choose to import the file as
+a new project, and click Finish.</li>
+
+<li class="pad">You may see a warning that task start dates precede
+the start date of the project, or that task end dates fall after the
+finish date of the project.  These warnings are harmless and can be
+ignored.</li>
+
+<li class="pad">A new project will be created and populated with the
+current data from your earned value plan.  If you wish, you can save
+this project for future use.  Keep in mind that this is only a
+snapshot of your earned value project.  The data in this snapshot will
+not be refreshed when you make progress in the future.  Also, changes
+made in this Microsoft Project file will not be reflected in the
+dashboard.</li>
+
+</ol></p>
+
+<hr>
+
+<p>The XML file format was introduced in Microsoft Project 2003.  If
+you are using an earlier version of MS Project, you can use the older
+<a href="ev-project-instr-csv.htm">CSV format</a> instead.</p>
+
+
+</body>
+</html>

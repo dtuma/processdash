@@ -1,0 +1,14 @@
+#include <psp1/dataFile.txt>
+#include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
+
+= Students must manually calculate LOC/Hr for program 4A.
+
+4A Estimated LOC per Hour=?NaN
+4A LOC per Hour=?NaN
+4A LOC per Hour To Date=?NaN
+
+
+= Extra freeze flag
+
+[FreezeFlag/4A LOC per Hour] = [Completed];

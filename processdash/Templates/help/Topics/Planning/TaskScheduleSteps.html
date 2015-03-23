@@ -1,0 +1,306 @@
+<HTML>
+<head>
+<TITLE>Creating a Schedule Step by Step</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+
+<BODY>
+
+<h1>Creating a Schedule Step by Step</h1>
+
+<p>The Task &amp; Schedule tool tries to make entering all the data necessary 
+for project planning and tracking as painless as possible.  It fills in many 
+of the columns automatically. The following discussion will show how to 
+create a schedule step by step.</p>
+
+<h2><a name="addTasks"></a>Step 1: Add tasks to the task list</h2>
+
+<p>To create a schedule, you decide what tasks you want included in the 
+schedule, and add them with the Add Task button. You can add any node in 
+your hierarchy to the task list; it will be added, along with all its 
+children, recursively. As an improvement over the traditional task planning 
+template, the dashboard displays your task list in a hierarchical fashion. 
+You can expand and contract this hierarchical view to get coarser- or 
+finer-grained data. </p>
+
+<h3 NO_NUMBER>The relationship between the Hierarchy Editor and the
+Task &amp; Schedule tool</h3>
+
+<p>All the tasks that are to be tracked within the schedule must come
+from your the project hierarchy, as defined in the 
+<a href="UsingHierarchyEditor.html">hierarchy editor</a>. If you edit
+your hierarchy in the future, your changes will automatically
+propagate into affected task lists. For example, if you add a node
+named &quot;Release 3.0&quot; to a task list, then in the future if
+you were to create/delete subtasks underneath &quot;Release 3.0&quot;,
+they would automatically appear in the task list / disappear from the
+task list.</p>
+
+<p>Changes made in the hierarchy automatically get reflected into the 
+schedule, because the schedule is basically a listing of the tasks/projects 
+in the dashboard.  However, if you remove a task in the Task &amp; Schedule 
+tool, it does <i>NOT</i> get deleted from the task hierarchy of the process 
+dashboard (as defined using the <a href="UsingHierarchyEditor.html">Hierarchy 
+Editor</a>).  All you will have done is removed the task from the schedule, 
+not deleted it entirely from the dashboard.  Deletion of tasks or projects 
+from the dashboard itself must be done from the 
+<a href="UsingHierarchyEditor.html">Hierarchy Editor</a>.</p> 
+
+<h3 NO_NUMBER>Editing the task list</h3>
+
+<p>Once you have added tasks to the task list, you can use the Remove Task
+button to remove them.  If you remove a <U>top-level</U> task, it will be
+removed from the task list entirely.  (Top-level tasks are the tasks that you
+explicitly added using the Add Task button; in the task list, they appear as
+immediate children of the root of the tree.)  If you remove a <u>child</u> of
+a top-level task, it will be not be deleted from your work hierarchy; instead,
+it will just be excluded from the calculations for this EV schedule.  This
+option is appropriate if you plan to work on an item in the future, but not
+during the current project iteration.  If you have excluded a task in this
+way, you can restore it by highlighting the pruned task and clicking the
+Restore Task button.</p>
+
+<p><A NAME="flatView"></A>The planned completion dates displayed in the task
+list are based upon the order you plan to complete the tasks.  To define the
+correct chronological order, check the Flat View checkbox.  This will replace
+the hierarchical view of the task list with a flat, chronological view of the
+"leaf" tasks that have not yet been completed.</p>
+
+<p class="figure"><img src="../../Images/TaskScheduleFlatView.png"></p>
+
+<p>After you switch into flat view, you can reorder the list of tasks.
+Place tasks in approximate chronological order (the first task in
+the list should be the one you plan to work on first, and so on).
+There are several ways to reorder the tasks:</p>
+
+<ul>
+
+<li>You can highlight a set of tasks, and click the Move Task Up/Down
+    buttons.</li>
+
+<li>You can highlight a set of tasks, then drag them up and down to
+    move them to a new place in the list.</li>
+
+<li>You can highlight a set of tasks, and type <b><tt>Ctrl-C</tt></b>
+    to copy the tasks to the clipboard.  Next, highlight another task
+    in the list to indicate where you would like the tasks to appear.
+    Finally, type <b><tt>Ctrl-V</tt></b> to move the tasks to the
+    highlighted position.</li>
+
+<li>For extensive reordering, type <b><tt>Ctrl-A</tt></b> to select
+    the entire list of tasks, then <b><tt>Ctrl-C</tt></b> to copy the
+    entire list to the clipboard.  Next, open a word processor or
+    spreadsheet program, and paste the list of tasks there.  Use that
+    application to move and reorder the tasks as desired, keeping one
+    task per line.  When you are finished, highlight the list of tasks
+    in the other application, and copy them to the clipboard.  Switch
+    back to the Task and Schedule window and type
+    <b><tt>Ctrl-V</tt></b> to apply the reordering.</li>
+
+</ul>
+
+<H2><a name="taskTime"></a>Step 2: Estimate task time </H2>
+
+<P>Once tasks are added to the task list, the dashboard will look up 
+information like the planned time, actual time, etc. from the appropriate 
+Project Plan Summary forms (if applicable), and display it in the 
+appropriate boxes. You can click on any value with a yellow background and 
+edit it, and the change will appear immediately on the associated Project 
+Plan Summary form.  Similarly, if you edit one of these values on a Project 
+Plan Summary form, the new value will automatically appear here in the task 
+list.</P>
+
+<h3 NO_NUMBER><A NAME="loe"></A>Level of Effort Tasks</h3>
+
+<P>Often, you may find that you are required to perform
+&quot;overhead&quot; tasks, like reading email or attending meetings.
+Or, you may be assigned to some ongoing responsibility like keeping
+the server running, or monitoring the quality of your team's software
+modules.  These tasks are ongoing, and usually have no beginning and
+no end.  It doesn't make sense to say that you could ever
+&quot;complete&quot; such a task.  In general, you'll spend some
+percentage of your available time working on these tasks.  Because of
+this, it is generally not possible to estimate how many hours and
+minutes of your time the task will require.  If the project lasts one
+month, you might spend 10 hours during that time period reading email
+- but if the project lasts two months, you'll spend 20 hours.  Because
+of this, traditional PSP earned value techniques tell you not to
+include these tasks on your task list at all.</p>
+
+<p>The Process Dashboard includes an innovative feature that makes it
+easy to include these &quot;level of effort&quot; tasks on your task
+list.  Add the task to your task list as usual, and in the
+&quot;Planned Time&quot; column, enter a percentage.  For example, if
+you think you'll spend 5% of your time reading email, you can add a
+task to your task list called &quot;reading email,&quot; and enter
+&quot;5%&quot; in the planned time column.  If you indicate that a
+particular task is a level of effort task, all of its subtasks will be
+considered level of effort tasks as well.</p>
+
+<p>&quot;Level of effort&quot; tasks in your task list will display
+differently from regular tasks.  For example, the actual time for
+these tasks will be displayed as a percentage (so you can quickly
+learn how much time you really spend in meetings!).  Level of effort
+tasks do not earn any value, since it doesn't make sense to mark them
+&quot;complete.&quot; For the same reason, these tasks will not
+contain plan/actual completion dates or percent complete/spent
+values.</p>
+
+
+<H2><a name="calTime"></a>Step 3: Estimate calendar time</H2>
+
+<P>To generate a schedule, the dashboard needs to know how much time you plan 
+to spend working on these tasks, and when you plan to spend it. This 
+information is displayed in the bottom portion of the window. Each row in the 
+table represents a time period. These time periods are consecutive; each time 
+period begins when the previous time period ends.</P> 
+
+<P>Think about how much time you have available to work on the tasks listed 
+in your task list. Describe a time period by entering the dates it will start 
+and stop, and in the "PT" (Planned Time) column enter the number of hours you 
+think you can spend during that time period.</P> 
+
+<P>Most of the time people have fairly predictable schedules - for example, 
+you might say "I'm going to spend 20 hours a week on this until it gets 
+done." Since this is the most common situation, the schedule will, by 
+default, grow automatically to meet the demand. You don't have to manually 
+add rows to your schedule until there are enough hours to cover the tasks - 
+instead, the schedule template will automatically duplicate the final row in 
+the table until there are enough hours. You can easily see where the 
+automatic portion of the schedule starts because the automatic rows are 
+displayed with a medium gray font. Thus, the black rows in the schedule 
+template are rows that you have manually created/edited, and the gray rows 
+are the ones which have been automatically added to meet the time 
+requirements.</p>
+
+<p class="figure"><img src="../../Images/TaskScheduleTimes.png"></p>
+
+<p><A NAME="shortSchedule"></A>You can disable this automatic schedule
+expansion by entering the word <tt>END</tt> in the planned time column for
+a particular row.  This tells the dashboard that you plan to stop work on a
+particular date, whether the tasks are completed or not.  The dashboard
+will take this end date into account for its calculations; if the schedule
+no longer has enough planned hours to finish all of the work, some tasks
+may be assigned the planned completion date of "never".</p>
+
+<P>As in the task list, editable cells have a yellow background.  Since time 
+periods are contiguous, editing the "To" value on one row will cause the 
+"From" value on the following row to change accordingly.  Similarly, editing 
+the "From" value on one row will cause the "To" value on the previous row to 
+change. If you make changes to the last black row (which is used as a 
+template and copied to make all the subsequent gray rows), all of the gray 
+rows will be regenerated accordingly. If you edit a value in one of the gray 
+rows, it (and all of the rows before it) will become "real", and the row in 
+question will become the new "template row" upon which subsequent gray rows 
+will be based.</P>
+
+<P>If you need to extend the schedule past its optimal completion date, click 
+the Add Row button to create a new row at the bottom of your schedule. The 
+Insert Row button will split the currently selected time period into two 
+separate rows, while the Delete Row will merge the currently selected time 
+period with the one that follows it. Note that it isn't possible to delete 
+an automatically generated row. If you want to to force your schedule to 
+end early, you should do so by entering <tt>END</tt> in the planned time
+column for the final time period, as described
+<A HREF="#shortSchedule">above</A>.</P> 
+
+<p>If you have any &quot;level of effort&quot; tasks in your task
+list, you'll notice that there are two planned time columns - one for
+total planned time, and one for planned &quot;direct&quot time.  Once
+you enter how much total time you plan to spend in a period, it will
+automatically subtract out time for the level of effort tasks, and
+display the remaining time in the &quot;PDT&quot; column.  As your
+schedule progresses, you'll also be able to see how much time you're
+spending on these &quot;indirect&quot; tasks by looking in the
+&quot;%I&quot; column.</p>
+
+<h3 NO_NUMBER><a name="iterativePlanning"></a>Iterative Planning</h3>
+
+<p>Many teams use an iterative approach to develop software.  To create a
+schedule for the second or subsequent iteration of your project, you can take
+these steps:</p>
+
+<ol>
+    <li>Identify the start date of the current iteration, and enter it
+        in the "From" column on the first schedule line.</li>
+
+    <li>In the Task &amp; Schedule window, choose &quot;Tools&nbsp;<img
+        src="../../Images/rarrow.png">&nbsp;Schedule Options...&quot;</li>
+
+    <li>Select the appropriate option to "rezero" the charts and calculations
+        concurrent with the start date of your schedule.</li>
+
+</ol>
+
+These changes will have the following effect on your EV schedule:
+
+<ul>
+
+  <li>Tasks that were marked complete before the start date of the
+      schedule will be displayed in sepia tone, and flagged as
+      "Previously completed tasks." They will not be included in the
+      earned value calculations for this schedule.</li>
+
+  <li>Tasks that were in progress when the iteration began will be
+      treated specially.  The dashboard will measure the amount of
+      time that was spent on the task before this iteration began, and
+      will subtract that amount from the total planned time for the
+      task.  The result is the "planned remaining time" - the amount
+      of time you plan to spend on the task during <u>this</u>
+      iteration.  The earned value for the task for this iteration
+      will be based upon its remaining time, rather than its total
+      planned time.  (The planned remaining time for the task will be
+      displayed in the <a href="UsingTaskSchedule.html#PDT">"PDT"
+      column</a> of the task list.)</li>
+
+</ul>
+
+
+<H2><a name="progress"></a>Step 4: Track your progress</H2>
+
+<P>With the list of tasks and the calendar of available time in place, the 
+dashboard will calculate planned completion dates for each task. As you work, 
+you should:</P>
+
+<UL>
+ <LI>Accurately log time against tasks using the <A 
+   HREF="../Execution/PlayPause.html">Play/Pause button</A> and the <A 
+   HREF="../Execution/UsingTimeLogEditor.html">Time Log Editor</A>. Time 
+   logged against tasks in your task list will appear in the Actual Time
+   columns of the task list and schedule list.</LI>
+ <LI>Mark tasks complete using the <A 
+   HREF="../Execution/CompletionButton.html">Completion Checkbox</A>. When 
+   tasks are marked complete, the completion date will appear in the task 
+   list, and you will earn the planned value for that task.</LI>
+</UL>
+
+<P>While your project is in progress, you can click on the "Chart" button
+for access to <a href="TaskScheduleCharts.html">earned value charts</a> and
+numerical analyses:</P>
+
+<p class="figure"><img src="../../Images/TaskChartValue.png"></p>
+
+<p class="figure"><img src="../../Images/TaskChartStats.png"></p>
+
+<P>If you prefer, you can view this information in HTML, and even export it 
+Excel, by clicking the Report button.</p>
+
+<p>Sometimes, you may be interested in seeing these charts and statistics for
+a portion of your task list.  The "Filtered Chart" button makes this
+possible.  Here are some examples of its use:<ul>
+
+<li>While working on a large project, you might like to see the status of a
+particular component.  You would highlight that component in the task list
+and press the "Filtered Chart" button.  Earned value charts and statistics
+would be displayed for that component only.</li>
+
+<li>While looking at the earned value plan for a team, it might be necessary
+to look at the schedule for a single individual - for example, to see when
+their work is forecast to complete.  With the team schedule open in the Task
+&amp; Schedule window, you could highlight the row corresponding to a
+particular individual, and click the filtered chart button.</li>
+
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,2 @@
+org/jfree/base/
+net/sourceforge/processdash/util/

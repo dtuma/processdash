@@ -1,0 +1,11 @@
+=
+= Shared specifications for a small chart.
+=
+
+width=200
+height=200
+titleFontSize=12.0
+legendFontSize=6.0
+axisLabelFontSize=10.0
+categoryLabels=none
+skipItemLabels=1

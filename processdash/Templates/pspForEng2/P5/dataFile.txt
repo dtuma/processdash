@@ -1,0 +1,12 @@
+#include <psp2/dataFile.txt>
+#include <pspForEng2/progData.txt>
+undefine([Use_Rollup]);
+[PSPFORENG_P5_TAG] == TAG;
+
+= Consult our parent for the appropriate "To Date" subset.
+
+[PSP To Date Subset Prefix] = [../Rollup_Name];
+
+= Let engineers choose whether to restart their "To Date" data.
+
+[Reset_To_Date_Data] = 1;

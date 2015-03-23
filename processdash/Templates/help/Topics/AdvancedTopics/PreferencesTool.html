@@ -1,0 +1,184 @@
+<html>
+<head>
+<title>Editing Preferences</title>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<body>
+
+<h1>Editing Preferences</h1>
+
+<p>The Preferences Editor allows you to alter configuration settings that
+affect the appearance and behavior of the Process Dashboard.  You can open
+the Preferences Editor by selecting "Preferences" from the &quot;C&nbsp;<img
+border="0" src="../../Images/rarrow.png" width="12"
+height="9">&nbsp;Tools&quot; menu.</p>
+
+<p>Common preferences are displayed in several categories.</p>
+
+<h2>User Interface</h2>
+
+<p><a name="windowTitle"></a><b>Window Title</b>: this field allows you to
+change the title that appears on the main Process Dashboard toolbar.  If you
+regularly work with more than one Process Dashboard dataset, changing the
+title of each window can make it easier to tell the datasets apart.</p>
+
+<p><a name="windowTitleInclude"></a><b>Include in Title</b>: in the personal
+dashboard, these elements give the option to display dynamic timing metrics in
+the main window title bar.</p>
+
+<p><a name="alwaysOnTop"></a><b>Always On Top</b>: If you are running Java 1.6
+or higher, this setting will appear, allowing you to request that the Process
+Dashboard toolbar remain on top of other windows.</p>
+
+<p><a name="systemTray"></a><b>System Tray</b>: If you are running Java 1.6
+or higher, the dashboard can display an icon in the
+<a href="../Execution/SystemTray.html">system tray</a>.  A checkbox
+here allows you to enable or disable this feature.  If this feature is
+enabled, you can also choose how the Process Dashboard should behave when you
+minimize the main window.  If you put a check in the "Minimize to system
+tray" checkbox, minimizing the dashboard will remove the entry from your
+application task bar, leaving only the system tray icon.  In this mode,
+double-clicking on the system tray icon will bring the window back.</p>
+
+<p><a name="i18nLevel"></a><b>Translation Support</b>: If your operating
+system is configured to use a language other than English, and if you (or
+others) have <a href="LocalizationTool.html">entered translations</a> for
+that language, then the Process Dashboard may be able to display some
+messages in your language. Here, you can configure the extent to which
+messages will be translated:</p>
+
+    <ul>
+
+    <li><b>Disabled</b> - US English will be used for all user interface
+        components, messages, reports, charts, and date/number formats.</li>
+
+    <li><b>Low</b> - English will be used for <i>most</i> user interface
+        components, messages, reports, and charts.  Dates and numbers will
+        be formatted according to the operating system locale.</li>
+
+    <li><b>Medium</b> - User interface components and messages will be
+        displayed in your language whenever translations are available, as
+        will some charts and reports.</li>
+
+    <li><b>High</b> - The dashboard will also attempt to translate the names
+        of process metrics into your language.</li>
+
+    </ul>
+
+<p><a name="largeFonts"></a><b>Use large fonts</b>: On some systems, it is
+possible to increase the size of the fonts used in the application.  Checking
+this box will increase the sizes of many fonts, which can make the user
+interface easier to read on high-resolution displays.  (Unfortunately,
+limitatations in the Java platform prevent some font sizes from changing.)</p>
+
+<p><a name="scriptMenuDefault"></a><b>Click on script menu</b>: When you click
+on the script button, it will normally open the script menu.  If you would
+prefer for it to open the default script/form for the current task instead,
+you can check this box.</p>
+
+<p><a name="selectNext"></a><b>Auto-select next task</b>: When you mark a task
+complete using the <a href="../Execution/CompletionButton.html">completion
+checkbox</a>, the dashboard will normally select the next task for you.  To
+disable this behavior, uncheck this box.</p>
+
+<p><a name="hideCompletedTasks"></a><b>Hide completed tasks</b>: To reduce clutter
+in the active task selector, the dashboard moves completed projects and tasks to
+an &quot;<a href="../Execution/HierarchyMenus.html#hiddenCompletedTasks">Older
+Completed Items</a>&quot; submenu.  This field allows you to control how old a
+task will be before it gets moved to the submenu.  The default is two weeks, so
+you can still easily find and revisit tasks you've been working on recently.  To
+move <b>all</b> completed tasks to the submenu, change this setting to 0.  To
+disable this feature entirely, change the value to a very large number like
+9999.</p>
+
+
+<h2><a name="addOns"></a>Add-ons</h2>
+
+<p>The Process Dashboard can read process templates, scripts, tools,
+extensions, and other modules from various locations.  By default, it
+will find any modules that are placed in the directory where you
+installed the dashboard.  If you and your team members want to use a
+<a href="ProcessDefinition/HowDashboardFindsFiles.html">shared network
+area</a> for Process Dashboard scripts and templates, you can configure that
+area on this panel.  Just ensure that the check box is enabled, and click the
+"Add" button to add a new template location.</p>
+
+<p>You may have entries in this list that are related to team projects you
+have joined in the past.  If some of the entries are out of date or describe
+nonexistent network directories, you can remove them from the list.</p>
+
+<p>If your team is not actively using this feature and your organization's
+network is slow, you may wish to disable this feature entirely.  Just uncheck
+the box on this panel.  However, if you receive an error message the next
+time the dashboard starts, it may be necessary to reenable this feature.</p>
+
+<h2><a name="backups"></a>Backups</h2>
+
+<p>The dashboard automatically keeps internal backups of data.  On this
+panel, you can configure how many days worth of backup data should be kept.
+These internal backups are incremental, so they do not take up much space.
+As a result, the default value (six weeks) is fairly helpful.</p>
+
+<p>In addition, you can ask the dashboard to make redundant external backups
+to one or more locations.  Just add entries to the table on this preferences
+panel.</p>
+
+<p>For more information about internal and external backups, see the
+<a href="BackupData.html">data backup</a> help topic.</p>
+
+<h2>Miscellaneous</h2>
+
+<p><a name="readOnlyRecommend"></a><b>Recommend read-only</b>: Sometimes a
+Team Dashboard is shared by many people who routinely open it.  Most of the
+time, these people may just need to view rolled up team reports.  However,
+the act of opening the dashboard causes the data to be locked; then, another
+individual who really needs to make changes is told that the data is in use
+by someone else.  To help with this problem, you can check this box for
+heavily shared team dashboards.  Then, each time an individual opens this
+dashboard, they will see a prompt asking them if they need read access or if
+they just need to view reports.  This allows the "report-only" individuals
+to open the dashboard without locking it, leaving the lock available to
+others who need to make changes.</p>
+
+<p><a name="autoUpdate"></a><b>Check for updated software</b>: The
+dashboard can perform a monthly check to see if a new version of the software
+is available.  If you do not want it to look for updates, remove the
+checkmark from this box.</p>
+
+<p><a name="slowNetwork"></a><b>Slow network</b>: If your organization has an
+unusually slow network, or if you connect to team resources over a VPN, you
+can check this box.  The dashboard will optimize some internal operations
+differently in an attempt to improve performance.</p>
+
+<p><a name="numericIPs"></a><b>Numeric IP</b>: The Process Dashboard displays
+some resources in your web browser.  Most of the time, these pages are on the
+same computer where the dashboard is running.  But in a small number of
+special cases, the dashboard is running on one computer and it displays a URL
+that you can use from another computer.  The most common scenario for this is
+the Team Project Tools page in the Team Dashboard; it displays
+URLs that you can share with other people so they can join the project or
+view the plan summary.  By default, it will use the name of the hosting
+computer to build these "shareable" URLs.  But if your organization's network
+is not configured to register these names in DNS, other individuals may find
+that the URLs don't work.  In that case, you can put a check mark in this
+box, and the dashboard will use the IP address of the hosting computer
+(instead of its name) to build the shareable URLs.</p>
+
+<h2><a name="advanced"></a>Advanced</h2>
+
+<p>The categories listed above provide access to the most commonly used
+dashboard settings.  However, the dashboard has an extensive collection of
+other, infrequently used settings.  If you need to change one of those other
+settings, you can add entries to the table on this panel.</p>
+
+<p class="hideInBook">For an abbreviated list of advanced settings, see the
+<a href="ConfigurationFile.html">advanced settings</a> help topic.</p>
+
+
+<!-- Add blank space to the bottom of the page, so we can scroll to -->
+<!-- all of the HTML anchors named above -->
+<p class="hideInBook">
+&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP for Engineers v3 process. 
+==
+
+[PspForEngV3] == TAG;
+[node] == TAG;
+
+
+== Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.
+
+[Child_List] = hierchildren();
+[Project_List] = filter(lookup([_] &/ "PSP Project"), [Child_List]);
+
+
+
+==
+== Record the programming language used for these assignments.
+==
+
+[Project/Language] = "?????";
+
+
+==
+== Don't display the percent spent indicator for the PSP programs.
+==
+
+[Show_Percent_Spent_Indicator] = 0;
+
+
+
+==
+== When the user begins logging time to a project that uses PSP0.1 or higher,
+== automatically turn on the size blocks for all PSP0 projects.
+==
+
+[Sized_Project_List] = filter(!lookup([_] &/ "PSP0"), [Project_List]);
+[First_Sized_Project] = index(0, [Sized_Project_List]);
+[Enable_PSP0_Size_Blocks] = lookup([First_Sized_Project] &/ "Time") > 0;

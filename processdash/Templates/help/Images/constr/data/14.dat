@@ -1,0 +1,9 @@
+#include <psp2.1/dataFile.txt>
+= Data for /Project/My Project/Release 1/Component C
+Base_Additions_List=="
+Estimated Time=1140.0
+New_Objects_List=="0
+Reused_Objects_List=="0
+Team_Note="<note author='My Name' timestamp='@1252708575343' format='text'>Remember to:\n * Verify against the requirements document at\n    T:\\TeamDocs\\Component-C-Reqts.doc\n * Send to customer POC for review\n * Document design on team wiki at\n    http://wikiserver/myteam/Component-C</note>
+new/Estimated Time=1860.0
+node==TAG

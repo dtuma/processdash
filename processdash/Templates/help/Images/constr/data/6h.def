@@ -1,0 +1,5 @@
+1	Interface	Design	Code	1.0	 	Change correlation from a procedure to a function.	01/01/2003
+2	Syntax	Code	Compile	1.0	 	missing semicolon	01/01/2003
+3	Interface	Code	Compile	1.0	 	need "abs" not abs	01/01/2003
+4	Data	Code	Compile	2.0	 	Need typecast to Number	01/01/2003
+5	Function	Design	Test	3.0	 	Bad formula for calculating significance from alpha probability.	01/01/2003

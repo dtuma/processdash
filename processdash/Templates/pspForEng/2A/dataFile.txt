@@ -1,0 +1,38 @@
+#include <psp0.1/dataFile.txt>
+#include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
+
+= Flag this as the PSP2A program.  This allows the dashboard to find
+= it when calculating retroactive 1A data, even if it gets renamed.
+
+PSPFORENG_2A_TAG==TAG
+
+
+= Students must manually spread the time across the phases for program 2A.
+
+Planning/Estimated Time=?NaN
+Design/Estimated Time=?NaN
+Code/Estimated Time=?NaN
+Compile/Estimated Time=?NaN
+Test/Estimated Time=?NaN
+Postmortem/Estimated Time=?NaN
+
+
+= Students must calculate Added and N&C LOC for program 2A.
+
+2A New & Changed LOC=?NaN
+2A Added LOC=?NaN
+
+
+= Students must enter To Date LOC
+
+Reused LOC To Date=?NaN
+New & Changed LOC To Date=?NaN
+Total LOC To Date=?NaN
+New Reused LOC To Date=?NaN
+
+
+= Numbers which are normally defaulted to 0, force students to enter
+
+Reused LOC=?NaN
+New Reused LOC=?NaN

@@ -1,0 +1,350 @@
+<HTML>
+<head>
+<TITLE>Defining Your Own Processes</TITLE>
+<link rel=stylesheet type="text/css" href="../../../style.css">
+</head>
+<BODY>
+
+<H1>Defining your own processes for use in the Process Dashboard</H1>
+
+
+<!-- How to define your own custom process
+   * An overview of the process definition architecture: explain the three
+     pieces to the puzzle and how they fit together:
+      * "-template.xml" files define the *structure* of the process
+      * optional HTML files provide process scripts and forms
+      * optional data files define custom calculations for your process
+     Also explain how the dashboard locates these files (i.e., where should
+     you put these files, and how can you share them with your co-workers) -->
+
+
+<P>The dashboard has been designed from the ground up to support custom 
+processes.  The PSP scripts and forms that you see are not hard-coded into 
+the tool. Instead, they are dynamically loaded from simple HTML and text 
+files.  Thus, it is possible to create your own custom process scripts, 
+forms, and data that will be dynamically integrated into the dashboard.</P>
+
+<P>The dashboard process definition framework provides a great deal of 
+flexibility and power for process automation. The more advanced features will 
+be documented in a <I>Process Authoring Manual</I>, which may be available 
+for download from <U>http://www.processdash.com/</U>. However, 
+creating a simple, custom personal process is not difficult.</p>
+
+<p><span style="font-weight:bold; background-color:#ff7070">&nbsp;Please
+note:&nbsp;</span> the instructions below will allow you to build a
+customized process for <b>personal</b> use.  The resulting process
+<b>will not</b> provide support for team planning or team rollups.  If
+you plan to work as part of a team, and you want to roll data up to view
+team-level aggregate metrics, you should not follow the steps below.
+Instead, you should look into the Process Dashboard's
+<a href="../../../../teamhelp/Topics/Overview.html">team functionality</a>.
+Most teams can use satisfy their process customization needs by building a
+<a href="../../../../teamhelp/Topics/EditWorkflows.html">team workflow</a>.
+A small number of teams may require the more sophisticated process
+customization that comes from defining a
+<a href="../../../../teamhelp/Topics/MetricsCollectionFramework.html">custom
+metrics collection framework</a>.</p>
+
+<p>To create a custom personal process definition, just follow these
+steps:</P>
+
+<OL>
+ <LI><A HREF="#ProcessStructure">Identify your process structure</A></LI>
+ <LI><A HREF="#XmlDef">Create an XML definition for your process</A></LI>
+ <LI><A HREF="#XmlDesc">Save your XML process descriptor</A></LI>
+ <LI><A HREF="#Restart">Restart the dashboard</A></LI>
+</OL>
+
+<H2><A NAME="ProcessStructure">Step 1: Identify your process structure</A></H2>
+
+<P>What steps do you want to include in your process? The standard PSP0 
+process, of course, includes the phases Planning, Design, Code, Compile, 
+Test, and Postmortem. Think through your process and decide upon the list of 
+phases that your process will include.</P>
+
+<P>Think this through carefully. Remember how you had to restart your "To 
+Date" data when you graduated from PSP1.1 to PSP2? The same truth applies 
+here. Once you have defined a custom process and used it in the dashboard, 
+even slight changes to the process definition will invalidate all your 
+historical data. In fact, once you create a process definition and use it to 
+perform a project, you can no longer even change the names of the phases 
+without losing historical data.</P>
+
+<P>If your process definition is still immature and evolving, it is probably 
+better to use the <A 
+HREF="../../Overview/ProcessScripts.html#generic">Generic process</A> for a 
+while. As you begin creating your own custom process definitions, the 
+flexibility of the generic process will allow you to radically change your 
+process from one task to the next in response to process improvement 
+proposals.  Once you decide upon and finalize the <u>list of phases</u> in 
+your process, you are ready to begin using a custom process.</P>
+
+<P>Some guidelines to consider as you identify your process phases:</P>
+
+<P><B>Don't subdivide things too far.</B> Take a look at the PSP processes, 
+for example. They will define a single phase like Planning, even though it 
+contains several different steps (obtain requirements, make size estimate, 
+make resource estimate, create schedule, etc.). The PSP process definition 
+does not break each of these steps into its own phase! Herein lies the 
+difference between a <B>phase</B> and an <B>activity</B>. By carefully 
+defining the high level phases in the process, Watts Humphrey was free to 
+incorporate process improvements simply by altering the set of activities in 
+each phase. Remember also that when you enact your process, you will have to 
+collect time and defect data with phase-level granularity. If you break your 
+process up into a zillion tasks that each take only a minute, you will go 
+crazy just trying to log time accurately. Therefore, if your custom process
+contains more than a dozen phases, it's most likely subdivided too far.</P>
+
+<P>Here's another way to think about this: the dashboard is a useful tool
+because it seamlessly integrates your <b>process script</b> and your <b>metrics
+collection framework</b>. By tying the two things together, you have all the
+tools you need at your fingertips to enact the process. But as a result, this
+means that when you create a custom dashboard process, you must understand and
+think about your custom process from both perspectives. Many people are able to
+easily think up a script for their process, but you must <u>also</u> take time
+to think about your metrics collection framework. The phases you choose in your
+custom process define the "buckets" in your metrics collection
+framework. If you choose these phases thoughtfully, it will allow room for your
+process to grow and improve. On the other hand, if you choose phases that
+correspond one-to-one with activities in your process, you may find that your
+custom process quickly becomes obsolete.</P>
+
+<P><B>Choose abbreviations for long phase names.</B> When you write your 
+process script, you may have phases with verbose names like "High Level 
+Design Review". Realize that if you use this long phase name, the main 
+dashboard window is going to stretch halfway across your screen whenever you 
+navigate to that phase. An abbreviation like "HLD Review" may be more 
+appropriate. You can still refer to the phase by its unabbreviated name when 
+you create your HTML process scripts and forms.</P>
+
+<P><B>Include Planning and Postmortem phases.</B> In his book, Watts Humphrey
+encourages you to always include these phases in any process you define.  The 
+planning phase serves an obvious purpose of estimating size, cost, schedule, 
+risk, etc. The postmortem phase allows you to ensure accurate collection of 
+data and capture process improvement proposals.</P> 
+
+<H2><A NAME="XmlDef">Step 2: Create an XML definition for your process</A></H2>
+
+<P>The dashboard understands a process structure that is described in XML 
+format. <B>The discussion below assumes that you are familiar with XML.</B> 
+If this is not the case, please go read a nice tutorial on XML before 
+proceeding!!</P> 
+
+<P>Here is an example of an XML description file for a PSP0 process:</P>
+<TABLE BORDER="1" WIDTH="100%">
+ <TR>
+  <TD WIDTH="100%">
+   <PRE>
+<FONT COLOR="#0000FF">&lt;?xml version='1.0'?&gt;
+
+&lt;dashboard-process-template&gt;</FONT>
+   &lt;template name="PSP0" defectLog="true"&gt;
+      &lt;phase name="Planning"   type="plan"/&gt;
+      &lt;phase name="Design"     type="dld"/&gt;
+      &lt;phase name="Code"       type="code"/&gt;
+      &lt;phase name="Compile"    type="comp"/&gt;
+      &lt;phase name="Test"       type="ut"/&gt;
+      &lt;phase name="Postmortem" type="pm"/&gt;
+   &lt;/template&gt;
+<FONT COLOR="#0000FF">&lt;/dashboard-process-template&gt;</FONT></PRE></TD>
+ </TR>
+</TABLE>
+
+<P>The file begins and ends with the header and footer (which appear in blue 
+above). Between the header and footer, any number of process templates can be 
+defined. (The file above only defines one process template.)</P>
+
+<P>A process definition begins with the <code>&lt;template&gt;</code> tag and 
+ends with <code>&lt;/template&gt;</code>. The template tag must have a 
+"<code>name</code>" attribute, and all of the processes you define must have 
+<B>unique</B> names. Also, template names cannot contain the "/" character. 
+If you will be collecting defects with your process, you should include the 
+"<CODE>defectLog</CODE>" attribute as shown above (and remember that XML is 
+case-sensitive, so "<CODE>defect<U><B>l</B></U>og</CODE>" will not work).</P>
+
+<P>Between the <code>&lt;template&gt;</code> tags, list the phases in order. 
+Each phase is described with a <code>&lt;phase&gt;</code> tag. The phase tag 
+must have a "<code>name</code>" attribute, and all of the phase names must be 
+<B>unique</B>. As was true of template names, phase names cannot contain the 
+"/" character. The phase type can optionally be specified with the 
+"<CODE>type</CODE>" attribute. The following is a list of valid types that 
+can be specified.  Their full explanation is not detailed here, but will be 
+in the <I>Process Authoring Manual</I> coming soon on our website.</p>
+
+
+<UL>
+ <LI><B>Appraisal phase types:</B> <tt>appraisal reqinsp hldr hldrinsp dldr 
+   dldinsp cr codeinsp</tt></LI>
+ <LI><B>Failure phase types:</B> <tt>failure comp ut it st at pl</tt></LI>
+ <LI><B>Overhead phase types:</B> <tt>mgmt strat plan pm</tt></LI>
+ <LI><B>Development phase types:</B> <tt>req stp itp td hld dld code
+   doc</tt></LI>
+</UL>
+
+<P>Phase types are not required. Even if you specify the phase type for one 
+phase, you can omit it for others. If you do specify phase types, the 
+dashboard will be able to intelligently calculate metrics like Yield, A/FR, 
+and Defect removal efficiency.</P> 
+
+<H2><A NAME="XmlDesc">Step 3: Save your XML process descriptor</A></H2>
+
+<P>Once your XML process descriptor is complete, it is time to save it 
+somewhere <A HREF="HowDashboardFindsFiles.html#FindFiles">where the dashboard 
+can find it</A>. Follow these steps:</P>
+
+<ol>
+ <li>Choose &quot;Help <img src="../../../Images/rarrow.png"> About&quot;
+   from the "C" menu, and click the "Configuration" tab.  Just above the
+   list of add-ons, a paragraph will tell you where the Process Dashboard
+   is installed. Find that directory on your computer.  It should contain a
+   small number of files, including one called "pspdash.jar".</li>
+ <li>Underneath this directory, create a subdirectory called "Templates".</li>
+ <li>Save your XML process descriptor in that Templates directory. 
+   <B>Important:</B> you must give your XML process descriptor a filename 
+   ending with "<code><b>-template.xml</b></code>" to signal to the dashboard 
+   that this is an XML process template descriptor.  If you do not choose a 
+   filename ending with "<code><b>-template.xml</b></code>", your process 
+   descriptor will be ignored.</li>
+</ol>
+
+<P>This is the simplest place to put your XML process descriptor. Of course, 
+if you want to share your process with team members, you may want to put it 
+somewhere else. See the section on <A 
+HREF="HowDashboardFindsFiles.html#FindFiles">how the dashboard finds process 
+files</A> for more information. Keep in mind that the dashboard will search 
+for "<code><b>-template.xml</b></code>" files in the "Templates" directories 
+only - subdirectories will not be searched.</P>
+
+<H2><A NAME="Restart">Step 4: Restart the dashboard</A></H2>
+
+<P>Once your XML process descriptor is in place, it is necessary to shut down 
+the dashboard and restart it for the new process to be found.  Once found, 
+you will automatically have:</P> 
+
+<UL>
+ <LI>A template on the hierarchy editor's "Add Template" menu for your 
+   process</LI>
+ <LI>A template on the hierarchy editor's "Add Template" menu for <B>rolling 
+   up</B> data from your process</LI>
+ <LI>A custom project plan summary form for your process</LI>
+</UL>
+
+<h2>Advanced/Optional: Defining HTML scripts</h2>
+
+<P>Defining HTML scripts for your process and its phases is easy to
+do. Here is an example of an XML description file for a PSP0 process,
+with HTML script definitions added. The text in blue is identical to
+the example shown in step 2 above; the black text illustrates the
+additions:</P>
+
+<TABLE BORDER="1" WIDTH="100%">
+ <TR>
+  <TD WIDTH="100%">
+   <PRE>
+<FONT COLOR="#0000FF">&lt;?xml version='1.0'?&gt;
+
+&lt;dashboard-process-template&gt;
+   &lt;template name="PSP0" defectLog="true"
+             </FONT>htmlID="top"<FONT COLOR="#0000FF">&gt;</FONT>
+   
+      &lt;html ID="sum"
+            title="Project Plan Summary"
+	    href="dash/summary.shtm"/&gt;
+      &lt;html ID="top"
+            title="PSP0 Process Script"
+	    href="psp0/script.html"/&gt;
+      &lt;html ID="plan"
+            title="PSP0 Planning Script"
+	    href="psp0/planning.html"/&gt;
+      &lt;html ID="dev"
+            title="PSP0 Development Script"
+	    href="psp0/develop.html"/&gt;
+      &lt;html ID="pm"
+            title="PSP0 Postmortem Script"
+	    href="psp0/postmort.html"/&gt;
+
+<FONT COLOR="#0000FF">      &lt;phase name="Planning"   type="plan"
+             </FONT>htmlID="plan"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Design"     type="dld"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Code"       type="code"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Compile"    type="comp"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Test"       type="ut"
+             </FONT>htmlID="dev"<FONT COLOR="#0000FF">/&gt;
+      &lt;phase name="Postmortem" type="pm"
+             </FONT>htmlID="pm"<FONT COLOR="#0000FF">/&gt;
+   &lt;/template&gt;
+&lt;/dashboard-process-template&gt;</FONT></PRE></TD>
+ </TR>
+</TABLE>
+
+<P>So right after your <code>&lt;template&gt;</code> tag, you list all
+the HTML pages that you want to appear on the script button's drop
+down menu, in order. (Note that you don't have to list every HTML page
+used by your process - just the ones that you want to appear on the
+script button menu.) For each HTML page, you state:</P>
+
+<ul>
+
+  <li>the title (which should usually match the
+    <code>&lt;title&gt;</code> of the HTML page in question); this
+    title will be displayed in the script button's drop-down menu</li>
+
+  <li>the href to the page, relative to the "Templates" directory</li>
+
+  <li>a unique ID for the HTML page (these only need to be unique
+    within a given process <code>&lt;template&gt;</code>)</li>
+
+</ul>
+
+<p>Then you (optionally) associate these HTML pages with the phases by
+adding an <code>htmlID</code> attribute which names the ID of the HTML
+page associated with that phase. You can have HTML pages that aren't
+associated with any phase, and vice versa. You can even associate an
+HTML page with the <code>&lt;template&gt;</code> tag, as shown above;
+then any phases which don't specify an <code>htmlID</code> of their
+own will inherit that <code>htmlID</code>.</p>
+
+<p>Of course, before the dashboard will be able to open any of these
+HTML pages, you must actually create them and place them appropriately
+underneath the "Templates" directory. You can use your favorite HTML
+editor to create these pages; if you have a program like Microsoft
+Word, it is capable of saving files in HTML format. Since the hrefs
+are interpreted relative to the "Templates" directory, for this
+example we would need to create a directory called "psp0" underneath
+the "Templates" directory, and put files in that directory called
+"script.html", "planning.html", "develop.html", and
+"postmort.html".</p>
+
+<p>The file "dash/summary.shtm" is special. It names an HTML file that
+is shipped with the dashboard. When you don't name any HTML files for
+your process, the dashboard assigns it "dash/summary.shtm" by default.
+(This is why you could create an XML template file, specify no HTML
+files, and still get a project plan summary form automatically.)
+However, as soon as you include <code>&lt;html&gt;</code> tags in your
+template definition, the dashboard will no longer automatically assign
+it "dash/summary.shtm", so you must manually include this entry to
+ensure that you can view a plan summary form for your process.</p>
+
+<h2>Additional Advanced Topics</h2>
+
+<P>That should be enough to get you started! For more advanced topics like</P>
+
+<UL>
+ <LI>Defining custom forms</LI>
+ <LI>Generating charts and tables of your data</LI>
+ <LI>Defining custom calculations (or altering the existing calculations) for 
+   the data in your process</LI>
+ <LI>Integrating external documents into process scripts</LI>
+</UL>
+
+<P>Check back on our website and download the <I>Process Authoring
+Manual</I> when it becomes available. In the meantime, if you have a
+pressing need to understand one of these advanced topics, send email
+to the development team at
+<i>processdash-devel@lists.sourceforge.net</i>.</P>
+
+</BODY>
+</HTML>

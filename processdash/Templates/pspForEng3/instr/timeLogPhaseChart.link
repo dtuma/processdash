@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.psp.TimeLogPhaseWaterfallChart
+width=800
+height=200
+html=true
+initGradColor=#ddddff

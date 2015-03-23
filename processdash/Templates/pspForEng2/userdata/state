@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- hierarchical work breakdown structure -->
+
+<node name="top">
+  <node name="Project"/>
+  <node name="Non Project" selected="true">
+    <node name="PSP for Engineers" templateID="pspForEngV2" dataFile="10.dat" selected="true">
+      <node name="Program 1" templateID="PSP0-PFE-P1" dataFile="0.dat" defectLog="0.def" selected="true">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 2" templateID="PSP0.1-PFE-P2" dataFile="1.dat" defectLog="1.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 3" templateID="PSP1-PFE-P3" dataFile="2.dat" defectLog="2.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 4" templateID="PSP1.1-PFE-P4" dataFile="3.dat" defectLog="3.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Interim Report" templateID="Generic" dataFile="4.dat" defectLog="4.def">
+        <node name="Planning" selected="true"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 5" templateID="PSP2-PFE-P5" dataFile="5.dat" defectLog="5.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 6" templateID="PSP2.1-PFE-P6" dataFile="6.dat" defectLog="6.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 7" templateID="PSP2.1-PFE-P7" dataFile="7.dat" defectLog="7.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 8" templateID="PSP2.1-PFE-P8" dataFile="8.dat" defectLog="8.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Final Report" templateID="Generic" dataFile="9.dat" defectLog="9.def">
+        <node name="Planning" selected="true"/>
+        <node name="Postmortem"/>
+      </node>
+    </node>
+  </node>
+</node>

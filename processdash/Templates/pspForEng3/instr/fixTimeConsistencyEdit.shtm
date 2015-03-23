@@ -1,0 +1,25 @@
+<!--#foreach name="Phase" values=",Compile,Test," #-->
+
+<table border="0">
+
+<tr><td align="right">Display an error if <b>Phase fix time</b>
+    accounts for less than</td>
+
+<td><input type="text" name="$$$_PhaseFixPercent"
+    <!--#if defaults -->value="80"
+    <!--#else -->value="<!--#echo PhaseFixPercent -->"<!--#endif-->
+    size="2">% of the total time in the Phase phase,</td></tr>
+
+<tr><td align="right">unless the unaccounted-for time is less than</td>
+
+<td><input type="text" name="$$$_PhaseFudgeMinutes"
+    <!--#if defaults && 'Phase' eq 'Compile' -->value="5"
+    <!--#elif defaults && 'Phase' eq 'Test' -->value="10"
+    <!--#else -->value="<!--#echo PhaseFudgeMinutes -->"<!--#endif-->
+    size="2"> minutes.</td></tr>
+
+</table>
+
+<!--#if 'Phase' eq 'Compile' -->&nbsp;<!--#endif-->
+
+<!--#endfor-->

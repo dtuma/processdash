@@ -1,0 +1,51 @@
+/* CSS rules used by the dashboard defect reports */
+
+table.R3table td {
+    text-align: center;
+}
+
+td.R3header {
+    font-weight: bold;
+    font-size: large;
+}
+
+td.R3task {
+    text-align: left;
+    white-space: nowrap;
+}
+
+td.R3subcat {
+    text-align: right;
+    white-space: nowrap;
+}
+
+
+table.R4table {
+    empty-cells: show;
+}
+
+table.R4table td {
+    text-align:center;
+    vertical-align: baseline;
+}
+
+tr.R4header td {
+    font-weight: bold;
+    vertical-align:bottom;
+}
+
+.R4footnote {
+    font-size: small;
+    font-style:italic;
+}
+
+
+table.defectLog {
+    empty-cells: show;
+}
+
+@media print { table.defectLog td { font-size: 8pt } }
+
+table.defectLog td {
+    vertical-align: baseline;
+}

@@ -1,0 +1,14 @@
+<b><!--#echo Expression_Prompt --></b><br/>
+<div class="cmsIndent padRight"><input type="text" class="stretchHoriz"
+     name="$$$_Expression" value="<!--#echo Expression -->"></div><br/>
+
+<b><!--#echo Ranges_Prompt --></b>
+<div class='cmsIndent'><!--#include file="/dash/snippets/editListWithLink" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" 
+                   value="/dash/snippets/rangeExpressionItem.shtm" -->
+    <!--#parameter name="itemType" value="Range" -->
+    <!--#parameter name="newItemPrompt" encoding="html"
+                   var="Add_Range_Prompt" -->
+    <!--#parameter name="createNewItem" var="defaults" -->
+</div>

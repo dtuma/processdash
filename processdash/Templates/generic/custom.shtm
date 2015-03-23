@@ -1,0 +1,67 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+// 
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+--><!--#resources bundle="Templates.Generic" -->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="/style.css">
+<STYLE>
+   P  { margin-bottom: 0.6em; margin-top: 0.6em }
+</STYLE>
+<TITLE><!--#echo Customize_Title --></TITLE>
+<SCRIPT>
+    var SILENT=true;
+    function refreshParent () { window.opener.location.reload(); }
+    function deferredClose() { self.setTimeout("window.close()", 300); }
+</SCRIPT>
+</HEAD>
+<BODY ONUNLOAD="refreshParent();">
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE="Generic Tag">
+
+<TABLE><TR><TD NOWRAP><!--#echo Customize_Header -->&nbsp;</TD>
+    <TD><!--#echo PATH_TRANSLATED --></TD></TR></TABLE>
+
+<TABLE><TR><TD><INPUT TYPE=checkbox NAME="Generic - Show Defects	s"></TD>
+    <TD>&nbsp;<!--#echo Customize_Show_Defects --></TD></TR></TABLE>
+
+<TABLE><TR><TD><INPUT TYPE=checkbox NAME="Generic - Show Size	s"></TD>
+    <TD>&nbsp;<!--#echo Customize_Show_Size --></TD></TR></TABLE>
+
+<TABLE><TR><TD NOWRAP><!--#echo Customize_Size_Units -->&nbsp;</TD>
+    <TD><INPUT TYPE=text SIZE=15 NAME="Units	s"></TD></TR></TABLE>
+
+<INPUT TYPE="button" onClick="deferredClose();" VALUE="<!--#echo OK -->">
+
+</FORM>
+
+<FONT SIZE="0">
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+</FONT>
+
+</BODY>
+</HTML>

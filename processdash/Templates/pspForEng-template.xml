@@ -1,0 +1,183 @@
+<?xml version='1.0'?>
+
+<!--
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2002-2011 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+
+
+-->
+
+<dashboard-process-template>
+
+  <!-- Use an imaginary template to precache names for the Size
+       Estimating Template in the legacy version of the 
+      "PSP For Engineers" course. -->
+
+  <template name="Imaginary pspForEng Template"
+            imaginary="true" defineRollup="no">
+    <html ID="size4A" title="PSP1 Size Estimating Template"
+                      href="pspForEng/4A/sizeest.class"/>
+    <html ID="size5A" title="PSP1.1 Size Estimating Template"
+                      href="pspForEng/5A/sizeest.class"/>
+    <html ID="size7A" title="PSP2 Size Estimating Template"
+                      href="pspForEng/7A/sizeest.class"/>
+    <html ID="size8A" title="PSP2.1 Size Estimating Template"
+                      href="pspForEng/8A/sizeest.class"/>
+    <html ID="sizeP5" title="PSP2 Size Estimating Template"
+                      href="pspForEng2/P5/sizeest.class"/>
+  </template>
+
+  <!-- Attach a 'Copy STUDATA' helper to the legacy course -->
+
+  <template name="Imaginary pspForEng Instructor Template #1"
+            imaginary="true" defineRollup="no" ID="pspForEng">
+    <html ID="studata" title="Copy STUDATA to Clipboard"
+          href="pspForEng/studata" inPackage="pspForEng-instr"/>
+  </template>
+
+
+
+  <!-- Define and attach the Student Profile form -->
+
+  <template name="Imaginary pspForEng Student Profile Template"
+            imaginary="true" defineRollup="no" ID="pfeStudentProfile"
+            constraints="{}">
+    <html ID="profile" title="Student Profile"
+          href="psp-lib/student-profile.shtm" inPackage="pspProc"/>
+  </template>
+
+
+  <!-- script provider for the instructor materials -->
+
+  <scriptSource dataName="PspForEng_Instr_Script" requires="pspForEng-instr"/>
+
+
+  <!-- snippets used by the PSP for Engineers course -->
+
+  <snippet id="pspForEng.Program2SizeReminder" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PspForEngV3_Program</context>
+    <uri>/pspForEng3/psp0.1/sizeReminder</uri>
+  </snippet>
+
+  <snippet id="pspForEng.PhaseSumProblemTest" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>Phase_Sum_Problem_Capable</context>
+    <uri>/pspForEng3/psp2/phaseSumProblemTest</uri>
+  </snippet>
+
+  <snippet id="pspForEng.defectLogScanner" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.DefectLogScanner</resources>
+    <context>PSP Project</context>
+    <uri>/pspForEng3/instr/defectLogScanner</uri>
+  </snippet>
+
+  <snippet id="pspForEng.timeLogScanner" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TimeLogScanner</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/timeLogScanner</uri>
+    <uri mode="edit">/pspForEng3/instr/timeLogScannerEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.timeLogPhaseChart" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TimeLogPhaseChart</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/timeLogPhaseChart</uri>
+    <uri mode="edit">/pspForEng3/instr/timeLogPhaseChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.probeItemSizeHist" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.ProbeItemSizeHist</resources>
+    <context>Size Estimating Template Tag</context>
+    <uri>/pspForEng3/instr/probeItemSizeHist</uri>
+  </snippet>
+
+  <snippet id="pspForEng.probeConsistencyCheck" version="1.0"
+           category="instructor" requires="pspForEng-instr">
+    <resources>PspForEng.ProbeConsistencyCheck</resources>
+    <context>Size Estimating Template Tag</context>
+    <uri>/pspForEng3/instr/probeConsistencyCheck</uri>
+  </snippet>
+
+  <snippet id="pspForEng.fixTimeConsistency" version="1.0"
+           category="instructor" requires="pspForEng-instr">
+    <resources>PspForEng.FixTimeConsistency</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/fixTimeConsistency</uri>
+    <uri mode="edit">/pspForEng3/instr/fixTimeConsistencyEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.testExpression" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TestExpression</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/testExpression</uri>
+    <uri mode="edit">/pspForEng3/instr/testExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.rangeExpression" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.RangeExpression</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/rangeExpression</uri>
+    <uri mode="edit">/pspForEng3/instr/rangeExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.trendChart" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TrendChart</resources>
+    <context>PspForEngV2_Program</context>
+    <context>PspForEngV3_Program</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/trendChart</uri>
+    <uri mode="edit">/pspForEng3/instr/trendChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.quickLinks" version="1.0" category="hidden"
+           requires="pspForEng-instr">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <mode>toc</mode>
+    <uri>/pspForEng3/instr/quickLinks</uri>
+    <uri mode="toc">/pspForEng3/instr/quickLinks</uri>
+  </snippet>
+
+  <snippet id="pspForEng.gradingCaveat" version="1.0" category="hidden"
+           requires="pspForEng-instr">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <uri>/pspForEng3/instr/gradingCaveat.htm</uri>
+  </snippet>
+
+</dashboard-process-template>

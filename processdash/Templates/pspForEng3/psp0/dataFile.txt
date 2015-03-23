@@ -1,0 +1,20 @@
+#include <psp0/dataFile.txt> exclude (
+    "FreezeFlag/.*", ".* To Date"
+)
+#include <pspForEng3/progData.txt>
+
+[PspForEngV3_PSP0] == TAG;
+
+
+=
+= Display the "Program Size" block if the parent datafile asks us to.
+=
+
+[Show_Size_Block] = [../Enable_PSP0_Size_Blocks];
+
+
+=
+= Do not display the optional "Size" block in the PSP0 script
+=
+
+[PSP0_HIDE_SIZE_BLOCK_IN_SCRIPT] = true;

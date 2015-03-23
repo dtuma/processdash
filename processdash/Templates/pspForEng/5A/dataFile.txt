@@ -1,0 +1,26 @@
+#include <psp1.1/dataFile.txt>
+#include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
+
+= Students must manually calculate CPI for program 5A.
+
+5A ESTIMATED Time To Date=?NaN
+5A Time To Date=?NaN
+5A CPI To Date=?NaN
+
+= Students must manually calculate % Reused for program 5A.
+
+5A Estimated % Reused=?NaN
+5A % Reused=?NaN
+5A % Reused To Date=?NaN
+
+= Students must manually calculate % New Reused for program 5A.
+
+5A Estimated % New Reused=?NaN
+5A % New Reused=?NaN
+5A % New Reused To Date=?NaN
+
+
+= Extra freeze flag
+
+[FreezeFlag/5A %( New)? Reused] = [Completed];

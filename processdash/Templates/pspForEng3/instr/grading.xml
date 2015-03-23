@@ -1,0 +1,433 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<pdashCmsPage>
+
+<pageTitle>PSP Instructor Grading Helper</pageTitle>
+
+<pageMetadata>
+  <param name="PersistenceQualifier">Global</param>
+</pageMetadata>
+
+<snippet instanceId="113" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Progress Overview</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="140" type="pspForEng.trendChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">[Time] / 60</param>
+    </item>
+  </enum>
+  <param name="Title">Actual Development Time</param>
+  <param name="YAxisLabel">Hours</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="141" type="pspForEng.trendChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Planning/%/Time</param>
+    </item>
+  </enum>
+  <param name="Title">% Planning Time</param>
+  <param name="YAxisLabel">%</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="142" type="pspForEng.trendChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Productivity</param>
+    </item>
+  </enum>
+  <param name="Title">Productivity</param>
+  <param name="YAxisLabel">Size/Hr</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="143" type="pspForEng.trendChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Yield</param>
+    </item>
+  </enum>
+  <param name="Title">Yield</param>
+  <param name="YAxisLabel">%</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Time Log</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="112" type="pspForEng.timeLogScanner" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="CheckCode">on</param>
+  <param name="CheckCode Review">on</param>
+  <param name="CheckCompile">on</param>
+  <param name="CheckDesign">on</param>
+  <param name="CheckDesign Review">on</param>
+  <param name="CheckPlanning">on</param>
+  <param name="CheckPostmortem">on</param>
+  <param name="CheckTest">on</param>
+  <param name="Message">You did log not any time to [PHASES].  Did you forget to start the timer?</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="103" type="pdash.timeLog" version="1.0" />
+
+<snippet instanceId="144" type="pspForEng.timeLogPhaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="GapSize">1</param>
+  <param name="GapUnits">Hours</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="107" type="pdash.metricsPhaseTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Time</param>
+    </item>
+  </enum>
+  <param name="Label">Time in Phase</param>
+  <param name="PhaseGroup">All</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowActualPctCol">on</param>
+  <param name="ShowTotalRow">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="106" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Time</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Time in Phase</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="101" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Defect Log</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="111" type="pspForEng.defectLogScanner" version="1.0" persister="xml.v1"><![CDATA[
+<parameters />]]></snippet>
+
+<snippet instanceId="102" type="pdash.defectLog" version="1.0" />
+
+<snippet instanceId="108" type="pdash.metricsPhaseTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Defects Injected</param>
+    </item>
+    <item>
+      <param name="DataName">Defects Removed</param>
+    </item>
+  </enum>
+  <param name="Label">Defects by Phase</param>
+  <param name="PhaseGroup">All</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowActualPctCol">on</param>
+  <param name="ShowTotalRow">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="109" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Defects Injected</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Injected</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="110" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Defects Removed</param>
+    </item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Removed</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="115" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Size Estimating Template &amp; PROBE</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="139" type="pspForEng.probeItemSizeHist" version="1.0" />
+
+<snippet instanceId="147" type="pspForEng.probeConsistencyCheck" version="1.0" />
+
+<snippet instanceId="116" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Planning Summary</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="118" type="pspForEng.testExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Expression">[Estimated Time] &gt; 0</param>
+  <param name="FalseMessage">You did not enter the total planned time for this program.</param>
+  <param name="FalseMessageType">Error</param>
+  <param name="PspLevel">PSP0</param>
+  <param name="TrueMessage">Planned total time has been entered.</param>
+  <param name="TrueMessageType">Check</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="148" type="pspForEng.testExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Expression">[Total LOC] &gt; 0</param>
+  <param name="FalseMessage">You did not enter the total actual size for this program.</param>
+  <param name="FalseMessageType">Error</param>
+  <param name="PspLevel">PSP0.1</param>
+  <param name="TrueMessage">Total actual size has been entered.</param>
+  <param name="TrueMessageType">Check</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="119" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Base LOC</param>
+      <param name="DisplayName"> Base (B)</param>
+    </item>
+    <item>
+      <param name="DataName">Deleted LOC</param>
+      <param name="DisplayName"> Deleted (D)</param>
+    </item>
+    <item>
+      <param name="DataName">Modified LOC</param>
+      <param name="DisplayName"> Modified (M)</param>
+    </item>
+    <item>
+      <param name="DataName">Added LOC</param>
+      <param name="DisplayName"> Added (A)</param>
+    </item>
+    <item>
+      <param name="DataName">Reused LOC</param>
+      <param name="DisplayName"> Reused (R)</param>
+    </item>
+    <item>
+      <param name="DataName">New &amp; Changed LOC</param>
+      <param name="DisplayName">Added and Modified (A+M)</param>
+    </item>
+    <item>
+      <param name="DataName">Total LOC</param>
+      <param name="DisplayName">Total Size (T)</param>
+    </item>
+    <item>
+      <param name="DataName">New Reused LOC</param>
+      <param name="DisplayName">Total New Reusable</param>
+    </item>
+    <item>
+      <param name="DataName">Object LOC</param>
+      <param name="DisplayName">Estimated Proxy Size (E)</param>
+    </item>
+  </enum>
+  <param name="Label">Planned &amp; Actual Size Data</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="135" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Productivity</param>
+      <param name="DisplayName">Productivity (Size / Hour)</param>
+    </item>
+  </enum>
+  <param name="Label">Planned &amp; Actual Size/Hour Data</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+  <param name="ShowToDateCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="131" type="pspForEng.rangeExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Range">
+    <item>
+      <param name="Message">When producing PSP estimates, we strive for a balance between overestimates and underestimates.  When your estimating errors are well-balanced, your CPI will be close to 1.  Unfortunately, your CPI is [CPI To Date], which indicates a tendency to underestimate. If you practice using PROBE consistently, it should help you to overcome this bias.</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">0.6</param>
+      <param name="Operator">LT</param>
+    </item>
+    <item>
+      <param name="Message">CPI = [CPI To Date], which is reasonable.</param>
+      <param name="MessageType">Check</param>
+      <param name="Number">1.4</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">When producing PSP estimates, we strive for a balance between overestimates and underestimates.  When your estimating errors are well-balanced, your CPI will be close to 1.  Unfortunately, your CPI is [CPI To Date], which indicates a tendency to overestimate. If you practice using PROBE consistently, it should help you to overcome this bias.</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">1.4</param>
+      <param name="Operator">GT</param>
+    </item>
+  </enum>
+  <param name="Expression">[CPI To Date]</param>
+  <param name="PspLevel">PSP1.1</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="136" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">% Reused</param>
+    </item>
+    <item>
+      <param name="DataName">% New Reused</param>
+    </item>
+  </enum>
+  <param name="Label">Reuse Metrics</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="133" type="pspForEng.rangeExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Range">
+    <item>
+      <param name="Message">You found [Test/Defect Density] defects per KLOC in test, which is fairly low.  Did you record all of the test defects you found?  If so, congratulations on achieving such high quality!</param>
+      <param name="MessageType">Info</param>
+      <param name="Number">7</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">Test defect density was [Test/Defect Density] defects per KLOC, which is acceptable.</param>
+      <param name="MessageType">Check</param>
+      <param name="Number">20</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">You found [Test/Defect Density] defects per KLOC in test, which is higher than desired.</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">20</param>
+      <param name="Operator">GT</param>
+    </item>
+  </enum>
+  <param name="Expression">[Test/Defect Density]</param>
+  <param name="PspLevel">PSP2</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="134" type="pspForEng.rangeExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Range">
+    <item>
+      <param name="Message">The defects you recorded translate to [Defect Density] defects per KLOC, which is fairly low.  Did you record all of the defects you found?</param>
+      <param name="MessageType">Warning</param>
+      <param name="Number">30</param>
+      <param name="Operator">LT</param>
+    </item>
+    <item>
+      <param name="Message">Total defect density was [Defect Density] defects per KLOC, which is acceptable.</param>
+      <param name="MessageType">Check</param>
+      <param name="Number">125</param>
+      <param name="Operator">LT</param>
+    </item>
+    <item>
+      <param name="Message">The defects you recorded translate to [Defect Density] defects per KLOC, which is higher than desired. Can you identify the root cause of this high defect rate? Can you think of any process improvement proposals that might help you to improve quality in the future?</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">125</param>
+      <param name="Operator">GE</param>
+    </item>
+  </enum>
+  <param name="Expression">[Defect Density]</param>
+  <param name="PspLevel">PSP2</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="137" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Metric">
+    <item>
+      <param name="DataName">Design Review/Appraisal Rate</param>
+      <param name="DisplayName">Design Review Rate (Size/Hr)</param>
+    </item>
+    <item>
+      <param name="DataName">Code Review/Appraisal Rate</param>
+      <param name="DisplayName">Code Review Rate (Size/Hr)</param>
+    </item>
+  </enum>
+  <param name="Label">Review Rates</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="138" type="pspForEng.rangeExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Range">
+    <item>
+      <param name="Message">For reviews to be effective, they must not be too fast.  In your plan for this project, you planned to review [Design Review/Estimated Appraisal Rate] LOC per hour in the design review phase, which is too fast. On future assignments, consider planning to spend more time in design review.</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">200</param>
+      <param name="Operator">GT</param>
+    </item>
+  </enum>
+  <param name="Expression">[Design Review/Estimated Appraisal Rate]</param>
+  <param name="PspLevel">PSP2</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="117" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Consistency Checks</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="122" type="pspForEng.fixTimeConsistency" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="CompileFixPercent">80</param>
+  <param name="CompileFudgeMinutes">5</param>
+  <param name="TestFixPercent">80</param>
+  <param name="TestFudgeMinutes">10</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="132" type="pspForEng.rangeExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <enum name="Range">
+    <item>
+      <param name="Message">You have not entered the actual data on the Size Estimating Template.</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">0</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">The Planning Summary shows [Added LOC] Added LOC.  But only [Additions LOC] LOC are accounted for in the actual data on the Size Estimating Template. Did you measure and enter the actual size of your program correctly?</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">0.8</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">The Planning Summary shows [Added LOC] Added LOC.  This is consistent with the Size Estimating Template, which shows [Additions LOC] LOC worth of base additions and added parts.</param>
+      <param name="MessageType">Check</param>
+      <param name="Number">1.0</param>
+      <param name="Operator">LE</param>
+    </item>
+    <item>
+      <param name="Message">The actual data on the Size Estimating Template indicates that you wrote [Additions LOC] LOC of base additions and added parts. But the Planning Summary only shows [Added LOC] Added LOC.  Did you measure and enter the actual size of your program correctly?</param>
+      <param name="MessageType">Error</param>
+      <param name="Number">1</param>
+      <param name="Operator">GT</param>
+    </item>
+  </enum>
+  <param name="Expression">[Additions LOC] / [Added LOC]</param>
+  <param name="PspLevel">PSP1</param>
+</parameters>]]></snippet>
+
+<pageFooter>
+
+<snippet instanceId="9" type="pspForEng.quickLinks" version="1.0" />
+
+<snippet instanceId="8" type="pspForEng.gradingCaveat" version="1.0" />
+
+</pageFooter>
+
+
+</pdashCmsPage>

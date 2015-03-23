@@ -1,0 +1,984 @@
+<?xml version="1.0"?>
+
+<!-- ===================================================================
+
+Process Dashboard - Data Automation Tool for high-maturity processes
+Copyright (C) 2001-2015 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+========================================================================
+
+   Build file for Process Dashboard
+
+Notes:
+   This is a build file for use with the Jakarta Ant build tool.
+
+
+Prerequisites:
+
+   * jakarta-ant from http://jakarta.apache.org
+
+   * (optional) If you install javahelp on your system and set the
+     environment variable "JAVAHELP_HOME", this script will detect
+     it and compile in support for context-sensitive help. (Otherwise,
+     it will just compile the web browser-based help support.)
+
+
+Build Instructions:
+   To build, run
+
+     ant <target>
+
+   on the directory where this file is located with the target you want.
+
+
+Most useful targets:
+
+ - jar      - > creates the "pspdash.jar" package in "./build/out"
+ - compile  - > recompiles the main dashboard classes
+
+
+Authors:
+  David Tuma, with help and advice from David Li <david@d11e.com>
+
+==================================================================== -->
+
+<project default="dist" basedir=".">
+
+  <property environment="env"/>
+
+  <property file="build.properties"/>
+
+
+  <property name="build"      value="antbin"/>
+  <property name="dist"       value="dist"/>
+  <property name="lib"        value="lib"/>
+
+  <property file="${lib}/version.properties"/>
+
+  <property name="eng.version"      value="3.2"/><!-- VERSION -->
+  <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
+  <property name="l10nTool.version" value="1.2"/><!-- VERSION -->
+  <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
+  <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
+
+
+  <property name="applet.file" value="DataApplet${dashboardVersion}"/>
+
+  <property name="debug"      value="on"/>
+
+  <property name="src"        value="src"/>
+  <property name="processdash" value="${src}/net/sourceforge/processdash"/>
+  <property name="data"       value="${processdash}/data"/>
+  <property name="compiler"   value="${data}/compiler"/>
+  <property name="glob"       value="${processdash}/util/glob"/>
+  <property name="i18n"       value="${processdash}/i18n"/>
+  <property name="cms"        value="${processdash}/net/cms"/>
+  <property name="templates"  value="Templates"/>
+  <property name="resources"  value="${templates}/resources"/>
+  <property name="help"       value="${templates}/help"/>
+  <property name="helpsearch" value="${help}/JavaHelpSearch"/>
+  <property name="helpimgsrc" value="${help}/Images/constr"/>
+  <property name="helpimages" value="${help}/Images"/>
+  <property name="pfeImport"  value="${templates}/pspForEng3/userdata/import"/>
+  <property name="pfaImport"  value="${templates}/pspForEng3/userdataFA/import"/>
+  <property name="libsrc"     value="${lib}/src"/>
+  <property name="testsrc"    value="test/src"/>
+  <property name="installer"  value="installer"/>
+  <property name="installSrc"  value="${installer}/src"/>
+  <property name="basePkg"    value="net/sourceforge/processdash"/>
+  <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
+
+  <property name="ns.dir" value="${build}/NS"/>
+  <property name="ns.jar" value="${build}/Templates/${applet.file}.jar"/>
+  <property name="ie.dir" value="${build}/IE"/>
+  <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
+
+  <property name="jfreechart.jar" value="${lib}/jfreechart-1.0.19.jar"/>
+  <property name="jcommon.jar"    value="${lib}/jcommon-1.0.23.jar"/>
+  <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
+  <property name="json.jar"       value="${lib}/json_simple.jar"/>
+  <property name="image4j.jar"    value="${lib}/image4j.jar"/>
+  <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
+  <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
+  <property name="datatips.jar"   value="${lib}/datatips.jar"/>
+  <property name="colt.jar"       value="${lib}/colt.jar"/>
+  <property name="jna.jar"        value="${lib}/jna-3.3.0.jar"/>
+  <property name="keyring.jar"    value="${lib}/keyring-lib.jar"/>
+  <property name="apple-eawt.jar" value="${lib}/com-apple-eawt.jar"/>
+  <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
+  <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
+  <property name="xmlrpc-com.jar" value="${lib}/xmlrpc-common-3.1.1.jar"/>
+  <property name="jetty.jar"      value="${lib}/jetty-8.1.15.jar"/>
+  <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
+
+  <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
+  <property name="cvsroot"
+     value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/processdash"/>
+
+  <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
+
+
+  <!-- property name="build.sysclasspath" value="ignore"/ -->
+  <!-- property name="build.compiler" value="javac1.4"/ -->
+  <property name="compile.target" value="1.5"/>
+  <property name="compile.degraded.target" value="1.2"/>
+
+  <path id="build.classpath">
+    <pathelement location="${build}"/>
+    <pathelement location="${colt.jar}"/>
+    <pathelement location="${jfreechart.jar}"/>
+    <pathelement location="${jcommon.jar}"/>
+    <pathelement location="${kxml.jar}"/>
+    <pathelement location="${json.jar}"/>
+    <pathelement location="${image4j.jar}"/>
+    <pathelement location="${jcalendar.jar}"/>
+    <pathelement location="${datatips.jar}"/>
+    <pathelement location="${jna.jar}"/>
+    <pathelement location="${keyring.jar}"/>
+    <pathelement location="${apple-eawt.jar}"/>
+    <pathelement location="${ws-commons.jar}"/>
+    <pathelement location="${xmlrpc-cli.jar}"/>
+    <pathelement location="${xmlrpc-com.jar}"/>
+    <pathelement location="${jetty.jar}"/>
+  </path>
+
+
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <property name="version" value="${dashboard.version}"/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${build}/Templates"/>
+    <!-- Check to see if optional packages are present -->
+    <available property="javahelp.jhindexerjar"
+               file ="${javahelp.home}/javahelp/bin/jhindexer.jar"
+               value="${javahelp.home}/javahelp/bin/jhindexer.jar"/>
+    <available property="javahelp.jhjar"
+               file ="${javahelp.home}/javahelp/lib/jh.jar"
+               value="${javahelp.home}/javahelp/lib/jh.jar"/>
+    <available property="commondom.support"
+               classname="com.sun.java.browser.dom.DOMService"/>
+    <available property="nsobject.support"
+               file="${java.home}/lib/jaws.jar"/>
+    <available property="nsobject.support"
+               file="${java.home}/lib/plugin.jar"/>
+  </target>
+
+
+
+  <target name="compile" depends="init,parser,globParser,translator,lexers"
+        description="Compile the main dashboard classes" >
+
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           classpathref="build.classpath" target="${compile.target}">
+      <include name="net/**/*.java"/>
+      <exclude name="**/*Test.java"/>
+      <excludesfile name="${lib}/fileset-applet-only.txt"/>
+      <excludesfile name="${lib}/fileset-ns.txt"/>
+      <excludesfile name="${lib}/fileset-degraded-jre.txt"/>
+    </javac>
+    <!-- Compile classes supporting degraded JRE -->
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           classpathref="build.classpath"
+           target="${compile.degraded.target}" source="${compile.degraded.target}">
+      <includesfile name="${lib}/fileset-degraded-jre.txt"/>
+    </javac>
+  </target>
+
+
+
+  <target name="javahelp-addon" depends="ant-tasks" if="javahelp.jhjar"
+          description="Package up the add-on context-sensitive help support">
+    <!-- zip up the contents of the add-on -->
+    <mergeJars destfile="${dist}/dashHelp.jar">
+      <!-- include the contents of the javahelp distribution -->
+      <jar location="${javahelp.jhjar}"/>
+      <!-- include the add-on package manifest -->
+      <zipfileset dir="${help}" includes="javaHelp-manifest.txt"
+          fullpath="META-INF/PDASH.MF"/>
+    </mergeJars>
+  </target>
+
+
+
+  <target name="import-addon">
+    <jar destfile="${dist}/importPSP.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="importPSP"/>
+        <attribute name="Dash-Pkg-Version" value="1.3"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP(SM) Data Import Add-on Process Set"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir=".">
+        <include name="Templates/Import-template.xml"/>
+        <include name="Templates/import/dataFile.txt"/>
+        <include name="Templates/import/import.htm"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="l10nTool-addon" depends="l10n-tool,ant-tasks">
+    <jar destfile="${dist}/l10nTool.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="l10nTool"/>
+        <attribute name="Dash-Pkg-Version" value="${l10nTool.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${l10nTool.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="Process Dashboard Localization Tool"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <zipfileset src="${l10n-tool.jar}"/>
+
+      <fileset dir="." includes="Templates/l10nTool-template.xml"/>
+      <fileset dir="${build}" includes="net/**/OpenLocalizationToolAction*.class"/>
+    </jar>
+    <maybeSignJar jar="${dist}/l10nTool.jar" prefix="${l10nTool-signature}"/>
+  </target>
+
+  <target name="pspForEng-addon" depends="ant-tasks">
+    <!-- create the hierarchy alteration messages for use by the installer -->
+    <makeDashMessage dest="${pfeImport}/addPFE.pdash"><![CDATA[
+      <message type="pdash.alterHierarchy" msgId="addPFE/${dashboard.version}">
+        <addTemplate path="/Non Project/PSP for Engineers"
+            templateID="pspForEngV3" select="true"/>
+      </message>
+      <deleteEnclosingArchive/>]]>
+    </makeDashMessage>
+    <makeDashMessage dest="${pfaImport}/addPFA.pdash"><![CDATA[
+      <message type="pdash.alterHierarchy" msgId="addPFA/${dashboard.version}">
+        <addTemplate path="/Non Project/PSP Fundamentals &amp; Advanced"
+            templateID="pspFundAdv" select="true"/>
+      </message>
+      <deleteEnclosingArchive/>]]>
+    </makeDashMessage>
+    <!-- build the jarfile for students -->
+    <jar destfile="${dist}/pspForEng.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="pspForEng"/>
+        <attribute name="Dash-Pkg-Version" value="${eng.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${eng.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP for Engineers Add-on Process Set"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir=".">
+        <include name="Templates/pspCourseFlex.template"/>
+        <include name="Templates/pspForEng3.template"/>
+        <include name="Templates/pspFundAdv.template"/>
+      </fileset>
+    </jar>
+    <!-- build the jarfile for instructors -->
+    <jar destfile="${dist}/pspForEng-instr.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="pspForEng-instr"/>
+        <attribute name="Dash-Pkg-Version" value="${eng.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${instr.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP for Engineers Instructor Tools"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir=".">
+        <include name="Templates/pspForEng-instr.globalData"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="extras-addon" depends="compile" if="extras.dir"
+          unless="extras.skip">
+    <pathconvert property="extras.processdash.dir" dirSep="/">
+      <path location="."/>
+    </pathconvert>
+    <ant dir="${extras.dir}" inheritAll="false">
+      <property name="processdash" value="${extras.processdash.dir}"/>
+    </ant>
+  </target>
+
+
+  <target name="parser" depends="init,-parser-depend"
+          description="Regenerate source code for the data parser if needed."
+          unless="parser.upToDate">
+    <!-- erase the previously generated compiler classes -->
+    <delete quiet="true" dir="${compiler}/lexer"/>
+    <delete quiet="true" dir="${compiler}/parser"/>
+    <delete quiet="true" dir="${compiler}/node"/>
+    <delete quiet="true" dir="${compiler}/analysis"/>
+    <!-- run the sablecc code generator -->
+    <java classpath="${lib}/sablecc.jar" fork="true" inputstring=""
+          classname="org.sablecc.sablecc.SableCC">
+      <arg value="-d"/>
+      <arg file="${src}"/>
+      <arg file="${compiler}/grammar.txt"/>
+    </java>
+    <!-- fixup code to remove Eclipse warning -->
+    <replace file="${src}/net/sourceforge/processdash/data/compiler/lexer/Lexer.java">
+      <replacefilter token="this.gotoTable" value="Lexer.gotoTable"/>
+      <replacefilter token="this.accept" value="Lexer.accept"/>
+    </replace>
+  </target>
+
+  <target name="-parser-depend"
+          description="Check to see if the data parser needs regenerating.">
+    <uptodate property="parser.upToDate"
+              srcfile="${compiler}/grammar.txt"
+              targetfile="${compiler}/parser/Parser.java"/>
+  </target>
+
+
+
+  <target name="globParser" depends="init,-globParser-depend"
+          description="Regenerate source code for the glob parser if needed."
+          unless="globParser.upToDate">
+    <!-- erase the previously generated compiler classes -->
+    <delete quiet="true" dir="${glob}/lexer"/>
+    <delete quiet="true" dir="${glob}/parser"/>
+    <delete quiet="true" dir="${glob}/node"/>
+    <delete quiet="true" dir="${glob}/analysis"/>
+    <!-- run the sablecc code generator -->
+    <java classpath="${lib}/sablecc.jar" fork="true" inputstring=""
+          classname="org.sablecc.sablecc.SableCC">
+      <arg value="-d"/>
+      <arg file="${src}"/>
+      <arg file="${glob}/grammar.txt"/>
+    </java>
+  </target>
+
+  <target name="-globParser-depend"
+          description="Check to see if the glob parser needs regenerating.">
+    <uptodate property="globParser.upToDate"
+              srcfile="${glob}/grammar.txt"
+              targetfile="${glob}/parser/Parser.java"/>
+  </target>
+
+
+  <target name="lexers" depends="init,ant-tasks" 
+          description="Regenerate source code for various lexers if necessary.">
+    <jlexBatch dir="${src}" includes="**/*.lex"/>
+  </target>
+
+
+
+  <target name="jarsurf-list" depends="compile">
+    <pathconvert property=".buildbasedir" pathsep=":" dirsep="/">
+      <path path="${build}"/>
+    </pathconvert>
+    <pathconvert property=".jarsurf_filelist" pathsep="&#x0a;" dirsep="/">
+      <path>
+        <fileset dir="${.buildbasedir}">
+          <include name="${jarsurf}/*.class"/>
+          <include name="${basePkg}/ui/lib/BrowserLauncher.class"/>
+        </fileset>
+      </path>
+    </pathconvert>
+    <echo message="${.jarsurf_filelist}" file="${src}/${jarsurf}/classes.txt"/>
+    <replace file="${src}/${jarsurf}/classes.txt"
+             token="${.buildbasedir}" value=""/>
+  </target>
+
+
+
+  <target name="translator" depends="ant-tasks,-translator-depend"
+          description="Regenerate source code for the default translation engine if necessary."
+          unless="translator.upToDate">
+    <i18n-generateTranslator
+        classname="net.sourceforge.processdash.i18n.DefaultEngine"
+        destdir="src"
+        dir="${resources}" includes="(Resources).properties"/>
+  </target>
+
+  <target name="-translator-depend"
+          description="Check to see if the source code for the default translation engine needs regenerating.">
+    <uptodate property="translator.upToDate"
+              targetfile="${i18n}/DefaultEngine.java">
+      <srcfiles dir=".">
+        <include name="${resources}/(Resources).properties"/>
+        <include name="lib/src/net/sourceforge/processdash/i18n/GenerateTranslatorTemplate.lex"/>
+      </srcfiles>
+    </uptodate>
+  </target>
+
+
+
+  <target name="NSDataApplet" depends="init" if="nsobject.support"
+        description="Compile the data applet support for netscape and W3C dom">
+    <mkdir dir="${ns.dir}"/>
+    <javac srcdir="${src}" destdir="${ns.dir}" debug="${debug}"
+           includeAntRuntime="no" includeJavaRuntime="no" target="1.1">
+      <bootclasspath>
+      </bootclasspath>
+      <classpath>
+         <pathelement location="${java.home}/lib/jaws.jar"/>
+         <pathelement location="${java.home}/lib/plugin.jar"/>
+      </classpath>
+      <includesfile name="${lib}/fileset-applet-only.txt"/>
+      <includesfile name="${lib}/fileset-applet-extra.txt"/>
+      <includesfile name="${lib}/fileset-ns.txt"/>
+    </javac>
+    <jar destfile="${ns.jar}" basedir="${ns.dir}" includes="net/"/>
+  </target>
+
+  <target name="ant-tasks">
+    <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
+           includeAntRuntime="yes" classpath="${svg.jar}"
+           target="1.5">
+      <exclude name="net/sourceforge/processdash/ExtractAllBackups.java"/>
+      <exclude name="net/sourceforge/processdash/PatchXmlTask.java"/>
+    </javac>
+    <taskdef file="${libsrc}/net/sourceforge/processdash/taskdef.properties"
+             classpath="${libsrc};${svg.jar}"/>
+  </target>
+
+
+
+  <target name="jar" description="Make the jarfile for distribution"
+          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list,jar-resource-check">
+    <svnRevInfo property="svnRevision"/>
+    <jar destfile="${dist}/pspdash.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class"
+                   value="net.sourceforge.processdash.Main"/>
+        <attribute name="SplashScreen-Image"
+                   value="net/sourceforge/processdash/ui/splash-native.png"/>
+        <attribute name="Dash-Pkg-ID" value="pspdash"/>
+        <attribute name="Dash-Pkg-Version" value="${version}"/>
+        <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Svn-Revision" value="${svnRevision}"/>
+
+        <attribute name="Implementation-Version" value="${version}"/>
+      </manifest>
+
+      <!-- include the compiled files and cgi scripts -->
+      <fileset dir="${build}" excludesfile="${lib}/fileset-nonclass.txt">
+          <include name="org/"/>
+          <include name="Templates/"/>
+          <include name="net/"/>
+          <exclude name="**/*Test.class"/>
+          <exclude name="net/**/OpenLocalizationToolAction*.class"/>
+      </fileset>
+
+      <!-- include important non-class files in the src directory -->
+      <fileset dir="${src}" includesfile="${lib}/fileset-nonclass.txt"/>
+
+      <!-- include the template files -->
+      <fileset dir="." includes="Templates/" 
+          excludesfile="${lib}/fileset-template-ignore.txt"/>
+
+      <!-- rename certain template files -->
+      <zipfileset dir="." includes="Templates/help/style-prod.css"
+               fullpath="Templates/help/style.css"/>
+      <zipfileset dir="." includes="Templates/help/Topics/Overview/gpl.html"
+               fullpath="Templates/license-consent.html"/>
+
+      <!-- copy and rename certain installation files -->
+      <zipfileset dir="installer/files" includes="teamdash.ini teamicon.ico"
+               prefix="net/sourceforge/processdash/tool/quicklauncher"/>
+
+      <!-- include certain metadata files -->
+      <zipfileset dir="${lib}" includes="l10n-ignore.txt" prefix="meta-inf"/>
+
+      <!-- include the contents of the libraries we use -->
+      <zipfileset src="${jcommon.jar}"/>
+      <zipfileset src="${jfreechart.jar}" excludes="META-INF/**" />
+      <zipfileset src="${kxml.jar}"/>
+      <zipfileset src="${json.jar}"/>
+      <zipfileset src="${image4j.jar}"/>
+      <zipfileset src="${jcalendar.jar}"/>
+      <zipfileset src="${jna.jar}"/>
+      <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
+      <zipfileset src="${lib}/jfreechart_zh.zip"/>
+      <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
+      <zipfileset src="${l10n-tool.jar}" includes="**/jrc-editor*.properties"/>
+      <zipfileset src="${datatips.jar}" includes="**/*.class"/>
+      <zipfileset src="${ws-commons.jar}" includes="org/" />
+      <zipfileset src="${xmlrpc-cli.jar}" includes="org/" />
+      <zipfileset src="${xmlrpc-com.jar}" includes="org/" />
+      <zipfileset src="${jetty.jar}" excludes="about.html META-INF/maven/** META-INF/PROCESSD.*"/>
+    </jar>
+    <maybeSignJar jar="${dist}/pspdash.jar" prefix="${pspdash-signature}"/>
+  </target>
+
+
+  <target name="jar-resource-check">
+    <fileset id="resourceCheck" dir="${src}"
+         excludesfile="${lib}/fileset-nonclass.txt">
+      <exclude name="**/Thumbs.db"/>
+      <exclude name="**/grammar.txt"/>
+      <exclude name="**/*.lex"/>
+      <exclude name="**/*.java"/>
+    </fileset>
+    <pathconvert property="resourceCheckList" refid="resourceCheck"
+         pathsep="&#10;&#9;"/>
+    <fail message="these files were missed from inclusion in the JAR:&#10;&#9;${resourceCheckList}">
+      <condition>
+        <resourcecount refid="resourceCheck" when="greater" count="0" />
+      </condition>
+    </fail>
+  </target>
+
+
+
+  <!-- =================================================================== -->
+  <!-- Update the JavaHelp                                                 -->
+  <!-- =================================================================== -->
+  <target name="javahelp"
+          depends="init,-javahelp-depend,-javahelp-images,-javahelp-index,-javahelp-book"/>
+
+  <!-- invoke the jhindexer -->
+  <target name="-javahelp-index" depends="init,-javahelp-depend"
+          if="javahelp.jhindexerjar" unless="javahelp.upToDate">
+    <!-- delete the previous contents of the JavaHelpSearch dir -->
+    <delete dir="${helpsearch}" quiet="true"/>
+    <mkdir dir="${helpsearch}"/>
+
+    <!-- refresh the help.config file -->
+    <pathconvert property=".jhbasedir" pathsep=":" dirsep="/">
+      <path id=".jhbasedir.path" path="${help}"/>
+    </pathconvert>
+    <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
+      <path>
+        <fileset dir="${help}" includes="Topics/**/*.html">
+          <exclude name="Topics/Overview/disc-eng.html"/>
+          <exclude name="Topics/AdvancedTopics/ProcessDefinition/DataFileFunctions.html"/>
+        </fileset>
+      </path>
+    </pathconvert>
+    <echo message="${.jhfilelist}" file="${help}/help.config"/>
+    <replace file="${help}/help.config" token="${.jhbasedir}/" value="File "/>
+    <replace file="${help}/help.config">
+      <replacetoken>:</replacetoken>
+      <replacevalue><![CDATA[
+]]></replacevalue>
+    </replace>
+
+    <!-- invoke jhindexer to rebuild the help indexes -->
+    <java jar="${javahelp.jhindexerjar}" dir="${help}"
+          fork="true" inputstring="">
+      <arg value="-c"/>
+      <arg value="help.config"/>
+    </java>
+  </target>
+
+  <!-- regenerate the "book.html" file -->
+  <target name="-javahelp-book" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <xslt in="${help}/TOC.xml" out="${help}/TOC.html"
+          style="${help}/makeTOC.xslt"/>
+    <xslt in="${help}/TOC.xml" out="${help}/Skeleton.html"
+          style="${help}/makeSkeleton.xslt"/>
+
+    <java classpath="${lib}/DocSpider.jar" classname="DocSpider"
+          fork="true" dir="${help}" inputstring="">
+      <arg value="Skeleton.html"/>
+      <arg value="book.html"/>
+      <arg value="none"/>
+      <arg value="-nostatus"/>
+    </java>
+    <replace file="${help}/book.html" value="">
+      <replacetoken>width="1" height="1"</replacetoken>
+    </replace>
+    <delete file="${help}/Skeleton.html"/>
+  </target>
+
+  <target name="-javahelp-images" depends="ant-tasks"
+          unless="javahelp.upToDate">
+    <svgToImage maxWidth="740" bg="#ffffff" verbose="true"
+                destdir="${helpimages}">
+      <fileset dir="${helpimgsrc}" includes="*.svg"/>
+    </svgToImage>
+  </target>
+
+  <!-- check to see if help needs updating -->
+  <target name="-javahelp-depend">
+    <uptodate property="javahelp.upToDate" targetfile="${help}/book.html">
+      <srcfiles dir="${help}">
+        <include name="**/*.html"/>
+        <include name="**/*.htm"/>
+        <include name="**/*.svg"/>
+        <include name="**/constr/*.png"/>
+        <include name="*.xml"/>
+        <include name="PSPDash.hs"/>
+        <exclude name="TOC.html"/>
+        <exclude name="Skeleton.html"/>
+        <exclude name="book.html"/>
+      </srcfiles>
+    </uptodate>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!-- Installer                                                           -->
+  <!-- =================================================================== -->
+
+  <target name="installer"
+          depends="installer-mergeJar,installer-macData,installer-langpacks">
+    <ant antfile="${installer}/build.xml" inheritAll="false"/>
+  </target>
+
+  <target name="installer-mergeJar" depends="compile">
+    <classfileset id="installer-mergeJar-classes" dir="${build}"
+      rootclass="net.sourceforge.processdash.InternalSettings"/>
+    <jar destfile="${installer}/files/mergeSettings.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+                   value="net.sourceforge.processdash.InternalSettings"/>
+      </manifest>
+      <fileset refid="installer-mergeJar-classes"/>
+    </jar>
+  </target>
+
+  <target name="installer-macData" depends="compile">
+    <classfileset id="installer-macData-classes" dir="${build}"
+      rootclass="net.sourceforge.processdash.ui.macosx.MacDataCleanup"/>
+    <jar destfile="${installer}/files/cleanupMacData.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+            value="net.sourceforge.processdash.ui.macosx.MacDataCleanup"/>
+      </manifest>
+      <fileset refid="installer-macData-classes"/>
+    </jar>
+  </target>
+
+  <target name="installer-langpacks" depends="ant-tasks">
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="ja"
+        langpack="${installer}/files/text-jpn.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="zh"
+        langpack="${installer}/files/text-chn.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="de"
+        langpack="${installer}/files/text-deu.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="es"
+        langpack="${installer}/files/text-spa.xml"/>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!-- Internationalization / Localization                                 -->
+  <!-- =================================================================== -->
+
+  <target name="l10n-tool">
+    <ant dir="l10n-tool" inheritAll="false"/>
+  </target>
+
+  <target name="check-res" depends="ant-tasks">
+    <i18n-orphans dir="Templates" includes="**/*.properties"/>
+  </target>
+
+  <target name="-add-trans" depends="ant-tasks">
+    <i18n-addTranslations dir="." includes="pspdash_*.zip pspdash_*.jar"
+         externalDirs="${external-resource-dirs}"/>
+  </target>
+
+  <target name="add-trans" depends="-add-trans,installer-langpacks"/>
+
+
+  <!-- =================================================================== -->
+  <!-- Cleans everything                                                   -->
+  <!-- =================================================================== -->
+  <target name="clean">
+    <delete quiet="true" dir="${build}"/>
+    <delete quiet="true" dir="${compiler}/lexer"/>
+    <delete quiet="true" dir="${compiler}/parser"/>
+    <delete quiet="true" dir="${compiler}/node"/>
+    <delete quiet="true" dir="${compiler}/analysis"/>
+    <delete quiet="true" dir="${glob}/lexer"/>
+    <delete quiet="true" dir="${glob}/parser"/>
+    <delete quiet="true" dir="${glob}/node"/>
+    <delete quiet="true" dir="${glob}/analysis"/>
+    <delete quiet="true" dir="${pfaImport}"/>
+    <delete quiet="true" dir="${pfeImport}"/>
+    <delete quiet="true" file="${i18n}/DefaultEngine*"/>
+    <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
+    <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
+    <delete quiet="true" file="${help}/book.html"/>
+    <delete quiet="true" dir="${helpsearch}"/>
+
+    <delete quiet="true" file="${dist}/pspdash.jar"/>
+    <delete quiet="true" file="${dist}/dashHelp.jar"/>
+    <delete quiet="true" file="${dist}/importPSP.jar"/>
+    <delete quiet="true" file="${dist}/pspForEng.jar"/>
+    <delete quiet="true" file="${dist}/l10nTool.jar"/>
+    <delete quiet="true" file="${dist}/extras.jar"/>
+    <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
+    <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
+    <delete><fileset dir="${installer}/files" includes="izpack-customizations.jar
+           cleanupMacData.jar mergeSettings.jar"/></delete>
+    <delete><fileset dir="${installSrc}" includes="**/*.class"/></delete>
+  </target>
+
+
+  <!-- =================================================================== -->
+  <!-- Create distributable files                                          -->
+  <!-- =================================================================== -->
+  <target name="dist"
+      depends="jar,javahelp-addon,import-addon,l10nTool-addon,
+               pspForEng-addon,extras-addon"/>
+
+  <target name="dist-src" depends="ant-tasks">
+    <svnzip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
+  </target>
+
+  <target name="dist-all" depends="dist,dist-src,installer"/>
+
+  <!-- =================================================================== -->
+  <!-- Create miscellaneous other items                                    -->
+  <!-- =================================================================== -->
+
+  <target name="verify15"
+      depends="init,parser,globParser,translator,lexers"
+      description="Verify that the main dashboard classes rely only upon APIs found in Java 1.5.">
+
+    <fail message="Process Dashboard 2.0.13 and above will not run on Java 1.5"/>
+
+    <!-- remaining code left for future reference -->
+    <property name="15.bootclasspath" value="${java.home.15}/jre/lib/rt.jar"/>
+    <available property="have15home" file="${15.bootclasspath}"/>
+    <fail unless="have15home" message="To test for compatibility with Java 1.5, you must edit build.properties and specify a value for the java.home.15 property."/>
+
+    <delete quiet="true" dir="${build}-verify"/>
+    <mkdir dir="${build}-verify"/>
+    <javac srcdir="${src}" destdir="${build}-verify"
+           classpathref="build.classpath" source="1.5" target="1.5"
+           bootclasspath="${15.bootclasspath}">
+      <include name="net/**/*.java"/>
+      <excludesfile name="${lib}/fileset-applet-only.txt"/>
+      <excludesfile name="${lib}/fileset-ns.txt"/>
+      <excludesfile name="${lib}/fileset-java-1-6.txt"/>
+    </javac>
+    <delete quiet="true" dir="${build}-verify"/>
+    <echo message="Congratulations!"/>
+    <echo message="Successfully builds against Java 1.5!"/>
+  </target>
+
+  <target name="verifyCC" depends="jar"
+      description="Verify that the Code Collaborator integration can still lookup defect types properly">
+
+    <java classpath="${dist}/pspdash.jar" fork="true" 
+        inputstring="" failonerror="true"
+        classname="net.sourceforge.processdash.log.ui.importer.codecollab.CCDefectTypeLookup">
+      <arg value="${codeCollab.testUrl}"/>
+      <arg value="${codeCollab.username}"/>
+      <arg value="${codeCollab.password}"/>
+    </java>
+  </target>
+
+  <target name="makeMessage" depends="ant-tasks">
+    <property name="msgSrc" value="message.xml"/>
+    <property name="msgDest" value="message.pdash"/>
+    <makeDashMessage src="${msgSrc}" dest="${msgDest}"/>
+  </target>
+
+  <target name="pdash-util-jar" depends="compile">
+    <jar destfile="${dist}/pdash-util.jar" duplicate="fail">
+      <fileset dir="${build}">
+        <include name="net/sourceforge/processdash/util/"/>
+        <include name="net/sourceforge/processdash/tool/bridge/"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceAutoLocator.class"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceMappingLoader.class"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceXmlConstantsv1.class"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/XmlConstants.class"/>
+        <include name="net/sourceforge/processdash/tool/export/mgr/ExternalLocationMapper.class"/>
+        <include name="net/sourceforge/processdash/process/PhaseUtil*.class"/>
+      </fileset>
+      <zipfileset src="${kxml.jar}"/>
+    </jar>
+  </target>
+
+  <target name="pdash-mvn-all"
+      depends="pdash-mvn, pdash-util, pdash-ui-lib, pdash-servlet-api" />
+
+  <target name="pdash-mvn" depends="jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pspdash.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-full"/>
+      <arg value="-Dversion=SNAPSHOT"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
+  <target name="pdash-util" depends="pdash-util-jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-util.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-util"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
+  <target name="pdash-ui-lib-jar" depends="compile">
+    <jar destfile="${dist}/pdash-ui-lib.jar" duplicate="fail">
+      <fileset dir="${build}">
+        <include name="net/sourceforge/processdash/ui/lib/"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="pdash-ui-lib" depends="pdash-ui-lib-jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-ui-lib.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-ui-lib"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
+  <target name="pdash-servlet-api" depends="compile">
+    <jar destfile="${dist}/pdash-servlet-api.jar" basedir="${build}"
+         includes="net/sourceforge/processdash/api/"/>
+    <jar destfile="${dist}/pdash-servlet-api-src.jar" basedir="${src}"
+         includes="net/sourceforge/processdash/api/"/>
+    <javadoc sourcepath="${src}" destdir="${dist}/servlet-api-javadoc"
+         packagenames="net.sourceforge.processdash.api" />
+    <jar destfile="${dist}/pdash-servlet-api-doc.jar"
+         basedir="${dist}/servlet-api-javadoc"/>
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-servlet-api.jar"/>
+      <arg value="-Dsources=${dist}/pdash-servlet-api-src.jar"/>
+      <arg value="-Djavadoc=${dist}/pdash-servlet-api-doc.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-servlet-api"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+      <arg value="-DcreateChecksum=true"/>
+    </exec>
+  </target>
+
+  <target name="securityTestJar" depends="dist">
+    <property name="stpkg" value="net/sourceforge/processdash/security"/>
+    <javac srcdir="${testsrc}" destdir="${testsrc}" debug="true"
+           classpath="${dist}/pspdash.jar"
+           includes="${stpkg}/CgiSecurityTest.java"/>
+    <jar destfile="${dist}/securityTest.jar" duplicate="fail">
+      <fileset dir="${testsrc}" includes="${stpkg}/CgiSecurityTest*.class"/>
+      <zipfileset dir="test/src/${stpkg}" includes="*.link"
+          prefix="Templates/dash"/>
+    </jar>
+    <delete>
+      <fileset dir="${testsrc}" includes="${stpkg}/CgiSecurityTest*.class"/>
+    </delete>
+  </target>
+
+  <target name="p4diff" depends="compile">
+    <classfileset id="p4locClasses" dir="${build}"
+      rootclass="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
+    <jar destfile="${dist}/p4diff.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+            value="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
+      </manifest>
+      <fileset refid="p4locClasses"/>
+      <fileset dir="Templates">
+        <include name="resources/(Resources)*"/>
+        <include name="resources/LOCDiff*"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="standaloneDiff" depends="compile">
+    <classfileset id="locDiffClasses" dir="${build}">
+      <root classname="net.sourceforge.processdash.tool.diff.ui.LOCDiffCmdLineMain"/>
+      <root classname="net.sourceforge.processdash.ui.WindowIconImageSetter15"/>
+      <root classname="net.sourceforge.processdash.ui.WindowIconImageSetter16"/>
+    </classfileset>
+    <jar destfile="${dist}/dashLocDiff.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+            value="net.sourceforge.processdash.tool.diff.ui.LOCDiffCmdLineMain"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+      </manifest>
+      <fileset refid="locDiffClasses"/>
+      <fileset dir="Templates">
+        <include name="resources/(Resources)*"/>
+        <include name="resources/LOCDiff*"/>
+      </fileset>
+      <fileset dir="src">
+        <include name="net/sourceforge/processdash/ui/dashicon.ico" />
+        <include name="net/sourceforge/processdash/tool/diff/ui/HtmlDiffReportWriter.css" />
+      </fileset>
+      <zipfileset src="${image4j.jar}"/>
+      <zipfileset src="${kxml.jar}"/>
+    </jar>
+  </target>
+
+  <target name="customjar">
+    <jar destfile="${dist}/custom-report-fix.jar" basedir="." includes="Templates/reports/custom/create.shtm">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="customReportFix"/>
+        <attribute name="Dash-Pkg-Version" value="1.0"/>
+        <attribute name="Dash-Pkg-Name" value="Fix for Bug #1289863"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="1.7b.20050609"/>
+      </manifest>
+    </jar>
+  </target>
+
+</project>
+
+<!--
+
+Still missing items:
+
+============================================================
+From pspdash/GNUmakefile:
+
+DISABLED_WARNINGS=directory-index,img-alt,extension-attribute,extension-markup,attribute-delimiter
+
+weblint:
+        weblint -d $(DISABLED_WARNINGS) Templates | \
+        grep -v -f weblint-ignore
+
+
+-->

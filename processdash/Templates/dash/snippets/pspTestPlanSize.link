@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testPlanSize.disabled
+Expression==[Planning_Is_Done] && ![Estimated Size] && ![PSP0]
+TrueMessageType==Error
+TrueMessage==${PSPTestPlanSize.Error_Message}

@@ -1,0 +1,175 @@
+<HTML>
+<head>
+<TITLE>Entering Defects</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Entering Defects</H1>
+
+<P>We all make mistakes.  Dealing with those mistakes in a constructive way 
+so that we can learn from them is a lot of what process improvement is all
+about.</P>
+
+<P>Entering defects in the dashboard is as easy as choosing the defect button.</P>
+
+<p class="figure"><img src="../../Images/PointToDefectButton.png"></p>
+
+<P>When the defect button is chosen, the defect dialog pops up so that you 
+can enter information about the defect that you have discovered.</P>
+
+<p class="figure"><img src="../../Images/EnterDefect.png"></p>
+
+<P>In this dialog box, you enter all the data necessary to describe the 
+defect.  Each feature of the dialog box is detailed below.</P>
+
+<h2>Defect Type</h2>
+<P>The defect type pulldown allows you to choose the type of defect.  The 
+choices are determined by the defect type standard that is in effect for
+the currently selected project.  You can create new defect type standards,
+and configure the defect type standards that should be used for various
+projects;  see the <a href="UsingDefectLogEditor.html">defect editor</a>
+help topic for more information.</P>
+
+<h2>Defect Date</h2>
+
+<p>This field captures the date the defect was found and/or removed. It
+will automatically be filled in with the current date, but you can edit it
+if the defect was found or removed in the past.</p>
+
+<h2>Phase Injected and Phase Removed</h2>
+<P>The defect injected and defect removed pulldowns allow selection of the 
+process phases in which the defect was injected and removed, respectively.
+The dashboard will set both of these to what it thinks are appropriate
+choices given the current development phase, but that default choice can be
+overridden easily.</P>
+
+<p>Sometimes, you might discover a defect, but might not choose to fix it
+right away.  (For example, you might need to talk with others to determine
+the best course of action for the fix.)  In this case, you can click the
+"Removed" label, then select the option indicating that the fix for the
+defect is still pending.  After the defect has been fixed, you can use the
+<a href="UsingDefectLogEditor.html">Defect Log Editor</a> to re-edit this
+defect and change the status to "Removed."</p>
+
+<p><b>Note:</b> changing this "pending" flag will <b>not</b> affect the
+defect removal counts that appear on the Project Plan Summary form for your
+project.  Those removal counts will still include "pending" defects, even
+though the defects aren't officially removed.  This behavior allows the
+defect calculations (such as yield, defect density, and defect removal
+rate) to continue working as expected.</p>
+
+<a name="timing"></a><h2>Timing the Defect Fix</h2>
+<P>The defect dialog has its own built in timer independent of the main 
+dashboard timer.  By default, when the dialog first appears, it starts timing 
+the fix of the defect.  The fix time display will show the time passing.  The 
+intent of this behavior is that most people will discover a defect, push the 
+defect button on the dashboard and immediately start fixing the defect.  In 
+this scenario, the dialog will immediately start timing the fix.  This 
+behavior can be changed via an entry in the preferences editor.  Adding the 
+following advanced setting will cause the defect dialog to appear without
+starting the defect timer.</P>
+
+<PRE>defectDialog.autostart=false</PRE>
+
+<P>For more information about making this configuration change see the <a 
+href="../AdvancedTopics/ConfigurationFile.html">advanced settings</a> help 
+topic.</P>
+
+<P>The play and pause buttons allow starting and stopping of the defect 
+timer.  If you stop fixing the given defect but are not finished with the 
+fix, you can press this button to stop the timer.</P>
+
+<P>The defect fix timer can be started and stopped independently of the main
+dashboard timer. However, if both timers are running and you pause the main
+dashboard timer, the defect fix timer will pause too.  After being paused in
+this way, if you restart the main dashboard timer, the defect timer will
+restart as well.</p>
+
+<P>In any case, you can stop the timer and enter a specific time in the fix 
+time display box.</P>
+
+<h2>Fix Count</h2>
+
+<p>Sometimes, you may find and fix several related defects.  (For example,
+during the compile phase, the compiler might identify four missing
+semicolons, and you might fix all of them at once.)  To simplify defect
+entry, you can make one entry in your defect log describing all of the
+defects, then enter the number of distinct defects in the "Fix Count"
+field.</p>
+
+<p>Most of the time, however, you will leave the count at its default value
+of 1.  You should only use the Fix Count field when all of the defects in
+question have the same type, injection/removal phase, and description.  If
+you use the Fix Count field to record several unrelated defects, it will
+thwart your ability to analyze the defect data effectively.</p>
+
+<p>As a very special case, you can enter the number "0" in this field to
+indicate that something isn't really a defect after all, or that it is a
+defect but should be ignored when calculating quality metrics.  (For example,
+this might be appropriate if you find and fix a defect in legacy code that you
+did not write.) If you enter a zero in this field, the defect will still
+appear in defect logs and other reports, but it will not contribute to the
+"Defects Injected" or "Defects Removed" counts on the plan summary form.  As
+such, it will not affect calculations for yield, defect density, defect
+removal rates, or other quality metrics.</p>
+
+
+<a name="fixDefects"></a><h2>Fix Defect</h2>
+<P>The "Fix Defect" entry is where you can put the ID number of another 
+defect if this is a "fix defect".  A fix defect is a defect that was 
+injected while fixing another defect.  In order to determine the ID number of 
+the other defect, you can pull up the defect editor by choosing "Defect Log" 
+on the "C" menu.  One of the columns of information about each defect will 
+show the ID number.  For more information about using the Defect Log see the 
+<a href="UsingDefectLogEditor.html">Using the defect log editor</a> help 
+topic.</P>
+
+<P>The "new fix defect" button to the right of the ID entry provides another 
+way to enter a fix defect.  Consider the following relatively common case.  
+You are fixing a bug (so you already have the defect dialog open and it is 
+timing your fix).  You edit your code and save the changes.  You compile and 
+link to run a test to verify your fix.  Immediately you notice that your fix 
+broke something else.  At this point, you can click the new fix defect button 
+to get a second defect dialog (to enter this new defect).  This second dialog 
+will have the ID number of the previous defect already entered in the ID 
+entry blank.  You can now input data relating to this new fix defect. The 
+following screenshot shows two defect dialogs open.  The second dialog (the 
+one on top) is being used to enter a fix defect.</p>
+
+<p class="figure"><img src="../../Images/QSTwoDefectDialogs.png"></p>
+
+<p>This process works with defects that you edit from within the defect log 
+editor as well.  See the section below on <a 
+href="#fixingMultipleDefects">fixing multiple defects</a> for more discussion 
+on having two defect dialogs open at once.</P> 
+
+
+<h2>Entering a description</h2>
+
+<P>The defect description pane is where you record a description of the
+defect.  To facilitate effective process improvement, you should describe
+the underlying defect itself, and not just the outward symptom of the
+defect.  (For example, an outward symptom might be that the program hangs,
+while the underlying problem might have been forgetting to increment the
+index variable in a loop.)</P>
+
+<a name="fixingMultipleDefects"></a><h2>Fixing multiple defects at a time</h2>
+
+<P>If you have the need to fix more than one defect at one time, you can do 
+so by simply pushing the defect button on the dashboard again to display 
+another defect dialog.  When this happens, the timer on the first dialog will 
+stop (if it was running) and the new defect dialog's timer will start 
+recording time for the new defect.  This new defect will become the "current" 
+defect.  When this new defect dialog is dismissed, the most previously opened 
+defect dialog will become the current defect.  It will pop to the front and 
+its timer will start up again (if it had been running previously).</P>
+
+<P>In this way you can keep an arbitrary number of defect dialogs open at 
+once.  If this is to be done, we recommend that you enter a description of 
+the defect into the dialog box as soon as it is opened so that when it comes 
+back to the front as the currently active defect, it will be clear what you 
+were working on.</P>
+
+</BODY>
+</HTML>

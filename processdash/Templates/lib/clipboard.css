@@ -1,0 +1,14 @@
+a.copyToClipboard {
+    text-decoration: none;
+    color: black;
+    padding-right: 25px;
+}
+
+a.copyToClipboard:hover {
+    text-decoration: underline;
+    color: blue;
+    background-image: url("/Images/copyToClipboard.png");
+    background-repeat: no-repeat;
+    background-position: 100% 50%;
+    padding-right: 25px;
+}

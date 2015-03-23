@@ -1,0 +1,234 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- hierarchical work breakdown structure -->
+
+<node name="top">
+  <node name="Project" selected="true">
+    <node name="My Project" selected="true">
+      <node name="Planning"/>
+      <node name="Requirements">
+        <node name="Component A" selected="true"/>
+        <node name="Component B"/>
+        <node name="Component C"/>
+        <node name="Component D"/>
+      </node>
+      <node name="Architectural Design">
+        <node name="Draft"/>
+        <node name="Review"/>
+        <node name="Rework" selected="true"/>
+      </node>
+      <node name="Prototype">
+        <node name="Component A" selected="true"/>
+        <node name="Component B"/>
+        <node name="Component C"/>
+        <node name="Component D"/>
+      </node>
+      <node name="Release 1" selected="true">
+        <node name="Component A" templateID="PSP2.1" dataFile="0.dat" defectLog="0.def" selected="true">
+          <node name="Planning"/>
+          <node name="Design"/>
+          <node name="Design Review"/>
+          <node name="Code" selected="true"/>
+          <node name="Code Review"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Postmortem"/>
+        </node>
+        <node name="Component B" templateID="PSP2.1" dataFile="13.dat" defectLog="13.def">
+          <node name="Planning" selected="true"/>
+          <node name="Design"/>
+          <node name="Design Review"/>
+          <node name="Code"/>
+          <node name="Code Review"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Postmortem"/>
+        </node>
+        <node name="Component C" templateID="PSP2.1" dataFile="14.dat" defectLog="14.def">
+          <node name="Planning"/>
+          <node name="Design"/>
+          <node name="Design Review"/>
+          <node name="Code" selected="true"/>
+          <node name="Code Review"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Postmortem"/>
+        </node>
+        <node name="Component D" templateID="PSP0" dataFile="9.dat" defectLog="8.def">
+          <node name="Planning" selected="true"/>
+          <node name="Design"/>
+          <node name="Code"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Postmortem"/>
+        </node>
+      </node>
+      <node name="Testing">
+        <node name="Integration 1" selected="true"/>
+        <node name="Integration 2"/>
+        <node name="System 1"/>
+        <node name="System 2"/>
+        <node name="Usability"/>
+        <node name="Acceptance"/>
+      </node>
+    </node>
+    <node name="Web Project">
+      <node name="new" selected="true"/>
+    </node>
+    <node name="SOA Project">
+      <node name="new" selected="true"/>
+    </node>
+    <node name="Legacy">
+      <node name="Product 1" selected="true">
+        <node name="SCR 42" templateID="PSP2.1" dataFile="12.dat" defectLog="12.def" selected="true">
+          <node name="Planning" selected="true"/>
+          <node name="Design"/>
+          <node name="Design Review"/>
+          <node name="Code"/>
+          <node name="Code Review"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Postmortem"/>
+        </node>
+      </node>
+      <node name="Product 2">
+        <node name="new" selected="true"/>
+      </node>
+      <node name="Product 3">
+        <node name="new" selected="true"/>
+      </node>
+    </node>
+  </node>
+  <node name="Non Project">
+    <node name="Meetings">
+      <node name="new" selected="true"/>
+      <node name="Offsite Process Review"/>
+    </node>
+    <node name="Email" selected="true"/>
+    <node name="Training">
+      <node name="new" selected="true"/>
+    </node>
+    <node name="Historical Data">
+      <node name="Program 1" templateID="PSP0.1" dataFile="0h.dat" defectLog="0h.def">
+        <node name="Planning"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile" selected="true"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 2" templateID="PSP0.1" dataFile="1h.dat" defectLog="1h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 3" templateID="PSP0.1" dataFile="2h.dat" defectLog="2h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 4" templateID="PSP1" dataFile="3h.dat" defectLog="3h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 5" templateID="PSP1.1" dataFile="4h.dat" defectLog="4h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 6" templateID="PSP1.1" dataFile="5h.dat" defectLog="5h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 7" templateID="PSP2" dataFile="6h.dat" defectLog="6h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 8" templateID="PSP2.1" dataFile="7h.dat" defectLog="7h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 9" templateID="PSP2.1" dataFile="8h.dat" defectLog="8h.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Program 10" templateID="PSP2.1" dataFile="11h.dat" defectLog="10h.def" selected="true">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Design Review"/>
+        <node name="Code"/>
+        <node name="Code Review"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+    </node>
+    <node name="Examples">
+      <node name="Generic" templateID="Generic" dataFile="1.dat" defectLog="1.def">
+        <node name="Planning" selected="true"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="PSP0" templateID="PSP0" dataFile="6.dat" defectLog="6.def">
+        <node name="Planning" selected="true"/>
+        <node name="Design"/>
+        <node name="Code"/>
+        <node name="Compile"/>
+        <node name="Test"/>
+        <node name="Postmortem"/>
+      </node>
+      <node name="PSP3" templateID="PSP3" dataFile="8.dat" defectLog="7.def">
+        <node name="Planning" selected="true"/>
+        <node name="HLD"/>
+        <node name="HLD Review"/>
+        <node name="PSP3cycle" templateID="PSP3cycle" dataFile="7.dat">
+          <node name="Design" selected="true"/>
+          <node name="Design Review"/>
+          <node name="Code"/>
+          <node name="Code Review"/>
+          <node name="Compile"/>
+          <node name="Test"/>
+          <node name="Reassessment"/>
+        </node>
+        <node name="Postmortem"/>
+      </node>
+      <node name="Data Rollup" templateID="Rollup PSP Data" dataFile="15.dat" selected="true">
+        <node name="Analyze Rollup Data" selected="true"/>
+      </node>
+    </node>
+  </node>
+</node>

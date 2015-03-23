@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="555"
+   height="95"
+   id="svg5776"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="ShowHierarchyMenus.svg"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/ShowHierarchyMenus.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs5778" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="128.3186"
+     inkscape:cy="89"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     height="95px"
+     width="555px"
+     inkscape:window-width="1045"
+     inkscape:window-height="688"
+     inkscape:window-x="502"
+     inkscape:window-y="30" />
+  <metadata
+     id="metadata5781">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,11)">
+    <image
+       y="-11"
+       x="0"
+       id="image15501"
+       height="67"
+       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
+       xlink:href="ShowHierarchyMenus.png"
+       width="555" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="33.344604"
+       y="83.810814"
+       id="text5878"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan5880"
+         x="33.344604"
+         y="83.810814">Task Overflow Menu</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="277.31943"
+       y="83.810814"
+       id="text15251"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan15253"
+         x="277.31943"
+         y="83.810814">Active Task Selector</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 175.57299,38.432226 L 150.12271,71.882511"
+       id="path15257" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.10595393px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 186.5052,46.690427 C 192.01109,54.399975 196.63947,60.173366 205.56026,60.173366 C 230.59453,60.173366 281.93834,60.126405 334.91314,60.077404 C 337.47148,60.075039 343.57275,65.757217 343.97747,65.465137 C 346.33156,63.76619 350.29068,60.063184 353.32017,60.060391 C 405.02153,60.012739 455.55989,59.968087 482.05524,59.968087 C 491.34346,59.968087 492.23201,53.756752 497.22301,46.768188"
+       id="path5711"
+       sodipodi:nodetypes="csscssc" />
+  </g>
+</svg>

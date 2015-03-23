@@ -1,0 +1,83 @@
+==
+== This file allows an individual to edit/modify the quality plan for their
+== first PSP2 project.
+==
+
+
+= Calculate the nominal number of defects we expect in this program.
+
+[Estimated_Defect_Density] =
+    lookup([Previous_Program] &/ "Defect Density To Date");
+[Estimated_Defect_Count] = 
+    [Estimated New & Changed KLOC] * [Estimated_Defect_Density];
+
+
+
+= Next, tweak the planned data so it is editable for certain phases.
+
+#define unlockEstimatedPhaseData(Phase)					      \
+  [Phase/Estimated Time] = unlock(					      \
+        [Estimated Time] *						      \
+        lookup([Previous_Program] &/ "Phase/%/Time To Date"));		      \
+  [Phase/Estimated Defects Injected] = unlock(				      \
+        [Estimated_Defect_Count] *					      \
+        lookup([Previous_Program] &/ "Phase/%/Defects Injected To Date"));    \
+  [Phase/Estimated Defects Removed] = unlock(				      \
+        [Estimated_Defect_Count] *					      \
+        lookup([Previous_Program] &/ "Phase/%/Defects Removed To Date"));
+
+unlockEstimatedPhaseData(Planning);
+unlockEstimatedPhaseData(Design);
+unlockEstimatedPhaseData(Design Review);
+unlockEstimatedPhaseData(Code);
+unlockEstimatedPhaseData(Code Review);
+unlockEstimatedPhaseData(Compile);
+unlockEstimatedPhaseData(Test);
+
+
+
+= The "Before Development" and Postmortem phases must be handled
+= specially.  We don't want to unlock them because they aren't relevant
+= to the creation of a quality plan.  But we do need to reset the defect
+= calculations, because they would otherwise be based upon calculations
+= that we are about to redefine below.
+
+[Before Development/Estimated Defects Injected] == 0;
+[Postmortem/Estimated Defects Injected] == 0;
+[Postmortem/Estimated Defects Removed] == 0;
+
+
+
+= The user was allowed to arbitrarily edit the defects injected and
+= removed, to include deciding that this program will have fewer total
+= defects than past programs.  Recalculate the defect totals and
+= densities based on their planned values.
+
+[Estimated Defects Injected] =
+    sumFor("Estimated Defects Injected", [Phase_List]);
+[Estimated Defects Removed] =
+    sumFor("Estimated Defects Removed", [Phase_List]);
+
+[Estimated Defects per KLOC] =
+    [Estimated Defects Removed] / [Estimated New & Changed KLOC];
+[Estimated Defect Density] = [Estimated Defects per KLOC];
+
+
+
+= The user was allowed to edit planned time in phase.  However, it is
+= important for this to sum up to the total time they estimated using
+= PROBE.  We will use a working assumption that quality activities will
+= result in reduced Test time.  Accordingly, we will recalculate the
+= estimated Test time to reflect the time that is left over after other
+= phases are complete.
+
+[Estimated_Non_Test_Time] = sumFor("Estimated Time",
+           "Planning", "Design", "Design Review", "Code",
+           "Code Review", "Compile", "Postmortem");
+
+[Test/Estimated Time] = max(0, [Estimated Time] - [Estimated_Non_Test_Time]);
+
+[Phase_Sum_Problem_Capable] = TAG;
+[Phase_Sum_Problem] = abs([Estimated Time]
+			  - [Estimated_Non_Test_Time]
+			  - [Test/Estimated Time]) > 0.5;

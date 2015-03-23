@@ -1,0 +1,69 @@
+<HTML>
+<head>
+<TITLE>Using the defect log editor</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Using the Defect Log Editor</H1>
+
+<P>You can use the defect log editor to correct mistakes you might make when 
+entering defects.  The defects log editor can be opened by selecting the
+"Defect Log" option on the <a href="ConfigureMenu.html">configuration menu</a>.</P>
+
+<p class="figure"><img src="../../Images/DefectLogEditor.png"></p>
+
+
+<P>The left pane shows the current project hierarchy.  Picking various 
+branches on the hierarchy will limit the defect entries displayed to just 
+those on the branch chosen.</P>
+
+<P>To change data in the defect entries, just pick on the element that you 
+would like to change.  When a particular defect entry is picked, the Edit 
+button becomes active.  Clicking the Edit button will bring up the same 
+dialog box used to enter defects.  All the defect data can be changed using 
+this dialog.  For help using the defect entry dialog please see the <a 
+href="EnteringDefects.html">Entering defects</A> help topic.</P>
+
+<P>In addition, it is possible to import defect data from external sources
+by clicking the "Import" button.  At the moment, three import sources are
+built-in:</p>
+<ul>
+<li>A wizard for importing defects that have been copied onto the system
+    clipboard.  You can use this to copy and paste defect data from a web
+    page or a spreadsheet.</li>
+<li>A wizard for importing defects from Code Collaborator
+    (<u class="url">http://smartbear.com/</u>).</li>
+<li>A wizard for importing defects from Review Board
+    (<u class="url">http://reviewboard.org/</u>).</li>
+</ul>
+
+
+<h2>Configuring Defect Type Standards</h2>
+
+<p>The dashboard will allow you to configure the &quot;defect type
+standards&quot; that you would like to use for various projects.
+
+<P>Defect type standards are associated with projects hierarchically.
+By default, projects just inherit the standard chosen by their parent.
+In addition, there is a &quot;global default&quot; defect type
+standard that is inherited when no other settings have been chosen.
+
+<P>As you select various branches in the project hierarchy, a
+component at the bottom of the left pane will show you the defect type
+standard setting in effect for the highlighted branch.  You can select
+a different defect type standard from the drop-down list provided.
+The new value you select will become the default defect type standard
+for the highlighted branch of your project hierarchy.
+
+<p>Click on the &quot;More...&quot; button at the bottom of the left pane to: 
+<ul>
+<li>Edit an existing defect type standard
+<li>Create a new defect type standard
+<li>Change the global default defect type standard
+</ul>
+
+<!-- DISCLAIMER -->
+
+</BODY>
+</HTML>

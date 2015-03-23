@@ -1,0 +1,147 @@
+#include <dataFile.txt>
+Historically_Exported_Filenames=="T:/Team-Directory/data/My-Data-File.pdash
+Non Project/Email/Time==0.0
+Non Project/Email/leaf==TAG
+Non Project/Email/node==TAG
+Non Project/Examples/node==TAG
+Non Project/Historical Data/node==TAG
+Non Project/Meetings/Offsite Process Review/TST_My Project, Release 1==2.0
+Non Project/Meetings/Offsite Process Review/Time==0.0
+Non Project/Meetings/Offsite Process Review/leaf==TAG
+Non Project/Meetings/Offsite Process Review/node==TAG
+Non Project/Meetings/new/Time==0.0
+Non Project/Meetings/new/leaf==TAG
+Non Project/Meetings/new/node==TAG
+Non Project/Meetings/node==TAG
+Non Project/Training/TST_My Project, Release 1==0.0
+Non Project/Training/new/Estimated Time=480.0
+Non Project/Training/new/Time==0.0
+Non Project/Training/new/leaf==TAG
+Non Project/Training/new/node==TAG
+Non Project/Training/node==TAG
+Non Project/node==TAG
+Owner="My Name
+Project/Legacy/Product 1/Started=@1157820815625
+Project/Legacy/Product 1/node==TAG
+Project/Legacy/Product 2/new/Time==0.0
+Project/Legacy/Product 2/new/leaf==TAG
+Project/Legacy/Product 2/new/node==TAG
+Project/Legacy/Product 2/node==TAG
+Project/Legacy/Product 3/new/Time==0.0
+Project/Legacy/Product 3/new/leaf==TAG
+Project/Legacy/Product 3/new/node==TAG
+Project/Legacy/Product 3/node==TAG
+Project/Legacy/Started=@1157820815625
+Project/Legacy/node==TAG
+Project/My Project/Architectural Design/Draft/Completed=@1138843128000
+Project/My Project/Architectural Design/Draft/Estimated Time=300.0
+Project/My Project/Architectural Design/Draft/Time==492.0
+Project/My Project/Architectural Design/Draft/leaf==TAG
+Project/My Project/Architectural Design/Draft/node==TAG
+Project/My Project/Architectural Design/EV_Task_Dependencies="<list></list>
+Project/My Project/Architectural Design/EV_Task_IDs=="abcde:12345
+Project/My Project/Architectural Design/Review/Estimated Time=420.0
+Project/My Project/Architectural Design/Review/Time==0.0
+Project/My Project/Architectural Design/Review/leaf==TAG
+Project/My Project/Architectural Design/Review/node==TAG
+Project/My Project/Architectural Design/Rework/EV_Task_Dependencies="<list><dependency tid='abcde:12345/Draft' name='/My Project, Release 1/Project/My Project/Architectural Design/Draft' taskList='My Project, Release 1'/></list>
+Project/My Project/Architectural Design/Rework/Estimated Time=180.0
+Project/My Project/Architectural Design/Rework/Time==0.0
+Project/My Project/Architectural Design/Rework/leaf==TAG
+Project/My Project/Architectural Design/Rework/node==TAG
+Project/My Project/Architectural Design/node==TAG
+Project/My Project/Planning/Completed=@1136508083000
+Project/My Project/Planning/Estimated Time=720.0
+Project/My Project/Planning/Time==492.0
+Project/My Project/Planning/leaf==TAG
+Project/My Project/Planning/node==TAG
+Project/My Project/Prototype/Component A/Completed=@1139275319000
+Project/My Project/Prototype/Component A/Estimated Time=360.0
+Project/My Project/Prototype/Component A/Time==533.0
+Project/My Project/Prototype/Component A/leaf==TAG
+Project/My Project/Prototype/Component A/node==TAG
+Project/My Project/Prototype/Component B/Completed=@1139880119000
+Project/My Project/Prototype/Component B/Estimated Time=540.0
+Project/My Project/Prototype/Component B/Time==592.0
+Project/My Project/Prototype/Component B/leaf==TAG
+Project/My Project/Prototype/Component B/node==TAG
+Project/My Project/Prototype/Component C/Completed=@1139966519000
+Project/My Project/Prototype/Component C/Estimated Time=300.0
+Project/My Project/Prototype/Component C/Time==433.0
+Project/My Project/Prototype/Component C/leaf==TAG
+Project/My Project/Prototype/Component C/node==TAG
+Project/My Project/Prototype/Component D/Estimated Time=660.0
+Project/My Project/Prototype/Component D/Team_Note="<note author='My Name' timestamp='@1284313143164' format='text'>Note for Component D</note>
+Project/My Project/Prototype/Component D/Time==0.0
+Project/My Project/Prototype/Component D/leaf==TAG
+Project/My Project/Prototype/Component D/node==TAG
+Project/My Project/Prototype/EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Requirements' name='/My Project, Release 1/Project/My Project/Requirements' taskList='My Project, Release 1'/></list>
+Project/My Project/Prototype/node==TAG
+Project/My Project/Release 1/node==TAG
+Project/My Project/Requirements/Component A/Completed=@1136854015000
+Project/My Project/Requirements/Component A/Estimated Time=540.0
+Project/My Project/Requirements/Component A/Time==734.0
+Project/My Project/Requirements/Component A/leaf==TAG
+Project/My Project/Requirements/Component A/node==TAG
+Project/My Project/Requirements/Component B/Completed=@1137458815000
+Project/My Project/Requirements/Component B/Estimated Time=420.0
+Project/My Project/Requirements/Component B/Time==360.0
+Project/My Project/Requirements/Component B/leaf==TAG
+Project/My Project/Requirements/Component B/node==TAG
+Project/My Project/Requirements/Component C/Completed=@1138063615000
+Project/My Project/Requirements/Component C/Estimated Time=480.0
+Project/My Project/Requirements/Component C/Time==960.0
+Project/My Project/Requirements/Component C/leaf==TAG
+Project/My Project/Requirements/Component C/node==TAG
+Project/My Project/Requirements/Component D/Completed=@1138668415000
+Project/My Project/Requirements/Component D/Estimated Time=360.0
+Project/My Project/Requirements/Component D/Time==540.0
+Project/My Project/Requirements/Component D/leaf==TAG
+Project/My Project/Requirements/Component D/node==TAG
+Project/My Project/Requirements/node==TAG
+Project/My Project/TST_My Project, Release 1==1.0
+Project/My Project/Testing/Acceptance/Estimated Time=420.0
+Project/My Project/Testing/Acceptance/Time==0.0
+Project/My Project/Testing/Acceptance/leaf==TAG
+Project/My Project/Testing/Acceptance/node==TAG
+Project/My Project/Testing/EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Release 1' name='/My Project, Release 1/Project/My Project/Release 1' taskList='My Project, Release 1'/></list>
+Project/My Project/Testing/Integration 1/Estimated Time=480.0
+Project/My Project/Testing/Integration 1/Time==0.0
+Project/My Project/Testing/Integration 1/leaf==TAG
+Project/My Project/Testing/Integration 1/node==TAG
+Project/My Project/Testing/Integration 2/Estimated Time=540.0
+Project/My Project/Testing/Integration 2/Time==0.0
+Project/My Project/Testing/Integration 2/leaf==TAG
+Project/My Project/Testing/Integration 2/node==TAG
+Project/My Project/Testing/System 1/Estimated Time=420.0
+Project/My Project/Testing/System 1/Time==0.0
+Project/My Project/Testing/System 1/leaf==TAG
+Project/My Project/Testing/System 1/node==TAG
+Project/My Project/Testing/System 2/Estimated Time=540.0
+Project/My Project/Testing/System 2/Time==0.0
+Project/My Project/Testing/System 2/leaf==TAG
+Project/My Project/Testing/System 2/node==TAG
+Project/My Project/Testing/Usability/Estimated Time=480.0
+Project/My Project/Testing/Usability/Time==0.0
+Project/My Project/Testing/Usability/leaf==TAG
+Project/My Project/Testing/Usability/node==TAG
+Project/My Project/Testing/node==TAG
+Project/My Project/node==TAG
+Project/SOA Project/new/Time==2239.0
+Project/SOA Project/new/leaf==TAG
+Project/SOA Project/new/node==TAG
+Project/SOA Project/node==TAG
+Project/Started=@1157820815625
+Project/Web Project/new/Time==3252.0
+Project/Web Project/new/leaf==TAG
+Project/Web Project/new/node==TAG
+Project/Web Project/node==TAG
+Project/node==TAG
+Task-Schedule/My Project, Release 1/Planned Hours=="@1136098800000900.0@1136703600000
+Task-Schedule/My Project, Release 1/Task List ID="9lith0.erv1uhdz
+Task-Schedule/SOA Project, Release 12/Planned Hours=="@11572632000001200.0@1157868000000
+Task-Schedule/SOA Project, Release 12/Task List ID="k61s4u.erv7iy6o
+Task-Schedule/Task Tracking for July/Planned Hours=="@11572632000001200.0@1157868000000
+Task-Schedule/Task Tracking for July/Task List ID="yb4ibj.erv7i1rl
+Task-Schedule/Web Project Schedule/Planned Hours=="@11572632000001200.0@1157868000000
+Task-Schedule/Web Project Schedule/Task List ID="zbu8b8.erv7jgv0

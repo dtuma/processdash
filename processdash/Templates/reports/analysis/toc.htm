@@ -1,0 +1,79 @@
+<!--#server-parsed --><!--#resources bundle="Analysis" -->
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="/style.css">
+<TITLE><!--#echo Data_Analysis --></TITLE>
+<STYLE>
+   P  { margin-bottom: 0.6em; margin-top: 0.6em }
+</STYLE>
+</HEAD>
+<BODY>
+<H1><!--#echo Data_Analysis --></H1>
+
+<!--#if not [PSP Project] -->
+    <P><A HREF="../../dash/summary.shtm?rollup" 
+          TARGET=contents><!--#echo Summary.Title --></A>
+<!--#elif Dash_Package_pspProc -->
+    <P><A HREF="../../psp3/rollsum.htm" 
+          TARGET=contents><!--#echo Summary.Title --></A>
+<!--#endif-->
+
+<!--#if defined [Defects Injected] -->
+<P><A HREF="defects" TARGET=contents><!--#echo Defects.Title --></A>
+<!--#endif-->
+
+<P><A HREF="plan" TARGET=contents><!--#echo Plan.Title --></A>
+
+<!--#if defined [SIZE_METRIC_NAME] || defined [AFR] -->
+<P><A HREF="process" TARGET=contents><!--#echo Process.Title --></A>
+<!--#endif-->
+
+<!--#if defined [Yield] || defined [% COQ] -->
+<P><A HREF="quality" TARGET=contents><!--#echo Quality.Title --></A>
+<!--#endif-->
+
+<!--#if defined [Defects Injected] -->
+<P><A HREF="report3?qf=../compProj.rpt"
+      TARGET=contents><!--#echo R3.Title --></A>
+
+<P><A HREF="report4?strict&qf=../compProj.rpt"
+      TARGET=contents><!--#echo R4.Title --></A>
+
+<P><A HREF="report5?strict" TARGET=contents><!--#echo Pareto.Title --></A>
+<!--#endif-->
+
+<!--#if not EXPORT -->
+<P><A HREF="../custom/create.shtm" TARGET=contents><!--#echo Custom.Title --></A>
+
+<HR>
+
+<P><A HREF="../../dash/archive.class?uri=index.htm" TARGET="_top"><!--#echo Archive.Title --></A>
+<!--#endif-->
+
+</BODY>
+</HTML>

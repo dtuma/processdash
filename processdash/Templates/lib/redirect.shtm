@@ -1,0 +1,8 @@
+<script type="text/javascript"><!--#do-not-translate-->
+    <!--#if !immediate #-->
+    var metaRefreshTimeout = window.setTimeout(function(){ <!--#endif-->
+        window.location.replace("<!--#echo var=url encoding=javaStr -->");
+    <!--#if !immediate #-->
+    }, <!--#if delay --><!--#echo delay -->000<!--#else-->1000<!--#endif-->);
+<!--#endif#-->
+</script>

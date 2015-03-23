@@ -1,0 +1,245 @@
+#
+# The official release package for IzPack 4.3.3 included bugs that I had to
+# fix.  This file contains the changes that I made to the original source
+# code tree.
+#
+# The change in the build.xml file is simply a change to include debugging
+# information in the compiled files.  (This was useful when troubleshooting
+# problems that arose during an installation.)
+#
+# The changes to FinishPanel and SimpleFinishPanel are based upon (but not
+# identical to) patches from  <http://jira.codehaus.org/browse/IZPACK-567>
+#
+#
+diff -ur IzPack-full-orig/src/build.xml IzPack-full/src/build.xml
+--- IzPack-full-orig/src/build.xml	Tue Dec 15 08:52:59 2009
++++ IzPack-full/src/build.xml	Wed Mar 09 02:42:43 2011
+@@ -239,10 +239,10 @@
+     <property name="izevent.jar" value="${basedir}/lib/izevent.jar"/>
+ 
+     <!-- Compilation parameters -->
+-    <property name="debug" value="off"/>
+-    <property name="debuglevel" value=""/>
+-    <!--<property name="debug" value="true"/>
+-    <property name="debuglevel" value="lines,vars,source"/>-->
++    <!-- property name="debug" value="off"/>
++    <property name="debuglevel" value=""/ -->
++    <property name="debug" value="true"/>
++    <property name="debuglevel" value="lines,vars,source"/>
+     <property name="compat.source" value="1.5"/>
+     <property name="compat.target" value="1.5"/>
+ 
+@@ -994,12 +994,14 @@
+                 <include name="uninstaller-ext.jar"/>
+             </fileset>
+         </delete>
++        <!--
+         <delete file="bin/native/3rdparty/COIOSHelper.dll"/>
+         <delete dir="${basedir}/bin/native/izpack"/>
+         <delete dir="${basedir}/src/doc-reST/html"/>
+         <delete dir="${basedir}/src/doc-reST/pdf"/>
+         <delete includeEmptyDirs="true" dir="${basedir}/doc/izpack"/>
+         <delete dir="${basedir}/_src${dist.subdir}"/>
++        -->
+     </target>
+ 
+     <!-- Builds all compilation targets -->
+@@ -1022,7 +1024,7 @@
+         </copy>
+     </target>
+ 
+-    <target name="build.docu" description="Builds the customer documentation">
++    <target name="build.docu" description="Builds the customer documentation" if="skipThisTarget">
+         <exec executable="${basedir}/src/doc-reST/build.py" dir="${basedir}/src/doc-reST">
+             <arg value="build.py"/>
+         </exec>
+diff -ur IzPack-full-orig/src/lib/com/izforge/izpack/panels/FinishPanel.java IzPack-full/src/lib/com/izforge/izpack/panels/FinishPanel.java
+--- IzPack-full-orig/src/lib/com/izforge/izpack/panels/FinishPanel.java	Sun May 18 13:48:36 2008
++++ IzPack-full/src/lib/com/izforge/izpack/panels/FinishPanel.java	Sat Feb 26 06:36:44 2011
+@@ -21,7 +21,6 @@
+ 
+ import com.izforge.izpack.gui.AutomatedInstallScriptFilter;
+ import com.izforge.izpack.gui.ButtonFactory;
+-import com.izforge.izpack.gui.IzPanelLayout;
+ import com.izforge.izpack.gui.LabelFactory;
+ import com.izforge.izpack.installer.InstallData;
+ import com.izforge.izpack.installer.InstallerFrame;
+@@ -30,6 +29,9 @@
+ import com.izforge.izpack.util.VariableSubstitutor;
+ 
+ import javax.swing.*;
++
++import java.awt.GridBagConstraints;
++import java.awt.GridBagLayout;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.ActionListener;
+ import java.io.BufferedOutputStream;
+@@ -64,7 +66,7 @@
+      */
+     public FinishPanel(InstallerFrame parent, InstallData idata)
+     {
+-        super(parent, idata, new IzPanelLayout());
++        super(parent, idata, new GridBagLayout());
+ 
+         vs = new VariableSubstitutor(idata.getVariables());
+     }
+@@ -88,36 +90,57 @@
+         parent.lockPrevButton();
+         parent.setQuitButtonText(parent.langpack.getString("FinishPanel.done"));
+         parent.setQuitButtonIcon("done");
++
++        GridBagConstraints constraints = new GridBagConstraints();
++        constraints.anchor = GridBagConstraints.CENTER;
++        constraints.fill = GridBagConstraints.HORIZONTAL;
++
+         if (idata.installSuccess)
+         {
+             // We set the information
++            constraints.weighty = 1.0;
++            constraints.gridx = 0;
++            constraints.gridy = 0;
+             add(LabelFactory.create(parent.langpack.getString("FinishPanel.success"),
+-                    parent.icons.getImageIcon("preferences"), LEADING), NEXT_LINE);
+-            add(IzPanelLayout.createVerticalStrut(5));
++                    parent.icons.getImageIcon("preferences"), LEADING), constraints);
++
+             if (idata.uninstallOutJar != null)
+             {
+                 // We prepare a message for the uninstaller feature
+-                String path = translatePath("$INSTALL_PATH") + File.separator + "Uninstaller";
++                String path = translatePath(idata.info.getUninstallerPath());
+ 
++                constraints.weighty = 0.0;
++                constraints.anchor = GridBagConstraints.SOUTH;
++                constraints.gridx = 0;
++                constraints.gridy = 1;
+                 add(LabelFactory.create(parent.langpack
+                         .getString("FinishPanel.uninst.info"), parent.icons
+-                        .getImageIcon("preferences"), LEADING), NEXT_LINE);
++                        .getImageIcon("preferences"), LEADING), constraints);
++
++                constraints.anchor = GridBagConstraints.NORTH;
++                constraints.weighty = 0.0;
++                constraints.gridx = 0;
++                constraints.gridy = 2;
+                 add(LabelFactory.create(path, parent.icons.getImageIcon("empty"),
+-                        LEADING), NEXT_LINE);
++                        LEADING), constraints);
+             }
+-
+             // We add the autoButton
+-            add(IzPanelLayout.createVerticalStrut(5));
+             autoButton = ButtonFactory.createButton(parent.langpack.getString("FinishPanel.auto"),
+                     parent.icons.getImageIcon("edit"), idata.buttonsHColor);
+             autoButton.setToolTipText(parent.langpack.getString("FinishPanel.auto.tip"));
+             autoButton.addActionListener(this);
+-            add(autoButton, NEXT_LINE);
++
++            constraints.anchor = GridBagConstraints.CENTER;
++            constraints.weighty = 1.0;
++            constraints.gridx = 0;
++            constraints.gridy = 3;
++            constraints.weighty = 1.0;   //request any extra vertical space
++            add(autoButton, constraints);
+         }
+         else
+         {
+             add(LabelFactory.create(parent.langpack.getString("FinishPanel.fail"),
+-                    parent.icons.getImageIcon("stop"), LEADING), NEXT_LINE);
++                    parent.icons.getImageIcon("stop"), LEADING), constraints);
+         }
+         getLayoutHelper().completeLayout(); // Call, or call not?
+         Log.getInstance().informUser();
+diff -ur IzPack-full-orig/src/lib/com/izforge/izpack/panels/SimpleFinishPanel.java IzPack-full/src/lib/com/izforge/izpack/panels/SimpleFinishPanel.java
+--- IzPack-full-orig/src/lib/com/izforge/izpack/panels/SimpleFinishPanel.java	Sun May 18 13:48:36 2008
++++ IzPack-full/src/lib/com/izforge/izpack/panels/SimpleFinishPanel.java	Sat Feb 26 06:42:20 2011
+@@ -19,7 +19,6 @@
+ 
+ package com.izforge.izpack.panels;
+ 
+-import com.izforge.izpack.gui.IzPanelLayout;
+ import com.izforge.izpack.gui.LabelFactory;
+ import com.izforge.izpack.installer.InstallData;
+ import com.izforge.izpack.installer.InstallerFrame;
+@@ -27,6 +26,11 @@
+ import com.izforge.izpack.util.Log;
+ import com.izforge.izpack.util.VariableSubstitutor;
+ 
++import javax.swing.JLabel;
++
++import java.awt.GridBagConstraints;
++import java.awt.GridBagLayout;
++import java.awt.Insets;
+ import java.io.File;
+ 
+ /**
+@@ -55,7 +59,7 @@
+      */
+     public SimpleFinishPanel(InstallerFrame parent, InstallData idata)
+     {
+-        super(parent, idata, new IzPanelLayout());
++        super(parent, idata, new GridBagLayout());
+         vs = new VariableSubstitutor(idata.getVariables());
+     }
+ 
+@@ -78,31 +82,48 @@
+         parent.lockPrevButton();
+         parent.setQuitButtonText(parent.langpack.getString("FinishPanel.done"));
+         parent.setQuitButtonIcon("done");
++
++        GridBagConstraints constraints = new GridBagConstraints();
++        constraints.anchor = GridBagConstraints.CENTER;
++        constraints.fill = GridBagConstraints.HORIZONTAL;
++
+         if (idata.installSuccess)
+         {
+ 
+             // We set the information
+-            add(LabelFactory.create(parent.icons.getImageIcon("check")));
+-            add(IzPanelLayout.createVerticalStrut(5));
+-            add(LabelFactory.create(parent.langpack.getString("FinishPanel.success"),
+-                    parent.icons.getImageIcon("preferences"), LEADING), NEXT_LINE);
+-            add(IzPanelLayout.createVerticalStrut(5));
++            JLabel successLabel = LabelFactory.create(parent.langpack.getString("FinishPanel.success"),
++                    parent.icons.getImageIcon("check"), LEADING);
++            constraints.weighty = 1.0;
++            constraints.gridx = 0;
++            constraints.gridy = 0;
++            add(successLabel, constraints);
++
+             if (idata.uninstallOutJar != null)
+             {
+                 // We prepare a message for the uninstaller feature
+-                String path = translatePath("$INSTALL_PATH") + File.separator + "Uninstaller";
++                String path = translatePath(idata.info.getUninstallerPath());
+ 
+-                add(LabelFactory.create(parent.langpack
+-                        .getString("FinishPanel.uninst.info"), parent.icons
+-                        .getImageIcon("preferences"), LEADING), NEXT_LINE);
+-                add(LabelFactory.create(path, parent.icons.getImageIcon("empty"),
+-                        LEADING), NEXT_LINE);
++                JLabel infoLabel = LabelFactory.create(parent.langpack.getString("FinishPanel.uninst.info"),
++                    parent.icons.getImageIcon("preferences"), LEADING);
++                constraints.weighty = 0.0;
++                constraints.anchor = GridBagConstraints.SOUTH;
++                constraints.gridx = 0;
++                constraints.gridy = 1;
++                add(infoLabel, constraints);
++
++                JLabel pathLabel = LabelFactory.create(path,
++                    parent.icons.getImageIcon("empty"), LEADING);
++                constraints.anchor = GridBagConstraints.NORTH;
++                constraints.weighty = 0.0;
++                constraints.gridx = 0;
++                constraints.gridy = 2;
++                add(pathLabel, constraints);
+             }
+         }
+         else
+         {
+             add(LabelFactory.create(parent.langpack.getString("FinishPanel.fail"),
+-                    parent.icons.getImageIcon("stop"), LEADING));
++                    parent.icons.getImageIcon("stop"), LEADING), constraints);
+         }
+         getLayoutHelper().completeLayout(); // Call, or call not?
+         Log.getInstance().informUser();

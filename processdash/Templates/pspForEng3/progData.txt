@@ -1,0 +1,195 @@
+==
+== Common data definitions for all programs in the PSP class
+==
+
+= Identify this project as a program in a PSP for Engineers course.
+
+[PspForEngV3_Program] == TAG;
+
+
+= Inherit the language setting from the "PSP for Engineers" datafile.
+
+[Project/Language] = [../Project/Language];
+
+
+= Don't allow students to edit the plan summary forms. (PSP instructors are OK.)
+
+[CMS_DISALLOW_EDITING] = ! [/pspForEng-instr/Installed];
+
+
+= Register an extra script to appear for instructors
+
+[PspForEng_Instr_Script] = "cms/pspForEng3/instr/grading";
+
+
+= Disable the freezing/locking mechanism on the Size Estimating Template
+
+[Size_Estimating_Template_Unlocked] = TAG;
+
+
+= Compute the list of programs that precede this program.
+
+[This_Program_Index] = indexof([^], [../Project_List]);
+[Previous_Program] = index([This_Program_Index] - 1, [../Project_List]);
+[Previous_Programs_List] = 
+    iff([This_Program_Index] < 1, null,
+        sublist(0, [This_Program_Index], [../Project_List]));
+
+
+= Record the list of projects that PROBE should use for historical data.
+
+[PROBE_SUBSET/Rollup_List] = [Previous_Programs_List];
+[PROBE_SUBSET] = [^] &/ "PROBE_SUBSET";
+[PROBE_ONLY_COMPLETED] == false;
+
+
+= Tweak the behavior of the PROBE Wizard.
+
+[PROBE_READ_ONLY_SIZE_METHOD_D] == true;
+[PROBE_DISALLOW_SIZE_METHOD_C1] == true;
+
+
+= Declare the "FOR_EACH_PHASE" macro, since it isn't available to us
+= in this datafile.
+
+#define FOR_EACH_PHASE(macro)	\
+    macro(Planning)		\
+    macro(Design)		\
+    macro(Design Review)	\
+    macro(Code)			\
+    macro(Code Review)		\
+    macro(Compile)		\
+    macro(Test)			\
+    macro(Postmortem)
+
+
+
+==
+== Manually compute "To Date" data by adding up data from the previous
+== projects.
+==
+
+[Use_Rollup] = false;
+
+[To_Date_Past_Programs_List] = [Previous_Programs_List];
+
+#define sumUpToDate(Metric) 		\
+    [Metric To Date] = sumFor("Metric", [^], [To_Date_Past_Programs_List]) + 0
+
+sumUpToDate(Estimated Time);
+sumUpToDate(Time);
+sumUpToDate(Defects Injected);
+sumUpToDate(Before Development/Defects Injected);
+sumUpToDate(Defects Removed);
+sumUpToDate(After Development/Defects Removed);
+sumUpToDate(Base LOC);
+sumUpToDate(Deleted LOC);
+sumUpToDate(Modified LOC);
+sumUpToDate(Added LOC);
+sumUpToDate(Reused LOC);
+sumUpToDate(New & Changed LOC);
+sumUpToDate(Total LOC);
+sumUpToDate(New Reused LOC);
+sumUpToDate(Object LOC);
+
+#define sumUpToDatePhaseData(Phase) 		\
+    sumUpToDate(Phase/Time);			\
+    sumUpToDate(Phase/Defects Injected);	\
+    sumUpToDate(Phase/Defects Removed);
+
+FOR_EACH_PHASE(sumUpToDatePhaseData);
+
+
+==
+== Now that plain To Date values have been summed, manually perform the
+== necessary calculations for the derived "To Date" metrics that appear
+== on the Plan Summary Forms for the PSP assignments.  Note that we
+== CANNOT just let these calculations be inherited, because in the
+== traditional metrics datafile these would all be defined as lookup
+== expressions extracting a number from a single shared To Date
+== collection.  In contrast, we need a distinct "To Date" dataset
+== for each assignment, which isn't how the dashboard regularly works.
+== So we must define these manually.
+==
+== In addition, we will also define various aliases that appear on
+== legacy plan summary forms.
+==
+
+[Size To Date] = [New & Changed LOC To Date];
+[Aggregate Size To Date] = [Size To Date] / 1000;
+[% Reused To Date] = [Reused LOC To Date] / [Total LOC To Date];
+[% New Reused To Date] =
+    [New Reused LOC To Date] / [New & Changed LOC To Date];
+
+[Productivity To Date] = 60 * [Size To Date] / [Time To Date];
+[LOC per Hour To Date] = [Productivity To Date];
+
+[ESTIMATED Time To Date] = [Estimated Time To Date];
+[CPI To Date] = [Estimated Time To Date] / [Time To Date];
+
+[Design Review/Appraisal Rate To Date] =
+    60 * [Size To Date] / [Design Review/Time To Date];
+[Code Review/Appraisal Rate To Date] =
+    60 * [Size To Date] / [Code Review/Time To Date];
+[% Appraisal COQ To Date] =
+    sumFor("Time To Date", [Appraisal_Phase_List]) / [Time To Date];
+[% Failure COQ To Date] =
+    sumFor("Time To Date", [Failure_Phase_List]) / [Time To Date];
+[AFR To Date] = [% Appraisal COQ To Date] / [% Failure COQ To Date];
+[Yield To Date] = constrain(0, 1,
+    sumFor("Defects Removed To Date",  [Yield_Phase_List]) /
+    sumFor("Defects Injected To Date", [Yield_Phase_List]));
+
+[Quality_Profile_1 To Date] = iff([Code/Time To Date],
+    [Design/Time To Date] / ([Code/Time To Date] *
+            inherit("Target Design/Code Ratio")), 1);
+[Quality_Profile_2 To Date] = iff([Code/Time To Date],
+    [Code Review/Time To Date] / ([Code/Time To Date] *
+            inherit("Target Code Review/Code Ratio")), 1);
+[Quality_Profile_3 To Date] = iff([Compile/Defect Density To Date],
+    2 / (1 + [Compile/Defect Density To Date] /
+            inherit("Target Compile Defect Density")), 1);
+[Quality_Profile_4 To Date] = iff([Test/Defect Density To Date],
+    2 / (1 + [Test/Defect Density To Date] /
+            inherit("Target Test Defect Density")), 1);
+[Quality_Profile_5 To Date] = iff([Design/Time To Date],
+    [Design Review/Time To Date]  / ([Design/Time To Date] *
+            inherit("Target Design Review/Design Ratio")), 1);
+[PQI To Date] =
+    min(1, max(0, [Quality_Profile_1 To Date])) *
+    min(1, max(0, [Quality_Profile_2 To Date])) *
+    min(1, max(0, [Quality_Profile_3 To Date])) *
+    min(1, max(0, [Quality_Profile_4 To Date])) *
+    min(1, max(0, [Quality_Profile_5 To Date]));
+
+#define calcToDatePhaseQuality(Phase)					      \
+  [Phase/Defects Removed per Hour To Date] =				      \
+        60 * [Phase/Defects Removed To Date] / [Phase/Time To Date];	      \
+  [Phase/DRL To Date] =							      \
+        [Phase/Defects Removed per Hour To Date] /			      \
+        [Test/Defects Removed per Hour To Date];			      \
+  [Phase/Defect Density To Date] =					      \
+        [Phase/Defects Removed To Date] / [Aggregate Size To Date];
+
+FOR_EACH_PHASE(calcToDatePhaseQuality);
+
+[Defect Density To Date] =
+    [Defects Removed To Date] / [Aggregate Size To Date];
+[Defects per KLOC To Date] = [Defect Density To Date];
+[Test/Defects Removed per KLOC To Date] = [Test/Defect Density To Date];
+
+
+
+==
+== Manually calculate planned time in phase by looking at the previous program.
+==
+
+
+#define estimatePhaseData(Phase)					      \
+  [Phase/Estimated Time] =						      \
+        [Estimated Time] *						      \
+        lookup([Previous_Program] &/ "Phase/%/Time To Date");		      \
+
+FOR_EACH_PHASE(estimatePhaseData);
+
+[After Development/Estimated Defects Removed] = 0;

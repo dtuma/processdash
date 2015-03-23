@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<map version="1.0">
+  <mapID target="DashIcon" url="Images/pspdash-16.png" />
+  <mapID target="BookIcon" url="Images/book.gif" />
+  <mapID target="PageIcon" url="Images/page.gif" />
+
+  <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
+  <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
+  <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
+
+  <mapID target="QuickStart" url="Topics/Overview/QuickStart.html" />
+  <mapID target="QSCreatingTheProject" url="Topics/Overview/QSCreatingTheProject.html" />
+  <mapID target="QSPlanningTheProject" url="Topics/Overview/QSPlanningTheProject.html" />
+  <mapID target="QSDesigningTheProgram" url="Topics/Overview/QSDesigningTheProgram.html" />
+  <mapID target="QSWritingTheCode" url="Topics/Overview/QSWritingTheCode.html" />
+  <mapID target="QSCompilingTheProgram" url="Topics/Overview/QSCompilingTheProgram.html" />
+  <mapID target="QSTestingTheProgram" url="Topics/Overview/QSTestingTheProgram.html" />
+  <mapID target="QSPostmortem" url="Topics/Overview/QSPostmortem.html" />
+
+  <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
+  <mapID target="ProcessScripts.psp" url="Topics/Overview/ProcessScripts.html#psp" />
+  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
+  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
+  <mapID target="ProcessScripts.custom" url="Topics/Overview/ProcessScripts.html#custom" />
+  <mapID target="ChangeLog" url="Topics/Overview/ChangeLog.html" />
+  <mapID target="Licenses" url="Topics/Overview/Licenses.html" />
+  <mapID target="GPL" url="Topics/Overview/gpl.html" />
+  <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
+  <mapID target="Apache" url="Topics/Overview/apache.html" />
+  <mapID target="MIT" url="Topics/Overview/License-MIT.html" />
+  <mapID target="BSD" url="Topics/Overview/bsd.html" />
+  <mapID target="DOM4J" url="Topics/Overview/License-DOM4J.html" />
+  <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
+  <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
+  <mapID target="Overlib" url="Topics/Overview/License-Overlib.html" />
+  <mapID target="LicensePSP" url="Topics/Overview/License-PSP.html" />
+  <mapID target="LicenseExtras" url="Topics/Overview/License-Extras.html" />
+
+  <mapID target="Planning" url="Topics/Planning/Planning.html" />
+  <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
+  <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
+  <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
+  <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
+  <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
+  <mapID target="UsingSizeEstimatingTemplate.baseLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseLOC" />
+  <mapID target="UsingSizeEstimatingTemplate.baseAdditions" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseAdditions" />
+  <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
+  <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
+  <mapID target="UsingSizeEstimatingTemplate.postmortem" url="Topics/Planning/UsingSizeEstimatingTemplate.html#postmortem" />
+  <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
+
+  <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
+  <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
+  <mapID target="PercentSpentIndicator" url="Topics/Execution/PercentSpent.html" />
+  <mapID target="NoteIndicator" url="Topics/Execution/NoteIndicator.html" />
+  <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
+  <mapID target="UsingTimeLogEditor" url="Topics/Execution/UsingTimeLogEditor.html" />
+  <mapID target="UsingTimeLogEditor.TimeCardView" url="Topics/Execution/UsingTimeLogEditor.html#TimeCardView" />
+  <mapID target="EnteringDefects" url="Topics/Execution/EnteringDefects.html" />
+  <mapID target="UsingDefectLogEditor" url="Topics/Execution/UsingDefectLogEditor.html" />
+  <mapID target="HierarchyMenus" url="Topics/Execution/HierarchyMenus.html" />
+  <mapID target="ConfigureMenu" url="Topics/Execution/ConfigureMenu.html" />
+  <mapID target="SystemTray" url="Topics/Execution/SystemTray.html" />
+  <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
+
+  <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
+  <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
+  <mapID target="DataChartsAndReports.pps" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#pps" />
+  <mapID target="DataChartsAndReports.markComplete" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#markComplete" />
+  <mapID target="DataChartsAndReports.logs" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#logs" />
+  <mapID target="DataChartsAndReports.charts" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#charts" />
+  <mapID target="ExportingData" url="Topics/PostmortemAnalysis/ExportingData.html" />
+  <mapID target="LOCCounter" url="Topics/PostmortemAnalysis/LOCCounter.html" />
+
+  <mapID target="FAQ" url="Topics/Troubleshooting/FAQ.html" />
+  <mapID target="AdvancedTopics" url="Topics/AdvancedTopics/AdvancedTopics.html" />
+
+  <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
+  <mapID target="ApiSizeMetrics" url="Topics/AdvancedTopics/ApiSizeMetrics.html" />
+  <mapID target="DatabaseOverview" url="Topics/AdvancedTopics/Database.html" />
+  <mapID target="Execution" url="Topics/Execution/Execution.html" />
+
+  <mapID target="HowToInstall.addon" url="Topics/Overview/HowToInstall.html#addon" />
+  <mapID target="ConfigurationFile.autoRealization" url="Topics/AdvancedTopics/ConfigurationFile.html#autoRealization" />
+  <mapID target="ConfigurationFile.autoUpdate" url="Topics/AdvancedTopics/ConfigurationFile.html#autoUpdate" />
+  <mapID target="UsingProbeTool.average" url="Topics/Planning/UsingProbeTool.html#average" />
+  <mapID target="UsingSizeEstimatingTemplate.baseLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseLOC" />
+  <mapID target="UsingSizeEstimatingTemplate.baseAdditions" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseAdditions" />
+  <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
+  <mapID target="UsingProbeTool.correlation" url="Topics/Planning/UsingProbeTool.html#correlation" />
+  <mapID target="UsingHierarchyEditor.cyclic" url="Topics/Planning/UsingHierarchyEditor.html#cyclic" />
+  <mapID target="ConfigurationFile.defectDialog.autostart" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogAutostart" />
+  <mapID target="ConfigurationFile.defectDialog.phaseMap" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogPhaseMap" />
+  <mapID target="ConfigurationFile.defectDialog.restrictSequence" url="Topics/AdvancedTopics/ConfigurationFile.html#defectDialogRestrictSequence" />
+  <mapID target="EnteringDefects.fixDefects" url="Topics/Execution/EnteringDefects.html#fixDefects" />
+  <mapID target="EnteringDefects.fixingMultipleDefects" url="Topics/Execution/EnteringDefects.html#fixingMultipleDefects" />
+  <mapID target="EnteringDefects.timing" url="Topics/Execution/EnteringDefects.html#timing" />
+  <mapID target="ConfigurationFile.dateFormat" url="Topics/AdvancedTopics/ConfigurationFile.html#dateFormat" />
+  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
+  <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
+  <mapID target="UsingSizeEstimatingTemplate.newObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#newObjects" />
+  <mapID target="UsingSizeEstimatingTemplate.objectLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#objectLOC" />
+  <mapID target="ConfigurationFile.pauseButton.historySize" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonHistorySize" />
+  <mapID target="ConfigurationFile.pauseButton.quiet" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonQuiet" />
+  <mapID target="PlayPause.pullDown" url="Topics/Execution/PlayPause.html#pullDown" />
+  <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
+  <mapID target="UsingProbeTool.chart" url="Topics/Planning/UsingProbeTool.html#probeDialogChart" />
+  <mapID target="UsingProbeTool.filter" url="Topics/Planning/UsingProbeTool.html#probeDialogFilter" />
+  <mapID target="ConfigurationFile.probeDialog.onlyCompleted" url="Topics/AdvancedTopics/ConfigurationFile.html#probeDialogOnlyCompleted" />
+  <mapID target="UsingProbeTool.projection" url="Topics/Planning/UsingProbeTool.html#projection" />
+  <mapID target="GoalsOfPSPAndDashboard.psp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#psp" />
+  <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
+  <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
+  <mapID target="AccessingScripts.pullDown" url="Topics/Execution/AccessingScripts.html#pullDown" />
+  <mapID target="AccessingScripts.clickOpensDefault" url="Topics/Execution/AccessingScripts.html#clickOpensDefault" />
+  <mapID target="AccessingScripts.scriptBrowser" url="Topics/Execution/AccessingScripts.html#scriptBrowser" />
+  <mapID target="UsingProbeTool.significance" url="Topics/Planning/UsingProbeTool.html#significance" />
+  <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
+  <mapID target="UsingTimeLogEditor.dateFilter" url="Topics/Execution/UsingTimeLogEditor.html#dateFilter" />
+  <mapID target="UsingTimeLogEditor.summarize" url="Topics/Execution/UsingTimeLogEditor.html#summarize" />
+  <mapID target="ConfigurationFile.timelog.updateInterval" url="Topics/AdvancedTopics/ConfigurationFile.html#timelogUpdateInterval" />
+  <mapID target="PlayPause.sound" url="Topics/Execution/PlayPause.html#sound" />
+  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
+  <mapID target="GoalsOfPSPAndDashboard.tsp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#tsp" />
+  <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
+  <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />
+  <mapID target="AccessingScripts.scriptIcons" url="Topics/Execution/AccessingScripts.html#scriptIcons" />
+  <mapID target="CustomLOCCounter" url="Topics/AdvancedTopics/CustomLOCCounter.html"/>
+  <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
+  <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
+  <mapID target="DashboardFindsFiles.search" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#FindFiles"/>
+  <mapID target="DashboardFindsFiles.sharing" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#sharing"/>
+  <mapID target="MultipleToDateData" url="Topics/AdvancedTopics/MultipleToDateData.html"/>
+  <mapID target="MultipleToDateData.filter" url="Topics/AdvancedTopics/MultipleToDateData.html#filter"/>
+  <mapID target="MissingFields" url="Topics/Planning/EnteringData.html#missing"/>
+  <mapID target="UnlockReadOnly" url="Topics/Planning/EnteringData.html#unlock"/>
+  <mapID target="ExportingFromForms" url="Topics/Planning/EnteringData.html#exporting"/>
+  <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
+  <mapID target="TaskScheduleSteps" url="Topics/Planning/TaskScheduleSteps.html" />
+  <mapID target="TaskScheduleSteps.addTasks" url="Topics/Planning/TaskScheduleSteps.html#addTasks" />
+  <mapID target="TaskScheduleSteps.taskTime" url="Topics/Planning/TaskScheduleSteps.html#taskTime" />
+  <mapID target="TaskScheduleSteps.loe" url="Topics/Planning/TaskScheduleSteps.html#loe" />
+  <mapID target="TaskScheduleSteps.calTime" url="Topics/Planning/TaskScheduleSteps.html#calTime" />
+  <mapID target="TaskScheduleSteps.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
+  <mapID target="TaskScheduleDates" url="Topics/Planning/TaskScheduleDates.html" />
+  <mapID target="TaskScheduleCharts" url="Topics/Planning/TaskScheduleCharts.html" />
+  <mapID target="EV.cumValueChart" url="Topics/Planning/EV-cumValueChart.html" />
+  <mapID target="EV.cumDirectTimeChart" url="Topics/Planning/EV-cumDirectTimeChart.html" />
+  <mapID target="EV.cumCombinedChart" url="Topics/Planning/EV-cumCombinedChart.html" />
+  <mapID target="TaskScheduleDependencies" url="Topics/Planning/TaskScheduleDependencies.html" />
+  <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
+  <mapID target="TaskScheduleRanges" url="Topics/Planning/TaskScheduleRanges.html" />
+  <mapID target="TaskScheduleRanges.cost" url="Topics/Planning/TaskScheduleRanges.html#cost" />
+  <mapID target="TaskScheduleRanges.date" url="Topics/Planning/TaskScheduleRanges.html#date" />
+  <mapID target="TaskScheduleRanges.when" url="Topics/Planning/TaskScheduleRanges.html#when" />
+  <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
+  <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
+  <mapID target="Separation" url="Topics/Overview/Separation.html" />
+  <mapID target="LocalizationTool" url="Topics/AdvancedTopics/LocalizationTool.html" />
+  <mapID target="BackupData" url="Topics/AdvancedTopics/BackupData.html" />
+  <mapID target="TeamUse" url="Topics/AdvancedTopics/TeamUse.html" />
+  <mapID target="TeamUseEV" url="Topics/AdvancedTopics/TeamUseEV.html" />
+  <mapID target="TeamUsePSPEV" url="Topics/AdvancedTopics/TeamUsePSPEV.html" />
+  <mapID target="TeamUseCustomProcess" url="Topics/AdvancedTopics/TeamUseCustomProcess.html" />
+  <mapID target="CustomJSPs" url="Topics/AdvancedTopics/CustomJSPs.html" />
+
+  <!-- entries for the preferences tool and various preference settings -->
+
+  <mapID target="PreferencesTool" url="Topics/AdvancedTopics/PreferencesTool.html" />
+        <mapID target="prefs.windowTitle" 
+               url="Topics/AdvancedTopics/PreferencesTool.html#windowTitle" />
+        <mapID target="prefs.alwaysOnTop" 
+               url="Topics/AdvancedTopics/PreferencesTool.html#alwaysOnTop" />
+        <mapID target="prefs.systemTray"
+               url="Topics/AdvancedTopics/PreferencesTool.html#systemTray" />
+        <mapID target="prefs.i18nLevel"
+               url="Topics/AdvancedTopics/PreferencesTool.html#i18nLevel" />
+        <mapID target="prefs.largeFonts"
+               url="Topics/AdvancedTopics/PreferencesTool.html#largeFonts" />
+        <mapID target="prefs.hiddenTaskAge"
+               url="Topics/AdvancedTopics/PreferencesTool.html#hideCompletedTasks" />
+        <mapID target="prefs.addOns"
+               url="Topics/AdvancedTopics/PreferencesTool.html#addOns" />
+        <mapID target="prefs.backups"
+               url="Topics/AdvancedTopics/PreferencesTool.html#backups" />
+        <mapID target="prefs.readOnlyRecommend"
+         url="Topics/AdvancedTopics/PreferencesTool.html#readOnlyRecommend" />
+        <mapID target="prefs.autoUpdate"
+               url="Topics/AdvancedTopics/PreferencesTool.html#autoUpdate" />
+        <mapID target="prefs.slowNetwork"
+               url="Topics/AdvancedTopics/PreferencesTool.html#slowNetwork" />
+        <mapID target="prefs.numericIPs"
+               url="Topics/AdvancedTopics/PreferencesTool.html#numericIPs" />
+        <mapID target="prefs.advanced"
+               url="Topics/AdvancedTopics/PreferencesTool.html#advanced" />
+
+</map>

@@ -1,0 +1,2 @@
+net.sourceforge.processdash.i18n.MergingTemplateClassLoader
+net.sourceforge.processdash.i18n.SafeTemplateClassLoader

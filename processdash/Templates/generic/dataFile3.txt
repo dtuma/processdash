@@ -1,0 +1,80 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2003 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+
+=============================================================================
+==
+== Description: Data file for a generic process with support for the Size
+==              estimating template (SET).
+==
+*/
+
+#include <generic/dataFile2.txt>
+
+[Generic with SET] = tag;
+
+
+/*
+ * Normally, the project plan summary allows users to enter time for all
+ * phases, then it sums those times to produce a total.  Unfortunately, if
+ * the PROBE Wizard is used, PROBE will write a value into the estimated
+ * total time element, clobbering that sum.  When this occurs, change the
+ * behavior of the Postmortem phase so that it dynamically adjusts to keep
+ * the phase total adding up properly.
+ */
+
+[Estimated_Non_PM_Time] = [Planning/Estimated Time] + 
+    sumFor("Estimated Time", [Dynamic_Phases]);
+
+[Postmortem/User_Estimated_Time] = 0;
+[Postmortem/Calculated_Remaining_Time] =
+    max(0, [Estimated Time] - [Estimated_Non_PM_Time]);
+[Postmortem/Estimated Time] = indirect(
+    iff([PROBE_Last_Run_Value/Estimated Time] > 0,
+	"Postmortem/Calculated_Remaining_Time",
+	"Postmortem/User_Estimated_Time"));
+
+[Estimated Time] = [Estimated_Non_PM_Time] + [Postmortem/User_Estimated_Time];
+
+[Phase_Sum_Problem] =abs([Estimated Time]
+			 - [Estimated_Non_PM_Time]
+			 - [Postmortem/Estimated Time]) > 0.5;
+
+
+/*
+ * definitions supporting the Size Estimating Template and PROBE
+ */
+#include <generic/sizeestData.txt>
+
+[/Generic/Project List] = search("/", "GENERIC");
+
+[PROBE_SUBSET/Rollup_List] = iff(![Size Units], null,
+    filter(lookup([_] &/ "Size Units") == [Size Units],
+	   [/Generic/Project List]));
+
+[PROBE_SUBSET] = [^] &/ "PROBE_SUBSET";
+
+[Generic - Show SET] = [/pspProc/Installed] && [Generic - Show Size];
+
+[Process_URLs] = iff([Generic - Show SET], ",generic/sizeest.class,", null);

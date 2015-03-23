@@ -1,0 +1,156 @@
+<HTML>
+<head>
+<TITLE>Selecting the Active Task</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Selecting the Active Task</H1>
+
+<p>As you work, the dashboard maintains a concept of the currently active
+task.  This task is displayed in the middle of the Process Dashboard toolbar.
+Items such as the play/pause button, the defect button, the script button and
+the completion checkbox always operate against this active task.  The image
+below shows the dashboard ready to work on the Code phase of "Component A,"
+which is part of "Release 1" in "My Project".</p>
+
+<p class="figure"><img src="../../Images/ShowHierarchyMenus.png"></p>
+
+<p>You can click on the name of the active task to change it.  You can also
+click on the "overflow menu" to the left of the task name for more options.
+For convenience, this overflow menu provides two different "task selection
+styles" you can use.  To move betweeen tasks in 
+<a href="#taskListNav">chronological order</a>, click on the "Task Lists"
+option.  To select tasks <a href="#hierNav">hierarchically</a> (the default),
+click on the "All Tasks" option.</p>
+
+<p class="figure"><img src="../../Images/TaskNavigationStyleSelector.png"></p>
+
+<h2 id="hierNav">Selecting Tasks Hierarchically</h2>
+
+<p>By default, the dashboard uses the hierarchical task selection style.  To
+better illustrate how this style works, the following example set of projects
+will be used.  (The project tree is shown in a screenshot from the hierarchy
+editor.  For more information on putting together a project hierarchy and the
+use of the hierarchy editor see the
+<a href="../Planning/UsingHierarchyEditor.html">Using the hierarchy editor</a>
+help topic.)</P>
+
+<p class="figure"><img src="../../Images/TaskNavigationHierarchyEditor.png"></p>
+
+
+<P>This project hierarchy shows two top level project categories: "Project"
+and "Non Project".  These are the two categories given as default when the
+dashboard is first run.  Under "Project" there are four items defined: "My
+Project", "Web Project", "SOA Project", and "Legacy".  Under "My Project",
+several items are defined, including "Release 1".  "Release 1" has four
+subtasks, called "Component A" through "Component D".  In this screenshot,
+only "Component A" has been expanded to show its phases.  Phases are added
+into the project hierarchy as children of a project.  "Component A" was
+created from a PSP2.1 template, and so it has all the development phases of a
+PSP2.1 project.</P>
+
+<P>Back on the dashboard itself, if you click on the first element in the
+active task name, it will show all the entries in the project hierarchy that
+are defined at that level.  In this case it shows the two default nodes
+"Project" and "Non Project".</P>
+
+<p class="figure"><img src="../../Images/HierarchyMenus1.png"></p>
+
+<P>Selecting the second name element shows the entries defined at that level
+under the selection from the first menu.  In this case, the user has selected
+"Project" on the first menu, so the second menu shows the children of
+"Project" in the project hierarchy.</p>
+
+<p class="figure"><img src="../../Images/HierarchyMenus2.png"></p>
+
+<P>Clicking any task name element will display the hierarchical children of
+the component or task to the left.  This final example shows the PSP 2.1
+process phases that are defined for "Component A".</p>
+
+<p class="figure"><img src="../../Images/HierarchyMenus3.png"></p>
+
+<p>To help you keep track which tasks have marked complete, the task selector
+menus use a strikethrough font.  (In the image above, the "Planning,"
+"Design," and "Design Review" tasks have been marked complete.)  You can mark
+an item complete with the <a href="CompletionButton.html">completion
+checkbox</a>.</p>
+
+<p>If your work hierarchy is deep and complex, there may not be enough
+horizontal space to display the full name of the active task.  In that case,
+the dashboard will display as much of the task as will fit.  (If you would
+like to see more of the task name, just resize the dashboard window to be
+bigger.)</p>
+
+<p class="figure"><img src="../../Images/ShowHierarchyMenusTruncated.png"></p>
+
+<p> If you hover over a truncated name, a tool tip will tell you the full
+name.  You can click the overflow menu to display the name elements that were
+dropped, and select different components at that level:</p>
+
+<p class="figure"><img src="../../Images/HierarchyMenus4.png"></p>
+
+<p><a name="hiddenCompletedTasks"></a>As you accumulate more projects and more
+tasks in your personal dashboard, the menu of choices under a particular item
+can potentially grow very long.  To reduce clutter, the dashboard will identify
+projects and tasks that you completed some time ago, and move them to a submenu
+called "Older Completed Items."  (You can configure this behavior in the
+<a href="../AdvancedTopics/PreferencesTool.html#hideCompletedTasks">Preferences
+Editor</a>.)</p>
+
+<p class="figure"><img src="../../Images/ShowHierarchyMenusOlderCompleted.png"></p>
+
+
+<h2 id="taskListNav">Selecting Tasks Chronologically from a Task List</h2>
+
+<p>If you are actively working on a project, you may find that you spend most
+of your time working on tasks that are in a particular earned value task list.
+A special task selection style makes this easy.  Just click on the task
+selection overflow menu and choose "Task Lists..."  A window will ask you for
+the name of the task list for the project that you are working on.</p>
+
+<p class="figure"><img src="../../Images/ChooseTaskNavigationList.png"></p>
+
+<p>Select the task list that you are working on, and click OK.  (If you know
+you will only be working on a subset of a particular task list, you can drill
+down into the task list and select the portion you plan to work on.)  The
+active task selector will now display a single menu which lists tasks in
+chronological order (as defined in the
+<a href="../Planning/TaskScheduleSteps.html#flatView">flat view</a> of the
+earned value schedule).
+
+<p class="figure"><img src="../../Images/TaskListNavigationMenu.png"></p>
+
+<p>For more information on creating earned value schedules, and using the
+flat view of their task lists, see the
+<a href="../Planning/TaskScheduleSteps.html">Creating a schedule step by
+step</a> help topic.</p>
+
+
+<h2>Selecting a Task Directly</h2>
+
+<p>Often you may have a specific task in mind that you would like to work on.
+Just click on the task selection overflow menu and choose "Find Task..."  This
+will display a window of tasks (either from the hierarchy or from the current
+task list, depending on the current task selection style).</p>
+
+<p class="figure"><img src="../../Images/QuickSelectTaskWindow.png"></p>
+
+<p>As you type in the "Find" box, the list of selections will automatically be
+narrowed to show tasks containing all of the letters you've typed.
+Capitalization is not important, and you can enter multiple filters separated
+by spaces. In the example above, the user has typed "leg&nbsp;scr".  The first
+filter "leg" has narrowed the tree to show tasks under the "Legacy" portion of
+the hierarchy. The second filter "scr" has further narrowed the list to show
+Tasks with the letters "scr" in the name.  (The end result is that
+"leg&nbsp;scr" has narrowed the list to show tasks associated with legacy
+software change requests.)  You can collapse branches of the tree that
+correspond to old, inactive projects; collapsed branches will not match the
+search filter.</p>
+
+<p>You can press the up and down arrow keys to select a specific task, and
+press the Enter key to change to the highlighted task.  In addition, you can
+click directly on a task to activate it.</p>
+
+</BODY>
+</HTML>

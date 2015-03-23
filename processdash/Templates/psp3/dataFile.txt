@@ -1,0 +1,132 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2002-2009 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+*/
+
+#include <psp3/psp2_1data.txt>
+[psp3] == TAG;
+[PSP3] == TAG;
+
+
+/*
+ * Two new phases: HLD and HLD Review
+ */ 
+
+[Normalized_Estimated_Time] = [Estimated Time] /
+    [Normalization %/Time/PSP3 To Date];
+[Normalized_Estimated_Defects_Injected] = [Estimated Defects Injected] /
+    [Normalization %/Defects Injected/PSP3 To Date];
+[Normalized_Estimated_Defects_Removed] = [Estimated Defects Removed] /
+    [Normalization %/Defects Removed/PSP3 To Date];
+
+// Estimate time and defect data for HLD and HLD Review.
+
+// NEEDS WORK: how should (time/defect) estimates be made for HLD?
+// Check for guidance from PSP book.  Currently, my best guess would
+// be to use a linear relationship based on time/defects per N&C KLOC.
+
+[HLD/Estimated Time] =
+    unlock([Normalized_Estimated_Time] * [HLD/%/Time To Date]);
+[HLD Review/Estimated Time] =
+    unlock([Normalized_Estimated_Time] * [HLD Review/%/Time To Date]);
+
+[HLD/Estimated Defects Injected] =
+    [Normalized_Estimated_Defects_Injected] *
+    [HLD/%/Defects Injected To Date];
+[HLD Review/Estimated Defects Injected] =
+    [Normalized_Estimated_Defects_Injected] *
+    [HLD Review/%/Defects Injected To Date];
+
+[HLD/Estimated Defects Removed] =
+    [Normalized_Estimated_Defects_Removed] * [HLD/%/Defects Removed To Date];
+[HLD Review/Estimated Defects Removed] =
+    [Normalized_Estimated_Defects_Removed] *
+    [HLD Review/%/Defects Removed To Date];
+
+
+[Design/Total Time] =
+        [HLD/Time] + [HLD Review/Time] + [Design/Time] + [Design Review/Time];
+
+// Alias PM as Postmortem + Reassessment.
+
+[PM/Estimated Time] =
+        [Postmortem/Estimated Time] + [Reassessment/Estimated Time];
+[PM/Time] = [Postmortem/Time] + [Reassessment/Time];
+
+// Sum up estimated time by phase from cycles
+
+[PSP3_Cycles] = search(".", "PSP3cycle Tag");
+
+#define sumUp(Phase)							      \
+  [Phase/Estimated Time] = sumFor("Phase/Estimated Time", [PSP3_Cycles]);     \
+  [Phase/Time] = sumFor("Phase/Time", [PSP3_Cycles]);			      \
+  [Phase/Estimated Defects Injected] =					      \
+        sumFor("Phase/Estimated Defects Injected", [PSP3_Cycles]);	      \
+  [Phase/Defects Injected] = sumFor("Phase/Defects Injected", [PSP3_Cycles]); \
+  [Phase/Estimated Defects Removed] =					      \
+        sumFor("Phase/Estimated Defects Removed", [PSP3_Cycles]);	      \
+  [Phase/Defects Removed] = sumFor("Phase/Defects Removed", [PSP3_Cycles])
+
+sumUp(Design);
+sumUp(Design Review);
+sumUp(Code);
+sumUp(Code Review);
+sumUp(Compile);
+sumUp(Test);
+sumUp(Reassessment);
+
+#define sumForCycles(Data) 						      \
+  [Cycles/Data]           = sumFor("Data",           [PSP3_Cycles]); 	      \
+  [Cycles/Estimated Data] = sumFor("Estimated Data", [PSP3_Cycles])
+
+sumForCycles(Time);
+sumForCycles(Defects Injected);
+sumForCycles(Defects Removed);
+
+// The following calculations help us to distribute Estimated Time across
+// the PSP3 cycles
+
+[PSP3_Cycle_Count] = count([PSP3_Cycles]);
+[PSP3_Cycle_Size] = sumFor("Estimated New & Changed LOC", [PSP3_Cycles]);
+[PSP3_Cycle_Est_Time] = [Estimated Time] - [Planning/Estimated Time] -
+    [HLD/Estimated Time] - [HLD Review/Estimated Time] -
+    [Postmortem/Estimated Time];
+[PSP3_Cycle_Time_Ratio] = [PSP3_Cycle_Est_Time] / [PSP3_Cycle_Size];
+[PSP3_Cycle_Even_Time] = [PSP3_Cycle_Est_Time] / [PSP3_Cycle_Count];
+
+// Check for top-down-bottom-up time estimate problems
+
+[Bottom_Up_Estimated Time] = [Planning/Estimated Time] +
+    [HLD/Estimated Time] + [HLD Review/Estimated Time] +
+    [Cycles/Estimated Time] + [Postmortem/Estimated Time];
+[Estimated_Time_Mismatch] = 
+    abs([Estimated Time] - [Bottom_Up_Estimated Time]) > 0.5;
+
+// Calculate project completion date
+
+[Completed] = maxDate("Completed",
+		      ",Planning,HLD,HLD Review,Postmortem,", [PSP3_Cycles]);
+
+[HLD/SIZE_METRIC_NAME] = "HLD Pages";
+[HLD Review/SIZE_METRIC_NAME] = "HLD Pages";

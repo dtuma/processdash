@@ -1,0 +1,4 @@
+Dash-Pkg-ID: dashHelp
+Dash-Pkg-Version: 2.0.5
+Dash-Pkg-Name: JavaHelp(TM) from Sun Microsystems
+Dash-Pkg-URL: http://processdash.sourceforge.net/cgi-bin/update

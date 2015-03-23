@@ -1,0 +1,59 @@
+<!--#if MergePriorTable #-->
+    <input type="hidden" name="$$$_MergePriorTable"
+           value="<!--#echo MergePriorTable -->"><!--#endif#-->
+<!--#if PhaseFilter #-->
+    <input type="hidden" name="$$$_PhaseFilter"
+           value="<!--#echo PhaseFilter -->"><!--#endif#-->
+<!--#if PrependRows #-->
+    <input type="hidden" name="$$$_PrependRows"
+           value="<!--#echo PrependRows -->"><!--#endif#-->
+
+<b><!--#echo Heading_Prompt --></b>&nbsp;<input type="text" name="$$$_Heading"
+     value="<!--#echo Heading -->" size="50">
+
+<p><b><!--#echo Label_Prompt --></b>&nbsp;<input type="text" name="$$$_Label"
+    value="<!--#echo Label -->" size="50"></p>
+
+<p><b><!--#echo Columns_Prompt --></b><br/>
+<!--#foreach name="Which" values=",Plan,Actual,ActualPct,ToDate,ToDatePct," #-->
+<!--#if not [Rollup Tag] || 'Which' !~ 'ToDate' #-->
+<span class="cmsIndent"><input type="checkbox" name="$$$_ShowWhichCol"
+    <!--#if ShowWhichCol -->checked
+    <!--#elif defaults --><!--#if 'Which' ne 'ActualPct' -->checked
+    <!--#endif--><!--#endif#-->
+    >&nbsp;<!--#echo Snippet.Columns.Which_Label --></span>
+<!--#else#-->
+<input type="hidden" name="$$$_ShowWhichCol"
+    value="<!--#echo ShowWhichCol -->">
+<!--#endif--><!--#endfor--></p>
+
+<p><b><!--#echo Phases_Prompt --></b><br/>
+<!--#foreach name="Which" values=",All,Appraisal,Failure,Quality," #-->
+<span class="cmsIndent"><input type="radio" name="$$$_PhaseGroup"
+    <!--#if PhaseGroup eq 'Which' -->checked
+    <!--#elif defaults --><!--#if 'Which' eq 'All' -->checked
+    <!--#endif--><!--#endif#-->
+
+    <!--#if 'Which' eq 'All' -->onclick="$('$$$_ShowTotalRow').disabled=false;"
+    <!--#else-->onclick="$('$$$_ShowTotalRow').disabled=true;"
+    <!--#endif#-->
+
+    value="Which">&nbsp;<!--#echo Snippet.Phases.Which --></span>
+<!--#endfor--><br/>
+
+<span class="cmsIndent"><input type="checkbox" name="$$$_ShowTotalRow"
+    <!--#if ShowTotalRow || defaults -->checked <!--#endif#-->
+    <!--#if !defaults --><!--#if PhaseGroup ne 'All' -->disabled
+    <!--#endif--><!--#endif#-->
+    id="$$$_ShowTotalRow">&nbsp;<!--#echo Show_Total_Row --></span></p>
+
+<b><!--#echo Metrics_Prompt --></b>
+<div class='cmsIndent'><!--#include file="editList" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="itemUri" encoding="relUri"
+                   value="metricSimple.shtm" -->
+    <!--#parameter name="valuesUri" encoding="relUri"
+                   value="listMetrics?unqualified&phases" -->
+    <!--#parameter name="newItemPrompt" encoding="html"
+                   var="Add_Metric_Prompt" -->
+</div>

@@ -1,0 +1,20 @@
+/* styles used for cross-browser fixed headers and footers */
+
+#fixedHeader { 
+    position: fixed; 
+    width: 100%;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    background-color: white;
+    z-index: 1;
+}
+#fixedFooter { 
+    position: fixed; 
+    width: 100%;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: white;
+    z-index: 1;
+}

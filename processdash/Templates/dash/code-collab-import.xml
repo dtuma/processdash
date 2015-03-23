@@ -1,0 +1,35 @@
+<defect-import-form>
+
+    <textfield id="url"
+        setting="url" />
+
+    <code-collaborator
+        urlId="url"
+        urlSuffix="*automatic*"
+	usernameId="username"
+        passwordId="password" />
+
+    <textfield id="username"
+        setting="user.name" />
+
+    <password id="password"
+        setting="user.password" />
+
+    <code-collaborator-reviews id="reviews"
+	usernameId="username" />
+
+    <combobox id="review_id"
+        choices="reviews" />
+
+    <textfield id="review_id"
+        resourceId="review_id2"
+        dataType="integer" />
+
+    <default-inj-phase-selector />
+
+    <default-rem-phase-selector />
+
+    <code-collaborator-defects id="defects"
+        reviewNumberId="review_id" />
+
+</defect-import-form>

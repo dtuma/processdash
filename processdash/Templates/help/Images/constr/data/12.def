@@ -1,0 +1,15 @@
+1	Function	Design	Design Review	1	 	Calculation logic was not correct. 	@1157822037453	
+2	Interface	Design	Design Review	6	 	Param list mismatch	@1157825667890	
+3	Checking	Design	Design Review	3	 	Boundary conditions in calculation	@1157825707250	
+4	Checking	Design	Design Review	2	 	Missing check for validity of user-entered data	@1157825733437	
+5	Syntax	Code	Code Review	0.1	 	semicolon	@1157825793796	
+6	Syntax	Code	Code Review	0.2	 	mismatched parens	@1157825803312	
+7	Syntax	Code	Code Review	0.4	 	semicolon	@1157825814093	
+8	Syntax	Code	Code Review	0.4	 	typo in constant declaration	@1157825837218	
+9	Syntax	Code	Code Review	0.1	 	typo	@1157825860484	
+10	Function	Design	Code Review	21	 	Missed business logic use case	@1157825872234	
+11	Interface	Code	Code Review	4	 	param type mismatch	@1157825929781	
+12	Checking	Code	Code Review	0.8	 	Not handling null input value	@1157825959437	
+13	Syntax	Code	Compile	1	 	Missing semicolon	@1157826049031	
+14	Function	Design	Test	40	 	Calculation is producing incorrect value - misunderstood the equation 	@1157826076859	
+15	Syntax	Test	Test	3.1	14	Typo in corrected calculation 	@1157826717953	

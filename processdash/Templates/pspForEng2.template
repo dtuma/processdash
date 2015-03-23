@@ -1,0 +1,123 @@
+# PSPProperties file:properties file
+# format: PropertyKey<parentKey><name>=Prop[defectLog] \
+#         [timeLog][scriptFile][dataFile][status] \
+#         [selected][numChildren(N)][child0]...[childN-1]
+#
+
+
+
+######################################################################
+### Property keys for the 2005 version of the course
+######################################################################
+
+PropertyKey<top><PSP for Engineers V2>=Prop[][pspForEngV2][][pspForEng2/dataFile.txt][>][0][10][PropertyKey<top/PSP for Engineers V2><Program 1>][PropertyKey<top/PSP for Engineers V2><Program 2>][PropertyKey<top/PSP for Engineers V2><Program 3>][PropertyKey<top/PSP for Engineers V2><Program 4>][PropertyKey<top/PSP for Engineers V2><Interim Report>][PropertyKey<top/PSP for Engineers V2><Program 5>][PropertyKey<top/PSP for Engineers V2><Program 6>][PropertyKey<top/PSP for Engineers V2><Program 7>][PropertyKey<top/PSP for Engineers V2><Program 8>][PropertyKey<top/PSP for Engineers V2><Final Report>]
+
+
+# Program 1
+
+PropertyKey<top/PSP for Engineers V2><Program 1>=Prop[true][PSP0-PFE-P1][psp0/summary.htm;psp0/script.htm][pspForEng2/P1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers V2/Program 1><Planning>][PropertyKey<top/PSP for Engineers V2/Program 1><Design>][PropertyKey<top/PSP for Engineers V2/Program 1><Code>][PropertyKey<top/PSP for Engineers V2/Program 1><Compile>][PropertyKey<top/PSP for Engineers V2/Program 1><Test>][PropertyKey<top/PSP for Engineers V2/Program 1><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 1><Planning>=Prop[][][psp0/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 1><Design>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 1><Code>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 1><Compile>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 1><Test>=Prop[][][psp0/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 1><Postmortem>=Prop[][][psp0/postmort.htm][][ME<>][0][0]
+
+
+# Program 2
+
+PropertyKey<top/PSP for Engineers V2><Program 2>=Prop[true][PSP0.1-PFE-P2][psp0.1/summary.htm;psp0.1/script.htm][pspForEng2/P2/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers V2/Program 2><Planning>][PropertyKey<top/PSP for Engineers V2/Program 2><Design>][PropertyKey<top/PSP for Engineers V2/Program 2><Code>][PropertyKey<top/PSP for Engineers V2/Program 2><Compile>][PropertyKey<top/PSP for Engineers V2/Program 2><Test>][PropertyKey<top/PSP for Engineers V2/Program 2><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 2><Planning>=Prop[][][psp0.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 2><Design>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 2><Code>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 2><Compile>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 2><Test>=Prop[][][psp0.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 2><Postmortem>=Prop[][][psp0.1/postmort.htm][][ME<>][0][0]
+
+
+# Program 3
+
+PropertyKey<top/PSP for Engineers V2><Program 3>=Prop[true][PSP1-PFE-P3][psp1/summary.htm;psp1/sizeest.class;psp1/script.htm][pspForEng2/P3/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers V2/Program 3><Planning>][PropertyKey<top/PSP for Engineers V2/Program 3><Design>][PropertyKey<top/PSP for Engineers V2/Program 3><Code>][PropertyKey<top/PSP for Engineers V2/Program 3><Compile>][PropertyKey<top/PSP for Engineers V2/Program 3><Test>][PropertyKey<top/PSP for Engineers V2/Program 3><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 3><Planning>=Prop[][][psp1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 3><Design>=Prop[][][psp1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 3><Code>=Prop[][][psp1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 3><Compile>=Prop[][][psp1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 3><Test>=Prop[][][psp1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 3><Postmortem>=Prop[][][psp1/postmort.htm][][ME<>][0][0]
+
+
+# Program 4
+
+PropertyKey<top/PSP for Engineers V2><Program 4>=Prop[true][PSP1.1-PFE-P4][psp1.1/summary.htm;psp1.1/sizeest.class;psp1.1/script.htm][pspForEng2/P4/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP for Engineers V2/Program 4><Planning>][PropertyKey<top/PSP for Engineers V2/Program 4><Design>][PropertyKey<top/PSP for Engineers V2/Program 4><Code>][PropertyKey<top/PSP for Engineers V2/Program 4><Compile>][PropertyKey<top/PSP for Engineers V2/Program 4><Test>][PropertyKey<top/PSP for Engineers V2/Program 4><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 4><Planning>=Prop[][][psp1.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 4><Design>=Prop[][][psp1.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 4><Code>=Prop[][][psp1.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 4><Compile>=Prop[][][psp1.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 4><Test>=Prop[][][psp1.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 4><Postmortem>=Prop[][][psp1.1/postmort.htm][][ME<>][0][0]
+
+
+# Interim Report
+
+PropertyKey<top/PSP for Engineers V2><Interim Report>=Prop[true][Generic][generic/summary.class][pspForEng2/RI/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers V2/Interim Report><Planning>][PropertyKey<top/PSP for Engineers V2/Interim Report><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Interim Report><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Interim Report><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Program 5
+
+PropertyKey<top/PSP for Engineers V2><Program 5>=Prop[true][PSP2-PFE-P5][pspForEng2/P5/summary.htm;pspForEng2/P5/sizeest.class;pspForEng2/P5/script.htm][pspForEng2/P5/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers V2/Program 5><Planning>][PropertyKey<top/PSP for Engineers V2/Program 5><Design>][PropertyKey<top/PSP for Engineers V2/Program 5><Design Review>][PropertyKey<top/PSP for Engineers V2/Program 5><Code>][PropertyKey<top/PSP for Engineers V2/Program 5><Code Review>][PropertyKey<top/PSP for Engineers V2/Program 5><Compile>][PropertyKey<top/PSP for Engineers V2/Program 5><Test>][PropertyKey<top/PSP for Engineers V2/Program 5><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 5><Planning>=Prop[][][pspForEng2/P5/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Design>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Design Review>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Code>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Code Review>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Compile>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Test>=Prop[][][pspForEng2/P5/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 5><Postmortem>=Prop[][][pspForEng2/P5/postmort.htm][][ME<>][0][0]
+
+
+# Program 6
+
+PropertyKey<top/PSP for Engineers V2><Program 6>=Prop[true][PSP2.1-PFE-P6][psp2.1/summary.htm;psp2.1/sizeest.class;psp2.1/script.htm][pspForEng2/P6/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers V2/Program 6><Planning>][PropertyKey<top/PSP for Engineers V2/Program 6><Design>][PropertyKey<top/PSP for Engineers V2/Program 6><Design Review>][PropertyKey<top/PSP for Engineers V2/Program 6><Code>][PropertyKey<top/PSP for Engineers V2/Program 6><Code Review>][PropertyKey<top/PSP for Engineers V2/Program 6><Compile>][PropertyKey<top/PSP for Engineers V2/Program 6><Test>][PropertyKey<top/PSP for Engineers V2/Program 6><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 6><Planning>=Prop[][][psp2.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Design>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Design Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Code>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Code Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Compile>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Test>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 6><Postmortem>=Prop[][][psp2.1/postmort.htm][][ME<>][0][0]
+
+
+# Program 7
+
+PropertyKey<top/PSP for Engineers V2><Program 7>=Prop[true][PSP2.1-PFE-P7][psp2.1/summary.htm;psp2.1/sizeest.class;psp2.1/script.htm][pspForEng2/P7/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers V2/Program 7><Planning>][PropertyKey<top/PSP for Engineers V2/Program 7><Design>][PropertyKey<top/PSP for Engineers V2/Program 7><Design Review>][PropertyKey<top/PSP for Engineers V2/Program 7><Code>][PropertyKey<top/PSP for Engineers V2/Program 7><Code Review>][PropertyKey<top/PSP for Engineers V2/Program 7><Compile>][PropertyKey<top/PSP for Engineers V2/Program 7><Test>][PropertyKey<top/PSP for Engineers V2/Program 7><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 7><Planning>=Prop[][][psp2.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Design>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Design Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Code>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Code Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Compile>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Test>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 7><Postmortem>=Prop[][][psp2.1/postmort.htm][][ME<>][0][0]
+
+
+# Program 8
+
+PropertyKey<top/PSP for Engineers V2><Program 8>=Prop[true][PSP2.1-PFE-P8][psp2.1/summary.htm;psp2.1/sizeest.class;psp2.1/script.htm][pspForEng2/P8/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP for Engineers V2/Program 8><Planning>][PropertyKey<top/PSP for Engineers V2/Program 8><Design>][PropertyKey<top/PSP for Engineers V2/Program 8><Design Review>][PropertyKey<top/PSP for Engineers V2/Program 8><Code>][PropertyKey<top/PSP for Engineers V2/Program 8><Code Review>][PropertyKey<top/PSP for Engineers V2/Program 8><Compile>][PropertyKey<top/PSP for Engineers V2/Program 8><Test>][PropertyKey<top/PSP for Engineers V2/Program 8><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Program 8><Planning>=Prop[][][psp2.1/planning.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Design>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Design Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Code>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Code Review>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Compile>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Test>=Prop[][][psp2.1/develop.htm][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Program 8><Postmortem>=Prop[][][psp2.1/postmort.htm][][ME<>][0][0]
+
+
+# Final Report
+
+PropertyKey<top/PSP for Engineers V2><Final Report>=Prop[true][Generic][generic/summary.class][pspForEng2/RF/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers V2/Final Report><Planning>][PropertyKey<top/PSP for Engineers V2/Final Report><Postmortem>]
+PropertyKey<top/PSP for Engineers V2/Final Report><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP for Engineers V2/Final Report><Postmortem>=Prop[][][][][ME<>][0][0]

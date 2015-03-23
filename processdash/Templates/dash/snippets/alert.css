@@ -1,0 +1,38 @@
+div.alertMalformedExpression {
+    background-color: #ff5050;
+    padding: 5px;
+    border: 1px solid black;
+    margin: 5px 0px;
+}
+
+div.alertMalformedExpression pre {
+    margin: 5px 1cm;
+}
+
+div.alertError {
+    background-image: url("/Images/alertError.png");
+    background-repeat: no-repeat;
+    background-position: 0% 50%;
+    padding: 5px 0px 5px 25px;
+}
+
+div.alertCheck {
+    background-image: url("/Images/alertCheck.png");
+    background-repeat: no-repeat;
+    background-position: 0% 50%;
+    padding: 5px 0px 5px 25px;
+}
+
+div.alertWarning {
+    background-image: url("/Images/alertWarning.png");
+    background-repeat: no-repeat;
+    background-position: 0% 50%;
+    padding: 5px 0px 5px 25px;
+}
+
+div.alertInfo {
+    background-image: url("/Images/alertInfo.png");
+    background-repeat: no-repeat;
+    background-position: 0% 50%;
+    padding: 5px 0px 5px 25px;
+}

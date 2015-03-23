@@ -1,0 +1,8 @@
+<!--#if mode eq 'edit' -->
+    <input type="hidden" name="snippetDiscarded$$$_" value="t"/>
+    <i><!--#echo var="Edit_Label_HTML" encoding="none" --></i>
+<!--#elif EXPORT || READ_ONLY --><!--#else-->
+    <div class="doNotPrint" style="font-style:italic; background-color: #ffc; padding:1em; border: 1px solid black; text-align: center;">
+    <!--#echo var="View_Label_HTML" encoding="none" -->
+    </div>
+<!--#endif-->

@@ -1,0 +1,91 @@
+<HTML>
+<head>
+<TITLE>Data Charts and Reports</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Data Charts and Reports</H1>
+
+<P>The Process Dashboard automates many reports and charts that can be quite 
+useful in a project postmortem.</p>
+
+<h2><a name="pps"></a>The Project Plan Summary</h2>
+<P>The main report that contains the most useful postmortem information for 
+your project will probably be the Project Plan Summary form.  The Project 
+Plan Summary can generally be produced by navigating to the project for which 
+you would like the report, clicking the script button, and selecting the
+option for the Project Summary form.</p>
+
+<p class="figure"><img src="../../Images/ScriptButtonShowMenu.png"></p>
+
+<h2><a name="markComplete"></a>Marking your project complete</h2>
+<P>It is important to mark your project as complete.  This lets the dashboard
+know that you are finished with the project, and it can use the project data to
+calculate the various items in the reports and charts.  You can edit the
+project completion date via the appropriate field on the Project Plan Summary.
+If you haven't edited the project completion date field on the Project Plan
+Summary, marking all the phases in the project complete will mark the project
+complete as well.</p>
+
+<p class="figure"><img src="../../Images/PointToCompletionButton.png"></p>
+
+<h2><a name="logs"></a>The Time Log and Defect Log</h2>
+<P>HTML versions of the Time Log and the Defect Log are also available from 
+the scripts button.  If you navigate to the main Process script for any of 
+the PSP processes (usually by following a link marked "top" near the bottom 
+of the various reports and forms), you will links named "Time Log" and 
+"Defect Log" in the text of the script.  These will bring up a read-only 
+version of the two logs.</p>
+
+<h2><a name="charts"></a>Graphical charts</h2>
+
+<P>The dashboard also makes many graphical charts of various kinds available.
+If you have any PSP components in your personal work hierarchy, the C menu
+will display a "PSP Data Analysis" option.  Choosing this option will display
+a split view with an index of various chart types on the left and thumbnails
+of the charts available on the right.</p>
+
+<p class="figure"><img src="../../Images/DataAnalysisScreen.png"></p>
+
+<p>Clicking any of the thumbnail charts will 
+bring up a full-sized version of the chart.  When viewing a full-sized chart,
+resizing your browser window will cause the chart to resize as well.  Finally,
+clicking on a full-sized chart will display a table of the data used to draw
+that chart.</p>
+
+<p>The dashboard provides charts that allow</p>
+
+<UL>
+ <LI>Defect analysis - rates of injection and removal of defects in the 
+   different process phases, defect injection and removal percentages in the 
+   different process phases, and pie charts showing the distribution of defect 
+   types.</LI>
+ <LI>Plan analysis - comparisons of planned time and size with actual planned 
+   time and size, planning error of both time and size, and breakdowns of the 
+   amount of time spent in the different development phases.</LI> 
+ <LI>Process analysis - comparisons of productivity rates, defect removal 
+   yields, and appraisal to failure cost ratios.</li>
+ <LI>Quality analysis - various looks at the quality metrics of defect 
+   removal yield, failure and appraisal cost of quality, and LOC reviewed per 
+   hour rates.</LI>
+ <LI>Defect Densities and Fix Times - tables of data showing where defects
+   were injected and removed in various programs, and the relative costs of
+   removing them.</LI>
+ <LI>Defect Phases/Types - analyses of the various types of defects, and where
+   they are most often removed.</LI>
+ <LI>Pareto - shows defects organized by type sorted by number and by fix 
+   time.</LI>
+ <LI>Custom - allows you to produce customized charts and reports based upon
+   your historical data.</LI>
+</UL>
+
+<h2><a name="custom"></a>Custom charts and reports</h2>
+
+<p>If you need a special chart or report that the Process Dashboard does not
+provide, you can create your own reports using Java servlets or JSPs.  For
+more information, see the <a href="../AdvancedTopics/CustomJSPs.html">Custom
+JSP Reporting</a> help topic.</p>
+
+</BODY>
+</HTML>

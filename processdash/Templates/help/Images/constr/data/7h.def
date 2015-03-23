@@ -1,0 +1,7 @@
+1	Interface	Code	Code	0.9	 	list1 parameter should be in/out	01/01/2003
+2	Syntax	Code	Code	0.2	 	Typed "!" instead of "not"	01/01/2003
+3	Function	Code	Code	0.5	 	Added extra check in linked_list.concat procedure that will save time	01/01/2003
+4	Syntax	Code	Code	0.2	 	need list.is_empty, not just is_empty	01/01/2003
+5	Function	Code	Code Review	1.5	 	Change order of statements in sort() procedure for efficiency reasons	01/01/2003
+6	Syntax	Code	Compile	1.6	 	Stupid Ada doesn't allow literal strings to include tabs 	01/01/2003
+7	Syntax	Code	Compile	1.0	 	wrote list(next) instead of next(list)	01/01/2003

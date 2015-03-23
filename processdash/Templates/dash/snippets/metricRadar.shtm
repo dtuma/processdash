@@ -1,0 +1,30 @@
+<!--#resources bundle='Analysis' -->
+<div class="metric IEFloatHack" id="$$$_###_div">
+<a href="#" onclick="Element.remove('$$$_###_div'); return false;"
+   title="<!--#echo Edit_Page.Delete_Item.Tooltip -->"
+   class="cmsDeleteButton" style="margin-top:1px"></a>
+
+<!--#replace token="/" value=" / " post=true #-->
+<!--#echo var="DataName" encoding="translate,html" #-->
+<!--#endreplace-->
+
+<input type="hidden" name="$$$_###_DataName"
+       value='<!--#echo DataName -->'>
+<!-- ### --><br/>
+
+<span style="white-space:nowrap" class="cmsIndent">
+<b><!--#echo RadarChart.Target_Value_Prompt --></b>&nbsp;<input 
+    type="text" size="3" name="$$$_###_TargetValue"
+    value='<!--#echo TargetValue -->'>&nbsp;&nbsp;&nbsp;<input
+type="checkbox" name="$$$_###_ReverseAxis"
+    <!--#if ReverseAxis -->checked <!--#endif#-->
+    >&nbsp;<!--#echo RadarChart.Reverse_Axis_Prompt -->
+</span><br/>
+
+<span style="white-space:nowrap" class="cmsIndent">
+<b><!--#echo RadarChart.Metric_Label_Prompt --></b>&nbsp;<input 
+    type="text" size="30" name="$$$_###_DisplayName"
+    value='<!--#echo DisplayName -->'>
+</span>
+
+</div>

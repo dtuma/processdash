@@ -1,0 +1,3 @@
+<!--#if !ptc --><!--#set var='ptc' value='../control' --><!--#endif#-->
+
+&nbsp;<a class="doNotPrint" href="<!--#echo ptc #-->/setPath.class?start&phase=<!--#echo var='phase' encoding='url' #-->"><img class="dash" border="0" alt="Start timing" src="/control/startTiming.png"></a>

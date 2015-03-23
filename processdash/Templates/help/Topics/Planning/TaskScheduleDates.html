@@ -1,0 +1,407 @@
+<html>
+<head>
+<title>Earned Value Date Calculations</title>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<body>
+
+<h1>Earned Value Date Calculations</h1>
+
+<p>Earned value is a powerful technique for planning and tracking your work.
+To get the most value out of the earned value tools in the dashboard, it is
+helpful to understand how the calculations are performed.  The paragraphs below
+shed light on how various dates are calculated.</p>
+
+<h2><a name="planDate"></a>Plan Date</h2>
+
+<p>When you create a Task &amp; Schedule plan to describe your personal work,
+the dashboard will automatically calculate the date when each task is planned
+to complete.  This is a very simple calculation, and is specified in the PSP
+book by Watts Humphrey.</p>
+
+<p>Specifically, the Process Dashboard begins by making a list of the "leaf"
+nodes in your task list.  (A "leaf" node is a task that does not have any
+children underneath.)  The dashboard looks up the amount of time that you have
+planned for each task.  Then, it uses the 
+<a href="TaskScheduleSteps.html#flatView">flat view</a> of your task list to
+determine the approximate order that you plan to perform the work.  The
+resulting list might look something like this:</p>
+
+<table border>
+<tr><th>Task Name</th><th>Planned Time</th></tr>
+<tr><td>Task A</td><td>1</td></tr>
+<tr><td>Task B</td><td>5</td></tr>
+<tr><td>Task C</td><td>3</td></tr>
+<tr><td>Task D</td><td>8</td></tr>
+<tr><td>Task E</td><td>4</td></tr>
+<tr><td>Task F</td><td>7</td></tr>
+<tr><td>Task G</td><td>2</td></tr>
+<tr><td>Task H</td><td>5</td></tr>
+</table>
+
+<p>Next, the dashboard will calculate a running total of the numbers in the
+Planned Time column:</p>
+
+<table border>
+<tr><th>Task Name</th><th>Planned Time</th><th>Cumulative Planned Time</th></tr>
+<tr><td>Task A</td><td>1</td><td>1</td></tr>
+<tr><td>Task B</td><td>5</td><td>6</td></tr>
+<tr><td>Task C</td><td>3</td><td>9</td></tr>
+<tr><td>Task D</td><td>8</td><td>17</td></tr>
+<tr><td>Task E</td><td>4</td><td>21</td></tr>
+<tr><td>Task F</td><td>7</td><td>28</td></tr>
+<tr><td>Task G</td><td>2</td><td>30</td></tr>
+<tr><td>Task H</td><td>5</td><td>35</td></tr>
+</table>
+
+<p>In addition, your task and schedule plan will include a calendar of time
+that you plan to spend on the tasks in this task list.  That calendar might
+look something like this:</p>
+
+<table border>
+<tr><th>Calendar Date</th><th>Planned Time</th></tr>
+<tr><td>Week 1</td><td>6</td></tr>
+<tr><td>Week 2</td><td>1</td></tr>
+<tr><td>Week 3</td><td>6</td></tr>
+<tr><td>Week 4</td><td>6</td></tr>
+<tr><td>Week 5</td><td>0</td></tr>
+<tr><td>Week 6</td><td>6</td></tr>
+<tr><td>Week 7</td><td>6</td></tr>
+</table>
+
+<p>Just as before, the dashboard will calculate a running total of the numbers
+in the Planned Time column of your schedule.  If the schedule does not contain
+enough total hours to cover the tasks in your plan, the final row of the
+schedule will be repeated until enough hours are available:</p>
+
+<table border>
+<tr><th>Calendar Date</th><th>Planned Time</th><th>Cumulative Planned Time</th></tr>
+<tr><td>Week 1</td><td>6</td><td>6</td></tr>
+<tr><td>Week 2</td><td>1</td><td>7</td></tr>
+<tr><td>Week 3</td><td>6</td><td>13</td></tr>
+<tr><td>Week 4</td><td>6</td><td>19</td></tr>
+<tr><td>Week 5</td><td>0</td><td>19</td></tr>
+<tr><td>Week 6</td><td>6</td><td>25</td></tr>
+<tr><td>Week 7</td><td>6</td><td>31</td></tr>
+<tr><td>Week 8</td><td>6</td><td>37</td></tr>
+</table>
+
+<p>Finally, the dashboard will cross-reference the numbers in these two
+"Cumulative Planned Time" columns.  For example, if you were to work on the
+tasks in the exact order that they appear in the task list, you would finish
+Task A and Task B after completing 6 hours of work.  If you spend exactly as
+much time per week as you plan to, you will finish 6 hours of work during Week
+1.  So Task A and Task B would be completed on Week 1.  Task C would be
+completed when you reach the 9 hour point, and that would occur sometime in the
+middle of Week 3; so Task C would have a planned completion date of Week 3.
+If we were to finish these cross-references, we would obtain the following
+planned dates for each task:</p>
+
+<table border>
+<tr><th>Task Name</th><th>Planned Time</th><th>Cumulative Planned Time</th><th>Planned Date</th></tr>
+<tr><td>Task A</td><td>1</td><td>1</td><td>Week 1</td></tr>
+<tr><td>Task B</td><td>5</td><td>6</td><td>Week 1</td></tr>
+<tr><td>Task C</td><td>3</td><td>9</td><td>Week 3</td></tr>
+<tr><td>Task D</td><td>8</td><td>17</td><td>Week 4</td></tr>
+<tr><td>Task E</td><td>4</td><td>21</td><td>Week 6</td></tr>
+<tr><td>Task F</td><td>7</td><td>28</td><td>Week 7</td></tr>
+<tr><td>Task G</td><td>2</td><td>30</td><td>Week 7</td></tr>
+<tr><td>Task H</td><td>5</td><td>35</td><td>Week 8</td></tr>
+</table>
+
+<p>Once these values have been calculated for the "leaf" tasks in your plan,
+the dashboard then takes a look at the other nodes in your hierarchically
+organized task list.  Each parent node is planned to complete when its last
+child finishes.  (The same technique is used to calculate the team rollup: each
+node in the team rollup will be planned to finish on the date when the last
+team member plans to finish that item.)</p>
+
+<p>So that explains how the values in the "Plan Date" column are calculated.
+From this explanation, you can make the following important observations:</p>
+
+<ul>
+
+<li>The planned dates are an idealized notion of the date when each task could
+finish, if everything goes exactly according to plan.</li>
+
+<li>Calculations are based solely on the planned times for each task and each
+calendar period.  The actual time you spend has no effect on the values in the
+Plan Date column.  (For that, see the description of the
+<a href="#replanDate">Replan</a> column below.)</li>
+
+<li>The Flat View ordering is a very important part of the calculation.  If you
+want to obtain useful information for the dates when various tasks might
+complete, you must periodically visit the flat view and update the task order
+based on the work you plan to do next.  (However, if you neglect to do this,
+the dashboard will still detect when you mark tasks complete, and will
+automatically rearrange the completed tasks to the top of your "flat view"
+ordering.)</li>
+
+<li><a name="planRoundOff"></a>In your schedule, each calendar period has a
+start date and an end date (as specified in the "From" and "To" columns of the
+schedule).  When calculating the Plan Date for each task, the dashboard simply
+reads the date in the "To" column of the schedule row when the task is
+projected to finish.  On a typical project, this means that the Plan Dates will
+be rounded off to the end of the following week.  Although useful information
+is discarded by this rounding process, it is unfortunately necessary to ensure
+that the planned dates remain faithful to the formulas specified by the PSP
+process.</li>
+
+</ul>
+
+
+
+<h2><a name="replanDate"></a>Replan Date</h2>
+
+<p>As discussed above, the <a href="#planDate">Plan Date</a> column provides an
+idealized projection for when each task could be completed.  But of course,
+work rarely goes exactly according to plan.  So the Replan Date column produces
+an improved projection that takes into account the amount of time your schedule
+has slipped.</p>
+
+<p>Specifically, the dashboard will look at your original list of tasks, and
+will estimate how much planned work is still remaining.  To do this, it will
+make a temporary "working" copy of the original task list.  If any tasks have
+already been marked complete, those completed tasks will be removed from the
+"working" copy.  And if you have started logging time to other tasks in your
+plan, the actual time you've spent so far will be subtracted from the
+originally planned time, to calculate the amount of time that is remaining for
+each task:</p>
+
+<table border>
+<tr><th>Task Name</th><th>Planned Time</th><th>Actual Time</th>
+    <th>Completed?</th><th>Planned Time Remaining</th></tr>
+
+<tr><td><strike>Task A</strike></td><td>1</td><td>2</td><td>Y</td><td></td></tr>
+<tr><td><strike>Task B</strike></td><td>5</td><td>7</td><td>Y</td><td></td></tr>
+<tr><td>Task C</td><td>3</td><td></td><td></td><td>3</td></tr>
+<tr><td>Task D</td><td>8</td><td>3</td><td></td><td>5</td></tr>
+<tr><td>Task E</td><td>4</td><td>1</td><td></td><td>3</td></tr>
+<tr><td>Task F</td><td>7</td><td></td><td></td><td>7</td></tr>
+<tr><td>Task G</td><td>2</td><td></td><td></td><td>2</td></tr>
+<tr><td>Task H</td><td>5</td><td></td><td></td><td>5</td></tr>
+</table>
+
+<p>Similarly, the dashboard will take a look at your original calendar of
+available time, and will determine how much planned time is still remaining.
+Just as before, this is accomplished by making a temporary "working" copy of
+the original schedule.  Any calendar periods that have already passed are
+removed from the working copy.  For the calendar period that is currently in
+progress, the planned time will be prorated based on the percentage of real
+time that has already elapsed.  The table below shows an example of what the
+"working" calendar might look like if we are halfway through Week 4 of the
+original schedule:</p>
+
+
+<table border>
+<tr><th>Calendar Date</th><th>Planned Time</th><th>In the Past?</th><th>Planned Time Remaining</th></tr>
+<tr><td>Week 1</td><td>6</td><td>Y</td><td></td></tr>
+<tr><td>Week 2</td><td>1</td><td>Y</td><td></td></tr>
+<tr><td>Week 3</td><td>6</td><td>Y</td><td></td></tr>
+<tr><td>Week 4</td><td>6</td><td>50%</td><td>3</td></tr>
+<tr><td>Week 5</td><td>0</td><td></td><td>0</td></tr>
+<tr><td>Week 6</td><td>6</td><td></td><td>6</td></tr>
+<tr><td>Week 7</td><td>6</td><td></td><td>6</td></tr>
+<tr><td>Week 8</td><td>6</td><td></td><td>6</td></tr>
+</table>
+
+<p>After making a "working" list of the remaining tasks, and a "working" list
+of the time planned for future calendar periods, the dashboard now takes these
+two "working" lists and repeats the calculation that was originally performed
+to compute planned dates.</p>
+
+<p>Based on this explanation, the following observations about "Replan Date"
+are worth noting:</p>
+
+<ul>
+
+<li>The Replan Date effectively calculates what the plan would look like if we
+were to stop at the current instant in time and create a new plan for the
+remaining work.</li>
+
+<li>The Replan column assumes that the originally planned times will hold true
+for all of the remaining tasks in the plan, and for all of the remaining
+periods in the schedule.  As such, it is assuming that you had some unforeseen
+bumps in the road, but that the remaining work will proceed exactly according
+to the original plan.</li>
+
+<li>In a simplified sense, the Replan column can be envisioned as having
+measured the current schedule slip, and adding that difference to each planned
+date.  But in reality the calculation is much more sophisticated, because it
+accounts for (a) tasks in progress, and (b) variations in the amount of time
+you plan to spend per calendar period.</li>
+
+<li>The replan calculation takes the current date and time into account when it
+calculates how much time is remaining in the current calendar period.  As a
+result, the replan dates in your personal plan are being recalculated
+continually, every second of every day.</li>
+ 
+<li>If a task has been marked complete, the Replan column will show the actual
+date the task was completed.</li>
+
+<li><a href="#planRoundOff">As mentioned above</a>, the Plan Date calculation
+is rounded off to the nearest week to maintain fidelity to the formulas in the
+original PSP process.  However, since the Replan date is a calculation invented
+by the Process Dashboard, there is no need to discard precision in this manner.
+So when cross-referencing the cumulative planned times between the task list
+and the schedule list, the dashboard will extrapolate into the middle of a
+calendar period to calculate a more specific date.  (Please note that this is a
+simple linear extrapolation.  It does not take working hours into account, so
+replan dates may fall on weekends or holidays.  Like any other EV projection,
+these dates are only intended to facilitate tracking and coordination; it would
+be an error in planning judgement to interpret them literally.)</li>
+
+<li>Sometimes your team may hold project relaunch meetings where you perform a
+"replan."  However, it is just a coincidence that this column has a similar
+name.  The "Replan" column is <b>not</b> displaying a snapshot of data produced
+during your team relaunch.  If you want to retain a snapshot of a team plan, you
+should save a baseline.</li>
+
+</ul>
+
+
+
+<h2><a name="forecastDate"></a>Forecast Date</h2>
+
+<p>As discussed above, the <a href="#replanDate">Replan Date</a> column
+observes that your schedule has slipped somewhat, then calculates the dates
+each task might complete based on an assumption that the remaining work will
+proceed exactly according to plan.  However, if your original plan contained an
+estimating bias, that assumption will be incorrect. So the Forecast column
+takes additional steps to adjust for estimating bias.</p>
+
+<p>First, it looks at all of the tasks you have completed so far, and compares
+the total planned time for those tasks to the total actual time that was spent.
+It uses this ratio to compute your estimating bias for the tasks in this task
+list.  Then, it assumes that the remaining tasks in your plan will also have
+this same bias.</p>
+
+<p>For example, in the table shown below, Task&nbsp;A and Task&nbsp;B have
+been marked complete. Those two tasks had a combined planned time of 6 hours
+(1&nbsp;+&nbsp;5), and a combined actual time of 9 hours (2&nbsp;+&nbsp;7). 9
+divided by 6 is 1.5, indicating that tasks are taking 50% longer than expected
+on average.  So the dashboard would multiply all of the original planned times
+in this "working" task list by 1.5:</p>
+
+<table border>
+<tr><th>Task Name</th><th>Planned Time</th><th>Adjusted Plan Time</th>
+    <th>Actual Time</th><th>Completed?</th><th>Planned Time Remaining</th></tr>
+
+<tr><td><strike>Task A</strike></td><td>1</td><td></td><td>2</td><td>Y</td><td></td></tr>
+<tr><td><strike>Task B</strike></td><td>5</td><td></td><td>7</td><td>Y</td><td></td></tr>
+<tr><td>Task C</td><td>3</td><td>4.5</td><td></td><td></td><td>4.5</td></tr>
+<tr><td>Task D</td><td>8</td><td>12</td><td>3</td><td></td><td>9</td></tr>
+<tr><td>Task E</td><td>4</td><td>6</td><td>1</td><td></td><td>5</td></tr>
+<tr><td>Task F</td><td>7</td><td>10.5</td><td></td><td></td><td>10.5</td></tr>
+<tr><td>Task G</td><td>2</td><td>3</td><td></td><td></td><td>3</td></tr>
+<tr><td>Task H</td><td>5</td><td>7.5</td><td></td><td></td><td>7.5</td></tr>
+</table>
+
+<p>Similarly, the dashboard would examine the portion of the schedule that is
+in the past.  It would add up the total planned time and the total actual time
+for those past periods, and compute the ratio between these totals.  That ratio
+would indicate whether you over- or underestimated the amount of time you would
+be able to spend each week.  Then, it would make a "working" copy of the
+schedule, and adjust the planned times for all of the future periods by that
+ratio.</p>
+
+<p>After having made these corrections to adjust for estimating bias in the
+task list and the schedule, the calculation would proceed in the same manner as
+the Replan calculation described above.</p>
+
+<p>Based on this explanation, the following observations about "Forecast Date"
+are worth noting:</p>
+
+<ul>
+
+<li>If your plan was reasonably accurate, the Forecast date can be a powerful
+tool for automatically measuring and correcting the estimating biases in your
+plan.</li>
+
+<li>The forecast date examines completed tasks to calculate estimating bias.
+However, you may only complete a few tasks during the first week or two of a
+project.  During this time, the dashboard will not have much data to use for
+its bias calculation, so the forecast date may swing wildly each time you mark
+a task complete.  As a result, the Forecast date should be viewed with caution
+until you have collected a few weeks worth of data.  During those first few
+weeks of a project, the Replan date may be more useful for tracking
+purposes.</li>
+
+<li>The forecast calculation is based upon an assumption that future work will
+have the same estimating bias as completed work.  If you have reason to doubt
+that assumption, use the Forecast date with caution.  For example, if your
+original plan was extremely poor, and there is no good relationship between the
+planned and actual times of the tasks in your plan, then the forecast date may
+not be meaningful.</li>
+
+<li>Since the forecast date looks at completed work to measure the estimating
+bias, a forecast date cannot be calculated until you have marked at least one
+task complete.</li>
+
+<li>At the team level, the Forecast Date is computed by identifying the
+chronologically latest forecast date for all of the individual members of the
+team.  As a result, if any single team member does not have a forecast date
+(because they have not yet marked a task complete), then the team rollup will
+not have a forecast date either.</li>
+
+<li>To allow for the most accurate calculation of estimating bias, you should
+strive to log your task time faithfully.  For example, if you routinely forget
+to log time against your tasks, and then just mark tasks complete with zero
+time logged, the bias calculation and resulting forecast date will be
+inaccurate.</li>
+
+</ul>
+
+
+<h2><a name="optForecastDate"></a>Optimized Forecast Date</h2>
+
+<p>The discussions above describe how dates are calculated in the earned value
+plan for a single individual.  Then, the dashboard rolls these dates up to the
+team level by identifying the date when all team members will finish.  As a
+result, when you see the green "Forecast" line on a team earned value chart, it
+is depicting the date when the <b>last</b> team member is projected to
+finish.</p>
+
+<p>Of course, a high-maturity team will monitor the forecast dates for each
+team member to see whether there is a large discrepancy between the dates when
+the first and last team members will finish.  When a large discrepancy is
+present, the workload is said to be unbalanced.  In that scenario, it is
+helpful to identify the date when the team could finish if the workload were
+optimally rebalanced.</p>
+
+<p>The dashboard calculates this Optimized Forecast Date in the following
+way:</p>
+
+<ul>
+
+<li>The Forecast algorithm above is used to create a bias-adjusted "working"
+task list, and a bias-adjusted "working" schedule for each team member.</li>
+
+<li>Then, a consolidated task list is created, and the dashboard identifies the
+number of hours of remaining work that is forecast for the entire team.</li>
+
+<li>Additionally, the "working" schedules are summed up to produce a single
+consolidated schedule, showing the number of hours that the entire team is
+forecast to have available during each week in the future.</li>
+
+<li>Finally, the remaining hours in the task list are cross-referenced against
+the forecast hours in the consolidated team schedule.  The resulting "optimized
+forecast date" is the date that the work would finish if the work was balanced
+perfectly.</li>
+
+</ul>
+
+<p>This is a very sophisticated calculation.  In particular, it is performing
+independent bias adjustments for each individual team member, based on the
+actual task and schedule data they have collected so far.  And it is taking
+into account variations in staffing levels - for example, the dates when
+individual team members will be out of the office, and dates when particular
+individuals <a href="TaskScheduleSteps.html#shortSchedule">will leave the team
+project</a>.</p>
+
+<p>The Optimized Forecast Date is displayed on the earned value charts as a
+yellow line.  When the yellow line and the green line are far apart, this is a
+warning sign that the workload is unbalanced.</p>
+
+
+</body></html>

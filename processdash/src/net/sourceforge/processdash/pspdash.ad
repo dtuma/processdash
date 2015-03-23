@@ -1,0 +1,241 @@
+#############################################################################
+## Process Dashboard - Data Automation Tool for high-maturity processes
+## Copyright (C) 1998-2015 Tuma Solutions, LLC
+##
+## This program is free software; you can redistribute it and/or
+## modify it under the terms of the GNU General Public License
+## as published by the Free Software Foundation; either version 3
+## of the License, or (at your option) any later version.
+##
+## Additional permissions also apply; see the README-license.txt
+## file in the project root directory for more information.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, see <http://www.gnu.org/licenses/>.
+##
+## The author(s) may be contacted at:
+##     processdash@tuma-solutions.com
+##     processdash-devel@lists.sourceforge.net
+
+# When specifying names of files or directories within this file, use a
+# forward slash as a separator.  It will be translated into an appropriate
+# OS-specific directory separator automatically.
+
+
+#
+# The command to execute to run an HTML browser for script files.
+# If left unset, the default will be:
+#   * Netscape on non-windows platforms (netscape must be in your path)
+#   * The system default browser on Windows.
+#
+#browser.command=C:/Program Files/Internet Explorer/IExplore.exe
+#browser.command=C:/Program Files/Netscape/Communicator/Program/Netscape.exe
+
+
+#
+# The default location for the user's state file.
+#
+stateFile=./state
+
+
+#
+# The location of the system-wide template files.
+# Leave this blank to pull templates from the classpath
+#
+#templates.directory=d:/full/path/to/Templates
+
+templates.disableSearchPath=false
+
+
+#
+# If the following property is set to "true", the defect dialog box
+# will come up with the timer already running.  Any other value for
+# this property means the user must manually press the "Start Timing"
+# button to begin the timer for fixing the defect.
+#
+defectDialog.autostart=true
+
+
+#
+# The following property describes common defect injection/removal
+# patterns.  It should be a list of phase pairs; the pairs should be
+# separated from each other by "|" characters.  Each pair should be of
+# the form "phase A=>phase B"; each pair is interpreted to mean "Often
+# defects are injected in phase A, and removed in phase B."  When you
+# remove a defect during phase B of a process, it will then use phase A
+# as the default injection phase.
+#
+defectDialog.phaseMap=HLD=>Design|Design=>Test
+
+
+#
+# how many days old should a completed task be before it is moved to the
+# "Old Completed Tasks" menu?
+#
+userPref.hierarchyMenu.hiddenTaskAge=14
+
+
+#
+# should the dashboard auto-select the next task after a task has been
+# marked complete?
+#
+userPref.completionCheckbox.autoSelectNext=true
+
+
+#
+# If this property is set to "simple", the PROBE dialog will only display
+# data elements relating to the standard PROBE methods A,B,C, and D. If
+# this setting has any other value, PROBE will display an exhaustive list
+# of data elements choices for correlating.
+#
+probeDialog.dataList=simple
+probeWizard.strictTimeMethods=true
+
+
+#
+# If the following property is set to "true", the probe dialog box
+# will automatically filter the list of data points so that it only
+# contains tasks which are marked as completed.
+#
+probeDialog.onlyCompleted=true
+
+
+#
+# For data privacy reasons, http connections are rejected unless they
+# originate from localhost.  To accept http connections from remote
+# hosts, set this property to true.
+#
+http.allowRemote=never
+
+
+#
+# The following property lists automatic data import directories.
+# It should be a list of prefix/directory pairs; the pairs should be
+# separated from each other by "|" characters.  Each pair should be of
+# the form "prefix=>directory/path"; each pair is interpreted to mean
+# "watch directory/path for files, and import them into the dashboard
+# with a name beginning with "/prefix/".
+#
+# import.directories=Imported=>./import
+import.instructions=<list><importDir prefix="Imported" directory="./import"/></list>
+
+
+#
+# Data names to be suppressed from user-visible data lists (by default).
+#
+# The property below should be a series of data name specifications,
+# separated by the vertical bar character '|'.  For a list of data
+# names currently in use, override this definition and check the
+# combo box lists in the probe dialog.
+#
+hiddenData=^(LOC|ESTIMATED Time|Design/Total Time)$|\\d|To Date|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|_|//|node$|leaf$|^Prototypical|Analyze Rollup Data|KLOC$
+
+
+#
+# Policy for auto-realization of data. To save time and memory, formulas
+# are not immediately calculated when the dashboard opens.  Instead,
+# they are calculated (realized) at some later time.  This realization
+# always occurs automatically when their value must be displayed for the
+# first time on a chart, form, or report.  In addition, a background
+# process runs when the the dashboard starts, and slowly calculates
+# formulas.  If this setting has the value "full", all data will be
+# automatically realized by this background process.  If this setting
+# has the value "min", only global (e.g.  "To Date") data is
+# auto-realized (the default). If this setting has the value "none", no
+# data will be auto-realized.  If you are on a slow computer, and you
+# notice irritating delays the first time you view a chart, form, or
+# report, try using the "full" option.  If you experience irritating
+# delays when saving edits to the hierarchy, try using the "min" or
+# "none" options.
+#
+autoRealization=min
+
+
+timelog.updateInterval=1
+ev.enableRollup=true
+
+ev.forecast.method=task
+ev.forecast.task.almostDonePct=90
+ev.forecast.task.maxCpiCorrectionPct=20
+ev.Forecast.Range.Use_Current=true
+ev.Forecast.Range.Use_Historical_Data=false
+
+
+control.allowRemote.setPath=true
+control.allowRemote.startTiming=true
+control.allowRemote.stopTiming=true
+
+
+#
+# Default settings for charts
+#
+
+chart.width=400
+chart.height=300
+chart.initGradColor=#ffffff
+chart.finalGradColor=#7777ff
+chart.3d=true
+chart.outputFormat=PNG
+chart.tooltips=overlib
+
+#
+# Default settings for database connectivity
+#
+
+userPref.tpidw.jdbc.port=9092
+userPref.tpidw.postgresql.port=5432
+userPref.tpidw.username=pdash
+
+
+logging.enabled=true
+
+autoUpdate.disabled=false
+
+backup.enabled=true
+backup.keepBackupsNumDays=42
+backup.timesOfDay=0
+
+slowNetwork=false
+slowNetwork.numParallelReads=10
+
+export.timesOfDay=0
+defectImport.clipboard.id-prefix=EXT
+defectImport.clipboard.fix-time-units=minutes
+
+forms.useHoursMinutes=true
+window.icon=~/icon.ico
+
+systemTray.disabled=false
+systemTray.minimizeToTray=false
+systemTray.tooltipFormat={1}
+systemTray.tooltipMaxLen=64
+os-windows.systemTray.tooltipFormat={0}\u000A{1}\u000A{2}
+os-windows.systemTray.tooltipMaxLen=127
+
+reminder.disabled=true
+
+os-mac.mainWindow.paddingRight=6
+os-mac.datatips.disabled=true
+os-mac.excel.exportMethod=mime
+
+cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/.processdash/cmsGlobal
+os-windows.cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/Application Data/Process Dashboard/cmsGlobal
+os-mac.cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/Library/Process Dashboard/cmsGlobal
+
+
+# The following keys were originally defined as settings, but should
+# have been defined as preferences instead
+
+legacyUserPrefs=\
+    browser.command \
+    defectlog.dimensions \
+    hierarchyEditor.dimensions \
+    systemTray.disabled \
+    systemTray.minimizeToTray \
+    timelog.dimensions \
+    window.alwaysOnTop

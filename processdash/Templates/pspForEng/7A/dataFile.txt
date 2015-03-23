@@ -1,0 +1,93 @@
+#include <psp2/dataFile.txt>
+#include <pspForEng/progData.txt>
+undefine([Use_Rollup]);
+[PSPFORENG_7A_TAG] == TAG;
+
+= Consult our parent for the appropriate "To Date" subset.
+
+[PSP To Date Subset Prefix] = [../Rollup_Name];
+
+= Let engineers choose whether to restart their "To Date" data.
+
+[Reset_To_Date_Data] = 1;
+
+= Students must manually calculate test defect density for program 7A.
+
+Test/7A Estimated Defects Removed per KLOC=?NaN
+Test/7A Defects Removed per KLOC=?NaN
+Test/7A Defects Removed per KLOC To Date=?NaN
+
+= Students must manually calculate total defect density for program 7A.
+
+7A Estimated Defects per KLOC=?NaN
+7A Defects per KLOC=?NaN
+7A Defects per KLOC To Date=?NaN
+
+= Students must manually calculate yield for program 7A.
+
+7A Estimated Yield=?NaN
+7A Yield=?NaN
+7A Yield To Date=?NaN
+
+= Students must manually spread their time over the phases for program 7A.
+
+Planning/Estimated Time=?NaN
+Design/Estimated Time=?NaN
+Design Review/Estimated Time=?NaN
+Code/Estimated Time=?NaN
+Code Review/Estimated Time=?NaN
+Compile/Estimated Time=?NaN
+Test/Estimated Time=?NaN
+Postmortem/Estimated Time=?NaN
+
+= Students must manually estimate defects injected by phase for program 7A.
+
+Before Development/Estimated Defects Injected=?NaN
+Planning/Estimated Defects Injected=?NaN
+Design/Estimated Defects Injected=?NaN
+Design Review/Estimated Defects Injected=?NaN
+Code/Estimated Defects Injected=?NaN
+Code Review/Estimated Defects Injected=?NaN
+Compile/Estimated Defects Injected=?NaN
+Test/Estimated Defects Injected=?NaN
+Estimated Defects Injected=?NaN
+
+= Students must manually estimate defects removed by phase for program 7A.
+
+Planning/Estimated Defects Removed=?NaN
+Design/Estimated Defects Removed=?NaN
+Design Review/Estimated Defects Removed=?NaN
+Code/Estimated Defects Removed=?NaN
+Code Review/Estimated Defects Removed=?NaN
+Compile/Estimated Defects Removed=?NaN
+Test/Estimated Defects Removed=?NaN
+Estimated Defects Removed=?NaN
+
+= Students must manually calculate defect removal efficiency metrics for 7A.
+
+Design Review/7A Estimated Defects Removed per Hour=?NaN
+Design Review/7A Defects Removed per Hour=?NaN
+Design Review/7A Defects Removed per Hour To Date=?NaN
+Code Review/7A Estimated Defects Removed per Hour=?NaN
+Code Review/7A Defects Removed per Hour=?NaN
+Code Review/7A Defects Removed per Hour To Date=?NaN
+Compile/7A Estimated Defects Removed per Hour=?NaN
+Compile/7A Defects Removed per Hour=?NaN
+Compile/7A Defects Removed per Hour To Date=?NaN
+Test/7A Estimated Defects Removed per Hour=?NaN
+Test/7A Defects Removed per Hour=?NaN
+Test/7A Defects Removed per Hour To Date=?NaN
+Design Review/7A Estimated DRL=?NaN
+Design Review/7A DRL=?NaN
+Design Review/7A DRL To Date=?NaN
+Code Review/7A Estimated DRL=?NaN
+Code Review/7A DRL=?NaN
+Code Review/7A DRL To Date=?NaN
+Compile/7A Estimated DRL=?NaN
+Compile/7A DRL=?NaN
+Compile/7A DRL To Date=?NaN
+
+= Extra freeze flag
+
+[FreezeFlag/.*7A (Yield|Defects per KLOC|DRL|Defects Removed per (KLOC|Hour))$]
+   = [Completed];

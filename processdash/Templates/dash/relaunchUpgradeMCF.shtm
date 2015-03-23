@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>Team Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Team Project
+Relaunch Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<p>When a team begins a new project iteration, they often hold a project
+relaunch meeting.  During that meeting, they create a detailed plan for the
+new iteration.</p>
+
+<p>A Relaunch Wizard is available that can help you create a starting point
+for the new iteration plan.  The relaunch wizard will:</p>
+
+<ul>
+
+<li>Mark the "<tt><!--#echo var=PATH_TRANSLATED --></tt>" project as
+<b><u>closed</u></b>, indicating that no additional work will be performed
+there.</li>
+
+<li>Create a new Team Project to hold the plan for the new iteration.</li>
+
+<li>Copy the workflows, milestones, and team member schedules from the old
+plan to the new plan.</li>
+
+<li>Copy incomplete components and tasks from the old plan to the new plan,
+and adjust the planned times of in-progress tasks to account for work that
+has already been performed.</li>
+
+</ul>
+
+<!--#replace token=PID var=[Team_Process_PID] -->
+
+<p class="error">The "<!--#echo var=PATH_TRANSLATED -->" project is based
+upon the PID metrics collection framework.  Version 
+<!--#echo Dash_Package_PID --> of that framework is currently installed on
+this computer.  Unfortunately, the Relaunch Wizard is only available in
+version 4.1.0 and higher.  Before you can use the Relaunch Wizard, you will
+need to upgrade the framework.</p>
+
+<p>If you received the PID framework from someone in your organization,
+contact that individual to see if they have a newer version.  If you
+created the framework yourself, follow the steps
+<a href="http://www.processdash.com/upgradeMcf">on this page</a> to upgrade
+the framework.</p>
+
+<!--#endreplace-->
+
+</body>
+</html>

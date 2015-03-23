@@ -1,0 +1,222 @@
+<!--#server-parsed --><!--#resources bundle="Templates.Import" -->
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2003 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<HTML>
+<HEAD>
+<link rel=stylesheet type="text/css" href="../style.css">
+<TITLE><!--#echo Title --></TITLE>
+<STYLE>
+TD.header {
+    font-size: smaller;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: bottom
+}
+</STYLE>
+</HEAD>
+<BODY>
+
+<H1><!--#echo var="PATH_TRANSLATED" --></H1>
+<H2><!--#echo Title --></H2>
+
+<FORM NAME=PLAN>
+
+<INPUT TYPE=hidden NAME=requiredTag VALUE="Import PSP Data Tag">
+<INPUT TYPE=hidden NAME="[Hide_HLD_Phases]!" value="uninitialized">
+<INPUT TYPE=hidden NAME="[Hide_Review_Phases]!" value="uninitialized">
+
+<TABLE>
+<TR>
+<TD><!--#echo Project_Name --></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="[Project//Name]sr==p"></TD>
+</TR>
+<TR>
+<TD><!--#echo Summary.Project_Owner --></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="[/Owner]s"></TD>
+</TR>
+<TR>
+<TD>Completion Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="[Completed]dmu"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="[Completed]du"></TD>
+</TR>
+<TR>
+<TD><!--#echo Summary.Language --></TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="[Project/Language]s"></TD>
+</TR>
+<TR>
+<TD><!--#echo Process --></TD>
+<TD COLSPAN=10><SELECT NAME="PSP_Level">
+<OPTION VALUE="0"><!--#echo PSP0_ -->
+<OPTION VALUE="0.1"><!--#echo PSP01_ -->
+<OPTION VALUE="1"><!--#echo PSP1_ -->
+<OPTION VALUE="1.1"><!--#echo PSP11_ -->
+<OPTION VALUE="2"><!--#echo PSP2_ -->
+<OPTION VALUE="2.1"><!--#echo PSP21_ -->
+<OPTION VALUE="3"><!--#echo PSP3_ -->
+</SELECT></TD>
+</TR>
+</TABLE>
+
+<BR><P><FONT SIZE="+2"><B><!--#echo Project_Data --></B></FONT>
+
+<TABLE>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Total_Time --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+</TR>
+
+<TR>
+<TD>Estimated Object LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Object LOC"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+<TR>
+<TD>New & Changed LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New & Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New & Changed LOC"></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Total_LOC --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Total LOC"></TD>
+</TR>
+
+<TR>
+<TD><!--#echo Reused_LOC --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Reused LOC"></TD>
+</TR>
+
+<TR>
+<TD><!--#echo New_Reused_LOC --></TD>
+<TD></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New Reused LOC"></TD>
+</TR>
+
+</TABLE></P>
+
+<BR><P><FONT SIZE="+2"><B><!--#echo Phase_Data --></B></FONT>
+
+<TABLE>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD CLASS="header">Planning</TD>
+<!--#if not [Hide_HLD_Phases] -->
+  <TD CLASS="header">HLD</TD>
+  <TD CLASS="header">HLD Review</TD>
+<!--#endif-->
+<TD CLASS="header">Design</TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD CLASS="header">Design Review</TD>
+<!--#endif-->
+<TD CLASS="header">Code</TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD CLASS="header">Code Review</TD>
+<!--#endif-->
+<TD CLASS="header">Compile</TD>
+<TD CLASS="header">Test</TD>
+<TD CLASS="header">Postmortem</TD>
+</TR>
+
+<TR>
+<TD NOWRAP><B>Time</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Time"></TD>
+<!--#if not [Hide_HLD_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Time"></TD>
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Time"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Time"></TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Time"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Time"></TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Time"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Time"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Postmortem/Time"></TD>
+</TR>
+
+<TR>
+<TD NOWRAP><B>Defects Injected</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Injected"></TD>
+<!--#if not [Hide_HLD_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Injected"></TD>
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Defects Injected"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Defects Injected"></TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Defects Injected"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Defects Injected"></TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Defects Injected"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Defects Injected"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+<TR>
+<TD NOWRAP><B>Defects Removed</B></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Planning/Defects Removed"></TD>
+<!--#if not [Hide_HLD_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD/Defects Removed"></TD>
+  <TD><INPUT TYPE=text SIZE=5 NAME="HLD Review/Defects Removed"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Design/Defects Removed"></TD>
+<!--#if not [Hide_Review_Phases] -->
+ <TD><INPUT TYPE=text SIZE=5 NAME="Design Review/Defects Removed"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Code/Defects Removed"></TD>
+<!--#if not [Hide_Review_Phases] -->
+  <TD><INPUT TYPE=text SIZE=5 NAME="Code Review/Defects Removed"></TD>
+<!--#endif-->
+<TD><INPUT TYPE=text SIZE=5 NAME="Compile/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=5 NAME="Test/Defects Removed"></TD>
+<TD>&nbsp;</TD>
+</TR>
+
+</TABLE></P>
+</FORM>
+
+<SCRIPT LANGUAGE=JavaScript SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

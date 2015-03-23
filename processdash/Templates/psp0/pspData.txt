@@ -1,0 +1,224 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 1998-2010 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+
+=============================================================================
+== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
+== Created:	Thu Jan  8 16:34:18 1998
+==
+== Description: This is the data file for a PSP0 process. 
+==
+*/
+
+/*
+ * The following element identifies the data in this file as belonging to
+ * a PSP process.
+ */
+
+[PSP Project] == TAG;
+[Has Compile Phase] = TAG;
+
+
+/*
+ * Dynamically detect whether review phases are present, and filter the
+ * list of phases that appear in charts and reports accordingly.
+ */
+
+[Phase_Display_Filter_List] = filter(lookup([_] &/ "leaf"), [Phase_List]);
+
+
+/*
+ * Define some reusable tests for use in metrics alerts.
+ */
+
+[Planning_Is_Done] = [Planning/Complete] || [Complete] || ([Time] > [Planning/Time]);
+[In_Postmortem] = [Test/Complete] || [Complete] || [Postmortem/Time];
+
+
+/*
+ * Define the default size metric for PSP - LOC.
+ */
+
+[SIZE_METRIC_NAME] == "New & Changed LOC";
+[SIZE_METRIC_NAME_ABBR] == "LOC";
+[AGGR_SIZE_METRIC_NAME] == "New & Changed KLOC";
+[AGGR_SIZE_METRIC_NAME_ABBR] == "KLOC";
+[PROBE_INPUT_SIZE_METRIC_NAME] == "Estimated Proxy Size";
+[PROBE_TARGET_SIZE_METRIC_NAME] == "Added & Modified Size";
+[PROBE_NO_EDIT_INPUT] == TAG;
+
+[Size] = [New & Changed LOC];
+[Estimated Size] = [Estimated New & Changed LOC];
+[Added & Modified Size] = [Size];
+[Estimated Added & Modified Size] = [Estimated Size];
+
+[Aggregate Size] = [New & Changed KLOC];
+[Estimated Aggregate Size] = [Estimated New & Changed KLOC];
+
+[New & Changed KLOC] =  [New & Changed LOC] / 1000;
+[Estimated New & Changed KLOC] = [Estimated New & Changed LOC] / 1000;
+
+[Base LOC]     = 0;
+[Deleted LOC]  = 0;
+[Modified LOC] = 0;
+[Reused LOC]   = 0;
+[Total LOC]    = 0;
+[New Reused LOC] = 0;
+
+[New & Changed LOC] = [Added LOC] + [Modified LOC];
+[Added LOC] = [Total LOC] - [Base LOC] + [Deleted LOC] - [Reused LOC];
+
+
+/*
+ * Defect Injection/Removal by phase metrics
+ */
+
+[Design/Cumulative Defect Injection %] =
+    sumFor("Defects Injected", ",Planning,HLD,HLD Review,Design,") /
+    [Defects Injected];
+[Code/Cumulative Defect Injection %] =
+    [Design/Cumulative Defect Injection %] +
+    sumFor("Defects Injected", ",Design Review,Code,") / [Defects Injected];
+[Design Review/Cumulative Defect Removal %] =
+    sumFor("Defects Removed", ",Planning,HLD,HLD Review,Design,Design Review,")
+    / [Defects Removed];
+[Code Review/Cumulative Defect Removal %] =
+    [Design Review/Cumulative Defect Removal %] +
+    sumFor("Defects Removed", ",Code,Code Review,") / [Defects Removed];
+[Compile/Cumulative Defect Removal %] =
+    [Code Review/Cumulative Defect Removal %] +
+    [Compile/Defects Removed] / [Defects Removed];
+[Test/Cumulative Defect Removal %] =
+    [Compile/Cumulative Defect Removal %] +
+    [Test/Defects Removed] / [Defects Removed];
+
+/*
+ * Calculations for the quality profile
+ */
+
+[Quality Profile Capable] = tag;
+
+[Design vs Code/Time Ratio] = [Design/Time] / [Code/Time];
+[Design vs Code/Estimated Time Ratio] = 
+    [Design/Estimated Time] / [Code/Estimated Time];
+
+[Estimated Quality_Profile_1] = iff([Code/Estimated Time], 
+    [Design/Estimated Time] / ([Code/Estimated Time] * 
+                          inherit("Target Design/Code Ratio")), 1);
+[Quality_Profile_1] = iff([Code/Time], 
+    [Design/Time] / ([Code/Time] * inherit("Target Design/Code Ratio")), 1);
+
+[Code Review vs Code/Time Ratio] = [Code Review/Time] / [Code/Time];
+[Code Review vs Code/Estimated Time Ratio] =
+    [Code Review/Estimated Time] / [Code/Estimated Time];
+
+[Estimated Quality_Profile_2] = iff([Code/Estimated Time],
+    [Code Review/Estimated Time] / ([Code/Estimated Time] *
+			  inherit("Target Code Review/Code Ratio")), 1);
+[Quality_Profile_2] = iff([Code/Time],
+    [Code Review/Time] / ([Code/Time] *
+			  inherit("Target Code Review/Code Ratio")), 1);
+
+[Estimated Quality_Profile_3] = iff(
+    [Compile/Estimated Defects Removed] and [Estimated Size], 
+    2 / (1 + [Compile/Estimated Defect Density] /
+	 inherit("Target Compile Defect Density")), 1);
+[Quality_Profile_3] = iff([Compile/Defects Removed] and [Size], 
+    2 / (1 + [Compile/Defect Density] /
+	 inherit("Target Compile Defect Density")), 1);
+
+[Estimated Quality_Profile_4] = iff(
+    [Test/Estimated Defects Removed] and [Estimated Size],
+    2 / (1 + [Test/Estimated Defect Density] /
+	 inherit("Target Test Defect Density")), 1);
+[Quality_Profile_4] = iff([Test/Defects Removed] and [Size],
+    2 / (1 + [Test/Defect Density] /
+	 inherit("Target Test Defect Density")), 1);
+
+[Design Review vs Design/Time Ratio] = [Design Review/Time] / [Design/Time];
+[Design Review vs Design/Estimated Time Ratio] =
+    [Design Review/Estimated Time] / [Design/Estimated Time];
+
+[Estimated Quality_Profile_5] = iff([Design/Estimated Time], 
+    [Design Review/Estimated Time]  / ([Design/Estimated Time] *
+			     inherit("Target Design Review/Design Ratio")), 1);
+[Quality_Profile_5] = iff([Design/Time], 
+    [Design Review/Time]  / ([Design/Time] *
+			     inherit("Target Design Review/Design Ratio")), 1);
+
+[Estimated PQI] =
+    min(1, max(0, [Estimated Quality_Profile_1])) *
+    min(1, max(0, [Estimated Quality_Profile_2])) *
+    min(1, max(0, [Estimated Quality_Profile_3])) *
+    min(1, max(0, [Estimated Quality_Profile_4])) *
+    min(1, max(0, [Estimated Quality_Profile_5]));
+[PQI] =
+    min(1, max(0, [Quality_Profile_1])) *
+    min(1, max(0, [Quality_Profile_2])) *
+    min(1, max(0, [Quality_Profile_3])) *
+    min(1, max(0, [Quality_Profile_4])) *
+    min(1, max(0, [Quality_Profile_5]));
+
+
+// Additional ratios that might be useful for quality analysis
+
+[HLD Review vs HLD/Time Ratio] = [HLD Review/Time] / [HLD/Time];
+[HLD Review vs HLD/Estimated Time Ratio] =
+    [HLD Review/Estimated Time] / [HLD/Estimated Time];
+
+[HLD vs Design/Time Ratio] = [HLD/Time] / [Design/Time];
+[HLD vs Design/Estimated Time Ratio] = 
+    [HLD/Estimated Time] / [Design/Estimated Time];
+
+
+/*
+ * Design and Code Review Yields
+ */
+
+[Design Review/% Phase Yield] = constrain(0, 1, [Design Review/Defects Removed] /
+    (sumFor("Defects Injected", 
+            ",Planning,HLD,HLD Review,Design,Design Review,") -
+     sumFor("Defects Removed", ",Planning,HLD,HLD Review,Design,")));
+
+[Code Review/% Phase Yield] = constrain(0, 1, [Code Review/Defects Removed] /
+    (sumFor("Defects Injected", 
+            ",Planning,HLD,HLD Review,Design,Design Review,Code,Code Review,")
+     - sumFor("Defects Removed",
+	      ",Planning,HLD,HLD Review,Design,Design Review,Code,")));
+
+/*
+ * Preassigned colors for the phases
+ */
+
+[Planning/Phase_Color] == "#cdaa7d";
+[HLD/Phase_Color] == "#cc66ff";
+[HLD Review/Phase_Color] == "#990099";
+[Design/Phase_Color] == "#aaaaff";
+[Design Review/Phase_Color] == "#6666ff";
+[Code/Phase_Color] == "#66ff66";
+[Code Review/Phase_Color] == "#00c000";
+[Compile/Phase_Color] == "#ffe000";
+[Test/Phase_Color] == "#ff9900";
+[Reassessment/Phase_Color] == "#cdaa7d";
+[Postmortem/Phase_Color] == "#996633";
