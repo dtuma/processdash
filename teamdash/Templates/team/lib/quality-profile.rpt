@@ -1,0 +1,20 @@
+= Radar Quality Profile Chart
+
+title=<!--#if 'Estimated_' ne '' -->Planned <!--#endif-->Quality Profile
+for=.
+headerComment==(The numbers displayed are computed quality profile indicators.  Values of 1.0 or higher indicate that the specified quality goal was met.)
+
+d1=Estimated_Quality_Profile_1
+h1==Design/Code Time
+
+d2=Estimated_Quality_Profile_2
+h2==Code Review Time
+
+d3=Estimated_Quality_Profile_3
+h3==Compile Defects/KLOC
+
+d4=Estimated_Quality_Profile_4
+h4==Unit Test Defects/KLOC
+
+d5=Estimated_Quality_Profile_5
+h5==Design Review Time

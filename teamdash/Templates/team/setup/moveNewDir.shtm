@@ -1,0 +1,138 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Move <!--#echo [move//Team] --> Project Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+   pre { margin-left: 1cm }
+</style>
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select New <!--#echo [move//Team] --> Project Network Directory</h2>
+
+<!--#if errMsg -->
+
+<table width='100%'><tr><td width='100%' class=error>
+<!--#echo var="errMsg" --></td></tr></table>
+
+<!--#elif cannotCreateDir -->
+
+<div class="error">
+The Move Team Project Wizard was unable to create the directory
+    <pre><!--#echo path --></pre>
+Please ensure that the parent directories exist and that you have
+adequate file permissions to create this directory.  Then click
+&quot;Next.&quot; Otherwise, enter a different
+<!--#echo [move//Team] --> Project Network Directory below.</div>
+
+<!--#elif cannotCreateFile -->
+
+<div class="error">
+The Move Team Project Wizard was unable to copy the file
+    <pre><!--#echo oldPath --></pre>
+to
+    <pre><!--#echo path --></pre>
+Please ensure that you have adequate permissions to read the original
+file and to create the new file. Then click &quot;Next.&quot;
+Otherwise, enter a different <!--#echo [move//Team] --> Project
+Network Directory below.</div>
+
+<!--#endif-->
+
+<form action="move" method="post">
+<input type="hidden" name="page" value="newDir">
+
+<!--#if [move//Is_Master] -->
+
+<p>The team-oriented processes in the dashboard use a &quot;team
+directory&quot; to facilitate coordination.  This directory will be used to
+hold team-level planning information, such as the project's work breakdown
+structure.</p>
+
+<p>The &quot;team directory&quot; must be accessible and readable by the
+leaders of all the team projects associated with this master project.
+Because of this, it should generally be a shared network directory.<p>
+
+<!--#else-->
+
+<p>The team-oriented processes in the dashboard use a &quot;team
+directory&quot; to facilitate coordination.  The primary purpose of
+this directory is to hold exported snapshots of individual data; the
+team project instance imports this data and uses it to compute
+rolled-up team data.</p>
+
+<p>The &quot;team directory&quot; must be accessible, readable, and
+writable by all team members.  Because of this, it should generally be
+a shared network directory.  Since the directory will hold PSP data
+collected by individuals, it should be configured with permissions
+that forbid file access by non-team members.<p>
+
+<!--#endif-->
+
+<p>The data for this project is <b>currently</b> located in the
+following directory:</p>
+
+<pre><!--#echo [move//Current_Data_Dir] --></pre>
+
+<p>That data directory is a specially named subdirectory appearing
+underneath your current <b><!--#echo [move//Team] --> Project Network
+Directory</b>, which is:</p>
+
+<pre><!--#echo [move//Current_Team_Dir] --></pre>
+
+
+<!--#if missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter a
+network directory!</td></tr></table>
+
+<!--#elif exists -->
+
+<div class="error">If this project were to use the network directory
+you entered, its data would be ultimately stored in the directory:
+
+<pre><!--#echo [move//Data_Dir] --></pre>
+
+However, that directory already exists!  Moving data to that directory
+could overwrite files that are already there, destroying data.  Please
+correct this problem, or select a different network directory
+below.</div>
+
+<!--#elif confirm -->
+
+<div class=error>The new directory path you entered does not appear to
+be on a shared network drive.  For the team features to work, it is
+<u>essential</u> that all team members have access to the team
+directory.  If you are certain that all team members can read from and
+write to the directory below, click &quot;Next&quot; to confirm.
+Otherwise, enter the name of a network directory below.</div>
+
+<input type=hidden name=confirm
+       value="<!--#echo var='[move//Team_Dir]' -->">
+
+<!--#endif-->
+
+<p>What directory would you like to move the data to?  Please enter
+the full path to the <u>new</u> <b><!--#echo [move//Team] --> Project
+Network Directory</b>. (<b>Note:</b> you do not need to add the
+<tt>data<!--#echo [move//File_Sep] --><!--#echo [Project_ID] --></tt>
+suffix to the end.)</p>
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New
+<!--#echo [move//Team] --> Project Network Directory:&nbsp;&nbsp;</td>
+<td><input type="text" name="teamDir"
+    <!--#if [move//Team_Dir] -->
+           value="<!--#echo var='[move//Team_Dir]' -->"
+    <!--#endif-->
+           size="60"></td></tr></table>
+
+<div style="text-align: right">
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</div>
+
+</form>
+</body>

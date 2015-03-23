@@ -1,0 +1,124 @@
+<html>
+<head>
+<title>Importing Tasks from Microsoft Project</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Importing Tasks from Microsoft Project</h1>
+
+<p>If a team has performed some preplanning using Microsoft Project,
+limited portions of that data can be imported into the WBS
+Editor. Specifically, the following data can be imported:</p>
+
+<ul>
+
+<li>The names of tasks, and their hierarchical structure</li>
+
+<li>The existence of task predecessors</li>
+
+<li>Cost estimates for tasks</li>
+
+<li>Resource assignments, if resource initials match exactly between
+the MS Project and the WBS Editor's Team Member List.</li>
+
+</ul>
+
+
+<p>However, this data import has significant limitations and caveats;
+please read the section below very carefully.</p>
+
+<p>To use this feature, take the following steps:</p>
+
+<ol>
+
+<li style='margin-top:12.0pt'>Open your MS Project file. Double-check
+that the resource initials for each team member match the initials
+you've used in the WBS Editor's Team Member List.</li>
+
+<li style='margin-top:12.0pt'>Choose &quot;File&nbsp;&#8594;&nbsp;Save
+As&quot;.&nbsp; In the &quot;Save as type:&quot; field, choose either
+CSV or Text format.&nbsp; Click the &quot;Save&quot; button, and MS
+Project will display the &quot;Export Wizard.&quot;</li>
+
+<li style='margin-top:12.0pt'>On the second page of the Export Wizard,
+it will ask whether you want to create a new map or use an existing
+one. For simplicity, you can choose to use an existing map, and on the
+next screen, choose &quot;Task 'Export Table' map.&quot;</li>
+
+<li style='margin-top:12.0pt'>Click forward through the screens of the
+Export Wizard until you reach the page listing the data fields that
+will be exported. If you wish to export resource assignments, add the
+&quot;Resource Initials&quot; field to this list.</li>
+
+<li style='margin-top:12.0pt'>Finish the Export Wizard. MS Project
+data will be saved to the file you selected.</li>
+
+<li style='margin-top:12.0pt'>In the Work Breakdown Structure Editor,
+open the Team Member List. Double-check values in the &quot;Est
+Hours/Week&quot; column, as they will be used to convert MS Project
+cost estimates (which are typically measured in days) into WBS cost
+estimates (which are measured in hours). Save changes if necessary and
+close the Team Member List.</li>
+
+<li style='margin-top:12.0pt'>On the WBS Editor window, choose
+&quot;File&nbsp;&#8594;&nbsp;Import from MS Project CSV file&quot;.
+The WBS Editor will prompt for the file to open; browse to and select
+the file you just exported from MS Project. The new tasks will be
+added to the bottom of your WBS under a node called &quot;Imported
+Items.&quot;</li>
+
+<li style='margin-top:12.0pt'>If your project is a member of a master
+project, you will need to copy and paste imported items to arrange
+them underneath the appropriate core work items from the master
+project.</li>
+
+<li style='margin-top:12.0pt'>MS Project unfortunately has no idea
+about the process phases in a high-maturity project. As such, you will
+need to manually configure the type of each imported item by clicking
+the icon on each imported row.</li>
+
+</ol>
+
+<p><b>Important:</b> Although this data import feature can be helpful
+for some teams, its functionality is very limited. Its
+<b><u>only</u></b> purpose is to reduce typing for teams that have an
+existing MS Project plan.</p>
+
+<p>Teams should <b>not</b> expect a robust transfer of data, as most
+of the fields in MS Project will not be imported. In addition, this
+import feature is unrelated to the dashboard's ability to export the
+GANTT chart for an earned value schedule to MS Project.
+Round-tripping is wholly out of the question.</p>
+
+<p>In addition, the EV scheduling techniques used by PSP/TSP are
+completely different from the critical path scheduling techniques used
+by MS Project. Task predecessors imported from MS Project will
+<b><u>not</u></b> be used by the dashboard to perform critical path
+analysis. As a result, all of the chronology information in the MS
+Project plan (e.g. start date and end date) will be lost during this
+import.  Individuals will still need to use the &quot;Flat View&quot;
+to specify the order in which they will perform tasks, and the
+dashboard will calculate task start dates and end dates based on that
+information alone - not based on any information found in the MS
+Project plan.</p>
+
+<p>Within the TSP community, some teams <b><u>do</u></b> successfully
+use MS Project alongside TSP earned value analysis, but no automated
+support is currently provided for any ongoing, two-way communication
+between the dashboard and MS Project. Also, reconciling critical-path
+scheduling techniques with direct-time-driven earned value planning is
+beyond the scope of this document.</p>
+
+<p>To reiterate: The only purpose of this feature is to reduce typing
+for teams that need to import data from an existing MS Project
+plan. Any other expectation from this functionality is
+unwarranted.</p>
+
+
+
+
+
+
+</body>
+</html>

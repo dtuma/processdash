@@ -1,0 +1,80 @@
+<html><!--#do-not-translate-->
+<head>
+
+<!--#if [Team_Project_Migration_Needed] #-->
+    <!--#set var='m' value='t' #-->
+    <!--#set var='operation' value='migration' #-->
+    <title>Team Project Migration Needed</title>
+<!--#else #-->
+    <!--#set var='operation' value='conversion' #-->
+    <title>Team Project Conversion Needed</title>
+<!--#endif #-->
+
+
+</head>
+<body>
+
+
+<!--#if m -->
+
+<h1>Team Project Migration Needed</h1>
+
+<p>Your team leader has chosen to migrate this team project to a new,
+streamlined data format.  This will provide several benefits for you,
+such as a reduction in memory usage and faster export operations on
+shutdown.</p>
+
+<!--#else-->
+
+<h1>Team Project Conversion Needed</h1>
+
+<p>Your team leader has chosen to convert this team project to a
+different metrics collection framework.  This will enable the team
+to analyze metrics in new and different ways.</p>
+
+<!--#endif-->
+
+
+<p>Your cooperation is needed for this effort.  When you click the
+"Continue" button below, the dashboard will take the following
+steps:</p>
+
+<ul>
+
+<li style='margin-top:1em; margin-bottom:1em'>First, your personal
+plan will be scanned for potential problems that could interfere with
+the <!--#echo operation -->.  If any problems are found, the dashboard
+will display a list of corrective actions that you need to take.  In
+most cases, no problems will be detected, so the <!--#echo operation -->
+will begin right away.</li>
+
+<li style='margin-top:1em; margin-bottom:1em'>Next, your personal
+Process Dashboard will be shut down to perform the <!--#echo operation -->.
+The <!--#echo operation --> tool will upgrade your personal plan to
+the new data format, then restart your dashboard.</li>
+
+<li style='margin-top:1em; margin-bottom:1em'>After the dashboard
+restarts, it may be necessary for you to perform a final "Synchronize
+to WBS" operation. The dashboard will alert you if this sync is
+needed.</li>
+
+</ul>
+
+<p><b>Please note:</b> Until you complete the steps above, the
+dashboard will not be able to copy new task assignments from the team
+work breakdown structure.  Thus, you should attempt to finish the
+<!--#echo operation --> as soon as possible.  If you encounter any
+problems during the <!--#echo operation -->, contact your team leader
+right away for help.</p>
+
+<p>If you are ready to begin the <!--#echo operation --> process,
+click the "Continue" button below.</p>
+
+<form action="migrate">
+
+<input type="submit" name="run" value="Continue">
+
+</form>
+
+</body>
+</html>

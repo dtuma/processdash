@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>Exploring Alternative Plans</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Exploring Alternative Plans</h1>
+
+During team project planning, it is often necessary to explore trade-offs
+between cost, schedule, and scope - for example, to propose several
+alternative plans to management.  And later during the execution of the team
+project, it may be necessary to explore "what if" scenarios - for example, to
+determine the potential impact of a major change to the team plan.  There are
+two possible ways to accomplish these types of tasks.</p>
+
+
+<h2>Option 1: Saving Multiple Alternative Plans</h2>
+
+The WBS Editor offers a comprehensive facility for saving and editing multiple
+independent, alternative plans.  To create an alternative plan, choose
+"File&nbsp;&#8594;&nbsp;Save a Copy."  This will save a ZIP file containing a
+complete copy of your plan (including the WBS, team member list, workflows,
+and milestones).  You can save as many copies as you like, each in a separate
+ZIP file.
+
+<p>Then, you can choose "File&nbsp;&#8594;&nbsp;Open" in the WBS Editor window
+to open one of these alternative plans.  (You can also open an alternative
+plan by dragging and dropping the ZIP file onto the Quick Launcher window.)  A
+second WBS Editor window will open to show the data from the selected ZIP
+file.  The name of the ZIP file will be displayed in the title bar of this
+window to distinguish it from your "official" project plan.  You can edit this
+alternative plan, and the colored balancing bars will show the projected date
+when the alternative plan might finish.  The "File&nbsp;&#8594;&nbsp;Save"
+option will write your changes back into the ZIP file.</p>
+
+<p>After exploring alternative plans and presenting them to management, you
+may select a particular plan that the team intends to follow.  In the Team
+Dashboard, select your team project from the tree on the left, and click
+the option from the list on the right to open the WBS for your project.
+Then choose "File&nbsp;&#8594;&nbsp;Replace Data."  A warning dialog will be
+displayed.  Read the warning information carefully and press the "Yes" button
+to confirm.  Then select the ZIP file containing your team's chosen
+alternative plan.  Your team's WBS, team member list, workflows, and
+milestones will be replaced with the data read from the ZIP file.  Review the
+new data to make sure you selected the correct ZIP file, then choose
+"File&nbsp;&#8594;&nbsp;Save" to commit this as the official plan for your
+team project.</p>
+
+
+<h2>Option 2: Exploring Scope/Schedule Tradeoffs Using Milestones</h2>
+
+The "Save a Copy" feature described above provides a lot of power for
+exploring arbitrary plan alternatives; but if your alternative plans center
+around tradeoffs between scope and schedule, a simpler technique may be
+more convenient for your team.
+
+<p>This technique leverages the power of milestones to explore scope changes.
+To use this technique, open the Milestones window.  If you do not already have
+a milestone representing the actual project delivery, create one.  In
+addition, create a new milestone for each deliverable that could potentially
+be moved in and out of scope.  (Selecting the "Hide" checkbox for these
+optional deliverables may be helpful.)</p>
+
+<p class="figure"><img src="../Images/milestone-scope-example-1.png"></p>
+
+<p>Back in the WBS Editor, use the Milestone column on the Task Details tab to
+tag components and tasks that fall under the scope of each of these optional
+deliverables.  Use the "Final Delivery" milestone as a catch-all to tag the
+components and tasks that must be completed, but that do not belong to any
+other milestone.  One way to declare this "catch-all" is to set "Final
+Delivery" as the milestone for the first row in the WBS (the row that
+represents the overall team project).</p>
+
+<p>Once milestones are assigned, click on the Milestones menu and select the
+option to "Balance Work Through" the "Final Delivery" milestone.</p>
+
+<p>With these changes in place, you can now open the Milestones window and
+change the order of the "Optional Scope" milestones relative to "Final
+Delivery."  (You can use the Move Up/Move Down operations on the toolbar to
+change the relative order of the milestones in the list.)</p>
+
+<ul>
+
+<li>If you place an optional milestone at the end of the list, after "Final
+Delivery," the balancing bars will now show date projections as if that
+deliverable had been moved out of scope.  Moving it back up above "Final
+Delivery" will move it back into scope.  (This "magic" is occurring because we
+told the WBS to balance work through "Final Delivery," so subsequent
+milestones are being temporarily excluded from our balancing bar
+calculation.)</li>
+
+<li>This same technique can be used to explore the possibility of moving items
+in and out of scope for various project iterations or other milestones.  Place
+an optional item above the row for a real project milestone to indicate that
+the optional item is part of the scope for that milestone.  (The optional item
+is placed <u>above</u> the real milestone to indicate that it must be
+completed <u>before</u> the milestone will be considered complete.)</li>
+
+</ul>
+
+<p>The image below demonstrates Optional Scope Item #1 being accomplished as
+part of the work for the "Iteration 2 Release," and the Optional Scope Item #2
+being moved out of scope for the entire project.</p>
+
+<p class="figure"><img src="../Images/milestone-scope-example-2.png"></p>
+
+<p>As you reorder these milestones, the colored balancing bars will
+dynamically update to display new projections that take your scope changes
+into account. </p>
+
+<p>When you present your alternative plans to management, they may agree to
+remove some of these optional items from the project scope.  When you receive
+this direction, move the optional scope item to the end of the milestones
+list, and click the "Defer Sync" checkbox.  This will tell the dashboard not
+to copy the related tasks into team members' personal plans.</p>
+
+</body>
+</html>

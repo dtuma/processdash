@@ -1,0 +1,177 @@
+<html>
+<head>
+<title>Master Project Coordination and Planning</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Master Project Coordination and Planning</h1>
+
+<p>Different organizations use different approaches to the planning of
+a master project. One common approach is to conduct simultaneous
+launch meetings for all of the team projects that make up a master
+project. If your organization uses this approach, you will find the
+information in this section useful.</p>
+
+<h2>Opening the Work Breakdown Structure</h2>
+
+<p>During a launch, most planning activities will be performed in the Work
+Breakdown Structure Editor.  It is easy for several different subteams to be
+working in the WBS Editor at the same time:</p>
+
+<ol>
+
+<li>When <a href="Installing.html">installing</a> the Process Dashboard, at
+least one person from each team should choose the "Tools for Team Leaders"
+option so they receive a Team Dashboard shortcut on their computer.  Or, if
+you cannot bring this computer into the conference room where the launch is
+being held, you can install the Team Dashboard on the conference room
+computer.  (Of course, the conference room computer must still have a network
+connection to the team's shared network directory.)</li>
+
+<li>During the launch, use this shortcut to open the Team Dashboard.  You may
+receive a message stating that another individual has the Team Dashboard open;
+if so, click Yes to continue in read-only mode.</li>
+
+<li>When the Team Dashboard window appears, select your team project from
+the tree on the left.  Then choose Work Breakdown Structure Editor from the
+list on the right.</li>
+
+</ol>
+
+<p>If individuals have already <a href="MembersJoin.html">joined</a> the
+team project, individuals can also open the WBS Editor using the
+corresponding option on the script menu in their personal dashboard.  If
+you open the WBS Editor in this way and intend to edit the overall team
+plan, you will probably want to open the WBS Editor's Team menu and make
+certain the box to "Optimize Editing Operations for ..." is unchecked. (For
+more information on this feature, see the help topic on personal editing
+<a href="EditingWBSIndiv.html#indivEditMode">optimized mode</a>.)</p>
+
+
+<h2>Sharing Team Dashboard Access</h2>
+
+<p>There are a small number of launch planning tasks that are not performed
+within the WBS Editor.  For example:</p>
+
+<ul>
+
+<li>Repairing a <a href="AddSchedules.html">missing schedule</a> error if
+an team member did something unusual (like joining the project twice).</li>
+
+<li>Creating the team's <a href="CreateQualityPlan.html">quality
+plan</a>.</li>
+
+</ul>
+
+<p>These activities would be performed in the Team Dashboard itself, not in
+the WBS Editor.  To perform these activities, you must open the Team
+Dashboard in read-write mode.  However, only one person can have the Team
+Dashboard open in read-write mode at a time. As a result, the various
+subteams may need to coordinate with each other to determine who is using
+the Team Dashboard at any given time.</p>
+
+<p>Since these activities represent a relatively small portion of the
+overall launch, it is very possible that the teams won't need to perform
+these activities simultaneously.  If a particular subteam needs read-write
+access to the Team Dashboard and they see that another team has it open, it
+may be sufficient to contact the other team and ask them to close the Team
+Dashboard if they are not using it.</p>
+
+<p>If two subteams need to create their quality plans simultaneously, this
+can be accomplished by using a special technique:</p>
+
+<ol>
+
+<li style='margin-top:12.0pt'>The <u>leader of the master project</u>
+should open the Team Dashboard on an appropriate computer.</li>
+
+<li style='margin-top:12.0pt'>If this computer has a personal firewall
+installed, it should either be temporarily disabled, or configured to
+allow incoming connections to port 3000 from within the local area
+network (LAN).</li>
+
+<li style='margin-top:12.0pt'>The leader of
+the master project should perform these steps for each team project:
+
+    <ul>
+
+    <li style='margin-top:6pt'>Choose one of the team projects from the
+    tree on the left side of the Team Dashboard window.</li>
+
+    <li style='margin-top:6pt'>Select Team Project Tools from the list
+    on the right.</li>
+
+    <li style='margin-top:6pt'>Scroll to the bottom of the page and
+    find the link with the following label:
+
+    <p style='margin-left:1cm;font-size:10.0pt;font-family:Arial'>You can view this page from another
+computer by visiting:<br>
+    <span style='margin-left:1cm;text-decoration:underline;color:blue'>http://computer-name:3000/Project/Path/+/ABC-v1/team_tools.shtm</span></p>
+
+    </li>
+
+    <li style='margin-top:6pt'>Copy and paste this hyperlink, and send
+    it to the team leader for the project in question.</li>
+
+    <li style='margin-top:6pt'>The team leader can open this hyperlink in
+    their web browser to access the Project Parameters and Settings page
+    (where they will enter quality planning parameters) and the Rollup Plan
+    Summary (where they can view the resulting quality plan).</li>
+
+    <li style='margin-top:6pt'>Repeat these steps for the other team
+    projects.</li>
+
+    </ul>
+
+
+<li style='margin-top:12.0pt'>Leave the Team Dashboard running during
+the planning sessions.</li>
+
+</ol>
+
+
+<table border=0><tr>
+
+<td><img width=60 height=24 src="../Images/finger.png"></td>
+
+<td><b>Important:</b> Because organizations have different network
+configurations, you should perform a dry run of these steps before
+your launch. This way, if you encounter connectivity problems, you can
+enlist your local tech support team in finding a resolution before the
+launch begins, and avoid disruptions to the team planning process.
+See the <a href="NetworkTroubleshooting.html">Network
+Troubleshooting</a> help topic for more help.  If you discover that your
+network will not support this special technique, you may need to schedule
+your various quality planning sessions so they do not overlap.</td>
+
+</tr></table>
+
+<h2>Viewing Consolidated Master Project Planning Data</h2>
+
+<p>While the individual project teams are developing their detailed
+plans, it is easy to see a master project view of the planning
+progress. In the Team Dashboard, select the master project from the tree
+on the left, then select Bottom-Up Work Breakdown Structure from the list
+on the right.</p>
+
+<p class="figure"><img src="../Images/master-scripts-bottom-up-wbs.png"></p>
+
+<p>The bottom up Work Breakdown Structure will be displayed.</p>
+
+<p class="figure"><img src="../Images/wbs-master-bottom-up.png"></p>
+
+
+<p>This window displays a WBS containing all of the components and
+tasks declared by all of the team projects that belong to this master
+project. Since the data is rolled up and computed, it is read-only. If
+you display the Bottom Up Time Panel, it will show the planned
+completion dates of each team project.</p>
+
+<p>The data in this window will update in near-real-time. Each time a
+team project saves changes to their WBS, this window will see the
+changes within a few seconds, and recalculate its display.</p>
+
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Move Operation Complete</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Move Operation Complete</h2>
+
+<p>The data for this project has been moved successfully.</p>
+
+<!--#if cannotWriteMoveFile -->
+
+    <p class="error">Unfortunately, the dashboard was unable to write
+    a redirection instruction to the file:</p>
+
+    <pre><!--#echo path --></pre>
+
+    <p>As a result, each team member will need to open the Project
+    Parameters and Settings page for their team project, and manually
+    update the following values:</p>
+
+<!--#else-->
+
+    <p>In the near future, the Personal Dashboard for each team member
+    should detect this change and update itself accordingly.  If you
+    monitor the "Status of Team Member Metrics" page, you will know
+    that these changes have occurred when the "Metrics Data Last
+    Exported" column shows a timestamp later than now for each team
+    member.</p>
+
+    <!--#if [move//Out_Of_Date_Team_Member_List] -->
+
+        <p class="error">As noted previously, some individuals have
+        not upgraded to version 1.10.5.  These team members will need
+        to open the Project Parameters and Settings page for their
+        team project, and manually update the following values:</p>
+
+    <!--#endif-->
+<!--#endif-->
+
+<!--#if cannotWriteMoveFile || [move//Out_Of_Date_Team_Member_List] -->
+
+    <table>
+    <tr><td><b>Team Project Network Directory</b></td>
+        <td><tt><!--#echo [Team_Directory] --></tt></td></tr>
+
+    <tr><td><b>Team Project Network Directory (UNC)</b></td>
+        <td><tt><!--#if [Team_Directory_UNC] #-->
+                <!--#echo [Team_Directory_UNC] #-->
+            <!--#else--><i>&lt;blank&gt;</i><!--#endif--></tt></td></tr>
+    </table>
+
+<!--#endif-->
+
+<!--#if cannotUpdateMaster -->
+
+    <p class="error">Unfortunately, the dashboard was unable to update
+    the links between this project and its master project.</p>
+
+    <p>According to the dashboard's records, this project belongs to
+    the master project "<!--#echo masterPrefix -->". However, no
+    master project could be found by that name.  This problem could
+    occur if you renamed the master project at some point in the
+    past.</p>
+
+    <p>As a result, you will need to update the master project links
+    manually.  Using the main dashboard toolbar, please select the
+    master project that this project belongs to, and choose the
+    <b>Edit List of Subprojects</b> option.  Then remove and re-add
+    this subproject to the list.</p>
+
+<!--#endif-->
+
+</form>
+</body>

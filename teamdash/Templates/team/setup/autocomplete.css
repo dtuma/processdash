@@ -1,0 +1,27 @@
+
+div#autocomplete {
+    background: #ffa;
+    border: 1px solid #888;
+    margin: 0px;
+    padding: 0px;  
+    position: absolute;
+    width: 250px;
+}
+
+div#autocomplete ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+div#autocomplete ul li.selected { 
+    background-color: #aaf;
+}
+
+div#autocomplete ul li {
+    cursor: pointer;
+    display: block;
+    list-style-type: none;
+    margin: 0;
+    padding: 2px;
+}

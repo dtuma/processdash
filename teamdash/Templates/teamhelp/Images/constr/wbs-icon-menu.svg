@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="769"
+   height="433"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="wbs-icon-menu.svg"
+   version="1.0">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 205 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="788 : 205 : 1"
+       inkscape:persp3d-origin="394 : 136.66667 : 1"
+       id="perspective3650" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="219.16694"
+     inkscape:cy="220.28846"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1400"
+     inkscape:window-height="1003"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     height="410px"
+     width="788px"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     borderlayer="true"
+     showgrid="false"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,23)">
+    <image
+       sodipodi:absref="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr\wbs-icon-menu.png"
+       xlink:href="wbs-icon-menu.png"
+       width="767"
+       height="510"
+       id="image1963"
+       x="1"
+       y="-22" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 321.75653,408 L 343.64983,392.07759 L 367.03587,407.00485 L 393.90493,391.58002 L 418.78369,406.0097 L 443.66244,390.58487 L 467.54604,406.50728 L 489.93692,391.58002 L 513.32296,407.00485 L 517.30356,434.86905 L 316.78078,441.33753 L 321.75653,408 Z"
+       id="path1966"
+       sodipodi:nodetypes="cccccccccccc" />
+  </g>
+</svg>

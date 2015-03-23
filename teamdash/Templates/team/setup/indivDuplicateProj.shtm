@@ -1,0 +1,70 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<style>
+  li { margin-bottom: 1em }
+</style>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Duplicate Team Project</h2>
+
+<!--#if teamRootPresent -->
+
+<p>When a team uses the Process Dashboard, they typically create a
+personal dashboard for each team member, and a separate dashboard to
+perform team rollups.  However, it appears that you are attempting to
+place the data for an individual inside the same dashboard as the team
+rollup.  This mode of operation is unsupported.</p>
+
+<p>If you are currently running the Team Dashboard and a personal
+dashboard on the same computer, there is a slight chance that this
+might have occurred by accident.  Please try closing the Team
+Dashboard and the personal dashboard, starting them back up, and
+beginning the joining process again.</p>
+
+<!--#else -->
+
+<p>This wizard helps you to join your personal Process Dashboard to a
+team project.  However, it appears that you have already joined this
+dashboard to this team project.  The previous join operation created
+your personal plan at the following path in your task hierarchy:</p>
+
+<pre>    <!--#echo personalRoot --></pre>
+
+<p>Now, you are attempting to join this personal dashboard to the same
+project a second time.  This is usually an accident.</p>
+
+<ul>
+
+<li>If you are an individual team member, you can close this window.  You are
+    already joined to the team project, so no additional steps are necessary.
+    If you entered the wrong initials the first time you joined (and you are
+    trying to correct that mistake), you can edit your initials on the 
+    <a href="<!--#echo var='personalRoot' encoding='url' -->//<!--#echo
+    [setup//Package_ID] -->/indiv_project_parameters.shtm">Project Parameters
+    and Settings</a> page.</li>
+
+<li>If you are a team leader, and you are attempting to create
+    personal plans for several individuals, you should close all of
+    the personal dashboards that are currently open.  Then, open only
+    one personal dashboard, join it to the team project, close it, and
+    move on to the next dashboard.  (For the joining process to be
+    successful, only one personal dashboard can be open at a time.)</li>
+
+<li>In some unusual planning scenarios, a team leader might
+    intentionally desire to join the team project several times from a
+    single personal dashboard (for example, to simulate several
+    hypothetical team members).  If this applies to you,
+    <a href="wizard.class?page=indivStart&ignoreDups">click here</a>.</li>
+
+</ul>
+
+<!--#endif -->
+
+</body>
+</html>

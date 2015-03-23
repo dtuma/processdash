@@ -1,0 +1,158 @@
+<html>
+<head>
+<title>Managing Process Metrics (Team Member)</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Managing Process Metrics (Team Member)</h1>
+
+<p>The Process Dashboard performs many calculations that help you
+track your progress and monitor the quality of the products you and
+your team produce. To calculate these metrics, the dashboard needs you
+to collect and enter some additional data.</p>
+
+<h2><a name="defects"></a>Entering Defects</h2>
+
+<p>As you create documents, designs, and code, you should keep track
+of the defects you discover and remove from the software. To enter a
+defect, switch to the Process Dashboard window, use the Hierarchy
+Menus to navigate to the component containing the defect, and click
+the <a href="../../help/Topics/Execution/EnteringDefects.html">Defect
+button</a> (<img src="../Images/icon-defect.png">). A defect dialog
+will appear, allowing you to describe the defect. A timer in the
+defect dialog makes it possible to track the amount of time it takes
+to fix the defect.</p>
+
+<p><b>Reviews:</b> If you find defects while personally reviewing a
+product that you created, enter the defect normally using the defect
+dialog, as described above.</p>
+
+<p><b>Inspections/Peer Reviews: </b>During the course of your project,
+you will often review products created by other team members. In these
+situations, it is very common for several people to find the same
+defect. If you were to enter these defects using the method described
+above, the dashboard would not be able to recognize the duplicated
+defects, and the defect would get counted twice. Because of this,
+defects found during inspections should be handled differently:</p>
+
+    <ul>
+
+    <li style='margin-top:12.0pt'>Obtain a blank inspection form (your
+    team should have a defined form explicitly for this purpose). As
+    you review the product, make a note of each defect you find on the
+    inspection form. (Of course, you should also be using the
+    dashboard to track the time you spend reviewing the
+    material.)</li>
+
+    <li style='margin-top:12.0pt'>After you complete your review, it
+    is common to have a meeting where you discuss the defects you
+    found with other reviewers, and with the author of the product
+    being reviewed. Take your completed inspection form with you to
+    this meeting, so the scribe can create a consolidated list of all
+    defects found. (If your team inspection process does not include
+    such a meeting, you should instead send your list of defects to
+    the author of the reviewed product. The author will be responsible
+    for creating the consolidated list of defects.)</li>
+
+    <li style='margin-top:12.0pt'>Once the author has a consolidated
+    list of defects, they typically correct each defect found. As the
+    author works through the list of defects, he or she should enter
+    the defects into the dashboard using the method described above,
+    and use the defect dialog to track the amount of time it takes to
+    fix each defect. Some items found during the inspection may
+    actually be more than one defect, and if so should be entered
+    accordingly.</li>
+
+    </ul>
+
+<p>Your team should have a defined process for performing an
+inspection, which you should follow even if it differs from the steps
+described above. The person responsible for fixing the defects found
+should also enter the defect data into the dashboard.</p>
+
+
+
+<h2><a name="size"></a>Entering Size Data</h2>
+
+<p>You are encouraged to use a high-maturity PSP process (like PSP2.1)
+to develop code in support of your team project. As you complete a
+particular component, you should count the new and changed lines of
+code and enter them in the PSP Plan Summary form, as described in the
+Postmortem script for the PSP process you are using.</p>
+
+<p>However, some teams prefer not to use the PSP process. In that
+case, you may have "Code" tasks in your personal plan.  And during
+your project you may create many types of documents (for example,
+requirements documents, design documents, or users manuals). As you
+write code and create documents, you should record their actual
+finished size in the dashboard.  To do this, navigate to the team
+project using the dashboard Hierarchy Menus and click the script button.
+From the popup menu that appears, choose the Size Inventory form.</p>
+
+<p class="figure"><img src="../Images/indiv-scripts-size-inventory.png"></p>
+
+<p>The Size Inventory form will be displayed in your Web browser.</p>
+
+<p class="figure"><img src="../Images/indiv-size-inventory.png"></p>
+
+<p>Some entries may already appear in your size inventory; when you
+synchronized your work breakdown structure, this information was
+copied from the team plan. If you find an existing entry for a
+document you have created, you can enter a description of the
+document, along with the actual finished size of the document. If the
+size changes due to edits in the future, you can return to this form
+and alter the actual size value.</p>
+
+<p>You can also create new entries in this size inventory form using
+the hyperlinks that appear at the bottom of the page. Make certain to
+enter a description, choose the appropriate size units, and enter
+planned and actual sizes for each new entry.</p>
+
+<p>You will note that the Size Units field includes options for LOC
+and various types of documents. If you create a document, you should
+pick the size metric that best describes that document. In the Actual
+field, enter the number of pages that you personally wrote. If several
+people wrote sections of a particular document, each person should
+make an entry in their Size Inventory form describing the sections
+that they wrote and the sizes of those sections. (You can use the
+Description field to describe the specific section of the document
+that you wrote.)  Only enter a value in the Actual field describing
+portions of the document that <i>you</i> produced - do not enter
+values describing document pages written by other team members.</p>
+
+<p>You will find that the Size Units field also includes options that
+begin with the word Inspected (for example, Inspected SRS Pages or
+Inspected LOC). If you participate in an inspection, you may select
+one of these options to record the size of the product you
+inspected.</p>
+
+
+
+<h2><a name="pps"></a>Reviewing Project Metrics</h2>
+
+<p>Project planning summary reports are available for all of the work
+you do on your project. You can open these plan summaries by clicking
+the dashboard Script button.</p>
+
+<p>PSP tasks in your project hierarchy will provide familiar project
+plan summary forms, as defined by the PSP process.</p>
+
+<p>In addition, a plan summary form is provided that displays your
+consolidated personal data for the entire project.</p>
+
+<p class="figure"><img src="../Images/indiv-plan-summary.png"></p>
+
+<p>This form contains an initial set of charts and reports that you
+may find useful.  However, you can customize this report to add other
+charts, reports, and metrics: just click the (<img
+src="../Images/icon-cms-edit.gif">) icon near the top of the page.  In
+addition, you can drill down into a different part of your project
+hierarchy by clicking on the (<img src="../Images/icon-hier-nav.png">)
+icon.</p>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<html><!--#do-not-translate-->
+<head>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select Schedule Name</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamSchedule'>
+
+<!--#if [setup//Is_Master] -->
+<p>The dashboard will create a master earned value schedule for this
+project that rolls up data from the schedules for each subproject.</p>
+<!--#else-->
+<p>The dashboard will create a team earned value schedule for this
+project that rolls up data from the individual earned value
+schedules.</p>
+<!--#endif-->
+
+<!--#if missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter a
+name for the
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+schedule!</td></tr></table>
+
+<!--#elif invalid -->
+
+<table><tr><td class=error>Schedule names cannot contain the '/' character.
+Please enter a new, valid name for the schedule.</td></tr></table>
+
+<!--#elif duplicate -->
+
+<table><tr><td class=error>There is already a schedule with the name
+you entered.  Schedule names must be unique; please enter a new,
+unique name for the schedule.</td></tr></table>
+
+<!--#endif-->
+
+<p>What would you like to call the rolled-up
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+schedule?</p>
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Schedule Name:&nbsp;</td>
+<td><input type=text name=scheduleName
+    <!--#if [setup//Team_Schedule] -->
+           value="<!--#echo var='[setup//Team_Schedule]' -->"
+    <!--#endif-->
+           size=60></td></tr></table>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

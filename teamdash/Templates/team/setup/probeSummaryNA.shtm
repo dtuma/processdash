@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>Project Plan Summary</title>
+<link href="/style.css" rel="stylesheet" type="text/css"></link>
+</head>
+<body>
+
+<h1><!--#echo PATH_TRANSLATED --></h1>
+
+<h2>Project Plan Summary - Unexpected Project/Task</h2>
+
+<p>This Plan Summary form is designed to be used with team project workflows
+that include a PROBE task.  Unfortunately, "<!--#echo PATH_TRANSLATED -->"
+does not appear to be an applicable project/task, so this form cannot be
+displayed.</p>
+
+<p>If you recently renamed this project or task, please close this window and
+reopen the Plan Summary from the script menu.</p>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file that redefines rollup calculations to use the database
+//
+
+[Database-Driven Rollup Tag] = tag;
+
+
+/*
+ * Calculate values that help us to determine the filter that is in
+ * effect for this rollup
+ */
+[DB_Project_Keys] = dbLookupProjects([DB_Project_ID_List]);
+[DB_Project_Missing_Error_Flag] = iff(filter([_] < 0, [DB_Project_Keys]),
+    true, false);
+
+[DB_WBS_Key] = dbLookupWbsElement([DB_WBS_Relative_Path],
+    [DB_WBS_Relative_Path_ID]);
+
+[DB_Label_Group] = iff(!defined([Filtered_Task_Labels]), null,
+    dbLabelFilterGroup([DB_Project_Keys], [Filtered_Task_Labels]));
+
+
+[DB_Filter_Criteria] = list(
+    "##Project in", [DB_Project_Keys],
+    "##WBS Element", [DB_WBS_Key],
+    "##Label Group", [DB_Label_Group]
+    );
+
+
+/*
+ * Sum phase data for time and defects
+ */
+[DB_Time_By_Phase] = dbSumTimeByPhase([Process_ID], [DB_Filter_Criteria]);
+[DB_Defects_By_Phase] = dbSumDefectsByPhase(
+    [Process_ID], [DB_Filter_Criteria]);
+
+/*
+ * Create data elements for each phase to extract time and defect
+ * data from the database result set
+ */
+
+<!--#foreach name=PHASE list=Phase_List #-->
+
+[<!--#echo PHASE_Name -->/Estimated Time] = nvl(dbGetResultValue(
+    [DB_Time_By_Phase], "Phase=<!--#echo PHASE_Name -->", "Plan"), 0);
+[<!--#echo PHASE_Name -->/Time] = nvl(dbGetResultValue(
+    [DB_Time_By_Phase], "Phase=<!--#echo PHASE_Name -->", "Actual"), 0);
+
+[<!--#echo PHASE_Name -->/Defects Injected] = nvl(dbGetResultValue(
+    [DB_Defects_By_Phase], "Phase=<!--#echo PHASE_Name -->",
+    "Type=Injected", "Count"), 0);
+[<!--#echo PHASE_Name -->/Defects Removed] = nvl(dbGetResultValue(
+    [DB_Defects_By_Phase], "Phase=<!--#echo PHASE_Name -->",
+    "Type=Removed", "Count"), 0);
+
+<!--#endfor-->
+
+
+/*
+ * Provide special handling for "Uncategorized" time - time that doesn't
+ * match any of our expected phases
+ */
+
+[Estimated Time] = nvl(dbGetResultValue([DB_Time_By_Phase], "sum(Plan)"), 0);
+[Time] = nvl(dbGetResultValue([DB_Time_By_Phase], "sum(Actual)"), 0);
+
+[Uncategorized/Estimated Time] = [Estimated Time] -
+    sumFor("Estimated Time", [Phase_List]);
+[Uncategorized/Time] = [Time] - sumFor("Time", [Phase_List]);
+
+
+/*
+ * Provide special handling for before/after development defects
+ */
+[Before Development/Defects Injected] == nvl(dbGetResultValue(
+    [DB_Defects_By_Phase], "Phase=Before Development",
+    "Type=Injected", "Count"), 0);
+[After Development/Defects Removed] == nvl(dbGetResultValue(
+    [DB_Defects_By_Phase], "Phase=After Development",
+    "Type=Removed", "Count"), 0);
+
+
+/*
+ * Gather summed size data from the database, and allocate it to individual
+ * data elements
+ */
+
+[DB_Size_Data] = dbSumSize([DB_Filter_Criteria]);
+
+<!--#foreach name=METRIC list=Size_Metric_Data_Names -->
+<!--#if 'METRIC' eq 'New & Changed LOC' -->
+[Estimated METRIC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Plan", "A&M"), 0);
+[METRIC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Actual", "A&M"), 0);
+<!--#else-->
+[Estimated METRIC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Plan", "A&M"), 0);
+[METRIC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Actual", "A&M"), 0);
+<!--#endif-->
+<!--#endfor-->
+
+
+/*
+ * Provide special handling for the various LOC accounting types
+ */
+
+<!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,Total," -->
+[Estimated TypeOf LOC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Plan", "TypeOf"), 0);
+[TypeOf LOC] = nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Actual", "TypeOf"), 0);
+<!--#endfor-->
+
+
+/*
+ * A small number of low-value metrics cannot be calculated using the data
+ * that is in the warehouse today.  Disable those calculations for now,
+ * and focus on providing value to users.
+ */
+
+[Disabled_Rollup_Calc] == "#VALUE!    This number is no longer calculated for " &
+    "the team rollup in this version of the dashboard. Please contact the " &
+    "Process Dashboard development team if you need access to this metric.";
+[Estimated Object LOC] = [Disabled_Rollup_Calc];
+[Object LOC] = [Disabled_Rollup_Calc];
+[Estimated New Reused LOC] = [Disabled_Rollup_Calc];
+[New Reused LOC] = [Disabled_Rollup_Calc];
+[Estimated % New Reused] = [Disabled_Rollup_Calc];
+[% New Reused] = [Disabled_Rollup_Calc];
+
+
+[Rollup_List] = "none";

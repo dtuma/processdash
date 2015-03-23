@@ -1,0 +1,47 @@
+<!--#do-not-translate-->
+<!--#if ![Project_ID] -->
+  <html><head>
+  <title>Team Project ID Missing</title>
+  </head><body>
+  <h1>Team Project ID Missing</h1>
+  <p>The Work Breakdown Structure Editor cannot be used because the
+  Project ID for this team project is missing.  The Project ID is
+  displayed on the Project Parameters and Settings page.</p>
+  </body></html>
+<!--#elif ![Team_Data_Directory] && ![Team_Data_Directory_URL] -->
+  <html><head>
+  <title>Team Directory Missing</title>
+  </head><body>
+  <h1>Team Directory Missing</h1>
+  <p>The Work Breakdown Structure Editor cannot be used until you
+  specify a team data directory on the Project Parameters and Settings
+  page.</p>
+  </body></html>
+<!--#else-->
+
+<!--#set var="reverseSyncURI" inline="true" #-->
+    <!--#if [Enable_Reverse_Sync] #-->
+        <!--#echo encoding="relUri" value="userData?forceRefresh" #-->
+    <!--#else--> <!--#endif#-->
+<!--#endset-->
+
+<!--#set var="processURL" inline="true" #-->
+    <!--#include file="getProcessMetadataURL" #-->
+<!--#endset-->
+
+<!--#set var="reverseSyncNewMembers" inline="true" #-->
+    <!--#if [Reverse_Sync_New_Members] -->true<!--#else-->false<!--#endif#-->
+<!--#endset-->
+
+<!--#include file="/team/tools/OpenWBSEditor.class" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
+    <!--#parameter name="reverseSyncURL" var="reverseSyncURI" -->
+    <!--#parameter name="processURL" var="processURL" -->
+    <!--#parameter name="directoryURL" var="[Team_Data_Directory_URL]" -->
+    <!--#parameter name="directory" var="[Team_Data_Directory]" -->
+    <!--#parameter name="indivInitials" var="[Indiv_Initials]" -->
+    <!--#parameter name="reverseSyncNewMembers" var="reverseSyncNewMembers" -->
+    <!--#parameter name="globalInitialsPolicy" var="[/Team_Project_Policy/Initials_Policy]" -->
+
+<!--#endif-->

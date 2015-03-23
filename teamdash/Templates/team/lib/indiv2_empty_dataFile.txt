@@ -1,0 +1,61 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+//  This is the datafile for an empty <!--#echo Full_Name --> process node.
+//
+
+[PID Tag] = tag;
+[Process_ID] = "PID";
+[PID Rollup Eligible] = tag;
+[node] = tag;
+[leaf] = tag;
+[Auto_Delete_Top_Down/Estimated Time] = tag;
+
+[Time] == 0;
+
+[Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+
+/*
+ * Data elements to capture process-specific phase and node type information
+ */
+[PID /Effective_Phase] = unlock(inherit("PID /Effective_Phase"));
+[Effective_Phase] = [PID /Effective_Phase];
+
+[Node_Type] = indirect(
+    iff([leaf] && endsWith("/Indiv2Task", hierTemplateID()),
+        "PID /Effective_Phase", "/PID /No_Node_Type"));
+
+
+
+/*
+ * Namespace the time and defect data for this task.
+ */
+[PID Namespaced Data] = tag;
+
+[PID /Estimated Time] = [Estimated Time];
+[PID /Time] = [Time];
+
+[Defect_Data_Namespace] = "PID ";
+
+
+
+/*
+ * Calculate size metrics for this task.
+ */
+
+[Local_Sized_Object_List//All] =
+    filter(([^] == chopPath(chopPath([_]))), inherit("Sized_Object_List"));
+
+<!--#foreach name=Metric list=Size_Metric_Data_Names #-->
+<!--#foreach name=Inspected_ values=',,Inspected ,' #-->
+[Local_Sized_Object_List//Inspected_Metric] =
+    filter(eval("[Sized_Object_Units] == \"Inspected_Metric\"", [_]),
+           [Local_Sized_Object_List//All]);
+
+<!--#foreach name=Estimated_ values=',Estimated ,,' #-->
+
+[Estimated_Inspected_Metric] =
+    0 + sumFor("Estimated_Size", [Local_Sized_Object_List//Inspected_Metric]);
+
+<!--#endfor-->
+<!--#endfor-->
+<!--#endfor-->
+

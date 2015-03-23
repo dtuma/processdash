@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+
+<dashboard-process-template>
+
+    <helpSet href="teamhelp/TeamDash.hs"
+        book="teamhelp/book.html" 
+        bookTitle="Printable Team Users Manual" />
+
+</dashboard-process-template>

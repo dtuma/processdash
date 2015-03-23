@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<pdashCmsPage>
+
+<pageTitle><!--#echo Full_Name --> Project Plan Summary</pageTitle>
+
+<pageHeading>
+
+<snippet instanceId="1" type="<!--#echo Process_ID -->.teamSummaryPageHeader" version="1.0" />
+
+</pageHeading>
+
+
+<snippet instanceId="50" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Earned Value</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="51" type="pdash.evReport" version="1.0" />
+
+<snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Plan Summary</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="101" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <enum name="Metric">
+    <item><param name="DataName">Time</param></item>
+    <item>
+      <param name="DataName">Uncategorized/Time</param>
+      <param name="DisplayName">Uncategorized Time</param>
+    </item>
+  </enum>
+  <param name="Heading">Overall Metrics</param>
+  <param name="Label">Summary</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="102" type="<!--#echo Process_ID -->.sizeSummary" version="1.0" />
+
+<snippet instanceId="103" type="pdash.metricsPhaseTable" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <enum name="Metric">
+    <item><param name="DataName">Time</param></item>
+    <item><param name="DataName">Defects Injected</param></item>
+    <item><param name="DataName">Defects Removed</param></item>
+  </enum>
+  <param name="Heading">Time / Defects</param>
+  <param name="PhaseGroup">All</param>
+  <param name="ShowActualCol">on</param>
+  <param name="ShowPlanCol">on</param>
+  <param name="ShowTotalRow">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="104" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <enum name="Metric">
+    <item><param name="DataName">Time</param></item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Actual Time</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="105" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <enum name="Metric">
+    <item><param name="DataName">Defects Injected</param></item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Injected</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="106" type="pdash.phaseChart" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <enum name="Metric">
+    <item><param name="DataName">Defects Removed</param></item>
+  </enum>
+  <param name="ChartType">Pie</param>
+  <param name="PhaseGroup">All</param>
+  <param name="Title">Defects Removed</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="200" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Defect Reports</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="201" type="pdash.defectFixTimes" version="1.0" />
+
+<snippet instanceId="202" type="pdash.defectsByPhaseAndType" version="1.0" />
+
+<snippet instanceId="203" type="pdash.defectsByCompiler" version="1.0" />
+
+<snippet instanceId="204" type="pdash.defectsPareto" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Show_Fix_Time">on</param>
+  <param name="Show_Num_Defects">on</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="300" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Defect Log</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="301" type="pdash.defectLog" version="1.0" />
+
+
+
+<!--#if Legal_Footer_Snippet -->
+
+<pageFooter>
+
+<snippet instanceId="2" type="<!--#echo Process_ID -->.legalFooter" version="1.0" />
+
+</pageFooter>
+
+<!--#endif-->
+
+</pdashCmsPage>

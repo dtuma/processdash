@@ -1,0 +1,128 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a rollup dataset for <!--#echo Full_Name -->
+//
+
+#include <ROLLUP:PID>;
+undefine([Historical Data Tag]);
+[Exclude Children of Rollup_List for Defects] = tag;
+[Quality Profile Capable] = tag;
+
+/*
+ * Store the list of phases, for use by other calculations.
+ */
+[/<!--#echo Process_ID -->/Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#echo Phase_Name --><!--#endfor-->";
+
+
+/*
+ * We need to redefine the rollup project list to include PSP projects.
+ */
+[/PSP/Project List] = search("/", "PSP Rollup Eligible");
+[/PID/Indiv Root List] = search("/", "PID Indiv Root Tag");
+[/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
+[Rollup_List] = filter(eval([Rollup_Filter], [_]), [/PID/Full Project List]);
+
+
+/*
+ * Define a rollup filter that is appropriate for data rollup instances.
+ * Team and master project datafiles will override this definition.
+ */
+[Rollup_WBS_ID_Filter] = "," & inherit("Project_ID") & ",";
+[Rollup_Filter_Regexp] =
+    "m\n^(\\Q" & join("\\E|\\Q", [Rollup_WBS_ID_Filter]) & "\\E)(/.+)?$\n";
+[Rollup_Filter] = "match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
+
+/*
+ * Count the number of distinct software projects in this rollup list.
+ */
+[Project_Component_List] = hierleaves();
+[Software_Project_List] =
+    filter(indirect([_] &/ "New & Changed LOC") > 0, [Project_Component_List]);
+[Software_Project_Count] = count([Software_Project_List]);
+
+
+/*
+ * Calculate % Defect Free metrics for each failure phase.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Failure #-->
+
+[<!--#echo Phase_Name -->/% Defect Free]  
+
+<!--#if Calculate_Pct_Defect_Free #-->
+
+= count(filter(
+    !(indirect([_] &/ "<!--#echo Phase_Name -->/Defects Removed") > 0),
+    [Software_Project_List])) / [Software_Project_Count];
+
+<!--#else-->
+
+    == "This calculation is disabled; see http://www.processdash.com/pctDefFreeBug";
+
+<!--#endif-->
+
+<!--#endif--><!--#endfor-->
+
+
+/*
+ * Roll up phase data both from both new style (namespaced) and old style
+ * (plain/unadorned) data exports.
+ */
+[Rollup_Namespaced_Phase_Metrics] = true;
+
+[Unadorned_Rollup_List] =
+    filter(! indirect([_] &/ "PID Namespaced Data"), [Rollup_List]);
+
+[Namespaced_Rollup_List] = iff(![Rollup_Namespaced_Phase_Metrics], null,
+    filter(indirect([_] &/ "PID Namespaced Data"), [Rollup_List]));
+
+<!--#foreach name=PHASE list=Phase_List #-->
+
+[Namespaced_Rollup_List/<!--#echo PHASE_Name -->] =
+    filter(indirect([_] &/ "PID /Effective_Phase")
+                     == "<!--#echo PHASE_Name -->", [Namespaced_Rollup_List]);
+
+<!--#foreach name=METRIC values=',Estimated Time,Time,' #-->
+
+[<!--#echo PHASE_Name -->/METRIC] =
+    sumFor("<!--#echo PHASE_Name -->/METRIC", [Unadorned_Rollup_List]) +
+    sumFor("PID /METRIC", [Namespaced_Rollup_List/<!--#echo PHASE_Name -->]);
+
+<!--#endfor-->
+
+<!--#foreach name=METRIC values=',Defects Injected,Defects Removed,' #-->
+
+[<!--#echo PHASE_Name -->/METRIC] =
+    sumFor("<!--#echo PHASE_Name -->/METRIC", [Unadorned_Rollup_List]) +
+    sumFor("PID /<!--#echo PHASE_Name -->/METRIC", [Namespaced_Rollup_List]);
+
+<!--#endfor--><!--#endfor-->
+
+[Before Development/Estimated Defects Injected] == 0;
+[Before Development/Defects Injected] =
+    sumFor("Before Development/Defects Injected", [Unadorned_Rollup_List]) +
+    sumFor("PID /Before Development/Defects Injected",
+           [Namespaced_Rollup_List]);
+[After Development/Estimated Defects Removed] == 0;
+[After Development/Defects Removed] =
+    sumFor("After Development/Defects Removed", [Unadorned_Rollup_List]) +
+    sumFor("PID /After Development/Defects Removed", [Namespaced_Rollup_List]);
+
+
+
+/*
+ * Add up metrics for uncategorized tasks
+ */
+[Namespaced_Rollup_List/Uncategorized] = 
+    filter(! intersects(indirect([_] &/ "PID /Effective_Phase"),
+                        [/PID/Phase_List]),
+           [Namespaced_Rollup_List]);
+
+[Uncategorized/Time] =
+     sumFor("PID /Time", [Namespaced_Rollup_List/Uncategorized]);
+[Uncategorized/Estimated Time] =
+    sumFor("PID /Estimated Time", [Namespaced_Rollup_List/Uncategorized]);
+
+[Time] = sumFor("Time", [Phase_List], "Uncategorized");
+[Estimated Time] = sumFor("Estimated Time", [Phase_List], "Uncategorized");

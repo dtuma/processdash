@@ -1,0 +1,30 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Moving <!--#echo [move//Team] --> Project...</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<meta http-equiv="Refresh" content="1;URL=move?page=confirm">
+<style>
+pre      { margin-left: 1cm }
+</style>
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Moving <!--#echo [move//Team] --> Project...</h2>
+
+<p>The data for this project is currently being moved from the old
+directory:</p>
+
+<pre><!--#echo [move//Current_Data_Dir] --></pre>
+
+<p>to the new directory:</p>
+
+<pre><!--#echo [move//Data_Dir] -->
+
+</pre>
+
+<p>Please wait.</p>
+
+</form>
+</body>

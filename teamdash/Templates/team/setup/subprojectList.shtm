@@ -1,0 +1,77 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Edit List of Subprojects</title>
+<link rel=stylesheet type="text/css" href="../style.css">
+<!--#if READ_ONLY -->
+<meta http-equiv='Refresh' content='0;URL=subprojectEdit?readOnly'>
+<!--#endif-->
+<style>
+
+table.subprojectTable {
+  border-collapse: collapse;
+}
+
+table.subprojectTable td {
+    border-top: 1px solid silver;
+}
+
+table.subprojectTable th {
+    text-align: left;
+    text-weight: bold
+}
+
+table.subprojectTable form {
+    display:inline
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    font-style: italic;
+}
+
+</style>
+
+<script>
+function popup() {
+    var newWin = window.open('','popup','width=450,height=330,dependent=1,scrollbars=1');
+    newWin.focus();
+}
+</script>
+
+</head>
+<body>
+<!--#if !READ_ONLY -->
+
+<h1><!--#echo PATH_TRANSLATED --></h1>
+
+<h2>Edit List of Subprojects</h2>
+
+<table cellpadding="8" class="subprojectTable">
+
+<tr>
+<th>Short Name</th>
+<th>Subproject Path</th>
+<th>&nbsp;</th>
+</tr>
+
+<!--#include file="subprojectEdit?display" -->
+
+<tr>
+<td colspan="3" align="center">
+  <form action="subprojectEdit" method="GET" target="popup">
+    <input type="submit" name="add" value="Add..." onClick="popup();">
+  </form>
+</td>
+</tr>
+
+
+</table>
+
+<p class="error">
+    <!--#echo [Errors//Settings_File] -->
+</p>
+
+<!--#endif !READ_ONLY -->
+</body>
+</html>

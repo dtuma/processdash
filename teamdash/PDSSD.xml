@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<custom-process name='Software System Development' abbr='PDSSD' version='' generator='/team/lib/script-v1.xml'>
+
+    <phase longName='Project Planning and Oversight' name='Oversight' type='overhead' color='#e6be8c' />
+    <phase longName='Software Development Environment' name='Development Env' type='overhead' color='#aaff44' />
+    <phase longName='Detailed Planning' name='Planning' readOnly='true' type='PLAN' color='#bf9f75' />
+    <phase longName='System Requirements Analysis' name='Sys Reqts' sizeMetric='SSS Pages' type='develop' estDefectInjRate='0.25' color='#00aaff' />
+    <phase longName='System Requirements Review' name='Sys Reqts Review' sizeMetric='SSS Pages' type='review' color='#0055ff' />
+    <phase longName='System Requirements Inspection' name='Sys Reqts Inspect' sizeMetric='SSS Pages' type='insp' color='#0000ff' />
+    <phase longName='System Test Preparation' name='Sys Test Prep' sizeMetric='Text Pages' type='develop' color='#b6f2b6' />
+    <phase longName='System Design' name='Sys Design' sizeMetric='SSDD Pages' type='develop' estDefectInjRate='0.25' color='#8cba8c' />
+    <phase longName='System Design Review' name='Sys Design Review' sizeMetric='SSDD Pages' type='review' color='#658765' />
+    <phase longName='System Design Inspection' name='Sys Design Inspect' sizeMetric='SSDD Pages' type='insp' color='#4d664d' />
+    <phase longName='Software Requirements Analysis' name='SW Reqts' sizeMetric='SRS Pages' type='develop' estDefectInjRate='0.25' color='#00ffff' />
+    <phase longName='Software Requirements Review' name='SW Reqts Review' sizeMetric='SRS Pages' type='review' color='#00bfbf' />
+    <phase longName='Software Requirements Inspection' name='SW Reqts Inspect' sizeMetric='SRS Pages' type='insp' color='#008080' />
+    <phase longName='Software Test Preparation' name='SW Test Prep' sizeMetric='Test Cases' type='develop' color='#cc66ff' />
+    <phase longName='Software Design' name='SW Design' sizeMetric='SDD Pages' type='develop' estDefectInjRate='0.25' color='#cc00cc' />
+    <phase longName='Software Design Review' name='SW Design Review' sizeMetric='SDD Pages' type='review' color='#990099' />
+    <phase longName='Software Design Inspection' name='SW Design Inspect' sizeMetric='SDD Pages' type='insp' color='#660066' />
+    <phase longName='Detailed Design' name='Design' readOnly='true' sizeMetric='DLD Lines' type='DLD' estDefectInjRate='2' color='#aaaaff' />
+    <phase longName='Detailed Design Review' name='Design Review' readOnly='true' sizeMetric='DLD Lines' type='DLDR' color='#6666ff' />
+    <phase longName='Detailed Design Inspection' name='Design Inspect' sizeMetric='DLD Lines' type='insp' color='#4545ac' />
+    <phase longName='Code' name='Code' readOnly='true' type='CODE' estDefectInjRate='4' color='#66ff66' />
+    <phase longName='Code Review' name='Code Review' readOnly='true' type='CR' color='#00c000' />
+    <phase longName='Compile' name='Compile' readOnly='true' type='COMP' estDefectInjRate='0.3' color='#ffe000' />
+    <phase longName='Code Inspection' name='Code Inspect' type='insp' color='#008c00' />
+    <phase longName='Unit Test' name='Test' readOnly='true' type='UT' estDefectInjRate='0.2' color='#ffaa00' />
+    <phase longName='Unit Integration' name='SW Int Test' type='failure' color='#ee7700' />
+    <phase longName='Test Readiness Review' name='TRR' type='insp' estYield='0' color='#ee3300' />
+    <phase longName='Software Qualification Testing' name='SW Qual Test' type='failure' color='#dd0000' />
+    <phase longName='System Integration' name='Sys Int Test' type='failure' color='#bb0000' />
+    <phase longName='System Qualification Testing' name='Sys Qual Test' type='failure' color='#880000' />
+    <phase longName='Software Use and Transition Prep' name='SW Use Prep' sizeMetric='Text Pages' type='develop' color='#bdb76b' />
+    <phase longName='Miscellaneous' name='Misc' type='overhead' color='#bbbbbb' />
+    <phase longName='Postmortem' name='Postmortem' readOnly='true' type='PM' color='#996633' />
+    <phase longName='Software Use and Transition' name='SW Use' type='failure' estYield='1' color='#888888' />
+
+    <sizeMetric iconStyle='document' longName='SSS Pages' name='SSS Pages' productName='System-Subsystem Specification' units='Pages' />
+    <sizeMetric iconStyle='document' longName='SSDD Pages' name='SSDD Pages' productName='System-Subsystem Design Description' units='Pages' />
+    <sizeMetric iconStyle='document' longName='SRS Pages' name='SRS Pages' productName='Software Requirements Specification' units='Pages' />
+    <sizeMetric iconStyle='document' longName='STP Pages' name='STP Pages' productName='Software Test Plan' units='Pages' />
+    <sizeMetric iconStyle='document' longName='Test Cases' name='Test Cases' productName='Software Test Description' units='Pages' />
+    <sizeMetric iconStyle='document' longName='SDD Pages' name='SDD Pages' productName='Software Design Description' units='Pages' />
+    <sizeMetric iconStyle='document' longName='Text Pages' name='Text Pages' productName='Other Document' units='Pages' iconColor='#ffffff' />
+
+</custom-process>

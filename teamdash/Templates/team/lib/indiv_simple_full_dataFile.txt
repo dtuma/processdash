@@ -1,0 +1,116 @@
+//<!--#echo -*- mode:html -*- -->
+// This is the datafile for the <!--#echo Full_Name --> process.
+//
+
+#include <<!--#echo Process_ID -->/prototype_dataFile.txt> exclude (
+    ".*So_Far", ".*Phase Yield", ".*Process Yield",
+    ".*Time Ratio", ".*Defect Ratio", "Total Development /.*",
+     ".*Quality_Profile.*", "QP_.*",
+//    [<!--#echo Process_ID -->-rollup-prototype],
+    [<!--#echo Process_ID -->-rollup-prototype Tag]
+)
+[Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+
+
+/*
+ * Get a list of the subtasks immediately underneath this task.
+ */
+[Subtask_List] = filter(startsWith([^] & "/"),
+	                [/<!--#echo Process_ID -->/Full Project List]);
+[Immediate_Subtask_List] = filter(chopPath() == [^], [Subtask_List]);
+
+/*
+ * Get a list of the phases immediately underneath this task.
+ */
+[Immediate_Phase_List] = filter(indirect([_] &/ "node"), [Phase_List]);
+
+/*
+ * Redefine the child list to include phases and subtasks. This will cause
+ * time and defect totals to include subtasks.
+ */
+[Child_List] = [Phase_List] & [Immediate_Subtask_List];
+
+
+/*
+ * Redefine Estimated Time for user convenience purposes.  If there is
+ * only one immediate subtask, or only one immediate phase, the resulting
+ * Estimated Time will be an alias to that item, and will therefore be 
+ * editable.
+ */
+[Estimated Time] = sumFor("Estimated Time",
+                          [Immediate_Subtask_List], [Immediate_Phase_List]);
+
+
+/*
+ * Calculate accumulated size metrics.
+ */
+
+[Local_Sized_Object_List//All] =
+    filter(([^] == chopPath(chopPath([_]))), inherit("Sized_Object_List"));
+
+<!--#foreach name=Metric list=Size_Metric_Data_Names #-->
+<!--#foreach name=Inspected_ values=",,Inspected ," #-->
+[Local_Sized_Object_List//Inspected_Metric] =
+    filter(eval("[Sized_Object_Units] == \"Inspected_Metric\"", [_]),
+           [Local_Sized_Object_List//All]);
+
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+
+[Sub_tasks /Estimated_Inspected_Metric] =
+    sumFor("Estimated_Inspected_Metric", [Subtask_List]);
+[Total_Plus_Subtasks/Estimated_Inspected_Metric] =
+    [Estimated_Inspected_Metric] + [Sub_tasks /Estimated_Inspected_Metric];
+[Estimated_Inspected_Metric] =
+    0 + sumFor("Estimated_Size", [Local_Sized_Object_List//Inspected_Metric]);
+
+<!--#endfor-->
+<!--#endfor-->
+<!--#endfor-->
+
+/*
+ * Alter calculations for summary metrics to include subtasks.
+ */
+
+[Estimated Productivity] =
+    60 * [Total_Plus_Subtasks/Estimated New & Changed LOC] / [Estimated Time];
+[Productivity] = 60 * [Total_Plus_Subtasks/New & Changed LOC] / [Time];
+[Size Estimating Error] = ([Total_Plus_Subtasks/New & Changed LOC] - [Total_Plus_Subtasks/Estimated New & Changed LOC]) / [Total_Plus_Subtasks/Estimated New & Changed LOC];
+
+
+
+/*
+ * Don't try to calculate the estimated defects removed by phase.
+ */
+
+<!--#foreach name=Phase list=Phase_List #-->
+
+[<!--#echo Phase_Name -->/Estimated Defects Removed] = 0;
+
+<!--#endfor-->
+
+/*
+ * Remove definitions for items we don't need.
+ */
+undefine(
+<!--#foreach name=Phase list=Phase_List #-->
+    [<!--#echo Phase_Name -->/Defects Injected per Hour],
+    [<!--#echo Phase_Name -->/Estimated Defects Removed per Hour],
+    [<!--#echo Phase_Name -->/Defects Removed per Hour],
+    [<!--#echo Phase_Name -->/Estimated Defect Injection Density],
+    [<!--#echo Phase_Name -->/Defect Injection Density],
+    [<!--#echo Phase_Name -->/Estimated Defect Density],
+    [<!--#echo Phase_Name -->/Defect Density],
+    [<!--#echo Phase_Name -->/Estimated DRL],
+    [<!--#echo Phase_Name -->/DRL],
+    [<!--#echo Phase_Name -->/Estimated Appraisal Rate],
+    [<!--#echo Phase_Name -->/Appraisal Rate],
+<!--#endfor-->
+    [Estimated Yield],           [Yield],
+    [Estimated % Appraisal COQ], [% Appraisal COQ],
+    [Estimated % Failure COQ],   [% Failure COQ],
+    [Estimated % COQ],           [% COQ],
+    [Estimated AFR],             [AFR],
+    [Estimated Defect Density],  [Defect Density],
+    [Appraisal_Phase_List], [Failure_Phase_List], 
+    [Quality_Phase_List], [Yield_Phase_List]
+);

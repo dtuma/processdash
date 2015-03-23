@@ -1,0 +1,54 @@
+<html>[!--#do-not-translate--]
+<head>
+<title><!--#echo Phase_Long_Name --> Script</title>
+<link rel=stylesheet type="text/css" href="style.css">
+</head>
+<body>
+<h1><!--#echo Phase_Long_Name --> Script</h1>
+
+<table border>
+<tr>
+<td>Ph<!--#echo null -->ase<br>Number</td>
+<td>Purpose</td>
+<td>To guide the <!--#echo Process_Name -->
+<!--#echo Phase_Long_Name --> process.</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td>
+<td valign=top>Entry Criteria</td>
+<td><ul>
+<li><!--#echo Process_Name --> <a href="summary.shtm">Project Plan Summary</a>
+    form</li>
+<li><a href="../reports/timelog.class">Time</a> and 
+    <a href="../reports/defectlog.class">Defect</a> Recording Logs</li>
+<li><a href="../reports/dts.class">Defect Type Standard</a></li>
+</ul></td>
+</tr>
+
+<tr>
+<td valign=top>1</td>
+<td valign=top>&nbsp;</td>
+<td valign=top><i>Customize this script to put your own steps here</i></td>
+</tr>
+
+<tr>
+<td>&nbsp;</td>
+<td valign=top>Exit Criteria</td>
+<td><ul>
+<li>Completed <a href="../reports/timelog.class">Time</a> and 
+    <a href="../reports/defectlog.class">Defect</a> Recording Logs</li>
+</ul></td>
+</tr>
+
+</table>
+
+<!--#foreach name=NEXT list=Phase_Next_Sibling -->
+<p><a href="<!--#echo NEXT_ID -->_script.htm">Next:
+   <!--#echo NEXT_Long_Name --></a>.
+<!--#endfor-->
+
+<p><a href="script.htm">Top</a>
+
+</body>
+</html>

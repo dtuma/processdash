@@ -1,0 +1,98 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Synchronization Problem</title>
+</head>
+<body>
+
+<h1>Synchronization Problem</h1>
+
+<!--#if generalError -->
+
+The synchronization tool was unable to synchronize your project:
+<!--#echo generalError -->
+
+<!--#elif notTeamProject -->
+
+This synchronization tool can only operate upon a team project.
+
+<!--#elif hierEditorOpen -->
+
+This synchronization tool cannot proceed because the Hierarchy Editor
+is currently open.  Please close the Hierarchy Editor, then 
+<a href="sync.class?<!--#echo _UNIQUE_ -->">click here</a> to try again.
+
+<!--#elif serverUnavailable -->
+
+To synchronize your hierarchy with a team project, the dashboard must contact
+the server located at
+<pre><!--#echo serverUrl --></pre>
+
+Unfortunately, the server could not be reached.  Please check your network
+connection and try again.  If the problem persists, contact the server
+administrator.
+
+<!--#elif teamDirUnavailable -->
+
+To synchronize your hierarchy with a team project, the dashboard must read
+project data files from the directory
+<pre><!--#echo teamDir --></pre>
+
+Unfortunately, that directory could not be found.  Please check your network
+connection and try again.  If the problem persists, contact your team leader
+for help.
+
+<!--#elif teamDirMissing -->
+
+To synchronize your hierarchy with a team project, the dashboard must
+know the directory of the team project.  Before you can synchronize
+your hierarchy, you must first enter this value on the
+
+<!--#elif wbsFileInaccessible -->
+
+To synchronize your hierarchy with a team project, the dashboard must
+read a description of the team work breakdown structure.  The dashboard
+attempted to read this description from the file 
+<pre><!--#echo wbsFile --></pre>
+
+but the file could not be read.  Ensure that you have permission to read the
+file, then try again.
+
+<!--#elif emptyTeam -->
+
+To synchronize your hierarchy with a team project, the dashboard searches
+through the team Work Breakdown Structure, looking for tasks that have been
+assigned to you.  However, at this time no team members have been entered
+in the Work Breakdown Structure yet.  This usually means that you need to
+<b>wait</b> until your team has created the detailed plan for this project.
+Check with your team leader to ensure that team planning is complete, then
+try again.
+
+<!--#elif unlistedMember -->
+
+To synchronize your hierarchy with a team project, the dashboard matches
+your intials against the task assignments in the Work Breakdown Structure
+to find tasks that are assigned to you.  Unfortunately, your initials do
+not appear in the Team Member List for this project.  Please contact your
+team leader or planning manager, and ask them to make certain you have been
+added to this project's Team Member List.  Then try the synchronization
+operation again.
+
+<!--#elif initialsMissing -->
+
+To synchronize your hierarchy with a team project, the dashboard must
+know your initials.  Before you can synchronize your hierarchy, you
+must first enter your initials on the
+
+<!--#endif-->
+
+<!--#if teamDirMissing || initialsMissing -->
+  <!--#if isTeam -->
+    <a href="../team_project_parameters.shtm">project parameters page</a>.
+  <!--#elif isMaster -->
+    <a href="../master_project_parameters.shtm">project parameters page</a>.
+  <!--#else-->
+    <a href="../indiv_project_parameters.shtm">project parameters page</a>.
+  <!--#endif-->
+<!--#endif-->
+
+</body>

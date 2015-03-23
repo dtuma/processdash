@@ -1,0 +1,13 @@
+#ifdef DATABASE_PLUGIN
+
+#include <<!--#echo Process_ID -->/database_rollup.txt>
+
+undefine([Namespaced_Rollup_List], 
+<!--#foreach name=Phase list=Phase_List #-->
+    [Namespaced_Rollup_List/<!--#echo Phase_Name -->],
+<!--#endfor-->
+    [Namespaced_Rollup_List/Uncategorized],
+    [Unadorned_Rollup_List],
+    [Printable_Rollup_List]);
+
+#endif

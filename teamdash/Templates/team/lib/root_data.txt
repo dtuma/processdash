@@ -1,0 +1,116 @@
+// <!--#echo var="-*- mode:html -*-" -->
+// Data definitions for a <!--#echo Full_Name --> project root
+//
+
+[Project_Path_Prefix] = [^];
+[Project_ID] = "Enter Project Identifier";
+[Project_WBS_ID] = [Project_ID];
+[Team_Process_PID] = "<!--#echo Process_ID -->";
+
+
+/*
+ * Redefine the rollup filter to include items from this project.
+ */
+[Rollup_Filter] =
+     "[Project_WBS_ID] == [{Project_WBS_ID}] || <!--#echo null #-->
+      startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID])";
+
+
+
+/*
+ * Default guidelines for the quality profile
+ */
+
+[Target Design/Code Ratio] = 1.0;
+
+[Target Design Review/Design Ratio] = 0.5;
+
+[Target Code Review/Code Ratio] = 0.5;
+
+[Target Test Defect Density] = 5;
+
+[Target Compile Defect Density] = 10;
+
+
+
+/*
+ * Default Phase Yields and Defect Injection Rates
+ */
+
+<!--#foreach name=PHASE list=Phase_List #-->
+
+[<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
+    <!--#if PHASE_Est_Yield --> <!--#echo PHASE_Est_Yield -->;
+    <!--#elif PHASE_Is_After_Development --> 0;
+    <!--#elif PHASE_Is_Appraisal --> 0.70;
+    <!--#elif PHASE_Is_Failure --> 0.50;
+    <!--#else--> 0;
+    <!--#endif-->
+[<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] = 
+    <!--#if PHASE_Est_Defect_Inj_Rate --> <!--#echo 
+        PHASE_Est_Defect_Inj_Rate -->;
+    <!--#else--> 0;
+    <!--#endif-->
+<!--#endfor-->
+
+
+
+/*
+ * Settings concerning team interconnectivity.
+ */
+
+[Team_Directory] = "Enter network directory path";
+[Team_URL] = null;
+
+/*
+ * Determine the effective team directory that should be used.
+ *   - If the current operating system is Windows and a UNC path is available,
+ *     use that UNC path.
+ *   - Otherwise, if a regular directory has been entered, use that.
+ *   - Otherwise, this will be the empty string.
+ */
+[Team_Directory_Eff] =
+    iff([Team_Directory_UNC] && [//Env/OS.IS_WINDOWS],
+            [Team_Directory_UNC],
+        iff([Team_Directory] != "Enter network directory path",
+            [Team_Directory],
+            ""));
+
+[file_sep] = iff([//Env/OS.IS_WINDOWS], "\\", "/");
+
+[Team_Data_Directory] = 
+    iff([Team_Directory_Eff] && [Project_ID],
+        [Team_Directory_Eff] & [file_sep] & "data" & [file_sep] & [Project_ID],
+	"");
+[Team_Directory_URL_Only] = [Team_Data_Directory_URL] && ![Team_Data_Directory];
+
+
+/*
+ * Enable display of the earned value "week" form.
+ */
+[/Enable_EV_Week_form] = TAG;
+
+/*
+ * Default configuration for export of the team project plan.
+ * This setting also controls whether distinct datafiles are
+ * created in support of hierarchy-based filtering.
+ */
+
+[Export_Max_Node_Depth] = 0;
+
+/*
+ * Data elements for wbs-based ordering
+ */
+
+[Task_ID_WBS_Order] = [Synchronized_Task_ID_WBS_Order];
+[Synchronized_Task_ID_WBS_Order] = "none";
+
+
+/*
+ * Calculate the list of phases to show on forms/charts/reports.
+ */
+<!--#foreach name=PHASE list=Phase_List -->
+[Phase_Display_Filter_Include/<!--#echo PHASE_Name -->] = 1;
+<!--#endfor-->
+[Phase_Display_Filter_List] =
+    filter(indirect("Phase_Display_Filter_Include/" & [_]), [Phase_List]);

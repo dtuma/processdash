@@ -1,0 +1,47 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Unable to Contact Team Dashboard</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivStart'>
+
+<p>To join the team project, this wizard needs to communicate with the
+team dashboard. It was unable to contact the team dashboard at 
+<!--#if [TeamProjectStub Tag] -->
+    the URL you provided:
+<!--#else-->
+    the expected URL:
+<!--#endif-->
+</p>
+
+<PRE>    <!--#echo [setup//Team_URL] --></PRE>
+
+<p>
+<!--#if [TeamProjectStub Tag] -->
+    Please ensure that you have entered the team project URL correctly,
+<!--#else-->
+    Please ensure that you are connected to the network,
+<!--#endif-->
+and contact your team leader to ensure that the team dashboard is
+currently running.</p>
+
+<p>After you address this problem, you can click the &quot;Retry&quot;
+button and the dashboard will try again.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=retry value='Retry'>
+</td></tr></table>
+
+</form>
+</body>
+</html>

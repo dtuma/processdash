@@ -1,0 +1,28 @@
+<html>[!--#do-not-translate--]
+<head>
+<title>Edit Data Rollup Filter</title>
+<link rel=stylesheet type="text/css" href="style.css">
+</head>
+<body>
+
+<h1>[!--#echo var="PATH_TRANSLATED" --]</h1>
+<h2>Edit Data Rollup Filter</h2>
+
+Select the project components you wish to include in this data rollup:
+
+<form>
+
+<input id="wbsIdList" type="hidden" name="[Rollup_WBS_ID_Filter]su"
+    value="initializing">
+
+<!-- textarea rows=10 cols=80 name="[Printable_Rollup_List]s"></textarea -->
+
+[!--#include file="setup/filterWBS.class?prompt=+" --]
+
+</form>
+
+<script language="JavaScript" src="filterWBS.js"></script>
+<script language="JavaScript" src="/data.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,122 @@
+<html>[!--#do-not-translate--]
+<head>
+<title>Master Project Tools</title>
+<link rel=stylesheet type="text/css" href="style.css">
+<script src="fixSlash.js"></script>
+<script>
+
+    function eesc(str) {
+        str = escape(str);
+        str = str.replace(/\//g, "%2F");
+        str = str.replace(/\./g, "%2E");
+        str = str.replace(/\+/g, "%2B");
+        return str;
+    }
+    function textToHTML(text) {
+        return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+            .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
+    }
+
+    
+    function getExtURL(file) {
+        var url = "http://[!--#include file='/dash/serverName.class' --]:"
+            + window.location.port
+            + "[!--#echo var=PATH_TRANSLATED encoding=url --]/+/"
+            + file;
+        return url;
+    }
+
+    function writeHrefLink(file) {
+        var url = getExtURL(file);
+	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
+    }
+
+    function writeToolsLink() {
+        writeHrefLink("<!--#echo Process_ID -->/master_tools.shtm");
+    }
+
+    function writePlanLink() {
+        writeHrefLink("<!--#echo Team_Plan_Summary -->");
+    }
+
+</script>
+
+</head>
+<body>
+
+<h1>[!--#echo PATH_TRANSLATED --]</h1>
+
+<h2>Master Project Tools</h2>
+
+<p><form action="master_project_parameters.shtm" method="GET">
+<input type=submit name="submit" value="Edit project parameters and settings">
+</form>
+
+<p><form action="../control/importNow.class" method="POST">
+<input type=submit name="submit" value="Import All Data Now">
+</form>
+
+[!--#if Dash_Package_pspdash ge 'version 1.7.1b.8' --]
+[!--#if HTTP_HOST =~ '^localhost:' --]
+<p><form action="../control/showTimeLog" method="POST">
+<input type=hidden name="type" value="rollup">
+<input type=hidden name="for" value="[Corresponding_Project_Nodes]">
+<input type=hidden name="mergePrefixes" value="t">
+<input type=submit name="submit" value="View Rolled-Up Time Log">
+</form>
+[!--#endif HTTP_HOST --]
+[!--#endif 1.7.1b.8 --]
+
+<p><form action="/dash/archive.class" method="POST">
+<input type=hidden name="filename"
+       value="<!--#echo Process_ID -->_Summary-PREFIX">
+<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Team_Plan_Summary -->">
+<input type=submit name="submit" value="Save Snapshot of Project Plan">
+</form>
+
+
+<h3>Team Planning Tools</h3>
+
+<!--#foreach name=Document list=Document_List -->
+<!--#if Document_Show_On_Master_Tools -->
+<p><form action="../dash/file.class" method="POST">
+<input type=hidden name="file" value="<!--#echo Document_Name -->">
+<input type=submit name="submit" value="Edit <!--#if Document_Long_Name --><!--#echo Document_Long_Name --><!--#else--><!--#echo Document_Name --><!--#endif-->">
+</form>
+<!--#endif-->
+<!--#endfor-->
+
+<p><form action="setup/subprojectList.shtm" method="GET">
+<input type=submit name="submit" value="Edit List of Subprojects">
+</form>
+
+[!--#include file='setup/inclTeamTools.class?master' --]
+
+<p><form action="setup/sync.class" method="POST">
+<input type=submit name="submit" value="Sync Work Breakdown Structure">
+</form>
+
+
+[!--#if http.allowRemote eq 'true' --]
+
+<h3>Useful Hyperlinks</h3>
+
+<p><b><i>(Note: These hyperlinks will only work while this dashboard
+is running.  If you shut down the dashboard, people trying to visit
+these hyperlinks will see a &quot;Page Not Found / Cannot Find
+Server&quot; error message.)</i></b>
+
+
+<p>You can view this page from another computer by visiting:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writeToolsLink(); </script>
+
+
+<p>Members of your team (and other interested individuals) can view
+the current plan summary for this project (including the current
+earned value status) by visiting:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writePlanLink(); </script>
+
+[!--#endif --]
+
+</body>
+</html>

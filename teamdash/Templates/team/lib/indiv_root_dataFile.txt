@@ -1,0 +1,11 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for an individual <!--#echo Full_Name --> project.
+//
+
+#include <<!--#echo Process_ID -->/indiv_empty_dataFile.txt> exclude (
+    [<!--#echo Process_ID -->/IndivEmptyNode Tag]
+)
+#include <<!--#echo Process_ID -->/indiv_root_data.txt>
+
+[Team_Project_Migration_Needed] =
+    lookup([Team_Settings_Node] & "Is_New_Style_Team_Project");

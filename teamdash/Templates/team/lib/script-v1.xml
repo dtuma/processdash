@@ -1,0 +1,268 @@
+<?xml version="1.0"?>
+
+<!--
+    This file contains instructions on how to generate a custom process.
+-->
+
+<generation-script name="script-v2"
+      id="Team" version="4.3.9"
+      requiresDashboard="2.1.4.1+"
+      startingJar="/team/lib/TeamProcessCGI.jar"
+      inDirectory="/team/lib"
+      outDirectory="/Templates/<!--#echo Process_ID -->">
+
+    <!-- calculate properties to use when generating other files. -->
+    <file in="properties.txt" out="#properties" />
+    <!--#if !Is_Extfile_Allowed -->
+        <!--#set var='Document_List_ALL' value='' -->
+        <!--#set var='Legal_Footer_Snippet' value='' -->
+    <!--#endif-->
+
+    <!-- generate the xml template file. -->
+    <file in="template.xml" encoding="xml"
+          out="/Templates/<!--#echo Process_ID -->-template.xml">
+        <param name="PID" replace="true"
+               value="<!--#echo var=Process_ID -->"/>
+        <param name="PSP_Children"
+	       value="{PSP0.1{PSP1{PSP1.1{PSP2{PSP2.1"/>
+	       <!-- PSP0 is excluded because it has no size metric, which
+	            throws off all kinds of related calculations. -->
+	       <!-- I'm excluding PSP3 for now for defect logging reasons. -->
+    </file>
+
+    <!-- localize the stylesheet, to enable process-specific overrides -->
+    <file in="style.css" encoding="none"/>
+
+    <!-- an empty, overwritable xml file for external document integration -->
+    <file in="files.xml" encoding="none"/>
+
+    <!-- files for external document integration of provided templates -->
+    <file in="files2.xml" encoding="xml"/>
+    <!--#foreach name=Document list=Document_List -->
+      <file in="extfile:<!--#echo Document_Filename -->"
+            out="<!--#echo Document_Filename_Basename -->"
+            encoding="binary"/>
+    <!--#endfor-->
+
+    <!-- html pages for the individual project root node -->
+    <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="indiv_project_parameters.shtm">
+	<param name="indiv" value="true" />
+	<param name="TEAM" value="Team" replace="true" />
+    </file>
+
+    <!-- html pages for the team project root node -->
+    <file in="team_tools.htm"  encoding="html" out="team_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="team_project_parameters.shtm">
+	<param name="TEAM" value="Team" replace="true" />
+    </file>
+
+
+    <!-- html pages for the master project root node -->
+    <file in="master_tools.htm" encoding="html" out="master_tools.shtm"/>
+    <file in="project_parameters.htm" encoding="html" 
+          out="master_project_parameters.shtm">
+	<param name="master" value="true" />
+	<param name="TEAM" value="Master" replace="true" />
+    </file>
+
+    <!-- data file shared by both project root nodes. -->
+    <file in="root_data.txt" encoding="data" />
+
+    <!-- data files for use on the team side -->
+    <file in="team_root_dataFile.txt" />
+    <file in="team2_root_dataFile.txt" />
+    <file in="team_node_dataFile.txt" />
+    <file in="importFilterSpecDB.xml" encoding="xml" />
+    <file in="disseminationExportFilter.xml" encoding="xml" />
+
+    <!-- data files for use by a master project -->
+    <file in="master_root_dataFile.txt" />
+    <file in="master_node_dataFile.txt" />
+
+    <!-- data files for use on the individal side -->
+    <file in="indiv_root_data.txt" />
+    <file in="indiv_root_dataFile.txt" />
+    <file in="indiv2_root_dataFile.txt" />
+    <file in="indiv_simple_full_dataFile.txt"
+          out="indiv_full_dataFile.txt" encoding="data" />
+    <file in="indiv_empty_dataFile.txt" >
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="indiv2_empty_dataFile.txt" >
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="indiv2_probe_dataFile.txt" />
+    <file in="metricsExportFilter.xml" out="metricsExportFilterOld.xml">
+        <param name="oldStyle" value="true"/>
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="metricsExportFilter.xml">
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+
+    <!-- forms for use on the individual side -->
+    <file in="expanding_indiv_plan_summary.htm" encoding="html"
+          out="plan_summary.shtm"/>
+    <file in="summary_redirect.htm" out="summary.shtm" encoding="html">
+        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
+    </file>
+    <file in="sizeest.class.link"/>
+    <!--#if not VVIS -->
+    <file in="quality_summary.htm" encoding="html"
+          out="quality_summary.shtm"/>
+    <!--#endif-->
+
+    <!-- scripts for use on the individual side -->
+    <file in="process_script.htm" encoding="html" out="script.htm"/>
+
+    <!--#foreach name=Current_Phase list=Phase_List -->
+    <file in="phase_script.htm" encoding="html"
+          out="<!--#echo Current_Phase_ID -->_script.htm">
+        <param name="Phase" value="Current_Phase" replace="true"/>
+    </file>
+    <!--#endfor-->
+
+
+    <!-- forms shared by team nodes and rollup templates -->
+    <!--#if Old_Style_Plan_Summary -->
+    <file in="plan_summary.htm" encoding="html"
+          out="rollup_plan_summary.shtm">
+	<param name="rollup" value="true"/>
+    </file>
+    <file in="quality_summary.htm" encoding="html"
+          out="rollup_quality_summary.shtm">
+	<param name="rollup" value="true"/>
+    </file>
+    <!--#elif VVIS -->
+    <file in="matrix_plan_summary.htm" encoding="html"
+          out="rollup_plan_summary.shtm">
+	<param name="rollup" value="true"/>
+    </file>
+    <file in="phasePie.rpt" encoding="none" />
+    <!--#endif-->
+    <!--#if Rollup_Summary_Filename -->
+    <file in="extfile:<!--#echo Rollup_Summary_Filename -->"
+          out="rollup_plan_summary.xml" encoding="xml"/>
+    <!--#else-->
+    <file in="rollup_plan_summary.xml" encoding="xml"/>
+    <!--#endif-->
+    <!--#if Indiv_Summary_Filename -->
+    <file in="extfile:<!--#echo Indiv_Summary_Filename -->"
+          out="indiv_plan_summary.xml" encoding="xml"/>
+    <!--#else-->
+    <file in="indiv_plan_summary.xml" encoding="xml"/>
+    <!--#endif-->
+    <file in="size_summary.htm" out="size_summary.shtm" encoding="html"/>
+    <file in="defect_analysis.htm" encoding="html"
+          out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
+    <file in="autoExport.js" encoding="none"/>
+    <file in="fixSlash.js" encoding="none"/>
+    <file in="version_error.htm" encoding="html"
+          out="version_error.shtm"/>
+    <file in="saveSnapshot.htm" encoding="html"
+          out="saveSnapshot.shtm"/>
+
+    <!-- forms and reports for the team plan summary -->
+    <!--#if Old_Style_Plan_Summary || VVIS -->
+    <file in="summary_top_frame.htm" encoding="html"
+          out="team_summary.shtm"/>
+    <file in="summary_frame.htm" encoding="html"
+          out="summary_frame.shtm"/>
+    <file in="summary_toc.htm" encoding="html"
+          out="summary_toc.shtm"/>
+    <!--#else-->
+    <file in="team_summary_redirect.htm" encoding="html"
+          out="team_summary.shtm"/>
+    <!--#endif-->
+
+    <!-- files used by the team data rollup filter -->
+    <file in="rollup_filter.htm" out="rollup_filter.shtm" encoding="none"/>
+    <file in="filterWBS.js" encoding="none"/>
+
+    <!-- data file used by rollups and team nodes -->
+    <file in="rollup_dataFile.txt">
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="database_rollup.txt" />
+
+    <!-- core datafile that describes the data structure of the process -->
+    <file in="prototype_dataFile.txt" encoding="data"
+          out="prototype_dataFile.txt">
+        <param name="PID" replace="true"
+	       value="<!--#echo var='Process_ID' encoding='data' -->"/>
+    </file>
+    <!--#if Custom_Prototype_Data_Filename -->
+    <file in="extfile:<!--#echo Custom_Prototype_Data_Filename -->"
+          out="prototype_dataFile_custom.txt" encoding="data"/>
+    <!--#endif-->
+
+    <!-- query files for various reports -->
+    <file in="percent-def-free.rpt" encoding="none" />
+    <file in="def-rem-profile.rpt" encoding="none" />
+    <file in="quality-profile.rpt" encoding="none"
+          out="quality-profile-plan.rpt">
+	  <param name="Estimated_" value="Estimated " replace="true"/>
+    </file>
+    <file in="quality-profile.rpt" encoding="none"
+          out="quality-profile-act.rpt">
+	  <param name="Estimated_" value="" replace="true"/>
+    </file>
+
+    <!-- the html page displaying charts -->
+    <!--#if not VVIS -->
+    <file in="charts.htm" encoding="none" out="charts.shtm">
+        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
+    </file>
+    <!--#endif-->
+
+    <!-- resources for internationalization -->
+    <file in="resources.properties" encoding="none"
+          out="/Templates/resources/Team-<!--#echo Process_ID -->.properties"/>
+
+    <!-- Icon used for navigating the hierarchy -->
+    <file in="hier.png" encoding="binary" />
+
+    <!-- Items for the team project setup wizard -->
+    <!--#include file="/team/setup/filelist.txt" parse="true" -->
+    <!--#foreach name="Filename" list="Wizard_File_List" -->
+        <file in="/team/setup/Filename" encoding="binary" 
+	      out="setup/Filename"/>
+    <!--#endfor-->
+
+    <!-- Files for the size inventory form -->
+    <file in="/team/setup/sizeForm.class.link" encoding="none" 
+          out="sizeForm.class.link"/>
+    <file in="/team/setup/sizeForm.shtm" encoding="html" 
+          out="sizeForm.shtm"/>
+
+    <!-- write process metadata for use by the export logic. -->
+    <file in="process_info.xml" encoding="xml" out="/process_info.xml" />
+
+    <!-- write optional legal footer snippet if requested. -->
+    <!--#if Legal_Footer_Snippet -->
+    <file in="extfile:<!--#echo Legal_Footer_Snippet -->"
+          out="legalFooter.htm" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional license consent HTML file if requested. -->
+    <!--#if License_Html_Filename -->
+    <file in="extfile:<!--#echo License_Html_Filename -->"
+          out="/Templates/license-consent.html" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional splash screen HTML file if requested. -->
+    <!--#if Splash_Html_Filename -->
+    <file in="extfile:<!--#echo Splash_Html_Filename -->"
+          out="/Templates/splash.html" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional custom WBS column spec file if requested. -->
+    <!--#if Custom_Wbs_Column_Spec -->
+    <file in="extfile:<!--#echo Custom_Wbs_Column_Spec -->"
+          out="wbsColumnSpec.xml" encoding="html"/>
+    <!--#endif-->
+
+</generation-script>

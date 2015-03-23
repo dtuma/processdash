@@ -1,0 +1,19 @@
+= Percent Defect Free query
+
+title=Percent Defect Free
+for=.
+transpose=true
+categoryLabels=vertical
+units==%
+h0==Phase
+
+<!--#incr NUM #-->
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Failure #-->
+<!--#incr NUM #-->
+
+d<!--#echo NUM -->==<!--#echo Phase_Name -->/% Defect Free
+h<!--#echo NUM -->==<!--#echo Phase_Name -->
+
+<!--#endif--><!--#endfor-->

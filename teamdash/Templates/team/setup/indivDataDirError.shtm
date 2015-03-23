@@ -1,0 +1,78 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<script>
+function showManualDir() {
+   document.getElementById("dir_dest").value =
+      document.getElementById("dir_src").value;
+   document.getElementById("clickPrompt").style.display = 'none';
+   document.getElementById("manualDirForm").style.display = 'block';
+}
+</script>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Unable to Locate Team Data Directory</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivDirOverride'>
+
+<!--#if [setup//Data_Directory] -->
+
+    <p>According to the team dashboard, data for this project should
+    be exported to the following directory:</p>
+
+    <PRE>    <!--#echo [setup//Data_Directory] --></PRE>
+
+    <p>Unfortunately, that directory doesn't appear to exist.  To
+    resolve this problem, you may need to map a network drive.
+    Contact your team leader for more help.</p>
+
+<!--#elif [setup//Data_Directory_URL] -->
+
+    <p>According to the team dashboard, data for this project should
+    be exported to the following location:</p>
+
+    <PRE>    <!--#echo [setup//Data_Directory_URL] --></PRE>
+
+    <p>Unfortunately, that server could not be reached.  Please
+    ensure that you are connected to the network and try again.
+    Otherwise, contact your team leader for more help.</p>
+
+<!--#else-->
+
+    <p>The team dashboard failed to specify the location where data
+    for this project should be exported.</p>
+
+<!--#endif-->
+
+<p id="clickPrompt">If you would like to specify the location of the
+Team Data Directory manually, 
+<a href="#" onclick="showManualDir(); return false;">click here<a>.</p>
+
+<div id="manualDirForm" style="display:none"><p>To resolve this
+problem manually, copy and paste the full path to the Team Data
+Directory in the field below:<br>
+
+<table><tr><td style="padding-left:1cm">Team Directory:&nbsp;&nbsp;</td>
+<td><input type="hidden" name="overrideDirSource" id="dir_src"
+           value="<!--#echo var='[setup//Indiv_Team_Dir_Override]' -->">
+    <input type="text" name="indivTeamDirOverride" id="dir_dest"
+           size="60"></td></tr></table></p></div>
+
+<p>After you address this problem, you can click the &quot;Retry&quot;
+button and the dashboard will try again.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=retry value='Retry'>
+</td></tr></table>
+
+</form>
+</body>
+</html>

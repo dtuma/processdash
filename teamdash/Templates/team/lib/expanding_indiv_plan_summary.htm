@@ -1,0 +1,387 @@
+[!--#server-parsed --]
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="style.css">
+<title><!--#echo Full_Name -->
+<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
+Plan Summary</title>
+<STYLE>
+   .rowHdr { background-color: #D3D3D3 }
+
+   .subtask {
+      [!--#if [Subtask_List] --] 
+         background-color: #CCFFCC
+      [!--#else--]
+         display:none
+      [!--#endif--]
+   }
+
+   .includesSubtask {
+      <!--#if not rollup -->
+      [!--#if [Subtask_List] --] 
+         background-color: #CCFFCC
+      [!--#endif--]
+      <!--#endif-->
+   }
+   .time   { background-color: #FFFF99 }
+   .defInj { background-color: #FFCCCC }
+   .defRem { background-color: #CCCCFF }
+</STYLE>
+</head>
+<body>
+
+<h1><!--#include file="/team/lib/hier.htm" -->[!--#echo var="PATH_TRANSLATED" --]</h1>
+<h2><!--#echo Full_Name -->
+<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
+Plan Summary</h2>
+
+<form>
+
+<input type=hidden name=requiredTag
+<!--#if rollup -->
+       VALUE="<!--#echo Process_ID --> Rollup Tag"
+<!--#else-->
+       VALUE="<!--#echo Process_ID --> Tag"
+<!--#endif-->
+>
+
+<!--#if not rollup -->
+
+<TABLE>
+<TR>
+<TD>Project Owner</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+
+<TR>
+<TD>Start Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+</TR>
+
+<TR>
+<TD>Completion Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Completed	du"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
+</TR>
+
+<TR>
+<TD>Keywords</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
+</TR>
+
+<TR>
+<TD>Language</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+</TR>
+
+</TABLE>
+[!--#include file="../dash/selectRollup.class" --]
+
+<!--#endif rollup -->
+
+
+
+<H2>Overall Metrics</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<!--#if not rollup -->
+[!--#if [Subtask_List] --] 
+<TR>
+<TD></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=subtask><B>Including subtasks</B></TD>
+<!--#if USE_TO_DATE_DATA --><TD></TD><!--#endif-->
+</TR>
+[!--#endif--]
+<!--#endif-->
+
+<TR>
+<TD><B>Summary</B></TD>
+<TD ALIGN=CENTER class=includesSubtask><B>Plan</B></TD>
+<TD ALIGN=CENTER class=includesSubtask><B>Actual</B></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<!--#if not VVIS -->
+<TR>
+<TD>Productivity (LOC/Hr)</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Estimated Productivity"></TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Productivity"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Productivity To Date"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>Time Estimating Error</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error	%"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error To Date	%"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<!--#if not VVIS -->
+<TR>
+<TD>Size Estimating Error</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error	%"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Size Estimating Error To Date	%"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+<!--#endif-->
+
+<!--#if rollup -->
+<TR>
+<TD>Time</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+</TR>
+<!--#else-->
+<TR>
+<TD>Planned Time</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time To Date"></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>Actual Time</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>CPI (Cost-Performance Index)</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="CPI"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="CPI To Date"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+</TABLE>
+
+<H2>Size</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<!--#if not rollup -->
+[!--#if [Subtask_List] --] 
+<TR>
+<TD><a href="sizeForm.class"><i>edit size data...</i></a></TD>
+<TD ALIGN=CENTER COLSPAN=2><B>This node only</B></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=subtask><B>Including subtasks</B></TD>
+<!--#if USE_TO_DATE_DATA --><TD></TD><!--#endif-->
+</TR>
+[!--#endif--]
+<!--#endif-->
+
+<TR>
+<TD></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<!--#if not rollup -->
+<TD ALIGN=CENTER class=subtask><B>Plan</B></TD>
+<TD ALIGN=CENTER class=subtask><B>Actual</B></TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<!--#if not rollup -->
+<TR class=rowHdr>
+<TD ALIGN=LEFT COLSPAN=<!--#if USE_TO_DATE_DATA -->6<!--#else-->5<!--#endif-->><b>Size of products personally produced</b></TD>
+</TR>
+<!--#endif-->
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<TR>
+<TD><!--#echo Metric_Long_Name --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name -->"></TD>
+<!--#if not rollup -->
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated <!--#echo Metric_Name -->"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/<!--#echo Metric_Name -->">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> To Date"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<!--#endfor-->
+
+<!--#if Process_Uses_DLD_Lines -->
+<TR>
+<TD>Detailed Design Lines</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines"></TD>
+<!--#if not rollup -->
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated DLD Lines"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/DLD Lines">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines To Date"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+<!--#endif-->
+
+<!--#if rollup -->
+<!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New &amp; Changed,Total,New Reused,Object," -->
+<TR>
+<TD<!--#if 'TypeOf' eq 'Deleted' || 'TypeOf' eq 'Modified' || 'TypeOf' eq 'Added' || 'TypeOf' eq 'Reused' --> class=indented<!--#endif-->>TypeOf LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated TypeOf LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="TypeOf LOC"></TD>
+</TR>
+<!--#endfor-->
+
+<TR>
+<TD>% Reuse</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % Reused"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% Reused"></TD>
+</TR>
+
+<TR>
+<TD>% New Reuse</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % New Reused"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% New Reused"></TD>
+</TR>
+
+<!--#if false -->
+<!-- lets omit for now: prediction intervals cannot simply be rolled up. -->
+<TR>
+<TD>Upper Prediction Interval (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Max LOC"></TD>
+<TD></TD>
+</TR>
+
+<TR>
+<TD>Lower Prediction Interval (70%)</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Min LOC"></TD>
+<TD></TD>
+</TR>
+<!--#endif-->
+<!--#endif rollup-->
+
+<!--#if not rollup -->
+<TR class=rowHdr>
+<TD ALIGN=LEFT COLSPAN=<!--#if USE_TO_DATE_DATA -->6<!--#else-->5<!--#endif-->><b>Size of products inspected</b></TD>
+</TR>
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<TR>
+<TD><!--#echo Metric_Long_Name --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected <!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected <!--#echo Metric_Name -->"></TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected <!--#echo Metric_Name -->"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected <!--#echo Metric_Name -->">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected <!--#echo Metric_Name --> To Date"></TD>
+<!--#endif-->
+</TR>
+
+<!--#endfor-->
+
+<!--#if Process_Uses_DLD_Lines -->
+<TR>
+<TD>Detailed Design Lines</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected DLD Lines"></TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected DLD Lines"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected DLD Lines">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected DLD Lines To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>New &amp; Changed LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Inspected New &amp; Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected New &amp; Changed LOC"></TD>
+<TD class=subtask>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Estimated Inspected New &amp; Changed LOC"></TD>
+<TD class=subtask><INPUT TYPE=text SIZE=7 NAME="Total_Plus_Subtasks/Inspected New &amp; Changed LOC">&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Inspected New &amp; Changed LOC To Date"></TD>
+<!--#endif-->
+</TR>
+
+<!--#endif-->
+
+
+</TABLE>
+
+
+<H2>Time / Defects</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER COLSPAN=2 class=time><B>Time</B></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=defInj><B>Defects Injected</B></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=defRem><B>Defects Removed</B></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER class=time><B>Plan</B></TD>
+<TD ALIGN=CENTER class=time><B>Actual</B></TD>
+<TD ALIGN=CENTER class=defInj><B>Plan</B></TD>
+<TD ALIGN=CENTER class=defInj><B>Actual</B></TD>
+<TD ALIGN=CENTER class=defRem><B>Plan</B></TD>
+<TD ALIGN=CENTER class=defRem><B>Actual</B></TD>
+</TR>
+
+[!--#fortree expandName="expand" --]
+
+<tr>
+<TD NOWRAP>[!--#echo var="DEPTH_SPACER" encoding="none" --][!--#echo var="EXPANDLINK" encoding="none" --]&nbsp;[!--#echo var="NAME" encoding="html" --]&nbsp;</td>
+
+<TD class=time>&nbsp;<INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Estimated Time"></TD>
+<TD class=time><INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Time">&nbsp;</TD>
+
+<TD class=defInj>&nbsp;<INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Estimated Defects Injected"></TD>
+<TD class=defInj><INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Defects Injected">&nbsp;</TD>
+
+<TD class=defRem>&nbsp;<INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Estimated Defects Removed"></TD>
+<TD class=defRem><INPUT TYPE=text SIZE=7 NAME="[!--#echo RELPATH --]/Defects Removed">&nbsp;</TD>
+
+</TR>
+
+[!--#endtree --]
+
+<tr>
+<TD>Total</TD>
+
+<TD class=time>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD class=time><INPUT TYPE=text SIZE=7 NAME="Time">&nbsp;</TD>
+
+<TD class=defInj>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Defects Injected"></TD>
+<TD class=defInj><INPUT TYPE=text SIZE=7 NAME="Defects Injected">&nbsp;</TD>
+
+<TD class=defRem>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Defects Removed"></TD>
+<TD class=defRem><INPUT TYPE=text SIZE=7 NAME="Defects Removed">&nbsp;</TD>
+
+</TR>
+</TABLE>
+
+</FORM>
+
+<HR>
+
+<SCRIPT SRC="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</SCRIPT>
+
+</BODY>
+</HTML>

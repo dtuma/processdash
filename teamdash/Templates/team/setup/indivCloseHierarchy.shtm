@@ -1,0 +1,31 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Close Hierarchy Editor</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivTryJoin'>
+
+<p>To join the team project, this wizard will need to modify your
+hierarchy.  Unfortunately, this wizard cannot modify the hierarchy
+while the hierarchy editor is open.</p>
+
+<p>Please close the hierarchy editor, then press the &quot;Next&quot;
+button.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>
+</html>

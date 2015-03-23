@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>Team Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+   table.warning {
+      background-color: #ffcccc;
+      border: 1px solid #DD7777;
+      margin: 1em 0;
+      padding: 5px 10px;
+   }
+   table.warning td {
+      padding-right: 10px;
+      vertical-align: middle;
+   }
+</style>
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Team Project
+Relaunch Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='relaunchStart'>
+
+<p>When a team begins a new project iteration, they often hold a project
+relaunch meeting.  During that meeting, they create a detailed plan for the
+new iteration.</p>
+
+<p>This Relaunch Wizard is designed to help you create a starting point for
+the new iteration plan.  The relaunch wizard will:</p>
+
+<ul>
+
+<li>Mark the "<tt><!--#echo var=PATH_TRANSLATED --></tt>" project as
+<b><u>closed</u></b>, indicating that no additional work will be performed
+there.</li>
+
+<li>Create a new Team Project to hold the plan for the new iteration.</li>
+
+<li>Copy the workflows, milestones, and team member schedules from the old
+plan to the new plan.</li>
+
+<li>Copy incomplete components and tasks from the old plan to the new plan,
+and adjust the planned times of in-progress tasks to account for work that
+has already been performed.</li>
+
+<li>Invite all team members to join the newly created project.</li>
+
+</ul>
+
+<p>The Relaunch Wizard looks at the 
+<a href="teamMetricsStatus?for=Corresponding_Project_Nodes">actual data
+exported by team members</a> to determine which tasks are complete, and
+which tasks should be moved to the new iteration plan.  Accordingly, it is
+helpful if team members have exported their most up-to-date, accurate data
+for the "<!--#echo var=PATH_TRANSLATED -->" project before you run the
+Relaunch Wizard.</p>
+
+<table class="warning"><tr>
+<td><img src="warning.gif"></td>
+<td>If your project relaunch meeting will not be occurring for several more
+days, you <b>should not continue</b> with this wizard.  Continuing will
+close the current project iteration, which may make it difficult for team
+members to wrap up work on their final tasks.</td>
+</tr></table>
+
+<p>If you are currently holding a project relaunch meeting, or that meeting
+is imminent, press the Next button to continue.</p>
+
+
+<div style="text-align:right">
+<input type="button" name="cancel" value="Cancel"
+       onClick="window.close();">&nbsp;&nbsp;
+<input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>

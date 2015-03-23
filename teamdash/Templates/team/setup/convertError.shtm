@@ -1,0 +1,117 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Conversion Error</title>
+</head>
+<body>
+
+<h1>Team Project Conversion Error</h1>
+
+<!--#if notTeamProject -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; does not appear to be
+    a team project.</p>
+
+<!--#elif notSupportedMaster -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; is a <u>master</u>
+    project.  Conversion of master projects is not supported at this
+    time.</p>
+
+<!--#elif isReadOnly -->
+    <p>The Team Dashboard is currently running in read only mode.  No
+    changes can be made.</p>
+
+<!--#elif noOtherTeamProcesses -->
+    <p>This tool is designed to convert your team project from one
+    metrics collection framework to another.  However, you currently
+    have <b>only one</b> metrics collection framework installed - so
+    there are no alternative frameworks to convert this project to.
+    Please install the target metrics collection framework, restart
+    the team dashboard, and try the conversion again.</p>
+
+<!--#elif noTargetPIDSelected -->
+    <p>You did not select a target metrics collection framework to
+    convert this project to. Please press the back button and try
+    again.</p>
+
+<!--#elif targetPIDIsNoChange -->
+    <p>You have requested to convert this project to the
+    &quot;<!--#echo targetPID -->&quot; metrics collection framework.
+    <b>It is already using that framework</b>, so there are no changes
+    to be made.</p>
+
+<!--#elif targetTemplateNotInstalled -->
+    <p>You have requested to convert this project to the
+    &quot;<!--#echo targetPID -->&quot; metrics collection framework.
+    Unfortunately, that process seems to be missing, corrupt, or
+    somehow incompatible with the current framework.</p>
+
+<!--#elif belongsToMasterProject -->
+    <p>This team project is currently a member of the
+    &quot;<!--#echo [Master_Project_Path] -->&quot;
+    master project.  The conversion process will make this team
+    project incompatible with that master project.  Thus, you
+    must remove this project from the master project before you
+    can continue.</p>
+
+<!--#elif noTeamDataDir -->
+    <p>The conversion tool will need to make changes in the Team
+    Project Network Directory.  However, you have not specified the
+    location of that directory.  Please correct this problem on the
+    <a href="../team_project_parameters.shtm">project parameters</a>
+    page, then try again.</p>
+
+<!--#elif cannotFindTeamDataDir -->
+    <p>The conversion tool will need to make changes in the Team
+    Project Network Directory.  According to the 
+    <a href="../team_project_parameters.shtm">project parameters</a>
+    page, this directory is:
+
+    <PRE style="margin-left: 1cm"><!--#echo [Team_Directory_Eff] --></PRE>
+
+    Unfortunately, that directory could not be found.  You may need to
+    map a network drive.  Please correct this problem and try again.</p>
+
+<!--#elif hierarchyEditorOpen -->
+    <p>The Hierarchy Editor is currently open.  Please close the
+    Hierarchy Editor and try again.</p>
+
+<!--#elif cannotConvert -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; can not be converted
+    
+    <!--#if bridgedMode -->because the dashboard is currently running
+        in bridged mode through a team server.  The conversion tool
+        does not run within a bridged dashboard instance at this time.
+
+    <!--#elif dirClasspath -->because the dashboard is currently
+        running from unpackaged class files instead of a packaged
+	JAR file.
+
+    <!--#endif-->
+
+<!--#elif failedPreconditions -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; can not be converted
+    until the following problem(s) are resolved:</p>
+
+    <ul>
+        <!--#foreach name=errorMessage list=[Failed_Conversion_Preconditions] #-->
+            <li style='margin-top:1em; margin-bottom:1em'>errorMessage</li>
+        <!--#endfor-->
+    </ul>
+
+    <form action="convert"><div style="text-align: right">
+    <input type="submit" name="run" value="Continue">
+    </div></form>
+
+<!--#elif generalError -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; could not be converted
+    due to internal errors.</p>
+
+    <table border><tr><td bgcolor='#ff5050'><b>
+    It is strongly recommended that you restart the dashboard to avoid
+    residual problems from these internal errors, and send a data
+    backup to the Process Dashboard development team for analysis.
+    </b></td></tr></table>
+
+<!--#endif-->
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a component of a <!--#echo Full_Name --> team project
+//
+
+#include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
+)
+undefine([Simple Project Tag]);
+[<!--#echo Process_ID --> Team Node Tag] = tag;
+
+[Project_Path_Prefix] = [../Project_Path_Prefix];
+[Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+[Project_WBS_Subpath] = [../Project_WBS_Subpath] &/ pathTail([^]);
+[Filtered_Task_Labels] = [../Filtered_Task_Labels];
+[Phase_Display_Filter_List] = [../Phase_Display_Filter_List];
+[Rollup_Namespaced_Phase_Metrics] = [../Rollup_Namespaced_Phase_Metrics];
+
+[EV Project Tag] = tag;
+[Earned_Value_Merged_Path_Filter] = index(0, [EV_Task_IDs]);
+
+/*
+ * Redefine the rollup filter to include items from this project, and
+ * respect the label-based filter if it is in effect.
+ */
+[Rollup_Filter] =
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && ([Project_WBS_ID] == [{Project_WBS_ID}] \
+        || startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID]))";
+
+
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
+[DB_Project_ID_List] = inherit("Project_ID");
+[DB_WBS_Relative_Path] = [Project_WBS_Subpath];
+[DB_WBS_Relative_Path_ID] = [Earned_Value_Merged_Path_Filter];
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

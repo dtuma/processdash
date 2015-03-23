@@ -1,0 +1,92 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='../../dash/teamStart.css'>
+<script>
+    function fixURL(url) {
+        var sepPos = url.lastIndexOf("/+/");
+        if (sepPos != -1)
+            url = url.substring(0, sepPos) + "//" + url.substring(sepPos+3);
+        return url;
+    }
+
+    function textToHTML(text) {
+        return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+            .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
+    }
+
+    function writeHref() {
+        document.write("<PRE>        ");
+        document.write(textToHTML(fixURL(window.location.href)));
+        document.write("</PRE>");
+    }
+</script>
+<style>
+  li { margin-top: 12pt }
+</style>
+</head>
+<body>
+
+<img align="left" src="../../Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Joining the Project</h2>
+
+<p>To join the team project, print out these instructions and follow
+the steps below:
+
+<ol>
+
+<li>In your dashboard, open the hierarchy editor.  Select a node in your
+    hierarchy, and choose "Edit - Add Template - Team Project".  Give
+    the project an appropriate name. Then choose "File - Save" and
+    "File - Close."</li>
+
+<li>Use the hierarchy menus to navigate to the team project node you
+    just created.  Click the script button, and a "Team Project
+    Setup Wizard" window will appear to help you setup the project.</li>
+
+<li>When you get to the screen asking for a URL to the team project,
+    enter the following:
+
+<script>
+    writeHref();
+</script></li>
+    
+</ol>
+
+<hr>
+
+<p>If you cannot follow the instructions above because there is not a
+"Team Project" entry in the hierarchy editor's "Add Template" menu,
+follow these steps:
+
+<ol>
+
+<li>Use the script button to open any dashboard script or form.
+
+<li>When the script or form appears in your browser window, look at
+    the value in your browser's &quot;Address&quot; field: it should
+    look something like 
+    &quot;<code>http://localhost:####/rest/of/url</code>&quot;. 
+    Write down the number that appears after
+    &quot;<code>localhost:&quot;.</li>
+
+<li>Now type in the URL:
+
+    <pre>    http://localhost:####/dash/teamStart.class</pre>
+
+    but replace <code>####</code> with the number you just wrote
+    down.</li>
+
+<li>When you get to the screen asking for a URL to the team project,
+    enter the following:
+
+<script>
+    writeHref();
+</script></li>
+
+</ol>
+
+</body>

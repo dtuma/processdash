@@ -1,0 +1,46 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select Team Project Level</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamMaster'>
+
+
+<p>Team projects can be managed at two different levels.  At the first
+level, a <b>team</b> project can be used to coordinate the work of a
+team of individuals.  At a higher level, a <b>master</b> project can
+be used to coordinate the work of several team projects.</p>
+
+<p>Which would you like to do?</p>
+
+<table>
+
+<tr>
+<td align=center><input type=submit name='createTeamProject'
+    value='Team Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I would like to create a team project to coordinate the work
+    of several individuals.</td>
+</tr>
+
+<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+<tr>
+<td align=center><input type=submit name='createMasterProject'
+    value='Master Project'>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>I would like to create a master project to coordinate the work
+    of several team projects.</td>
+</tr>
+
+</table>
+
+</form>
+</body>

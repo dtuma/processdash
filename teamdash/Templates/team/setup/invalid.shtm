@@ -1,0 +1,30 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<style>
+TD.label { font-weight: bold;   vertical-align: top;
+           text-align: left;    padding-right: .5cm }
+TD.value { font-family: monospace }
+</style>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg">
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Invalid Request</h2>
+
+This wizard automates the task of setting up a team project.  
+<!--#if [Project_ID] || [Team_Directory] || [Team_URL] -->
+    The project, &quot;<!--#echo var=PATH_TRANSLATED -->&quot; has
+    already been set up.
+<!--#else-->
+    However, &quot;<!--#echo var=PATH_TRANSLATED -->&quot; is not the
+    root of a team project.
+<!--#endif-->
+Therefore, this wizard cannot continue.
+
+</form>
+</body>

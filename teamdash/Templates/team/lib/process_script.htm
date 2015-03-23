@@ -1,0 +1,54 @@
+<html>[!--#do-not-translate--]
+<head>
+<title><!--#echo Full_Name --> Script</title>
+<link rel=stylesheet type="text/css" href="style.css">
+</head>
+<body>
+<h1><!--#echo Full_Name --> Process Script</h1>
+
+<table border>
+<tr>
+<td>Phase<br>Number</td>
+<td>Purpose</td>
+<td>To guide the <!--#echo Process_Name --> process.</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td>
+<td valign=top>Entry Criteria</td>
+<td><ul>
+<li><!--#echo Process_Name --> <a href="summary.shtm">Project Plan Summary</a>
+    form</li>
+<li><a href="../reports/timelog.class">Time</a> and 
+    <a href="../reports/defectlog.class">Defect</a> Recording Logs</li>
+<li><a href="../reports/dts.class">Defect Type Standard</a></li>
+</ul></td>
+</tr>
+
+<!--#incr PHASE_NUMBER -->
+<!--#foreach name=Phase list=Phase_List -->
+
+<tr>
+<td valign=top><!--#incr PHASE_NUMBER --><!--#echo PHASE_NUMBER --></td>
+<td valign=top><a href="<!--#echo Phase_ID -->_script.htm"><!--#echo Phase_Long_Name --></a></td>
+<td valign=top><i>Customize this script to put your own instructions
+     here</i></td>
+</tr>
+
+<!--#endfor-->
+
+<tr>
+<td>&nbsp;</td>
+<td valign=top>Exit Criteria</td>
+<td><ul>
+<li>Completed <!--#echo Process_Name -->
+    <a href="summary.shtm">Project Plan Summary</a> form</li>
+<li>Completed <a href="../reports/timelog.class">Time</a> and 
+    <a href="../reports/defectlog.class">Defect</a> Recording Logs</li>
+</ul></td>
+</tr>
+
+</table>
+
+</body>
+</html>

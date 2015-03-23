@@ -1,0 +1,411 @@
+<html>
+<head>
+<title>Managing Team Data (Team Leader)</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Managing Team Data (Team Leader)</h1>
+
+<p>As a member of the team, the team leader may need to use his or her
+<i>personal</i> Process Dashboard dataset to perform project tasks,
+following the general instructions provided above for all team members.  In
+contrast, the Team Dashboard requires minimal attention and requires no
+data entry.  When running, it provides many useful features for project
+planning and tracking.</p>
+
+<h2><a name="pps"></a>Project Plan Summary</h2>
+
+<p>The Team Project Plan Summary is a very useful tool for tracking team
+progress.  You can open the team plan summary by opening the Team
+Dashboard, selecting your team project, and choosing the "Rollup Plan
+Summary" option from the list on the right. The Team Rollup Plan Summary
+contains earned value reports for the project, quality reports and charts,
+and reports of overall project metrics.</p>
+
+<p>The Team Rollup Plan Summary can be very helpful in weekly team
+meetings.  There are two easy ways to view the reports during that meeting.
+First, you can <a href="Installing.html">install</a> the Team Dashboard on
+a laptop computer, take that computer into the conference room for your
+meeting, and open the various rollup reports.  Or, you can install the
+Quick Launcher on a computer in the conference room, bring in a <a
+href="SaveLaunchSnapshot.html">data backup</a> that you've saved from your
+Team Dashboard, and open that data backup in the Quick Launcher.</p>
+
+<p>Also, remember that the Project Plan Summary is editable.  If you
+don't find a particular metric or chart on your report, put the report
+into editing mode and add it.  If you don't find the metric you're
+looking for in the list of provided items, please contact the Process
+Dashboard development team.  We're always open to suggestions on how
+to make the dashboard better!</p>
+
+
+<h2><a name="ev"></a>Earned Value Reports</h2>
+
+<p>The Team Rollup Plan Summary includes earned value reports for the
+project. These reports roll up the individual earned value plans owned
+by each team member into a single earned value plan for the entire
+team.</p>
+
+<p>Near the top of the team earned value report, you will find a
+<i>Show Weekly View</i> hyperlink. Clicking this hyperlink will
+display a chronological cross section of the project schedule that
+summarizes the accomplishments of the previous week and lists the
+tasks scheduled to be completed in the coming week. This is very
+useful in the weekly team meeting.</p>
+
+<p>Once the team has collected a minimum amount of earned value data,
+these earned value reports will include forecasts for overall project
+cost and completion date. You will notice that the team earned value
+plan typically includes two different forecasts for the project
+completion date.</p>
+
+<ul>
+
+<li style='margin-top:12.0pt'><b>Forecast Completion Date</b> is the
+date the project is forecast to finish if no tasks are reassigned. If
+the workload becomes unbalanced and tasks are not reassigned, then
+some team members will finish earlier than others. Accordingly,
+Forecast Completion Date is calculated by looking at each team
+member's schedule and identifying the date the last person is
+projected to finish. </li>
+
+<li style='margin-top:12.0pt'><b>Optimized Forecast Completion
+Date</b> is the date the project is forecast to finish if tasks are
+rebalanced optimally. If you were able to reassign work perfectly so
+every team member finished at the same time, the project might
+complete on the calculated date.</li>
+
+</ul>
+
+<p>Practically speaking, it is rarely possible to keep the workload
+perfectly balanced, so a realistic forecast completion date would fall
+between the two dates provided above. When the two forecast dates
+differ significantly, the project workload is unbalanced and tasks
+likely need to be reassigned.</p>
+
+<p>At times, you may need to drill down into the earned value schedule
+for a particular team member.  To do this, open Team Dashboard window
+and select Task and Schedule from the File menu. Open the schedule for
+the team project. If you highlight the sub-schedule for a particular
+individual, you can choose "Filtered Chart" or "Filtered Report" from
+the "View" menu to see graphical, statistical, and printable views of
+that individual's earned value plan.</p>
+
+
+
+<h2><a name="labelFiltering"></a>Analyzing Filtered Data Using Labels</h2>
+
+<p>Although the project planning summary allows you to drill down into
+subcomponents in your team plan, sometimes you will have a need to
+analyze a subset of data that slices across those hierarchical
+boundaries. To support this need, the dashboard has a powerful feature
+for analyzing arbitrary subsets of team data based on keywords called
+&quot;labels.&quot;</p>
+
+<p>Labels can be associated with tasks using the Work Breakdown
+Structure editor. During the team launch, you may not wish to spend
+the entire team's time entering these labels. But after the launch is
+complete, you might want to open the WBS and attach keywords to
+various tasks. This is done by entering values in the &quot;Task
+Labels&quot; column on the &quot;Task Details&quot; tab. Each task can
+have any number of labels, separated by commas or spaces. Tasks will
+inherit the labels of their WBS parent unless you request
+otherwise.</p>
+
+<p>After you edit labels and save the Work Breakdown Structure, you
+can apply a label filter from any page of your Team Project Plan
+Summary. To apply a label filter, click the filter icon that appears
+at the top of the plan summary page (<img
+src="../Images/icon-filter.png">). A form will be displayed, prompting
+you for the label filter expression you wish to use. The syntax of
+this expression is similar to familiar search engines like Google; the
+form includes an explanation of the syntax.</p>
+
+<p>When you apply the label filter, all the metrics you see in your customized
+forms, charts, and reports will be filtered to include only the tasks that
+match your filter expression.  In addition to the labels that you enter in the
+WBS, the filter expression can also include:</p>
+
+<ul>
+
+<li>The names of milestones, to select only the tasks associated with a given
+milestone.</li>
+
+<li>The special word "Completed_Tasks" will only include data from tasks that
+have been marked complete. (Putting a "<tt>-</tt>" character in front will
+select the incomplete tasks.)</li>
+
+<li>The special word "Completed_Components" will only include data from WBS
+components which are 100% complete.</li>
+
+</ul>
+
+
+<h2><a name="workflows"></a>Analyzing Workflow Data</h2>
+
+<p>To analyze data from the various workflows in your project, select the
+"Workflow Process Analysis" item from the list on the right side of the Team
+Dashboard window.  When the list of project workflows is displayed in your web
+browser, click the name of a particular workflow to see aggregate metrics.</p>
+
+<p>The report will roll up data from all the WBS components that used this
+workflow and that are 100% complete.  By default it will roll up all component
+data from all of the projects in the Team Dashboard, but you can click the
+Filter link at the top to customize this behavior.</p>
+
+<p>The resulting report displays a number of metrics, such as:</p>
+
+<ul>
+
+<li>End-to-end team productivity, which you can use to update the "Rate" you
+use in the Common Team Workflows window.</li>
+
+<li>The average percentage of time spent in each workflow step, which you can
+use to update the "%" column in the Common Team Workflows window.</li>
+
+<li>Information on the average estimating error, which your team can use to
+make better estimates in the future.</li>
+
+<li>Information on cost of quality, which you can use to improve the
+process.</li>
+
+</ul>
+
+<p>These metrics are extremely useful for ongoing quality monitoring, and for
+end-of-cycle postmortem analysis.</p>
+
+
+<h2><a name="backups"></a>Backing Up Project Data</h2>
+
+<p>Over the course of the project, you should periodically save a backup of
+the data in the Team Dashboard (saving a backup each week is recommended).
+Just choose File&nbsp;&#8594;&nbsp;Save Data Backup from the main Team
+Dashboard window.</p>
+
+<p class="figure"><img src="../Images/team-save-data-backup.png"></p>
+
+<p>If you retain these backups, you can open them later in the Quick
+Launcher to see a historical view of the project's progress.</p>
+
+<h2><a name="importExport"></a>Importing/Exporting Data</h2>
+
+<p>During the project, the <i>individual dashboard datasets</i>
+belonging to each team member export metrics data to the shared team
+directory. This exported data is then imported into the <i>team
+dashboard</i> to calculate rolled up team data.</p>
+
+<p>This export/import mechanism is generally fully automatic. The
+<i>individual dashboards</i> automatically export their data each
+night, and each time they are shut down. The <i>team dashboard</i>
+checks for new data every ten minutes, and imports any new data it
+finds. As a result, you generally will not need to interact with the
+export/import mechanism.</p>
+
+<p>At times, however, you may wish to have a team member correct a
+piece of erroneous data and quickly see the change reflected in the
+team rollup. At these times, you can ask the individual to select
+Export My Data Now from the script menu in their personal dashboard.
+Once their export is complete, you can select Import All Data Now from
+the list of tools on the right pane of the team dashboard.</p>
+
+<p>In addition, if you are using task dependencies to coordinate work
+between individuals, then you should open the team dashboard at least
+once daily. This will allow the team dashboard to recompute the
+completion status of dependent tasks, and communicate this data to
+the individual dashboards.</p>
+
+
+<h2><a name="reassigning"></a>Reassigning Tasks</h2>
+
+<p>Workload balancing is an important part of team project
+management. When you determine that you need to reassign tasks, take
+these steps.</p>
+
+<ol>
+
+<li style='margin-top:6.0pt'>Select the team project in the team
+dashboard, and choose Work Breakdown Structure Editor from the list
+on the right.</li>
+
+<li style='margin-top:6.0pt'>On the Team menu, turn on the Show Bottom
+Up Time Panel option.  After individuals have begun collecting actual
+data for the project, the colored balancing bars will update to
+reflect planned time <i>remaining</i>.  You can use the colored bars
+to balance the remaining work, and their end dates will roughly correspond to
+the "Replan" dates in each team members earned value schedule.</li>
+
+<li style='margin-top:6.0pt'>Switch to the Task Time tab of the Work
+Breakdown Structure Editor. Edit values in the Assigned To column to
+reassign the task(s) in question. Save the changes and close the Work
+Breakdown Structure Editor.</li>
+
+<li style='margin-top:6.0pt'>Any team member who was affected by the
+change should take the following steps:
+
+    <ol type=a>
+
+    <li style='margin-top:4.0pt'>Follow the instructions in the <a
+    href="CreateMemberPlans.html#syncWBS">Synchronize Work Breakdown
+    Structure</a> help topic.  The synchronization logic will display
+    a list of items added; review this list to ensure that the
+    expected changes were made.</li>
+
+    <li style='margin-top:4.0pt'>Open your earned value plan in the
+    Task and Schedule dialog. For each newly assigned task, enter your
+    best estimate of the task time remaining in the Planned Time (PT)
+    column.</li>
+
+    </ol></li>
+
+</ol>
+
+<h2><a name="dataProblems"></a>Bringing Problems to the Team's Attention</h2>
+
+<p>While reviewing data, you may sometimes discover problems with the plan or
+with actual data.  For example, an inspection might be done but one team
+member forgot to mark it complete.  Or an individual might have marked a PSP
+task complete without entering any actual size data.  You can annotate these
+problems by switching to the Task Details tab and entering a value in the Data
+Problems column.</p>
+
+<p class="figure"><img src="../Images/wbs-data-problem.png"></p>
+
+<p>When a note is entered into the Data Problems column:</p>
+
+<ul>
+
+<li>The name of the WBS item (on the left side of the window) will be
+highlighted in red.</li>
+
+<li>If you hover the mouse over the name of the WBS item, the tooltip will
+display the notes that were entered into the Data Problems column.</li>
+
+<li>If this WBS item is assigned to one or more individuals, then when those
+people open the WBS Editor from their personal dashboard, rows will
+automatically be expanded to make the erroneous rows visible.</li>
+
+</ul>
+
+<p>The presence of a note in the Data Problems column will not have any effect
+on team rollups or earned value calculations.  This column is strictly a
+communications tool to facilitate the job of coaches, quality managers, team
+leaders, etc.  When the problem has been resolved, you can clear the error
+flag by deleting the note from the Data Problems column.</p>
+
+<h2><a name="whatIf"></a>Exploring What-if scenarios</h2>
+
+<p>During the launch, the team creates a comprehensive plan.  But change is
+inevitable, and at times you may be asked to explore the impact of a major
+plan change.  For example, stakeholders might want to know the schedule impact
+of a significant change in scope.  Or management might need to know the
+project impact that would result from gaining or losing team members.</p>
+
+<p>To explore these "what-if" scenarios, choose "Save a Copy" from the "File"
+menu of the WBS Editor.  You can explore changes in this copy without
+corrupting the real team plan.</p>
+
+<p>For more information on this feature, see the help topic on
+<a href="AlternativePlans.html">exploring alternative plans</a>.
+
+
+<h2><a name="quickLauncher"></a>Using the Quick Launcher</h2>
+
+<p>When you install the Process Dashboard, it creates a shortcut that
+opens your own personal dashboard dataset (and possibly a second
+shortcut to open the team dashboard).  Sometimes, however, you need to
+look at data from a different dashboard. For example, the quality
+manager may need to look at data collected by a single individual, or
+the team coach may need to view the team plan from a remote
+location. The Quick Launcher makes this possible. If you select the
+Tools for Team Leaders option during installation, a Process Dashboard
+Quick Launcher shortcut will be created for your use.</p>
+
+<p>Individuals can create data backup files by opening their personal
+dashboard and choosing C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Save
+Data Backup.  In the Team Dashboard, this option appears on the File menu.
+You can drag-and-drop one of these data backup files onto the Quick
+Launcher window, and a team or personal dashboard window will open,
+displaying the data exactly as it appeared when the backup was made.</p>
+
+<p>If you do not have a Quick Launcher shortcut, you can open a data backup
+by choosing C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Open Dataset from a
+personal dashboard, or by choosing File&nbsp;&#8594;&nbsp;Open Dataset from
+a Team Dashboard.  Then select the data backup file you would like to
+open.</p>
+
+<p>For more information on the creation and use of data backups, see
+the <a href="../../help/Topics/AdvancedTopics/BackupData.html">data
+backup</a> help topic.</p>
+
+
+<h2><a name="relaunch"></a>Preparing for Project Relaunch</h2>
+
+<p>Most projects use an iterative development approach.  In the Team Dashboard,
+the recommended best practice is to create a new Team Project to represent each
+successive project iteration.  To assist with this task, a special "Relaunch
+Wizard" is provided.</p>
+
+<p>The team leader or planning manager should generally run the Relaunch Wizard
+just before the team's project relaunch meeting.  To do this, open the Team
+Dashboard, select the just-finished project from the list on the left, and choose
+"File&nbsp;&#8594;&nbsp;Alter&nbsp;Project&nbsp;&#8594;&nbsp;Relaunch."  The
+Team Project Relaunch Wizard will open in your web browser.</p>
+
+<p>Read each page of the relaunch wizard carefully and provide the information
+requested.  The relaunch wizard will:</p>
+
+<ul>
+
+<li>Mark the old project as <b><u>closed</u></b>, indicating that no additional
+work will be performed there.</li>
+
+<li>Create a new Team Project to hold the plan for the new iteration.</li>
+
+<li>Copy the workflows, milestones, and team member schedules from the old plan
+to the new plan.</li>
+
+<li>Copy incomplete components and tasks from the old plan to the new plan.</li>
+
+<li>Adjust the planned times of in-progress tasks to account for work that has
+already been performed.  (For example, if a task in the old plan was estimated
+to take 10 hours, and 4 hours were logged against the task in the old
+iteration, the new iteration will show a planned time of 6 remaining
+hours.)</li>
+
+<li>Send invitations to all existing team members, inviting them to join the
+new project iteration.  They will see the invitation when they open their
+personal dashboard.  Individuals who will not be continuing into the new
+project iteration will be free to decline this invitation.</li>
+
+</ul>
+
+<p>After the relaunch wizard finishes, each team member should:</p>
+
+<ol>
+
+<li>Open their personal dashboard</li>
+
+<li>Accept or decline the invitation to join the new project iteration.</li>
+
+<li>Perform a "sync to WBS" operation for the old project iteration.  This will
+clean up their old plan so its earned value schedule is 100% complete.</li>
+
+</ol>
+
+<p>These actions will happen automatically for most team members.  But if a
+particular individual left the project at some time in the past, you may need
+to contact them and ask them to take these steps so the tasks in the their old
+plan are properly closed.</p>
+
+<p>Most teams will also like to view view end-to-end project data that spans
+all of the iterations of the project.  A Master Project meets this need.  If
+you are just beginning your second iteration, you should 
+<a href="MakeMasterProject.html">create a Master Project</a> and
+<a href="AddToMaster.html">add both project iterations</a> to this master.
+If you have already been using a master project, just add the new project
+iteration to the existing master project.</p>
+
+
+</body>
+</html>

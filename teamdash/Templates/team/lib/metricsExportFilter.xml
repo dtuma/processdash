@@ -1,0 +1,76 @@
+<!--#echo defaultEncoding=xml #-->
+<?xml version='1.0' standalone='yes' ?>
+
+<exportMetricsFile>
+  <!--#if not oldStyle #-->
+    <addEntry name="userDump.xml" href="PID/setup/userData" type="PID-reverseSync"/>
+    <addEntry name="addSchedule.xml" type="messages" version="1"
+              href="PID/setup/addSchedule" />
+  <!--#endif #-->
+ 
+  <metricsFilter>
+    <!-- request explicit metrics enumeration -->
+    <exclude>All Metrics Not Explicitly Listed</exclude>
+
+    <!-- include various markers and metadata -->
+    <include>/PID (Rollup Eligible|Tag|Indiv Root Tag)$</include>
+    <include>/Project_WBS_ID$</include>
+    <include>/WBS_Unique_ID$</include>
+    <include>/EV_Task_IDs$</include>
+    <include>/Project_ID$</include>
+    <include>/Indiv_Initials$</include>
+    <include>/WBS_Last_Sync_Timestamp$</include>
+    <include>/PSP Rollup Eligible$</include>
+    <include>/PROBE Task$</include>
+    <include>/Started$</include>
+    <include>/Completed$</include>
+    <include>/Exporting_Namespaced_Phase_Metrics$</include>
+
+    <!-- include basic time and defect information -->
+
+    <!--#if oldStyle -->
+      <!--#foreach name=Phase list=Phase_List -->
+        <include>/<!--#echo Phase_Name -->/(Estimated )?Time$</include>
+        <include>/<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+      <!--#endfor-->
+        <include>/Before Development/Defects Injected$</include>
+        <include>/After Development/Defects Removed$</include>
+
+    <!--#else -->
+      <!--#foreach name=Phase list=Phase_List -->
+        <!--#if Phase_Is_PSP #-->
+          <include>{PSP Project}/<!--#echo Phase_Name -->/(Estimated )?Time$</include>
+	<!--#endif #-->
+        <include>{PSP Project}/<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+        <include>{PID Namespaced Data}/PID /<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+      <!--#endfor-->
+        <include>{PSP Project}/Before Development/Defects Injected$</include>
+        <include>{PSP Project}/After Development/Defects Removed$</include>
+        <include>{PID Namespaced Data}/PID /Before Development/Defects Injected$</include>
+        <include>{PID Namespaced Data}/PID /After Development/Defects Removed$</include>
+
+        <include>{PID Namespaced Data}/PID /(Estimated )?Time$</include>
+        <include>{PID Namespaced Data}/PID /Effective_Phase$</include>
+        <include>/PID Namespaced Data$</include>
+    <!--#endif -->
+
+
+    <!-- include several flavors of size metrics -->
+    <include>/(Estimated )?(Aggregate )?Size$</include>
+
+    <!--#foreach name=Metric list=Size_Metric_Data_Names -->
+        <include>/(Estimated )?<!--#echo value="Metric" -->$</include>
+    <!--#endfor-->
+
+    <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,Total,New Reused," -->
+        <include>/(Estimated )?<!--#echo value="TypeOf" --> LOC$</include>
+        <include>{PROBE Task}/(Estimated )?<!--#echo value="TypeOf" --> Size$</include>
+    <!--#endfor-->
+        <include>/(Estimated )?New &amp; Changed LOC$</include>
+        <include>/(Estimated )?Object LOC$</include>
+        <include>{PROBE Task}/(Estimated )?Added &amp; Modified Size$</include>
+        <include>{PROBE Task}/(Estimated )?Proxy Size$</include>
+        <include>{PROBE Task}/Size Units$</include>
+
+  </metricsFilter>
+</exportMetricsFile>

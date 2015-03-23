@@ -1,0 +1,32 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a team project for <!--#echo Full_Name -->
+//
+
+#include <<!--#echo Process_ID -->/team_root_dataFile.txt>
+undefine([Simple Project Tag]);
+
+[<!--#echo Process_ID --> Team2 Root Tag] = tag;
+
+[Individuals_Using_Stubless_Phases] = true;
+
+
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
+#ifdef DATABASE_PLUGIN
+
+[DB_Project_ID_List] == [Project_ID];
+[DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
+[DB_WBS_Relative_Path_ID] = [Earned_Value//Merged_Path_Filter];
+
+[Database_Auto_Labels] = dbAutoLabels("##Project in", [DB_Project_Keys]);
+[Database_Auto_Labels_Deferred] = dbAutoLabelsDeferred("Database_Auto_Labels");
+[Task_Labels] = list([Synchronized_Task_Labels], 
+    [Synchronized_Task_Milestones], [Database_Auto_Labels_Deferred]);
+
+[IMPORT_FILE/Instructions] = list([Project_ID],
+    "file:/<!--#echo Process_ID -->/importFilterSpecDB.xml");
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->
+
+#endif

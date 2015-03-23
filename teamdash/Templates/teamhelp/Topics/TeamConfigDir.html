@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Create Team Configuration Directory (Team Leader)</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Create Team Configuration Directory (Team Leader)</h1>
+
+<p>The team support add-on for the Process Dashboard currently uses a shared
+network directory to facilitate team collaboration.  When a particular team
+begins using the Team Dashboard for the first time, it will be necessary to
+create a network directory for them to use.</p>
+
+<p>This <i>team configuration directory</i> will contain important team
+planning information, such as the list of all the project iterations the team
+has performed.  In the typical configuration, this directory will also hold
+exported snapshots of individual data, which the Team Dashboard will import
+and use to compute team roll-ups.</p>
+
+<p>This team configuration directory must be accessible, readable, and
+writable by all team members.  Because of this, it should generally be a
+shared network directory. Since the directory will typically hold PSP data
+collected by individuals, you may wish to configure it with permissions that
+forbid file access by non-team members.</p>
+
+<p>If you have several subteams that will be working together closely, and
+those subteams need to roll up their data into a single set of reports, you
+should create a single directory that all of these subteams will share.  If
+you have multiple teams that are not closely related and who will not be
+viewing consolidated reports, those teams should each have their own
+directory.</p>
+
+<p>If your team is performing several projects (or project iterations) one
+after another, you should use a single team configuration directory for all of
+the iterations.</p>
+
+<p>Some projects will already have a shared network directory that is
+used to hold project documents. If this is true for your project,
+simply create a subdirectory for dashboard metrics data.  If your
+project does not already have a shared project directory, work with
+your information technology (IT) support staff to create one.</p>
+
+<p><a name="criteria"></a>For this directory, it is <b><u>critical</u></b> to
+ensure that the following file permissions are in place:</p>
+
+<ul>
+
+<li>All team members must be able to read/write all files</li>
+
+<li>Permissions must be set to "inherit" - so that when new files and
+subdirectories are created, all team members can read/write them as
+well.</li>
+
+</ul>
+
+<p>If the members of your team are predominately using the Microsoft
+Windows operating system, the use of a UNC path is strongly
+recommended for configuration purposes.  That is, whenever the
+dashboard asks for the location of this directory, you are encouraged
+to enter the directory path as <tt>\\serverName\path\to\directory</tt>
+instead of <tt>T:\path\to\directory</tt>.</p>
+
+<p>Also, the Team Dashboard must be able to read and write directly to the
+files in this directory.  <b style="color: a00">Do not</b> make use of
+"Offline Folders," "Windows Sync," "Dropbox," "Google Drive," or any other
+similar utilities which create a shadow copy of the files out on the network.
+Use of those utilities will introduce a <b style="color: a00">high probability
+of catastrophic loss</b> of Team Dashboard data.</p>
+
+<p>There will be times in the future that you will need to recall the
+location of the team configuration directory (for example, if a new
+individual needs to install a Team Dashboard shortcut).  If you forget this
+location, you can look it up by opening the Team Dashboard, choosing
+Help&nbsp;&#8594;&nbsp;About Process Dashboard, and clicking the Configuration
+tab.  The first paragraph on the Configuration tab will provide the location
+of the team configuration directory.</p>
+
+<!-- Add blank space to the bottom of the page, so we can scroll to -->
+<!-- all of the HTML anchors named above -->
+<p class="hideInBook">
+&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p>
+
+</body>
+</html>

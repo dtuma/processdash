@@ -1,0 +1,56 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for an individual <!--#echo Full_Name --> project.
+//
+
+#include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Project_Component_List], ".*/% Defect Free",
+    [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
+)
+#include <<!--#echo Process_ID -->/indiv_root_data.txt>
+
+undefine([Simple Project Tag]);
+[Exporting_Namespaced_Phase_Metrics] = true;
+[<!--#echo Process_ID --> Indiv2 Root Tag] = tag;
+[Enable_Reverse_Sync] = true;
+[EV Project Tag] = tag;
+
+
+/*
+ * Define items in support of project node types.
+ */
+[<!--#echo Process_ID --> /Effective_Phase] = "?????";
+[/<!--#echo Process_ID --> /No_Node_Type] == "";
+[Node_Type] == [/<!--#echo Process_ID --> /No_Node_Type];
+[Node_Type_Spec] = list(
+    "(processName:<!--#echo Full_Name -->)",
+    [/<!--#echo Process_ID -->/Phase_List]);
+
+
+/*
+ * Redefine the rollup filter to include items from this project, and
+ * respect the label-based filter if it is in effect.
+ */
+[Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
+[Project_WBS_ID_Filter] = nvl([Project_WBS_ID//Filter], [Project_ID]);
+
+[Rollup_Filter] =
+    "nvlz(!defined([{Filtered_Task_Labels}]), \
+          intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && nvlz([Project_WBS_ID] == [{Project_WBS_ID_Filter}], \
+          startsWith([{Project_WBS_ID_Filter}] & \"/\", [Project_WBS_ID]))";
+
+[Rollup_Namespaced_Phase_Metrics] = true;
+
+
+/*
+ * On the team side, the calculations assume that the team inspects
+ * the products that were produced.  But on the personal side, that
+ * isn't true - you are inspecting other people's products, not your
+ * own. Redefine the "Inspected" metrics to sum up the corresponding
+ * "Inspected" items from the Size Inventory form.
+ */
+<!--#foreach name=Metric list=Size_Metric_Data_Names -->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+[Estimated_Inspected Metric] = 0 + sumFor ("Estimated_Inspected Metric" , [Rollup_List]);
+<!--#endfor-->
+<!--#endfor-->

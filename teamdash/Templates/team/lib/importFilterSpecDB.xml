@@ -1,0 +1,20 @@
+<?xml version='1.0' standalone='yes' ?>
+
+<!-- 
+   The instructions in this file are activated when the database plugin is
+   operating.  In that scenario, this file alters the behavior of the legacy
+   import mechanism, telling it to avoid importing elements that will be read
+   from the database instead.
+-->
+
+<importFilterSpec>
+
+    <metrics>
+        <importRootElementsOnly/>
+    </metrics>
+
+    <defects>
+        <importDisabled/>
+    </defects>
+
+</importFilterSpec>

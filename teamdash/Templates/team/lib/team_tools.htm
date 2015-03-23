@@ -1,0 +1,184 @@
+<html>[!--#do-not-translate--]
+<head>
+<title>Team Project Tools</title>
+<link rel=stylesheet type="text/css" href="style.css">
+<script src="fixSlash.js"></script>
+<script>
+
+    [!--#include file='setup/setTeamServerJoinUrl' parse='true' --]
+    var teamServerJoinUrl = "[!--#echo var=teamServerJoinUrl encoding=javaStr --]";
+
+    function eesc(str) {
+        str = escape(str);
+        str = str.replace(/\//g, "%2F");
+        str = str.replace(/\./g, "%2E");
+        str = str.replace(/\+/g, "%2B");
+        return str;
+    }
+    function textToHTML(text) {
+        return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+            .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
+    }
+
+    
+    function getExtURL(file) {
+        var url = "http://[!--#include file='/dash/serverName.class' --]:"
+            + window.location.port
+            + "[!--#echo var=PATH_TRANSLATED encoding=url --]/+/"
+            + file;
+        return url;
+    }
+
+    function writeHrefLink(file) {
+        var url = getExtURL(file);
+	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
+    }
+
+    function writeToolsLink() {
+        writeHrefLink("<!--#echo Process_ID -->/team_tools.shtm");
+    }
+
+    function writePlanLink() {
+        writeHrefLink("<!--#echo Team_Plan_Summary -->");
+    }
+
+    function writeJoinLink() {
+        if (!teamServerJoinUrl) {
+            writeHrefLink("<!--#echo Process_ID -->/setup/join.shtm");
+        } else {
+	    document.write("<a href='" + teamServerJoinUrl + "'>"
+                + textToHTML(teamServerJoinUrl) + "</a>");
+        }
+    }
+
+    function writeMailtoLink() {
+	var url = teamServerJoinUrl;
+        if (!url) url = getExtURL("<!--#echo Process_ID -->/setup/join.shtm");
+        document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
+    }
+
+</script>
+
+</head>
+<body>
+
+<h1>[!--#echo PATH_TRANSLATED --]</h1>
+
+<h2>Team Project Tools</h2>
+
+<p><form action="team_project_parameters.shtm" method="GET">
+<input type=submit name="submit" value="Edit project parameters and settings">
+</form>
+
+<p><form action="../control/importNow.class" method="POST">
+<input type=submit name="submit" value="Import All Data Now">
+</form>
+
+[!--#if Dash_Package_pspdash ge 'version 1.7.1b.8' --]
+[!--#if HTTP_HOST =~ '^localhost:' --]
+<p><form action="../control/showTimeLog" method="POST">
+<input type=hidden name="type" value="rollup">
+<input type=hidden name="for" value="[Corresponding_Project_Nodes]">
+<input type=hidden name="mergePrefixes" value="t">
+<input type=submit name="submit" value="View Team Time Log">
+</form>
+[!--#endif HTTP_HOST --]
+[!--#endif 1.7.1b.8 --]
+
+<p><form action="/dash/archive.class" method="POST">
+<input type=hidden name="filename"
+       value="<!--#echo Process_ID -->_Summary-PREFIX">
+<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Team_Plan_Summary -->">
+<input type=submit name="submit" value="Save Snapshot of Project Plan">
+</form>
+
+
+<h3>Team Planning Tools</h3>
+
+<!--#foreach name=Document list=Document_List -->
+<!--#if Document_Show_On_Team_Tools -->
+<p><form action="../dash/file.class" method="POST">
+<input type=hidden name="file" value="<!--#echo Document_Name -->">
+<input type=submit name="submit" value="Edit <!--#if Document_Long_Name --><!--#echo Document_Long_Name --><!--#else--><!--#echo Document_Name --><!--#endif-->">
+</form>
+<!--#endif-->
+<!--#endfor-->
+
+[!--#include file='setup/inclTeamTools.class' --]
+
+<p><form action="setup/sync.class" method="POST">
+<input type=submit name="submit" value="Sync Work Breakdown Structure">
+</form>
+
+<p><form action="setup/teamMetricsStatus" method="GET">
+<input type=hidden name="for" value="Corresponding_Project_Nodes">
+<input type=submit name="submit" value="Show Status of Team Member Metrics">
+</form>
+
+<p><form action="setup/wizard.class" method="GET">
+<input type=hidden name="page" value="relaunch">
+<input type=submit name="submit" value="Relaunch Project">
+</form>
+
+[!--#if migrate || convert || enableTeamProjectMigrationTool --]
+
+[!--#if ![Individuals_Using_Stubless_Phases] --]
+<p><form action="setup/migrate" method="POST">
+<input type=submit name="submit" value="Migrate Project to New-Style Data Format">
+</form>
+
+[!--#else--]
+
+<p><form action="setup/convert" method="POST">
+<input type=submit name="submit" value="Convert Project to Different Metrics Collection Framework">
+</form>
+
+[!--#endif--][!--#endif--]
+
+
+<h3>Useful Hyperlinks</h3>
+
+[!--#if http.allowRemote eq 'true' --]
+
+<p><b><i>(Note: These hyperlinks will only work while this dashboard
+is running.  If you shut down the dashboard, people trying to visit
+these hyperlinks will see a &quot;Page Not Found / Cannot Find
+Server&quot; error message.)</i></b>
+
+
+<p style="margin-bottom:0pt">You can view this page from another
+computer by visiting:</p>
+<div style="margin-left:1in"><script> writeToolsLink(); </script></div>
+
+
+<p style="margin-bottom:0pt">Members of your team (and other
+interested individuals) can view the current plan summary for this
+project (including the current earned value status) by visiting:</p>
+<div style="margin-left:1in"><script> writePlanLink(); </script></div>
+
+
+[!--#if teamServerJoinUrl --]
+<p><b><i>(The following hyperlink will work, even if this dashboard is
+not running.)</i></b>
+[!--#endif--]
+
+[!--#endif http.allowRemote --]
+
+<p style="margin-bottom:0pt">Team members can join this project by
+pointing their web browser to:
+<div style="margin-left:1in"><script> writeJoinLink(); </script></div>
+[!--#if READ_ONLY --]
+[!--#if Dash_Package_pspdash lt 'version 1.12.1.3b' --]
+<div style="margin-left:1in" class="error">Problem: this dashboard is
+currently running in read-only mode.  As a result, when individuals
+join, their personal schedules can not be added to the rolled-up team
+schedule.  To avoid this problem, please restart this dashboard in
+read-write mode before asking team members to join.</div>
+[!--#endif--][!--#endif--]
+
+To make it easy for individual team members to join this project,
+you can <script> writeMailtoLink(); </script> to send them an email
+with instructions.</p>
+
+</body>
+</html>

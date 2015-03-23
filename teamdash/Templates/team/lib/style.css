@@ -1,0 +1,5 @@
+<!--#include file="/style.css" -->
+
+TD.indented { padding-left: .5cm }
+
+.error  { font-style: italic; font-weight: bold; color: red }

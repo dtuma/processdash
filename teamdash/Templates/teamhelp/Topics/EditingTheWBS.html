@@ -1,0 +1,234 @@
+<html>
+<head>
+<title>Editing the Work Breakdown Structure</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Editing the Work Breakdown Structure</h1>
+
+<p>The Work Breakdown Structure Editor and the Common Workflows Editor
+both display a hierarchical collection of WBS items in an outline
+format. You can edit this outline using both the mouse and the
+keyboard, in a manner that will feel familiar to users of Microsoft
+PowerPoint or Microsoft Word. This section explains many of the
+editing features that are available for editing the hierarchical
+WBS.</p>
+
+<ul>
+
+<li style='margin-top:12.0pt'>To select an item in the WBS, just click
+on the name of the item.  You can click and drag to select an entire
+range of WBS items. Once an item is selected, you can use the Up,
+Down, PgUp, and PgDn keys to select a different WBS item.</li>
+
+
+<li style='margin-top:12.0pt'>To create a new entry in the WBS, press
+Enter or Insert. Pressing Enter will create a new item below the
+currently highlighted WBS item; pressing Insert will insert the new
+line before the currently highlighted WBS item.  These features are
+also provided on the Edit menu as the Insert After and Insert
+options.
+
+<p><b>Note:</b> during the initial launch, you will be creating many new
+tasks.  For this reason, the Enter key is configured to create a new row -
+just like hitting Enter in a word processor would create a new paragraph.
+After the launch is complete, it will be less common to create new tasks,
+and you may find yourself hitting Enter and inserting tasks by mistake.  To
+fix this, a toggle button (<img src="../Images/icon-enter.png">) is
+provided on the toolbar.  Clicking this icon will toggle the behavior of
+the Enter key between "create a new row" (word-processor-like behavior) and
+"move to the next line" (spreadsheet-like behavior).  When you have the
+"new row" behavior toggled off, you can still create a new row from the
+keyboard by typing Ctrl-Enter.</p></li>
+
+
+<li style='margin-top:12.0pt'>To edit the name of a WBS item, just
+click on the name of the item. A blinking cursor will appear, allowing
+you to edit the WBS item name.</li>
+
+
+<li style='margin-top:12.0pt'>To delete the currently selected WBS
+item(s), click the trash can button on the toolbar (<img
+src="../Images/icon-trashcan.png">) or select Delete from the Edit
+Menu.</li>
+
+
+<li style='margin-top:12.0pt'>The items are displayed in outline
+format; this means that you can control their hierarchical arrangement
+by changing their indentation. Press the Tab key to indent the
+currently selected WBS item(s) to the right. Press the Shift-Tab key
+to un-indent the currently selected WBS item(s) to the left.  You can
+also use the promote (<img src="../Images/icon-promote.png">) and
+demote (<img src="../Images/icon-demote.png">) buttons (on the toolbar
+and in the Edit menu) to accomplish this task.</li>
+
+
+<li style='margin-top:12.0pt'>When a WBS item has <i>children</i>
+(that is, when other items are indented underneath it), a small plus
+(<img src="../Images/icon-plus.png">) or minus (<img
+src="../Images/icon-minus.png">) icon will appear to the left of the
+WBS item. You can click on this plus/minus icon to hierarchically
+expand and collapse that WBS item. The toolbar also provides expand
+(<img src="../Images/icon-expand.png">), collapse (<img
+src="../Images/icon-collapse.png">), and expand all (<img
+src="../Images/icon-expand-all.png">) buttons for convenience.</li>
+
+
+<li style='margin-top:12.0pt'>Cut / Copy / Paste operations are
+provided for rearranging the WBS. Highlight one or more WBS items and
+click the copy button on the toolbar (<img
+src="../Images/icon-copy.png">) to copy them to the clipboard. Select
+the desired destination and click the paste button on the toolbar
+(<img src="../Images/icon-paste.png">). To move items instead
+of copying them, use the cut button (<img
+src="../Images/icon-cut.png">) instead of the copy button.
+
+<p><b>Note:</b> If you find yourself repeatedly copying and pasting
+some particular group of WBS items, you may be able to save time by
+defining a common workflow instead.</p></li>
+
+
+<li style='margin-top:12.0pt'>To rearrange the order of two adjacent items,
+use the Move Up and Move Down buttons on the toolbar.  The move up button
+(<img src="../Images/icon-move-up.png">) will cause a WBS item to exchange
+places with its previous sibling.  If the item being moved has hierarchical
+children, they will be moved as well.  The move down button (<img
+src="../Images/icon-move-down.png">) will cause a WBS item to exchange
+places with the sibling that follows.  (Note that these operations could
+also be accomplished with Copy and Paste, but for the specific task of
+rearranging items, move up and move down can be more convenient.)</li>
+
+
+<li style='margin-top:12.0pt'>Each WBS item is represented by an icon to the
+left of the item name. This icon indicates whether the item is a software
+component, document, or task.  Rectangular icons 
+(<img src="../Images/icon-task-workflow.png">) are used to indicate tasks that
+were created by the application of a workflow, while parallelograms
+(<img src="../Images/icon-task-adhoc.png">) are used to indicate ad-hoc tasks
+that were manually added to the WBS.  If you hover the mouse pointer over an
+icon, a tool tip will display the name of the item type depicted by the
+icon. For example, hovering over a WBS item with the floppy disk icon (<img
+src="../Images/icon-floppy.png">) would display a tool tip that reads
+"Software Component."  To change the type of a WBS item, click on the icon to
+display a menu of options.  You can also open this menu using your keyboard by
+pressing the "context menu" key, or by typing Alt-Enter.</li>
+
+</ul>
+
+<p class="figure"><img  src="../Images/wbs-icon-menu.png"></p>
+
+<ul>
+
+<li>To change the types of <i>many</i> items simultaneously, it is
+more efficient to use the right hand side of the window.  Select the
+Task Time tab, select a cell in the Phase/Type column, and select
+"Copy WBS Data" from the Edit menu.  Then select a range of cells in
+the Phase/Type column and type "Paste WBS Data" to paste the item type
+into all cells at once.</li>
+
+<li style='margin-top:12.0pt'>To calculate metrics correctly, the Work
+Breakdown Structure Editor must enforce certain rules/restrictions on
+the structure of the hierarchy. If you violate one of these rules, the
+icon will turn red. Hovering over a red icon will display a tool tip
+explaining the problem that needs correcting. For example, in the
+picture below, there is a problem with one of the WBS items - its
+floppy disk icon has turned red. The tool tip explains the specific
+problem encountered.</li>
+
+</ul>
+
+<p class="figure"><img src="../Images/wbs-node-error.png"></p>
+
+<ul>
+
+<li>Once your project has begun and individuals start collecting data, the
+WBS will be able to tell which tasks and components have been marked
+complete.  It will show this visually by drawing a strikethrough line on
+the name of any WBS element that is 100% complete.  For tasks that have
+been assigned to more than one individual, strikethrough will be used in the
+"Assigned To" column to indicate which individuals have marked the tasks
+complete.  These visual cues can help as you rebalance remaining work.</li>
+
+<li style='margin-top:12.0pt'>You can insert a list of tasks into the WBS
+by copying and pasting
+task names from another program such as Excel or Word. Arrange the
+task names in a vertical column in Excel (or place one task name on
+each line in Word), and copy the names to the clipboard. Then,
+highlight a row in the WBS, and click the paste button on the
+toolbar&nbsp;(<img src="../Images/icon-paste.png">). The tasks will be
+inserted before the selected row.</li>
+
+<li style='margin-top:12.0pt'>To quickly find a particular item in the Work
+Breakdown Structure, click the find (<img src="../Images/icon-find.png">)
+button on the toolbar.  Enter a word or phrase to find the next/previous item
+whose name or notes contain that text.</li>
+
+<li style='margin-top:12.0pt'>If you wish to find a all of the items that
+match a particular set of criteria, click the filter (<img
+src="../Images/icon-filter-off.png">) button on the toolbar.  In the window
+that appears, specify the criteria that you are interested in and click the
+Apply Filter button.  The filter button will "light up" to indicate that a
+filter is in effect (<img src="../Images/icon-filter-on.png">), and the WBS
+Editor will hide items that do not match your criteria.  Notes:
+
+    <ul style='margin-top:6pt'>
+
+    <li>In the name, milestones, and notes fields, you can enter multiple
+        values separated by the vertical bar (<tt>|</tt>) character, and it
+        will find items that match any of those values.</li>
+
+    <li>In the Assigned To filter, you can list the initials of several people
+        to find tasks that are assigned to any one of them.  (This can be a
+        helpful way to perform workload balancing.)</li>
+
+    <li>In the labels field, you can enter multiple labels separated by
+        commas, and it will find items that have any of those labels.</li>
+
+    <li>If a particular item matches, the WBS Editor will display all of its
+        parents and children as well.</li>
+
+    <li>If you enter multiple criteria, they all must match.  However, these
+        matches can occur at different levels of the hierarchy; so for
+        example, you could search for incomplete tasks underneath a component
+        whose name contained a particular word.</li>
+
+    <li>Although nonmatching items are hidden from view, the WBS Editor will
+        not automatically expand the items that do match.  If you would like
+        to see all of the matches, highlight the root of the project and click
+        the Expand All icon on the toolbar.</li>
+
+    <li>Although nonmatching items are hidden from view, they are still
+        present and can still be affected by editing operations.  For example,
+        if you edit the top-down time estimate for an entire component, it
+        will still scale all of the tasks underneath that component, including
+        the ones that are hidden by the filter.</li>
+
+    <li>While the filter is in effect, you will not be able to edit the
+        hierarchical structure of the WBS.  For example, you will not be able
+        to insert, delete, or move any components or tasks.  If you need to
+        make these types of changes, you will need to remove the filter
+        first.</li>
+
+    </ul></li>
+
+<li style='margin-top:12.0pt'>The Work Breakdown Structure Editor
+provides extensive undo and redo support via the undo (<img
+src="../Images/icon-undo.png">) and redo (<img
+src="../Images/icon-redo.png">) buttons on the toolbar. This undo/redo
+not only encompasses <i>structural</i> changes made to the
+hierarchical WBS in the left-hand side of the screen, but also
+includes <i>metrics</i> changes made in the tabs on the right-hand
+side of the screen.</li>
+
+</ul>
+
+<p>All of the features above are designed to make editing the WBS easy
+and fast, so you can create a useful plan during your team project
+launch.  However, you should take additional care when editing the WBS
+after the project has begun.  For more information, see the help topic
+on editing the WBS <a href="EditingWBSDuringProject.html">after
+project launch</a>.</p>
+
+</body>
+</html>

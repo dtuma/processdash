@@ -1,0 +1,87 @@
+/*
+ * CSS Style definitions used by the Team Overview table
+ */
+
+table.to-table {
+	border-collapse: collapse;
+	font-size:4pt;
+	color:white;
+}
+
+table.to-table a {
+	color: black;
+	text-decoration: none;
+}
+
+table.to-table a:hover {
+	color: blue;
+	text-decoration: underline;
+}
+
+td.to-rolename {
+	padding: 5px;
+	font-size: 16.0pt;
+	font-weight: bold;
+	font-family: Arial;
+	text-align: center;
+	color: black;
+}
+
+td.to-vertline {
+	color: black;
+	background-color: black;
+	width: 3px;
+}
+
+td.to-space {
+	width: 4px;
+	color: white;
+}
+
+td.to-taskorgprep {
+	background-color: #FFCC99;
+	text-align: center;
+	vertical-align: center;
+	font-size: medium;
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	padding: 2px;
+	color: black;
+}
+
+td.to-tasklaunchprep {
+	background-color: #FFFF99;
+	text-align: center;
+	vertical-align: center;
+	font-size: medium;
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	padding: 2px;
+	color: black;
+}
+
+td.to-tasklaunch {
+	background-color: #CCFFCC;
+	text-align: center;
+	vertical-align: center;
+	font-size: medium;
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	padding: 2px;
+	color: black;
+}
+
+td.to-taskproj {
+	background-color: #99CCFF;
+	text-align: center;
+	vertical-align: center;
+	font-size: medium;
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	padding: 2px;
+	color: black;
+}

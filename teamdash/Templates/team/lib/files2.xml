@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+
+<file-list>
+
+   <directory name="Team Project Document Directory"
+              templatePath="/Templates/<!--#echo Process_ID -->"
+              path="[Team Project Document Directory]">
+      <var name="[Team Project Document Directory]">
+           Please enter the complete path to a directory where you would like
+           to store documents pertaining to this team project.</var>
+
+      <!--#foreach name=Document list=Document_List -->
+      <file name="<!--#echo Document_Name -->" 
+            path="[<!--#echo Document_Name --> Filename]"
+            defaultPath="<!--#echo Document_Filename_Basename -->" 
+            templatePath="<!--#echo Document_Filename_Basename -->" />
+      <!--#endfor-->
+
+   </directory>
+
+</file-list>

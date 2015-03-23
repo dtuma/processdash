@@ -1,0 +1,30 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px"><!--#echo var=PATH_TRANSLATED --></h1></td>
+</tr></table>
+
+<h2>Joining Complete</h2>
+
+You have successfully joined this team project.  If you return to the main
+Process Dashboard toolbar and click on the script button, you will find a
+number of useful tools for managing your personal plan.
+
+<!--#if schedProblem -->
+
+<table width='100%'><tr><td width='100%' bgcolor="#ff6666">However,
+the dashboard was unable to add your personal earned value schedule to
+the team earned value schedule.  <b><u>Please tell your team leader
+about this problem</u></b>; they will be able to add your schedule to
+the team schedule manually.</td></tr></table>
+
+<!--#endif-->
+
+</form>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<html><!--#do-not-translate-->
+<head>
+<!--#if not [Team_Process_PID] -->
+<meta http-equiv="Refresh" CONTENT="0;URL=join.class">
+</head></html>
+<!--#else-->
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='../../dash/teamStart.css'>
+<script>
+    var remoteDashboardPresent = true;
+
+    function imageLoadFailed() {
+	remoteDashboardPresent = false;
+        document.images[0].src = "../../Images/team.jpg";
+	setClassName("dashboardPresent", "displayNone");
+	setClassName("dashboardAbsent", "displayInline");
+    }
+
+    function setClassName(objID, classname) {
+        var elem = document.getElementById(objID);
+	if (elem == null) return;
+	elem.className = classname;
+    }
+
+    function fixURL(url) {
+        var sepPos = url.lastIndexOf("/+/");
+        if (sepPos != -1)
+            url = url.substring(0, sepPos) + "//" + url.substring(sepPos+3);
+        return url;
+    }
+
+    function textToHTML(text) {
+        return text.replace(/&/, "&amp;").replace(/</, "&lt;")
+            .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
+    }
+
+    function maybeSubmit() {
+        if (remoteDashboardPresent)
+	    document.forms[0].submit();
+        else
+	    window.location.reload(true);
+    }
+
+</script>
+
+<style>
+    .displayNone { display:none }
+    .displayInline { }
+</style>
+
+</head>
+<body>
+<table width='100%'>
+<tr><td width='100%'><img align="left" onError="imageLoadFailed()"
+src="http://localhost:2468/Images/team.jpg?<!--#echo "_UNIQUE_" -->"><h1>Team
+Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
+</table>
+
+<form action="http://localhost:2468/dash/teamStart.class" method="post">
+
+<p>This wizard will help you to join a team project.</p>
+
+<div id="dashboardPresent">
+    <p>Please ensure that you have the dashboard running, then click
+    &quot;Next&quot; to continue.</p>
+</div>
+
+<div id="dashboardAbsent" class="displayNone">
+    <p class="error">To successfully join a team project, you must
+    have the dashboard running.  It appears that you are <b>not</b>
+    currently running the dashboard.  Please start the dashboard
+    if it is not running, and click the &quot;Next&quot; button.</p>
+
+    <p>If this message is in error, and you <b>are</b> currently
+    running the dashboard, <a href="joinManually.shtm">click here</a>
+    for further instructions.</p>
+</div>
+
+<script>
+    document.write("<input type='hidden' name='Team_URL' value='");
+    document.write(textToHTML(fixURL(window.location.href)));
+    document.write("'>");
+</script>
+
+<!--#include file="join.class?formdata" -->
+
+<input type="hidden" name="page" value="join">
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=next value='Next'
+       onClick="maybeSubmit()">
+</td></tr></table>
+
+</form>
+</body>
+<!--#endif-->

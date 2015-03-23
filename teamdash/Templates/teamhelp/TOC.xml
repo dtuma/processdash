@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<toc version="1.0">
+<tocitem image="TeamIcon" target="TeamUseOverview" text="Team Use Help">
+
+   <tocitem text="Setup and Preparation"
+                              image="BookIcon" target="TeamUseOverview">
+      <tocitem text="Obtaining the Dashboard"
+                              image="PageIcon" target="TeamObtain" />
+      <tocitem text="Organizational Tailoring"
+                              image="BookIcon" target="TeamTailoring">
+         <tocitem text="Metrics Framework"
+                              image="PageIcon" target="TeamMCF" />
+         <tocitem text="Forms &amp; Reports"
+                              image="PageIcon" target="TeamFormsReports" />
+      </tocitem>
+      <tocitem text="Prep for Team Launch"
+                               image="BookIcon" target="TeamLaunchPrep" >
+         <tocitem text="Create Team Directory"
+                              image="PageIcon" target="TeamConfigDir" />
+         <tocitem text="Installing the Dashboard"
+                              image="PageIcon" target="TeamInstall" />
+         <tocitem text="Create Project"
+                              image="PageIcon" target="TeamMakeProj" />
+         <tocitem text="Invite Members"
+                              image="PageIcon" target="TeamInviteJoin" />
+         <tocitem text="Join Project"
+                              image="PageIcon" target="TeamMemberJoin" />
+         <tocitem text="Add Member Schedules"
+                              image="PageIcon" target="TeamAddSchedule" />
+         <tocitem text="Forms &amp; Reports"
+                              image="PageIcon" target="TeamGetForms" />
+         <tocitem text="Network Troubleshooting"
+                              image="PageIcon" target="TeamNetworkTrouble" />
+         <tocitem text="Create Master Project"
+                              image="PageIcon" target="TeamMakeMaster" />
+         <tocitem text="Add Projects to Master"
+                              image="PageIcon" target="TeamAddToMaster" />
+         <tocitem text="Define Top-Down Tasks"
+                              image="PageIcon" target="TeamTopDownMaster" />
+      </tocitem>
+   </tocitem>
+
+   <tocitem text="Team Project Launch"
+                              image="BookIcon" target="TeamLaunchUse">
+         <tocitem text="Edit Team Members"
+                              image="PageIcon" target="TeamEditMembers" />
+         <tocitem text="Project Strategy"
+                              image="PageIcon" target="TeamPlanStrategy" />
+         <tocitem text="Development Process"
+                              image="PageIcon" target="TeamPlanProcess" />
+         <tocitem text="Support Tasks"
+                              image="PageIcon" target="TeamPlanSupport" />
+         <tocitem text="Balanced Task Plan"
+                              image="PageIcon" target="TeamPlanTasks" />
+         <tocitem text="Master Project Coord"
+                              image="PageIcon" target="TeamMasterCoord" />
+         <tocitem text="Team Member Plans"
+                              image="PageIcon" target="TeamIndivPlans" />
+         <tocitem text="Bottom Up Plan"
+                              image="PageIcon" target="TeamBottomUp" />
+         <tocitem text="Quality Plan"
+                              image="PageIcon" target="TeamQualityPlan" />
+         <tocitem text="Alternative Plans"
+                              image="PageIcon" target="TeamAlternativePlans" />
+         <tocitem text="Save Backup"
+                              image="PageIcon" target="TeamLaunchSnapshot" />
+         <tocitem text="Editing the WBS"
+                              image="BookIcon" target="TeamEditWBS" >
+            <tocitem text="Inserting Workflows"
+                              image="PageIcon" target="TeamInsertWorkflow" />
+            <tocitem text="Importing from MS Project"
+                              image="PageIcon" target="TeamImportMSProj" />
+            <tocitem text="Editing WBS Metrics"
+                              image="PageIcon" target="TeamEditWBSMetrics" />
+            <tocitem text="Edits by Team Members"
+                              image="PageIcon" target="TeamWBSIndiv" />
+            <tocitem text="Simultaneous Editing"
+                              image="PageIcon" target="TeamWBSSimul" />
+            <tocitem text="The Role of the WBS"
+                              image="PageIcon" target="TeamWBSUnderstanding" />
+            <tocitem text="Editing the WBS After Project Launch"
+                              image="PageIcon" target="TeamWBSDuringProj" />
+         </tocitem>
+   </tocitem>
+
+   <tocitem text="Running a Team Project" 
+                              image="BookIcon" target="TeamRunningProj" >
+
+      <tocitem text="Team Members" image="BookIcon" >
+
+            <tocitem text="Collect EV Metrics"
+                              image="PageIcon" target="TeamMemberCollectEV" />
+            <tocitem text="Refine Plan"
+                              image="PageIcon" target="TeamMemberRefine" />
+            <tocitem text="Manage Schedule"
+                              image="PageIcon" target="TeamMemberManageEV" />
+            <tocitem text="Manage Metrics"
+                              image="PageIcon" target="TeamMemberManageData" />
+      </tocitem>
+
+      <tocitem text="Team Leaders" image="BookIcon" target="TeamLeader" />
+
+   </tocitem>
+
+</tocitem>
+</toc>

@@ -1,0 +1,121 @@
+<html><!--#do-not-translate-->
+<head>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Select Team Directory</h2>
+
+<!--#if errCantCreateDir -->
+<div class="error">
+The team project setup wizard was unable to create the directory
+'<tt><!--#echo var=errCantCreateDir --></tt>'.  Please ensure that
+<!--#if isWindows -->the network drive is mapped and that<!--#endif--> 
+you have adequate file permissions to create this directory, then click
+&quot;Next.&quot; Otherwise, enter a different team directory below.
+</div>
+
+<!--#elif errSettingsFile -->
+<div class="error">
+The team project setup wizard was unable to write the team project settings
+file '<tt><!--#echo var=errSettingsFile --></tt>'.  Please ensure that you
+have adequate file permissions to create this file, then click
+&quot;Next.&quot; Otherwise, enter a different team directory below.
+</div>
+
+<!--#endif-->
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamDir'>
+
+<!--#if [setup//Is_Master] -->
+
+<P>The team-oriented processes in the dashboard use a &quot;team
+directory&quot; to facilitate coordination.  This directory will be used to
+hold team-level planning information, such as the project's work breakdown
+structure.</P>
+
+<p>The &quot;team directory&quot; must be accessible and readable by the
+leaders of all the team projects associated with this master project.
+Because of this, it should generally be a shared network directory.<p>
+
+<!--#else-->
+
+<p>The team-oriented processes in the dashboard use a &quot;team
+directory&quot; to facilitate coordination.  The primary purpose of
+this directory is to hold exported snapshots of individual data; the
+team project instance imports this data and uses it to compute
+rolled-up team data.</p>
+
+<p>The &quot;team directory&quot; must be accessible, readable, and
+writable by all team members.  Because of this, it should generally be
+a shared network directory.  Since the directory will hold PSP data
+collected by individuals, it should be configured with permissions
+that forbid file access by non-team members.<p>
+
+<!--#endif-->
+
+<p>Any number of projects can share the same team directory; the
+process dashboard will still be able to track which data belongs to
+which project.  (This is true even if the projects are using different
+team processes.)  Thus, if you have a team which is performing several
+projects (or project phases) one after another, it is not necessary to
+create a new team directory for each project/phase.</p>
+
+<p>If the members of your team are predominately using the Microsoft
+Windows operating system, the use of a UNC path is strongly
+recommended.  That is, you would enter the directory path as
+<tt>\\serverName\path\to\directory</tt> instead of
+<tt>T:\path\to\directory</tt>.</p>
+
+<!--#if missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter a
+network directory!</td></tr></table>
+
+<!--#elif confirm -->
+
+<table><tr><td class=error>The directory path you entered does not
+appear to be on a shared network drive.  For the team features to
+work, it is <u>essential</u> that all team members have access to the
+team directory.  If you are certain that all team members can read
+from and write to the directory below, click &quot;Next&quot; to
+confirm.  Otherwise, enter the name of a network directory
+below.</td></tr></table>
+<input type=hidden name=confirm
+       value="<!--#echo var='[setup//Team_Dir]' -->">
+
+<!--#elif [setup//Suggested_Team_Dir] -->
+    <!--#if not [setup//Team_Dir] -->
+
+<p>The directory below is provided as a suggested location for the
+team directory - feel free to change it.</p>
+
+    <!--#endif-->
+<!--#endif-->
+
+<p>What would you like to use for the &quot;team directory?&quot;
+Please enter the full path to the appropriate network directory:</p>
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Team Directory:&nbsp;&nbsp;</td>
+<td><input type=text name=teamDir
+    <!--#if [setup//Team_Dir] -->
+           value="<!--#echo var='[setup//Team_Dir]' -->"
+    <!--#elif [setup//Suggested_Team_Dir] -->
+           value="<!--#echo var='[setup//Suggested_Team_Dir]' -->"
+    <!--#endif-->
+           size=60></td></tr></table>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

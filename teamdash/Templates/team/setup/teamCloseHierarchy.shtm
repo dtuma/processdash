@@ -1,0 +1,33 @@
+<html><!--#do-not-translate-->
+<head>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Close Hierarchy Editor</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamCloseHier'>
+
+<p>To create the
+<!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
+project, this wizard will need to modify your hierarchy.  Unfortunately,
+this wizard cannot modify the hierarchy while the hierarchy editor is
+open.</p>
+
+<p>Please close the hierarchy editor, then press the &quot;Next&quot;
+button.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

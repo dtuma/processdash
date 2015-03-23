@@ -1,0 +1,13 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+//  This is the datafile for an empty <!--#echo Full_Name --> process node.
+//
+
+#include <<!--#echo Process_ID -->/indiv_full_dataFile.txt> exclude (
+<!--#foreach name=Phase list=Phase_List -->
+    [<!--#echo Phase_Name -->/node],
+    [<!--#echo Phase_Name -->/leaf],
+<!--#endfor-->
+    [<!--#echo Process_ID -->/IndivFullNode Tag]
+)
+
+[Completed] = null;

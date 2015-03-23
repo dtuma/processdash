@@ -1,0 +1,48 @@
+<p><a name="[!--#echo ANCHOR --]"><span class='node'>[!--#echo
+    SUB_PATH --]</span>
+
+<table cellpadding="2" cellspacing="0">
+
+<tr>
+<td class="spacer">&nbsp;</td>
+<td class="header">Description</td>
+<td class="header">Size Units</td>
+<td class="header">Plan</td>
+<td class="header">Actual</td>
+</tr>
+
+[!--#foreach name="NUM" list="n" --]
+
+<tr[!--#if highlight_NUM --] class="highlight"[!--#endif--]>
+
+<td class="spacer">&nbsp;</td>
+
+<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Description	s" 
+    type="text" size="40"></td>
+
+<td><select
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Sized_Object_Units	s">
+<option>
+<option value="New & Changed LOC">New &amp; Changed LOC
+<!--#foreach name=Inspected_ values=",,Inspected ," #-->
+<!--#foreach name=Metric list=Size_Metric_List #-->
+<option value="Inspected_<!--#echo Metric_Name -->">Inspected_<!--#echo Metric_Long_Name -->
+<!--#endfor#-->
+<option value="Inspected_DLD Lines">Inspected_DLD Lines
+<!--#endfor #-->
+<option value="Inspected New & Changed LOC">Inspected LOC
+</select>
+</td>
+
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Estimated Size	on"
+    type="text" size="7"></td>
+
+<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Size	on"
+    type="text" size="7"></td>
+
+</tr>
+
+[!--#endfor--]
+
+</table>

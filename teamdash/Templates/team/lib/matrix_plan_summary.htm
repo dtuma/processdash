@@ -1,0 +1,341 @@
+[!--#server-parsed --]
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="style.css">
+<title><!--#echo Full_Name -->
+<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
+Plan Summary</title>
+<STYLE>
+   .rowHdr { background-color: #D3D3D3 }
+
+   .subtask {
+      [!--#if [Subtask_List] --] 
+         background-color: #CCFFCC
+      [!--#else--]
+         display:none
+      [!--#endif--]
+   }
+
+   .includesSubtask {
+      <!--#if not rollup -->
+      [!--#if [Subtask_List] --] 
+         background-color: #CCFFCC
+      [!--#endif--]
+      <!--#endif-->
+   }
+   .time   { background-color: #FFFF99 }
+   .defInj { background-color: #FFCCCC }
+   .defRem { background-color: #CCCCFF }
+</STYLE>
+<!--#if rollup -->[!--#if not EXPORT --]
+<SCRIPT SRC="autoExport.js"></script>
+[!--#endif --]<!--#endif-->
+</head>
+<body>
+
+[!--#if not frames --]
+<h1><!-- #include file="/team/lib/hier.htm" -->[!--#echo var="PATH_TRANSLATED" --]</h1>
+[!--#endif--]
+
+<h2><!--#echo Full_Name -->
+<!--#if rollup -->Rollup<!--#else-->Project<!--#endif-->
+Plan Summary</h2>
+
+<form>
+
+<input type=hidden name=requiredTag
+<!--#if rollup -->
+       VALUE="<!--#echo Process_ID --> Rollup Tag"
+<!--#else-->
+       VALUE="<!--#echo Process_ID --> Tag"
+<!--#endif-->
+>
+
+<!--#if not rollup -->
+
+<TABLE>
+<TR>
+<TD>Project Owner</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=50 NAME="/Owner	s"></TD>
+</TR>
+
+<TR>
+<TD>Start Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Started	d"></TD>
+</TR>
+
+<TR>
+<TD>Completion Date</TD>
+<TD COLSPAN=4><INPUT TYPE=text SIZE=25 NAME="Completed	du"></TD><TD COLSPAN=6>&nbsp;Completed: <INPUT TYPE=checkbox NAME="Completed	du"></TD>
+</TR>
+
+<TR>
+<TD>Keywords</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=25 NAME="Project/Keywords	s"></TD>
+</TR>
+
+<TR>
+<TD>Language</TD>
+<TD COLSPAN=10><INPUT TYPE=text SIZE=15 NAME="Project/Language	s"></TD>
+</TR>
+
+</TABLE>
+[!--#include file="../dash/selectRollup.class" --]
+
+<!--#endif rollup -->
+
+
+
+<H2>Overall Metrics</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<TR>
+<TD></TD>
+<TD ALIGN=CENTER class=includesSubtask><B>Plan</B></TD>
+<TD ALIGN=CENTER class=includesSubtask><B>Actual</B></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD ALIGN=CENTER><B>To Date</B></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<!--#if rollup -->
+<TR>
+<TD>Time</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+</TR>
+<!--#else-->
+<TR>
+<TD>Planned Time</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated Time To Date"></TD>
+<!--#endif-->
+</TR>
+
+<TR>
+<TD>Actual Time</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time"></TD>
+<!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time To Date"></TD>
+<!--#endif-->
+</TR>
+<!--#endif-->
+
+<TR>
+<TD class='indented'>Estimating Error</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error	%"></TD>
+<!--#if not rollup --><!--#if USE_TO_DATE_DATA -->
+<TD><INPUT TYPE=text SIZE=7 NAME="Time Estimating Error To Date	%"></TD>
+<!--#endif--><!--#endif-->
+</TR>
+
+<TR>
+<TD class='indented'>Cost-Performance Index</TD>
+<TD class=includesSubtask>&nbsp;</TD>
+<TD class=includesSubtask><INPUT TYPE=text SIZE=7 NAME="CPI"></TD>
+</TR>
+
+<TR>
+<TD>Productivity</TD>
+<TD></TD>
+<TD></TD>
+</TR>
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<TR>
+<TD class='indented'><!--#echo Metric_Long_Name --> / Hour</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name --> Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> Productivity"></TD>
+</TR>
+
+<!--#endfor-->
+
+<TR>
+<TD class='indented'>New &amp; Changed LOC / Hour</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New &amp; Changed LOC Productivity"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC Productivity"></TD>
+</TR>
+
+<TR>
+<TD>Cost of Quality</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % COQ"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% COQ"></TD>
+</TR>
+
+<TR>
+<TD class='indented'>Appraisal COQ</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % Appraisal COQ"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% Appraisal COQ"></TD>
+</TR>
+
+<TR>
+<TD class='indented'>Failure COQ</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated % Failure COQ"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="% Failure COQ"></TD>
+</TR>
+
+</TABLE>
+
+
+<H2>Size</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<TR>
+<TD></TD>
+<TD ALIGN=CENTER><B>Plan</B></TD>
+<TD ALIGN=CENTER><B>Actual</B></TD>
+<TD ALIGN=CENTER title="Estimating Error"><B>Est.Err.%</B></TD>
+</TR>
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<TR>
+<TD><!--#echo Metric_Long_Name --></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated <!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name -->"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo Metric_Name --> Estimating Error	%"></TD>
+</TR>
+
+<!--#endfor-->
+
+<!--#if Process_Uses_DLD_Lines -->
+<TR>
+<TD>Detailed Design Lines</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="DLD Lines Estimating Error"></TD>
+</TR>
+<!--#endif-->
+
+<TR>
+<TD>New &amp; Changed LOC</TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="Estimated New &amp; Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="New &amp; Changed LOC Estimating Error"></TD>
+</TR>
+
+</TABLE>
+
+
+
+<H2>Time / Defects</H2>
+
+<TABLE cellpadding=2 cellspacing=0>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER COLSPAN=2 class=time><B>Time</B></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=defInj><B>Defects Injected</B></TD>
+<TD ALIGN=CENTER COLSPAN=2 class=defRem><B>Defects Removed</B></TD>
+</TR>
+
+<TR>
+<TD>&nbsp;</TD>
+<TD ALIGN=CENTER class=time><B>Plan</B></TD>
+<TD ALIGN=CENTER class=time><B>Actual</B></TD>
+<!-- TD ALIGN=CENTER class=defInj><B>Plan</B></TD -->
+<TD ALIGN=CENTER class=defInj><B>Actual</B></TD>
+<TD ALIGN=CENTER class=defInj><B>Density</B></TD>
+<!-- TD ALIGN=CENTER class=defRem><B>Plan</B></TD -->
+<TD ALIGN=CENTER class=defRem><B>Actual</B></TD>
+<TD ALIGN=CENTER class=defRem><B>Rate</B></TD>
+</TR>
+
+
+
+<!--#foreach name=Phase list=Phase_List -->
+
+<!--#if Phase_Group -->[!--#if [Ph<!--#echo null -->ase_Display_Filter] eq 'All' || '<!--#echo Phase_Group -->' =~ [Ph<!--#echo null -->ase_Display_Filter] --]<!--#endif-->
+
+<TR>
+<TD><!--#echo Phase_Long_Name -->&nbsp;</TD>
+
+<TD class=time onmouseover='showChart("estTime")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Estimated Time"></TD>
+<TD class=time onmouseover='showChart("actTime")'><INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Time">&nbsp;</TD>
+
+<!-- TD class=defInj>&nbsp;<INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Estimated Defects Injected"></TD -->
+<TD class=defInj onmouseover='showChart("actDefInj")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Defects Injected"></TD>
+<TD class=defInj onmouseover='showChart("actDefInj")'><INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Defect Injection Density">&nbsp;</TD>
+
+<TD class=defRem onmouseover='showChart("actDefRem")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Defects Removed"></TD>
+<TD class=defRem onmouseover='showChart("actDefRem")'><INPUT TYPE=text SIZE=7 NAME="<!--#echo Phase_Name -->/Defects Removed per Hour">&nbsp;</TD>
+
+</TR>
+
+<!--#if Phase_Group -->[!--#endif--]<!--#endif-->
+
+<!--#endfor-->
+
+
+<TR>
+<TD[!--#if [Phase_Display_Filter] ne 'All' --] title='(All disciplines)'[!--#endif--]><b>Total</b>&nbsp;</TD>
+
+<TD class=time onmouseover='showChart("estTime")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Time"></TD>
+<TD class=time onmouseover='showChart("actTime")'><INPUT TYPE=text SIZE=7 NAME="Time">&nbsp;</TD>
+
+<!-- TD class=defInj>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Defects Injected"></TD -->
+<TD class=defInj onmouseover='showChart("actDefInj")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Defects Injected"></TD>
+<TD class=defInj onmouseover='showChart("actDefInj")'><INPUT TYPE=text SIZE=7 NAME="Defect Injection Density">&nbsp;</TD>
+
+<!-- TD class=defRem>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Estimated Defects Removed"></TD -->
+<TD class=defRem onmouseover='showChart("actDefRem")'>&nbsp;<INPUT TYPE=text SIZE=7 NAME="Defects Removed"></TD>
+<TD class=defRem onmouseover='showChart("actDefRem")'><INPUT TYPE=text SIZE=7 NAME="Defects Removed per Hour">&nbsp;</TD>
+
+</TR>
+
+</TABLE>
+
+</FORM>
+
+<table id='chartTable'><tr><td>
+
+<div id='estTime'>
+<img src="../reports/pie.class?qf=../<!--#echo Process_ID -->/phasePie.rpt%3fdataElem%3dEstimated%2bTime&title=Planned+Time"/>
+</div>
+
+<div id='actTime'>
+<img src="../reports/pie.class?qf=../<!--#echo Process_ID -->/phasePie.rpt%3fdataElem%3dTime&title=Actual+Time"/>
+</div>
+
+<div id='actDefInj'>
+<img src="../reports/pie.class?qf=../<!--#echo Process_ID -->/phasePie.rpt%3fdataElem%3dDefects%2bInjected&title=Defects+Injected"/>
+</div>
+
+<div id='actDefRem'>
+<img src="../reports/pie.class?qf=../<!--#echo Process_ID -->/phasePie.rpt%3fdataElem%3dDefects%2bRemoved&title=Defects+Removed"/>
+</div>
+
+</td></tr></table>
+
+<SCRIPT>
+
+function showChart(which) {
+    var table = document.getElementById("chartTable");
+    var charts = table.getElementsByTagName("DIV");
+    for (var i = 0; i < charts.length; i++) {
+        var chart = charts[i];
+        if (chart.id == which)
+            chart.style.display = "block";
+        else
+            chart.style.display = "none";
+    }
+}
+showChart("estTime");
+
+</SCRIPT>
+
+<HR>
+
+<script src="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</script>
+
+</BODY>
+</HTML>

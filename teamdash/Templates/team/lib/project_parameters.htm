@@ -1,0 +1,309 @@
+<html>[!--#do-not-translate--]
+<head>
+<title>TEAM Project Parameters and Settings</title>
+<link rel=stylesheet type="text/css" href="style.css">
+<style>
+#settingsExportBanner {
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    padding: 10px;
+    width: 410px;
+    border: 1px solid black;
+    background-color: #faa;
+}
+</style>
+</head>
+<body>
+
+<h1>[!--#echo PATH_TRANSLATED --]</h1>
+
+<!--#if not indiv -->
+
+<span style="display:none">
+<a href="rollup_plan_summary.shtm">TEAM project plan summary</a>
+</span>
+
+<!--#endif-->
+
+<h2>TEAM Project Parameters and Settings</h2>
+
+<form>
+
+<input type="hidden" class="notTeamSetting"
+    name="[EXPORT_FILE/Last_Export_Timestamp]d">
+<input type=hidden name=requiredTag
+<!--#if indiv -->
+       VALUE="<!--#echo Process_ID --> Indiv Root Tag"
+<!--#elif master -->
+       VALUE="<!--#echo Process_ID -->/MasterRoot Tag"
+<!--#else-->
+       VALUE="<!--#echo Process_ID -->/TeamRoot Tag"
+<!--#endif-->
+>
+
+
+<table>
+
+<tr>
+<td>TEAM Project ID</td>
+<td><input type="text" size="50" class="notTeamSetting" name="[Project_ID]rs"></td>
+</tr>
+
+[!--#if showTeamDir || ![Team_Directory_URL_Only] --]
+<tr>
+<td>TEAM Project Network Directory</td>
+<td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory]s"></td>
+<!--#if !indiv -->
+[!--#if ![Team_Data_Directory_URL] --]
+<td rowspan="2" valign="middle" style="font: xx-large sans-serif">}</td>
+<td rowspan="2" valign="middle">
+<i><a href="setup/move">Move...</a></i>
+</td>
+[!--#endif--]
+<!--#endif-->
+</tr>
+
+<tr>
+<td>TEAM Project Network Directory (UNC)</td>
+<td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory_UNC]s"></td>
+</tr>
+[!--#endif--]
+
+[!--#if showDataUrl || [Team_Data_Directory_URL] --]
+<tr>
+<td>TEAM Project Network Directory (URL)</td>
+<td><input type="text" size="50" class="notTeamSetting" name="[Team_Data_Directory_URL]s"></td>
+</tr>
+[!--#endif--]
+
+<tr>
+<td>Project Earned Value Task List</td>
+<td><input type=text size=50 name="[Project_Schedule_Name]rs"></td>
+</tr>
+
+<!--#if indiv -->
+<tr>
+<td>Your Name</td>
+<td><input type=text size=50 name="/Owner	s"></td>
+</tr>
+
+<tr>
+<td>Your Initials</td>
+<td><input type=text size=50 name="Indiv_Initials	s"></td>
+</tr>
+
+<tr>
+<td>Your Data Export Filename</td>
+<td><input type=text size=50 name="EXPORT_FILE	s"></td>
+</tr>
+
+<tr title="When this box is checked, the dashboard will no longer notify you about the need to sync this project's WBS, and will no longer export data for this project automatically on shutdown.">
+<td COLSPAN=2>If you are no longer working on this project, check this box
+<input type=checkbox name="[Project_Is_Done]d"></td>
+</tr>
+<!--#else-->
+<tr title="Warning: choosing a nonzero value will greatly increase memory usage and start up times">
+<td COLSPAN=2>Max levels of drill down in archived plan snapshots:<sup>*</sup>
+<input type="text" size="7" class="notTeamSetting" name="Export_Max_Node_Depth"></td>
+</tr>
+
+<!--#if not master -->
+
+[!--#if [Project_Was_Relaunched] || [Project_Was_Relaunched] eq '0' --]
+<tr>
+<td COLSPAN=2>This project has been closed and relaunched in the past:
+<input type=checkbox name="Project_Was_Relaunched"></td>
+</tr>
+[!--#endif--]
+
+<tr>
+<td COLSPAN=2>Do not notify individuals when a "Sync to WBS" is needed
+<input type=checkbox name="Disable_Indiv_Auto_Sync"></td>
+</tr>
+
+<tr>
+<td COLSPAN=2>Turn off automatic data exports from individual dashboards
+<input type=checkbox name="Disable_Indiv_Auto_Export"></td>
+</tr>
+
+<tr>
+<td COLSPAN=2>Designate a defect type standard for this team project:
+[!--#include file="/dash/dtsSelect?None_Text=None" --]
+&nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i></td>
+</tr>
+
+<!--#endif-->
+
+<!--#endif-->
+
+</table>
+
+
+<!--#if indiv -->
+
+[!--#include file="setup/selectPspRollup" parse=t --]
+[!--#if PSP_ROLLUP_SELECTOR --]
+
+<h2>PSP Task Planning</h2>
+
+<table cellpadding=3>
+
+<tr>
+<td>PSP tasks in this project should base their "Plan" column and PROBE
+calculations on this set of "To Date" data:</td>
+</tr>
+
+<tr>
+<td class=indented><b>Default:</b>
+[!--#echo var="PSP_ROLLUP_SELECTOR" encoding="none" --]</td>
+</tr>
+
+<tr>
+<td class=indented>Prompt after syncing new PSP tasks
+<input type=checkbox name="[/Prompt_for_PSP_Subset_On_WBS_Sync]"></td>
+</tr>
+
+</table>
+
+[!--#endif--]
+
+<!--#endif-->
+
+
+<!--#if not VVIS -->
+
+<h2>Quality Profile Parameters</h2>
+
+<table>
+
+<tr>
+<td class=indented>Design time as a % of coding time</td>
+<td><input type=text size=7 name="[Target Design/Code Ratio]%u"></td>
+</tr>
+
+<tr>
+<td class=indented>Code review time as a % of code time</td>
+<td><input type=text size=7 name="[Target Code Review/Code Ratio]%u"></td>
+</tr>
+
+<tr>
+<td class=indented>Compile defects/KLOC</td>
+<td><input type=text size=7 name="[Target Compile Defect Density]u"></td>
+</tr>
+
+<tr>
+<td class=indented>Unit test defects/KLOC</td>
+<td><input type=text size=7 name="[Target Test Defect Density]u"></td>
+</tr>
+
+<tr>
+<td class=indented>Design review time as a % of design time</td>
+<td><input type=text size=7 name="[Target Design Review/Design Ratio]%u"></td>
+</tr>
+
+<!--#if not indiv -->
+<tr>
+<td class="indented" colspan="2">&nbsp;<br/>Use actual size when available to
+calculate planned inspection rates and densities
+<input class="notTeamSetting" type="checkbox"
+    name="Prefer Actual Size for Inspection Estimates">
+</td>
+</tr>
+<!--#endif-->
+
+</table>
+
+
+<h2>Estimated Phase Yields</h2>
+
+<table>
+
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#if PHASE_Is_Defect_Removal -->
+
+<tr>
+<td class=indented><!--#echo PHASE_Long_Name --></td>
+<td><input type=text size=7 name="[<!--#echo PHASE_Name -->/Estimated % Phase Yield]%u"></td>
+</tr>
+
+<!--#endif-->
+<!--#endfor-->
+
+</table>
+
+
+<h2>Estimated Defect Injection Rates</h2>
+
+<table>
+
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#if PHASE_Is_Defect_Injection -->
+
+<tr>
+<td class=indented><!--#echo PHASE_Long_Name --></td>
+<td><input type=text size=7 name="[<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour]4u"></td>
+</tr>
+
+<!--#endif-->
+<!--#endfor-->
+
+</table>
+
+
+<!--#endif not VVIS -->
+
+
+<!--#if not indiv -->
+
+<h2>Phase Display List</h2>
+
+<p>In forms and charts that display phase data, only include the phases
+checked below:</p>
+
+<div style="margin-left:1cm">
+<!--#foreach name=PHASE list=Phase_List -->
+    <input type="checkbox"
+        name="[Phase_Display_Filter_Include/<!--#echo PHASE_Name -->]">
+        <!--#echo PHASE_Long_Name --><br>
+<!--#endfor-->
+</div>
+
+<!--#endif-->
+
+</form>
+
+<hr>
+
+<script src="/data.js">
+document.writeln("<P>Problem loading the data.js script!");
+</script>
+
+<!--#if not indiv && not master -->
+<div id="settingsExportBanner" style="display:none">
+You have made changes to the settings on this page.  You will need to 
+<a href="../control/exportNow.class">export these changes</a>, then wait up to
+ten minutes, before project team members will see the changes in their
+personal dashboards.
+</div>
+<script type="text/javascript">
+    function teamSettingChanged(elem, value, readOnly) {
+        if (Element.hasClassName(elem, "notTeamSetting"))
+            return;
+        if (value == "NO CONNECTION")
+            return;
+
+        Element.show("settingsExportBanner");
+        document.forms[0].elements[0].value = "";
+        changeNotifyElem(document.forms[0].elements[0]);
+    }
+
+    function registerSettingObserver() {
+        addPaintFieldObserver(teamSettingChanged);
+    }
+    addDataLoadedObserver(registerSettingObserver);
+</script>
+<!--#endif-->
+
+</body>
+</html>

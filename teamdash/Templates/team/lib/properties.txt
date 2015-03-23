@@ -1,0 +1,51 @@
+
+# make a list of the data elements used for all the size metrics
+
+Size_Metric_Data_Names=LIST=,\
+<!--#foreach name=Metric list=Size_Metric_List #-->
+    <!--#echo Metric_Name -->,\
+<!--#endfor#-->
+    DLD Lines,New & Changed LOC,
+
+
+# make a note of the size metric units used by each phase
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#foreach name=SizeMetric list=Size_Metric_List #-->
+<!--#foreach name=DataElem list=SizeMetric_Name #-->
+<!--#if Phase_Size_Metric eq 'DataElem' || Phase_Size_Metric eq 'Inspected DataElem' -->
+<!--#foreach name=SizeUnit list=Size_Units_List #-->
+<!--#if SizeMetric_Units eq SizeUnit_Id #-->
+Phase_Size_Uses_SizeUnit=true
+<!--#endif--><!--#endfor--><!--#endif--><!--#endfor--><!--#endfor--><!--#endfor-->
+
+
+# is any phase using the DLD Lines metric?  If so, make a note.
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Size_Metric eq 'DLD Lines' || Phase_Size_Metric eq 'Inspected DLD Lines' -->
+Process_Uses_DLD_Lines=true
+<!--#endif-->
+<!--#endfor-->
+
+
+# tweak size metrics for inspection phases
+
+<!--#foreach name=Phase list=Phase_List #-->
+<!--#if Phase_Is_Inspection -->
+<!--#if Phase_Size_Metric =~ '^Inspected ' -->
+<!--#elif Phase_Size_Metric -->
+Phase_Size_Metric=Inspected <!--#echo Phase_Size_Metric -->
+<!--#else -->
+Phase_Size_Metric=Inspected New & Changed LOC
+<!--#endif--><!--#endif--><!--#endfor-->
+
+
+# Record the filename of the team project plan summary
+
+<!--#if Old_Style_Plan_Summary -->
+Team_Plan_Summary=<!--#echo Process_ID -->/team_summary.shtm
+<!--#else-->
+Team_Plan_Summary=cms/<!--#echo Process_ID -->/rollup_plan_summary
+<!--#endif-->
+

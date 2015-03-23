@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom-process-info
+        name="<!--#echo Process_Name -->"
+        fullName="<!--#echo Full_Name -->"
+        version="<!--#echo Version_Num -->"
+        id="<!--#echo Process_ID -->">
+
+    <!--#foreach name=Phase list=Phase_List -->
+
+        <phase name="<!--#echo Phase_Name -->"
+               longName="<!--#echo Phase_Long_Name -->"
+               type="<!--#echo Phase_Type -->"
+               isDevelopment="<!--#echo Phase_Is_Development -->"
+               isAfterDevelopment="<!--#echo Phase_Is_After_Development -->"
+               isQuality="<!--#echo Phase_Is_Quality -->"
+               isAppraisal="<!--#echo Phase_Is_Appraisal -->"
+               isInspection="<!--#echo Phase_Is_Inspection -->"
+               isFailure="<!--#echo Phase_Is_Failure -->"
+               isOverhead="<!--#echo Phase_Is_Overhead -->"
+               isPSP="<!--#echo Phase_Is_PSP -->"
+               />
+
+    <!--#endfor-->
+
+    <!--#foreach name=METRIC list=Size_Metric_List #-->
+
+        <sizeMetric name="<!--#echo METRIC_Name -->"
+                    longName="<!--#echo METRIC_Long_Name -->" />
+
+    <!--#endfor-->
+
+    <!--#if Process_Uses_DLD_Lines -->
+
+        <sizeMetric name="DLD Lines" longName="Detailed Design Lines" />
+
+    <!--#endif-->
+
+    <sizeMetric name="New &amp; Changed LOC" longName="LOC" />
+
+</custom-process-info>

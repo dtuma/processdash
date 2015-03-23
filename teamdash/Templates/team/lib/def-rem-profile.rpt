@@ -1,0 +1,14 @@
+= Defect Removal Profile query
+
+title=Defect Removal Profile
+for==[/<!--#echo var='Process_ID' encoding='data' -->/DRP_Phase_List]
+categoryLabels=vertical
+units==Defects/KLOC
+headerComment==(Defects/KLOC)
+h0==Phase
+
+d1==Estimated Defect Density
+h1==Plan
+
+d2==Defect Density
+h2==Actual

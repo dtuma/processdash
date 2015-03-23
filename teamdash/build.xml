@@ -1,0 +1,569 @@
+<!--
+
+Team Functionality Add-ons for the Process Dashboard
+Copyright (C) 2002-2015 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see http://www.gnu.org/licenses/
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+-->
+
+<project default="TeamTools" basedir=".">
+
+  <property environment="env"/>
+  <property file="build.properties"/>
+
+  <property name="teamtools.version" value="4.3.9"/>
+  <property name="teamtools.requires" value="2.0.4+"/>
+  <property name="framework.version" value="${teamtools.version}"/>
+
+  <property name="processdash.dir" value="../processdash"/>
+  <property name="processdash.lib" value="${processdash.dir}/lib"/>
+  <property name="processdash.bin" value="${processdash.dir}/antbin"/>
+  <property name="processdash.dist" value="${processdash.dir}/dist"/>
+  <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
+  <property name="xmlpull.jar" value="${processdash.lib}/kxml-2.2.1-mod.jar"/>
+  <property name="jcalendar.jar" value="${processdash.lib}/jcalendar-1.3.2.jar"/>
+  <property name="jna.jar" value="${processdash.lib}/jna-3.3.0.jar"/>
+  <property name="keyring.jar" value="${processdash.lib}/keyring-lib.jar"/>
+  <property name="svg.jar" value="${processdash.lib}/svgSalamander.jar"/>
+  <property name="dashlibsrc" value="${processdash.lib}/src"/>
+  <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
+  <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
+  <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
+  <property name="apple-eawt.jar" value="lib/com-apple-eawt.jar"/>
+  <property name="servlet.jar" value="lib/servlet-api.jar"/>
+  <property name="junit.jar" value="lib/junit-4.3.1.jar"/>
+  <property name="TeamProcessCGI.jar"
+      value="Templates/team/lib/TeamProcessCGI.jar"/>
+  <property name="framework.jar" value="FrameworkMetadata.jar"/>
+  <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
+  <property name="teamhelp" value="Templates/teamhelp"/>
+  <property name="teamhelp.search" value="${teamhelp}/JavaHelpSearch"/>
+  <property name="teamhelp.images" value="${teamhelp}/Images"/>
+  <property name="teamhelp.imgsrc" value="${teamhelp}/Images/constr"/>
+
+  <property name="src" value="src"/>
+  <property name="build" value="antbin"/>
+  <property name="compile.target" value="1.5"/>
+  <property name="debug" value="on"/>
+
+
+  <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
+
+
+  <!-- if the "noBuild" property is set, set all other noBuild vars too -->
+  <target name="-noBuild-init" if="noBuild">
+    <property name="noBuild.filelist" value="true"/>
+    <property name="noBuild.compile" value="true"/>
+    <property name="noBuild.framework" value="true"/>
+    <property name="noBuild.TeamTools" value="true"/>
+    <property name="noBuild.TeamProcess" value="true"/>
+    <property name="noBuild.TeamProcessCGI" value="true"/>
+  </target>
+
+
+  <target name="-defaultValues">
+    <property name="teamProcess.xml" value="PDSSD.xml"/>
+    <property name="teamProcess.zip" value="PDSSD.zip"/>
+  </target>
+
+
+
+  <target name="filelist.txt"
+          depends="-noBuild-init" unless="noBuild.filelist">
+    <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
+      <path id=".jhbasedir.path" path="Templates/team/setup"/>
+    </pathconvert>
+    <pathconvert property=".filelist" pathsep="," dirsep="/">
+      <path>
+        <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif" excludes="*sizeForm*"/>
+      </path>
+    </pathconvert>
+    <property name="filelist" value="Templates/team/setup/filelist.txt"/>
+    <echo message="&lt;!--#set var='Wizard_File_List' value='LIST=,${.filelist},' --&gt;&#13;&#10;" file="${filelist}"/>
+    <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
+  </target>
+
+
+  <target name="compile" depends="-noBuild-init" unless="noBuild.compile">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           includeAntRuntime="no" target="${compile.target}">
+      <classpath>
+        <pathelement location="${pspdash.jar}"/>
+        <pathelement location="${swingx.jar}"/>
+        <pathelement location="${poi.jar}"/>
+        <pathelement location="${apple-eawt.jar}"/>
+        <pathelement location="${servlet.jar}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="TeamProcessCGI"
+          depends="-noBuild-init,compile" unless="noBuild.TeamProcessCGI">
+    <!-- Create a signed jarfile of cgi scripts -->  
+    <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
+      <fileset dir="${build}">
+        <include name="teamdash/templates/setup/"/>
+        <include name="teamdash/FilenameMapper*"/>
+      </fileset>
+      <fileset dir="${src}">
+        <include name="teamdash/templates/setup/migrate.properties"/>
+      </fileset>
+    </jar>
+    <antcall target="signjar">
+      <param name="sign.jar" value="${TeamProcessCGI.jar}"/>
+      <param name="sign.alias" value="processdash-full-permissions"/>
+    </antcall>
+  </target>
+
+
+  <target name="framework" depends="-noBuild-init,TeamProcessCGI,filelist.txt"
+      unless="noBuild.framework"
+      description="Build a JAR containing the framework files used by the custom process generator">
+
+    <jar destfile="${framework.jar}">
+      <!-- include the templates -->
+      <fileset dir=".">
+        <include name="Templates/team/lib/" />
+        <exclude name="Templates/team/lib/todo.txt" />
+        <include name="Templates/team/tools/*.link" />
+        <include name="Templates/team/tools/*.shtm" />
+        <include name="Templates/team/setup/*.link" />
+        <include name="Templates/team/setup/*.shtm" />
+        <include name="Templates/team/setup/*.css" />
+        <include name="Templates/team/setup/*.gif" />
+        <include name="Templates/team/setup/filelist.txt" />
+      </fileset>
+      <fileset dir="${processdash.dir}" includes="Templates/style.css"/>
+    </jar>
+  </target>
+
+
+  <target name="jnlp-jars"  depends="compile,framework"
+       description="Build the JAR files for the JNLP framework editor app">
+
+    <!-- compute the classes needed for the GUI and process generator -->
+    <classfileset id="jnlpClasses" dir="${build}"
+      rootclass="teamdash.process.CustomProcessEditor"/>
+
+    <!-- also compute the classes needed from processdash packages -->
+    <classfileset id="jnlpDashClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.net.http.HTMLPreprocessor"/>
+      <root classname="net.sourceforge.processdash.process.PhaseUtil"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ProgressDialog"/>
+    </classfileset>
+
+    <!-- build the JNLP JAR file containing executable classes -->
+    <jar destfile="${jnlp.jar}" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" 
+              value="teamdash.process.CustomProcessEditor"/>
+        <attribute name="Application-Name"
+              value="Custom Metrics Framework Editor"/>
+        <attribute name="Permissions" value="all-permissions"/>
+      </manifest>
+      <fileset refid="jnlpClasses"/>
+      <fileset refid="jnlpDashClasses"/>
+      <zipfileset src="${xmlpull.jar}"/>
+    </jar>
+    <signjar jar="${jnlp.jar}" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
+
+    <!-- build a signed JAR file containing framework metadata -->
+    <property name="jnlp-framework.jar"
+        value="FrameworkMetadata-${framework.version}.jar"/>
+    <copy file="${framework.jar}" tofile="${jnlp-framework.jar}"/>
+    <signjar jar="${jnlp-framework.jar}" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
+  </target>
+
+
+
+  <!-- Targets to rebuild the javahelp content -->
+
+  <target name="javahelp"
+          depends="-javahelp-depend,-javahelp-index,-javahelp-images,-javahelp-book"/>
+
+  <!-- check to see if help needs updating -->
+  <target name="-javahelp-depend">
+    <uptodate property="javahelp.upToDate" targetfile="${teamhelp}/book.html">
+      <srcfiles dir="${teamhelp}">
+        <include name="**/*.html"/>
+        <include name="**/*.htm"/>
+        <include name="**/*.svg"/>
+        <include name="**/constr/*.png"/>
+        <include name="*.xml"/>
+        <include name="TeamDash.hs"/>
+        <exclude name="TOC.html"/>
+        <exclude name="Skeleton.html"/>
+        <exclude name="book.html"/>
+      </srcfiles>
+    </uptodate>
+    <!-- Check to see if optional packages are present -->
+    <available property="javahelp.jhindexerjar"
+               file ="${javahelp.home}/javahelp/bin/jhindexer.jar"
+               value="${javahelp.home}/javahelp/bin/jhindexer.jar"/>
+    <available property="javahelp.jhjar"
+               file ="${javahelp.home}/javahelp/lib/jh.jar"
+               value="${javahelp.home}/javahelp/lib/jh.jar"/>
+  </target>
+
+
+  <!-- invoke the jhindexer -->
+  <target name="-javahelp-index" depends="-javahelp-depend"
+          if="javahelp.jhindexerjar" unless="javahelp.upToDate">
+    <!-- delete the previous contents of the JavaHelpSearch dir -->
+    <delete dir="${teamhelp.search}" quiet="true"/>
+    <mkdir dir="${teamhelp.search}"/>
+
+    <!-- refresh the help.config file -->
+    <pathconvert property=".jhbasedir" pathsep=":" dirsep="/">
+      <path id=".jhbasedir.path" path="${teamhelp}"/>
+    </pathconvert>
+    <pathconvert property=".jhfilelist" pathsep="&#10;" dirsep="/">
+      <path><fileset dir="${teamhelp}" includes="Topics/**/*.html" /></path>
+    </pathconvert>
+    <echo message="${.jhfilelist}" file="${teamhelp}/help.config"/>
+    <replace file="${teamhelp}/help.config" token="${.jhbasedir}/"
+             value="File "/>
+
+    <!-- invoke jhindexer to rebuild the help indexes -->
+    <java jar="${javahelp.jhindexerjar}" dir="${teamhelp}"
+          fork="true" inputstring="">
+      <arg value="-c"/>
+      <arg value="help.config"/>
+    </java>
+  </target>
+
+  <!-- regenerate the 'book.html' file -->
+  <target name="-javahelp-book" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <xslt in="${teamhelp}/TOC.xml" out="${teamhelp}/TOC.html"
+          style="${teamhelp}/makeTOC.xslt"/>
+    <xslt in="${teamhelp}/TOC.xml" out="${teamhelp}/Skeleton.html"
+          style="${teamhelp}/makeSkeleton.xslt"/>
+
+    <java classpath="${processdash.dir}/lib/DocSpider.jar"
+          classname="DocSpider" fork="true" dir="${teamhelp}"
+	  inputstring="">
+      <arg value="Skeleton.html"/>
+      <arg value="book.html"/>
+      <arg value="none"/>
+      <arg value="-nostatus"/>
+    </java>
+    <delete file="${teamhelp}/Skeleton.html"/>
+  </target>
+
+  <target name="-javahelp-images" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <taskdef name="svgToImage"
+             classname="net.sourceforge.processdash.SVGToImage"
+	     classpath="${dashlibsrc};${svg.jar}"/>
+    <svgToImage maxWidth="740" bg="#ffffff" verbose="true"
+                destdir="${teamhelp.images}">
+      <fileset dir="${teamhelp.imgsrc}" includes="*.svg"/>
+    </svgToImage>
+  </target>
+
+
+  <target name="TeamTools"
+          depends="-noBuild-init,javahelp,compile" unless="noBuild.TeamTools">
+    <!-- compute the classes needed for the team tools jar file -->
+    <classfileset id="teamToolsClasses" dir="${build}">
+      <root classname="teamdash.wbs.WBSEditor"/>
+      <root classname="teamdash.templates.tools.OpenWBSEditor"/>
+      <root classname="teamdash.FilenameMapperExtResMgr"/>
+      <root classname="net.sourceforge.processdash.i18n.WBSRuntimeTemplateClassLoader"/>
+    </classfileset>
+
+    <!-- also compute the classes needed from processdash packages -->
+    <classfileset id="dashClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
+      <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
+      <root classname="net.sourceforge.processdash.ui.lib.BoxUtils"/>
+      <root classname="net.sourceforge.processdash.ui.lib.CheckboxTree"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ExceptionDialog"/>
+      <root classname="net.sourceforge.processdash.ui.lib.GuiPrefs"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneTweaker"/>
+      <root classname="net.sourceforge.processdash.ui.lib.LargeFontsHelper"/>
+      <root classname="net.sourceforge.processdash.ui.lib.PaddedIcon"/>
+      <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
+      <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
+      <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
+      <root classname="net.sourceforge.processdash.util.Diff"/>
+      <root classname="net.sourceforge.processdash.util.HTMLUtils"/>
+      <root classname="net.sourceforge.processdash.util.NullSafeObjectUtils"/>
+      <root classname="net.sourceforge.processdash.util.PatternList"/>
+      <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
+      <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
+      <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
+      <root classname="net.sourceforge.processdash.util.StringUtils"/>
+      <root classname="net.sourceforge.processdash.util.TempFileFactory"/>
+      <root classname="net.sourceforge.processdash.util.UsageLogger"/>
+      <root classname="net.sourceforge.processdash.util.VersionUtils"/>
+    </classfileset>
+
+    <!-- count the number of processdash classes we are using -->
+    <pathconvert property="dashClassesPath" refid="dashClasses" pathsep=";">
+        <regexpmapper from=".*/antbin/(.*).class" to="\1" handledirsep="true"/>
+    </pathconvert>
+    <script language="javascript"> <![CDATA[
+        classCount = 0;
+        dashClassesList = dashClassesPath.split(";").sort();
+        dashClassesMsg = "";
+        for (i = 0;  i < dashClassesList.length;  i++) {
+            // do not count the number of inner classes
+            if (dashClassesList[i].indexOf("$") == -1) {
+	        classCount++;
+                dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
+            }
+        }
+        if (classCount > 108) {
+            project.setProperty("dashClasses.overflowCount", classCount);
+            project.setProperty("dashClasses.overflowing", dashClassesMsg);
+        }
+    ]]> </script>
+
+    <!-- abort if the processdash class list was larger than expected -->
+    <fail if="dashClasses.overflowing">Unexpected number of
+processdash classes (${dashClasses.overflowCount}) referenced by TeamTools.jar (Perhaps a runaway
+class dependency has been added in a dashboard class?)
+    ${dashClasses.overflowing}
+    </fail>
+
+    <!-- Determine whether to exclude libs that are not GPLv2 compatible -->
+    <condition property="gpl.exclude" value="**/" else="none">
+      <isset property="GPLv2"/>
+    </condition>
+
+    <!-- Now build the TeamTools.jar file -->
+    <jar destfile="TeamTools.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
+	<attribute name="Dash-Pkg-ID" value="teamTools"/>
+	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
+	<attribute name="Dash-Pkg-Requires-Version"
+                   value="${teamtools.requires}"/>
+        <attribute name="Dash-Pkg-Localizable" value="true"/>
+	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
+	<attribute name="Dash-Pkg-URL"
+	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+	<attribute name="Implementation-Version" value="${teamtools.version}"/>
+        <attribute name="Application-Name"
+                   value="Work Breakdown Structure Editor"/>
+        <attribute name="Permissions" value="all-permissions"/>
+      </manifest>
+
+      <!-- include the compiled files -->
+      <fileset refid="teamToolsClasses"/>
+      <fileset dir="${build}" includes="teamdash/wbs/excel/"/>
+      <fileset refid="dashClasses"/>
+
+      <!-- include non-java resources files -->
+      <fileset dir="${src}">
+        <include name="teamdash/**/*.png"/>
+        <include name="teamdash/**/*.gif"/>
+        <include name="teamdash/**/default-user-settings.txt"/>
+        <include name="net/sourceforge/processdash/i18n/*.txt"/>
+      </fileset>
+      <fileset dir="${processdash.dir}/src">
+        <include name="net/sourceforge/processdash/util/TempFileFactory.properties"/>
+      </fileset>
+      <fileset dir="${processdash.dir}">
+        <include name="Templates/resources/Authentication*.properties"/>
+      </fileset>
+
+      <!-- include the wbs-editor-related templates -->
+      <fileset dir=".">
+        <include name="Templates/team/tools/index.shtm" />
+        <include name="Templates/team/tools/OpenWBSEditor.class.link" />
+        <include name="Templates/team/tools/TeamTools.jar.link" />
+        <include name="Templates/resources/WBSEditor*" />
+      </fileset>
+
+      <!-- include the helpset for team functionality -->
+      <fileset dir=".">
+        <include name="Templates/TeamTools-template.xml" />
+        <include name="${teamhelp}/" />
+        <exclude name="${teamhelp}/help.config" />
+        <exclude name="${teamhelp}/makeSkeleton.xslt" />
+        <exclude name="${teamhelp.imgsrc}/" />
+        <exclude name="${teamhelp.images}/Thumbs.db" />
+      </fileset>
+
+      <!-- include files from libraries we use -->
+      <zipfileset src="${swingx.jar}"
+          includes="org/jdesktop/swingx/autocomplete/"/>
+      <zipfileset src="${swingx-src.jar}">
+        <include name="swingx-src/COPYING"/>
+        <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
+      </zipfileset>
+      <zipfileset src="${poi.jar}" excludes="${gpl.exclude}"/>
+      <zipfileset src="${xmlpull.jar}"/>
+      <zipfileset src="${jcalendar.jar}"/>
+      <zipfileset src="${jna.jar}"/>
+      <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
+
+      <!-- include certain metadata files -->
+      <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
+    </jar>
+
+    <signjar jar="TeamTools.jar" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
+
+    <move file="TeamTools.jar" todir="${processdash.dist}"/>
+  </target>
+  <target name="TeamTools.jar" depends="TeamTools"/>
+
+  <target name="TeamProcess" depends="-defaultValues,-noBuild-init,framework"
+          unless="noBuild.TeamProcess">
+    <java classname="teamdash.process.GenerateProcess"
+          fork="true" inputstring="">
+      <classpath>
+        <pathelement location="${framework.jar}"/>
+        <pathelement location="${build}"/>
+        <pathelement location="${processdash.bin}"/>
+        <pathelement location="${xmlpull.jar}"/>
+      </classpath>
+      <arg value="${teamProcess.xml}"/>
+      <arg value="${processdash.dist}"/>
+    </java>
+  </target>
+
+  <target name="-installer-props" depends="-defaultValues">
+    <pathconvert property="teamdash.dir" dirSep="/">
+      <path><pathelement location="."/></path>
+    </pathconvert>
+
+    <pathconvert property="pdash.dist.dir" dirSep="/">
+      <path><pathelement location="${processdash.dist}"/></path>
+    </pathconvert>
+
+    <property name="extraPacks.xml" value="install/emptyFile.txt"/>
+    <loadfile property="extraPacks" srcFile="${extraPacks.xml}">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+
+    <property name="installerExtraIni" value=""/>
+    <loadfile property="extraIni" srcFile="install/custom-install.ini">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+
+    <property name="extraCore.xml" value="install/extraCore.xml"/>
+    <loadfile property="extraCoreFiles" srcFile="${extraCore.xml}">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+    <condition property="licenseFile.xml" else=""
+               value='&lt;file targetdir="$INSTALL_PATH" override="true"
+                               src="${licenseFile}"/&gt;'>
+      <isset property="licenseFile"/>
+    </condition>
+
+    <property name="install-flags" value=""/>
+    <property name="cd-qualifier" value="team"/>
+  </target>
+
+  <target name="installer" depends="TeamTools,TeamProcess,-installer-props">
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="plain">
+      <property name="qualifier" value="main"/>
+      <property name="install.flags" value="teamTools,tpidw,${install-flags}"/>
+      <property name="additional.packs" value="${extraPacks}"/>
+      <property name="custom-install.extra" value="${extraIni}"/>
+      <property name="additional.core.files" value="${extraCoreFiles}"/>
+    </ant>
+  </target>
+
+  <target name="installer-cd"
+          depends="TeamTools,TeamProcess,installer-cd-only"/>
+
+  <target name="installer-cd-only" depends="-installer-props">
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="dist-CD">
+      <property name="install.flags" value="teamTools,tpidw,${install-flags}"/>
+      <property name="additional.resources" value="${extraResources}"/>
+      <property name="additional.packs" value="${extraPacks}"/>
+      <property name="custom-install.extra" value="${extraIni}"/>
+      <property name="additional.core.files"
+                value="${extraCoreFiles} ${licenseFile.xml}"/>
+      <property name="qualifier" value="${cd-qualifier}"/>
+      <propertyset><propertyref name="no-exe-needed"/></propertyset>
+    </ant>
+  </target>
+
+  <target name="launch-profile">
+    <taskdef name="packageLaunchProfile"
+             classname="net.sourceforge.processdash.PackageLaunchProfile"
+	     classpath="${dashlibsrc}"/>
+    <condition property="skipConsentFile" value="licenseConsented.txt"
+             else="noSuchFile">
+      <equals arg1="${launchProfile.skipConsent}" arg2="true"/>
+    </condition>
+    <property name="licenseFile" value="noSuchFile"/>
+    <property name="jnlpLauncher.jar" value="none"/>
+    <packageLaunchProfile profilename="${launchProfile.name}"
+	  profileid="${launchProfile.id}"
+	  profileversion="${launchProfile.version}"
+          launcherjar="${jnlpLauncher.jar}"
+	  signingprefix="profileSign"
+	  destfile="${processdash.dist}/${launchProfile.filename}">
+      <fileset dir="${processdash.dist}"
+          includesfile="${processdash.lib}/fileset-install-jars.txt" />
+      <fileset dir="${processdash.dist}"
+          includes="TeamTools.jar ${launchProfile.files}"/>
+      <fileset dir="install" includes="${skipConsentFile}"/>
+      <fileset file="${licenseFile}"/>
+    </packageLaunchProfile>
+    <signjar jar="${processdash.dist}/${launchProfile.filename}"
+          alias="${jnlpSign.alias}" storepass="${jnlpSign.storepass}"/>
+  </target>
+
+  <target name="dist" depends="installer-cd"/>
+  <target name="dist-all" depends="installer-cd"/>
+  <target name="os-dist" depends="installer-cd"/>
+
+  <target name="signjar" if="sign.storepass">
+    <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe"
+          inputstring="">
+        <arg value="-storepass"/>
+        <arg value="${sign.storepass}"/>
+        <arg value="${sign.jar}"/>
+        <arg value="${sign.alias}"/>
+    </exec>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete file="${TeamProcessCGI.jar}"/>
+  </target>
+
+</project>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--#do-not-translate-->
+
+<!--#echo defaultEncoding="xml" -->
+<!--#replace token=":" var=[file_sep] -->
+<!--#replace token="TPID" var=[Team_Process_PID] -->
+
+<join-team-project
+<!--#if [Individuals_Using_Stubless_Phases] || teamSync.noPhaseStubs -->
+    Template_ID="TPID/Indiv2Root"
+<!--#else-->
+    Template_ID="TPID/IndivRoot"
+<!--#endif-->
+
+    Package_ID="TPID"
+    Package_Version="<!--#echo Dash_Package_TPID -->"
+
+<!--#if [Team_Directory] -->
+    Team_Directory="<!--#echo var=[Team_Directory] -->"
+    Template_Path="<!--#echo var=[Team_Directory] -->:Templates:TPID.zip"
+<!--#else-->
+    Team_Directory=""
+    Template_Path=""
+<!--#endif-->
+
+<!--#if [Team_Directory_UNC] -->
+    Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] -->"
+    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] -->:Templates:TPID.zip"
+<!--#else-->
+    Team_Directory_UNC=""
+    Template_Path_UNC=""
+<!--#endif-->
+
+<!--#if [Team_Data_Directory_URL] -->
+    Team_Data_Directory_URL="<!--#echo var=[Team_Data_Directory_URL] -->"
+<!--#else-->
+    Team_Data_Directory_URL=""
+<!--#endif-->
+
+<!--#if Dash_Package_pspdash ge 'version 1.12.1.3b' -->
+    Schedule_Messages_Supported="true"
+<!--#else-->
+    Schedule_Messages_Supported="false"
+<!--#endif-->
+
+<!--#if [Relaunch_Source_Project_ID] -->
+    Relaunch_Source_Project_ID="<!--#echo var=[Relaunch_Source_Project_ID] -->"
+<!--#endif-->
+
+    Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
+    Continuation_URI="/TPID/setup/wizard.class?page=indiv"
+
+    Project_Full_Name="<!--#echo var=PATH_TRANSLATED encoding=xml -->"
+    Schedule_Name="<!--#echo var=[Project_Schedule_Name] encoding=xml -->"
+    Suggested_Team_Member_Initials="[MEMBER_INITIALS]"
+    Suggested_Team_Member_Name="[MEMBER_NAME]"
+
+/>
+
+<!--#endreplace--><!--#endreplace-->

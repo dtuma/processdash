@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Restore Data for an Individual</title>
+</head>
+<body>
+
+<h1>Restore Data for an Individual</h1>
+
+<form action="restoreIndivData" method="post">
+
+Complete path to pdash file:
+<input type="text" name="filename">
+
+<input type="submit" name="OK" value="OK">
+
+</form>
+
+</body>
+</html>

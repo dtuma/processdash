@@ -1,0 +1,257 @@
+<html>
+<head>
+<title>Editing the WBS After Project Launch</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Editing the WBS After Project Launch</h1>
+
+<p>The Work Breakdown Structure Editor is designed to make editing easy and
+fast.  Since the launch requires you to create a large and complex plan in
+a short period of time, this is a great help during a project launch.</p>
+
+<p>Later in the project launch, individuals will perform a "Sync to WBS"
+operation.  This builds a personal plan for each team member which reflects
+their assignments in the team WBS.  As the project begins, they will refine
+estimates and collect actual data against these WBS elements.</p>
+
+<p>Throughout the project, the team can continue to make changes to the WBS.
+Individuals then perform a "Sync to WBS" operation and receive these changes.
+For example:</p>
+
+<ul>
+
+<li>The most common use of this is to create new tasks and assign them to
+    individuals.  The next time the individual performs a "Sync to WBS"
+    operation, the task will be added to their personal plan.</li>
+
+<li>In addition, you can rename existing components or tasks in the WBS.
+    The next time an individual performs a "Sync to WBS" operation, that
+    task will be renamed in their personal plan too.</li>
+
+<li>You can move tasks in the WBS using cut-and-paste.  The next time an
+    affected individual performs a "Sync to WBS" operation, that task will
+    be moved in their personal plan in the exact same manner.</li>
+
+<li>Also, you can delete tasks from the WBS.  The next time an affected
+    individual performs a "Sync to WBS" operation, the dashboard will offer
+    to delete the task from their personal plan.  If they have collected
+    actual data against the task, the dashboard will not delete it (because
+    you don't want actual data to be deleted) - instead, it will offer to
+    mark it complete.</li>
+
+<li>Of course, you can also reassign tasks from one individual to another.
+    When the affected individuals "Sync", the task will be
+    deleted/completed from one personal plan and added to the other.</li>
+
+</ul>
+
+<p>This is a very powerful set of features.  But with power comes
+responsibility!  Once people have started collecting data, you should no
+longer perform heavy-handed edits to the WBS, because the exact sequence of
+edits will be applied to personal plans with a literal interpretation.<p>
+
+<h2>Common Mistakes</h2>
+
+<p>Some examples may make this clear.  Here are examples of accidental
+changes that people could make without realizing the consequences.  <b>(Do
+not follow these examples!)</b></p>
+
+
+<table>
+
+<tr><td valign="top" align="right"><b>Scenario:</b></td><td> While editing,
+someone realizes that an item was inserted in the wrong place, causing
+two adjacent items to be out of order.</td></tr>
+
+<tr><td valign="top" align="right"><b style="color:#800">Mistake:</b></td><td>
+They decide to rename item "A" to "B" and vice versa.</td></tr>
+
+<tr><td valign="top" align="right"><b>Consequence:</b></td><td> In the
+personal plan, time log entries and other actual data for item "A" will be
+moved to item "B" and vice versa.</td></tr>
+
+<tr><td valign="top" align="right"><b>The&nbsp;Right&nbsp;Way:</b></td><td> To
+change the order of elements, use the move up/move down buttons.</td></tr>
+
+
+<tr><td></td><td><hr></td></tr>
+
+
+<tr><td valign="top" align="right"><b>Scenario:</b></td><td> While
+editing the WBS, a person deletes a task by accident.</td></tr>
+
+<tr><td valign="top" align="right"><b style="color:#800">Mistake:</b></td><td>
+They recreate the task by adding a new row and giving it the same name as
+before.</td></tr>
+
+<tr><td valign="top" align="right"><b>Consequence:</b></td><td> When
+individuals perform a sync to WBS, the sync will want to delete the existing
+task and create a new one in its place with the same name.</td></tr>
+
+<tr><td valign="top" align="right"><b>The&nbsp;Right&nbsp;Way:</b></td><td> In
+this case, the person should have used the Undo feature to back out the
+accidental deletion.</td></tr>
+
+
+<tr><td></td><td><hr></td></tr>
+
+
+<tr><td valign="top" align="right"><b>Scenario:</b></td><td> While
+editing the WBS, a person accidentally inserts a duplicate item.</td></tr>
+
+<tr><td valign="top" align="right"><b style="color:#800">Mistake:</b></td><td>
+To resolve the "duplicate name" error, the individual deletes one of the items
+- but mistakenly deletes the original item instead of the newly inserted
+duplicate.</td></tr>
+
+<tr><td valign="top" align="right"><b>Consequence:</b></td><td> When
+individuals perform a sync to WBS, the sync will want to delete the existing
+task and create a new one in its place with the same name.</td></tr>
+
+<tr><td valign="top" align="right"><b>The&nbsp;Right&nbsp;Way:</b></td><td> It
+is never correct to delete a task and create a new one in its place with the
+same name.  The person should have switched to the "Actual Time" tab and taken
+a look to see which task was the original task, and which one was the new
+accidental duplicate.  Then, they should have deleted the accidental duplicate
+item.</td></tr>
+
+
+<tr><td></td><td><hr></td></tr>
+
+
+<tr><td valign="top" align="right"><b>Scenario:</b></td><td> The project
+launch has concluded and people are busily working on tasks.  The process
+manager decides to change the team process, and makes changes to the Common
+Team Workflows.  Of course this <a
+href="InsertingWorkflows.html#copiesOnly">does not affect</a> the tasks
+that are already present in the WBS.</td></tr>
+
+<tr><td valign="top" align="right"><b style="color:#800">Mistake:</b></td><td>
+So the process manager decides that the easiest way to update the plan is to
+delete the existing tasks out from under each component, then reapply the
+workflows.</td></tr>
+
+<tr><td valign="top" align="right"><b>Consequence:</b></td><td> When
+individuals perform a sync to WBS, the sync will want to delete all of
+their existing tasks and create new ones, causing a great deal of headaches
+for the entire team.</td></tr>
+
+<tr><td valign="top" align="right"><b>The&nbsp;Right&nbsp;Way:</b></td><td>
+Existing tasks in the plan represent real plan entities.  If no one has
+started work on them, it is OK to delete them.  But once people attach actual
+data (size, effort, defects, etc.) to nodes, you should not delete them.  In
+this case, the planning manager needs to go through the components one at a
+time, manually applying the edits that were made to the common team
+workflow.</td></tr>
+
+
+<tr><td></td><td><hr></td></tr>
+
+
+<tr><td valign="top" align="right"><b>Scenario:</b></td><td> During the
+launch, the team created a plan for "Component A".  Some time after the
+project has started, the team realizes that "Component A" will not be
+required after all.  Instead, a brand new feature called "Component X" needs
+to be developed.</td></tr>
+
+<tr><td valign="top" align="right"><b style="color:#800">Mistake:</b></td><td>
+The planning manager decides that one component is going away and another
+is being created instead.  So to save work, they just rename the existing
+WBS item from "Component A" to "Component X".</td></tr>
+
+<tr><td valign="top" align="right"><b>Consequence:</b></td><td> The sync
+operation will rename "Component A" to "Component X" in each personal plan.
+All of the size, effort, defect, and completion data that was previously
+collected against Component A will now be applied to Component X.</td></tr>
+
+<tr><td valign="top" align="right"><b>The&nbsp;Right&nbsp;Way:</b></td><td>
+Create a brand new component in the WBS called Component X.  If this component
+has the same structure as Component A, you can use <b>copy</b>-paste to
+duplicate the WBS task structure.  Then, you can expand Component A and delete
+the tasks that haven't been started yet.</td></tr>
+
+</table>
+
+
+<h2>Understanding</h2>
+
+<p>The bottom line is this: during a launch, when the team plan exists only in
+the WBS, you can feel free to make massive changes.  But once the project has
+started, you should slow down and be mindful of the edits you make.</p>
+
+<p>Understanding is the key to using this successfully.  It is helpful to know
+that each node in the WBS has an internal ID number that acts as a unique
+identifier.  The number is assigned when the node is created.  The number does
+not change when the node is renamed, or when it is moved using cut-and-paste.
+When you perform sync operations, the sync logic matches nodes in the WBS and
+nodes in the personal plan using these internal ID numbers; it does not match
+nodes by name. (Otherwise, how could the sync logic ever carry out your rename
+operations for you?)  So a series of edits that destroys WBS items and creates
+new ones with the same names will not fool the sync logic - it will carry out
+the same destructive changes verbatim.</p>
+
+<p>The WBS is designed to be edited, and the "Sync" functionality stands ready
+to apply your changes to the personal plans.  Do not be afraid of using them!
+Just pay attention to what you're doing when you insert, delete, move, and
+rename WBS items.</p>
+
+
+<h2>Subdividing Tasks</h2>
+
+<p>In fact, once you understand how the WBS and the Sync operations work
+together, you can use these wisely to your advantage.  Here is an example.
+Suppose that during the launch, you created a very large task called "Task A".
+Very little was known about this task during the launch, so the team was
+unable to break it down any farther.  Instead, they just put a large number of
+hours directly on Task A.  After the project gets underway, the individual
+working on Task A spends some time researching the task.  This gives them the
+insight they need to break the task down further, into parts 1 through 5.  The
+individual might open the WBS and carefully make the following changes:</p>
+
+<ul>
+
+<li>Find "Task A" in the WBS, and highlight its row.</li>
+
+<li>Press the Insert key to insert a new row before the existing Task A.</li>
+
+<li>Call the new row "Task A".</li>
+
+<li>Now, rename the original "Task A" to "Research", and indent it one level
+    so it appears underneath the newly created parent task.</li>
+
+<li>Change the time estimate of the "Research" task to reflect the amount of
+    time that has been spent so far in research.</li>
+
+<li>Create five new rows after the "Research" task, all as children of the
+    newly created "Task A" parent node.  Give these new subtasks names that
+    reflect their meaning.</li>
+
+<li>Enter time estimates for the new subtasks, based on the work that came out
+    of the research effort.</li>
+
+</ul>
+
+<p>At the next sync, this sequence of edits will be applied to the personal
+plan.  In particular, a new "Task A" parent task will be created; the existing
+task in the personal plan will be renamed to "Research" and will be placed
+under the new parent task; all existing time log entries will move along with
+it.  Finally, new subtasks will be created to reflect the work that remains.
+Once the sync is done, the individual will be able to mark "Research" complete
+and earn value for the work done so far.</p>
+
+<p>This general model could be used for any large task that needs to be broken
+down further.  But to avoid confusion, it is only recommended when a single
+individual is assigned to the task.</p>
+
+<p>If this example confuses you, don't worry; you could take a simpler
+approach.  During the launch, create Task A and immediately create two
+subtasks: "Research" and "Execution".  Guess how much work will be required to
+do the research, then put the remaining block of time on the Execution task.
+Once the individual finishes their research phase, they can replace the
+"Execution" placeholder with several subtasks that reflect the refined work
+plan.</p>
+
+</body>
+</html>

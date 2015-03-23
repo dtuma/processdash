@@ -1,0 +1,24 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Migration Complete</title>
+</head>
+<body>
+
+<h1>Team Project Migration Complete</h1>
+
+<p>In the team dashboard, &quot;<!--#echo PATH_TRANSLATED -->&quot;
+has been successfully migrated to the new-style data format.</p>
+
+<p>If you also intend to <a href="convert">convert this team
+project</a> to a different metrics collection framework, you are
+encouraged to do that now.  Performing the conversion right now will
+enable team members to undergo a single migration step instead of two
+separate steps.</p>
+
+<p>Team Members should now restart their personal dashboard.  After
+restart, they will receive a notification advising them to migrate
+their personal plan.  They should click "OK" on this notification to
+proceed with the migration.</p>
+
+</body>
+</html>

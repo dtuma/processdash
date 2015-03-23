@@ -1,0 +1,70 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a team project for <!--#echo Full_Name -->
+//
+
+#include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
+)
+#include <<!--#echo Process_ID -->/root_data.txt>
+undefine([Simple Project Tag]);
+[<!--#echo Process_ID --> Master Root Tag] = tag;
+[<!--#echo Process_ID --> Master Project Root] = tag;
+[Master Project Root] = tag;
+[EV Project Tag] = tag;
+[Show_Percent_Spent_Indicator] = 0;
+[Show_Task_Dependency_Indicator] = 0;
+[Team_Note_Default_Format] =
+     "<!--#echo Process_ID -->-ReadOnlyMessageNoteFormat";
+
+
+[Project_WBS_Subpath] = "";
+[Subproject_WBS_ID_List] = listFor("Project_WBS_ID", [Subproject_Path_List]);
+[Corresponding_Project_Nodes] =
+    listFor("Corresponding_Project_Nodes", [Subproject_Path_List]);
+
+[Task_Labels] = list(
+    [Synchronized_Task_Labels],
+    listFor("Task_Labels", [Subproject_Path_List]));
+[Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
+
+[Rollup_Namespaced_Phase_Metrics] = 0 < count(filter(
+     lookup([_] &/ "Rollup_Namespaced_Phase_Metrics"),
+     [Subproject_Path_List]));
+
+<!--#if Disable_Team_Import_Repairs -->
+[Disable_Team_Import_Repairs] = tag;
+<!--#endif-->
+
+
+[Sync_Project_Root_Only] = ([Export_Max_Node_Depth] == 0);
+[Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only];
+
+[Project_WBS_ID_Filter] = iff(
+   [Rollup_Uses_In_Place_WBS_Filter] && [Project_WBS_ID//Relative_Path_Filter],
+   [Project_ID] &/ [Project_WBS_ID//Relative_Path_Filter], [Project_ID]);
+
+
+
+/*
+ * Redefine the rollup filter to include items from all subprojects.
+ */
+[Rollup_Filter_Regexp] =
+    "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")" &
+    iff([Rollup_Uses_In_Place_WBS_Filter]
+            && [Project_WBS_ID//Relative_Path_Filter],
+        "/\\Q" & [Project_WBS_ID//Relative_Path_Filter] & "\\E", "") &
+    "(/.+)?$\n";
+[Rollup_Filter] = 
+    "(!defined([{Filtered_Task_Labels}]) \
+        || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
+
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
+[DB_Project_ID_List] == [Subproject_WBS_ID_List];
+[DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
+[DB_WBS_Relative_Path_ID] = [Earned_Value//Merged_Path_Filter];
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

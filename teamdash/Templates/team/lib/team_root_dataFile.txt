@@ -1,0 +1,170 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a team project for <!--#echo Full_Name -->
+//
+
+#include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
+)
+#include <<!--#echo Process_ID -->/root_data.txt>
+undefine([Simple Project Tag]);
+[<!--#echo Process_ID -->/TeamRoot Tag] = tag;
+[<!--#echo Process_ID --> Team Root Tag] = tag;
+[<!--#echo Process_ID --> Team Project Root] = tag;
+[Team Project Root] = tag;
+[EV Project Tag] = tag;
+[Show_Percent_Spent_Indicator] = 0;
+[Show_Task_Dependency_Indicator] = 0;
+[Team_Note_Default_Format] =
+     "<!--#echo Process_ID -->-ReadOnlyMessageNoteFormat";
+
+
+[EXPORT_FILE] = 
+    iff([Team_Data_Directory],
+        [Team_Data_Directory] & [file_sep] & "disseminate" &
+        [file_sep] & "team-data.pdash",
+    iff([Team_Data_Directory_URL],
+        "team-data.pdash",
+    ""));
+[EXPORT_FILE/Server_URL] =
+    iff([Team_Data_Directory_URL],
+        [Team_Data_Directory_URL] & "-disseminate", "");
+[EXPORT_FILE/Instructions] = 
+    "file:/<!--#echo Process_ID -->/disseminationExportFilter.xml";
+
+[Related_EV_Schedule/Team] = "MERGED:" & [Project_Schedule_Name];
+[Related_EV_Schedule/Master] =
+    iff(! [Master_Project_Path], "",
+       "MERGED:" & indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
+
+[Individuals_Using_Stubless_Phases] = false;
+[Reverse_Sync_New_Members] = [/Team_Project_Policy/Reverse_Sync_New_Members];
+
+<!--#if Disable_Team_Import_Repairs -->
+[Disable_Team_Import_Repairs] = tag;
+<!--#endif-->
+
+/*
+ * Data elements for label and component-based filtering
+ */
+
+[Task_Labels] = list([Synchronized_Task_Labels],
+   [Synchronized_Task_Milestones]);
+[Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
+[Project_WBS_ID_Filter] = iff(
+   [Rollup_Uses_In_Place_WBS_Filter] && [Project_WBS_ID//Relative_Path_Filter],
+   [Project_ID] &/ [Project_WBS_ID//Relative_Path_Filter], [Project_ID]);
+
+[Project_WBS_Subpath] = "";
+[Sync_Project_Root_Only] = ([Export_Max_Node_Depth] == 0);
+[Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only]
+    && [Project_Component_Info];
+
+
+/*
+ * Redefine the rollup filter to include items from this project, and
+ * respect the label-based filter if it is in effect.
+ */
+[Rollup_Filter] =
+    "nvlz(!defined([{Filtered_Task_Labels}]), \
+          intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
+     && nvlz([Project_WBS_ID] == [{Project_WBS_ID_Filter}], \
+          startsWith([{Project_WBS_ID_Filter}] & \"/\", [Project_WBS_ID]))";
+
+
+/*
+ * Create a list of nodes whose Project_WBS_ID matches the ID of this node.
+ */
+[Corresponding_Project_Nodes] =
+    filter([Project_WBS_ID] == indirect([_] &/ "Project_WBS_ID"),
+#ifdef AUTO_INDIV_ROOT_TAG
+           [/<!--#echo Process_ID -->/Indiv Root List]
+#else
+      setUnion([/<!--#echo Process_ID -->/Project List],
+           [/<!--#echo Process_ID -->/Indiv Root List])
+#endif
+);
+
+/*
+ * Scan included projects to determine whether namespaced data is in use.
+ */
+[Rollup_Namespaced_Phase_Metrics] = 0 < count(filter(
+     lookup([_] &/ "Exporting_Namespaced_Phase_Metrics"),
+     [Corresponding_Project_Nodes]));
+
+
+/*
+ * Compare the timestamps on imported data to our most recent export,
+ * and determine whether our export is up-to-date.
+ */
+[Max_Imported_Data_Timestamp] = maxDate(map(
+    eval("inherit(\"Import_Metadata/exported.when\")", [_]),
+    [Corresponding_Project_Nodes]));
+[Export_Is_Current] =
+    ([EXPORT_FILE/Last_Export_Timestamp] && [Max_Imported_Data_Timestamp]) &&
+    ([EXPORT_FILE/Last_Export_Timestamp] > [Max_Imported_Data_Timestamp]);
+[EXPORT_FILE/Disabled] = [Export_Is_Current];
+
+
+/*
+ * Document a list of settings that should be copied forward when 
+ * a project is relaunched
+ */
+
+[Relaunchable_Settings] = list(
+    "Defect Type Standard",
+    "Target Design/Code Ratio",
+    "Target Code Review/Code Ratio",
+    "Target Compile Defect Density",
+    "Target Test Defect Density",
+    "Target Design Review/Design Ratio",
+    "Prefer Actual Size for Inspection Estimates",
+    "*PHASE*/Estimated % Phase Yield",
+    "*PHASE*/Estimated Defects Injected per Hour",
+    "Phase_Display_Filter_Include/*PHASE*"
+);
+
+
+/*
+ * Publish team settings data that can be exported to individuals
+ */
+[Team_Settings] = TAG;
+
+[Team_Settings /Is_New_Style_Team_Project] =
+    [Individuals_Using_Stubless_Phases];
+
+[Team_Settings /Team_Process_PID] = [Team_Process_PID];
+
+[Team_Settings /Defect_Type_Standard] =
+    iff([Defect Type Standard] && ([Defect Type Standard] != " "),
+        [Defect Type Standard] & ", set by team project:::" &
+        indirect("/Defect Type Standard/" & [Defect Type Standard]),
+        null);
+
+[Allow_Indiv_WBS_Editing] = 2;
+[Team_Settings /Allow_Indiv_WBS_Editing] = [Allow_Indiv_WBS_Editing];
+
+[Disable_Indiv_Auto_Sync] = 0;
+[Team_Settings /Disable_Indiv_Auto_Sync] = [Disable_Indiv_Auto_Sync];
+
+[Disable_Indiv_Auto_Export] = 0;
+[Team_Settings /Disable_Indiv_Auto_Export] = [Disable_Indiv_Auto_Export];
+
+[Team_Settings /Phase_Display_Filter_List] = [Phase_Display_Filter_List];
+
+<!--#foreach name=PHASE list=Phase_List #-->
+[Team_Settings /<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
+        [<!--#echo PHASE_Name -->/Estimated % Phase Yield];
+[Team_Settings /<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] =
+        [<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour];
+<!--#endfor-->
+
+[Team_Settings /Target Design/Code Ratio] =
+        [Target Design/Code Ratio];
+[Team_Settings /Target Design Review/Design Ratio] =
+        [Target Design Review/Design Ratio];
+[Team_Settings /Target Code Review/Code Ratio] =
+        [Target Code Review/Code Ratio];
+[Team_Settings /Target Test Defect Density] =
+        [Target Test Defect Density];
+[Team_Settings /Target Compile Defect Density] =
+        [Target Compile Defect Density];

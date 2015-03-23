@@ -1,0 +1,8 @@
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+</head>
+<frameset cols="*" frameborder="0" border="0" framespacing="0">
+  <frame name="content" src="wizard.class?page=indivStart" frameborder="0" noresize>
+</frameset>
+</html>

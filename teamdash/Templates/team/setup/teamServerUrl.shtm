@@ -1,0 +1,60 @@
+<html><!--#do-not-translate-->
+<head>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Enter Team Server Location</h2>
+
+<!--#if errMsg -->
+
+<table width='100%'><tr><td width='100%' class=error>
+<!--#echo var="errMsg" --></td></tr></table>
+
+<!--#endif-->
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamDir'>
+
+<P>The team-oriented processes in the dashboard use a central server
+to facilitate coordination.  This server manages team-level planning
+information, such as the project's work breakdown structure.</P>
+
+<!--#if missing -->
+
+<table width='100%'><tr><td width='100%' class=error>You must enter a
+server location!</td></tr></table>
+
+<!--#elif cannotContact -->
+
+<table width='100%'><tr><td width='100%' class='error'>The dashboard
+was unable to contact a Process Dashboard server at the URL below.
+Please ensure that you are connected to the network, and that the URL
+below points to a Process Dashboard Enterprise Server.
+</td></tr></table>
+
+<!--#endif-->
+
+<p>What is the URL to the server that should manage the data for this
+project?</p>
+
+<table><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Server URL:&nbsp;&nbsp;</td>
+<td><input type=text name=teamDir
+    <!--#if [setup//Team_Dir] -->
+           value="<!--#echo var='[setup//Team_Dir]' -->"
+    <!--#endif-->
+           size=60></td></tr></table>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

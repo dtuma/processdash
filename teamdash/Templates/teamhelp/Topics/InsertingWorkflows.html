@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>Inserting Common Team Workflows</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Inserting Common Team Workflows</h1>
+
+In the Work Breakdown Structure Editor, you can quickly add the
+contents of a process/workflow that you previously defined in the
+Common Team Workflows Editor. Simply select a target WBS item, and
+then select the desired workflow from the Workflow menu. The contents
+of the selected workflow will be added as children of the selected
+target WBS item. For example, suppose you have the following defined
+process:
+
+<p class="figure"><img src="../Images/workflow-rate-example.png"></p>
+
+<p>and the following WBS:</p>
+
+<p class="figure"><img src="../Images/workflow-insert-example-before.png"></p>
+
+<p>If you were to highlight Component B and choose Simple Process
+from the Workflow menu, it would produce the following WBS:</p>
+
+<p class="figure"><img src="../Images/workflow-insert-example-after.png"></p>
+
+<p>If you make a mistake (for example, inserting the workflow under
+the wrong WBS item), you can always undo it using the undo button
+(<img src="../Images/icon-undo.png">).</p>
+
+<p><a name="copiesOnly"></a>It is important to note that the items
+inserted into your WBS via
+this method are <i>copies</i> of the items in the defined process or
+workflow. As a result, you can freely edit the inserted items (for
+example, deleting steps that are unnecessary for the current
+situation) without affecting the process/workflow definition. This
+also means, however, that if you use the Common Team Workflows Editor
+to alter the definition of a process/workflow later, those changes
+will not be propagated into the team's WBS. For example, if you were
+to open the Common Team Workflows Editor and delete the Planning step
+from the definition of the "Simple Process" workflow, that change
+would not affect the list of tasks under Component B. It would
+continue to include a Planning step.</p>
+
+
+</body>
+</html>
