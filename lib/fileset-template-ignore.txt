@@ -1,3 +1,4 @@
+**/.gitignore
 **/*.BMP
 **/*.bmp
 **/*.class

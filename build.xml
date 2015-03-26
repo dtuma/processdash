@@ -466,7 +466,6 @@ Authors:
 
   <target name="jar" description="Make the jarfile for distribution"
           depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list,jar-resource-check">
-    <svnRevInfo property="svnRevision"/>
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -479,7 +478,6 @@ Authors:
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
         <attribute name="Dash-Pkg-URL"
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
-        <attribute name="Dash-Svn-Revision" value="${svnRevision}"/>
 
         <attribute name="Implementation-Version" value="${version}"/>
       </manifest>
@@ -750,8 +748,20 @@ Authors:
       depends="jar,javahelp-addon,import-addon,l10nTool-addon,
                pspForEng-addon,extras-addon"/>
 
-  <target name="dist-src" depends="ant-tasks">
-    <svnzip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>
+  <target name="dist-src">
+    <!-- get a list of all files known to version control -->
+    <tempfile property="fileset-src-git" deleteonexit="true" />
+    <exec executable="git" output="${fileset-src-git}">
+      <arg value="ls-files"/>
+    </exec>
+    <!-- build a ZIP of those files -->
+    <zip destfile="${dist}/pdash-src-${dashboard-version}.zip"
+         basedir="." level="9">
+      <includesfile name="${fileset-src-git}"/>
+      <includesfile name="${lib}/fileset-src-extra.txt"/>
+      <exclude name="teamdash/lib/*src*"/>
+      <exclude name="teamdash/Templates/teamhelp/Images/constr/*.zip"/>
+    </zip>
   </target>
 
   <target name="dist-all" depends="dist,dist-src,installer"/>

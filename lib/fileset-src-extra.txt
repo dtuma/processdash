@@ -1,0 +1,6 @@
+Templates/help/Images/*.png
+Templates/help/TOC.html
+Templates/help/book.html
+teamdash/Templates/teamhelp/Images/*.png
+teamdash/Templates/teamhelp/TOC.html
+teamdash/Templates/teamhelp/book.html
