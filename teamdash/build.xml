@@ -34,7 +34,7 @@ The author(s) may be contacted at:
   <property name="teamtools.requires" value="2.0.4+"/>
   <property name="framework.version" value="${teamtools.version}"/>
 
-  <property name="processdash.dir" value="../processdash"/>
+  <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
   <property name="processdash.bin" value="${processdash.dir}/antbin"/>
   <property name="processdash.dist" value="${processdash.dir}/dist"/>

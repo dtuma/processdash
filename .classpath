@@ -5,6 +5,7 @@
 	<classpathentry kind="src" path="test/src"/>
 	<classpathentry kind="src" path="lib/src"/>
 	<classpathentry kind="src" path="l10n-tool/src"/>
+	<classpathentry kind="src" path="teamdash/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/image4j.jar"/>
 	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar" sourcepath="/ANT_HOME/apache-ant-1.7.0-src.zip"/>
@@ -26,5 +27,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar" sourcepath="misc/zips/jetty-8.1.15-src.jar"/>
+	<classpathentry kind="lib" path="teamdash/lib/swingx-0.9.1.jar" sourcepath="teamdash/lib/swingx-0.9.1-src.zip"/>
+	<classpathentry kind="lib" path="teamdash/lib/poi-3.0.1-FINAL-20070705.jar" sourcepath="teamdash/lib/poi-src-3.0.1-FINAL-20070705.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
