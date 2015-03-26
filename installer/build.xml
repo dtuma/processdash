@@ -293,6 +293,8 @@ Authors:
 ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar
 </echo>
+	<echo file="files/autorun.inf"
+  	      >[AutoRun]&#13;&#10;open=setup.exe&#13;&#10;</echo>
 
 	<zip destfile="${dist}/pdash-${qualifier}-cd-${dashboard-version}.zip">
 	    <fileset dir="files" includes="setup.exe autorun.inf"/>
