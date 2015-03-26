@@ -538,6 +538,7 @@ Authors:
   <target name="jar-resource-check">
     <fileset id="resourceCheck" dir="${src}"
          excludesfile="${lib}/fileset-nonclass.txt">
+      <exclude name="**/.gitignore"/>
       <exclude name="**/Thumbs.db"/>
       <exclude name="**/grammar.txt"/>
       <exclude name="**/*.lex"/>

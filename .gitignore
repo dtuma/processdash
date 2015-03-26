@@ -1,0 +1,11 @@
+/.settings/
+/misc/
+
+/build.properties
+
+antbin/
+bin/
+dist/
+
+*.class
+Thumbs.db

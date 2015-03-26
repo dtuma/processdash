@@ -1,0 +1,8 @@
+/misc/
+
+/Templates/team/lib/TeamProcessCGI.jar
+/Templates/team/setup/filelist.txt
+
+/build.properties
+/*.jar
+/*.zip
