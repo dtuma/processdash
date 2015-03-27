@@ -1,6 +1,7 @@
 /.settings/
 /misc/
 
+/Templates/team/setup/filelist.txt
 /build.properties
 
 antbin/
