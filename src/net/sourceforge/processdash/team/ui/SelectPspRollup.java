@@ -21,13 +21,14 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.team.sync.HierarchySynchronizer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -44,7 +45,7 @@ public class SelectPspRollup extends TinyCGIBase {
     }
 
 
-    protected static String getRollupSelector(DataContext ctx,
+    public static String getRollupSelector(DataContext ctx,
             String formElemName, String defaultRollupName) {
         ListData rollups = ListData.asListData(ctx
                 .getSimpleValue(PSP_ROLLUP_LIST));

@@ -21,11 +21,14 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.move;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DataContext;
@@ -35,12 +38,12 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.msg.MessageHandler;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class MoveTeamDirMessageHandler implements MessageHandler {
 

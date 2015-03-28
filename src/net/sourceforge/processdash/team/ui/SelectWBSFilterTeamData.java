@@ -21,8 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -35,6 +35,7 @@ import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -45,7 +46,7 @@ import net.sourceforge.processdash.util.XMLUtils;
  * on a team rollup which is using data-based filtering (as opposed to
  * frame-based filtering).
  */
-public class selectWBSData extends selectWBS {
+public class SelectWBSFilterTeamData extends SelectWBSNode {
 
     private static final String REL_PATH_PARAM = "relPath";
     private static final String WBS_ID_PARAM = "wbsID";

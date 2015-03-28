@@ -22,7 +22,7 @@
 //     processdash-devel@lists.sourceforge.net
 
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -71,6 +71,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
@@ -96,7 +97,8 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
  * bootstrapped by a CGI script called "dash/teamStart.class", which
  * is included in the main dashboard distribution.
  */
-public class wizard extends TinyCGIBase implements TeamDataConstants {
+public class TeamProjectSetupWizard extends TinyCGIBase implements
+        TeamDataConstants {
 
     // The following four constants are copies of constants in the
     // bootstrap script.  They must match the values in the bootstrap
@@ -229,7 +231,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             .getDashBundle("ProcessDashboard");
 
     private static final Logger logger =
-        Logger.getLogger(wizard.class.getName());
+        Logger.getLogger(TeamProjectSetupWizard.class.getName());
 
     protected void writeHeader() {}
     protected void writeContents() {}
@@ -441,7 +443,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     /** Try to locate the jarfile containing the definition for the
      * given process, and return the path to the file.
      */
-    static String findTeamProcessJarfile(String processID) {
+    public static String findTeamProcessJarfile(String processID) {
         Vector scripts = TemplateLoader.getScriptIDs(processID, null);
         if (scripts == null) scripts = new Vector();
         scripts.add(new ScriptID(processID + "-template.xml", null, null));

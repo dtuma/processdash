@@ -1,2 +1,2 @@
-class:teamdash.templates.setup.GetAddOnInternalURL
+class:net.sourceforge.processdash.team.ui.GetAddOnInternalURL
 absoluteUri=settings.xml

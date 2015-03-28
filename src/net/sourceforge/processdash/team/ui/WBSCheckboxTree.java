@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -29,7 +29,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-public class filterWBS extends selectWBS {
+public class WBSCheckboxTree extends SelectWBSNode {
 
     String wbsID;
 

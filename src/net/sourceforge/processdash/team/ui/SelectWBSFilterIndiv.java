@@ -21,8 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -35,7 +35,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
-public class selectWBSIndiv extends selectWBS {
+public class SelectWBSFilterIndiv extends SelectWBSNode {
 
     private static final String REL_PATH_PARAM = "relPath";
     private static final String DEST_URI_PARAM = "destUri";

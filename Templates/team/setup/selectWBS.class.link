@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectWBS
+class:net.sourceforge.processdash.team.ui.SelectWBSNode

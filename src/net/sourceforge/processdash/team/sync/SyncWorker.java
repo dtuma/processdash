@@ -21,13 +21,14 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.sync;
 
 import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+
 
 public interface SyncWorker extends DataContext {
 

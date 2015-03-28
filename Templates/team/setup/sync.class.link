@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.sync
+class:net.sourceforge.processdash.team.sync.SyncWBS

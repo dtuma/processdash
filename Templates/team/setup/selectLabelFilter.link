@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectLabelFilter
+class:net.sourceforge.processdash.team.ui.SelectLabelFilter

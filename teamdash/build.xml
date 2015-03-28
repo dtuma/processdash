@@ -300,6 +300,7 @@ The author(s) may be contacted at:
 
     <!-- also compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
@@ -346,7 +347,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 108) {
+        if (classCount > 109) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

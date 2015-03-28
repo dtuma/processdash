@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.migrate
+class:net.sourceforge.processdash.team.setup.migrate.MigrateTeamProject

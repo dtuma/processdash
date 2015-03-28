@@ -21,13 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.XMLUtils;
+
 
 public class AddScheduleWriter extends TinyCGIBase {
 

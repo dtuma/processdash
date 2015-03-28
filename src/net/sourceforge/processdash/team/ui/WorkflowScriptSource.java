@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
@@ -39,9 +41,9 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptSource;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.util.StringUtils;
 
-import org.w3c.dom.Element;
 
 public class WorkflowScriptSource implements ScriptSource {
 

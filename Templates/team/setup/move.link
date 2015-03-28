@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.MoveProjectWizard
+class:net.sourceforge.processdash.team.setup.move.MoveProjectWizard

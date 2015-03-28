@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.move;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -42,6 +42,8 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -49,6 +51,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
+
 
 public class MoveProjectWorker {
 

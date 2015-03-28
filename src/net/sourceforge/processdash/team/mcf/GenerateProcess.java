@@ -21,17 +21,17 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 
-import net.sourceforge.processdash.net.http.ContentSource;
-
 import org.w3c.dom.Document;
 
-import teamdash.XMLUtils;
+import net.sourceforge.processdash.net.http.ContentSource;
+import net.sourceforge.processdash.util.XMLUtils;
+
 
 public class GenerateProcess {
 
@@ -65,7 +65,7 @@ public class GenerateProcess {
             }
 
             GenerateProcess instance = new GenerateProcess(destDir, settings,
-                    settingsFile.toURL());
+                    settingsFile.toURI().toURL());
             instance.run();
             if (args.length < 3)
                 System.exit(0);

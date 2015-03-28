@@ -21,13 +21,13 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 
 
-public class selectTopNode extends selectHier {
+public class SelectProjectParent extends SelectHierarchyNode {
 
     protected PropertyKey getStartingKey() {
         return PropertyKey.ROOT;

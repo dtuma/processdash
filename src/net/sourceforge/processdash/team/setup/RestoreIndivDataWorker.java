@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,8 +51,10 @@ import net.sourceforge.processdash.log.time.ModifiableTimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.log.time.TimeLogEntryVO;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
+
 
 public class RestoreIndivDataWorker implements TeamDataConstants, DefectAnalyzer.Task {
 

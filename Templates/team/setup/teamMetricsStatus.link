@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.TeamMetricsStatus
+class:net.sourceforge.processdash.team.ui.TeamMetricsStatus

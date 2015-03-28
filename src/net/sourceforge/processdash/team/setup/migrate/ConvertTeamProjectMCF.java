@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.migrate;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,6 +35,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.sync.SyncWBS;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -42,7 +43,7 @@ import net.sourceforge.processdash.util.StringUtils;
  * This class initiates the process to convert a team project from one metrics
  * collection framework to another.
  */
-public class convert extends TinyCGIBase {
+public class ConvertTeamProjectMCF extends TinyCGIBase {
 
     /** The hierarchy path to the root of the enclosing team project */
     private String projectRoot;
@@ -83,7 +84,7 @@ public class convert extends TinyCGIBase {
             MigrationToolTeam mtt = new MigrationToolTeam(
                     getDashboardContext(), projectRoot, targetPID);
             mtt.convert();
-            sync.startBackgroundExport(projectRoot);
+            SyncWBS.startBackgroundExport(projectRoot);
             return "convertTeamSuccess.shtm";
         }
     }

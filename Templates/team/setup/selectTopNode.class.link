@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectTopNode
+class:net.sourceforge.processdash.team.ui.SelectProjectParent

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.sync;
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,7 +53,11 @@ import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationExce
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.ui.TriggerURI;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.RepairImportInstruction;
+import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
@@ -61,8 +65,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import teamdash.FilenameMapper;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
  * 
@@ -87,7 +89,7 @@ import teamdash.FilenameMapper;
  * <li>Performs the requested synchronization, and displays the results.
  * </ul>
  */
-public class sync extends TinyCGIBase {
+public class SyncWBS extends TinyCGIBase {
 
     /** The hierarchy path to the root of the enclosing team project */
     private String projectRoot;
@@ -129,7 +131,7 @@ public class sync extends TinyCGIBase {
     private String enableSyncLogging;
 
 
-    public sync() {
+    public SyncWBS() {
         charset = "UTF-8";
     }
 
@@ -372,7 +374,8 @@ public class sync extends TinyCGIBase {
                  "Enter network directory path".equals(teamDirectoryLocation = d.format()))
                 signalError(TEAM_DIR_MISSING);
 
-            teamDirectoryLocation = FilenameMapper.remap(teamDirectoryLocation);
+            teamDirectoryLocation = ExternalResourceManager.getInstance()
+                    .remapFilename(teamDirectoryLocation);
             teamDirectory = new File(teamDirectoryLocation);
 
             if (!teamDirectory.isDirectory())
@@ -429,7 +432,8 @@ public class sync extends TinyCGIBase {
 
         // If a filename remapper is operating and it instructs us to use a
         // different location for this URL, respect its directions.
-        String remapped = FilenameMapper.remap(lastServerUrlStr);
+        String remapped = ExternalResourceManager.getInstance().remapFilename(
+            lastServerUrlStr);
         if (remapped != null && !remapped.equals(lastServerUrlStr)) {
             File dir = new File(remapped);
             if (dir.isDirectory())
@@ -978,7 +982,7 @@ public class sync extends TinyCGIBase {
 
     }
 
-    static void startBackgroundExport(String projectRoot) {
+    public static void startBackgroundExport(String projectRoot) {
         BackgroundTaskManager.getInstance().addTask(
                 new AsyncExporter(projectRoot));
     }
@@ -1036,8 +1040,8 @@ public class sync extends TinyCGIBase {
         }
     }
 
-    static final String MASTER_ROOT = "/MasterRoot";
-    static final String TEAM_ROOT = "/TeamRoot";
+    public static final String MASTER_ROOT = "/MasterRoot";
+    public static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String INDIV2_ROOT = "/Indiv2Root";
     private static final String DISABLE_TEAM_IMPORT_REPAIR_DATA_NAME = "Disable_Team_Import_Repairs";
@@ -1045,7 +1049,7 @@ public class sync extends TinyCGIBase {
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String PROMPT_FOR_PSP_SUBSET = "/Prompt_for_PSP_Subset_On_WBS_Sync";
-    static final String HIER_FILENAME = "projDump.xml";
+    public static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
     private static final String NOT_TEAM_PROJECT = "notTeamProject";

@@ -21,8 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
@@ -34,7 +34,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 
-public class summaryName extends selectWBS {
+public class PlanSummaryNameHeader extends SelectWBSNode {
 
     private String processID = null;
 
@@ -50,12 +50,12 @@ public class summaryName extends selectWBS {
         String prefix = getPrefix();
         PropertyKey projectRootKey = getStartingKey();
         String projectRoot = projectRootKey.path();
-        String currentFilter = selectLabelFilter.getCurrentFilter(
+        String currentFilter = SelectLabelFilter.getCurrentFilter(
                 getDataRepository(), projectRoot);
         boolean isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
         boolean isIndiv = (getID(getPSPProperties(), projectRootKey).indexOf(
                 "Indiv") != -1);
-        boolean useData = selectWBSData.usesDataBasedFilter(
+        boolean useData = SelectWBSFilterTeamData.usesDataBasedFilter(
             getDataRepository(), projectRoot);
 
         out.println("<html><head>");

@@ -21,8 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.data.DateData;
@@ -35,7 +35,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
-public class sizeForm extends TinyCGIBase {
+public class SizeInventoryForm extends TinyCGIBase {
 
     private static final String EXTRA_ROWS_PARAM = "addRows";
     private static final int NUM_EXTRA_ROWS = 5;

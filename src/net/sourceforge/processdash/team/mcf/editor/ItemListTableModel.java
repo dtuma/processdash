@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf.editor;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -49,7 +49,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableModel;
 
-import teamdash.process.CustomProcess.Item;
+import net.sourceforge.processdash.team.mcf.CustomProcess;
+import net.sourceforge.processdash.team.mcf.CustomProcess.Item;
 
 
 public abstract class ItemListTableModel extends AbstractTableModel {

@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.summaryName
+class:net.sourceforge.processdash.team.ui.PlanSummaryNameHeader

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -70,7 +70,7 @@ public class CustomProcessPublisher {
 
     private static final String EXT_FILE_PREFIX = "extfile:";
 
-    protected static final String PARAM_ITEM = "param";
+    public static final String PARAM_ITEM = "param";
 
     private static final String VALUE = "value";
 

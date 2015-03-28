@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectHier
+class:net.sourceforge.processdash.team.ui.SelectHierarchyNode

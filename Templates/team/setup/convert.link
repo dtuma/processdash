@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.convert
+class:net.sourceforge.processdash.team.setup.migrate.ConvertTeamProjectMCF

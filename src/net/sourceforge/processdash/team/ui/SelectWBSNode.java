@@ -21,15 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 
 
-public class selectWBS extends selectHier {
+public class SelectWBSNode extends SelectHierarchyNode {
 
     // start at the root of the current project.
     protected PropertyKey getStartingKey() {

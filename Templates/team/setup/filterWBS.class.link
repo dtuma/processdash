@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.filterWBS
+class:net.sourceforge.processdash.team.ui.WBSCheckboxTree

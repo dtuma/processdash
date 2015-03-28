@@ -21,12 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf.editor;
 
 import java.io.File;
 import java.io.IOException;
 
 import net.sourceforge.processdash.net.http.ContentSource;
+import net.sourceforge.processdash.team.mcf.ClasspathContentProvider;
+import net.sourceforge.processdash.team.mcf.CustomProcess;
+import net.sourceforge.processdash.team.mcf.CustomProcessPublisher;
 
 public class CustomProcessEditor extends AbstractCustomProcessEditor {
 

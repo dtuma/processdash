@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.SetTeamServerJoinUrl
+class:net.sourceforge.processdash.team.setup.SetTeamServerJoinUrl

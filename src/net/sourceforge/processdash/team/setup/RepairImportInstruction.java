@@ -21,14 +21,16 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 
 import java.io.File;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.util.StringUtils;
+
 
 public class RepairImportInstruction {
 

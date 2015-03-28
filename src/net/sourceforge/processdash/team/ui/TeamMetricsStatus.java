@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -40,6 +41,7 @@ import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+
 
 public class TeamMetricsStatus extends TinyCGIBase {
 
@@ -185,7 +187,6 @@ public class TeamMetricsStatus extends TinyCGIBase {
     }
 
     private class ImportData implements Comparable<ImportData> {
-        String prefix;
 
         String ownerName;
 

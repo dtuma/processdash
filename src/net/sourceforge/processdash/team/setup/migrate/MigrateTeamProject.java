@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.migrate;
 
 import java.io.IOException;
 
@@ -29,6 +29,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.sync.SyncWBS;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -36,12 +37,13 @@ import net.sourceforge.processdash.util.StringUtils;
  * This class initiates the process to migrate a team project from the old
  * format to the new format.
  */
-public class migrate extends TinyCGIBase {
+public class MigrateTeamProject extends TinyCGIBase {
 
     /** The hierarchy path to the root of the enclosing team project */
     private String projectRoot;
 
     /** The processID used by the enclosing team project */
+    @SuppressWarnings("unused")
     private String processID;
 
     /** The processID that the project should be converted to, if applicable */
@@ -83,7 +85,7 @@ public class migrate extends TinyCGIBase {
             MigrationToolTeam mtt = new MigrationToolTeam(
                     getDashboardContext(), projectRoot, null);
             mtt.migrate();
-            sync.startBackgroundExport(projectRoot);
+            SyncWBS.startBackgroundExport(projectRoot);
             return "migrateTeamSuccess.shtm";
         }
     }

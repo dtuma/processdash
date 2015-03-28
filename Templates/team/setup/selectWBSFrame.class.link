@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectWBSFrame
+class:net.sourceforge.processdash.team.ui.SelectWBSFilterTeamFrame

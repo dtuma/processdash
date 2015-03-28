@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

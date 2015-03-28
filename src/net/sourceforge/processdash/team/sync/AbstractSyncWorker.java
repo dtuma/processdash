@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.sync;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,8 +33,8 @@ import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.PathRenamingInstruction;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.hier.PathRenamingInstruction;
 
 public abstract class AbstractSyncWorker implements SyncWorker {
 

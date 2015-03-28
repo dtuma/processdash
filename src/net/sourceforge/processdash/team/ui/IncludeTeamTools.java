@@ -21,7 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -31,7 +32,7 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
-public class inclTeamTools extends TinyCGIBase {
+public class IncludeTeamTools extends TinyCGIBase {
 
     private static final String WBS_EDITOR_URL =
         "../../team/tools/index.shtm?directory=";

@@ -22,7 +22,7 @@
 //     processdash-devel@lists.sourceforge.net
 
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import teamdash.XMLUtils;
+import net.sourceforge.processdash.util.XMLUtils;
+
 
 public class CustomProcess {
 

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.migrate;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -45,9 +45,10 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
+import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.team.setup.TeamProjectSetupWizard;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -191,7 +192,7 @@ class MigrationToolTeam {
     }
 
     private String tryToCopyProcessJar() {
-        String sourceJarFileName = wizard
+        String sourceJarFileName = TeamProjectSetupWizard
                 .findTeamProcessJarfile(newRootTemplateID);
         if (sourceJarFileName == null)
             return null;

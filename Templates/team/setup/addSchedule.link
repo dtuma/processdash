@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.AddScheduleWriter
+class:net.sourceforge.processdash.team.setup.AddScheduleWriter

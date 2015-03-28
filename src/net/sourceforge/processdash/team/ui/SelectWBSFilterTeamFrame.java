@@ -21,8 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-package teamdash.templates.setup;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -31,7 +31,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 
 
-public class selectWBSFrame extends selectWBS {
+public class SelectWBSFilterTeamFrame extends SelectWBSNode {
 
     private String destUri = null;
 

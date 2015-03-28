@@ -21,9 +21,8 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
+package net.sourceforge.processdash.team.ui;
 
-
-package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -33,7 +32,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
-public class selectHier extends TinyCGIBase {
+public class SelectHierarchyNode extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
         PropertyKey key = getStartingKey();

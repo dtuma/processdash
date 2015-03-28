@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.net.cms.SnippetInstanceTO;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.snippet.SnippetPageFilter;
+
 
 /**
  * Class to provide process advice for team project plan summaries.

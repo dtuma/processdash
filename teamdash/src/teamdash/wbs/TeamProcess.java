@@ -36,7 +36,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import org.w3c.dom.Element;
-import teamdash.process.CustomProcess;
+
+import net.sourceforge.processdash.team.mcf.CustomProcess;
 
 
 /** Keep track of information the wbs editor needs to know about the

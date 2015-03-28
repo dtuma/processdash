@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +40,7 @@ import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class WorkflowProbeScriptSource implements ScriptSource {
 

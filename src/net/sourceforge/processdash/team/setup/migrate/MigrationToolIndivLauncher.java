@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.migrate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
@@ -45,6 +44,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -70,8 +70,8 @@ public class MigrationToolIndivLauncher {
 
     private String[] cmdLine;
 
-    private static final ResourceBundle resources = ResourceBundle
-            .getBundle(migrate.class.getName());
+    private static final Resources resources = Resources
+            .getDashBundle("TeamDataMigration");
 
 
     MigrationToolIndivLauncher(DashboardContext ctx, String projectPath) {

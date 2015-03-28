@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.wizard
+class:net.sourceforge.processdash.team.setup.TeamProjectSetupWizard

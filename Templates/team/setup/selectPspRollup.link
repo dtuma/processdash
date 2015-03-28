@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.SelectPspRollup
+class:net.sourceforge.processdash.team.ui.SelectPspRollup

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf.editor;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -41,7 +41,8 @@ import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
-import teamdash.process.CustomProcess.Item;
+import net.sourceforge.processdash.team.mcf.CustomProcess;
+import net.sourceforge.processdash.team.mcf.CustomProcess.Item;
 
 public class ProcessPhaseTableModel extends ItemListTableModel {
 

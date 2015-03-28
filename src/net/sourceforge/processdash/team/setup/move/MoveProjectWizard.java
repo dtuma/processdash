@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.move;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,12 +29,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -42,8 +46,6 @@ import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class MoveProjectWizard extends TinyCGIBase {
 

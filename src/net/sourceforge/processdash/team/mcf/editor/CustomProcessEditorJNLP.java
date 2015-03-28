@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.process;
+package net.sourceforge.processdash.team.mcf.editor;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +32,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import javax.swing.JOptionPane;
+
+import net.sourceforge.processdash.team.mcf.CustomProcess;
 
 public class CustomProcessEditorJNLP extends AbstractCustomProcessEditor {
 

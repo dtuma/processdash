@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.GetUnassignedAndDeferredTime
+class:net.sourceforge.processdash.team.ui.GetUnassignedAndDeferredTime

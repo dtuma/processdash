@@ -1,1 +1,1 @@
-class:teamdash.templates.setup.selectWBSData
+class:net.sourceforge.processdash.team.ui.SelectWBSFilterTeamData

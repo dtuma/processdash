@@ -21,9 +21,10 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup.move;
 
 import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class MoveProjectException extends Exception {
 

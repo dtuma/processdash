@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -46,8 +46,10 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants {
 
@@ -80,7 +82,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private static final String MASTER_ROOT = "/MasterRoot";
 
-    static final String SUBPROJECT_PATH_LIST = "Subproject_Path_List";
+    public static final String SUBPROJECT_PATH_LIST = "Subproject_Path_List";
 
     private static Logger logger = Logger.getLogger(EditSubprojectList.class
             .getName());

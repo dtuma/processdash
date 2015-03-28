@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -35,20 +35,24 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.EditSubprojectList;
+import net.sourceforge.processdash.team.sync.SyncWBS;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class GetUnassignedAndDeferredTime extends TinyCGIBase implements
         TeamDataConstants {
@@ -98,9 +102,9 @@ public class GetUnassignedAndDeferredTime extends TinyCGIBase implements
 
         if (templateID == null)
             throw new TinyCGIException(404, "Not a team project");
-        else if (templateID.endsWith(sync.MASTER_ROOT))
+        else if (templateID.endsWith(SyncWBS.MASTER_ROOT))
             return true;
-        else if (templateID.endsWith(sync.TEAM_ROOT))
+        else if (templateID.endsWith(SyncWBS.TEAM_ROOT))
             return false;
         else
             throw new TinyCGIException(404, "Not a team project");
@@ -137,7 +141,7 @@ public class GetUnassignedAndDeferredTime extends TinyCGIBase implements
             throw new DataProblem(
                     "Could not find the directory containing WBS data");
 
-        File f = new File(directory, sync.HIER_FILENAME);
+        File f = new File(directory, SyncWBS.HIER_FILENAME);
         if (!f.isFile())
             throw new DataProblem("No WBS data was found");
 

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.sync;
 
 import java.io.IOException;
 import java.util.Date;
@@ -39,15 +39,16 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.sync.SyncDiscrepancy.EVSchedule;
+import net.sourceforge.processdash.team.sync.SyncDiscrepancy.ItemNote;
+import net.sourceforge.processdash.team.sync.SyncDiscrepancy.NodeType;
+import net.sourceforge.processdash.team.sync.SyncDiscrepancy.PlanTime;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import teamdash.templates.setup.SyncDiscrepancy.EVSchedule;
-import teamdash.templates.setup.SyncDiscrepancy.ItemNote;
-import teamdash.templates.setup.SyncDiscrepancy.NodeType;
-import teamdash.templates.setup.SyncDiscrepancy.PlanTime;
 
 public class UserDataWriter extends TinyCGIBase {
 

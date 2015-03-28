@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -39,7 +39,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 import org.json.simple.JSONArray;
 
-public class selectLabelFilter extends selectWBS {
+public class SelectLabelFilter extends SelectWBSNode {
 
 
     private static final String FILTER_DATA_NAME = "Label//Filter";

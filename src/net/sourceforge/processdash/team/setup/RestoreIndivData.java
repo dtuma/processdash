@@ -21,13 +21,14 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+
 
 public class RestoreIndivData extends TinyCGIBase {
 

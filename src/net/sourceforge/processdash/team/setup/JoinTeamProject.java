@@ -22,7 +22,8 @@
 //     processdash-devel@lists.sourceforge.net
 
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.setup;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -45,7 +47,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 /** This class helps an individual to join a team project.
  */
-public class join extends TinyCGIBase {
+public class JoinTeamProject extends TinyCGIBase {
 
     private static final String JOIN_URL = "join.shtm";
     private static final String JOIN_XML = "joinxml.shtm";

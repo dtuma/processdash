@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.templates.setup;
+package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,6 +38,7 @@ import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskMapType;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskNodeType;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+
 
 public class WorkflowTaskPlanSummary extends TinyCGIBase {
 
