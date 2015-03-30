@@ -216,10 +216,6 @@
     </file>
     <!--#endif-->
 
-    <!-- resources for internationalization -->
-    <file in="resources.properties" encoding="none"
-          out="/Templates/resources/Team-<!--#echo Process_ID -->.properties"/>
-
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />
 
