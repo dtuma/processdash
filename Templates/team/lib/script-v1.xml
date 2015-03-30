@@ -156,8 +156,6 @@
     <file in="indiv_plan_summary.xml" encoding="xml"/>
     <!--#endif-->
     <file in="size_summary.htm" out="size_summary.shtm" encoding="html"/>
-    <file in="defect_analysis.htm" encoding="html"
-          out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
     <file in="autoExport.js" encoding="none"/>
     <file in="fixSlash.js" encoding="none"/>
     <file in="version_error.htm" encoding="html"
