@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import net.sourceforge.processdash.net.http.ContentSource;
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 import net.sourceforge.processdash.process.PhaseUtil;
@@ -61,10 +66,6 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 public class CustomProcessPublisher {
 
@@ -108,9 +109,11 @@ public class CustomProcessPublisher {
 
     ContentSource contentSource;
 
-    HTMLPreprocessor processor;
+    Map parameters;
 
-    HashMap customParams, parameters;
+    Map<String, FileGenerator> fileGenerators;
+
+    Date timestamp;
 
     URL extBase;
 
@@ -120,10 +123,7 @@ public class CustomProcessPublisher {
             throws IOException {
         this.contentSource = contentSource;
         this.extBase = extBase;
-        parameters = new HashMap();
-        customParams = new HashMap();
-        processor = new HTMLPreprocessor(contentSource, null, null, "",
-                customParams, parameters);
+        this.parameters = new HashMap();
     }
 
     public boolean isHeadless() {
@@ -134,24 +134,59 @@ public class CustomProcessPublisher {
         this.headless = headless;
     }
 
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    private boolean isInMemoryMode() {
+        return zip == null;
+    }
+
+    public byte[] getGeneratedFileContents(String name) throws IOException {
+        FileGenerator gen = fileGenerators.get(name);
+        if (gen == null)
+            return null;
+        else
+            return generateFile(gen, "utf-8");
+    }
+
     protected synchronized void publish(CustomProcess process,
             OutputStream output) throws IOException {
         initProcess(process);
 
         Document script = loadScript(process.getGeneratorScript());
-        openStreams(process, script, output);
 
-        writeXMLSettings(process);
+        if (output == null) {
+            fileGenerators = new HashMap();
+        } else {
+            openStreams(process, script, output);
+            writeXMLSettings(process);
+        }
+
         runGenerationScript(script);
     }
 
     protected Document loadScript(String scriptName) throws IOException {
         try {
-            return XMLUtils.parse(getFile(scriptName));
+            String script = processContent(getRawFile(scriptName), null, "xml");
+            return XMLUtils.parse(script);
         } catch (SAXException se) {
             System.err.print(se);
             se.printStackTrace();
             throw new IOException("Invalid XML file");
+        }
+    }
+
+    public void loadInfoFromManifest(Manifest manifest) {
+        String version = manifest.getMainAttributes().getValue(
+            DashPackage.VERSION_ATTRIBUTE);
+        if (version != null) {
+            try {
+                int dotPos = version.lastIndexOf('.');
+                String timeStr = version.substring(dotPos + 1);
+                timestamp = TIMESTAMP_FORMAT.parse(timeStr);
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -180,7 +215,7 @@ public class CustomProcessPublisher {
         attrs.putValue(DashPackage.NAME_ATTRIBUTE, packageName);
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE, scriptVers + "."
-                + TIMESTAMP_FORMAT.format(new Date()));
+                + TIMESTAMP_FORMAT.format(timestamp = new Date()));
         if (scriptReqt != null)
             attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
@@ -431,15 +466,11 @@ public class CustomProcessPublisher {
         zip.putNextEntry(new ZipEntry(filename));
     }
 
-    protected String getFile(String filename) throws IOException {
-        return processContent(getRawFile(filename));
-    }
-
     protected String getRawFile(String filename) throws IOException {
         byte[] rawContent = getRawFileBytes(filename);
         if (rawContent == null)
             return null;
-        return new String(rawContent);
+        return new String(rawContent, "utf-8");
     }
 
     protected byte[] getRawFileBytes(String filename) throws IOException {
@@ -459,9 +490,18 @@ public class CustomProcessPublisher {
         return FileUtils.slurpContents(conn.getInputStream(), true);
     }
 
-    protected String processContent(String content) throws IOException {
+    private String processContent(String content, Map fileSpecificParams,
+            String echoEncoding) throws IOException {
         if (content == null)
             return null;
+
+        if (fileSpecificParams == null)
+            fileSpecificParams = Collections.EMPTY_MAP;
+        Map oneRunParams = new HashMap(parameters);
+        HTMLPreprocessor processor = new HTMLPreprocessor(contentSource, null,
+                null, "", fileSpecificParams, oneRunParams);
+        processor.setDefaultEchoEncoding(echoEncoding);
+
         return processor.preprocess(content);
     }
 
@@ -490,17 +530,51 @@ public class CustomProcessPublisher {
     private class FileGenerator implements Runnable {
         Element file;
 
-        String defaultInDir, defaultOutDir;
+        String inputFile, outputFile, encoding;
 
         public FileGenerator(Element f, String inDir, String outDir) {
             file = f;
-            defaultInDir = inDir;
-            defaultOutDir = outDir;
+
+            inputFile = file.getAttribute("in");
+            outputFile = file.getAttribute("out");
+            if (!XMLUtils.hasValue(inputFile))
+                return;
+            if (!XMLUtils.hasValue(outputFile))
+                outputFile = inputFile;
+            inputFile = maybeDefaultDir(inputFile, inDir);
+            outputFile = maybeDefaultDir(outputFile, outDir);
+
+            if (isInMemoryMode() && inputFile.startsWith(EXT_FILE_PREFIX)) {
+                String nameWithinJar = outputFile;
+                if (nameWithinJar.startsWith("/"))
+                    nameWithinJar = nameWithinJar.substring(1);
+                inputFile = EXT_FILE_PREFIX + nameWithinJar;
+            }
+
+            encoding = file.getAttribute("encoding");
         }
 
         public void run() {
             try {
-                generateFile(file, defaultInDir, defaultOutDir);
+                boolean isProps = outputFile.endsWith("#properties");
+                if (isInMemoryMode() && !isProps) {
+                    fileGenerators.put(outputFile, this);
+                    return;
+                }
+
+                String charset = (isProps ? "8859_1" : "utf-8");
+                byte[] contents = generateFile(this, charset);
+
+                if (isProps) {
+                    Properties p = new Properties();
+                    p.load(new ByteArrayInputStream(contents));
+                    parameters.putAll(p);
+
+                } else if (!isInMemoryMode()) {
+                    startFile(outputFile);
+                    zip.write(contents);
+                }
+
             } catch (FileNotFoundException fnfe) {
                 System.err.println("Warning: could not find file "
                         + fnfe.getMessage() + " - skipping");
@@ -519,38 +593,27 @@ public class CustomProcessPublisher {
         return dir + "/" + file;
     }
 
-    protected void generateFile(Element file, String defaultInDir,
-            String defaultOutDir) throws IOException {
-        String inputFile = file.getAttribute("in");
-        String outputFile = file.getAttribute("out");
-        if (!XMLUtils.hasValue(inputFile))
-            return;
-        if (!XMLUtils.hasValue(outputFile))
-            outputFile = inputFile;
-        inputFile = maybeDefaultDir(inputFile, defaultInDir);
-        outputFile = maybeDefaultDir(outputFile, defaultOutDir);
-
-        String encoding = file.getAttribute("encoding");
+    protected byte[] generateFile(FileGenerator fileGen, String charset)
+            throws IOException {
+        String inputFile = fileGen.inputFile;
+        String encoding = fileGen.encoding;
 
         if ("binary".equals(encoding)) {
             byte[] contents = getRawFileBytes(inputFile);
             if (contents == null)
                 throw new FileNotFoundException(inputFile);
-            startFile(outputFile);
-            zip.write(contents);
-            return;
+            else
+                return contents;
         }
-
-        processor.setDefaultEchoEncoding(encoding);
 
         String contents = getRawFile(inputFile);
         if (contents == null)
             throw new FileNotFoundException(inputFile);
 
-        customParams.clear();
-        NodeList params = file.getElementsByTagName("param");
+        Map customParams = new HashMap();
+        NodeList params = fileGen.file.getElementsByTagName("param");
         String name, val;
-        if (params != null)
+        if (params != null) {
             for (int i = 0; i < params.getLength(); i++) {
                 Element param = (Element) params.item(i);
                 customParams.put(name = param.getAttribute("name"), val = param
@@ -558,19 +621,13 @@ public class CustomProcessPublisher {
                 if (XMLUtils.hasValue(param.getAttribute("replace")))
                     contents = StringUtils.findAndReplace(contents, name, val);
             }
+        }
 
-        contents = processContent(contents);
+        contents = processContent(contents, customParams, encoding);
         contents = StringUtils.findAndReplace(contents, "[!--#", "<!--#");
         contents = StringUtils.findAndReplace(contents, "--]", "-->");
 
-        if (outputFile.endsWith("#properties")) {
-            Properties p = new Properties();
-            p.load(new ByteArrayInputStream(contents.getBytes("8859_1")));
-            parameters.putAll(p);
-        } else {
-            startFile(outputFile);
-            zip.write(contents.getBytes());
-        }
+        return contents.getBytes(charset);
     }
 
     private static final SimpleDateFormat TIMESTAMP_FORMAT =

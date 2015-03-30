@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 
 public class CustomProcess {
+
+    public static final String ROOT_TAG = "custom-process";
 
     public static final String PHASE_ITEM = "phase";
     public static final String LONG_NAME = "longName";
@@ -248,7 +250,7 @@ public class CustomProcess {
 
     public void writeXMLSettings(Writer out) throws IOException {
         out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-        out.write("<custom-process name='");
+        out.write("<" + ROOT_TAG + " name='");
         out.write(XMLUtils.escapeAttribute(processName));
         if (XMLUtils.hasValue(processAbbr)) {
             out.write("' abbr='");
@@ -265,7 +267,7 @@ public class CustomProcess {
             while (i.hasNext())
                 ((Item) i.next()).writeXMLSettings(out);
         }
-        out.write("</custom-process>\n");
+        out.write("</" + ROOT_TAG + ">\n");
     }
 
 

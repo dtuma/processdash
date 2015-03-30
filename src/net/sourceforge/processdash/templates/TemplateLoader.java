@@ -73,11 +73,12 @@ import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
-import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -90,6 +91,7 @@ public class TemplateLoader {
     private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
     private static final String XML_TEMPLATE_FILE = "processdash.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
+    private static final String MCF_PROCESS_XML = "settings.xml";
     private static final String TEMPLATE_DIR = "Templates/";
     private static final String WEB_INF_DIR = "WEB-INF/";
     private static final String WEB_INF_XML_FILE = WEB_INF_DIR + XML_TEMPLATE_FILE;
@@ -279,6 +281,18 @@ public class TemplateLoader {
             String filename;
             while ((file = jarFile.getNextEntry()) != null) {
                 filename = file.getName().toLowerCase();
+                if (filename.equals(MCF_PROCESS_XML)) {
+                    InputStream mcfXmlData = MCFManager.getInstance()
+                            .registerMcf(jarURL, jarFile);
+                    if (mcfXmlData != null) {
+                        String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
+                        loadXMLProcessTemplate(templates, data, n, jarFileUrl,
+                            mcfXmlData, true);
+                        jarFile.close();
+                        return true;
+                    }
+                }
+
                 if (startsWithIgnoreCase(filename, TEMPLATE_DIR)) {
                     if (filename.lastIndexOf('/') != 9) continue;
                 } else if (startsWithIgnoreCase(filename, WEB_INF_DIR)) {
@@ -401,8 +415,7 @@ public class TemplateLoader {
         Element root = null;
         try {
             if (!close)
-                in = new ByteArrayInputStream
-                    (FileUtils.slurpContents(in, false));
+                in = new NonclosingInputStream(in);
 
             // this closes the file without our permission.
             Document doc = XMLUtils.parse(in);
