@@ -664,14 +664,14 @@
     Background tasks used by the team process.
   =======================================================================-->
 
-  <background-task class="teamdash.templates.setup.SyncScanner"
+  <background-task class="net.sourceforge.processdash.team.sync.SyncScanner"
           settingPrefix="teamAutoSync" ordinal="2000"
 	  runAtStartup="true" whenDefault="*">
     <sync templateID="PID/MasterRoot" uri="PID/setup/sync.class?run"/>
     <sync templateID="PID/TeamRoot" uri="PID/setup/sync.class?run"/>
   </background-task>
 
-  <background-task class="teamdash.templates.setup.SyncScanner"
+  <background-task class="net.sourceforge.processdash.team.sync.SyncScanner"
           settingPrefix="indivAutoSync" ordinal="2000"
 	  runAtStartup="true" whenDefault="0,12">
     <sync templateID="PID/IndivRoot" uri="PID/setup/sync.class?brief"
@@ -693,7 +693,7 @@
     <context>PID Master Root Tag</context>
     <context>PID Master Node Tag</context>
     <uri>/PID/setup/summaryName.class</uri>
-    <pageFilter mode="view">teamdash.templates.setup.ProcessAdvisor</pageFilter>
+    <pageFilter mode="view">net.sourceforge.processdash.team.ui.ProcessAdvisor</pageFilter>
   </snippet>
 
   <snippet id="PID.sizeSummary" version="1.0" category="forms">
@@ -728,11 +728,11 @@
   =======================================================================-->
 
   <noteFormat formatID="PID-ReadOnlyMessageNoteFormat"
-          class="teamdash.templates.setup.ReadOnlyMessageNoteFormat"/>
+          class="net.sourceforge.processdash.team.ui.ReadOnlyMessageNoteFormat"/>
 
-  <scriptSource class="teamdash.templates.setup.WorkflowScriptSource"
+  <scriptSource class="net.sourceforge.processdash.team.ui.WorkflowScriptSource"
           dataName="PID /Project_Workflow_URL_List"/>
-  <scriptSource class="teamdash.templates.setup.WorkflowProbeScriptSource"
+  <scriptSource class="net.sourceforge.processdash.team.ui.WorkflowProbeScriptSource"
           processID="PID" requires="personalMode"/>
 
   <!--#if Custom_Wbs_Column_Spec -->
@@ -740,7 +740,7 @@
   <!--#endif-->
 
   <messageHandler processID="PID"
-          class="teamdash.templates.setup.MoveTeamDirMessageHandler">
+          class="net.sourceforge.processdash.team.setup.move.MoveTeamDirMessageHandler">
     <include templateID="PID/IndivRoot"/>
     <include templateID="PID/Indiv2Root"/>
   </messageHandler>
