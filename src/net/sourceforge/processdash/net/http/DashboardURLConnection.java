@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,7 +44,6 @@ import net.sourceforge.processdash.util.HTTPUtils;
 public class DashboardURLConnection extends URLConnection {
 
     private WebServer webServer;
-    private byte[] results;
     private String[] headerLines;
     private InputStream inputStream;
 
@@ -56,10 +55,10 @@ public class DashboardURLConnection extends URLConnection {
 
     public void connect() throws IOException {
         if (!connected) {
-            results = webServer.getRequest(url.getFile(), false);
+            byte[] results = webServer.getRequest(url.getFile(), false);
 
             int headerLen = HTTPUtils.getHeaderLength(results);
-            parseHeader(headerLen);
+            parseHeader(results, headerLen);
 
             connected = true;
             inputStream = createResponseStream(results, headerLen);
@@ -71,11 +70,16 @@ public class DashboardURLConnection extends URLConnection {
         return new ByteArrayInputStream(rawData, headerLen, contentLen);
     }
 
-    private void parseHeader(int headerLen) throws IOException {
+    private void parseHeader(byte[] results, int headerLen) throws IOException {
         String headerText = new String(results, 0, headerLen, WebServer.HEADER_CHARSET);
         headerLines = headerText.split("[\r\n]+");
     }
 
+    protected void setConnectionData(String[] headers, InputStream response) {
+        this.connected = true;
+        this.headerLines = headers;
+        this.inputStream = response;
+    }
 
     private static Pattern HEADER_LINE_PATTERN =
         Pattern.compile("([^: \t]+)[: \t]*([^\r\n]*)");

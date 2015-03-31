@@ -411,6 +411,20 @@ Authors:
 
 
 
+  <target name="team-setup-filelist">
+    <pathconvert property=".filelistbasedir" dirsep="/">
+      <path path="Templates/team/setup"/>
+    </pathconvert>
+    <pathconvert property=".filelist" pathsep="," dirsep="/">
+      <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif" excludes="*sizeForm*"/>
+      <map from="${.filelistbasedir}/" to="" />
+    </pathconvert>
+    <echo message="&lt;!--#set var='Wizard_File_List' value='LIST=,${.filelist},' --&gt;&#13;&#10;"
+          file="Templates/team/setup/filelist.txt"/>
+  </target>
+
+
+
   <target name="translator" depends="ant-tasks,-translator-depend"
           description="Regenerate source code for the default translation engine if necessary."
           unless="translator.upToDate">
@@ -465,7 +479,8 @@ Authors:
 
 
   <target name="jar" description="Make the jarfile for distribution"
-          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list,jar-resource-check">
+          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list,
+                   team-setup-filelist,jar-resource-check">
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>

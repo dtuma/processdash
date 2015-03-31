@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -156,6 +156,15 @@ class WebAppContextDashboard extends WebAppContext {
         if (linkFiles.isEmpty())
             return;
 
+        // strip the ".link" suffix off each filename to produce a URI
+        for (int i = linkFiles.size(); i-- > 0;) {
+            String oneLink = linkFiles.get(i);
+            String oneUri = oneLink.substring(0, oneLink.length()
+                    - TinyCGIHandlerServlet.LINK_SUFFIX.length());
+            linkFiles.set(i, oneUri);
+        }
+
+        // register a servlet to handle those URIs
         ServletHolder holder = new ServletHolder(new TinyCGIHandlerServlet());
         getServletHandler().addServlet(holder);
 
@@ -199,16 +208,12 @@ class WebAppContextDashboard extends WebAppContext {
             ZipEntry e;
             while ((e = jarIn.getNextEntry()) != null) {
                 String name = e.getName();
-                for (String suffix : suffixes) {
-                    if (name.endsWith(suffix)) {
-                        if (name.startsWith("Templates/"))
-                            name = name.substring(9);
-                        else
-                            name = "/" + name;
-                        result.add(name.substring(0,
-                            name.length() - suffix.length()));
-                        break;
-                    }
+                if (filenameEndsWithSuffix(name, suffixes)) {
+                    if (name.startsWith("Templates/"))
+                        name = name.substring(9);
+                    else
+                        name = "/" + name;
+                    result.add(name);
                 }
             }
         } catch (Exception e) {
@@ -236,18 +241,22 @@ class WebAppContextDashboard extends WebAppContext {
             if (f.isDirectory()) {
                 scanDirForFiles(result, f, basePath, suffixes);
             } else if (f.isFile()) {
-                String filename = f.getName();
-                for (String suffix : suffixes) {
-                    if (filename.endsWith(suffix)) {
-                        String path = f.getPath().replace('\\', '/');
-                        path = path.substring(basePath.length(), //
-                            path.length() - suffix.length());
-                        result.add(path);
-                        break;
-                    }
+                if (filenameEndsWithSuffix(f.getName(), suffixes)) {
+                    String path = f.getPath().replace('\\', '/');
+                    path = path.substring(basePath.length());
+                    result.add(path);
                 }
             }
         }
+    }
+
+    protected static boolean filenameEndsWithSuffix(String filename,
+            String... suffixes) {
+        for (String suffix : suffixes) {
+            if (filename.endsWith(suffix))
+                return true;
+        }
+        return false;
     }
 
 

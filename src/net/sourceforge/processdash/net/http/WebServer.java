@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -452,6 +452,8 @@ public class WebServer implements ContentSource {
         WebAppContextDashboard result;
         if (webAppBase.endsWith(WebAppContextDashboard.WEB_INF_URL_SUFFIX))
             result = new WebAppContextDashboard(u);
+        else if (webAppBase.startsWith(MCFURLConnection.PROTOCOL))
+            result = new WebAppContextMcf(u);
         else
             result = new WebAppContextLegacy(u);
         result.setServer(server);

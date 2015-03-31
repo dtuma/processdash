@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2014 Tuma Solutions, LLC
+// Copyright (C) 1998-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.MCFURLConnection;
 import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
@@ -122,12 +123,11 @@ public class TemplateLoader {
         ProfTimer pt = new ProfTimer(TemplateLoader.class,
             "TemplateLoader.loadTemplates");
 
-        URL[] roots = getTemplateURLs();
+        List<URL> roots = new ArrayList<URL>(Arrays.asList(getTemplateURLs()));
         pt.click("Got template roots");
 
-        String templateDirURL;
-        for (int i=roots.length;   i-- > 0;  ) {
-            templateDirURL = roots[i].toString();
+        for (int i = roots.size(); i-- > 0;) {
+            String templateDirURL = roots.get(i).toString();
 
             if (templateDirURL.startsWith("file:/")) {
                 /* If the /Templates directory exists as a local file
@@ -141,7 +141,7 @@ public class TemplateLoader {
                 searchDirForTemplates(templates, dirname, data);
                 pt.click("searched dir '" + dirname + "' for templates");
 
-            } else {
+            } else if (templateDirURL.startsWith("jar:")) {
                 /* If the /Templates directory found is in a jar somewhere,
                  * search through the jar for process templates.
                  */
@@ -150,10 +150,20 @@ public class TemplateLoader {
                 // from the end of the URL.
                 String jarFileURL = templateDirURL.substring
                     (4, templateDirURL.indexOf('!'));
-                searchJarForTemplates(templates, jarFileURL, data);
+                JarSearchResult searchResult = searchJarForTemplates(templates,
+                    jarFileURL, data);
+
+                // if this was an MCF JAR, remove its URL from the search path
+                if (searchResult == JarSearchResult.Mcf) {
+                    logger.fine("Processed MCF URL " + templateDirURL);
+                    mcf_url_list.add(roots.remove(i));
+                }
                 pt.click("searched jar '" + jarFileURL + "' for templates");
             }
         }
+
+        // store the new list of template URLs, stripped of MCF JAR files
+        template_url_list = roots.toArray(new URL[roots.size()]);
 
         generateRollupTemplates(templates, data);
 
@@ -183,14 +193,18 @@ public class TemplateLoader {
             String jarURL = jarfile.toURI().toURL().toString();
             URL jarfileTemplateURL = jarfileTemplateURL(jarURL);
 
-            // if the jar url is already in the list of template urls,
+            // if the jar url is already in the lists of template/MCF urls,
             // then nothing needs to be done.
+            if (mcf_url_list.contains(jarfileTemplateURL))
+                return true;
             for (int i = template_url_list.length;   i-- > 0; )
                 if (jarfileTemplateURL.equals(template_url_list[i]))
                     return true;
 
             // find and process templates in the jarfile.
-            if (searchJarForTemplates(templates, jarURL, data)) {
+            JarSearchResult searchResult = searchJarForTemplates(templates,
+                jarURL, data);
+            if (searchResult != JarSearchResult.None) {
 
                 // add applicable rollup templates. (This will regenerate
                 // other rollup templates, but that shouldn't hurt anything.)
@@ -201,12 +215,14 @@ public class TemplateLoader {
             }
 
             // insert the new url at the beginning of the template list.
-            URL[] new_list = new URL[template_url_list.length + 1];
-            System.arraycopy(template_url_list, 0,      // src
-                             new_list, 1,               // dest
-                             template_url_list.length);
-            new_list[0] = jarfileTemplateURL;
-            template_url_list = new_list;
+            if (searchResult != JarSearchResult.Mcf) {
+                URL[] new_list = new URL[template_url_list.length + 1];
+                System.arraycopy(template_url_list, 0,      // src
+                                 new_list, 1,               // dest
+                                 template_url_list.length);
+                new_list[0] = jarfileTemplateURL;
+                template_url_list = new_list;
+            }
 
             // create a dash package and add it to our list
             try {
@@ -266,9 +282,11 @@ public class TemplateLoader {
         }
     }
 
-    private static boolean searchJarForTemplates(DashHierarchy templates,
-                                                 String jarURL,
-                                                 DataRepository data) {
+    private enum JarSearchResult { None, Template, Mcf }
+
+    private static JarSearchResult searchJarForTemplates(
+            DashHierarchy templates, String jarURL, DataRepository data) {
+
         boolean foundTemplates = false;
         try {
             debug("searching for templates in " + jarURL);
@@ -289,7 +307,7 @@ public class TemplateLoader {
                         loadXMLProcessTemplate(templates, data, n, jarFileUrl,
                             mcfXmlData, true);
                         jarFile.close();
-                        return true;
+                        return JarSearchResult.Mcf;
                     }
                 }
 
@@ -328,7 +346,7 @@ public class TemplateLoader {
             logger.severe("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
         }
-        return foundTemplates;
+        return foundTemplates ? JarSearchResult.Template : JarSearchResult.None;
     }
 
     private static boolean searchDirForTemplates(DashHierarchy templates,
@@ -460,6 +478,7 @@ public class TemplateLoader {
     public static void resetTemplateURLs() {
         RESET_TEMPLATES_PERMISSION.checkPermission();
         template_url_list = null;
+        mcf_url_list = null;
     }
 
     /** Returns a list of URLs to templates, in logical search order.
@@ -521,7 +540,18 @@ public class TemplateLoader {
 
         filterURLList(result);
 
+        try {
+            URL mcfUrl = new URL(MCFURLConnection.PROTOCOL + ":/");
+            result.add(result.size() - 1, mcfUrl);
+        } catch (MalformedURLException mue) {
+            // this will occur if the URL stream handler factory hasn't been
+            // installed yet. This should generally only happen as the Quick
+            // Launcher opens, and the problem will be resolved during the
+            // Process Dashboard startup sequence.
+        }
+
         template_url_list = urlListToArray(result);
+        mcf_url_list = new ArrayList<URL>();
         pt.click("Calculated template URL list");
         return template_url_list;
     }
@@ -552,6 +582,7 @@ public class TemplateLoader {
         return result;
     }
     private static URL[] template_url_list = null;
+    private static List<URL> mcf_url_list = null;
     //private static final String JARFILE_NAME = "pspdash.jar";
     private static final String TEMPLATE_DIRNAME = "Templates";
     private static final String SEP_TEMPL_DIR =
