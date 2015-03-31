@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -22,14 +22,17 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.templates.tools;
+
 import static net.sourceforge.processdash.tool.bridge.client.TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -323,7 +326,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private String[] getProcessCmdLine(String url, String directory) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
-        File classpath = RuntimeUtils.getClasspathFile(getClass());
+        File classpath = findTeamToolsJarFile();
         if (jreExecutable == null || classpath == null)
             return null;
 
@@ -526,16 +529,12 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void serveJar() throws IOException {
-        URL myURL = getClass().getResource("OpenWBSEditor.class");
-        String u = myURL.toString();
-        int pos = u.indexOf("!/");
-        if (!u.startsWith("jar:") || pos == -1)
-            throw new IOException();
-
-        URL jarURL = new URL(u.substring(4, pos));
-        URLConnection conn = jarURL.openConnection();
-        long modTime = conn.getLastModified();
-        InputStream in = conn.getInputStream();
+        File jarFile = findTeamToolsJarFile();
+        if (jarFile == null)
+            throw new IOException("Cannot locate TeamTools.jar file");
+        
+        long modTime = jarFile.lastModified();
+        InputStream in = new FileInputStream(jarFile);
 
         out.print("Content-type: application/octet-stream\r\n");
         if (modTime > 0) {
@@ -551,11 +550,45 @@ public class OpenWBSEditor extends TinyCGIBase {
         while ((bytesRead = in.read(buf)) != -1)
             outStream.write(buf, 0, bytesRead);
         outStream.flush();
+        in.close();
     }
 
     private static final DateFormat dateFormat =
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+
+    private File findTeamToolsJarFile() {
+        // first, try to locate the JAR file that holds this class definition
+        File classpath = RuntimeUtils.getClasspathFile(getClass());
+        if (classpath != null && classpath.isFile())
+            return classpath;
+
+        // when running in development mode, the definition of this class will
+        // be located in a "bin" directory instead of a JAR. In that case, find
+        // TeamTools.jar by searching for a "template" file we know it contains.
+        URL myURL = TemplateLoader
+                .resolveURL("/team/tools/OpenWBSEditor.class.link");
+        if (myURL == null)
+            return null;
+
+        String u = myURL.toString();
+        int pos = u.indexOf("!/");
+        if (!u.startsWith("jar:file:") || pos == -1)
+            return null;
+        u = u.substring(9, pos);
+
+        String jarFileName;
+        try {
+            jarFileName = URLDecoder.decode(u, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen
+            return null;
+        }
+
+        File jarFile = new File(jarFileName).getAbsoluteFile();
+        return (jarFile.isFile() ? jarFile : null);
+    }
+
 
     private static final String LOCATION_MISSING_MSG =
         "<html><head><title>Team Directory Missing</title></head><body>" +
