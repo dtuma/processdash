@@ -92,7 +92,7 @@ public class TemplateLoader {
     private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
     private static final String XML_TEMPLATE_FILE = "processdash.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
-    private static final String MCF_PROCESS_XML = "settings.xml";
+    public static final String MCF_PROCESS_XML = "settings.xml";
     private static final String TEMPLATE_DIR = "Templates/";
     private static final String WEB_INF_DIR = "WEB-INF/";
     private static final String WEB_INF_XML_FILE = WEB_INF_DIR + XML_TEMPLATE_FILE;

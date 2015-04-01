@@ -161,6 +161,22 @@ public class MCFManager {
         return (pub == null ? null : pub.getGeneratedFileContents(path));
     }
 
+    public URL getMcfSourceFileUrl(String mcfId, String path) {
+        CustomProcessPublisher pub = mcfPublishers.get(mcfId);
+        if (pub == null)
+            return null;
+        if (path.startsWith("/"))
+            path = path.substring(1);
+
+        try {
+            URL result = new URL(pub.extBase, path);
+            result.openConnection().connect();
+            return result;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     public Set<String> getAllMcfContentFilenames() {
         Set<String> result = new HashSet<String>();
         for (CustomProcessPublisher pub : mcfPublishers.values())

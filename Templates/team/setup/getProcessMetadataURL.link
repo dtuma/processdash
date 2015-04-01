@@ -1,2 +1,1 @@
-class:net.sourceforge.processdash.team.ui.GetAddOnInternalURL
-absoluteUri=settings.xml
+class:net.sourceforge.processdash.team.ui.GetProcessMetadataURL
