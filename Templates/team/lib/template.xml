@@ -735,10 +735,6 @@
   <scriptSource class="net.sourceforge.processdash.team.ui.WorkflowProbeScriptSource"
           processID="PID" requires="personalMode"/>
 
-  <!--#if Custom_Wbs_Column_Spec -->
-  <customWbsColumns specFile="/PID/wbsColumnSpec.xml"/>
-  <!--#endif-->
-
   <messageHandler processID="PID"
           class="net.sourceforge.processdash.team.setup.move.MoveTeamDirMessageHandler">
     <include templateID="PID/IndivRoot"/>

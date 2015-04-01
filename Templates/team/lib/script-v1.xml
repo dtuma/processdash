@@ -253,10 +253,4 @@
           out="/Templates/splash.html" encoding="html"/>
     <!--#endif-->
 
-    <!-- write optional custom WBS column spec file if requested. -->
-    <!--#if Custom_Wbs_Column_Spec -->
-    <file in="extfile:<!--#echo Custom_Wbs_Column_Spec -->"
-          out="wbsColumnSpec.xml" encoding="html"/>
-    <!--#endif-->
-
 </generation-script>

@@ -287,7 +287,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         for (Element xml : configElements) {
             String uri = xml.getAttribute("specFile");
             URL url = TemplateLoader.resolveURL(uri);
-            if (url != null)
+            if (url != null && !url.toString().startsWith("processdash"))
                 result.append(" ").append(url.toString());
         }
         if (result.length() > 0)
