@@ -115,6 +115,7 @@ import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.net.cache.FileObjectCache;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.cms.CmsDefaultConfig;
+import net.sourceforge.processdash.net.http.DashboardURLStreamHandlerFactory;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.LegacySupport;
 import net.sourceforge.processdash.process.ScriptID;
@@ -265,6 +266,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
+        DashboardURLStreamHandlerFactory.initialize(null);
         TemplateLoader.resetTemplateURLs();
         configureSystemPropertiesFromSettings();
         pt.click("Read settings");
