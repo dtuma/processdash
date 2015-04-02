@@ -657,6 +657,22 @@ Authors:
 
 
   <!-- =================================================================== -->
+  <!-- Team Process                                                        -->
+  <!-- =================================================================== -->
+
+  <target name="TeamProcess">
+    <property name="teamProcess.xml" value="Templates/team/PDSSD.xml"/>
+    <property name="teamProcess.zip" value=""/>
+    <java classname="net.sourceforge.processdash.team.mcf.GenerateProcess"
+          fork="true" inputstring="" classpathref="build.classpath">
+      <jvmarg value="-DtemplatesDir=${templates}"/>
+      <arg value="${teamProcess.xml}"/>
+      <arg value="${dist}/${teamProcess.zip}"/>
+    </java>
+  </target>
+
+
+  <!-- =================================================================== -->
   <!-- Installer                                                           -->
   <!-- =================================================================== -->
 

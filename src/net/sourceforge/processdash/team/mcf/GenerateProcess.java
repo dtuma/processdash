@@ -55,17 +55,19 @@ public class GenerateProcess {
                 System.exit(1);
             }
 
-            String destDirname = ".";
+            String destName = "dist";
             if (args.length > 1)
-                destDirname = args[1];
-            File destDir = new File(destDirname);
-            if (!destDir.isDirectory()) {
+                destName = args[1];
+            File dest = new File(destName);
+            if (!dest.isDirectory() && !dest.getParentFile().isDirectory()) {
                 System.err.println("No such directory '" + args[1] + "'");
                 System.exit(1);
             }
 
-            GenerateProcess instance = new GenerateProcess(destDir, settings,
-                    settingsFile.toURI().toURL());
+            boolean light = !Boolean.getBoolean("full");
+
+            GenerateProcess instance = new GenerateProcess(dest, settings,
+                    settingsFile.toURI().toURL(), light);
             instance.run();
             if (args.length < 3)
                 System.exit(0);
@@ -74,25 +76,42 @@ public class GenerateProcess {
         }
     }
 
-    private File destDir;
+
+    private File dest;
 
     private Document settingsFile;
 
     private URL extBase;
 
-    public GenerateProcess(File destDir, Document settingsFile, URL extBase) {
-        this.destDir = destDir;
+    private boolean light;
+
+
+    public GenerateProcess(File dest, Document settingsFile, URL extBase,
+            boolean light) {
+        this.dest = dest;
         this.settingsFile = settingsFile;
         this.extBase = extBase;
+        this.light = light;
     }
 
     private void run() throws Exception {
         CustomProcess process = new CustomProcess(settingsFile);
 
-        File outputFile = new File(destDir, process.getJarName());
+        File outputFile;
+        if (dest.isDirectory())
+            outputFile = new File(dest, process.getJarName().replace(',', '-'));
+        else
+            outputFile = dest;
 
-        ContentSource content = new ClasspathContentProvider();
-        CustomProcessPublisher.publish(process, outputFile, content, extBase);
+        ContentSource content;
+        String templateDir = System.getProperty("templatesDir");
+        if (templateDir == null)
+            content = new ClasspathContentProvider();
+        else
+            content = new FileContentProvider(new File(templateDir));
+
+        CustomProcessPublisher.publish(process, outputFile, content, extBase,
+            light);
     }
 
 }

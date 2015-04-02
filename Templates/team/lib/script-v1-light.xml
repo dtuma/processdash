@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<!--
+    This file contains instructions on how to generate a custom process.
+    
+    This file generates the "light" version of the process, which only
+    includes essential metadata, and leaves the remaining behavior to be
+    interpreted at runtime by the dashboard.
+-->
+
+<generation-script name="script-v2"
+      id="Team" version="5.0.0"
+      requiresDashboard="2.1.8+"
+      inDirectory="/team/lib"
+      outDirectory="/Templates/<!--#echo Process_ID -->">
+
+    <!-- calculate properties to use when generating other files. -->
+    <file in="properties.txt" out="#properties" />
+
+
+    <!-- write process metadata for use by the export logic. -->
+    <file in="process_info.xml" encoding="xml" out="/process_info.xml" />
+
+
+    <!-- files for external document integration of provided templates -->
+    <!--#foreach name=Document list=Document_List -->
+      <file in="extfile:<!--#echo Document_Filename -->"
+            out="<!--#echo Document_Filename_Basename -->"
+            encoding="binary"/>
+    <!--#endfor-->
+
+
+    <!--#if Rollup_Summary_Filename -->
+    <file in="extfile:<!--#echo Rollup_Summary_Filename -->"
+          out="rollup_plan_summary.xml" encoding="xml"/>
+    <!--#endif-->
+
+    <!--#if Indiv_Summary_Filename -->
+    <file in="extfile:<!--#echo Indiv_Summary_Filename -->"
+          out="indiv_plan_summary.xml" encoding="xml"/>
+    <!--#endif-->
+
+
+    <!--#if Custom_Prototype_Data_Filename -->
+    <file in="extfile:<!--#echo Custom_Prototype_Data_Filename -->"
+          out="prototype_dataFile_custom.txt" encoding="data"/>
+    <!--#endif-->
+
+
+    <!-- write optional legal footer snippet if requested. -->
+    <!--#if Legal_Footer_Snippet -->
+    <file in="extfile:<!--#echo Legal_Footer_Snippet -->"
+          out="legalFooter.htm" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional license consent HTML file if requested. -->
+    <!--#if License_Html_Filename -->
+    <file in="extfile:<!--#echo License_Html_Filename -->"
+          out="/Templates/license-consent.html" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional splash screen HTML file if requested. -->
+    <!--#if Splash_Html_Filename -->
+    <file in="extfile:<!--#echo Splash_Html_Filename -->"
+          out="/Templates/splash.html" encoding="html"/>
+    <!--#endif-->
+
+</generation-script>

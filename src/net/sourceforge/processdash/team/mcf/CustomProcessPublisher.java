@@ -78,27 +78,31 @@ public class CustomProcessPublisher {
     public static void publish(CustomProcess process, File destFile,
             ContentSource contentSource) throws IOException {
 
-        publish(process, destFile, contentSource, null);
+        publish(process, destFile, contentSource, null, false);
     }
 
     public static void publish(CustomProcess process, OutputStream output,
             ContentSource contentSource) throws IOException {
 
-        publish(process, output, contentSource, null);
+        publish(process, output, contentSource, null, false);
     }
 
     public static void publish(CustomProcess process, File destFile,
-            ContentSource contentSource, URL extBase) throws IOException {
+            ContentSource contentSource, URL extBase, boolean useLightGenerator)
+            throws IOException {
 
-        publish(process, new FileOutputStream(destFile), contentSource, extBase);
+        publish(process, new FileOutputStream(destFile), contentSource,
+            extBase, useLightGenerator);
     }
 
     public static void publish(CustomProcess process, OutputStream output,
-            ContentSource contentSource, URL extBase) throws IOException {
+            ContentSource contentSource, URL extBase, boolean useLightGenerator)
+            throws IOException {
 
         CustomProcessPublisher pub = new CustomProcessPublisher(contentSource,
                 extBase);
         pub.setHeadless(true);
+        pub.setUseLightGenerator(useLightGenerator);
         pub.publish(process, output);
         pub.close();
     }
@@ -119,6 +123,8 @@ public class CustomProcessPublisher {
 
     boolean headless;
 
+    boolean useLightGenerator;
+
     protected CustomProcessPublisher(ContentSource contentSource, URL extBase)
             throws IOException {
         this.contentSource = contentSource;
@@ -132,6 +138,14 @@ public class CustomProcessPublisher {
 
     public void setHeadless(boolean headless) {
         this.headless = headless;
+    }
+
+    public boolean isUseLightGenerator() {
+        return useLightGenerator;
+    }
+
+    public void setUseLightGenerator(boolean useLightGenerator) {
+        this.useLightGenerator = useLightGenerator;
     }
 
     public Date getTimestamp() {
@@ -168,6 +182,9 @@ public class CustomProcessPublisher {
 
     protected Document loadScript(String scriptName) throws IOException {
         try {
+            if (useLightGenerator)
+                scriptName = StringUtils.findAndReplace(scriptName, ".xml",
+                    "-light.xml");
             String script = processContent(getRawFile(scriptName), null, "xml");
             return XMLUtils.parse(script);
         } catch (SAXException se) {
@@ -234,6 +251,8 @@ public class CustomProcessPublisher {
 
     private JarInputStream openStartingJar(String scriptStartingJar)
             throws IOException {
+        if (scriptStartingJar == null || scriptStartingJar.length() == 0)
+            return null;
         byte[] contents = getRawFileBytes(scriptStartingJar);
         if (contents == null)
             return null;
