@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,7 +51,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -545,11 +543,13 @@ public class TeamStartBootstrap extends TinyCGIBase {
     /** The user is creating a team project for the given teamPID; redirect
      *  to its setup wizard.
      */
-    protected void redirectToTeamSetupWizard(String teamPID) {
+    protected void redirectToTeamSetupWizard(String teamTemplateID) {
+        int slashPos = teamTemplateID.indexOf('/');
+        String teamPID = teamTemplateID.substring(0, slashPos);
         String prefix = getTeamProjectPrefix();
         if (prefix != null)
-            printRedirect(HTMLUtils.urlEncodePath(prefix) + "//" +
-                      getTeamSetupWizardURL(teamPID) + "?page=team");
+            printRedirect(HTMLUtils.urlEncodePath(prefix) + "//" + teamPID
+                    + "/setup/wizard.class?page=team");
     }
 
     /**
@@ -604,9 +604,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
             // filter out process templates which are not "team roots"
             if (!id.endsWith("/TeamRoot"))
                 i.remove();
-            // filter out process templates which don't have a setup wizard.
-            else if (getTeamSetupWizardURL(id) == null)
-                i.remove();
         }
         return templates;
     }
@@ -649,27 +646,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
         return 2;  // a custom process
     }
 
-
-    /** Determine the URL of the setup wizard for a given team process.
-     *  @return null if a setup wizard cannot be located for the given
-     *  process.
-     */
-    protected String getTeamSetupWizardURL(String processID) {
-        Vector scripts = TemplateLoader.getScriptIDs(processID, null);
-        if (scripts == null) return null;
-        scripts.add(new ScriptID(processID + "-template.xml", null, null));
-        for (int i = scripts.size();   i-- > 0; ) {
-            String scriptURL = ((ScriptID) scripts.get(i)).getScript();
-            int pos = scriptURL.lastIndexOf('/');
-            if (pos < 1) continue;
-            String processDir = scriptURL.substring(0, pos);
-            String wizardURL = processDir + "/setup/wizard.class";
-            URL u = resolveURL(wizardURL);
-            if (u != null)
-                return wizardURL;
-        }
-        return null;
-    }
 
     /** Display the page asking the individual for the URL of the team
      * project. */
@@ -1019,8 +995,19 @@ public class TeamStartBootstrap extends TinyCGIBase {
         logger.log(Level.FINER, "template package ID={0}", pkgId);
         logger.log(Level.FINER, "template package version={0}", pkgVersion);
         logger.log(Level.FINER, "installed version={0}", instVersion);
-        return (instVersion == null
-                || DashPackage.compareVersions(pkgVersion, instVersion) > 0);
+
+        // only the timestamp is relevant now, since the MCF itself is auto
+        // generated on-the-fly with the newest content
+        String instTimestamp = extractVersionTimestamp(instVersion);
+        String pkgTimestamp = extractVersionTimestamp(pkgVersion);
+        return pkgTimestamp.compareTo(instTimestamp) > 0;
+    }
+
+    private String extractVersionTimestamp(String version) {
+        if (version == null)
+            return "0";
+        int dotPos = version.lastIndexOf('.');
+        return version.substring(dotPos + 1);
     }
 
 
