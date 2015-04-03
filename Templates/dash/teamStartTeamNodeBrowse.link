@@ -1,2 +1,2 @@
-class:net.sourceforge.processdash.ui.web.dash.TeamStartBootstrap
+class:net.sourceforge.processdash.team.setup.TeamStartBootstrap
 page=teamBrowseFolder

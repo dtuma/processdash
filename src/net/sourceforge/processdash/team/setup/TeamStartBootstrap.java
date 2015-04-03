@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.dash;
+package net.sourceforge.processdash.team.setup;
 
 
 import java.io.File;

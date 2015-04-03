@@ -3,7 +3,7 @@
 <!--
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2014 Tuma Solutions, LLC
+Copyright (C) 2001-2015 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -84,7 +84,7 @@ The author(s) may be contacted at:
      settingPrefix="deadlockMonitor"/>
 
   <background-task ordinal="502" runAtStartup="true" whenDefault="8,12,16,20"
-     class="net.sourceforge.processdash.ui.web.dash.TeamStartNotifier"
+     class="net.sourceforge.processdash.team.setup.TeamStartNotifier"
      settingPrefix="teamJoinNotifier" requires="personalMode"/>
 
   <background-task runAtStartup="true" whenDefault="-1"
@@ -355,7 +355,7 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.ev.TaskListAltererMessageHandler"/>
 
   <messageHandler requires="personalMode"
-     class="net.sourceforge.processdash.ui.web.dash.TeamStartMessageHandler"/>
+     class="net.sourceforge.processdash.team.setup.TeamStartMessageHandler"/>
 
   <messageHandler
      class="net.sourceforge.processdash.ui.web.api.ApiMessageRepeater"/>
