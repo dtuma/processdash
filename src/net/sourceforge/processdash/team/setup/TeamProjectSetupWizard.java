@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,8 +69,8 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
@@ -85,6 +84,7 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -443,21 +443,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     /** Try to locate the jarfile containing the definition for the
      * given process, and return the path to the file.
      */
-    public static String findTeamProcessJarfile(String processID) {
-        Vector scripts = TemplateLoader.getScriptIDs(processID, null);
-        if (scripts == null) scripts = new Vector();
-        scripts.add(new ScriptID(processID + "-template.xml", null, null));
-        for (int i = scripts.size();   i-- > 0; ) {
-            String scriptURL = ((ScriptID) scripts.get(i)).getScript();
-            URL u = TemplateLoader.resolveURL(scriptURL);
-            if (u == null) continue;
-            String url = u.toString();
-            if (!url.startsWith("jar:file:")) continue;
-            int pos = url.indexOf('!');
-            if (pos == -1) continue;
-            return HTMLUtils.urlDecode(url.substring(9, pos));
-        }
-        return null;
+    public static String findTeamProcessJarfile(String templateID) {
+        int slashPos = templateID.indexOf('/');
+        String processID = templateID.substring(0, slashPos);
+        URL u = MCFManager.getInstance().getMcfSourceFileUrl(processID,
+            TemplateLoader.MCF_PROCESS_XML);
+        File f = RuntimeUtils.getFileForUrl(u);
+        return f == null ? null : f.getPath();
     }
 
     /** Return true if the filename appears to be on a network drive.

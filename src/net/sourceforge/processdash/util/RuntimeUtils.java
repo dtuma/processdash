@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -329,33 +329,11 @@ public class RuntimeUtils {
 
         String classUrlStr = classUrl.toString();
         if (classUrlStr.startsWith("jar:file:"))
-            return getJarBasedClasspath(classUrlStr);
+            return getFileForUrl(classUrlStr);
         else if (classUrlStr.startsWith("file:"))
             return getDirBasedClasspath(classUrlStr, className);
         else
             return null;
-    }
-
-    /** Return a classpath for use with the packaged JAR file containing the
-     * compiled classes used by the dashboard.
-     * 
-     * @param selfUrlStr the URL of the class file for this class; must be a
-     *    jar:file: URL.
-     * @return the JAR-based classpath in effect
-     */
-    private static File getJarBasedClasspath(String selfUrlStr) {
-        // remove initial "jar:file:" and trailing "!/package/..." information
-        selfUrlStr = selfUrlStr.substring(9, selfUrlStr.indexOf("!/"));
-
-        String jarFileName;
-        try {
-            jarFileName = URLDecoder.decode(selfUrlStr, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            // can't happen
-            return null;
-        }
-        File jarFile = new File(jarFileName).getAbsoluteFile();
-        return jarFile;
     }
 
     /** Return a classpath for use with an unpackaged class file
@@ -385,6 +363,51 @@ public class RuntimeUtils {
             return null;
         }
     }
+
+
+    /**
+     * Return the File referenced by a "file:" or "jar:file:" URL.
+     * 
+     * @param url
+     *            a URL; may be null
+     * @return the File this URL points to if applicable; otherwise null
+     * @since 2.1.8
+     */
+    public static File getFileForUrl(URL url) {
+        return (url == null ? null : getFileForUrl(url.toString()));
+    }
+
+    /**
+     * Return the File referenced by a "file:" or "jar:file:" URL.
+     * 
+     * @param url
+     *            a URL in string form; may be null
+     * @return the File this URL points to if applicable; otherwise null
+     * @since 2.1.8
+     */
+    public static File getFileForUrl(String url) {
+        if (url == null)
+            return null;
+
+        if (url.startsWith("jar:")) {
+            int pos = url.indexOf('!');
+            url = (pos == -1 ? url.substring(4) : url.substring(4, pos));
+        }
+
+        String jarFileName;
+        try {
+            if (url.startsWith("file:"))
+                jarFileName = URLDecoder.decode(url.substring(5), "UTF-8");
+            else
+                return null;
+        } catch (UnsupportedEncodingException e) {
+            // can't happen
+            return null;
+        }
+        File jarFile = new File(jarFileName).getAbsoluteFile();
+        return jarFile;
+    }
+
 
     /** Wait for a process to complete, and return the exit status.
      * 
