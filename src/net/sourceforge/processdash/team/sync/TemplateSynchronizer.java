@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,11 +23,11 @@
 
 package net.sourceforge.processdash.team.sync;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,16 +35,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
+
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.team.mcf.MCFManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.XMLUtils;
 
 /**
  * Reads the common team workflows for a team project, and creates dashboard
@@ -158,8 +159,9 @@ public class TemplateSynchronizer {
     private Map getTemplatesForProcess() throws IOException, SAXException {
         Map result = new HashMap();
 
-        URL u = new URL("processdash:" + templateUri);
-        Document doc = XMLUtils.parse(u.openConnection().getInputStream());
+        String templatePath = "/Templates" + templateUri;
+        Document doc = XMLUtils.parse(new ByteArrayInputStream(MCFManager
+                .getInstance().getMcfContent(processID, templatePath)));
 
         NodeList templateNodes = doc.getElementsByTagName(TEMPLATE_TAG);
         for (int i = 0; i < templateNodes.getLength(); i++) {
