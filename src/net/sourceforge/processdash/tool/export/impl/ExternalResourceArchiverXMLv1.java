@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
+import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
@@ -259,20 +260,20 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     private static final String TEAM_ROOT_SUFFIX = "/TeamRoot";
 
     private void archiveFrameworkMetadata(ZipOutputStream out, String processID) {
-        // get the URL of the process template.xml file
-        URL u = TemplateLoader.resolveURL(processID + "-template.xml");
+        // get the URL of the process settings.xml file
+        URL u = MCFManager.getInstance().getMcfSourceFileUrl(processID,
+            TemplateLoader.MCF_PROCESS_XML);
         if (u == null)
             return;
 
-        // get the bsae URL of the JAR file containing the template.xml file
+        // get the base URL of the JAR file containing the settings.xml file
         String baseUrl = u.toString();
         int exclPos = baseUrl.indexOf("!/");
         if (exclPos == -1)
             return;
         baseUrl = baseUrl.substring(0, exclPos + 2);
 
-        // try adding the settings.xml file to our output ZIP.  If the
-        // settings.xml file could not be found, abort.
+        // add the settings.xml file to our output ZIP
         String newPath = MCF_SUBDIR + "/" + processID;
         boolean foundSettings = addFrameworkMetadataToArchive(out, baseUrl,
                 newPath, "settings.xml");
