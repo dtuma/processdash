@@ -341,6 +341,7 @@ public class TemplateLoader {
                     }
                 }
             }
+            jarFile.close();
 
         } catch (IOException ioe) {
             logger.severe("error looking for templates in " + jarURL);
@@ -750,7 +751,9 @@ public class TemplateLoader {
                 Properties p = new Properties();
                 File libDir = new File(unpackagedBinaryBaseDir, "lib");
                 File versionFile = new File(libDir, "version.properties");
-                p.load(new FileInputStream(versionFile));
+                FileInputStream in = new FileInputStream(versionFile);
+                p.load(in);
+                in.close();
                 String version = p.getProperty("dashboard.version");
                 result.put(new DashPackage(version), null);
             } catch (Exception e) {}
