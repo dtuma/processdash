@@ -27,7 +27,10 @@ package net.sourceforge.processdash.team.mcf;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +125,7 @@ public class CustomProcess {
 
 
     protected String processName, processAbbr, processVersion, generatorScript;
+    protected Date processTimestamp;
     Map itemLists = new TreeMap();
     public static final String SETTINGS_FILENAME = "settings.xml";
 
@@ -158,6 +162,13 @@ public class CustomProcess {
         if (!XMLUtils.hasValue(processName) ||
             !XMLUtils.hasValue(generatorScript)) throw new IOException();
 
+        String timestamp = root.getAttribute("timestamp");
+        if (XMLUtils.hasValue(timestamp)) {
+            try {
+                processTimestamp = TIMESTAMP_FMT.parse(timestamp);
+            } catch (Exception e) {}
+        }
+
         NodeList elements = root.getChildNodes();
         for (int i=0;   i < elements.getLength();   i++) {
             if (elements.item(i) instanceof Element) {
@@ -167,6 +178,7 @@ public class CustomProcess {
             }
         }
     }
+    private DateFormat TIMESTAMP_FMT = new SimpleDateFormat("yyyy-MM-dd");
 
     public static CustomProcess open(File openFile) {
         try {

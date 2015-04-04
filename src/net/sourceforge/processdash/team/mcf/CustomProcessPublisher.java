@@ -231,8 +231,10 @@ public class CustomProcessPublisher {
             packageName = (String) parameters.get("Full_Name");
         attrs.putValue(DashPackage.NAME_ATTRIBUTE, packageName);
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
+        if (timestamp == null)
+            timestamp = new Date();
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE, scriptVers + "."
-                + TIMESTAMP_FORMAT.format(timestamp = new Date()));
+                + TIMESTAMP_FORMAT.format(timestamp));
         if (scriptReqt != null)
             attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
@@ -299,6 +301,7 @@ public class CustomProcessPublisher {
         else
             versionString = " (v" + versionNum + ")";
         fullName = processName + versionString;
+        timestamp = process.processTimestamp;
 
         setParam("Process_ID", process.getProcessID());
         setParam("Process_Name", processName);
@@ -312,8 +315,6 @@ public class CustomProcessPublisher {
         }
 
         setParam("Is_Extfile_Allowed", extBase != null ? "t" : "");
-
-        // parameters.put("USE_TO_DATE_DATA", "t");
     }
 
     private void handleItemList(CustomProcess process, String itemType) {
