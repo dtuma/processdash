@@ -109,16 +109,16 @@ public class MCFManager {
     }
 
 
-    public InputStream registerMcf(String jarURL, JarInputStream jarFile)
-            throws IOException {
+    public InputStream registerMcf(String baseURL, InputStream processXml,
+            String knownVersion, boolean extFileAllowed) throws IOException {
 
         // parse the XML doc from the jar file input stream
         Document settings;
         try {
-            NonclosingInputStream in = new NonclosingInputStream(jarFile);
+            NonclosingInputStream in = new NonclosingInputStream(processXml);
             settings = XMLUtils.parse(in);
         } catch (SAXException e) {
-            throw new IOException("Error parsing settings.xml in " + jarURL, e);
+            throw new IOException("Error parsing settings.xml in " + baseURL, e);
         }
 
         // ensure this is the XML file for a custom process
@@ -128,11 +128,15 @@ public class MCFManager {
 
         // create and initialize a publisher for this custom process
         CustomProcess process = new CustomProcess(settings);
-        URL extBase = new URL("jar:" + jarURL + "!/");
+        URL extBase = new URL(baseURL);
         CustomProcessPublisher publisher = new CustomProcessPublisher(
                 contentSource, extBase);
         publisher.setHeadless(true);
-        publisher.loadInfoFromManifest(jarFile.getManifest());
+        publisher.setExtFileAllowed(extFileAllowed);
+        publisher.loadTimestampFromVersion(knownVersion);
+        if (processXml instanceof JarInputStream)
+            publisher.loadInfoFromManifest(((JarInputStream) processXml)
+                    .getManifest());
         publisher.publish(process, null);
 
         // record the publisher in our data structures for later use

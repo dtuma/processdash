@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,10 @@ public class ExternalResourceManifestXMLv1 implements
 
     public boolean isEmpty() {
         return mappingEntries.isEmpty();
+    }
+
+    public List<MCFEntry> getMcfEntries() {
+        return mcfEntries;
     }
 
     public synchronized void addMapping(String origPath, String origUrl,
@@ -140,7 +144,7 @@ public class ExternalResourceManifestXMLv1 implements
         NodeList frameworks = doc.getElementsByTagName(MCF_ELEM);
         for (int i=0;  i < frameworks.getLength();  i++) {
             Element e = (Element) frameworks.item(i);
-            MCFEntry me = new MCFEntry(e);
+            MCFEntry me = new MCFEntry(e, archiveDir);
             mcfEntries.add(me);
         }
 
@@ -184,7 +188,7 @@ public class ExternalResourceManifestXMLv1 implements
 
     }
 
-    private class MCFEntry implements Comparable<MCFEntry> {
+    public class MCFEntry implements Comparable<MCFEntry> {
 
         private String frameworkID;
 
@@ -192,10 +196,13 @@ public class ExternalResourceManifestXMLv1 implements
 
         private String newPath;
 
-        protected MCFEntry(Element xml) {
+        private File archiveDir;
+
+        protected MCFEntry(Element xml, File archiveDir) {
             this(xml.getAttribute(MCF_ID),
                  xml.getAttribute(MCF_VERSION),
                  xml.getAttribute(NEW_PATH));
+            this.archiveDir = archiveDir;
         }
 
         protected MCFEntry(String frameworkID, String frameworkVersion,
@@ -203,6 +210,21 @@ public class ExternalResourceManifestXMLv1 implements
             this.frameworkID = nvl(frameworkID);
             this.frameworkVersion = nvl(frameworkVersion);
             this.newPath = nvl(newPath);
+        }
+
+        public String getFrameworkID() {
+            return frameworkID;
+        }
+
+        public String getFrameworkVersion() {
+            return frameworkVersion;
+        }
+
+        public File getBaseDirectory() {
+            if (archiveDir == null || newPath == null)
+                return null;
+            else
+                return new File(archiveDir, newPath);
         }
 
         public void write(XmlSerializer ser) throws IOException {

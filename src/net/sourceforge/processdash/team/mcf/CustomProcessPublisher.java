@@ -121,6 +121,8 @@ public class CustomProcessPublisher {
 
     URL extBase;
 
+    boolean extFileAllowed;
+
     boolean headless;
 
     boolean useLightGenerator;
@@ -129,6 +131,7 @@ public class CustomProcessPublisher {
             throws IOException {
         this.contentSource = contentSource;
         this.extBase = extBase;
+        this.extFileAllowed = (extBase != null);
         this.parameters = new HashMap();
     }
 
@@ -146,6 +149,14 @@ public class CustomProcessPublisher {
 
     public void setUseLightGenerator(boolean useLightGenerator) {
         this.useLightGenerator = useLightGenerator;
+    }
+
+    public boolean isExtFileAllowed() {
+        return extFileAllowed;
+    }
+
+    public void setExtFileAllowed(boolean extFileAllowed) {
+        this.extFileAllowed = extFileAllowed;
     }
 
     public Date getTimestamp() {
@@ -197,6 +208,10 @@ public class CustomProcessPublisher {
     public void loadInfoFromManifest(Manifest manifest) {
         String version = manifest.getMainAttributes().getValue(
             DashPackage.VERSION_ATTRIBUTE);
+        loadTimestampFromVersion(version);
+    }
+
+    public void loadTimestampFromVersion(String version) {
         if (version != null) {
             try {
                 int dotPos = version.lastIndexOf('.');
@@ -314,7 +329,7 @@ public class CustomProcessPublisher {
             handleItemList(process, type);
         }
 
-        setParam("Is_Extfile_Allowed", extBase != null ? "t" : "");
+        setParam("Is_Extfile_Allowed", extFileAllowed ? "t" : "");
     }
 
     private void handleItemList(CustomProcess process, String itemType) {
@@ -386,7 +401,7 @@ public class CustomProcessPublisher {
     }
 
     private void enhanceFilenameAttribute(String attrName, String filename) {
-        if (extBase == null) {
+        if (!extFileAllowed) {
             // we have a convention that when a custom process has "filename"
             // parameters, those refer to external files outside the custom
             // process XML file.  If we have no extBase, it means we cannot

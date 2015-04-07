@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2014 Tuma Solutions, LLC
+// Copyright (C) 2003-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -143,6 +143,24 @@ public class DashPackage {
         name = "Process Dashboard";
         id = "pspdash";
         version = versionNumber;
+    }
+
+    /**
+     * For internal use only: create a package for an MCF add-on that was
+     * generated on-the-fly from an XML file in a data backup.
+     */
+    DashPackage(String mcfId, String mcfVersion) {
+        this.id = mcfId;
+        this.version = mcfVersion;
+        this.filename = "< inferred from data backup >";
+
+        String name = mcfId.replace('_', ' ');
+        int vPos = name.indexOf("-v");
+        if (vPos != -1) {
+            String version = name.substring(vPos + 1).replace(',', '.');
+            name = name.substring(0, vPos) + " (" + version + ")";
+        }
+        this.name = name;
     }
 
     private void init(String fileUrl, Manifest manifest)

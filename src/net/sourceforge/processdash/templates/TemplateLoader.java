@@ -77,6 +77,8 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
+import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv1.MCFEntry;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
@@ -161,6 +163,9 @@ public class TemplateLoader {
                 pt.click("searched jar '" + jarFileURL + "' for templates");
             }
         }
+
+        // find any missing MCFs that came bundled within a data backup file
+        searchExternalResourcesForMissingMcfs(templates, data);
 
         // store the new list of template URLs, stripped of MCF JAR files
         template_url_list = roots.toArray(new URL[roots.size()]);
@@ -282,6 +287,54 @@ public class TemplateLoader {
         }
     }
 
+    private static void searchExternalResourcesForMissingMcfs(
+            DashHierarchy templates, DataRepository data) {
+        for (MCFEntry mcf : ExternalResourceManager.getInstance().getMcfs()) {
+            try {
+                loadMissingMcfFromExternalResource(templates, data, mcf);
+            } catch (IOException ioe) {
+                logger.severe("error looking for MCF data in "
+                        + mcf.getBaseDirectory());
+                ioe.printStackTrace(System.out);
+            }
+        }
+    }
+
+    private static void loadMissingMcfFromExternalResource(
+            DashHierarchy templates, DataRepository data, MCFEntry mcf)
+            throws IOException {
+
+        // See if we already have an installed package for this MCF. If so,
+        // prefer it over the one loaded from external resources.
+        String mcfID = mcf.getFrameworkID();
+        if (getPackage(mcfID) != null)
+            return;
+
+        // Skip external MCFs if we cannot find the process XML file
+        File mcfDir = mcf.getBaseDirectory();
+        if (mcfDir == null)
+            return;
+        File mcfXmlFile = new File(mcfDir, MCF_PROCESS_XML);
+        if (!mcfXmlFile.isFile())
+            return;
+
+        // Open the MCF and register it with the MCF manager
+        String baseUrl = mcfDir.toURI().toURL().toString();
+        FileInputStream processXml = new FileInputStream(mcfXmlFile);
+        String mcfVersion = mcf.getFrameworkVersion();
+
+        InputStream mcfXmlData = MCFManager.getInstance().registerMcf(baseUrl,
+            processXml, mcfVersion, false);
+        processXml.close();
+
+        // load MCF process templates if the above steps were successful
+        if (mcfXmlData != null) {
+            loadXMLProcessTemplate(templates, data, mcfXmlFile.getPath(), null,
+                mcfXmlData, true);
+            dashPackages.add(new DashPackage(mcfID, mcfVersion));
+        }
+    }
+
     private enum JarSearchResult { None, Template, Mcf }
 
     private static JarSearchResult searchJarForTemplates(
@@ -300,8 +353,9 @@ public class TemplateLoader {
             while ((file = jarFile.getNextEntry()) != null) {
                 filename = file.getName().toLowerCase();
                 if (filename.equals(MCF_PROCESS_XML)) {
+                    String baseURL = "jar:" + jarURL + "!/";
                     InputStream mcfXmlData = MCFManager.getInstance()
-                            .registerMcf(jarURL, jarFile);
+                            .registerMcf(baseURL, jarFile, null, true);
                     if (mcfXmlData != null) {
                         String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
                         loadXMLProcessTemplate(templates, data, n, jarFileUrl,
@@ -933,14 +987,6 @@ public class TemplateLoader {
         while (i.hasNext()) {
             pkg = (DashPackage) i.next();
             if (packageID.equals(pkg.id))
-                return pkg;
-        }
-
-        // look through the packages for a locale-specific match
-        i = dashPackages.iterator();
-        while (i.hasNext()) {
-            pkg = (DashPackage) i.next();
-            if (pkg.id != null && pkg.id.startsWith(packageID + "_"))
                 return pkg;
         }
 

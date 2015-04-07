@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.export.mgr;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,6 +67,8 @@ public class ExternalResourceManager {
 
     File defaultMapDataSource = null;
 
+    List<ExternalResourceManifestXMLv1.MCFEntry> mcfMappings = null;
+
     ExternalResourceManager() {}
 
     public boolean isArchivedItem(String filename) {
@@ -99,6 +102,7 @@ public class ExternalResourceManager {
             ExternalResourceManifestXMLv1 loader = new ExternalResourceManifestXMLv1();
             if (mapper.loadMappings(loader.load(baseDir))) {
                 defaultMapDataSource = baseDir;
+                mcfMappings = loader.getMcfEntries();
             } else {
                 // the zip file did not contain any archived external resources.
                 // this might mean it wasn't created by the FileBackupManager,
@@ -134,6 +138,13 @@ public class ExternalResourceManager {
             return origFile;
         else
             return mapper.remapFilename(origFile);
+    }
+
+    public List<ExternalResourceManifestXMLv1.MCFEntry> getMcfs() {
+        if (mcfMappings == null)
+            return Collections.EMPTY_LIST;
+        else
+            return Collections.unmodifiableList(mcfMappings);
     }
 
     /**
