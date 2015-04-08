@@ -358,7 +358,7 @@ public class TemplateLoader {
                             .registerMcf(baseURL, jarFile, null, true);
                     if (mcfXmlData != null) {
                         String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
-                        loadXMLProcessTemplate(templates, data, n, jarFileUrl,
+                        loadXMLProcessTemplate(templates, data, n, null,
                             mcfXmlData, true);
                         jarFile.close();
                         return JarSearchResult.Mcf;
@@ -1019,9 +1019,6 @@ public class TemplateLoader {
                 baseUrl = new URL(urlStr);
             } catch (Exception e) { return null; }
         }
-
-        // TODO: check to ensure that this URL is part of our search path?
-        // Would that be beneficial or a bad idea?
 
         ClassLoader result;
         synchronized (TEMPLATE_CLASSLOADERS) {
