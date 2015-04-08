@@ -449,7 +449,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         URL u = MCFManager.getInstance().getMcfSourceFileUrl(processID,
             TemplateLoader.MCF_PROCESS_XML);
         File f = RuntimeUtils.getFileForUrl(u);
-        return f == null ? null : f.getPath();
+        if (f == null || f.getName().endsWith(".xml"))
+            return null;
+        else
+            return f.getPath();
     }
 
     /** Return true if the filename appears to be on a network drive.
