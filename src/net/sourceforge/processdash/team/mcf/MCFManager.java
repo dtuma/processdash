@@ -181,6 +181,10 @@ public class MCFManager {
         }
     }
 
+    public Set<String> getAllMcfIDs() {
+        return new HashSet<String>(mcfPublishers.keySet());
+    }
+
     public Set<String> getAllMcfContentFilenames() {
         Set<String> result = new HashSet<String>();
         for (CustomProcessPublisher pub : mcfPublishers.values())
