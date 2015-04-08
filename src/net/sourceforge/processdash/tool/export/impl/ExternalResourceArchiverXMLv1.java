@@ -268,10 +268,10 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
         // get the base URL of the JAR file containing the settings.xml file
         String baseUrl = u.toString();
-        int exclPos = baseUrl.indexOf("!/");
-        if (exclPos == -1)
+        int slashPos = baseUrl.lastIndexOf("/");
+        if (slashPos == -1)
             return;
-        baseUrl = baseUrl.substring(0, exclPos + 2);
+        baseUrl = baseUrl.substring(0, slashPos + 1);
 
         // add the settings.xml file to our output ZIP
         String newPath = MCF_SUBDIR + "/" + processID;
