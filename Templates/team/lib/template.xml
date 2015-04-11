@@ -335,7 +335,7 @@
  =======================================================================-->
 
   <template
-      name="PID-Indiv2:!*!:<!--#echo Full_Name --> Task"
+      name="PID-Indiv2:!*!:Team Project Task"
       ID="PID/Indiv2Task"
       defineRollup="no"
       defectLog="true"
