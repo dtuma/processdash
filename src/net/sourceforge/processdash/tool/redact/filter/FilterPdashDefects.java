@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,8 +27,12 @@ import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.HierarchyPathMapper;
 
-@EnabledFor({ RedactFilterIDs.TASK_NAMES, RedactFilterIDs.NOTES })
+@EnabledFor({ RedactFilterIDs.TASK_NAMES, RedactFilterIDs.NOTES,
+        RedactFilterIDs.DEFECT_TYPES })
 public class FilterPdashDefects extends AbstractLineBasedFilter {
+
+    @EnabledFor(RedactFilterIDs.DEFECT_TYPES)
+    private boolean filterTypes;
 
     @EnabledFor(RedactFilterIDs.NOTES)
     private boolean stripDescriptions;
@@ -45,6 +49,8 @@ public class FilterPdashDefects extends AbstractLineBasedFilter {
     public String getString(String line) {
         if (hashPaths)
             line = replaceXmlAttr(line, "path", pathMapper);
+        if (filterTypes)
+            line = replaceXmlAttr(line, "type", FilterDefectTypes.TYPE_MAPPER);
         if (stripDescriptions)
             line = discardXmlAttr(line, "desc");
         return line;

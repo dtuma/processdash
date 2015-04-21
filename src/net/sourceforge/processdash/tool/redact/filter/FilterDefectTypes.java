@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,22 +23,34 @@
 
 package net.sourceforge.processdash.tool.redact.filter;
 
-import net.sourceforge.processdash.tool.redact.EnabledFor;
-import net.sourceforge.processdash.tool.redact.LocationMapper;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-public class FilterDataContainingLocations extends AbstractDataStringFilter {
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
+import net.sourceforge.processdash.util.StringMapper;
 
-    @EnabledFor("^Team_Directory(_UNC)?$")
-    public String filterTeamDataDir(String dataDir) {
-        if (dataDir.trim().length() == 0)
-            return null;
+
+public class FilterDefectTypes {
+
+    public static String mapDefectType(String type) {
+        if (KNOWN_TYPES.contains(type))
+            return type;
         else
-            return LocationMapper.FAKE_TEAM_DIR;
+            return RedactFilterUtils.hash(type);
     }
 
-    @EnabledFor({"^Team_Data_Directory_URL$", "^Team_Server_Import_URL$"})
-    public String filter(String url) {
-        return LocationMapper.mapURL(url);
-    }
+    private static final Set<String> KNOWN_TYPES = Collections
+            .unmodifiableSet(new HashSet(Arrays.asList("10", "20", "30", "40",
+                "50", "60", "70", "80", "90", "100", "Documentation", "Syntax",
+                "Build, package", "Assignment", "Interface", "Checking",
+                "Data", "Function", "System", "Environment")));
+
+    public static final StringMapper TYPE_MAPPER = new StringMapper() {
+        public String getString(String str) {
+            return mapDefectType(str);
+        }
+    };
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2013 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,11 @@ public class FilterDataContainingTaskNames extends AbstractDataStringFilter {
 
     @EnabledFor("^Subproject_.*/Hierarchy_Path$")
     public String hashMasterSubprojectPath(String value) {
+        return pathNameMapper.getString(value);
+    }
+
+    @EnabledFor("^Master_Project_Path$")
+    public String hashMasterProjectPath(String value) {
         return pathNameMapper.getString(value);
     }
 

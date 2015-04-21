@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,22 +21,23 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.redact;
+package net.sourceforge.processdash.tool.redact.filter;
 
-public interface RedactFilterIDs {
+import net.sourceforge.processdash.tool.redact.EnabledFor;
+import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 
-    String TASK_NAMES = "taskNames";
 
-    String WORKFLOWS = "workflows";
+@EnabledFor(RedactFilterIDs.DEFECT_TYPES)
+public class FilterDataContainingDefectTypes extends AbstractDataStringFilter {
 
-    String DEFECT_TYPES = "defectTypes";
+    @EnabledFor("^Defect Type Standard/")
+    public String discardDefinitionsOfStandards(String definition) {
+        return null;
+    }
 
-    String PEOPLE = "people";
-
-    String LABELS = "labels";
-
-    String NOTES = "notes";
-
-    String LOG_FILES = "logFiles";
+    @EnabledFor({ "^Defect Type Standard$", "/Defect Type Standard$" })
+    public String discardSelectionsOfStandards(String dtsName) {
+        return null;
+    }
 
 }

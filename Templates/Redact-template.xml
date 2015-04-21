@@ -6,7 +6,7 @@
 <!--
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2012 Tuma Solutions, LLC
+Copyright (C) 2012-2015 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -39,6 +39,7 @@ The author(s) may be contacted at:
   <redact-filter-set ordinal="300" id="taskNames"/>
   <redact-filter-set ordinal="400" id="labels"/>
   <redact-filter-set ordinal="500" id="workflows"/>
+  <redact-filter-set ordinal="550" id="defectTypes"/>
   <redact-filter-set ordinal="600" id="logFiles"/>
 
   <redact-filter class="&pkg;FilterCensoredFiles"/>
@@ -65,6 +66,7 @@ The author(s) may be contacted at:
   <redact-line-filter class="&pkg;FilterWbsWorkflows"/>
 
   <redact-datafile-filter class="&pkg;FilterCensoredData"/>
+  <redact-datafile-filter class="&pkg;FilterDataContainingDefectTypes"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingLabels"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingLocations"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingNotes"/>
@@ -78,6 +80,8 @@ The author(s) may be contacted at:
       ^Current_Exported_Filenames$
       ^Historically_Exported_Filenames$
       ^Task-Schedule-MS-Project/
+      _Password_$
+      PW_STOR$
       ^Team_URL$
       " Filename$"
       " Coding Standard Document$"
