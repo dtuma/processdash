@@ -223,6 +223,8 @@ os-mac.mainWindow.paddingRight=6
 os-mac.datatips.disabled=true
 os-mac.excel.exportMethod=mime
 
+os-linux.pauseButton.quiet=true
+
 cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/.processdash/cmsGlobal
 os-windows.cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/Application Data/Process Dashboard/cmsGlobal
 os-mac.cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/Library/Process Dashboard/cmsGlobal
@@ -235,6 +237,7 @@ legacyUserPrefs=\
     browser.command \
     defectlog.dimensions \
     hierarchyEditor.dimensions \
+    pauseButton.quiet \
     systemTray.disabled \
     systemTray.minimizeToTray \
     timelog.dimensions \
