@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2014 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -147,6 +147,7 @@ public class DashboardBackupFactory {
         result.setFileFilter(WBS_FILE_FILTER);
         result.setBackupFilenameFormat(WBS_BACKUP_FILENAME_FMT);
         result.setAutoCleanupNumDays(keepBackupsNumDays);
+        result.setCleanupFilter(WBS_CLEANUP_FILTER);
         return result;
     }
 
@@ -177,4 +178,11 @@ public class DashboardBackupFactory {
     }
 
     public static final FilenameFilter WBS_FILE_FILTER = new WBSFileFilter();
+
+    private static final FilenameFilter WBS_CLEANUP_FILTER = new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+            return name.endsWith("-startup.zip");
+        }
+    };
+
 }

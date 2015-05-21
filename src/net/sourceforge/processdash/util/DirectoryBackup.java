@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ public abstract class DirectoryBackup {
 
     protected FilenameFilter fileFilter;
 
+    protected FilenameFilter cleanupFilter;
+
     protected MessageFormat backupFilenameFormat;
 
     protected ExtraContentSupplier extraContentSupplier;
@@ -73,6 +75,14 @@ public abstract class DirectoryBackup {
 
     public void setFileFilter(FilenameFilter fileFilter) {
         this.fileFilter = fileFilter;
+    }
+
+    public FilenameFilter getCleanupFilter() {
+        return cleanupFilter;
+    }
+
+    public void setCleanupFilter(FilenameFilter cleanupFilter) {
+        this.cleanupFilter = cleanupFilter;
     }
 
     public MessageFormat getBackupFilenameFormat() {
@@ -156,6 +166,11 @@ public abstract class DirectoryBackup {
         for (int i = 0; i < backupFiles.length; i++) {
             File oneFile = backupFiles[i];
             String filename = oneFile.getName();
+
+            if (cleanupFilter != null
+                    && !cleanupFilter.accept(destDirectory, filename))
+                continue;
+
             Matcher m = DATE_PATTERN.matcher(filename);
             if (filename.toLowerCase().endsWith(".zip") && m.find()) {
                 String fileDate = m.group();
