@@ -28,11 +28,13 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -103,6 +105,10 @@ public class SqlDriverManager {
 
         public boolean jdbcCompliant() {
             return delegate.jdbcCompliant();
+        }
+
+        public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+            return delegate.getParentLogger();
         }
 
     }
