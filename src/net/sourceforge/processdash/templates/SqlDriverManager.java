@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,9 +36,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import net.sourceforge.processdash.util.StringUtils;
-
 import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 public class SqlDriverManager {
 
@@ -108,7 +108,12 @@ public class SqlDriverManager {
         }
 
         public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-            return delegate.getParentLogger();
+            try {
+                return (Logger) delegate.getClass()
+                        .getMethod("getParentLogger").invoke(delegate);
+            } catch (Throwable t) {
+                throw new SQLFeatureNotSupportedException(t);
+            }
         }
 
     }
