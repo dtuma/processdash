@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import teamdash.merge.AttributeMerger;
 import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.TreeDiff;
 import teamdash.merge.TreeMerger;
 import teamdash.merge.TreeNode;
 import teamdash.merge.ui.MergeConflictNotification;
@@ -118,6 +119,11 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
             treeMerger.run();
             merged = buildWBS(treeMerger.getMergedTree());
         }
+    }
+
+    public TreeDiff<Integer, WBSNodeContent> getMainDiff() {
+        return new TreeDiff(buildTree(base.getRoot()),
+                buildTree(main.getRoot()), contentMerger);
     }
 
     protected TreeNode<Integer, WBSNodeContent> buildTree(WBSNode node) {

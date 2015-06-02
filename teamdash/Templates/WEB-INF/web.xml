@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Process Dashboard - Data Automation Tool for high-maturity processes
+    Copyright (C) 2015 Tuma Solutions, LLC
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3
+    of the License, or (at your option) any later version.
+
+    Additional permissions also apply; see the README-license.txt
+    file in the project root directory for more information.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, see http://www.gnu.org/licenses/
+
+    The author(s) may be contacted at:
+        processdash@tuma-solutions.com
+        processdash-devel@lists.sourceforge.net
+-->
+
+<web-app id="teamTools" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+	<display-name>Advanced Team Tools</display-name>
+
+	<servlet>
+		<display-name>WBS History Servlet</display-name>
+		<servlet-name>wbsHistServlet</servlet-name>
+		<servlet-class>
+			teamdash.hist.ui.WBSChangeHistoryReport
+		</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>wbsHistServlet</servlet-name>
+		<url-pattern>/reports/wbsChangeHistory</url-pattern>
+	</servlet-mapping>
+
+</web-app>

@@ -1,5 +1,5 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
-// Team Functionality Add-ons for the Process Dashboard
+// Copyright (C) 2015 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,34 +21,33 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs;
+package teamdash.hist;
 
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
-import teamdash.wbs.columns.ProxySizeColumn;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class ProxyMerger extends AbstractWBSModelMerger<ProxyWBSModel> {
+import teamdash.wbs.WBSFilenameConstants;
 
-    public ProxyMerger(TeamProject base, TeamProject main, TeamProject incoming) {
-        this(base.getProxies(), main.getProxies(), incoming.getProxies());
-    }
+public class ProjectHistoryBridgedFile extends ProjectHistoryBridgedAbstract {
 
-    public ProxyMerger(ProxyWBSModel base, ProxyWBSModel main,
-            ProxyWBSModel incoming) {
-        super(base, main, incoming);
+    private File historyZipFile;
 
-        // register handlers for attributes as needed.
-        ignoreAttributeConflicts(
-            ProxySizeColumn.FORCED_ATTR_NAME);
-    }
-
-    @Override
-    protected ProxyWBSModel createWbsModel() {
-        return new ProxyWBSModel();
+    public ProjectHistoryBridgedFile(File historyZipFile) throws IOException {
+        this.historyZipFile = historyZipFile;
+        initFileRevisionsZip();
+        initChanges();
+        initTimeDelta();
     }
 
     @Override
-    protected ModelType getModelType() {
-        return ModelType.Proxies;
+    protected File getFileRevisionsZip() throws IOException {
+        return historyZipFile;
+    }
+
+    @Override
+    protected InputStream getChangeHistory() throws IOException {
+        return getVersionFile(WBSFilenameConstants.CHANGE_HISTORY_FILE, lastMod);
     }
 
 }

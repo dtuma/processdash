@@ -121,6 +121,7 @@ public class TeamProjectMerger {
         // calculate the merged workflows
         WorkflowMerger workflowMerger = new WorkflowMerger(base, main,
                 incoming);
+        workflowMerger.run();
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(workflowMerger.getConflictNotifications());
@@ -131,6 +132,7 @@ public class TeamProjectMerger {
     private ProxyWBSModel mergeProxies() {
         // calculate the merged proxies
         ProxyMerger proxyMerger = new ProxyMerger(base, main, incoming);
+        proxyMerger.run();
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(proxyMerger.getConflictNotifications());
@@ -142,6 +144,7 @@ public class TeamProjectMerger {
         // calculate the merged milestones
         MilestonesMerger milestonesMerger = new MilestonesMerger(base, main,
                 incoming);
+        milestonesMerger.run();
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(milestonesMerger.getConflictNotifications());
@@ -152,6 +155,7 @@ public class TeamProjectMerger {
     private WBSModel mergeWBS() {
         // calculate the merged WBS
         WBSMerger wbsMerger = new WBSMerger(base, main, incoming);
+        wbsMerger.run();
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(wbsMerger.getConflictNotifications());

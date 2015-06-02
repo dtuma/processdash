@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -43,8 +43,6 @@ public class MilestonesMerger extends AbstractWBSModelMerger<MilestonesWBSModel>
         ignoreAttributeConflicts(
             MilestoneCommitDateColumn.MASTER_VALUE_ATTR,
             MilestoneColorColumn.VALUE_ATTR);
-
-        run();
     }
 
     @Override
