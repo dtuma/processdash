@@ -23,7 +23,9 @@
 
 package teamdash.hist;
 
+import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
 import static teamdash.wbs.WBSFilenameConstants.WBS_FILENAME;
+import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,8 +33,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -77,30 +81,32 @@ public class ProjectDiff {
     }
 
     public List<ProjectChange> getChanges() {
+        List<ProjectChange> result = new ArrayList<ProjectChange>();
         Map<Integer, ProjectChangedNode> nodeChanges = new HashMap();
 
         for (TreeNodeChange<Integer, WBSNodeContent> tnc : diff.getChanges()) {
             switch (tnc.getType()) {
             case Add:
-            case Move:
-                getNodeChange(diff, tnc, nodeChanges, wbsB);
+                addNodeChange(tnc, nodeChanges, wbsB);
                 break;
             case Delete:
-                getNodeChange(diff, tnc, nodeChanges, wbsA);
+                addNodeChange(tnc, nodeChanges, wbsA);
+                break;
+            case Move:
+                addNodeMove(tnc, nodeChanges);
                 break;
             case Reorder:
                 break;
             case Edit:
+                buildChangesForEditedNode(tnc, nodeChanges, result);
                 break;
             }
         }
-        List<ProjectChange> result = new ArrayList<ProjectChange>(
-                nodeChanges.values());
+        result.addAll(nodeChanges.values());
         return result;
     }
 
-    private void getNodeChange(TreeDiff<Integer, WBSNodeContent> diff,
-            TreeNodeChange<Integer, WBSNodeContent> tnc,
+    private void addNodeChange(TreeNodeChange<Integer, WBSNodeContent> tnc,
             Map<Integer, ProjectChangedNode> nodeChanges, WBSModel wbs) {
         Type type = tnc.getType();
         Integer parentID = tnc.getParentID();
@@ -110,6 +116,59 @@ public class ProjectDiff {
             return;
         }
 
+        addNodeChange(tnc, nodeChanges, wbs, type);
+    }
+
+    private void addNodeMove(TreeNodeChange<Integer, WBSNodeContent> tnc,
+            Map<Integer, ProjectChangedNode> nodeChanges) {
+        Integer nodeID = tnc.getNodeID();
+        WBSNode node = wbsA.getNodeMap().get(nodeID);
+        WBSNode oldParent = wbsA.getParent(node);
+        Object changeType = new ProjectChangedNode.Moved(oldParent);
+        addNodeChange(tnc, nodeChanges, wbsB, changeType);
+    }
+
+    private void buildChangesForEditedNode(
+            TreeNodeChange<Integer, WBSNodeContent> tnc,
+            Map<Integer, ProjectChangedNode> nodeChanges,
+            List<ProjectChange> result) {
+        Integer nodeID = tnc.getNodeID();
+        if (nodeID < 0)
+            return; // don't look for edits on the root node.
+
+        WBSNodeContent base = diff.getBaseRoot().findNode(nodeID).getContent();
+        WBSNodeContent mod = tnc.getNode().getContent();
+
+        Set<String> attrNames = new HashSet<String>(base.keySet());
+        attrNames.addAll(mod.keySet());
+        Set<String> unchangedIndivTimes = new HashSet();
+        Set<String> changedIndivTimes = new HashSet();
+        for (String attr : attrNames) {
+            String baseVal = base.get(attr);
+            String modVal = mod.get(attr);
+            if (baseVal != null && baseVal.equals(modVal)) {
+                if (attr.endsWith(TEAM_MEMBER_TIME_SUFFIX))
+                    unchangedIndivTimes.add(attr);
+                continue;
+            } else if (NODE_NAME.equals(attr)) {
+                Object changeType = new ProjectChangedNode.Renamed(baseVal);
+                addNodeChange(tnc, nodeChanges, wbsB, changeType);
+            } else if (attr.endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
+                changedIndivTimes.add(attr);
+            }
+        }
+
+        if (!changedIndivTimes.isEmpty()) {
+            WBSNode node = wbsB.getNodeMap().get(nodeID);
+            result.add(new ProjectChangedTime(node, base, mod,
+                    unchangedIndivTimes, changedIndivTimes, author, timestamp));
+        }
+    }
+
+    private void addNodeChange(TreeNodeChange<Integer, WBSNodeContent> tnc,
+            Map<Integer, ProjectChangedNode> nodeChanges, WBSModel wbs,
+            Object changeType) {
+        Integer parentID = tnc.getParentID();
         Integer nodeID = tnc.getNodeID();
         WBSNode parent = wbs.getNodeMap().get(parentID);
         WBSNode node = wbs.getNodeMap().get(nodeID);
@@ -118,9 +177,9 @@ public class ProjectDiff {
 
         ProjectChangedNode result = nodeChanges.get(parentID);
         if (result != null) {
-            result.addChild(node, type);
+            result.addChild(node, changeType);
         } else {
-            result = new ProjectChangedNode(parent, node, type, author,
+            result = new ProjectChangedNode(parent, node, changeType, author,
                     timestamp);
             nodeChanges.put(parentID, result);
         }

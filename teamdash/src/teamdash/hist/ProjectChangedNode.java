@@ -27,22 +27,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import teamdash.merge.TreeNodeChange;
-import teamdash.merge.TreeNodeChange.Type;
 import teamdash.wbs.WBSNode;
 
 public class ProjectChangedNode extends ProjectChange {
 
     private WBSNode parent;
 
-    private Map<WBSNode, TreeNodeChange.Type> children;
+    private Map<WBSNode, Object> children;
 
-    protected ProjectChangedNode(WBSNode parent, WBSNode child, Type type,
-            String author, Date timestamp) {
+    protected ProjectChangedNode(WBSNode parent, WBSNode child,
+            Object changeType, String author, Date timestamp) {
         super(author, timestamp);
         this.parent = parent;
         this.children = new HashMap();
-        addChild(child, type);
+        addChild(child, changeType);
     }
 
     public WBSNode getParent() {
@@ -53,11 +51,11 @@ public class ProjectChangedNode extends ProjectChange {
         this.parent = parent;
     }
 
-    public void addChild(WBSNode child, Type type) {
-        children.put(child, type);
+    public void addChild(WBSNode child, Object changeType) {
+        children.put(child, changeType);
     }
 
-    public Map<WBSNode, TreeNodeChange.Type> getChildren() {
+    public Map<WBSNode, Object> getChildren() {
         return children;
     }
 
@@ -65,6 +63,43 @@ public class ProjectChangedNode extends ProjectChange {
     public String getDescription() {
         // FIXME
         return parent.getName() + " -> " + children;
+    }
+
+    public static class Moved {
+
+        private WBSNode oldParent;
+
+        public Moved(WBSNode oldParent) {
+            this.oldParent = oldParent;
+        }
+
+        public WBSNode getOldParent() {
+            return oldParent;
+        }
+
+        @Override
+        public String toString() {
+            return "Moved from " + oldParent;
+        }
+    }
+
+    public static class Renamed {
+
+        private String oldName;
+
+        public Renamed(String oldName) {
+            this.oldName = oldName;
+        }
+
+        public String getOldName() {
+            return oldName;
+        }
+
+        @Override
+        public String toString() {
+            return "Renamed from " + oldName;
+        }
+
     }
 
 }
