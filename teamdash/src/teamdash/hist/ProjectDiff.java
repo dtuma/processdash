@@ -24,6 +24,7 @@
 package teamdash.hist;
 
 import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
+import static teamdash.wbs.WBSFilenameConstants.TEAM_LIST_FILENAME;
 import static teamdash.wbs.WBSFilenameConstants.WBS_FILENAME;
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
 
@@ -36,9 +37,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.util.XMLUtils;
@@ -46,6 +49,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.merge.TreeDiff;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
+import teamdash.team.TeamMember;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
 import teamdash.wbs.WBSMerger;
 import teamdash.wbs.WBSModel;
@@ -61,6 +65,12 @@ public class ProjectDiff {
 
     private Object versionA, versionB;
 
+    private Set<String> indivTimeAttrs;
+
+    private Map<String, String> teamMemberNames;
+
+    private Map<String, String> changedInitialAttrs;
+
     private WBSModel wbsA, wbsB;
 
     private TreeDiff<Integer, WBSNodeContent> diff;
@@ -75,9 +85,10 @@ public class ProjectDiff {
 
         this.wbsA = getWbsModel(versionA, other);
         this.wbsB = getWbsModel(versionB, other);
+        loadTeamMemberData();
 
-        WBSMerger wbsMerger = new WBSMerger(wbsA, wbsB, null);
-        diff = wbsMerger.getMainDiff();
+        WBSDiffCalc wbsDiffCalc = new WBSDiffCalc();
+        diff = wbsDiffCalc.getMainDiff();
     }
 
     public List<ProjectChange> getChanges() {
@@ -147,13 +158,13 @@ public class ProjectDiff {
             String baseVal = base.get(attr);
             String modVal = mod.get(attr);
             if (baseVal != null && baseVal.equals(modVal)) {
-                if (attr.endsWith(TEAM_MEMBER_TIME_SUFFIX))
+                if (indivTimeAttrs.contains(attr))
                     unchangedIndivTimes.add(attr);
                 continue;
             } else if (NODE_NAME.equals(attr)) {
                 Object changeType = new ProjectChangedNode.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
-            } else if (attr.endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
+            } else if (indivTimeAttrs.contains(attr)) {
                 changedIndivTimes.add(attr);
             }
         }
@@ -183,6 +194,46 @@ public class ProjectDiff {
                     timestamp);
             nodeChanges.put(parentID, result);
         }
+    }
+
+    private void loadTeamMemberData() throws IOException {
+        Map<String, String> members = new HashMap<String, String>();
+        indivTimeAttrs = new HashSet();
+        teamMemberNames = new HashMap();
+        Element teamB = parseXML(versionB, TEAM_LIST_FILENAME);
+        NodeList indivNodes = teamB.getElementsByTagName(TeamMember.TAG_NAME);
+        for (int i = 0; i < indivNodes.getLength(); i++) {
+            Element indiv = (Element) indivNodes.item(i);
+            String id = indiv.getAttribute(TeamMember.ID_ATTR);
+            String initials = indiv.getAttribute(TeamMember.INITIALS_ATTR);
+            String name = indiv.getAttribute(TeamMember.NAME_ATTR);
+            if (XMLUtils.hasValue(id))
+                members.put(id, initials);
+            indivTimeAttrs.add(initials + TEAM_MEMBER_TIME_SUFFIX);
+            teamMemberNames.put(initials, name);
+        }
+        if (members.isEmpty())
+            return;
+
+        Element teamA = null;
+        try {
+            teamA = parseXML(versionA, TEAM_LIST_FILENAME);
+        } catch (IOException ioe) {
+            return;
+        }
+        Map changedInitialAttrs = new HashMap();
+        indivNodes = teamA.getElementsByTagName(TeamMember.TAG_NAME);
+        for (int i = 0; i < indivNodes.getLength(); i++) {
+            Element indiv = (Element) indivNodes.item(i);
+            String id = indiv.getAttribute(TeamMember.ID_ATTR);
+            String oldInitials = indiv.getAttribute(TeamMember.INITIALS_ATTR);
+            String newInitials = members.get(id);
+            if (newInitials != null && !oldInitials.equals(newInitials))
+                changedInitialAttrs.put(oldInitials + TEAM_MEMBER_TIME_SUFFIX,
+                    newInitials + TEAM_MEMBER_TIME_SUFFIX);
+        }
+        if (!changedInitialAttrs.isEmpty())
+            this.changedInitialAttrs = changedInitialAttrs;
     }
 
     private WBSModel getWbsModel(Object version, ProjectDiff other)
@@ -243,6 +294,36 @@ public class ProjectDiff {
         if (!result.isEmpty())
             result.get(result.size() - 1).setLastChangeFlag(true);
         return result;
+    }
+
+    private class WBSDiffCalc extends WBSMerger {
+
+        public WBSDiffCalc() {
+            super(wbsA, wbsB, null);
+        }
+
+        @Override
+        protected void tweakTreeNodeContent(WBSNodeContent content) {
+            super.tweakTreeNodeContent(content);
+            if (changedInitialAttrs != null
+                    && content.getWBSNode().getWbsModel() == wbsA) {
+                Map<String, String> remapped = null;
+                for (Entry<String, String> change : changedInitialAttrs
+                        .entrySet()) {
+                    String oldInitialsAttr = change.getKey();
+                    String renamedTimeVal = content.remove(oldInitialsAttr);
+                    if (renamedTimeVal != null) {
+                        if (remapped == null)
+                            remapped = new HashMap<String, String>();
+                        String newInitialsAttr = change.getValue();
+                        remapped.put(newInitialsAttr, renamedTimeVal);
+                    }
+                }
+                if (remapped != null)
+                    content.putAll(remapped);
+            }
+        }
+
     }
 
 }

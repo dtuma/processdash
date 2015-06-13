@@ -312,11 +312,11 @@ public class TeamMember implements Cloneable {
     static final Resources resources = Resources
             .getDashBundle("WBSEditor.Team");
 
-    static final String TAG_NAME = "teamMember";
-    private static final String ID_ATTR = "tmid";
-    static final String NAME_ATTR = "name";
+    public static final String TAG_NAME = "teamMember";
+    public static final String ID_ATTR = "tmid";
+    public static final String NAME_ATTR = "name";
     static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
-    static final String INITIALS_ATTR = "initials";
+    public static final String INITIALS_ATTR = "initials";
     static final String COLOR_ATTR = "color";
     static final String SUBTEAMS_ATTR = "subteams";
     static final String SUBTEAMS_DELIM = ",\t";

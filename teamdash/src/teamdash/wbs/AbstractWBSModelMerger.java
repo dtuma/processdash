@@ -224,6 +224,10 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
             }
         }
 
+        public WBSNode getWBSNode() {
+            return node;
+        }
+
         public void storeData(WBSNode dest) {
             for (Map.Entry<String, String> e : entrySet()) {
                 String attrName = e.getKey();
