@@ -172,7 +172,8 @@ public class ProjectDiff {
         if (!changedIndivTimes.isEmpty()) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
             result.add(new ProjectWbsTimeChange(node, base, mod,
-                    unchangedIndivTimes, changedIndivTimes, author, timestamp));
+                    unchangedIndivTimes, changedIndivTimes, teamMemberNames,
+                    author, timestamp));
         }
     }
 
@@ -211,6 +212,7 @@ public class ProjectDiff {
                 members.put(id, initials);
             indivTimeAttrs.add(initials + TEAM_MEMBER_TIME_SUFFIX);
             teamMemberNames.put(initials, name);
+            teamMemberNames.put(initials + TEAM_MEMBER_TIME_SUFFIX, name);
         }
         if (members.isEmpty())
             return;

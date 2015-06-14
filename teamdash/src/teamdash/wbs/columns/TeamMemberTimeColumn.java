@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import teamdash.wbs.TeamMemberTime;
 import teamdash.wbs.TeamMemberTimeCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer;
 import teamdash.wbs.columns.TeamMemberColumnManager.TeamMemberColumn;
 
 /** A column for displaying the amount of time an individual is spending on
@@ -229,5 +230,8 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
 
     public static final String TEAM_MEMBER_TIME_SUFFIX =
         getTopDownAttrName(ATTR_SUFFIX);
+
+    public static final String TEAM_MEMBER_SYNC_TIME_SUFFIX = WBSSynchronizer
+            .getSyncAttrName(ATTR_SUFFIX);
 
 }
