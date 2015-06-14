@@ -93,7 +93,7 @@ public class ProjectDiff {
 
     public List<ProjectChange> getChanges() {
         List<ProjectChange> result = new ArrayList<ProjectChange>();
-        Map<Integer, ProjectChangedNode> nodeChanges = new HashMap();
+        Map<Integer, ProjectWbsNodeChange> nodeChanges = new HashMap();
 
         for (TreeNodeChange<Integer, WBSNodeContent> tnc : diff.getChanges()) {
             switch (tnc.getType()) {
@@ -118,7 +118,7 @@ public class ProjectDiff {
     }
 
     private void addNodeChange(TreeNodeChange<Integer, WBSNodeContent> tnc,
-            Map<Integer, ProjectChangedNode> nodeChanges, WBSModel wbs) {
+            Map<Integer, ProjectWbsNodeChange> nodeChanges, WBSModel wbs) {
         Type type = tnc.getType();
         Integer parentID = tnc.getParentID();
         if (diff != null && diff.getChangedNodeIDs(type).contains(parentID)) {
@@ -131,17 +131,17 @@ public class ProjectDiff {
     }
 
     private void addNodeMove(TreeNodeChange<Integer, WBSNodeContent> tnc,
-            Map<Integer, ProjectChangedNode> nodeChanges) {
+            Map<Integer, ProjectWbsNodeChange> nodeChanges) {
         Integer nodeID = tnc.getNodeID();
         WBSNode node = wbsA.getNodeMap().get(nodeID);
         WBSNode oldParent = wbsA.getParent(node);
-        Object changeType = new ProjectChangedNode.Moved(oldParent);
+        Object changeType = new ProjectWbsNodeChange.Moved(oldParent);
         addNodeChange(tnc, nodeChanges, wbsB, changeType);
     }
 
     private void buildChangesForEditedNode(
             TreeNodeChange<Integer, WBSNodeContent> tnc,
-            Map<Integer, ProjectChangedNode> nodeChanges,
+            Map<Integer, ProjectWbsNodeChange> nodeChanges,
             List<ProjectChange> result) {
         Integer nodeID = tnc.getNodeID();
         if (nodeID < 0)
@@ -162,7 +162,7 @@ public class ProjectDiff {
                     unchangedIndivTimes.add(attr);
                 continue;
             } else if (NODE_NAME.equals(attr)) {
-                Object changeType = new ProjectChangedNode.Renamed(baseVal);
+                Object changeType = new ProjectWbsNodeChange.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
             } else if (indivTimeAttrs.contains(attr)) {
                 changedIndivTimes.add(attr);
@@ -171,13 +171,13 @@ public class ProjectDiff {
 
         if (!changedIndivTimes.isEmpty()) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
-            result.add(new ProjectChangedTime(node, base, mod,
+            result.add(new ProjectWbsTimeChange(node, base, mod,
                     unchangedIndivTimes, changedIndivTimes, author, timestamp));
         }
     }
 
     private void addNodeChange(TreeNodeChange<Integer, WBSNodeContent> tnc,
-            Map<Integer, ProjectChangedNode> nodeChanges, WBSModel wbs,
+            Map<Integer, ProjectWbsNodeChange> nodeChanges, WBSModel wbs,
             Object changeType) {
         Integer parentID = tnc.getParentID();
         Integer nodeID = tnc.getNodeID();
@@ -186,11 +186,11 @@ public class ProjectDiff {
         if (node == null || parent == null)
             return; // shouldn't happen
 
-        ProjectChangedNode result = nodeChanges.get(parentID);
+        ProjectWbsNodeChange result = nodeChanges.get(parentID);
         if (result != null) {
             result.addChild(node, changeType);
         } else {
-            result = new ProjectChangedNode(parent, node, changeType, author,
+            result = new ProjectWbsNodeChange(parent, node, changeType, author,
                     timestamp);
             nodeChanges.put(parentID, result);
         }

@@ -29,26 +29,15 @@ import java.util.Map;
 
 import teamdash.wbs.WBSNode;
 
-public class ProjectChangedNode extends ProjectChange {
-
-    private WBSNode parent;
+public class ProjectWbsNodeChange extends ProjectWbsChange {
 
     private Map<WBSNode, Object> children;
 
-    protected ProjectChangedNode(WBSNode parent, WBSNode child,
+    protected ProjectWbsNodeChange(WBSNode parent, WBSNode child,
             Object changeType, String author, Date timestamp) {
-        super(author, timestamp);
-        this.parent = parent;
+        super(parent, author, timestamp);
         this.children = new HashMap();
         addChild(child, changeType);
-    }
-
-    public WBSNode getParent() {
-        return parent;
-    }
-
-    public void setParent(WBSNode parent) {
-        this.parent = parent;
     }
 
     public void addChild(WBSNode child, Object changeType) {
@@ -62,7 +51,7 @@ public class ProjectChangedNode extends ProjectChange {
     @Override
     public String getDescription() {
         // FIXME
-        return parent.getName() + " -> " + children;
+        return getNode().getName() + " -> " + children;
     }
 
     public static class Moved {

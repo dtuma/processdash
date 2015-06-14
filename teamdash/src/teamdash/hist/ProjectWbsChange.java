@@ -24,34 +24,20 @@
 package teamdash.hist;
 
 import java.util.Date;
-import java.util.Set;
 
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
 
-public class ProjectWbsTimeChange extends ProjectWbsChange {
+public abstract class ProjectWbsChange extends ProjectChange {
 
-    private WBSNodeContent oldData;
+    private WBSNode node;
 
-    private WBSNodeContent newData;
-
-    private Set<String> unchangedIndivAttrs;
-
-    private Set<String> changedIndivAttrs;
-
-    protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
-            WBSNodeContent newData, Set<String> unchangedIndivAttrs,
-            Set<String> changedIndivAttrs, String author, Date timestamp) {
-        super(node, author, timestamp);
-        this.oldData = oldData;
-        this.newData = newData;
-        this.unchangedIndivAttrs = unchangedIndivAttrs;
-        this.changedIndivAttrs = changedIndivAttrs;
+    protected ProjectWbsChange(WBSNode node, String author, Date timestamp) {
+        super(author, timestamp);
+        this.node = node;
     }
 
-    @Override
-    public String getDescription() {
-        return "times changed for " + getNode();
+    public WBSNode getNode() {
+        return node;
     }
 
 }
