@@ -24,8 +24,10 @@
 package teamdash.hist;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import net.sourceforge.processdash.util.StringUtils;
@@ -33,83 +35,206 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class ProjectWbsTimeChange extends ProjectWbsChange {
 
+    private WBSNodeContent oldData, newData;
+
+    private Set<String> indivTimeAttrs;
+
+    private Map<String, String> teamMemberNames;
+
     private Set<String> authors;
 
-    private WBSNodeContent oldData;
+    private Map<String, IndivTime> added, deleted, changed, unchanged, zeros;
 
-    private WBSNodeContent newData;
-
-    private Set<String> unchangedIndivAttrs;
-
-    private Set<String> changedIndivAttrs;
+    private double oldTotalTime, newTotalTime;
 
     protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
-            WBSNodeContent newData, Set<String> unchangedIndivAttrs,
-            Set<String> changedIndivAttrs, Map<String, String> teamMemberNames,
-            String author, Date timestamp) {
-        this(node, oldData, newData, unchangedIndivAttrs, changedIndivAttrs,
-                findAuthorsFromSyncData(changedIndivAttrs, newData,
-                    teamMemberNames, author), timestamp);
-    }
+            WBSNodeContent newData, Set<String> indivTimeAttrs,
+            Map<String, String> teamMemberNames, String author, Date timestamp) {
+        super(node, author, timestamp);
 
-    protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
-            WBSNodeContent newData, Set<String> unchangedIndivAttrs,
-            Set<String> changedIndivAttrs, Set<String> authors, Date timestamp) {
-        super(node, StringUtils.join(authors, ", "), timestamp);
-        this.authors = authors;
         this.oldData = oldData;
         this.newData = newData;
-        this.unchangedIndivAttrs = unchangedIndivAttrs;
-        this.changedIndivAttrs = changedIndivAttrs;
+        this.indivTimeAttrs = indivTimeAttrs;
+        this.teamMemberNames = teamMemberNames;
+
+        // load information about the time for each individual
+        loadIndivTimes();
+        setAuthor(StringUtils.join(authors, ", "));
+
+        // read the total old and new time for the node
+        oldTotalTime = getTotalTime(oldTotalTime, oldData);
+        newTotalTime = getTotalTime(newTotalTime, newData);
     }
 
-    public boolean allTimesWereChanged() {
-        return unchangedIndivAttrs == null || unchangedIndivAttrs.isEmpty();
+    private double getTotalTime(double totalFromIndivs, WBSNodeContent data) {
+        // use the explicit total if it is present and applicable
+        double result = getDouble(data, TeamTimeColumn.TEAM_TIME_ATTR, 0);
+        result = Math.max(totalFromIndivs, result);
+        return result;
     }
 
     @Override
     public String getDescription() {
-        return "times changed for " + getNode();
-    }
+        StringBuilder result = new StringBuilder();
+        result.append("task " + getNode() + " (#" + getNode().getUniqueID()
+                + ") ");
 
-    private static Set<String> findAuthorsFromSyncData(
-            Set<String> changedIndivAttrs, WBSNodeContent newData,
-            Map<String, String> teamMemberNames, String globalAuthor) {
-        Set<String> result = new TreeSet<String>();
-        for (String indivTimeAttr : changedIndivAttrs) {
-            if (timeEqualsSyncTime(newData, indivTimeAttr)) {
-                String thisAuthor = teamMemberNames.get(indivTimeAttr);
-                if (thisAuthor != null)
-                    result.add(thisAuthor);
+        // append a message about task assignment changes
+        if (deleted.isEmpty()) {
+            if (added.isEmpty()) {
+                // no task assignment changes to report
             } else {
-                result.add(globalAuthor);
+                // new people were added to this task
+                result.append("assigned to " + added.values() + ". ");
+            }
+        } else {
+            if (added.isEmpty()) {
+                // people were unassigned from this task
+                result.append("unassigned from " + deleted.values() + ". ");
+            } else {
+                // task was reassigned
+                result.append("reassigned from " + deleted.values() + " to "
+                        + added.values() + ". ");
             }
         }
-        return result;
+
+        // append a message about changes to time estimates
+        if (changed.isEmpty()) {
+            // no changed time to report
+
+        } else if (changed.size() == 1) {
+            // exactly one individual changed time
+            IndivTime change = changed.values().iterator().next();
+            result.append("time estimate for " + change.name + " changed from "
+                    + change.oldTime + " to " + change.newTime + ". ");
+
+        } else if (unchanged.isEmpty()) {
+            // time changed for everyone on this task (likely due to scaling)
+            Set<IndivTime> active = new HashSet<ProjectWbsTimeChange.IndivTime>();
+            active.addAll(added.values());
+            active.addAll(changed.values());
+            active.addAll(zeros.values());
+            result.append("time estimate changed from " + oldTotalTime + " to "
+                    + newTotalTime + ": " + active + ". ");
+
+        } else {
+            // a specific subset of individual time estimates changed
+            result.append("time estimates changed " + changed.values() + ". ");
+        }
+
+        return result.toString();
     }
 
-    private static boolean timeEqualsSyncTime(WBSNodeContent data,
-            String indivTimeAttr) {
-        String timeVal = data.get(indivTimeAttr);
-        if (timeVal == null)
-            return false;
+    private void loadIndivTimes() {
+        authors = new TreeSet<String>();
+        added = new TreeMap<String, IndivTime>();
+        deleted = new TreeMap<String, IndivTime>();
+        changed = new TreeMap<String, IndivTime>();
+        unchanged = new TreeMap<String, IndivTime>();
+        zeros = new TreeMap<String, IndivTime>();
+        oldTotalTime = newTotalTime = 0;
 
-        String syncTimeAttr = StringUtils.findAndReplace(indivTimeAttr,
-            TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX,
-            TeamMemberTimeColumn.TEAM_MEMBER_SYNC_TIME_SUFFIX);
-        String syncVal = data.get(syncTimeAttr);
-        if (syncVal == null)
-            return false;
+        for (String indivTimeAttr : indivTimeAttrs)
+            new IndivTime(indivTimeAttr).storeData();
+    }
 
-        if (timeVal.equals(syncVal))
-            return true;
+    private class IndivTime {
+        String timeAttr, name;
 
-        Double timeValNum = Double.parseDouble(timeVal);
-        Double syncValNum = Double.parseDouble(syncVal);
-        return Math.abs(timeValNum - syncValNum) < 0.00001;
+        double oldTime, newTime;
+
+        protected IndivTime(String timeAttr) {
+            this.timeAttr = timeAttr;
+            this.name = teamMemberNames.get(timeAttr);
+            this.oldTime = getDouble(oldData, timeAttr, Double.NaN);
+            this.newTime = getDouble(newData, timeAttr, Double.NaN);
+            oldTotalTime = sumTime(oldTotalTime, oldTime);
+            newTotalTime = sumTime(newTotalTime, newTime);
+        }
+
+        protected void storeData() {
+            if (Double.isNaN(oldTime)) {
+                if (!Double.isNaN(newTime))
+                    storeData(getAuthor(), added);
+
+            } else if (Double.isNaN(newTime)) {
+                storeData(getAuthor(), deleted);
+
+            } else if (eq(oldTime, newTime)) {
+                storeData(null, (oldTime == 0 ? zeros : unchanged));
+
+            } else {
+                storeData(timeEqualsSyncTime() ? name : getAuthor(), changed);
+            }
+        }
+
+        private void storeData(String who, Map<String, IndivTime> where) {
+            if (who != null)
+                authors.add(who);
+            if (where != null)
+                where.put(timeAttr, this);
+        }
+
+        private boolean timeEqualsSyncTime() {
+            String timeVal = newData.get(timeAttr);
+            if (timeVal == null)
+                return false;
+
+            String syncTimeAttr = StringUtils.findAndReplace(timeAttr,
+                TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX,
+                TeamMemberTimeColumn.TEAM_MEMBER_SYNC_TIME_SUFFIX);
+            String syncVal = newData.get(syncTimeAttr);
+            if (syncVal == null)
+                return false;
+
+            if (timeVal.equals(syncVal))
+                return true;
+
+            Double timeValNum = Double.parseDouble(timeVal);
+            Double syncValNum = Double.parseDouble(syncVal);
+            return eq(timeValNum, syncValNum);
+        }
+
+
+        @Override
+        public String toString() {
+            StringBuilder result = new StringBuilder();
+            result.append(name).append(" (");
+            if (added.containsKey(timeAttr))
+                result.append(newTime);
+            else if (changed.containsKey(timeAttr))
+                result.append(oldTime).append(" -> ").append(newTime);
+            else
+                result.append(oldTime);
+            result.append(")");
+            return result.toString();
+        }
+    }
+
+    private static double getDouble(WBSNodeContent data, String attrName,
+            double defaultVal) {
+        String value = data.get(attrName);
+        if (value == null)
+            return defaultVal;
+        else
+            return Double.parseDouble(value);
+    }
+
+    private static double sumTime(double a, double b) {
+        if (Double.isNaN(a))
+            return b;
+        else if (Double.isNaN(b))
+            return a;
+        else
+            return a + b;
+    }
+
+    private static boolean eq(double a, double b) {
+        return Math.abs(a - b) < 0.0001;
     }
 
 }

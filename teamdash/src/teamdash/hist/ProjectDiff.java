@@ -152,28 +152,24 @@ public class ProjectDiff {
 
         Set<String> attrNames = new HashSet<String>(base.keySet());
         attrNames.addAll(mod.keySet());
-        Set<String> unchangedIndivTimes = new HashSet();
-        Set<String> changedIndivTimes = new HashSet();
+        boolean sawTimeChange = false;
         for (String attr : attrNames) {
             String baseVal = base.get(attr);
             String modVal = mod.get(attr);
             if (baseVal != null && baseVal.equals(modVal)) {
-                if (indivTimeAttrs.contains(attr))
-                    unchangedIndivTimes.add(attr);
-                continue;
+                // no change in this attribute value
             } else if (NODE_NAME.equals(attr)) {
                 Object changeType = new ProjectWbsNodeChange.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
             } else if (indivTimeAttrs.contains(attr)) {
-                changedIndivTimes.add(attr);
+                sawTimeChange = true;
             }
         }
 
-        if (!changedIndivTimes.isEmpty()) {
+        if (sawTimeChange) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
             result.add(new ProjectWbsTimeChange(node, base, mod,
-                    unchangedIndivTimes, changedIndivTimes, teamMemberNames,
-                    author, timestamp));
+                    indivTimeAttrs, teamMemberNames, author, timestamp));
         }
     }
 
