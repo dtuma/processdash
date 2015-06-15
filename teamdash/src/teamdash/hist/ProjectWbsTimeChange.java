@@ -25,6 +25,7 @@ package teamdash.hist;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -41,15 +42,31 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     private WBSNodeContent oldData, newData;
 
+    private List<ProjectWbsTimeChange> children;
+
     private Set<String> indivTimeAttrs;
 
     private Map<String, String> teamMemberNames;
 
     private Set<String> authors;
 
-    private Map<String, IndivTime> added, deleted, changed, unchanged, zeros;
+    private Map<String, IndivTime> added, deleted, changed, unchanged, zeros,
+            all;
 
     private double oldTotalTime, newTotalTime;
+
+    protected ProjectWbsTimeChange(WBSNode node,
+            List<ProjectWbsTimeChange> children, Set<String> indivTimeAttrs,
+            Map<String, String> teamMemberNames, String author, Date timestamp) {
+        super(node, author, timestamp);
+
+        this.children = children;
+        this.indivTimeAttrs = indivTimeAttrs;
+        this.teamMemberNames = teamMemberNames;
+
+        // sum up information about time from each of our children
+        sumUpChildTimeChanges();
+    }
 
     protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
             WBSNodeContent newData, Set<String> indivTimeAttrs,
@@ -63,7 +80,6 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
         // load information about the time for each individual
         loadIndivTimes();
-        setAuthor(StringUtils.join(authors, ", "));
 
         // read the total old and new time for the node
         oldTotalTime = getTotalTime(oldTotalTime, oldData);
@@ -77,11 +93,23 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         return result;
     }
 
+    public List<ProjectWbsTimeChange> getChildren() {
+        return children;
+    }
+
+    public double getOldTotalTime() {
+        return oldTotalTime;
+    }
+
+    public double getNewTotalTime() {
+        return newTotalTime;
+    }
+
     @Override
     public String getDescription() {
         StringBuilder result = new StringBuilder();
         result.append("task " + getNode() + " (#" + getNode().getUniqueID()
-                + ") ");
+                + (children == null ? "" : "*") + ") ");
 
         // append a message about task assignment changes
         if (deleted.isEmpty()) {
@@ -89,14 +117,20 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
                 // no task assignment changes to report
             } else {
                 // new people were added to this task
+                if (children != null)
+                    result.append("subtasks ");
                 result.append("assigned to " + added.values() + ". ");
             }
         } else {
             if (added.isEmpty()) {
                 // people were unassigned from this task
+                if (children != null)
+                    result.append("subtasks ");
                 result.append("unassigned from " + deleted.values() + ". ");
             } else {
                 // task was reassigned
+                if (children != null)
+                    result.append("subtasks ");
                 result.append("reassigned from " + deleted.values() + " to "
                         + added.values() + ". ");
             }
@@ -129,17 +163,40 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         return result.toString();
     }
 
-    private void loadIndivTimes() {
+
+    private void sumUpChildTimeChanges() {
+        initIndivTimeFields();
+
+        for (String indivTimeAttr : indivTimeAttrs)
+            new IndivTime(indivTimeAttr, children).storeData();
+
         authors = new TreeSet<String>();
+        for (ProjectWbsTimeChange child : children) {
+            authors.addAll(child.authors);
+            oldTotalTime += child.oldTotalTime;
+            newTotalTime += child.newTotalTime;
+        }
+        setAuthor(StringUtils.join(authors, ", "));
+    }
+
+    private void loadIndivTimes() {
+        initIndivTimeFields();
+
+        authors = new TreeSet<String>();
+        for (String indivTimeAttr : indivTimeAttrs)
+            new IndivTime(indivTimeAttr).storeData();
+
+        setAuthor(StringUtils.join(authors, ", "));
+    }
+
+    protected void initIndivTimeFields() {
         added = new TreeMap<String, IndivTime>();
         deleted = new TreeMap<String, IndivTime>();
         changed = new TreeMap<String, IndivTime>();
         unchanged = new TreeMap<String, IndivTime>();
         zeros = new TreeMap<String, IndivTime>();
+        all = new TreeMap<String, IndivTime>();
         oldTotalTime = newTotalTime = 0;
-
-        for (String indivTimeAttr : indivTimeAttrs)
-            new IndivTime(indivTimeAttr).storeData();
     }
 
     private class IndivTime {
@@ -154,6 +211,20 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             this.newTime = getDouble(newData, timeAttr, Double.NaN);
             oldTotalTime = sumTime(oldTotalTime, oldTime);
             newTotalTime = sumTime(newTotalTime, newTime);
+        }
+
+        protected IndivTime(String timeAttr, List<ProjectWbsTimeChange> children) {
+            this.timeAttr = timeAttr;
+            this.name = teamMemberNames.get(timeAttr);
+            this.oldTime = this.newTime = Double.NaN;
+
+            for (ProjectWbsTimeChange child : children) {
+                IndivTime that = child.all.get(timeAttr);
+                if (that != null) {
+                    this.oldTime = sumTime(this.oldTime, that.oldTime);
+                    this.newTime = sumTime(this.newTime, that.newTime);
+                }
+            }
         }
 
         protected void storeData() {
@@ -173,13 +244,17 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         }
 
         private void storeData(String who, Map<String, IndivTime> where) {
-            if (who != null)
+            if (who != null && authors != null)
                 authors.add(who);
             if (where != null)
                 where.put(timeAttr, this);
+            all.put(timeAttr, this);
         }
 
         private boolean timeEqualsSyncTime() {
+            if (newData == null)
+                return false;
+
             String timeVal = newData.get(timeAttr);
             if (timeVal == null)
                 return false;

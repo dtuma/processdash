@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.merge.TreeDiff;
+import teamdash.merge.TreeNode;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
 import teamdash.team.TeamMember;
@@ -92,8 +93,8 @@ public class ProjectDiff {
     }
 
     public List<ProjectChange> getChanges() {
-        List<ProjectChange> result = new ArrayList<ProjectChange>();
         Map<Integer, ProjectWbsNodeChange> nodeChanges = new HashMap();
+        Map<Integer, ProjectWbsTimeChange> timeChanges = new HashMap();
 
         for (TreeNodeChange<Integer, WBSNodeContent> tnc : diff.getChanges()) {
             switch (tnc.getType()) {
@@ -109,10 +110,15 @@ public class ProjectDiff {
             case Reorder:
                 break;
             case Edit:
-                buildChangesForEditedNode(tnc, nodeChanges, result);
+                buildChangesForEditedNode(tnc, nodeChanges, timeChanges);
                 break;
             }
         }
+
+        summarizeTimeChanges(timeChanges);
+
+        List<ProjectChange> result = new ArrayList<ProjectChange>();
+        result.addAll(timeChanges.values());
         result.addAll(nodeChanges.values());
         return result;
     }
@@ -142,7 +148,7 @@ public class ProjectDiff {
     private void buildChangesForEditedNode(
             TreeNodeChange<Integer, WBSNodeContent> tnc,
             Map<Integer, ProjectWbsNodeChange> nodeChanges,
-            List<ProjectChange> result) {
+            Map<Integer, ProjectWbsTimeChange> timeChanges) {
         Integer nodeID = tnc.getNodeID();
         if (nodeID < 0)
             return; // don't look for edits on the root node.
@@ -168,7 +174,7 @@ public class ProjectDiff {
 
         if (sawTimeChange) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
-            result.add(new ProjectWbsTimeChange(node, base, mod,
+            timeChanges.put(nodeID, new ProjectWbsTimeChange(node, base, mod,
                     indivTimeAttrs, teamMemberNames, author, timestamp));
         }
     }
@@ -191,6 +197,76 @@ public class ProjectDiff {
                     timestamp);
             nodeChanges.put(parentID, result);
         }
+    }
+
+    private void summarizeTimeChanges(
+            Map<Integer, ProjectWbsTimeChange> timeChanges) {
+        summarizeTimeChanges(timeChanges, diff.getModifiedRoot());
+    }
+
+    private boolean summarizeTimeChanges(
+            Map<Integer, ProjectWbsTimeChange> timeChanges,
+            TreeNode<Integer, WBSNodeContent> node) {
+
+        Map<Integer, ProjectWbsTimeChange> childChanges = new HashMap();
+        for (TreeNode<Integer, WBSNodeContent> child : node.getChildren()) {
+            // recursively summarize time changes for this branch of the tree
+            boolean childIsZero = summarizeTimeChanges(timeChanges, child);
+
+            if (childChanges != null) {
+                Integer childID = child.getID();
+                ProjectWbsTimeChange childChange = timeChanges.get(childID);
+                if (childChange != null)
+                    // collect the changes for all of our children
+                    childChanges.put(childID, childChange);
+
+                else if (!childIsZero)
+                    // if this child has time but no time change, do not
+                    // consider creating a summary at the parent node level
+                    childChanges = null;
+            }
+        }
+
+        // if we found a child with no time changes, don't summarize this node
+        if (childChanges == null)
+            return false;
+
+        if (childChanges.isEmpty()) {
+            // If this is a parent node over a branch with zero time, return
+            // true to indicate that this node is zero as well.
+            if (!node.getChildren().isEmpty())
+                return true;
+
+            // this is a leaf node. Return true if we have zero time.
+            ProjectWbsTimeChange test = new ProjectWbsTimeChange(null,
+                    node.getContent(), node.getContent(), indivTimeAttrs,
+                    teamMemberNames, author, timestamp);
+            return test.getNewTotalTime() == 0;
+        }
+
+        // if we only found a single child, there is no need to summarize it.
+        // Instead, adopt its change as our own to allow our parent's potential
+        // summarization to succeed.
+        if (childChanges.size() == 1) {
+            Integer childID = childChanges.keySet().iterator().next();
+            ProjectWbsTimeChange single = timeChanges.remove(childID);
+            timeChanges.put(node.getID(), single);
+            return false;
+        }
+
+        // if all of our children had time changes, this is indicative of a
+        // top-down edit (such as scaling, task assignment, etc). create a
+        // summarized change to represent the time changes that have occurred
+        // in this branch of the tree.
+        WBSNode wbsNode = node.getContent().getWBSNode();
+        ProjectWbsTimeChange summarized = new ProjectWbsTimeChange(wbsNode,
+                new ArrayList(childChanges.values()), indivTimeAttrs,
+                teamMemberNames, author, timestamp);
+        timeChanges.put(node.getID(), summarized);
+        // remove the children's now-redundant changes from the change list
+        for (Integer childID : childChanges.keySet())
+            timeChanges.remove(childID);
+        return false;
     }
 
     private void loadTeamMemberData() throws IOException {
