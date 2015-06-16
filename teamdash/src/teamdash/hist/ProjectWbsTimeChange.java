@@ -180,7 +180,10 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         for (String indivTimeAttr : indivTimeAttrs)
             new IndivTime(indivTimeAttr).storeData();
 
-        setAuthor(StringUtils.join(authors, ", "));
+        if (authors.isEmpty())
+            authors.add(getAuthor());
+        else
+            setAuthor(StringUtils.join(authors, ", "));
     }
 
     protected void initIndivTimeFields() {
