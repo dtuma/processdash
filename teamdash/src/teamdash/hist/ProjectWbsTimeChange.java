@@ -24,7 +24,6 @@
 package teamdash.hist;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -111,6 +110,20 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         result.append("task " + getNode() + " (#" + getNode().getUniqueID()
                 + (children == null ? "" : "*") + ") ");
 
+        // simple wording for most common case: exactly one nonzero individual,
+        // whose time changed
+        if (changed.size() == 1 && (all.size() == zeros.size() + 1)) {
+            IndivTime change = changed.values().iterator().next();
+            result.append("time estimate for " + change.name + " changed from "
+                    + change.oldTime + " to " + change.newTime + ".");
+            return result.toString();
+        }
+
+        // append a message about the overall time change, if applicable.
+        if (!eq(oldTotalTime, newTotalTime))
+            result.append("time estimate changed from " + oldTotalTime + " to "
+                    + newTotalTime + ". ");
+
         // append a message about task assignment changes
         if (deleted.isEmpty()) {
             if (added.isEmpty()) {
@@ -136,28 +149,9 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             }
         }
 
-        // append a message about changes to time estimates
-        if (changed.isEmpty()) {
-            // no changed time to report
-
-        } else if (changed.size() == 1) {
-            // exactly one individual changed time
-            IndivTime change = changed.values().iterator().next();
-            result.append("time estimate for " + change.name + " changed from "
-                    + change.oldTime + " to " + change.newTime + ". ");
-
-        } else if (unchanged.isEmpty()) {
-            // time changed for everyone on this task (likely due to scaling)
-            Set<IndivTime> active = new HashSet<ProjectWbsTimeChange.IndivTime>();
-            active.addAll(added.values());
-            active.addAll(changed.values());
-            active.addAll(zeros.values());
-            result.append("time estimate changed from " + oldTotalTime + " to "
-                    + newTotalTime + ": " + active + ". ");
-
-        } else {
-            // a specific subset of individual time estimates changed
-            result.append("time estimates changed " + changed.values() + ". ");
+        // append a message about changes to existing time estimates
+        if (!changed.isEmpty()) {
+            result.append("Changed estimates: " + changed.values() + ". ");
         }
 
         return result.toString();

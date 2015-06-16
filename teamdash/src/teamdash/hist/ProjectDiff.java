@@ -55,6 +55,7 @@ import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
 import teamdash.wbs.WBSMerger;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class ProjectDiff {
 
@@ -167,7 +168,8 @@ public class ProjectDiff {
             } else if (NODE_NAME.equals(attr)) {
                 Object changeType = new ProjectWbsNodeChange.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
-            } else if (indivTimeAttrs.contains(attr)) {
+            } else if (indivTimeAttrs.contains(attr)
+                    || TeamTimeColumn.TEAM_TIME_ATTR.equals(attr)) {
                 sawTimeChange = true;
             }
         }
