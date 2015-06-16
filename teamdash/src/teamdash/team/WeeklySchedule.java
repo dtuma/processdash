@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,7 +32,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.TreeMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -361,9 +363,9 @@ public class WeeklySchedule implements EffortCalendar {
     }
 
     public void writeExceptions(Writer out, boolean dumpMode) throws IOException {
-        for (Iterator i = exceptions.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            int week = ((Integer) e.getKey()).intValue();
+        Map<Integer, WeekData> exceptions = new TreeMap(this.exceptions);
+        for (Entry<Integer, WeekData> e : exceptions.entrySet()) {
+            int week = e.getKey().intValue();
             if (dumpMode) {
                 if (week < startWeek || week >= endWeek)
                     continue;
@@ -373,7 +375,7 @@ public class WeeklySchedule implements EffortCalendar {
             out.write("    <" + EXCEPTION_TAG + " " + WEEK_ATTR + "='");
             out.write(Integer.toString(week));
             out.write("' " + HOURS_ATTR + "='");
-            WeekData wd = (WeekData) e.getValue();
+            WeekData wd = e.getValue();
             out.write(Double.toString(wd.getHours()));
             out.write("'/>\n");
         }
