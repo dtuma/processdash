@@ -24,6 +24,7 @@
 package teamdash.hist;
 
 import java.text.DateFormat;
+import java.util.Comparator;
 import java.util.Date;
 
 import net.sourceforge.processdash.util.FastDateFormat;
@@ -84,5 +85,16 @@ public abstract class ProjectChange {
 
     private static FastDateFormat TIME_FMT = FastDateFormat
             .getTimeInstance(DateFormat.SHORT);
+
+    public static final Comparator<ProjectChange> AUTHOR_COMPARATOR = new Comparator<ProjectChange>() {
+
+        public int compare(ProjectChange a, ProjectChange b) {
+            return author(a).compareTo(author(b));
+        }
+
+        private String author(ProjectChange change) {
+            return (change.author == null ? "" : change.author);
+        }
+    };
 
 }

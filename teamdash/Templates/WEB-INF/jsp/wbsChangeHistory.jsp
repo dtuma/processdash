@@ -13,19 +13,26 @@
 
 <c:when test="${!empty changes}">
 <c:set var="dateHeader" value=""/>
+<c:set var="timeHeader" value=""/>
 
 <c:forEach var="change" items="${changes}">
 
 <c:if test="${change.displayDate != dateHeader}">
-    <c:if test="${!empty dateHeader}"></ul></c:if>
+    <c:if test="${!empty timeHeader}"></ul></c:if>
+    <c:set var="timeHeader" value=""/>
     <c:set var="dateHeader" value="${change.displayDate}"/>
-    <c:out value="${dateHeader}"/>
+    <h2><c:out value="${dateHeader}"/></h2>
+</c:if>
+
+<c:if test="${change.displayTime != timeHeader || change.author != authorHeader}">
+    <c:if test="${!empty timeHeader}"></ul></c:if>
+    <c:set var="timeHeader" value="${change.displayTime}"/>
+    <c:set var="authorHeader" value="${change.author}"/>
+    <p><b><c:out value="${timeHeader}"/> - <c:out value="${authorHeader}"/></b></p>
     <ul>
 </c:if>
 
-<li><c:out value="${change.description}" /> by
-    <c:out value="${change.author}" /> at
-    <c:out value="${change.displayTime}" /></li>
+<li><c:out value="${change.description}" /></li>
 <c:set var="timestamp" value="${change.follupTimestamp}" />
 
 </c:forEach>

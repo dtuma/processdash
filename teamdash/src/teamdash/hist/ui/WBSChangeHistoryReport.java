@@ -55,7 +55,7 @@ public class WBSChangeHistoryReport extends HttpServlet {
                 Long.parseLong(dateParam));
 
         List<ProjectChange> changes = ProjectDiff.getChanges(hist, beforeDate,
-            10);
+            10, true, true);
         req.setAttribute("changes", changes);
 
         RequestDispatcher disp = getServletContext().getRequestDispatcher(

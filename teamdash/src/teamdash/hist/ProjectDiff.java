@@ -32,6 +32,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -121,6 +123,14 @@ public class ProjectDiff {
         List<ProjectChange> result = new ArrayList<ProjectChange>();
         result.addAll(timeChanges.values());
         result.addAll(nodeChanges.values());
+        if (result.size() > 1) {
+            // group changes by author, then sort by WBS node within each author
+            // group. (The sort calls are arranged in reverse order to let the
+            // later sorts drive the overriding grouping. Since the sort
+            // function is stable, earlier sort orderings will be preserved.)
+            Collections.sort(result, projectChangeComparator);
+            Collections.sort(result, ProjectChange.AUTHOR_COMPARATOR);
+        }
         return result;
     }
 
@@ -196,7 +206,7 @@ public class ProjectDiff {
             result.addChild(node, changeType);
         } else {
             result = new ProjectWbsNodeChange(parent, node, changeType, author,
-                    timestamp);
+                    timestamp, wbsNodeComparator);
             nodeChanges.put(parentID, result);
         }
     }
@@ -343,8 +353,46 @@ public class ProjectDiff {
         }
     }
 
+
+    private Comparator<ProjectChange> projectChangeComparator = new Comparator<ProjectChange>() {
+        public int compare(ProjectChange a, ProjectChange b) {
+            // At the moment, we are only reporting WBS changes. If we report
+            // other changes (milestones, workflows, etc) in the future, this
+            // logic will have to handle those cases too.
+            ProjectWbsChange wa = (ProjectWbsChange) a;
+            ProjectWbsChange wb = (ProjectWbsChange) b;
+            return wbsNodeComparator.compare(wa.getNode(), wb.getNode());
+        }
+    };
+
+    private Comparator<WBSNode> wbsNodeComparator = new Comparator<WBSNode>() {
+        public int compare(WBSNode a, WBSNode b) {
+            return getOrdinal(a.getUniqueID()) - getOrdinal(b.getUniqueID());
+        }
+    };
+
+    private Map<Integer, Integer> nodeOrdinals;
+
+    private int getOrdinal(int nodeID) {
+        if (nodeOrdinals == null) {
+            nodeOrdinals = new HashMap<Integer, Integer>();
+            collectNodeOrdinals(diff.getModifiedRoot());
+        }
+        Integer result = nodeOrdinals.get(nodeID);
+        return (result == null ? -1 : result);
+    }
+
+    private void collectNodeOrdinals(TreeNode<Integer, WBSNodeContent> node) {
+        nodeOrdinals.put(node.getID(), nodeOrdinals.size());
+        for (TreeNode<Integer, WBSNodeContent> child : node.getChildren())
+            collectNodeOrdinals(child);
+    }
+
+
+
     public static List<ProjectChange> getChanges(ProjectHistory hist,
-            Date beforeDate, int minNumChanges) throws IOException {
+            Date beforeDate, int minNumChanges, boolean forceFullDays,
+            boolean mergeConsecutiveChangesFromSameAuthor) throws IOException {
         List<ProjectChange> result = new ArrayList<ProjectChange>();
         List versions = hist.getVersions();
         String lastDateStr = null;
@@ -357,15 +405,25 @@ public class ProjectDiff {
 
             String thisDateStr = ProjectChange.DATE_FMT.format(versionDate);
             if (minNumChanges > 0 && result.size() >= minNumChanges
-                    && !thisDateStr.equals(lastDateStr))
+                    && !(forceFullDays && thisDateStr.equals(lastDateStr)))
                 return result;
-            lastDateStr = thisDateStr;
 
             Object prevVersion = versions.get(i - 1);
+            if (mergeConsecutiveChangesFromSameAuthor) {
+                String thisAuthor = hist.getVersionAuthor(oneVersion);
+                while (thisAuthor.equals(hist.getVersionAuthor(prevVersion))
+                        && thisDateStr.equals(ProjectChange.DATE_FMT
+                                .format(hist.getVersionDate(prevVersion)))
+                        && i > 1) {
+                    prevVersion = versions.get(--i - 1);
+                }
+            }
+
             ProjectDiff diff = new ProjectDiff(hist, prevVersion, oneVersion,
                     lastDiff);
             result.addAll(diff.getChanges());
             lastDiff = diff;
+            lastDateStr = thisDateStr;
         }
         if (!result.isEmpty())
             result.get(result.size() - 1).setLastChangeFlag(true);

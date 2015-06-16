@@ -23,9 +23,10 @@
 
 package teamdash.hist;
 
+import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import teamdash.wbs.WBSNode;
 
@@ -34,9 +35,10 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
     private Map<WBSNode, Object> children;
 
     protected ProjectWbsNodeChange(WBSNode parent, WBSNode child,
-            Object changeType, String author, Date timestamp) {
+            Object changeType, String author, Date timestamp,
+            Comparator<WBSNode> nodeComparator) {
         super(parent, author, timestamp);
-        this.children = new HashMap();
+        this.children = new TreeMap<WBSNode, Object>(nodeComparator);
         addChild(child, changeType);
     }
 
