@@ -26,6 +26,7 @@ package teamdash.hist;
 import java.text.DateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 import net.sourceforge.processdash.util.FastDateFormat;
 
@@ -34,8 +35,6 @@ public abstract class ProjectChange {
     private String author;
 
     private Date timestamp;
-
-    private boolean lastChangeFlag;
 
     protected ProjectChange(String author, Date timestamp) {
         this.author = author;
@@ -58,14 +57,6 @@ public abstract class ProjectChange {
         this.timestamp = timestamp;
     }
 
-    public boolean isLastChangeFlag() {
-        return lastChangeFlag;
-    }
-
-    public void setLastChangeFlag(boolean lastChange) {
-        this.lastChangeFlag = lastChange;
-    }
-
     public String getDisplayDate() {
         return DATE_FMT.format(timestamp);
     }
@@ -74,9 +65,11 @@ public abstract class ProjectChange {
         return TIME_FMT.format(timestamp);
     }
 
-    public Date getFollupTimestamp() {
-        return (lastChangeFlag ? null : timestamp);
+    public List<ProjectChangeReportRow> getReportRows() {
+        return ProjectChangeReportRow.initExpansion(buildReportRows());
     }
+
+    public abstract List<ProjectChangeReportRow> buildReportRows();
 
     public abstract String getDescription();
 

@@ -25,7 +25,6 @@ package teamdash.hist.ui;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -33,7 +32,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import teamdash.hist.ProjectChange;
+import teamdash.hist.ProjectChangeList;
 import teamdash.hist.ProjectDiff;
 import teamdash.hist.ProjectHistory;
 import teamdash.hist.ProjectHistoryTest;
@@ -54,9 +53,10 @@ public class WBSChangeHistoryReport extends HttpServlet {
         Date beforeDate = dateParam == null ? null : new Date(
                 Long.parseLong(dateParam));
 
-        List<ProjectChange> changes = ProjectDiff.getChanges(hist, beforeDate,
+        ProjectChangeList changes = ProjectDiff.getChanges(hist, beforeDate,
             10, true, true);
         req.setAttribute("changes", changes);
+        req.setAttribute("followupTimestamp", changes.getFollowupTimestamp());
 
         RequestDispatcher disp = getServletContext().getRequestDispatcher(
             "/WEB-INF/jsp/wbsChangeHistory.jsp");

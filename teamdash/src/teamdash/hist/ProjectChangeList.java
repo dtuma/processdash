@@ -23,25 +23,19 @@
 
 package teamdash.hist;
 
+import java.util.ArrayList;
 import java.util.Date;
 
-import teamdash.wbs.WBSNode;
+public class ProjectChangeList extends ArrayList<ProjectChange> {
 
-public abstract class ProjectWbsChange extends ProjectChange {
+    private Date followupTimestamp;
 
-    private WBSNode node;
-
-    protected ProjectWbsChange(WBSNode node, String author, Date timestamp) {
-        super(author, timestamp);
-        this.node = node;
+    public Date getFollowupTimestamp() {
+        return followupTimestamp;
     }
 
-    public WBSNode getNode() {
-        return node;
-    }
-
-    protected static String fmt(WBSNode node) {
-        return node.getFullName().substring(1);
+    public void setFollowupTimestamp(Date followupTimestamp) {
+        this.followupTimestamp = followupTimestamp;
     }
 
 }

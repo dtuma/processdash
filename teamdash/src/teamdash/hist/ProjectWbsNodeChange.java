@@ -23,10 +23,20 @@
 
 package teamdash.hist;
 
+import static teamdash.hist.ProjectDiff.resources;
+
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.sourceforge.processdash.util.Diff;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.wbs.WBSNode;
 
@@ -50,13 +60,53 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
         return children;
     }
 
-    @Override
     public String getDescription() {
-        // FIXME
         return getNode().getName() + " -> " + children;
     }
 
-    public static class Moved {
+    @Override
+    public List<ProjectChangeReportRow> buildReportRows() {
+        List<ProjectChangeReportRow> result = new ArrayList();
+
+        // add an initial row naming the parent node
+        result.add(new ProjectChangeReportRow(0, true, "wbsChange", null,
+                fmt(getNode()), true));
+
+        // now add rows for each of the affected children
+        for (Entry<WBSNode, Object> e : children.entrySet()) {
+            WBSNode child = e.getKey();
+            Object changeType = e.getValue();
+            String messageHtml;
+            String icon, iconTooltip;
+            if (changeType instanceof RowData) {
+                RowData data = (RowData) changeType;
+                icon = data.getIcon();
+                iconTooltip = data.getIconTooltip();
+                messageHtml = data.getMessageHtml(child.getName());
+            } else {
+                icon = "wbsChangeNode" + changeType;
+                iconTooltip = resources.getString("Wbs.Node." + changeType
+                        + "_Icon_Tooltip");
+                messageHtml = HTMLUtils.escapeEntities(child.getName());
+                if (messageHtml.trim().length() == 0)
+                    messageHtml = "<i>(empty)</i>";
+            }
+            result.add(new ProjectChangeReportRow(2, false, icon, iconTooltip,
+                    messageHtml, false));
+        }
+
+        return result;
+    }
+
+    private interface RowData {
+        public String getIcon();
+
+        public String getIconTooltip();
+
+        public String getMessageHtml(String nodeName);
+    }
+
+    public static class Moved implements RowData {
 
         private WBSNode oldParent;
 
@@ -68,13 +118,28 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
             return oldParent;
         }
 
-        @Override
         public String toString() {
             return "Moved from " + oldParent;
         }
+
+        public String getIcon() {
+            return "wbsChangeNodeMove";
+        }
+
+        public String getIconTooltip() {
+            return resources.format("Wbs.Node.Move_Icon_Tooltip_FMT",
+                fmt(oldParent));
+        }
+
+        public String getMessageHtml(String nodeName) {
+            return resources.format("Wbs.Node.Move_Message_HTML_FMT",
+                HTMLUtils.escapeEntities(nodeName),
+                HTMLUtils.escapeEntities(fmt(oldParent)));
+        }
+
     }
 
-    public static class Renamed {
+    public static class Renamed implements RowData {
 
         private String oldName;
 
@@ -86,11 +151,66 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
             return oldName;
         }
 
-        @Override
         public String toString() {
             return "Renamed from " + oldName;
         }
 
+        public String getIcon() {
+            return "wbsChangeNodeRename";
+        }
+
+        public String getIconTooltip() {
+            return resources
+                    .format("Wbs.Node.Rename_Icon_Tooltip_FMT", oldName);
+        }
+
+        public String getMessageHtml(String nodeName) {
+            StringBuilder result = new StringBuilder();
+            String[] oldWords = splitWords(oldName);
+            String[] newWords = splitWords(nodeName);
+            Diff diff = new Diff(oldWords, newWords);
+            Diff.change c = diff.diff_2(false);
+            int pos = 0;
+            while (c != null) {
+                // append normal, unmodified words before this change
+                addWordsHtml(result, newWords, pos, c.line1, null);
+                // append any words deleted by this change
+                addWordsHtml(result, oldWords, c.line0, c.line0 + c.deleted,
+                    "deletedWord");
+                // append any words added by this change
+                pos = c.line1 + c.inserted;
+                addWordsHtml(result, newWords, c.line1, pos, "addedWord");
+                // go to the next change.
+                c = c.link;
+            }
+            // append the unmodified region at the end of the node name
+            addWordsHtml(result, newWords, pos, newWords.length, null);
+
+            return result.toString();
+        }
+
+        private String[] splitWords(String text) {
+            List<String> words = new ArrayList<String>();
+            Matcher m = WORD_PAT.matcher(text);
+            while (m.find())
+                words.add(m.group());
+            return words.toArray(new String[words.size()]);
+        }
+
+        private void addWordsHtml(StringBuilder result, String[] words,
+                int start, int end, String css) {
+            if (start < end) {
+                if (css != null)
+                    result.append("<span class=\"").append(css).append("\">");
+                for (int pos = start; pos < end;)
+                    result.append(HTMLUtils.escapeEntities(words[pos++]));
+                if (css != null)
+                    result.append("</span>");
+            }
+        }
+
     }
+
+    private static final Pattern WORD_PAT = Pattern.compile("\\S+\\s*");
 
 }

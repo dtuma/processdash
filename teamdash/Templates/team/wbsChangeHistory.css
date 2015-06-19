@@ -1,0 +1,80 @@
+table.changeHistory {
+    background: url("timeLine.png") repeat-y;
+    border-spacing: 0px;
+}
+
+tr.dateHeader {
+    background-color: #c0c0c0;
+}
+
+div.dateHeader {
+    font-size: larger;
+    font-weight: bold;
+    padding: 7px;
+}
+
+tr.timeHeader {
+    background: url("timeDot.png") no-repeat left;
+}
+
+div.timeHeader {
+    color: #808080;
+    margin-left: 20px;
+}
+
+div.changeItem {
+    position: relative;
+}
+
+img.changeIcon {
+    position: absolute;
+    vertical-align: baseline;
+    left: -18px;
+    top: 3px;
+}
+
+a.treeTableFolder {
+    background: url("/Images/plus.png") no-repeat center;
+    height: 14px;
+    text-decoration: none;
+    width: 11px;
+}
+
+tr.tree-table-folder-open a.treeTableFolder {
+    background-image: url("/Images/minus.png");
+}
+
+a.showOnHover {
+    visibility: hidden;
+}
+
+tr:hover a.showOnHover {
+    visibility: visible;
+}
+
+tr.tree-table-folder-closed a.treeTableFolder.showOnHover {
+    visibility: visible;
+}
+
+a.newestLink {
+    background: url("2leftarrow.png") no-repeat left center;
+    padding-left: 20px;
+    min-height: 16px;
+}
+
+a.olderLink {
+    background: url("1rightarrow.png") no-repeat right center;
+    padding-right: 20px;
+    min-height: 16px;
+}
+
+span.addedWord {
+    color: #0000a0;
+    font-weight: bold;
+}
+
+span.deletedWord {
+    color: #a00000;
+    font-weight: bold;
+    text-decoration: line-through;
+}

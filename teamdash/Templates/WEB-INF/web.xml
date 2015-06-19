@@ -42,7 +42,7 @@
 
 	<servlet-mapping>
 		<servlet-name>wbsHistServlet</servlet-name>
-		<url-pattern>/reports/wbsChangeHistory</url-pattern>
+		<url-pattern>/team/wbsChangeHistory</url-pattern>
 	</servlet-mapping>
 
 </web-app>

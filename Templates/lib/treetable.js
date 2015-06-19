@@ -7,14 +7,15 @@
 function toggleRows(elm) {
    var rows = document.getElementsByTagName("TR");
    var newDisplay = "none";
-   var thisID = elm.parentNode.parentNode.parentNode.id + "-";
+   var thisRow = elm.parentNode.parentNode.parentNode;
+   var thisID = thisRow.id + "-";
    var expandingOne = getExpandingOne(rows, thisID);  // Are we expanding one element ?
    var expandingAll = (elm.className == "treeTableExpandAll"); // Are we expanding all
-                                                               //  elements ?	
+                                                               //  elements ?
    
    if (expandingOne || expandingAll) {
-       if (document.all) newDisplay = ""; //IE4+ specific code
-	   else newDisplay = "table-row"; //Netscape and Mozilla
+      if (document.all) newDisplay = ""; //IE4+ specific code
+      else newDisplay = "table-row"; //Netscape and Mozilla
    }
  
    // When expanding, only expand one level.  Collapse all desendants, unless we
@@ -31,16 +32,16 @@ function toggleRows(elm) {
          
          // If we are expanding all, we want all folder's icon to be opened
          if (expandingAll)
-         	setImage(folder, "tree-table-folder-open");
+            setImage(s, folder, "tree-table-folder-open");
          else
-            setImage(folder, "tree-table-folder-closed");
+            setImage(s, folder, "tree-table-folder-closed");
       }
    }
    
    // We finally set the correct image for the icon we have just clicked.
    if (!expandingAll) {
-       if (expandingOne) setImage(elm, "tree-table-folder-open");
-       else setImage(elm, "tree-table-folder-closed");
+      if (expandingOne) setImage(thisRow, elm, "tree-table-folder-open");
+      else setImage(thisRow, elm, "tree-table-folder-closed");
    }
 }
 
@@ -64,7 +65,10 @@ function lookForChild(elem, tagName) {
    return children[0];
 }
 
-function setImage(elm, imgID) {
+function setImage(row, elm, imgID) {
+   var cn = row.className.replace(/ *tree-table-folder-[a-z]+/, "");
+   row.className = cn + " " + imgID;
+
    var image = lookForChild(elm, "IMG");
    if (image == null) return;
 
@@ -92,7 +96,7 @@ function collapseAllRows(belowDepth) {
    for (var j = 0; j < rows.length; j++) {
       var r = rows[j];
       if (r.id != null && r.id.split("-").length > belowDepth) {
-        r.style.display = "none";    
+         r.style.display = "none";    
       }
    }
 }

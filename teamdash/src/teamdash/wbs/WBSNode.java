@@ -115,6 +115,11 @@ public class WBSNode implements Cloneable {
      * @param newName the new name for this node.  */
     public void setName(String newName) { this.name = newName; }
 
+    /** Get the full path name of this node */
+    public String getFullName() {
+        return getWbsModel().getFullName(this);
+    }
+
     /** Get the unique ID of this node.
      * @return the unique ID of this node.  */
     public int getUniqueID() {

@@ -4,6 +4,9 @@
 <html>
 <head>
 <title>WBS Change History - <c:out value="${pdash.projectPath}"/></title>
+<link rel="stylesheet" type="text/css" href="wbsChangeHistory.css">
+<link rel="stylesheet" type="text/css" href="/lib/treetable.css">
+<script type="text/javascript" src="/lib/treetable.js"></script>
 </head>
 <body>
 
@@ -12,39 +15,79 @@
 <c:choose>
 
 <c:when test="${!empty changes}">
-<c:set var="dateHeader" value=""/>
-<c:set var="timeHeader" value=""/>
 
-<c:forEach var="change" items="${changes}">
+<p>
+<c:if test="${!empty param.before}">
+    <a class="newestLink" href="wbsChangeHistory">Newest changes</a>
+    <c:if test="${!empty followupTimestamp}"> | </c:if>
+</c:if>
+<c:if test="${!empty followupTimestamp}">
+    <a href="wbsChangeHistory?before=${followupTimestamp.time}"
+       class="olderLink">Older changes</a>
+</c:if>
+</p>
+
+<c:set var="dateHeader" value=""/>
+<c:set var="dateCtr" value="${0}"/>
+
+<table class="changeHistory">
+
+<c:forEach var="change" varStatus="changeStat" items="${changes}">
 
 <c:if test="${change.displayDate != dateHeader}">
-    <c:if test="${!empty timeHeader}"></ul></c:if>
-    <c:set var="timeHeader" value=""/>
     <c:set var="dateHeader" value="${change.displayDate}"/>
-    <h2><c:out value="${dateHeader}"/></h2>
+    <c:set var="dateCtr" value="${dateCtr + 1}"/>
+    <c:set var="timeHeader" value=""/>
+    <c:set var="timeCtr" value="${0}"/>
+    <tr id="d${dateCtr}" class="dateHeader"><td colspan="1">
+        <div class="dateHeader"><c:out value="${dateHeader}"/></div>
+    </td></tr>
 </c:if>
 
 <c:if test="${change.displayTime != timeHeader || change.author != authorHeader}">
-    <c:if test="${!empty timeHeader}"></ul></c:if>
     <c:set var="timeHeader" value="${change.displayTime}"/>
+    <c:set var="timeCtr" value="${timeCtr + 1}"/>
     <c:set var="authorHeader" value="${change.author}"/>
-    <p><b><c:out value="${timeHeader}"/> - <c:out value="${authorHeader}"/></b></p>
-    <ul>
+    <tr id="d${dateCtr}-t${timeCtr}" class="timeHeader"><td colspan="1">
+        <div class="timeHeader">
+        <c:out value="${timeHeader}"/> - <c:out value="${authorHeader}"/>
+    </div></td></tr>
 </c:if>
 
-<li><c:out value="${change.description}" /></li>
-<c:set var="timestamp" value="${change.follupTimestamp}" />
+<c:forEach var="row" items="${change.reportRows}">
+
+    <tr id="d${dateCtr}-t${timeCtr}-c${changeStat.index}${row.expansionId}"
+        class="tree-table-folder-${row.expanded ? 'open' : 'closed'}"
+        ${row.visible ? '' : 'style="display:none"'}><td colspan="1">
+    <div class="changeItem" style="margin-left: ${50 + 20 * row.indent}px;">
+
+        <c:if test="${row.expandable && row.indent > 0}"><a class="treeTableFolder showOnHover"
+            href="#" onclick="toggleRows(this); return false;">&nbsp;</a></c:if>
+
+        <c:set var="tipStr">title="<c:out value="${row.iconTooltip}"/>"</c:set>
+        <c:if test="${not empty row.icon}"><img src="${row.icon}.png"
+            class="changeIcon" ${not empty row.iconTooltip ? tipStr : '' }></c:if>
+
+        <c:out value="${row.html}" escapeXml="false"/>
+
+    </div></td></tr>
 
 </c:forEach>
-</ul>
 
+</c:forEach>
+
+</table>
+
+<p>
 <c:if test="${!empty param.before}">
-<a href="wbsChangeHistory">Newest changes...</a>
-<c:if test="${!empty timestamp}"> | </c:if>
+    <a class="newestLink" href="wbsChangeHistory">Newest changes</a>
+    <c:if test="${!empty followupTimestamp}"> | </c:if>
 </c:if>
-<c:if test="${!empty timestamp}">
-<a href="wbsChangeHistory?before=${timestamp.time}">Older changes...</a>
+<c:if test="${!empty followupTimestamp}">
+    <a href="wbsChangeHistory?before=${followupTimestamp.time}"
+       class="olderLink">Older changes</a>
 </c:if>
+</p>
 
 </c:when>
 

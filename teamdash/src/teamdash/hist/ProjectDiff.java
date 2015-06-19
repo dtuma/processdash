@@ -46,6 +46,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.merge.TreeDiff;
@@ -60,6 +61,9 @@ import teamdash.wbs.WBSNode;
 import teamdash.wbs.columns.TeamTimeColumn;
 
 public class ProjectDiff {
+
+    protected static final Resources resources = Resources
+            .getDashBundle("WBSEditor.ChangeLog");
 
     private ProjectHistory hist;
 
@@ -390,23 +394,25 @@ public class ProjectDiff {
 
 
 
-    public static List<ProjectChange> getChanges(ProjectHistory hist,
-            Date beforeDate, int minNumChanges, boolean forceFullDays,
+    public static ProjectChangeList getChanges(ProjectHistory hist,
+            Date onOrBeforeDate, int minNumChanges, boolean forceFullDays,
             boolean mergeConsecutiveChangesFromSameAuthor) throws IOException {
-        List<ProjectChange> result = new ArrayList<ProjectChange>();
+        ProjectChangeList result = new ProjectChangeList();
         List versions = hist.getVersions();
         String lastDateStr = null;
         ProjectDiff lastDiff = null;
         for (int i = versions.size(); i-- > 1;) {
             Object oneVersion = versions.get(i);
             Date versionDate = hist.getVersionDate(oneVersion);
-            if (beforeDate != null && !versionDate.before(beforeDate))
+            if (onOrBeforeDate != null && versionDate.after(onOrBeforeDate))
                 continue;
 
             String thisDateStr = ProjectChange.DATE_FMT.format(versionDate);
             if (minNumChanges > 0 && result.size() >= minNumChanges
-                    && !(forceFullDays && thisDateStr.equals(lastDateStr)))
+                    && !(forceFullDays && thisDateStr.equals(lastDateStr))) {
+                result.setFollowupTimestamp(versionDate);
                 return result;
+            }
 
             Object prevVersion = versions.get(i - 1);
             if (mergeConsecutiveChangesFromSameAuthor) {
@@ -425,8 +431,6 @@ public class ProjectDiff {
             lastDiff = diff;
             lastDateStr = thisDateStr;
         }
-        if (!result.isEmpty())
-            result.get(result.size() - 1).setLastChangeFlag(true);
         return result;
     }
 

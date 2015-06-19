@@ -23,6 +23,10 @@
 
 package teamdash.hist;
 
+import static teamdash.hist.ProjectDiff.resources;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +34,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -109,52 +115,80 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         StringBuilder result = new StringBuilder();
         result.append("task " + getNode() + " (#" + getNode().getUniqueID()
                 + (children == null ? "" : "*") + ") ");
+        List<ProjectChangeReportRow> rows = buildReportRows();
+        for (int i = 1; i < rows.size(); i++)
+            result.append(rows.get(i).getHtml()).append(". ");
+        return result.toString();
+    }
+
+    public List<ProjectChangeReportRow> buildReportRows() {
+        List<ProjectChangeReportRow> result = new ArrayList();
+
+        // add an initial row naming the parent node
+        result.add(new ProjectChangeReportRow(0, true, "wbsChange", null,
+                fmt(getNode()), true));
 
         // simple wording for most common case: exactly one nonzero individual,
         // whose time changed
         if (changed.size() == 1 && (all.size() == zeros.size() + 1)) {
             IndivTime change = changed.values().iterator().next();
-            result.append("time estimate for " + change.name + " changed from "
-                    + change.oldTime + " to " + change.newTime + ".");
-            return result.toString();
+            String tooltip = resources.getString("Wbs.Time.Icon_Tooltip");
+            String message = resources.format("Wbs.Time.Indiv_Message_FMT",
+                change.name, fmt(change.oldTime), fmt(change.newTime));
+            result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
+                    tooltip, message, true));
+            return result;
         }
 
         // append a message about the overall time change, if applicable.
-        if (!eq(oldTotalTime, newTotalTime))
-            result.append("time estimate changed from " + oldTotalTime + " to "
-                    + newTotalTime + ". ");
+        if (!eq(oldTotalTime, newTotalTime)) {
+            String tooltip = resources.getString("Wbs.Time.Icon_Tooltip");
+            String message = resources.format("Wbs.Time.Overall_Message_FMT",
+                fmt(oldTotalTime), fmt(newTotalTime));
+            result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
+                    tooltip, message, true));
+        }
 
         // append a message about task assignment changes
+        String assignmentKey;
         if (deleted.isEmpty()) {
             if (added.isEmpty()) {
                 // no task assignment changes to report
+                assignmentKey = null;
             } else {
                 // new people were added to this task
-                if (children != null)
-                    result.append("subtasks ");
-                result.append("assigned to " + added.values() + ". ");
+                assignmentKey = "Assigned";
             }
         } else {
             if (added.isEmpty()) {
                 // people were unassigned from this task
-                if (children != null)
-                    result.append("subtasks ");
-                result.append("unassigned from " + deleted.values() + ". ");
+                assignmentKey = "Unassigned";
             } else {
                 // task was reassigned
-                if (children != null)
-                    result.append("subtasks ");
-                result.append("reassigned from " + deleted.values() + " to "
-                        + added.values() + ". ");
+                assignmentKey = "Reassigned";
             }
+        }
+        if (assignmentKey != null) {
+            String keyPrefix = "Wbs." + assignmentKey
+                    + (children == null ? "." : ".Subtask_");
+            String tooltip = resources.getString(keyPrefix + "Tooltip");
+            String message = resources.format(keyPrefix + "Message_FMT",
+                fmt(deleted.values()), fmt(added.values()));
+            result.add(new ProjectChangeReportRow(2, true, "wbsAssignment",
+                    tooltip, message, true));
         }
 
         // append a message about changes to existing time estimates
         if (!changed.isEmpty()) {
-            result.append("Changed estimates: " + changed.values() + ". ");
+            String tooltip = resources.getString("Wbs.Time.Icon_Tooltip");
+            String message = HTMLUtils.escapeEntities(fmt(changed.values()));
+            message = StringUtils.findAndReplace(message, " -&gt; ", "&rarr;");
+            message = resources.format("Wbs.Time.Changes_Message_FMT", message);
+            result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
+                    tooltip, message, false));
         }
 
-        return result.toString();
+        return result;
     }
 
 
@@ -277,11 +311,11 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             StringBuilder result = new StringBuilder();
             result.append(name).append(" (");
             if (added.containsKey(timeAttr))
-                result.append(newTime);
+                result.append(fmt(newTime));
             else if (changed.containsKey(timeAttr))
-                result.append(oldTime).append(" -> ").append(newTime);
+                result.append(fmt(oldTime)).append(" -> ").append(fmt(newTime));
             else
-                result.append(oldTime);
+                result.append(fmt(oldTime));
             result.append(")");
             return result.toString();
         }
@@ -307,6 +341,19 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     private static boolean eq(double a, double b) {
         return Math.abs(a - b) < 0.0001;
+    }
+
+    private static String fmt(double time) {
+        return NumericDataValue.format(time);
+    }
+
+    private static String fmt(Collection<IndivTime> times) {
+        if (times == null || times.isEmpty())
+            return "";
+        StringBuilder result = new StringBuilder();
+        for (IndivTime time : times)
+            result.append(", ").append(time);
+        return result.substring(2);
     }
 
 }
