@@ -61,7 +61,8 @@
         ${row.visible ? '' : 'style="display:none"'}><td colspan="1">
     <div class="changeItem" style="margin-left: ${50 + 20 * row.indent}px;">
 
-        <c:if test="${row.expandable && row.indent > 0}"><a class="treeTableFolder showOnHover"
+        <c:if test="${row.expandable && row.indent > 0}"><a
+            class="treeTableFolder${empty row.icon ? '' : ' showOnHover shiftLeft'}"
             href="#" onclick="toggleRows(this); return false;">&nbsp;</a></c:if>
 
         <c:set var="tipStr">title="<c:out value="${row.iconTooltip}"/>"</c:set>

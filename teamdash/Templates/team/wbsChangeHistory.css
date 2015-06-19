@@ -44,15 +44,15 @@ tr.tree-table-folder-open a.treeTableFolder {
     background-image: url("/Images/minus.png");
 }
 
+a.treeTableFolder.shiftLeft {
+    left: -33px;
+}
+
 a.showOnHover {
     visibility: hidden;
 }
 
 tr:hover a.showOnHover {
-    visibility: visible;
-}
-
-tr.tree-table-folder-closed a.treeTableFolder.showOnHover {
     visibility: visible;
 }
 

@@ -87,17 +87,26 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
                 icon = "wbsChangeNode" + changeType;
                 iconTooltip = resources.getString("Wbs.Node." + changeType
                         + "_Icon_Tooltip");
-                messageHtml = HTMLUtils.escapeEntities(child.getName());
-                if (messageHtml.trim().length() == 0)
-                    messageHtml = "<i>(empty)</i>";
+                messageHtml = getNameHtml(child);
             }
             result.add(new ProjectChangeReportRow(2, false, icon, iconTooltip,
                     messageHtml, false));
+            addChildRows(result, child, 2);
         }
 
         return result;
     }
 
+    private void addChildRows(List<ProjectChangeReportRow> result,
+            WBSNode node, int indent) {
+        indent++;
+        for (WBSNode child : node.getWbsModel().getChildren(node)) {
+            result.add(new ProjectChangeReportRow(indent, false, null, null,
+                getNameHtml(child), false));
+            addChildRows(result, child, indent);
+        }
+    }
+    
     private interface RowData {
         public String getIcon();
 

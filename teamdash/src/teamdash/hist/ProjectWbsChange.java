@@ -25,6 +25,8 @@ package teamdash.hist;
 
 import java.util.Date;
 
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import teamdash.wbs.WBSNode;
 
 public abstract class ProjectWbsChange extends ProjectChange {
@@ -42,6 +44,14 @@ public abstract class ProjectWbsChange extends ProjectChange {
 
     protected static String fmt(WBSNode node) {
         return node.getFullName().substring(1);
+    }
+
+    protected static String getNameHtml(WBSNode node) {
+        String name = node.getName();
+        if (name.trim().length() == 0)
+            return "<i>(empty)</i>";
+        else
+            return HTMLUtils.escapeEntities(name);
     }
 
 }
