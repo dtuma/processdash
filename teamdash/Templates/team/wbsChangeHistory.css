@@ -34,26 +34,27 @@ img.changeIcon {
 }
 
 a.treeTableFolder {
-    background: url("/Images/plus.png") no-repeat center;
+    background: url("plus-light.png") no-repeat center;
     height: 14px;
     text-decoration: none;
+    top: 3px;
     width: 11px;
 }
 
+tr:hover a.treeTableFolder {
+    background-image: url("/Images/plus.png");
+}
+
 tr.tree-table-folder-open a.treeTableFolder {
+    background-image: url("minus-light.png");
+}
+
+tr.tree-table-folder-open:hover a.treeTableFolder {
     background-image: url("/Images/minus.png");
 }
 
 a.treeTableFolder.shiftLeft {
     left: -33px;
-}
-
-a.showOnHover {
-    visibility: hidden;
-}
-
-tr:hover a.showOnHover {
-    visibility: visible;
 }
 
 a.newestLink {

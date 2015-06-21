@@ -4,9 +4,9 @@
 <html>
 <head>
 <title>WBS Change History - <c:out value="${pdash.projectPath}"/></title>
-<link rel="stylesheet" type="text/css" href="wbsChangeHistory.css">
 <link rel="stylesheet" type="text/css" href="/lib/treetable.css">
 <script type="text/javascript" src="/lib/treetable.js"></script>
+<link rel="stylesheet" type="text/css" href="wbsChangeHistory.css">
 </head>
 <body>
 
@@ -62,7 +62,7 @@
     <div class="changeItem" style="margin-left: ${50 + 20 * row.indent}px;">
 
         <c:if test="${row.expandable && row.indent > 0}"><a
-            class="treeTableFolder${empty row.icon ? '' : ' showOnHover shiftLeft'}"
+            class="treeTableFolder${empty row.icon ? '' : ' shiftLeft'}"
             href="#" onclick="toggleRows(this); return false;">&nbsp;</a></c:if>
 
         <c:set var="tipStr">title="<c:out value="${row.iconTooltip}"/>"</c:set>
