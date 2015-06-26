@@ -91,8 +91,8 @@ public class ProjectDiff {
         this.author = hist.getVersionAuthor(versionB);
         this.timestamp = hist.getVersionDate(versionB);
 
-        this.wbsA = getWbsModel(versionA, other);
         this.wbsB = getWbsModel(versionB, other);
+        this.wbsA = getWbsModel(versionA, other);
         loadTeamMemberData();
 
         WBSDiffCalc wbsDiffCalc = new WBSDiffCalc();

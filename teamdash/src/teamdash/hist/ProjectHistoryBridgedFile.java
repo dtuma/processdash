@@ -31,23 +31,15 @@ import teamdash.wbs.WBSFilenameConstants;
 
 public class ProjectHistoryBridgedFile extends ProjectHistoryBridgedAbstract {
 
-    private File historyZipFile;
-
     public ProjectHistoryBridgedFile(File historyZipFile) throws IOException {
-        this.historyZipFile = historyZipFile;
-        initFileRevisionsZip();
+        loadFileRevisionsZip(historyZipFile);
         initChanges();
-        initTimeDelta();
-    }
-
-    @Override
-    protected File getFileRevisionsZip() throws IOException {
-        return historyZipFile;
     }
 
     @Override
     protected InputStream getChangeHistory() throws IOException {
-        return getVersionFile(WBSFilenameConstants.CHANGE_HISTORY_FILE, lastMod);
+        return getVersionFile(WBSFilenameConstants.CHANGE_HISTORY_FILE,
+            Long.MAX_VALUE);
     }
 
 }

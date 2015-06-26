@@ -30,8 +30,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -39,23 +42,27 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.ChangeHistory.Entry;
+import teamdash.wbs.WBSFilenameConstants;
 
 public abstract class ProjectHistoryBridgedAbstract implements
         ProjectHistory<Entry> {
 
     private List<Entry> changes;
 
-    private ZipFile revisionZip;
-
     private List<ManifestEntry> revisions;
 
-    protected long lastMod;
-
     private long timeDelta;
+
+    private Map<String, String> identities;
 
 
     protected void initChanges() throws IOException {
@@ -66,10 +73,10 @@ public abstract class ProjectHistoryBridgedAbstract implements
     protected abstract InputStream getChangeHistory() throws IOException;
 
 
-    protected void initFileRevisionsZip() throws IOException {
+    protected boolean loadFileRevisionsZip(File f) throws IOException {
         // retrieve a ZIP file containing all of the historical file versions
         // for this project
-        File f = getFileRevisionsZip();
+        ZipFile revisionZip;
         try {
             revisionZip = new ZipFile(f);
         } catch (Exception e) {
@@ -78,36 +85,72 @@ public abstract class ProjectHistoryBridgedAbstract implements
             // the request for a data history ZIP file will print an HTML login
             // form instead. In this case, abort and let later code retrieve
             // historical versions one at a time.
-            return;
+            return false;
         }
 
         // parse the manifest from the ZIP file
-        revisions = new ArrayList<ProjectHistoryBridgedAbstract.ManifestEntry>();
-        lastMod = 0;
+        if (revisions == null)
+            revisions = new ArrayList<ManifestEntry>();
+        ManifestEntry changeHist = null, teamList = null;
         Element revisionsXml = parseXml(revisionZip.getInputStream(revisionZip
                 .getEntry("manifest.xml")));
         NodeList revisionTags = revisionsXml.getElementsByTagName("file");
         for (int i = 0; i < revisionTags.getLength(); i++) {
             Element tag = (Element) revisionTags.item(i);
-            ManifestEntry rev = new ManifestEntry(tag);
-            lastMod = Math.max(lastMod, rev.lastMod);
+            ManifestEntry rev = new ManifestEntry(revisionZip, tag);
+            if (rev.matches(WBSFilenameConstants.CHANGE_HISTORY_FILE))
+                changeHist = rev;
+            else if (rev.matches(WBSFilenameConstants.TEAM_LIST_FILENAME))
+                teamList = rev;
             revisions.add(rev);
+        }
+        Collections.sort(revisions);
+
+        // load data from the last changeHist.xml and team.xml files we saw
+        initTimeDelta(changeHist);
+        loadIdentityInfo(teamList);
+        return true;
+    }
+
+    protected void initTimeDelta(ManifestEntry changeHist) {
+        // manifest entry timestamps are written by the PDES process without
+        // timezone info. In this method we then parse them in the timezone of
+        // the local process. Calculate the offset that is needed to convert
+        // these back to UTC timestamps.
+        if (timeDelta == 0 && changeHist != null) {
+            try {
+                Element xml = parseXml(changeHist.getStream());
+                ChangeHistory changes = new ChangeHistory(xml);
+                Entry lastChange = changes.getLastEntry();
+                long lastTimestamp = lastChange.getTimestamp().getTime();
+                timeDelta = changeHist.lastMod - lastTimestamp;
+                // the file modification time can normally differ from the
+                // change timestamp by a second or two; but we are only
+                // interested in the delta caused by time zone differences.
+                // round the delta to an even half-hour interval.
+                double fraction = timeDelta / (30.0 * DateUtils.MINUTES);
+                timeDelta = (int) Math.round(fraction) * 30 * DateUtils.MINUTES;
+            } catch (Exception e) {
+            }
         }
     }
 
-    protected abstract File getFileRevisionsZip() throws IOException;
-
-
-    protected void initTimeDelta() {
-        // manifest entry timestamps are written by the PDES process without
-        // timezone info. In this class we then parse them in the timezone of
-        // the local process. Calculate the offset that is needed to convert
-        // these back to UTC timestamps.
-        if (lastMod > 0) {
-            Entry lastChange = changes.get(changes.size() - 1);
-            long lastTimestamp = lastChange.getTimestamp().getTime();
-            lastTimestamp -= (lastTimestamp % 1000);
-            timeDelta = lastMod - lastTimestamp;
+    protected void loadIdentityInfo(ManifestEntry teamList) {
+        if (teamList != null) {
+            try {
+                if (identities == null)
+                    identities = new HashMap<String, String>();
+                Element xml = parseXml(teamList.getStream());
+                TeamMemberList team = new TeamMemberList(xml);
+                for (TeamMember indiv : team.getTeamMembers()) {
+                    String infoStr = indiv.getServerIdentityInfo();
+                    Map info = HTMLUtils.parseQuery(infoStr);
+                    String username = (String) info.get("username");
+                    if (StringUtils.hasValue(username))
+                        identities.put(username, indiv.getName());
+                }
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -121,29 +164,49 @@ public abstract class ProjectHistoryBridgedAbstract implements
     }
 
     public String getVersionAuthor(Entry version) {
-        return version.getUser();
+        String result = null;
+        if (identities != null) {
+            try {
+                long ts = version.getTimestamp().getTime() + TIME_PAD;
+                ManifestEntry e = getCachedManifestEntry(
+                    WBSFilenameConstants.WBS_FILENAME, ts);
+                if (e != null)
+                    result = identities.get(e.username);
+            } catch (IOException ioe) {
+            }
+        }
+        return (result != null ? result : version.getUser());
     }
 
     public InputStream getVersionFile(Entry version, String filename)
             throws IOException {
-        long ts = version.getTimestamp().getTime() + 200 + timeDelta;
+        long ts = version.getTimestamp().getTime() + TIME_PAD;
         return getVersionFile(filename, ts);
     }
 
     protected InputStream getVersionFile(String filename, long ts)
             throws IOException {
+        ManifestEntry e = getCachedManifestEntry(filename, ts);
+        return (e == null ? null : e.getStream());
+    }
+
+    private ManifestEntry getCachedManifestEntry(String filename, long ts)
+            throws IOException {
+        maybeCacheTimePeriod(ts);
+
         if (revisions != null) {
+            ts = ts + timeDelta;
             for (int i = revisions.size(); i-- > 0;) {
                 ManifestEntry e = revisions.get(i);
-                if (e.matches(ts, filename, false)) {
-                    ZipEntry entry = revisionZip.getEntry(e.href);
-                    return revisionZip.getInputStream(entry);
-                }
+                if (e.matches(ts, filename, false))
+                    return e;
             }
         }
 
         return null;
     }
+
+    protected void maybeCacheTimePeriod(long ts) throws IOException {}
 
     private static Element parseXml(InputStream in) throws IOException {
         try {
@@ -153,17 +216,23 @@ public abstract class ProjectHistoryBridgedAbstract implements
         }
     }
 
-    private static class ManifestEntry {
+    private static class ManifestEntry implements Comparable<ManifestEntry> {
+
+        ZipFile revisionZip;
 
         String filename;
 
         String href;
 
+        String username;
+
         long startTime, endTime, lastMod;
 
-        public ManifestEntry(Element xml) {
+        public ManifestEntry(ZipFile zip, Element xml) {
+            revisionZip = zip;
             filename = xml.getAttribute("name");
             href = xml.getAttribute("href");
+            username = xml.getAttribute("createdBy");
             startTime = parseDate(xml, "effStartDate", Long.MAX_VALUE);
             endTime = parseDate(xml, "effEndDate", Long.MAX_VALUE);
             lastMod = parseDate(xml, "lastModified", 0);
@@ -179,12 +248,36 @@ public abstract class ProjectHistoryBridgedAbstract implements
             return defaultVal;
         }
 
+        public boolean matches(String name) {
+            return filename.equalsIgnoreCase(name);
+        }
+
         public boolean matches(long ts, String name, boolean checkEnd) {
-            return filename.equalsIgnoreCase(name) && startTime <= ts //
+            return matches(name) && startTime <= ts //
                     && (checkEnd == false || ts <= endTime);
         }
 
+        public InputStream getStream() throws IOException {
+            ZipEntry entry = revisionZip.getEntry(href);
+            return revisionZip.getInputStream(entry);
+        }
+
+        public int compareTo(ManifestEntry that) {
+            if (this.startTime > that.startTime)
+                return 1;
+            else if (this.startTime < that.startTime)
+                return -1;
+            else
+                return 0;
+        }
+
     }
+
+    // some filesystems only track modification dates to within 2 seconds, and
+    // some databases round off timestamps to the nearest second. To account
+    // for these sources of error, we add a few seconds to target timestamps
+    // when we are performing a search.
+    private static final int TIME_PAD = 3000;
 
     private static final DateFormat TIMESTAMP_FMT = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");

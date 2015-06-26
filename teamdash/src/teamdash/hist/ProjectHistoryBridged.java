@@ -28,10 +28,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Date;
 import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.util.ClientHttpRequest;
+import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.FastDateFormat;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
@@ -43,13 +46,16 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
 
     private String cookies;
 
-    public ProjectHistoryBridged(URL baseUrl, boolean cache) throws IOException {
+    private long startTimestamp = NEVER;
+
+    private long endTimestamp = 0;
+
+    public ProjectHistoryBridged(URL baseUrl, boolean precacheAll)
+            throws IOException {
         this.baseUrl = baseUrl;
         initChanges();
-        if (cache) {
-            initFileRevisionsZip();
-            initTimeDelta();
-        }
+        if (precacheAll)
+            cacheFileRevisions(null, null);
     }
 
     protected InputStream getChangeHistory() throws IOException {
@@ -78,8 +84,30 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
     }
 
     @Override
-    protected File getFileRevisionsZip() throws IOException {
-        // download a ZIP file containing all the historical file versions
+    protected void maybeCacheTimePeriod(long ts) throws IOException {
+        // if the requested timestamp is within our cached safe period, return.
+        if (startTimestamp < ts && ts < endTimestamp)
+            return;
+
+        // calculate a new time period around the requested timestamp.
+        long newStart = ts - 9 * DateUtils.DAYS;
+        long newEnd = ts + 3 * DateUtils.DAYS;
+
+        // this class assumes that our cache is contiguous, with no time gaps.
+        // Adjust the new target time range to ensure that it overlaps with our
+        // existing cache.
+        if (endTimestamp > 0)
+            newStart = Math.min(newStart, endTimestamp);
+        if (startTimestamp < NEVER)
+            newEnd = Math.max(newEnd, startTimestamp);
+
+        // retrieve and cache files for the given date range.
+        cacheFileRevisions(new Date(newStart), new Date(newEnd));
+    }
+
+    private void cacheFileRevisions(Date startDate, Date endDate)
+            throws IOException {
+        // download a ZIP file containing historical file versions
         // for the given resource collection
         URL dataHistUrl = new URL(baseUrl,
                 "../../app/Datasets/GetDataHistory.do");
@@ -89,6 +117,10 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         req.setParameter("rc", getResourceCollectionID(baseUrl));
         for (String filename : FILES_OF_INTEREST)
             req.setParameter("include", filename);
+        if (startDate != null)
+            req.setParameter("after", PARAM_DATE_FMT.format(startDate));
+        if (endDate != null)
+            req.setParameter("before", PARAM_DATE_FMT.format(endDate));
         req.setParameter("save", "save");
         InputStream in = req.post();
 
@@ -98,7 +130,23 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         FileUtils.copyFile(in, f);
         in.close();
 
-        return f;
+        // load the file revisions data from that temporary file
+        if (loadFileRevisionsZip(f)) {
+            // if the load was successful, update our timestamps to keep track
+            // of the region of time that is reliably cached. We adjust the
+            // dates inward by 2 days to be safe in the presence of time zone
+            // differences between the client and the server.
+            startTimestamp = Math.min(startTimestamp, (startDate == null ? 0
+                    : startDate.getTime()) + 2 * DateUtils.DAYS);
+            endTimestamp = Math.max(endTimestamp, (endDate == null ? NEVER
+                    : endDate.getTime()) - 2 * DateUtils.DAYS);
+        } else {
+            // the load will fail if data security is not enabled on the
+            // server. In that case, change the timestamps to avoid any future
+            // attempts to cache data.
+            startTimestamp = 0;
+            endTimestamp = NEVER;
+        }
     }
 
     private String getResourceCollectionID(URL baseUrl) {
@@ -109,6 +157,7 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         return u.substring(slashPos + 1);
     }
 
+    @Override
     protected InputStream getVersionFile(String filename, long ts)
             throws IOException {
         InputStream result = super.getVersionFile(filename, ts);
@@ -124,6 +173,14 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         return result;
     }
 
-    private static final String[] FILES_OF_INTEREST = { "wbs.xml", "team.xml" };
+    private static final String[] FILES_OF_INTEREST = {
+            WBSFilenameConstants.WBS_FILENAME,
+            WBSFilenameConstants.TEAM_LIST_FILENAME,
+            WBSFilenameConstants.CHANGE_HISTORY_FILE };
+
+    private static final FastDateFormat PARAM_DATE_FMT = FastDateFormat
+            .getInstance("yyyy-MM-dd");
+
+    private static final long NEVER = Long.MAX_VALUE / 2;
 
 }
