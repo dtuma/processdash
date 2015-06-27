@@ -39,7 +39,7 @@
     <c:set var="dateCtr" value="${dateCtr + 1}"/>
     <c:set var="timeHeader" value=""/>
     <c:set var="timeCtr" value="${0}"/>
-    <tr id="d${dateCtr}" class="dateHeader"><td colspan="1">
+    <tr id="d${dateCtr}" class="dateHeader"><td>
         <div class="dateHeader"><c:out value="${dateHeader}"/></div>
     </td></tr>
 </c:if>
@@ -48,7 +48,7 @@
     <c:set var="timeHeader" value="${change.displayTime}"/>
     <c:set var="timeCtr" value="${timeCtr + 1}"/>
     <c:set var="authorHeader" value="${change.author}"/>
-    <tr id="d${dateCtr}-t${timeCtr}" class="timeHeader"><td colspan="1">
+    <tr id="d${dateCtr}-t${timeCtr}" class="timeHeader"><td>
         <div class="timeHeader">
         <c:out value="${timeHeader}"/> - <c:out value="${authorHeader}"/>
     </div></td></tr>
@@ -58,7 +58,7 @@
 
     <tr id="d${dateCtr}-t${timeCtr}-c${changeStat.index}${row.expansionId}"
         class="tree-table-folder-${row.expanded ? 'open' : 'closed'}"
-        ${row.visible ? '' : 'style="display:none"'}><td colspan="1">
+        ${row.visible ? '' : 'style="display:none"'}><td>
     <div class="changeItem" style="margin-left: ${50 + 20 * row.indent}px;">
 
         <c:if test="${row.expandable && row.indent > 0}"><a

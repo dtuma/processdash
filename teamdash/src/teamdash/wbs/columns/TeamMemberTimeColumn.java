@@ -234,4 +234,6 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     public static final String TEAM_MEMBER_SYNC_TIME_SUFFIX = WBSSynchronizer
             .getSyncAttrName(ATTR_SUFFIX);
 
+    public static final String TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX = " (Assigned With Zero)";
+
 }

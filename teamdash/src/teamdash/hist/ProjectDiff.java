@@ -26,6 +26,7 @@ package teamdash.hist;
 import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
 import static teamdash.wbs.WBSFilenameConstants.TEAM_LIST_FILENAME;
 import static teamdash.wbs.WBSFilenameConstants.WBS_FILENAME;
+import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
 
 import java.io.FileNotFoundException;
@@ -37,6 +38,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -74,6 +76,8 @@ public class ProjectDiff {
     private Object versionA, versionB;
 
     private Set<String> indivTimeAttrs;
+
+    private Map<String, String> memberZeroAttrs;
 
     private Map<String, String> teamMemberNames;
 
@@ -182,6 +186,9 @@ public class ProjectDiff {
             } else if (NODE_NAME.equals(attr)) {
                 Object changeType = new ProjectWbsNodeChange.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
+            } else if (attr.endsWith(TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX)
+                    && memberZeroAttrs.containsValue(attr)) {
+                sawTimeChange = true;
             } else if (indivTimeAttrs.contains(attr)
                     || TeamTimeColumn.TEAM_TIME_ATTR.equals(attr)) {
                 sawTimeChange = true;
@@ -191,7 +198,8 @@ public class ProjectDiff {
         if (sawTimeChange) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
             timeChanges.put(nodeID, new ProjectWbsTimeChange(node, base, mod,
-                    indivTimeAttrs, teamMemberNames, author, timestamp));
+                    indivTimeAttrs, memberZeroAttrs, teamMemberNames, author,
+                    timestamp));
         }
     }
 
@@ -209,7 +217,8 @@ public class ProjectDiff {
         if (result != null) {
             result.addChild(node, changeType);
         } else {
-            result = new ProjectWbsNodeChange(parent, node, changeType, author,
+            result = new ProjectWbsNodeChange(parent, node, changeType,
+                    indivTimeAttrs, memberZeroAttrs, teamMemberNames, author,
                     timestamp, wbsNodeComparator);
             nodeChanges.put(parentID, result);
         }
@@ -256,7 +265,7 @@ public class ProjectDiff {
             // this is a leaf node. Return true if we have zero time.
             ProjectWbsTimeChange test = new ProjectWbsTimeChange(null,
                     node.getContent(), node.getContent(), indivTimeAttrs,
-                    teamMemberNames, author, timestamp);
+                    memberZeroAttrs, teamMemberNames, author, timestamp);
             return test.getNewTotalTime() == 0;
         }
 
@@ -277,7 +286,7 @@ public class ProjectDiff {
         WBSNode wbsNode = node.getContent().getWBSNode();
         ProjectWbsTimeChange summarized = new ProjectWbsTimeChange(wbsNode,
                 new ArrayList(childChanges.values()), indivTimeAttrs,
-                teamMemberNames, author, timestamp);
+                memberZeroAttrs, teamMemberNames, author, timestamp);
         timeChanges.put(node.getID(), summarized);
         // remove the children's now-redundant changes from the change list
         for (Integer childID : childChanges.keySet())
@@ -288,6 +297,7 @@ public class ProjectDiff {
     private void loadTeamMemberData() throws IOException {
         Map<String, String> members = new HashMap<String, String>();
         indivTimeAttrs = new HashSet();
+        memberZeroAttrs = new HashMap();
         teamMemberNames = new HashMap();
         Element teamB = parseXML(versionB, TEAM_LIST_FILENAME);
         NodeList indivNodes = teamB.getElementsByTagName(TeamMember.TAG_NAME);
@@ -298,9 +308,13 @@ public class ProjectDiff {
             String name = indiv.getAttribute(TeamMember.NAME_ATTR);
             if (XMLUtils.hasValue(id))
                 members.put(id, initials);
-            indivTimeAttrs.add(initials + TEAM_MEMBER_TIME_SUFFIX);
+            String timeAttr = initials + TEAM_MEMBER_TIME_SUFFIX;
+            String zeroAttr = initials + TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
+            indivTimeAttrs.add(timeAttr);
+            memberZeroAttrs.put(initials, zeroAttr);
+            memberZeroAttrs.put(timeAttr, zeroAttr);
             teamMemberNames.put(initials, name);
-            teamMemberNames.put(initials + TEAM_MEMBER_TIME_SUFFIX, name);
+            teamMemberNames.put(timeAttr, name);
         }
         if (members.isEmpty())
             return;
@@ -443,6 +457,9 @@ public class ProjectDiff {
         @Override
         protected void tweakTreeNodeContent(WBSNodeContent content) {
             super.tweakTreeNodeContent(content);
+
+            // if any team members changed initials, perform those remappings
+            // in the data content node for the old WBS.
             if (changedInitialAttrs != null
                     && content.getWBSNode().getWbsModel() == wbsA) {
                 Map<String, String> remapped = null;
@@ -459,6 +476,14 @@ public class ProjectDiff {
                 }
                 if (remapped != null)
                     content.putAll(remapped);
+            }
+
+            // older versions of the WBS stored extraneous zeroes in the team
+            // member time attributes. Discard these to avoid false mismatches.
+            for (Iterator i = content.entrySet().iterator(); i.hasNext();) {
+                Entry<String, String> e = (Entry<String, String>) i.next();
+                if ("0.0".equals(e.getValue()))
+                    i.remove();
             }
         }
 

@@ -51,6 +51,8 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     private Set<String> indivTimeAttrs;
 
+    private Map<String, String> memberZeroAttrs;
+
     private Map<String, String> teamMemberNames;
 
     private Set<String> authors;
@@ -62,11 +64,13 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     protected ProjectWbsTimeChange(WBSNode node,
             List<ProjectWbsTimeChange> children, Set<String> indivTimeAttrs,
+            Map<String, String> memberZeroAttrs,
             Map<String, String> teamMemberNames, String author, Date timestamp) {
         super(node, author, timestamp);
 
         this.children = children;
         this.indivTimeAttrs = indivTimeAttrs;
+        this.memberZeroAttrs = memberZeroAttrs;
         this.teamMemberNames = teamMemberNames;
 
         // sum up information about time from each of our children
@@ -75,12 +79,14 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
             WBSNodeContent newData, Set<String> indivTimeAttrs,
+            Map<String, String> memberZeroAttrs,
             Map<String, String> teamMemberNames, String author, Date timestamp) {
         super(node, author, timestamp);
 
         this.oldData = oldData;
         this.newData = newData;
         this.indivTimeAttrs = indivTimeAttrs;
+        this.memberZeroAttrs = memberZeroAttrs;
         this.teamMemberNames = teamMemberNames;
 
         // load information about the time for each individual
@@ -238,8 +244,8 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         protected IndivTime(String timeAttr) {
             this.timeAttr = timeAttr;
             this.name = teamMemberNames.get(timeAttr);
-            this.oldTime = getDouble(oldData, timeAttr, Double.NaN);
-            this.newTime = getDouble(newData, timeAttr, Double.NaN);
+            this.oldTime = getTimeAssignment(oldData, timeAttr);
+            this.newTime = getTimeAssignment(newData, timeAttr);
             oldTotalTime = sumTime(oldTotalTime, oldTime);
             newTotalTime = sumTime(newTotalTime, newTime);
         }
@@ -321,6 +327,16 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         }
     }
 
+    private double getTimeAssignment(WBSNodeContent data, String timeAttr) {
+        double result = getDouble(data, timeAttr, 0);
+        if (result == 0) {
+            String zeroAttr = memberZeroAttrs.get(timeAttr);
+            if (!data.containsKey(zeroAttr))
+                result = Double.NaN;
+        }
+        return result;
+    }
+
     private static double getDouble(WBSNodeContent data, String attrName,
             double defaultVal) {
         String value = data.get(attrName);
@@ -339,11 +355,11 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             return a + b;
     }
 
-    private static boolean eq(double a, double b) {
+    public static boolean eq(double a, double b) {
         return Math.abs(a - b) < 0.0001;
     }
 
-    private static String fmt(double time) {
+    public static String fmt(double time) {
         return NumericDataValue.format(time);
     }
 

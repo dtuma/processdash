@@ -24,12 +24,14 @@
 package teamdash.hist;
 
 import static teamdash.hist.ProjectDiff.resources;
+import static teamdash.hist.ProjectWbsTimeChange.eq;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -39,15 +41,27 @@ import net.sourceforge.processdash.util.Diff;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class ProjectWbsNodeChange extends ProjectWbsChange {
+
+    private Set<String> indivTimeAttrs;
+
+    private Map<String, String> memberZeroAttrs;
+
+    private Map<String, String> teamMemberNames;
 
     private Map<WBSNode, Object> children;
 
     protected ProjectWbsNodeChange(WBSNode parent, WBSNode child,
-            Object changeType, String author, Date timestamp,
+            Object changeType, Set<String> indivTimeAttrs,
+            Map<String, String> memberZeroAttrs,
+            Map<String, String> teamMemberNames, String author, Date timestamp,
             Comparator<WBSNode> nodeComparator) {
         super(parent, author, timestamp);
+        this.indivTimeAttrs = indivTimeAttrs;
+        this.memberZeroAttrs = memberZeroAttrs;
+        this.teamMemberNames = teamMemberNames;
         this.children = new TreeMap<WBSNode, Object>(nodeComparator);
         addChild(child, changeType);
     }
@@ -76,22 +90,21 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
         for (Entry<WBSNode, Object> e : children.entrySet()) {
             WBSNode child = e.getKey();
             Object changeType = e.getValue();
-            String messageHtml;
-            String icon, iconTooltip;
             if (changeType instanceof RowData) {
                 RowData data = (RowData) changeType;
-                icon = data.getIcon();
-                iconTooltip = data.getIconTooltip();
-                messageHtml = data.getMessageHtml(child.getName());
+                result.add(new ProjectChangeReportRow(2, false, //
+                        data.getIcon(), data.getIconTooltip(), //
+                        data.getMessageHtml(child.getName()), false));
+                addChildRows(result, child, 2);
             } else {
-                icon = "wbsChangeNode" + changeType;
-                iconTooltip = resources.getString("Wbs.Node." + changeType
-                        + "_Icon_Tooltip");
-                messageHtml = getNameHtml(child);
+                String icon = "wbsChangeNode" + changeType;
+                String iconTooltip = resources.getString("Wbs.Node."
+                        + changeType + "_Icon_Tooltip");
+                WbsNodeTimeReportRow row = new WbsNodeTimeReportRow(child, 2,
+                        icon, iconTooltip);
+                result.add(row);
+                addChildRows(result, row, child, 2);
             }
-            result.add(new ProjectChangeReportRow(2, false, icon, iconTooltip,
-                    messageHtml, false));
-            addChildRows(result, child, 2);
         }
 
         return result;
@@ -102,11 +115,110 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
         indent++;
         for (WBSNode child : node.getWbsModel().getChildren(node)) {
             result.add(new ProjectChangeReportRow(indent, false, null, null,
-                getNameHtml(child), false));
+                    getNameHtml(child), false));
             addChildRows(result, child, indent);
         }
     }
-    
+
+    private void addChildRows(List<ProjectChangeReportRow> result,
+            WbsNodeTimeReportRow parentRow, WBSNode parentNode, int indent) {
+        indent++;
+        for (WBSNode child : parentNode.getWbsModel().getChildren(parentNode)) {
+            WbsNodeTimeReportRow childRow = new WbsNodeTimeReportRow(child,
+                    indent, null, null);
+            result.add(childRow);
+            addChildRows(result, childRow, child, indent);
+            parentRow.sumChildData(childRow);
+        }
+        parentRow.loadDirectTimeData(parentNode);
+    }
+
+    private class WbsNodeTimeReportRow extends ProjectChangeReportRow {
+
+        private double totalTime, totalIndivTime;
+
+        private Map<String, Double> indivTimes;
+
+        protected WbsNodeTimeReportRow(WBSNode node, int indent, String icon,
+                String iconTooltip) {
+            super(indent, false, icon, iconTooltip, getNameHtml(node), false);
+            indivTimes = new TreeMap<String, Double>();
+        }
+
+        public void sumChildData(WbsNodeTimeReportRow childRow) {
+            this.totalTime += childRow.totalTime;
+            this.totalIndivTime += childRow.totalIndivTime;
+
+            for (Entry<String, Double> e : childRow.indivTimes.entrySet()) {
+                String name = e.getKey();
+                Double newIndivTime = e.getValue();
+                Double oldIndivTime = this.indivTimes.get(name);
+                if (oldIndivTime != null)
+                    newIndivTime += oldIndivTime;
+                this.indivTimes.put(name, newIndivTime);
+            }
+        }
+
+        public void loadDirectTimeData(WBSNode node) {
+            // load the overall team time estimate for this node
+            if (totalTime == 0)
+                totalTime = getDouble(node, TeamTimeColumn.TEAM_TIME_ATTR, 0.0);
+
+            // look for time estimates to assigned individuals
+            if (indivTimes.isEmpty()) {
+                for (String indivAttr : indivTimeAttrs) {
+                    double indivTime = getTimeAssignment(node, indivAttr);
+                    if (!Double.isNaN(indivTime)) {
+                        String name = teamMemberNames.get(indivAttr);
+                        indivTimes.put(name, indivTime);
+                        totalIndivTime += indivTime;
+                    }
+                }
+            }
+        }
+
+        private double getDouble(WBSNode node, String attr, double defaultVal) {
+            String val = (String) node.getAttribute(attr);
+            return (val == null ? defaultVal : Double.parseDouble(val));
+        }
+
+        private double getTimeAssignment(WBSNode node, String timeAttr) {
+            double result = getDouble(node, timeAttr, 0);
+            if (result == 0) {
+                String zeroAttr = memberZeroAttrs.get(timeAttr);
+                if (node.getAttribute(zeroAttr) == null)
+                    result = Double.NaN;
+            }
+            return result;
+        }
+
+        @Override
+        public String getHtml() {
+            StringBuilder result = new StringBuilder();
+            result.append(super.getHtml());
+
+            // maybe append the total time estimate for this component/task
+            if (!eq(totalTime, totalIndivTime) || indivTimes.size() != 1) {
+                result.append(TIME_SEPARATOR);
+                result.append(HTMLUtils.escapeEntities(resources.format(
+                    "Wbs.Node.Hours_FMT", ProjectWbsTimeChange.fmt(totalTime))));
+            }
+
+            // append time estimates for each individual
+            boolean needsComma = false;
+            for (Entry<String, Double> e : indivTimes.entrySet()) {
+                result.append(needsComma ? ", " : TIME_SEPARATOR);
+                result.append(HTMLUtils.escapeEntities(e.getKey()));
+                result.append("&nbsp;(");
+                result.append(ProjectWbsTimeChange.fmt(e.getValue()));
+                result.append(")");
+                needsComma = true;
+            }
+
+            return result.toString();
+        }
+    }
+
     private interface RowData {
         public String getIcon();
 
@@ -221,5 +333,7 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
     }
 
     private static final Pattern WORD_PAT = Pattern.compile("\\S+\\s*");
+
+    private static final String TIME_SEPARATOR = "<span class=\"separator\">&mdash;</span>";
 
 }

@@ -79,3 +79,8 @@ span.deletedWord {
     font-weight: bold;
     text-decoration: line-through;
 }
+
+span.separator {
+    color: #777;
+    padding: 0px 10px;
+}

@@ -1764,7 +1764,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     public static String getMemberAssignedZeroAttrName(String initials) {
         String result = MEMBER_ASSIGNED_ZERO_ATTR_NAMES.get(initials);
         if (result == null) {
-            result = initials.replace('_', '-') + " (Assigned With Zero)";
+            result = initials.replace('_', '-')
+                    + TeamMemberTimeColumn.TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
             result = result.intern();
             MEMBER_ASSIGNED_ZERO_ATTR_NAMES.put(initials, result);
         }
