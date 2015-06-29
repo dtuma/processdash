@@ -23,29 +23,29 @@
 
 package teamdash.hist;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import net.sourceforge.processdash.util.HTMLUtils;
 
-import teamdash.wbs.WBSFilenameConstants;
+public class ProjectHistoryException extends Exception {
 
-public class ProjectHistoryBridgedFile extends ProjectHistoryBridgedAbstract {
+    private String errorKey;
 
-    public ProjectHistoryBridgedFile(File historyZipFile) throws IOException {
-        loadFileRevisionsZip(historyZipFile);
-        initChanges();
+    private String[] arguments;
+
+    public ProjectHistoryException(String errorKey, String... arguments) {
+        this.errorKey = "Errors." + errorKey;
+        for (int i = arguments.length; i-- > 0;)
+            arguments[i] = HTMLUtils.escapeEntities(arguments[i]);
+        this.arguments = arguments;
     }
 
-    @Override
-    protected InputStream getChangeHistory() throws IOException {
-        return getVersionFile(WBSFilenameConstants.CHANGE_HISTORY_FILE,
-            Long.MAX_VALUE);
+    public ProjectHistoryException(Throwable t, String errorKey,
+            String... arguments) {
+        this(errorKey, arguments);
+        initCause(t);
     }
 
-    @Override
-    public ProjectHistoryException wrapException(Exception e) {
-        return new ProjectHistoryException(e, "Dir.Cannot_Read_HTML_FMT",
-                "<test zip>");
+    public String getHtml() {
+        return ProjectDiff.resources.format(errorKey, arguments);
     }
 
 }

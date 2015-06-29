@@ -79,6 +79,7 @@ import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv1.MCFEntry;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
@@ -1340,6 +1341,8 @@ public class TemplateLoader {
             return Settings.isPersonalMode();
         else if ("hybridMode".equals(packageID))
             return Settings.isHybridMode();
+        else if ("liveMode".equals(packageID))
+            return !CompressedInstanceLauncher.isRunningFromCompressedData();
 
         String installedVersion = getPackageVersion(packageID);
         if (installedVersion == null)

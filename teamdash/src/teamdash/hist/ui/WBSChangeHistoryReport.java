@@ -32,10 +32,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.api.PDashContext;
+import net.sourceforge.processdash.net.http.PDashServletUtils;
+
 import teamdash.hist.ProjectChangeList;
 import teamdash.hist.ProjectDiff;
 import teamdash.hist.ProjectHistory;
-import teamdash.hist.ProjectHistoryTest;
+import teamdash.hist.ProjectHistoryException;
+import teamdash.hist.ProjectHistoryFactory;
 
 public class WBSChangeHistoryReport extends HttpServlet {
 
@@ -43,24 +47,41 @@ public class WBSChangeHistoryReport extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // TODO: get history from active project, not mock data.
-        // PDashContext dash = PDashServletUtils.getContext(req);
-        // String path = dash.getProjectPath();
+        try {
+            loadHistory(req);
+        } catch (ProjectHistoryException u) {
+            u.printStackTrace();
+            req.setAttribute("errorMessage", u.getHtml());
+        }
 
-        ProjectHistory hist = ProjectHistoryTest.getMockHistory(1);
+        RequestDispatcher disp = getServletContext().getRequestDispatcher(
+            "/WEB-INF/jsp/wbsChangeHistory.jsp");
+        disp.forward(req, resp);
+    }
+
+    private void loadHistory(HttpServletRequest req)
+            throws ProjectHistoryException {
+
+        PDashContext ctx = PDashServletUtils.getContext(req);
+        ProjectHistory hist = ProjectHistoryFactory.getProjectHistory(ctx
+                .getData());
+        if (hist == null)
+            throw new ProjectHistoryException("Not_Team_Project_HTML_FMT",
+                    ctx.getProjectPath());
 
         String dateParam = req.getParameter("before");
         Date beforeDate = dateParam == null ? null : new Date(
                 Long.parseLong(dateParam));
 
-        ProjectChangeList changes = ProjectDiff.getChanges(hist, beforeDate,
-            10, true, true);
+        ProjectChangeList changes;
+        try {
+            changes = ProjectDiff.getChanges(hist, beforeDate, 10, true, true);
+        } catch (IOException ioe) {
+            throw hist.wrapException(ioe);
+        }
+
         req.setAttribute("changes", changes);
         req.setAttribute("followupTimestamp", changes.getFollowupTimestamp());
-
-        RequestDispatcher disp = getServletContext().getRequestDispatcher(
-            "/WEB-INF/jsp/wbsChangeHistory.jsp");
-        disp.forward(req, resp);
     }
 
 }

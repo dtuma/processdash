@@ -24,6 +24,7 @@
 package teamdash.hist;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
@@ -48,16 +49,22 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.ChangeHistory;
-import teamdash.wbs.WBSFilenameConstants;
 import teamdash.wbs.ChangeHistory.Entry;
+import teamdash.wbs.WBSFilenameConstants;
 
 public class ProjectHistoryLocal implements ProjectHistory<Entry> {
+
+    private File dir;
 
     private List<Entry> versions;
 
     private Map<String, File> zipFiles;
 
     public ProjectHistoryLocal(File dir) throws IOException {
+        if (!dir.isDirectory())
+            throw new FileNotFoundException("No such directory " + dir);
+        this.dir = dir;
+
         versions = new ChangeHistory(dir).getEntries();
         List<Entry> firstEntries = null;
         if (versions.size() > 1)
@@ -189,6 +196,12 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
             return null;
 
         return zip.getInputStream(entry);
+    }
+
+    @Override
+    public ProjectHistoryException wrapException(Exception e) {
+        return new ProjectHistoryException(e, "Dir.Cannot_Read_HTML_FMT",
+                dir.getPath());
     }
 
 }

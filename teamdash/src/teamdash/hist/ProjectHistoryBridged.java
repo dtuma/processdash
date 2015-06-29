@@ -173,6 +173,12 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         return result;
     }
 
+    @Override
+    public ProjectHistoryException wrapException(Exception e) {
+        return new ProjectHistoryException(e, "Server.Cannot_Read_HTML_FMT",
+                baseUrl.toString());
+    }
+
     private static final String[] FILES_OF_INTEREST = {
             WBSFilenameConstants.WBS_FILENAME,
             WBSFilenameConstants.TEAM_LIST_FILENAME,

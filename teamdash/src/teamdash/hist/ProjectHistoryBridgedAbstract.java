@@ -87,13 +87,15 @@ public abstract class ProjectHistoryBridgedAbstract implements
             // historical versions one at a time.
             return false;
         }
+        ZipEntry entry = revisionZip.getEntry("manifest.xml");
+        if (entry == null)
+            return false;
 
         // parse the manifest from the ZIP file
         if (revisions == null)
             revisions = new ArrayList<ManifestEntry>();
         ManifestEntry changeHist = null, teamList = null;
-        Element revisionsXml = parseXml(revisionZip.getInputStream(revisionZip
-                .getEntry("manifest.xml")));
+        Element revisionsXml = parseXml(revisionZip.getInputStream(entry));
         NodeList revisionTags = revisionsXml.getElementsByTagName("file");
         for (int i = 0; i < revisionTags.getLength(); i++) {
             Element tag = (Element) revisionTags.item(i);

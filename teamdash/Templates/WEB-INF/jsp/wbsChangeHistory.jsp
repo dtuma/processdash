@@ -14,6 +14,14 @@
 
 <c:choose>
 
+
+<c:when test="${!empty errorMessage}">
+<div class="errorMessage">
+<c:out value="${errorMessage}" escapeXml="false"/>
+</div>
+</c:when>
+
+
 <c:when test="${!empty changes}">
 
 <p>
@@ -91,6 +99,7 @@
 </p>
 
 </c:when>
+
 
 <c:otherwise>
 <p>No changes found.</p>

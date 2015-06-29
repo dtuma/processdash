@@ -156,6 +156,9 @@
         inPackage="teamTools version 2.4.4"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;team"
         title="    Sync Work Breakdown Structure"/>
+    <html ID="sync" href="team/wbsChangeHistory"
+        title="    WBS Change History Report"
+        inPackage="teamTools version 4.3.10; liveMode"/>
 
     <html ID="tools" href="PID/team_tools.shtm"
         title="Team Project Tools"/>
@@ -292,6 +295,9 @@
         inPackage="teamTools version 2.4.7"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;indiv"
         title="    Sync Work Breakdown Structure"/>
+    <html ID="sync" href="team/wbsChangeHistory"
+        title="    WBS Change History Report"
+        inPackage="teamTools version 4.3.10; liveMode"/>
 
     <html ID="params" href="PID/indiv_project_parameters.shtm"
         title="Project Parameters and Settings"/>
