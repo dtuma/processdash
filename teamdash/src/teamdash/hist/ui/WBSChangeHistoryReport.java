@@ -32,7 +32,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.api.PDashContext;
+import net.sourceforge.processdash.api.PDashData;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 
 import teamdash.hist.ProjectChangeList;
@@ -63,8 +65,8 @@ public class WBSChangeHistoryReport extends HttpServlet {
             throws ProjectHistoryException {
 
         PDashContext ctx = PDashServletUtils.getContext(req);
-        ProjectHistory hist = ProjectHistoryFactory.getProjectHistory(ctx
-                .getData());
+        PDashData data = ctx.getData();
+        ProjectHistory hist = ProjectHistoryFactory.getProjectHistory(data);
         if (hist == null)
             throw new ProjectHistoryException("Not_Team_Project_HTML_FMT",
                     ctx.getProjectPath());
@@ -82,6 +84,13 @@ public class WBSChangeHistoryReport extends HttpServlet {
 
         req.setAttribute("changes", changes);
         req.setAttribute("followupTimestamp", changes.getFollowupTimestamp());
+
+        // compute the URI that will be used to open WBS hyperlinks
+        String processID = data.getString("Team_Process_PID");
+        String modeIndicator = Settings.isPersonalMode() ? "indiv" : "forteam";
+        String openWbsUri = "../" + processID + "/setup/openWBS.shtm?trigger&"
+                + modeIndicator + "&showItem=";
+        req.setAttribute("openWbsUri", openWbsUri);
     }
 
 }

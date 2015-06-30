@@ -40,6 +40,8 @@ public class ProjectChangeReportRow {
 
     private String html;
 
+    String itemHref;
+
     boolean visible;
 
     boolean expandable;
@@ -47,12 +49,13 @@ public class ProjectChangeReportRow {
     String expansionId;
 
     protected ProjectChangeReportRow(int indent, boolean expanded, String icon,
-            String iconTooltip, String text, boolean escapeText) {
+            String iconTooltip, String text, boolean escapeText, String itemHref) {
         this.indent = indent;
         this.expanded = expanded;
         this.icon = icon;
         this.iconTooltip = iconTooltip;
         this.html = (escapeText ? HTMLUtils.escapeEntities(text) : text);
+        this.itemHref = itemHref;
     }
 
     public int getIndent() {
@@ -85,6 +88,10 @@ public class ProjectChangeReportRow {
 
     public String getHtml() {
         return html;
+    }
+
+    public String getItemHref() {
+        return itemHref;
     }
 
     public static List<ProjectChangeReportRow> initExpansion(

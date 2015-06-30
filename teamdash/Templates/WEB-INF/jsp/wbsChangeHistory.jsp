@@ -77,7 +77,12 @@
         <c:if test="${not empty row.icon}"><img src="${row.icon}.png"
             class="changeIcon" ${not empty row.iconTooltip ? tipStr : '' }></c:if>
 
+        <c:if test="${!empty row.itemHref}"><a class="itemHref"
+            href="${openWbsUri}${row.itemHref}"></c:if>
+
         <c:out value="${row.html}" escapeXml="false"/>
+
+        <c:if test="${!empty row.itemHref}"></a></c:if>
 
     </div></td></tr>
 

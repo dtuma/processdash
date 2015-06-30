@@ -57,6 +57,16 @@ a.treeTableFolder.shiftLeft {
     left: -33px;
 }
 
+a.itemHref {
+    color: black;
+    text-decoration: none;
+}
+
+a.itemHref:hover {
+    color: blue;
+    text-decoration: underline;
+}
+
 a.newestLink {
     background: url("2leftarrow.png") no-repeat left center;
     padding-left: 20px;

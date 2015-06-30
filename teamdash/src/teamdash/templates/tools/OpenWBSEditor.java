@@ -48,7 +48,9 @@ import java.util.Properties;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -217,12 +219,18 @@ public class OpenWBSEditor extends TinyCGIBase {
     public Map<String, String> getLaunchProperties(String url) {
         Map<String,String> result = new HashMap<String,String>();
 
+        String itemHref = null;
+        if (parameters.get("showItem") instanceof String)
+            itemHref = getParameter("showItem");
+
         if (parameters.containsKey("bottomUp"))
             result.put("teamdash.wbs.bottomUp", "true");
 
         if (parameters.containsKey("indiv")) {
             result.put("teamdash.wbs.indiv", "true");
             result.put("teamdash.wbs.indivInitials", getIndivInitials());
+            if (!StringUtils.hasValue(itemHref))
+                itemHref = getItemHrefForIndivActiveTask();
         }
 
         if (parameters.containsKey("team"))
@@ -253,6 +261,8 @@ public class OpenWBSEditor extends TinyCGIBase {
             getCustomColumnSpecURLs());
         result.put("teamdash.wbs.globalInitialsPolicy",
             getGlobalInitialsPolicy());
+        if (StringUtils.hasValue(itemHref))
+            result.put("teamdash.wbs.showItem", itemHref);
         if (parameters.containsKey("dumpAndExit"))
             result.put("teamdash.wbs.dumpAndExit", "true");
 
@@ -267,6 +277,20 @@ public class OpenWBSEditor extends TinyCGIBase {
                 return result;
         }
         return null;
+    }
+
+    private String getItemHrefForIndivActiveTask() {
+        String activeTask = ((ProcessDashboard) getDashboardContext())
+                .getActiveTaskModel().getPath();
+        if (activeTask == null || !activeTask.startsWith(getPrefix()))
+            return null;
+
+        SaveableData wbsID = getDataRepository().getInheritableValue(
+            activeTask, "WBS_Unique_ID");
+        if (wbsID == null)
+            return null;
+        else
+            return "wbs/" + wbsID.getSimpleValue().format();
     }
 
     private String getProcessURL() {
@@ -416,7 +440,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         } else {
             editor = WBSEditor.createAndShowEditor(new String[] { directory },
                 bottomUp, indiv, indivInitials, showTeam, syncURL, false,
-                readOnly, getOwner());
+                readOnly, null, getOwner());
             if (editor != null)
                 editors.put(key, editor);
             else

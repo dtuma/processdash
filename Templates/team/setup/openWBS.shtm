@@ -38,6 +38,7 @@
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
     <!--#parameter name="reverseSyncURL" var="reverseSyncURI" -->
     <!--#parameter name="processURL" var="processURL" -->
+    <!--#parameter name="showItem" var="showItem" -->
     <!--#parameter name="directoryURL" var="[Team_Data_Directory_URL]" -->
     <!--#parameter name="directory" var="[Team_Data_Directory]" -->
     <!--#parameter name="indivInitials" var="[Indiv_Initials]" -->

@@ -84,7 +84,7 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
 
         // add an initial row naming the parent node
         result.add(new ProjectChangeReportRow(0, true, "wbsChange", null,
-                fmt(getNode()), true));
+                fmt(getNode()), true, "wbs/" + getNode().getUniqueID()));
 
         // now add rows for each of the affected children
         for (Entry<WBSNode, Object> e : children.entrySet()) {
@@ -94,7 +94,7 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
                 RowData data = (RowData) changeType;
                 result.add(new ProjectChangeReportRow(2, false, //
                         data.getIcon(), data.getIconTooltip(), //
-                        data.getMessageHtml(child.getName()), false));
+                        data.getMessageHtml(child.getName()), false, null));
                 addChildRows(result, child, 2);
             } else {
                 String icon = "wbsChangeNode" + changeType;
@@ -115,7 +115,7 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
         indent++;
         for (WBSNode child : node.getWbsModel().getChildren(node)) {
             result.add(new ProjectChangeReportRow(indent, false, null, null,
-                    getNameHtml(child), false));
+                    getNameHtml(child), false, null));
             addChildRows(result, child, indent);
         }
     }
@@ -141,7 +141,8 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
 
         protected WbsNodeTimeReportRow(WBSNode node, int indent, String icon,
                 String iconTooltip) {
-            super(indent, false, icon, iconTooltip, getNameHtml(node), false);
+            super(indent, false, icon, iconTooltip, getNameHtml(node), false,
+                    null);
             indivTimes = new TreeMap<String, Double>();
         }
 

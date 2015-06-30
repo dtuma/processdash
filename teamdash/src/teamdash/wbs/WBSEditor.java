@@ -130,6 +130,7 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
 import teamdash.merge.ui.MergeConflictDialog;
+import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
@@ -161,6 +162,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public static final String INTENT_WBS_EDITOR = "showWbsEditor";
     public static final String INTENT_TEAM_EDITOR = "showTeamListEditor";
+    public static final String INTENT_SHOW_ITEM = "showItem/";
 
     WorkingDirectory workingDirectory;
     TeamProject teamProject;
@@ -715,6 +717,15 @@ public class WBSEditor implements WindowListener, SaveListener,
                 }});
             return "OK";
         }
+        if (message != null && message.startsWith(INTENT_SHOW_ITEM)) {
+            final String itemHref = message.substring(INTENT_SHOW_ITEM.length());
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    raiseWindow();
+                    showHyperlinkedItem(itemHref);
+                }});
+            return "OK";
+        }
         if (LockMessage.LOCK_LOST_MESSAGE.equals(message)) {
             if (readOnly == false) {
                 readOnly = true;
@@ -772,6 +783,36 @@ public class WBSEditor implements WindowListener, SaveListener,
                     resources.getStrings("Errors.Lost_Lock.Save_Advice") };
         JOptionPane.showMessageDialog(frame, message, title,
             JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showHyperlinkedItem(String href) {
+        String[] parts = href.split("/");
+        MergeConflictHyperlinkHandler handler = getHyperlinkHandler(parts[0]);
+        if (handler != null && parts.length > 1)
+            handler.displayHyperlinkedItem(parts[1]);
+    }
+
+    private MergeConflictHyperlinkHandler getHyperlinkHandler(String modelType) {
+        if (isModelTypeEqual(ModelType.Wbs, modelType)) {
+            return tabPanel;
+        } else if (isModelTypeEqual(ModelType.TeamList, modelType)) {
+            showTeamListEditor();
+            return teamListEditor;
+        } else if (isModelTypeEqual(ModelType.Workflows, modelType)) {
+            showWorkflowEditor();
+            return workflowEditor;
+        } else if (isModelTypeEqual(ModelType.Milestones, modelType)) {
+            showMilestonesEditor();
+            return milestonesEditor;
+        } else if (isModelTypeEqual(ModelType.Proxies, modelType)) {
+            showProxyEditor();
+            return proxyEditor;
+        } else {
+            return null;
+        }
+    }
+    private boolean isModelTypeEqual(ModelType modelType, String str) {
+        return modelType.toString().equalsIgnoreCase(str);
     }
 
     private void showEditPreferencesDialog() {
@@ -1696,7 +1737,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     public static WBSEditor createAndShowEditor(String[] locations,
             boolean bottomUp, boolean indivMode, String initials,
             boolean showTeamList, String syncURL, boolean exitOnClose,
-            boolean forceReadOnly, String owner) {
+            boolean forceReadOnly, String itemHref, String owner) {
 
         LargeFontsHelper.maybeInitialize();
         try {
@@ -1731,7 +1772,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         else // if not bottom up
         {
-            String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
+            String intent;
+            if (showTeamList)
+                intent = INTENT_TEAM_EDITOR;
+            else if (StringUtils.hasValue(itemHref))
+                intent = INTENT_SHOW_ITEM + itemHref;
+            else
+                intent = INTENT_WBS_EDITOR;
             dispatch = new LockMessageDispatcher();
             workingDirectory = configureWorkingDirectory(locations, intent,
                 dispatch);
@@ -1771,6 +1818,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             } else {
                 w.show();
                 w.showApplicableStartupMessages();
+                if (itemHref != null)
+                    w.showHyperlinkedItem(itemHref);
             }
             HttpAuthenticator.setParentComponent(w.tabPanel);
 
@@ -2037,10 +2086,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly")
                 || TeamServerSelector.isHistoricalModeEnabled();
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
+        String itemHref = System.getProperty("teamdash.wbs.showItem");
         String owner = System.getProperty("teamdash.wbs.owner");
         try {
             createAndShowEditor(locations, bottomUp, indivMode, indivInitials,
-                showTeam, syncURL, true, readOnly, owner);
+                showTeam, syncURL, true, readOnly, itemHref, owner);
         } catch (HeadlessException he) {
             he.printStackTrace();
             System.exit(1);

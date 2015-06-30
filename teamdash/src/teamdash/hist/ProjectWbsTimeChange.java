@@ -132,7 +132,7 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
         // add an initial row naming the parent node
         result.add(new ProjectChangeReportRow(0, true, "wbsChange", null,
-                fmt(getNode()), true));
+                fmt(getNode()), true, "wbs/" + getNode().getUniqueID()));
 
         // simple wording for most common case: exactly one nonzero individual,
         // whose time changed
@@ -142,7 +142,7 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             String message = resources.format("Wbs.Time.Indiv_Message_FMT",
                 change.name, fmt(change.oldTime), fmt(change.newTime));
             result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
-                    tooltip, message, true));
+                    tooltip, message, true, null));
             return result;
         }
 
@@ -152,7 +152,7 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             String message = resources.format("Wbs.Time.Overall_Message_FMT",
                 fmt(oldTotalTime), fmt(newTotalTime));
             result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
-                    tooltip, message, true));
+                    tooltip, message, true, null));
         }
 
         // append a message about task assignment changes
@@ -181,7 +181,7 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             String message = resources.format(keyPrefix + "Message_FMT",
                 fmt(deleted.values()), fmt(added.values()));
             result.add(new ProjectChangeReportRow(2, true, "wbsAssignment",
-                    tooltip, message, true));
+                    tooltip, message, true, null));
         }
 
         // append a message about changes to existing time estimates
@@ -191,7 +191,7 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             message = StringUtils.findAndReplace(message, " -&gt; ", "&rarr;");
             message = resources.format("Wbs.Time.Changes_Message_FMT", message);
             result.add(new ProjectChangeReportRow(2, true, "wbsTimeChange",
-                    tooltip, message, false));
+                    tooltip, message, false, null));
         }
 
         return result;
