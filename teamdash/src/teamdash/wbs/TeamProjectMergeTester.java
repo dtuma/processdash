@@ -32,16 +32,18 @@ import teamdash.wbs.TeamProjectMergeCoordinator.QuickTeamProject;
 public class TeamProjectMergeTester {
 
     public static void main(String[] args) {
-        File mainDir, baseDir, incomingDir;
-        if (args.length == 3) {
+        File mainDir, baseDir, incomingDir, mergedDir;
+        if (args.length >= 3) {
             baseDir = new File(args[0]);
             mainDir = new File(args[1]);
             incomingDir = new File(args[2]);
+            mergedDir = (args.length > 3 ? new File(args[3]) : null);
         } else {
             String rootPath = args[0];
             baseDir = new File(rootPath, "base");
             mainDir = new File(rootPath, "main");
             incomingDir = new File(rootPath, "incoming");
+            mergedDir = new File(rootPath, "merged");
         }
         TeamProject base = new QuickTeamProject(baseDir, "base");
         TeamProject main = new QuickTeamProject(mainDir, "main");
@@ -54,6 +56,8 @@ public class TeamProjectMergeTester {
 
             TeamProject merged = merger.getMerged();
             merger.getConflicts(new DMS(merged, main.getTeamProcess()));
+            if (mergedDir != null && mergedDir.isDirectory())
+                merged.saveCopy(mergedDir);
         } catch (Exception e) {
             e.printStackTrace();
         }
