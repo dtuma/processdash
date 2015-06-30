@@ -440,10 +440,20 @@ public class ProjectDiff {
                 }
             }
 
-            ProjectDiff diff = new ProjectDiff(hist, prevVersion, oneVersion,
-                    lastDiff);
-            result.addAll(diff.getChanges());
-            lastDiff = diff;
+            try {
+                ProjectDiff diff = new ProjectDiff(hist, prevVersion,
+                        oneVersion, lastDiff);
+                result.addAll(diff.getChanges());
+                lastDiff = diff;
+            } catch (FileNotFoundException fnfe) {
+                // the change history file can sometimes contain more history
+                // than is actually stored in the PDES (for example, when a
+                // legacy project has been migrated into the PDES). In these
+                // cases, scrolling back far enough will generate a "file not
+                // found" exception. Catch this exception and treat it as the
+                // end of searchable history.
+                break;
+            }
             lastDateStr = thisDateStr;
         }
         return result;
