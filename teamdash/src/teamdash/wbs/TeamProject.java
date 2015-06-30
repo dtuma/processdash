@@ -330,7 +330,7 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     /** Save a WBSModel. Return false on error. */
-    private boolean saveXML(WBSModel model, String filename) {
+    private boolean saveXML(WBSModel model, File directory, String filename) {
         try {
             File f = new File(directory, filename);
             RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
@@ -591,7 +591,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the work breakdown structure */
     private boolean saveWBS(File directory) {
-        return saveXML(wbs, WBS_FILENAME);
+        return saveXML(wbs, directory, WBS_FILENAME);
     }
 
 
@@ -614,7 +614,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the common workflows */
     private boolean saveWorkflows(File directory) {
-        return saveXML(workflows, FLOW_FILENAME);
+        return saveXML(workflows, directory, FLOW_FILENAME);
     }
 
 
@@ -637,7 +637,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the size estimation proxies */
     private boolean saveProxies(File directory) {
-        return saveXML(proxies, PROXY_FILENAME);
+        return saveXML(proxies, directory, PROXY_FILENAME);
     }
 
 
@@ -660,7 +660,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the project milestones */
     private boolean saveMilestones(File directory) {
-        return saveXML(milestones, MILESTONES_FILENAME);
+        return saveXML(milestones, directory, MILESTONES_FILENAME);
     }
 
     public long getFileModificationTime() {
