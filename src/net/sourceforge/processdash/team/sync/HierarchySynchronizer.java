@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -657,6 +657,9 @@ public class HierarchySynchronizer {
 
         // We don't delete nodes that were manually created by a user.
         isDeletable = isDeletable && !isUserCreatedNode(key);
+
+        // this node is only deletable if it hasn't been marked complete
+        isDeletable = isDeletable && !testData(getData(path, "Completed"));
 
         // this node is only deletable if no time has been logged here
         isDeletable = isDeletable && isZero(getData(path, "Time"));
