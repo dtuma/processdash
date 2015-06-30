@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -479,11 +480,22 @@ public class ProjectDiff {
             }
 
             // older versions of the WBS stored extraneous zeroes in the team
-            // member time attributes. Discard these to avoid false mismatches.
+            // member time attributes. Some also stored "assigned with zero" for
+            // a person with real time. Discard these to avoid false mismatches.
+            List<String> nonzeroIndivs = new LinkedList<String>();
             for (Iterator i = content.entrySet().iterator(); i.hasNext();) {
                 Entry<String, String> e = (Entry<String, String>) i.next();
-                if ("0.0".equals(e.getValue()))
+                if ("0.0".equals(e.getValue()) || "0".equals(e.getValue())) {
                     i.remove();
+                } else if (e.getKey().endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
+                    nonzeroIndivs.add(e.getKey());
+                }
+            }
+            if (nonzeroIndivs != null) {
+                for (String oneIndiv : nonzeroIndivs) {
+                    String zeroAttr = memberZeroAttrs.get(oneIndiv);
+                    content.remove(zeroAttr);
+                }
             }
         }
 
