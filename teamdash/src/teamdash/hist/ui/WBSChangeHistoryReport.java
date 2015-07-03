@@ -38,7 +38,7 @@ import net.sourceforge.processdash.api.PDashData;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 
 import teamdash.hist.ProjectChangeList;
-import teamdash.hist.ProjectDiff;
+import teamdash.hist.ProjectChangeListFactory;
 import teamdash.hist.ProjectHistory;
 import teamdash.hist.ProjectHistoryException;
 import teamdash.hist.ProjectHistoryFactory;
@@ -77,7 +77,8 @@ public class WBSChangeHistoryReport extends HttpServlet {
 
         ProjectChangeList changes;
         try {
-            changes = ProjectDiff.getChanges(hist, beforeDate, 10, true, true);
+            changes = ProjectChangeListFactory.getChanges(hist, beforeDate, 10,
+                true, true);
         } catch (IOException ioe) {
             throw hist.wrapException(ioe);
         }
