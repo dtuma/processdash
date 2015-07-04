@@ -23,7 +23,7 @@
 
 package teamdash.wbs;
 
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.merge.ModelType;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 

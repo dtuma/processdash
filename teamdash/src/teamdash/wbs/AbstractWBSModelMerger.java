@@ -36,11 +36,11 @@ import teamdash.merge.AttributeMerger;
 import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ModelType;
 import teamdash.merge.TreeDiff;
 import teamdash.merge.TreeMerger;
 import teamdash.merge.TreeNode;
 import teamdash.merge.ui.MergeConflictNotification;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
 public abstract class AbstractWBSModelMerger<W extends WBSModel> {
 

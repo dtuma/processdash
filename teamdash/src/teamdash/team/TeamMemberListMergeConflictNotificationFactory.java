@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.MissingResourceException;
 
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictNotification;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
 public class TeamMemberListMergeConflictNotificationFactory {
 

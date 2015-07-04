@@ -33,10 +33,10 @@ import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.AttributeMerger;
+import teamdash.merge.ModelType;
 import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.merge.DependentAttributeMerger;
 import teamdash.merge.MergeWarning.Severity;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.columns.AbstractNotesColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;

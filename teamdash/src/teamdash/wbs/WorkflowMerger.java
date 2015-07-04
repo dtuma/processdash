@@ -26,8 +26,8 @@ package teamdash.wbs;
 import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.DependentAttributeMerger;
+import teamdash.merge.ModelType;
 import teamdash.merge.MergeWarning.Severity;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.columns.AbstractNotesColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;

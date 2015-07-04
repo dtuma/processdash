@@ -55,7 +55,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.WrappingHtmlLabel;
 
 import teamdash.merge.MergeWarning;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.UndoList;

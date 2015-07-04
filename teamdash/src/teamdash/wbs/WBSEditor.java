@@ -129,9 +129,9 @@ import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
+import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;

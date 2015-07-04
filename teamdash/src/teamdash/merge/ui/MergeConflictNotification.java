@@ -37,58 +37,11 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ModelType;
 import teamdash.team.TeamMember;
-import teamdash.wbs.ProxyWBSModel;
-import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSNode;
 
 public class MergeConflictNotification {
-
-    public enum ModelType {
-        Wbs {
-            public Object getAssociatedModel(TeamProject teamProject) {
-                return teamProject.getWBS();
-            }
-        },
-
-        Workflows {
-            public Object getAssociatedModel(TeamProject teamProject) {
-                return teamProject.getWorkflows();
-            }
-        },
-
-        Proxies {
-            public Object getAssociatedModel(TeamProject teamProject) {
-                return teamProject.getProxies();
-            }
-            @Override
-            public String getNodeName(Object node) {
-                return ProxyWBSModel.getProxyItemName((WBSNode) node);
-            }
-        },
-
-        Milestones {
-            public Object getAssociatedModel(TeamProject teamProject) {
-                return teamProject.getMilestones();
-            }
-        },
-
-        TeamList {
-            public Object getAssociatedModel(TeamProject teamProject) {
-                return teamProject.getTeamMemberList();
-            }
-            @Override
-            public String getNodeName(Object node) {
-                return ((TeamMember) node).getName();
-            }
-        };
-
-        public abstract Object getAssociatedModel(TeamProject teamProject);
-
-        public String getNodeName(Object node) {
-            return ((WBSNode) node).getName();
-        }
-    };
 
     private ModelType model;
 

@@ -25,8 +25,8 @@ package teamdash.wbs;
 
 import java.io.File;
 
+import teamdash.merge.ModelType;
 import teamdash.merge.ui.DataModelSource;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.TeamProjectMergeCoordinator.QuickTeamProject;
 
 public class TeamProjectMergeTester {
@@ -82,6 +82,7 @@ public class TeamProjectMergeTester {
             case Workflows: return workflows;
             case Proxies: return proxies;
             case Milestones: return milestones;
+            case TeamList: return null;
             }
             return null;
         }

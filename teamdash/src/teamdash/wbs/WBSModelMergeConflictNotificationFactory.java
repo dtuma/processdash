@@ -34,10 +34,10 @@ import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ModelType;
 import teamdash.merge.ui.DataModelSource;
 import teamdash.merge.ui.MergeConflictHandler;
 import teamdash.merge.ui.MergeConflictNotification;
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
 public class WBSModelMergeConflictNotificationFactory {
 
