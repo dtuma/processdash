@@ -290,15 +290,8 @@ The author(s) may be contacted at:
 
   <target name="TeamTools"
           depends="-noBuild-init,javahelp,compile" unless="noBuild.TeamTools">
-    <!-- compute the classes needed for the team tools jar file -->
-    <classfileset id="teamToolsClasses" dir="${build}">
-      <root classname="teamdash.wbs.WBSEditor"/>
-      <root classname="teamdash.templates.tools.OpenWBSEditor"/>
-      <root classname="teamdash.FilenameMapperExtResMgr"/>
-      <root classname="net.sourceforge.processdash.i18n.WBSRuntimeTemplateClassLoader"/>
-    </classfileset>
 
-    <!-- also compute the classes needed from processdash packages -->
+    <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
@@ -385,9 +378,8 @@ class dependency has been added in a dashboard class?)
       </manifest>
 
       <!-- include the compiled files -->
-      <fileset refid="teamToolsClasses"/>
-      <fileset dir="${build}" includes="teamdash/hist/"/>
-      <fileset dir="${build}" includes="teamdash/wbs/excel/"/>
+      <fileset dir="${build}" includes="net/ teamdash/"
+           excludesfile="lib/fileset-class-excludes.txt" />
       <fileset refid="dashClasses"/>
 
       <!-- include non-java resources files -->

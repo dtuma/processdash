@@ -1,0 +1,7 @@
+net/sourceforge/processdash/i18n/WBSDevelopmentTemplateClassLoader*
+teamdash/merge/MapContentMergerTest*
+teamdash/merge/TreeMergeTest*
+teamdash/team/TeamMemberListEditorTest*
+teamdash/team/TeamMemberListMergerTest*
+teamdash/wbs/TeamProjectMergeTester*
+teamdash/wbs/WBSNodeIDMatcherTest*

@@ -31,7 +31,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.api.PDashData;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
-import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class ProjectHistoryFactory {
@@ -50,7 +50,7 @@ public class ProjectHistoryFactory {
             if (!StringUtils.hasValue(oneLocation))
                 continue;
 
-            oneLocation = ExternalResourceManager.getInstance().remapFilename(
+            oneLocation = ExternalLocationMapper.getInstance().remapFilename(
                 oneLocation);
 
             if (oneLocation.startsWith("http"))
