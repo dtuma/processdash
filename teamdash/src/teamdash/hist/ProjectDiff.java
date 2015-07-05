@@ -178,7 +178,16 @@ public class ProjectDiff {
 
     protected Comparator<WBSNode> wbsNodeComparator = new Comparator<WBSNode>() {
         public int compare(WBSNode a, WBSNode b) {
-            return getOrdinal(a.getUniqueID()) - getOrdinal(b.getUniqueID());
+            int aID = a.getUniqueID();
+            int bID = b.getUniqueID();
+            if (aID == bID)
+                return 0;
+            int result = getOrdinal(aID) - getOrdinal(bID);
+            if (result == 0)
+                result = a.getName().compareTo(b.getName());
+            if (result == 0)
+                result = aID - bID;
+            return result;
         }
     };
 
