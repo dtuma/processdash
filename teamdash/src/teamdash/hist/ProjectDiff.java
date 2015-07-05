@@ -25,8 +25,9 @@ package teamdash.hist;
 
 import static teamdash.wbs.WBSFilenameConstants.TEAM_LIST_FILENAME;
 import static teamdash.wbs.WBSFilenameConstants.WBS_FILENAME;
-import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
+import static teamdash.wbs.columns.TeamMemberTimeColumn.ASSIGNED_WITH_ZERO_SUFFIX;
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
+import static teamdash.wbs.columns.TopDownBottomUpColumn.TOP_DOWN_ATTR_SUFFIX;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,8 +37,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -110,7 +109,7 @@ public class ProjectDiff {
             if (XMLUtils.hasValue(id))
                 members.put(id, initials);
             String timeAttr = initials + TEAM_MEMBER_TIME_SUFFIX;
-            String zeroAttr = initials + TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
+            String zeroAttr = initials + ASSIGNED_WITH_ZERO_SUFFIX;
             indivTimeAttrs.add(timeAttr);
             memberZeroAttrs.put(initials, zeroAttr);
             memberZeroAttrs.put(timeAttr, zeroAttr);
@@ -133,9 +132,13 @@ public class ProjectDiff {
             String id = indiv.getAttribute(TeamMember.ID_ATTR);
             String oldInitials = indiv.getAttribute(TeamMember.INITIALS_ATTR);
             String newInitials = members.get(id);
-            if (newInitials != null && !oldInitials.equals(newInitials))
+            if (newInitials != null && !oldInitials.equals(newInitials)) {
                 changedInitialAttrs.put(oldInitials + TEAM_MEMBER_TIME_SUFFIX,
                     newInitials + TEAM_MEMBER_TIME_SUFFIX);
+                changedInitialAttrs.put(
+                    oldInitials + ASSIGNED_WITH_ZERO_SUFFIX, //
+                    newInitials + ASSIGNED_WITH_ZERO_SUFFIX);
+            }
         }
         if (!changedInitialAttrs.isEmpty())
             this.changedInitialAttrs = changedInitialAttrs;
@@ -208,6 +211,16 @@ public class ProjectDiff {
         protected void tweakTreeNodeContent(WBSNodeContent content) {
             super.tweakTreeNodeContent(content);
 
+            // a historical bug randomly wrote extraneous zeros into various
+            // top-down attributes. Discard these to avoid false mismatches.
+            for (Iterator i = content.entrySet().iterator(); i.hasNext();) {
+                Entry<String, String> e = (Entry<String, String>) i.next();
+                if (e.getKey().endsWith(TOP_DOWN_ATTR_SUFFIX)) {
+                    if ("0.0".equals(e.getValue()) || "0".equals(e.getValue()))
+                        i.remove();
+                }
+            }
+
             // if any team members changed initials, perform those remappings
             // in the data content node for the old WBS.
             if (changedInitialAttrs != null
@@ -228,23 +241,19 @@ public class ProjectDiff {
                     content.putAll(remapped);
             }
 
-            // older versions of the WBS stored extraneous zeroes in the team
-            // member time attributes. Some also stored "assigned with zero" for
-            // a person with real time. Discard these to avoid false mismatches.
-            List<String> nonzeroIndivs = new LinkedList<String>();
-            for (Iterator i = content.entrySet().iterator(); i.hasNext();) {
-                Entry<String, String> e = (Entry<String, String>) i.next();
-                if ("0.0".equals(e.getValue()) || "0".equals(e.getValue())) {
-                    i.remove();
-                } else if (e.getKey().endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
-                    nonzeroIndivs.add(e.getKey());
-                }
-            }
-            if (nonzeroIndivs != null) {
-                for (String oneIndiv : nonzeroIndivs) {
-                    String zeroAttr = memberZeroAttrs.get(oneIndiv);
-                    content.remove(zeroAttr);
-                }
+            // older versions of the WBS stored "assigned with zero" attrs for
+            // a person with real time. Discard these to avoid false mismatches,
+            // and otherwise normalize the handling of "assigned with zero"
+            // attributes to simplify downstream comparison logic: put "0.0"
+            // for assigned with zero people, and null for unassigned people.
+            for (String indivAttr : indivTimeAttrs) {
+                // see whether this person has an "assigned with zero" flag
+                String zeroAttr = memberZeroAttrs.get(indivAttr);
+                boolean hasAssignedZeroFlag = (content.remove(zeroAttr) != null);
+
+                // if this person is assigned with zero, write "0.0" for time
+                if (hasAssignedZeroFlag && !content.containsKey(indivAttr))
+                    content.put(indivAttr, "0.0");
             }
         }
 

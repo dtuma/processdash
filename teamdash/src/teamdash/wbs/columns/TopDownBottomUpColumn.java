@@ -408,4 +408,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     protected static String getInheritedAttrName(String id) {
         return ('_' + id.replace('_', '-') + " (Inherited_)").intern();
     }
+
+    public static final String TOP_DOWN_ATTR_SUFFIX = getTopDownAttrName("");
+
 }

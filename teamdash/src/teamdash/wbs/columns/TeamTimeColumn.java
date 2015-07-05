@@ -1765,7 +1765,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         String result = MEMBER_ASSIGNED_ZERO_ATTR_NAMES.get(initials);
         if (result == null) {
             result = initials.replace('_', '-')
-                    + TeamMemberTimeColumn.TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
+                    + TeamMemberTimeColumn.ASSIGNED_WITH_ZERO_SUFFIX;
             result = result.intern();
             MEMBER_ASSIGNED_ZERO_ATTR_NAMES.put(initials, result);
         }

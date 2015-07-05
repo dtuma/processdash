@@ -24,7 +24,6 @@
 package teamdash.hist;
 
 import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
-import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -139,9 +138,6 @@ public class ProjectChangeListFactory extends ProjectDiff {
             } else if (NODE_NAME.equals(attr)) {
                 Object changeType = new ProjectWbsNodeChange.Renamed(baseVal);
                 addNodeChange(tnc, nodeChanges, wbsB, changeType);
-            } else if (attr.endsWith(TEAM_MEMBER_ASSIGNED_WITH_ZERO_SUFFIX)
-                    && memberZeroAttrs.containsValue(attr)) {
-                sawTimeChange = true;
             } else if (indivTimeAttrs.contains(attr)
                     || TeamTimeColumn.TEAM_TIME_ATTR.equals(attr)) {
                 sawTimeChange = true;
@@ -151,8 +147,7 @@ public class ProjectChangeListFactory extends ProjectDiff {
         if (sawTimeChange) {
             WBSNode node = wbsB.getNodeMap().get(nodeID);
             timeChanges.put(nodeID, new ProjectWbsTimeChange(node, base, mod,
-                    indivTimeAttrs, memberZeroAttrs, teamMemberNames, author,
-                    timestamp));
+                    indivTimeAttrs, teamMemberNames, author, timestamp));
         }
     }
 
@@ -218,7 +213,7 @@ public class ProjectChangeListFactory extends ProjectDiff {
             // this is a leaf node. Return true if we have zero time.
             ProjectWbsTimeChange test = new ProjectWbsTimeChange(null,
                     node.getContent(), node.getContent(), indivTimeAttrs,
-                    memberZeroAttrs, teamMemberNames, author, timestamp);
+                    teamMemberNames, author, timestamp);
             return test.getNewTotalTime() == 0;
         }
 
@@ -239,7 +234,7 @@ public class ProjectChangeListFactory extends ProjectDiff {
         WBSNode wbsNode = node.getContent().getWBSNode();
         ProjectWbsTimeChange summarized = new ProjectWbsTimeChange(wbsNode,
                 new ArrayList(childChanges.values()), indivTimeAttrs,
-                memberZeroAttrs, teamMemberNames, author, timestamp);
+                teamMemberNames, author, timestamp);
         timeChanges.put(node.getID(), summarized);
         // remove the children's now-redundant changes from the change list
         for (Integer childID : childChanges.keySet())

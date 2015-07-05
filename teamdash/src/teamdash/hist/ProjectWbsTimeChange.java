@@ -51,8 +51,6 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     private Set<String> indivTimeAttrs;
 
-    private Map<String, String> memberZeroAttrs;
-
     private Map<String, String> teamMemberNames;
 
     private Set<String> authors;
@@ -64,13 +62,11 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     protected ProjectWbsTimeChange(WBSNode node,
             List<ProjectWbsTimeChange> children, Set<String> indivTimeAttrs,
-            Map<String, String> memberZeroAttrs,
             Map<String, String> teamMemberNames, String author, Date timestamp) {
         super(node, author, timestamp);
 
         this.children = children;
         this.indivTimeAttrs = indivTimeAttrs;
-        this.memberZeroAttrs = memberZeroAttrs;
         this.teamMemberNames = teamMemberNames;
 
         // sum up information about time from each of our children
@@ -79,14 +75,12 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
 
     protected ProjectWbsTimeChange(WBSNode node, WBSNodeContent oldData,
             WBSNodeContent newData, Set<String> indivTimeAttrs,
-            Map<String, String> memberZeroAttrs,
             Map<String, String> teamMemberNames, String author, Date timestamp) {
         super(node, author, timestamp);
 
         this.oldData = oldData;
         this.newData = newData;
         this.indivTimeAttrs = indivTimeAttrs;
-        this.memberZeroAttrs = memberZeroAttrs;
         this.teamMemberNames = teamMemberNames;
 
         // load information about the time for each individual
@@ -244,8 +238,8 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         protected IndivTime(String timeAttr) {
             this.timeAttr = timeAttr;
             this.name = teamMemberNames.get(timeAttr);
-            this.oldTime = getTimeAssignment(oldData, timeAttr);
-            this.newTime = getTimeAssignment(newData, timeAttr);
+            this.oldTime = getDouble(oldData, timeAttr, Double.NaN);
+            this.newTime = getDouble(newData, timeAttr, Double.NaN);
             oldTotalTime = sumTime(oldTotalTime, oldTime);
             newTotalTime = sumTime(newTotalTime, newTime);
         }
@@ -276,7 +270,8 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
                 storeData(null, (oldTime == 0 ? zeros : unchanged));
 
             } else {
-                storeData(timeEqualsSyncTime() ? name : getAuthor(), changed);
+                boolean isSyncedTime = timeEqualsSyncTime(newData, timeAttr);
+                storeData(isSyncedTime ? name : getAuthor(), changed);
             }
         }
 
@@ -287,30 +282,6 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
                 where.put(timeAttr, this);
             all.put(timeAttr, this);
         }
-
-        private boolean timeEqualsSyncTime() {
-            if (newData == null)
-                return false;
-
-            String timeVal = newData.get(timeAttr);
-            if (timeVal == null)
-                return false;
-
-            String syncTimeAttr = StringUtils.findAndReplace(timeAttr,
-                TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX,
-                TeamMemberTimeColumn.TEAM_MEMBER_SYNC_TIME_SUFFIX);
-            String syncVal = newData.get(syncTimeAttr);
-            if (syncVal == null)
-                return false;
-
-            if (timeVal.equals(syncVal))
-                return true;
-
-            Double timeValNum = Double.parseDouble(timeVal);
-            Double syncValNum = Double.parseDouble(syncVal);
-            return eq(timeValNum, syncValNum);
-        }
-
 
         @Override
         public String toString() {
@@ -325,16 +296,6 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
             result.append(")");
             return result.toString();
         }
-    }
-
-    private double getTimeAssignment(WBSNodeContent data, String timeAttr) {
-        double result = getDouble(data, timeAttr, 0);
-        if (result == 0) {
-            String zeroAttr = memberZeroAttrs.get(timeAttr);
-            if (!data.containsKey(zeroAttr))
-                result = Double.NaN;
-        }
-        return result;
     }
 
     private static double getDouble(WBSNodeContent data, String attrName,
@@ -370,6 +331,30 @@ public class ProjectWbsTimeChange extends ProjectWbsChange {
         for (IndivTime time : times)
             result.append(", ").append(time);
         return result.substring(2);
+    }
+
+    public static boolean timeEqualsSyncTime(WBSNodeContent newData,
+            String timeAttr) {
+        if (newData == null)
+            return false;
+
+        String timeVal = newData.get(timeAttr);
+        if (timeVal == null)
+            return false;
+
+        String syncTimeAttr = StringUtils.findAndReplace(timeAttr,
+            TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX,
+            TeamMemberTimeColumn.TEAM_MEMBER_SYNC_TIME_SUFFIX);
+        String syncVal = newData.get(syncTimeAttr);
+        if (syncVal == null)
+            return false;
+
+        if (timeVal.equals(syncVal))
+            return true;
+
+        Double timeValNum = Double.parseDouble(timeVal);
+        Double syncValNum = Double.parseDouble(syncVal);
+        return eq(timeValNum, syncValNum);
     }
 
 }
