@@ -23,41 +23,8 @@
 
 package teamdash.hist;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+public interface BlameModelDataListener {
 
-public class BlameModelData extends HashMap<Integer, BlameNodeData> {
-
-    private List<BlameModelDataListener> listeners;
-
-    public BlameModelData() {}
-
-    public BlameNodeData getNodeData(Integer nodeID) {
-        BlameNodeData result = get(nodeID);
-        if (result == null) {
-            result = new BlameNodeData();
-            put(nodeID, result);
-        }
-        return result;
-    }
-
-    public void addBlameModelDataListener(BlameModelDataListener l) {
-        if (listeners == null)
-            listeners = new ArrayList<BlameModelDataListener>();
-        listeners.add(l);
-    }
-
-    public void removeBlameModelDataListener(BlameModelDataListener l) {
-        if (listeners != null)
-            listeners.remove(l);
-    }
-
-    protected void fireBlameModelDataEvent(BlameModelDataEvent e) {
-        if (listeners != null) {
-            for (BlameModelDataListener l : listeners)
-                l.blameDataChanged(e);
-        }
-    }
+    public void blameDataChanged(BlameModelDataEvent e);
 
 }

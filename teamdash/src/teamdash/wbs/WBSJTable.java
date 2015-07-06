@@ -28,6 +28,7 @@ import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Event;
@@ -56,9 +57,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -88,6 +89,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
@@ -96,14 +98,19 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.CheckboxTree;
+import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
-import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.ActionCategoryComparator;
+import teamdash.hist.BlameModelData;
+import teamdash.hist.BlameModelDataEvent;
+import teamdash.hist.BlameModelDataListener;
+import teamdash.hist.BlameNodeData;
+import teamdash.hist.ui.BlameAnnotationBorder;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -125,6 +132,8 @@ public class WBSJTable extends JTable {
     Map iconMap;
     /** Our source for task identification information */
     TaskIDSource taskIDSource;
+    /** A collection of blame data for drawing annotations */
+    BlameModelData blameData;
 
     /** a list of keystroke/action mappings to install */
     private Set customActions = new HashSet();
@@ -328,6 +337,62 @@ public class WBSJTable extends JTable {
             getCellEditor().stopCellEditing();
         UndoList.stopCellEditing(this);
     }
+
+
+    public BlameModelData getBlameData() {
+        return blameData;
+    }
+
+    public void setBlameData(BlameModelData blameData) {
+        if (this.blameData != blameData) {
+            if (this.blameData != null)
+                this.blameData.removeBlameModelDataListener(BLAME_LISTENER);
+
+            this.blameData = blameData;
+
+            if (this.blameData != null)
+                this.blameData.addBlameModelDataListener(BLAME_LISTENER);
+
+            repaint();
+        }
+    }
+
+    private BlameNodeData getBlameDataForRow(int row) {
+        if (blameData == null)
+            return null;
+        WBSNode node = wbsModel.getNodeForRow(row);
+        if (node == null)
+            return null;
+        else
+            return blameData.get(node.getUniqueID());
+    }
+
+    @Override
+    public Component prepareRenderer(TableCellRenderer renderer, int row,
+            int column) {
+        Component result = super.prepareRenderer(renderer, row, column);
+
+        boolean needsBlameAnnotation = false;
+        BlameNodeData blame = getBlameDataForRow(row);
+        if (blame != null) {
+            if (column == 0) {
+                needsBlameAnnotation = blame.hasStructuralChange();
+            }
+        }
+        if (needsBlameAnnotation)
+            BlameAnnotationBorder.annotate(result);
+
+        return result;
+    }
+
+    private final BlameModelDataListener BLAME_LISTENER = new BlameModelDataListener() {
+        @Override
+        public void blameDataChanged(BlameModelDataEvent e) {
+            if (e.getSource() == blameData)
+                repaint();
+        }
+    };
+
 
 
     /** Return a list of actions useful for editing the wbs */
