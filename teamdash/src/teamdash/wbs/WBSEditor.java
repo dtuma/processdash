@@ -129,6 +129,8 @@ import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
+import teamdash.hist.BlameData;
+import teamdash.hist.ui.BlameHistoryAction;
 import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
@@ -182,6 +184,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     TeamProjectMergeDebugger mergeDebugger;
     File customTabsFile;
     ChangeHistory changeHistory;
+    BlameData blameData;
     File changeHistoryFile;
     String owner;
     private int mode;
@@ -694,6 +697,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         return disposed;
     }
 
+    public void setBlameData(BlameData blameData) {
+        this.blameData = blameData;
+        tabPanel.setBlameData(blameData.get(ModelType.Wbs));
+    }
+
     public void show() {
         frame.setVisible(true);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -1008,6 +1016,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(openAction);
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
+            if (!isZipWorkingDirectory())
+                result.add(new BlameHistoryAction(this, workingDirectory
+                        .getDescription()));
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
         for (int i = 0; i < fileActions.length; i++) {

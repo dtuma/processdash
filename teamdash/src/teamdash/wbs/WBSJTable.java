@@ -359,7 +359,7 @@ public class WBSJTable extends JTable {
     }
 
     private void calcAffectedColumns(BlameModelData blameData) {
-        if (dataModel != null) {
+        if (dataModel != null && blameData != null) {
             for (BlameNodeData nodeData : blameData.values())
                 nodeData.calcAffectedColumns(dataModel);
             blameData.purgeUnchangedNodes();

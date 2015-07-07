@@ -191,10 +191,12 @@ public class DataJTable extends JTable {
     }
     
     private void calcAffectedColumns(BlameModelData blameData) {
-        DataTableModel dataModel = (DataTableModel) getModel();
-        for (BlameNodeData nodeData : blameData.values())
-            nodeData.calcAffectedColumns(dataModel);
-        blameData.purgeUnchangedNodes();
+        if (blameData != null) {
+            DataTableModel dataModel = (DataTableModel) getModel();
+            for (BlameNodeData nodeData : blameData.values())
+                nodeData.calcAffectedColumns(dataModel);
+            blameData.purgeUnchangedNodes();
+        }
     }
 
     private BlameNodeData getBlameDataForRow(int row) {
