@@ -28,6 +28,7 @@ import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -169,6 +170,29 @@ public class BlameNodeData {
             }
         }
         return false;
+    }
+
+    public boolean isColumnAffected(String columnID) {
+        if (WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            return hasStructuralChange();
+
+        } else if (attributes != null) {
+            for (BlameValueList v : attributes.values()) {
+                ConflictCapableDataColumn col = v.getColumn();
+                if (col != null && columnID.equals(col.getColumnID()))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    public int countColumnsAffected(List<String> columnIDs) {
+        int result = 0;
+        for (String oneColumnID : columnIDs) {
+            if (isColumnAffected(oneColumnID))
+                result++;
+        }
+        return result;
     }
 
     @Override

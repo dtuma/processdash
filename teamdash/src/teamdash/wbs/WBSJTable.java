@@ -106,11 +106,13 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.ActionCategoryComparator;
+import teamdash.hist.BlameData;
 import teamdash.hist.BlameModelData;
 import teamdash.hist.BlameModelDataListener;
 import teamdash.hist.BlameNodeData;
 import teamdash.hist.ui.BlameAnnotationBorder;
 import teamdash.hist.ui.BlameComponentRepainter;
+import teamdash.hist.ui.BlameSelectionListener;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -134,6 +136,8 @@ public class WBSJTable extends JTable {
     TaskIDSource taskIDSource;
     /** A collection of blame data for drawing annotations */
     BlameModelData blameData;
+    /** An object for updating the blame caret position */
+    BlameSelectionListener blameSelectionListener;
 
     /** a list of keystroke/action mappings to install */
     private Set customActions = new HashSet();
@@ -339,20 +343,25 @@ public class WBSJTable extends JTable {
     }
 
 
-    public BlameModelData getBlameData() {
-        return blameData;
-    }
-
-    public void setBlameData(BlameModelData blameData) {
+    public void setBlameData(BlameData blame) {
+        BlameModelData blameData = BlameData.getModel(blame,
+            wbsModel.getModelType());
         if (this.blameData != blameData) {
             if (this.blameData != null)
                 this.blameData.removeBlameModelDataListener(BLAME_LISTENER);
+            if (this.blameSelectionListener != null) {
+                this.blameSelectionListener.dispose();
+                this.blameSelectionListener = null;
+            }
 
             calcAffectedColumns(blameData);
             this.blameData = blameData;
 
-            if (this.blameData != null)
+            if (this.blameData != null) {
                 this.blameData.addBlameModelDataListener(BLAME_LISTENER);
+                this.blameSelectionListener = new BlameSelectionListener(this,
+                        blame);
+            }
 
             repaint();
         }

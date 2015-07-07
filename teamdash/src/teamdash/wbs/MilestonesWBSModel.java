@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import javax.swing.event.TableModelEvent;
 
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.merge.ModelType;
+
 import org.w3c.dom.Element;
 
 
@@ -51,6 +53,10 @@ public class MilestonesWBSModel extends WBSModel {
     public MilestonesWBSModel(String rootNodeName) {
         super(rootNodeName, true);
         getNodeForRow(1).setName("");
+    }
+
+    public ModelType getModelType() {
+        return ModelType.Milestones;
     }
 
     public boolean isNodeTypeEditable(WBSNode node) {

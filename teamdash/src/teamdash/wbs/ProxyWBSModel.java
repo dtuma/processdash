@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import javax.swing.event.TableModelEvent;
 
 import org.w3c.dom.Element;
 
+import teamdash.merge.ModelType;
+
 public class ProxyWBSModel extends WBSModel {
 
     public static final String PROXY_LIST_TYPE = "Proxy Estimation Tables";
@@ -59,6 +61,10 @@ public class ProxyWBSModel extends WBSModel {
         WBSNode proxy = getNodeForRow(1);
         proxy.setName("");
         createDefaultBucketsForNode(proxy, 1);
+    }
+
+    public ModelType getModelType() {
+        return ModelType.Proxies;
     }
 
     @Override

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@ import javax.swing.event.TableModelEvent;
 
 import org.w3c.dom.Element;
 
+import teamdash.merge.ModelType;
+
 /** Tweak the behavior of a WBSModel for use in editing common workflows.
  */
 public class WorkflowWBSModel extends WBSModel {
@@ -40,6 +42,10 @@ public class WorkflowWBSModel extends WBSModel {
     public WorkflowWBSModel()            { super();     }
     public WorkflowWBSModel(String name) { super(name); }
     public WorkflowWBSModel(Element e)   { super(e);    }
+
+    public ModelType getModelType() {
+        return ModelType.Workflows;
+    }
 
     /* Nodes at indentation level 1 are defined workflows. */
     public String filterNodeType(WBSNode node) {

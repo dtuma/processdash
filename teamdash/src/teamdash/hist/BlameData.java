@@ -23,12 +23,22 @@
 
 package teamdash.hist;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import teamdash.merge.ModelType;
 
 public class BlameData extends HashMap<ModelType, BlameModelData> {
+
+    private BlameCaretPos caretPos;
+
+    private PropertyChangeSupport changeSupport;
+
+    public BlameData() {
+        changeSupport = new PropertyChangeSupport(this);
+    }
 
     public BlameModelData getOrCreate(ModelType type) {
         BlameModelData result = get(type);
@@ -38,6 +48,48 @@ public class BlameData extends HashMap<ModelType, BlameModelData> {
         }
         return result;
     }
+
+    public BlameCaretPos getCaretPos() {
+        return caretPos;
+    }
+
+    public void setCaretPos(BlameCaretPos caretPos) {
+        BlameCaretPos oldCaretPos = this.caretPos;
+        this.caretPos = caretPos;
+        changeSupport.firePropertyChange("caretPos", oldCaretPos, caretPos);
+    }
+
+    public int countAnnotations(BlameCaretPos caretPos) {
+        BlameModelData modelData = get(caretPos.getModelType());
+        if (modelData == null)
+            return 0;
+        else
+            return modelData.countAnnotations(caretPos);
+    }
+
+
+    /*
+     * Property change listener support
+     */
+
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        changeSupport.addPropertyChangeListener(l);
+    }
+
+    public void addPropertyChangeListener(String property,
+            PropertyChangeListener l) {
+        changeSupport.addPropertyChangeListener(property, l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l) {
+        changeSupport.removePropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(String property,
+            PropertyChangeListener l) {
+        changeSupport.removePropertyChangeListener(property, l);
+    }
+
 
     @Override
     public String toString() {

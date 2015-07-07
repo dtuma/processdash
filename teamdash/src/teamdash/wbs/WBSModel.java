@@ -47,6 +47,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import teamdash.merge.ModelType;
+
 
 /** This class maintains a tree-like work breakdown structure, and
  * exposes it via a table model.
@@ -158,6 +160,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     public WBSModelValidator getValidator() {
         return validator;
+    }
+
+    public ModelType getModelType() {
+        return ModelType.Wbs;
     }
 
     /** Add a node to the end of this work breakdown structure.

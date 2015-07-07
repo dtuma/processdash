@@ -42,11 +42,13 @@ import javax.swing.text.JTextComponent;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.ActionCategoryComparator;
+import teamdash.hist.BlameData;
 import teamdash.hist.BlameModelData;
 import teamdash.hist.BlameModelDataListener;
 import teamdash.hist.BlameNodeData;
 import teamdash.hist.ui.BlameAnnotationBorder;
 import teamdash.hist.ui.BlameComponentRepainter;
+import teamdash.hist.ui.BlameSelectionListener;
 
 /** Table to display data for a work breakdown structure.
  */
@@ -59,6 +61,9 @@ public class DataJTable extends JTable {
 
     /** A collection of blame data for drawing annotations */
     BlameModelData blameData;
+
+    /** An object for updating the blame caret position */
+    BlameSelectionListener blameSelectionListener;
 
     /** True if getValueAt() should unwrap values before returning them */
     boolean unwrapQueriedValues = false;
@@ -105,10 +110,16 @@ public class DataJTable extends JTable {
     }
 
     public void setColumnModel(TableColumnModel columnModel) {
+        if (blameSelectionListener != null)
+            blameSelectionListener.columnModelChanging();
+
         super.setColumnModel(columnModel);
 
         setCellSelectionEnabled(true);
         selectAllColumns();
+
+        if (blameSelectionListener != null)
+            blameSelectionListener.columnModelChanged();
     }
 
     public Action[] getEditingActions() {
@@ -171,20 +182,25 @@ public class DataJTable extends JTable {
     }
 
 
-    public BlameModelData getBlameData() {
-        return blameData;
-    }
-
-    public void setBlameData(BlameModelData blameData) {
+    public void setBlameData(BlameData blame) {
+        BlameModelData blameData = BlameData.getModel(blame,
+            ((DataTableModel) getModel()).getWBSModel().getModelType());
         if (this.blameData != blameData) {
             if (this.blameData != null)
                 this.blameData.removeBlameModelDataListener(BLAME_LISTENER);
+            if (this.blameSelectionListener != null) {
+                this.blameSelectionListener.dispose();
+                this.blameSelectionListener = null;
+            }
 
             calcAffectedColumns(blameData);
             this.blameData = blameData;
 
-            if (this.blameData != null)
+            if (this.blameData != null) {
                 this.blameData.addBlameModelDataListener(BLAME_LISTENER);
+                this.blameSelectionListener = new BlameSelectionListener(this,
+                        blame);
+            }
 
             repaint();
         }

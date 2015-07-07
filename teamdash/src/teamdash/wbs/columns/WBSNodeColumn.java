@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,12 +28,14 @@ import teamdash.wbs.WBSNode;
 
 public class WBSNodeColumn extends AbstractDataColumn {
 
+    public static final String COLUMN_ID = "wbsNode";
+
     private WBSModel wbsModel;
 
     public WBSNodeColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         this.columnName = "Name";
-        this.columnID = "wbsNode";
+        this.columnID = COLUMN_ID;
         this.preferredWidth = 300;
     }
 

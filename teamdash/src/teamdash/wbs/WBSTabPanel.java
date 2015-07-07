@@ -88,7 +88,7 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
-import teamdash.hist.BlameModelData;
+import teamdash.hist.BlameData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
 
@@ -308,11 +308,7 @@ public class WBSTabPanel extends JLayeredPane
         return wbsTable.selectAndShowNode(wbsId);
     }
 
-    public BlameModelData getBlameData() {
-        return wbsTable.getBlameData();
-    }
-
-    public void setBlameData(BlameModelData blameData) {
+    public void setBlameData(BlameData blameData) {
         wbsTable.setBlameData(blameData);
         dataTable.setBlameData(blameData);
     }
@@ -964,6 +960,8 @@ public class WBSTabPanel extends JLayeredPane
         public void actionPerformed(ActionEvent e) {
             wbsTable.addColumnSelectionInterval(0, 0);
             wbsTable.requestFocusInWindow();
+            if (wbsTable.blameSelectionListener != null)
+                wbsTable.blameSelectionListener.valueChanged(null);
         }
 
     }

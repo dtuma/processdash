@@ -44,11 +44,21 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
     }
 
     public void purgeUnchangedNodes() {
-        for (Iterator<BlameNodeData> i = values().iterator(); i.hasNext(); ) {
+        for (Iterator<BlameNodeData> i = values().iterator(); i.hasNext();) {
             if (i.next().isEmpty())
                 i.remove();
         }
         fireBlameModelDataEvent();
+    }
+
+    public int countAnnotations(BlameCaretPos caretPos) {
+        int result = 0;
+        for (Integer nodeID : caretPos.getNodes()) {
+            BlameNodeData nodeData = get(nodeID);
+            if (nodeData != null)
+                result += nodeData.countColumnsAffected(caretPos.getColumns());
+        }
+        return result;
     }
 
     public void addBlameModelDataListener(BlameModelDataListener l) {
