@@ -660,7 +660,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         return (showRemainingWork ? "Replan Date" : "Plan Date");
     }
 
-    private static boolean colorIsDark(Color c) {
+    public static boolean colorIsDark(Color c) {
         return getGrayScale(c) < 128;
     }
 

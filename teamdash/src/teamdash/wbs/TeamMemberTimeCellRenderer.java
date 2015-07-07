@@ -35,6 +35,8 @@ import java.awt.image.WritableRaster;
 
 import javax.swing.JTable;
 
+import teamdash.hist.ui.BlameAnnotationBorder;
+
 
 /** The table cell renderer to display time for a team member.
  */
@@ -54,12 +56,18 @@ public class TeamMemberTimeCellRenderer extends DataTableCellNumericRenderer {
         Component result = super.getTableCellRendererComponent
             (table, value, isSelected, hasFocus, row, column);
 
-        if (value instanceof TeamMemberTime)
+        Color annotationColor;
+        if (value instanceof TeamMemberTime && !hasFocus) {
             theColor = ((TeamMemberTime) value).color;
-        else
+            paint = getPaint(isSelected);
+            annotationColor = getAnnotationColor(theColor);
+        } else {
             theColor = Color.white;
-
-        paint = hasFocus ? null : getPaint(isSelected);
+            paint = null;
+            annotationColor = null;
+        }
+        putClientProperty(BlameAnnotationBorder.ANNOTATION_COLOR_KEY,
+            annotationColor);
 
         return result;
     }
@@ -96,6 +104,13 @@ public class TeamMemberTimeCellRenderer extends DataTableCellNumericRenderer {
         // to perform a quadratic fade instead of a linear fade.
         return new TexturePaint
             (i, new Rectangle(leftBorder, 0, gradientWidth, 1));
+    }
+
+    private Color getAnnotationColor(Color theColor) {
+        if (TeamTimePanel.colorIsDark(theColor))
+            return Color.yellow;
+        else
+            return null;
     }
 
     public boolean isOpaque() {

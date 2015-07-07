@@ -37,6 +37,9 @@ import javax.swing.border.EmptyBorder;
 
 public class BlameAnnotationBorder extends EmptyBorder {
 
+    public static final String ANNOTATION_COLOR_KEY = BlameAnnotationBorder.class
+            .getName() + ".annotationColor";
+
     private static final Border INSTANCE = new BlameAnnotationBorder();
 
     private static final Color DEFAULT_ANNOTATION_COLOR = new Color(0, 0, 128);
@@ -48,7 +51,12 @@ public class BlameAnnotationBorder extends EmptyBorder {
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width,
             int height) {
-        g.setColor(DEFAULT_ANNOTATION_COLOR);
+        Color color = null;
+        if (c instanceof JComponent)
+            color = (Color) ((JComponent) c)
+                    .getClientProperty(ANNOTATION_COLOR_KEY);
+
+        g.setColor(color != null ? color : DEFAULT_ANNOTATION_COLOR);
         for (int i = height / 3; i-- > 0;) {
             g.drawLine(x, y + 5 - i, x + i, y + 5 - i);
         }
