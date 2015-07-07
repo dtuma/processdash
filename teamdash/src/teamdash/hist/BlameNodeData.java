@@ -118,6 +118,9 @@ public class BlameNodeData {
     }
 
     public void remapInitials(Map<String, String> changedInitialAttrs) {
+        if (attributes == null)
+            return;
+
         Map<String, BlameValueList> remapped = null;
         for (Entry<String, String> change : changedInitialAttrs.entrySet()) {
             String oldAttrName = change.getKey();
