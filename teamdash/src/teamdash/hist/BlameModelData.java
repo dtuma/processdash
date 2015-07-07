@@ -25,6 +25,7 @@ package teamdash.hist;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class BlameModelData extends HashMap<Integer, BlameNodeData> {
@@ -42,6 +43,14 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
         return result;
     }
 
+    public void purgeUnchangedNodes() {
+        for (Iterator<BlameNodeData> i = values().iterator(); i.hasNext(); ) {
+            if (i.next().isEmpty())
+                i.remove();
+        }
+        fireBlameModelDataEvent();
+    }
+
     public void addBlameModelDataListener(BlameModelDataListener l) {
         if (listeners == null)
             listeners = new ArrayList<BlameModelDataListener>();
@@ -53,8 +62,9 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
             listeners.remove(l);
     }
 
-    protected void fireBlameModelDataEvent(BlameModelDataEvent e) {
+    protected void fireBlameModelDataEvent() {
         if (listeners != null) {
+            BlameModelDataEvent e = new BlameModelDataEvent(this);
             for (BlameModelDataListener l : listeners)
                 l.blameDataChanged(e);
         }

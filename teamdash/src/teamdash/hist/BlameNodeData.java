@@ -26,11 +26,16 @@ package teamdash.hist;
 import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import teamdash.wbs.ConflictCapableDataColumn;
+import teamdash.wbs.DataTableModel;
+import teamdash.wbs.WBSModelMergeConflictNotificationFactory;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.WBSNodeColumn;
 
 public class BlameNodeData {
 
@@ -43,6 +48,10 @@ public class BlameNodeData {
     private BlameValueList parentPath;
 
     private Map<String, BlameValueList> attributes;
+
+    public boolean isEmpty() {
+        return !hasStructuralChange() && attributes == null;
+    }
 
     public boolean hasStructuralChange() {
         return addedBy != null || deletedChildren != null || nodeName != null
@@ -122,6 +131,41 @@ public class BlameNodeData {
         }
         if (remapped != null)
             attributes.putAll(remapped);
+    }
+
+    public void calcAffectedColumns(DataTableModel model) {
+        if (attributes == null)
+            return;
+
+        Iterator<Entry<String, BlameValueList>> i = attributes.entrySet()
+                .iterator();
+        while (i.hasNext()) {
+            Entry<String, BlameValueList> e = i.next();
+            String attributeName = e.getKey();
+            BlameValueList blameValueList = e.getValue();
+            ConflictCapableDataColumn column = WBSModelMergeConflictNotificationFactory
+                    .findColumnForAttribute(model, attributeName);
+            if (column == null)
+                i.remove();
+            else
+                blameValueList.setColumn(column);
+        }
+
+        if (attributes.isEmpty())
+            attributes = null;
+    }
+
+    public boolean isColumnAffected(Object column) {
+        if (column instanceof WBSNodeColumn) {
+            return hasStructuralChange();
+
+        } else if (attributes != null) {
+            for (BlameValueList v : attributes.values()) {
+                if (v.getColumn() == column)
+                    return true;
+            }
+        }
+        return false;
     }
 
     @Override

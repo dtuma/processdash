@@ -21,41 +21,24 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.hist;
+package teamdash.hist.ui;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.awt.Component;
 
-import teamdash.wbs.ConflictCapableDataColumn;
+import teamdash.hist.BlameModelDataEvent;
+import teamdash.hist.BlameModelDataListener;
 
-public class BlameValueList extends TreeMap<BlamePoint, String> {
+public class BlameComponentRepainter implements BlameModelDataListener {
 
-    private ConflictCapableDataColumn column;
-
-    public BlameValueList(String initialValue) {
-        put(BlamePoint.INITIAL, initialValue);
-    }
-
-    public ConflictCapableDataColumn getColumn() {
-        return column;
-    }
-
-    public void setColumn(ConflictCapableDataColumn column) {
-        this.column = column;
+    private Component comp;
+    
+    public BlameComponentRepainter(Component comp) {
+        this.comp = comp;
     }
 
     @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        Iterator<Entry<BlamePoint, String>> i = entrySet().iterator();
-        result.append(i.next().getValue());
-        while (i.hasNext()) {
-            Entry<BlamePoint, String> e = i.next();
-            result.append(" ==> ").append(e.getKey()) //
-                    .append(" ==> ").append(e.getValue());
-        }
-        return result.toString();
+    public void blameDataChanged(BlameModelDataEvent e) {
+        comp.repaint();
     }
 
 }

@@ -35,12 +35,18 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.JTextComponent;
 
-import teamdash.ActionCategoryComparator;
-
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
+import teamdash.ActionCategoryComparator;
+import teamdash.hist.BlameModelData;
+import teamdash.hist.BlameModelDataListener;
+import teamdash.hist.BlameNodeData;
+import teamdash.hist.ui.BlameAnnotationBorder;
+import teamdash.hist.ui.BlameComponentRepainter;
 
 /** Table to display data for a work breakdown structure.
  */
@@ -50,6 +56,9 @@ public class DataJTable extends JTable {
     public static final String DATA_ACTION_CATEGORY =
         ActionCategoryComparator.ACTION_CATEGORY;
     public static final String DATA_ACTION_CATEGORY_CLIPBOARD = "dataClipboard";
+
+    /** A collection of blame data for drawing annotations */
+    BlameModelData blameData;
 
     /** True if getValueAt() should unwrap values before returning them */
     boolean unwrapQueriedValues = false;
@@ -161,6 +170,66 @@ public class DataJTable extends JTable {
                 (DataJTable.this, "Editing value in '"+columnName+"' column");
     }
 
+
+    public BlameModelData getBlameData() {
+        return blameData;
+    }
+
+    public void setBlameData(BlameModelData blameData) {
+        if (this.blameData != blameData) {
+            if (this.blameData != null)
+                this.blameData.removeBlameModelDataListener(BLAME_LISTENER);
+
+            calcAffectedColumns(blameData);
+            this.blameData = blameData;
+
+            if (this.blameData != null)
+                this.blameData.addBlameModelDataListener(BLAME_LISTENER);
+
+            repaint();
+        }
+    }
+    
+    private void calcAffectedColumns(BlameModelData blameData) {
+        DataTableModel dataModel = (DataTableModel) getModel();
+        for (BlameNodeData nodeData : blameData.values())
+            nodeData.calcAffectedColumns(dataModel);
+        blameData.purgeUnchangedNodes();
+    }
+
+    private BlameNodeData getBlameDataForRow(int row) {
+        if (blameData == null)
+            return null;
+
+        WBSModel wbsModel = ((DataTableModel) getModel()).getWBSModel();
+        WBSNode node = wbsModel.getNodeForRow(row);
+        if (node == null)
+            return null;
+        else
+            return blameData.get(node.getUniqueID());
+    }
+
+    @Override
+    public Component prepareRenderer(TableCellRenderer renderer, int row,
+            int column) {
+        Component result = super.prepareRenderer(renderer, row, column);
+
+        BlameNodeData blame = getBlameDataForRow(row);
+        if (blame != null) {
+            DataTableModel dataModel = (DataTableModel) getModel();
+            column = convertColumnIndexToModel(column);
+            DataColumn dataCol = dataModel.getColumn(column);
+            if (blame.isColumnAffected(dataCol))
+                BlameAnnotationBorder.annotate(result);
+        }
+
+        return result;
+    }
+
+    private final BlameModelDataListener BLAME_LISTENER = //
+            new BlameComponentRepainter(this);
+
+    
     /** Compare two (possibly null) values for equality */
     private boolean equal(Object a, Object b) {
         if (a == b) return true;

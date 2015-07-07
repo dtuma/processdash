@@ -107,10 +107,10 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.hist.BlameModelData;
-import teamdash.hist.BlameModelDataEvent;
 import teamdash.hist.BlameModelDataListener;
 import teamdash.hist.BlameNodeData;
 import teamdash.hist.ui.BlameAnnotationBorder;
+import teamdash.hist.ui.BlameComponentRepainter;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -348,12 +348,21 @@ public class WBSJTable extends JTable {
             if (this.blameData != null)
                 this.blameData.removeBlameModelDataListener(BLAME_LISTENER);
 
+            calcAffectedColumns(blameData);
             this.blameData = blameData;
 
             if (this.blameData != null)
                 this.blameData.addBlameModelDataListener(BLAME_LISTENER);
 
             repaint();
+        }
+    }
+
+    private void calcAffectedColumns(BlameModelData blameData) {
+        if (dataModel != null) {
+            for (BlameNodeData nodeData : blameData.values())
+                nodeData.calcAffectedColumns(dataModel);
+            blameData.purgeUnchangedNodes();
         }
     }
 
@@ -375,8 +384,12 @@ public class WBSJTable extends JTable {
         boolean needsBlameAnnotation = false;
         BlameNodeData blame = getBlameDataForRow(row);
         if (blame != null) {
+            column = convertColumnIndexToModel(column);
             if (column == 0) {
                 needsBlameAnnotation = blame.hasStructuralChange();
+            } else if (dataModel != null) {
+                DataColumn dataCol = dataModel.getColumn(column);
+                needsBlameAnnotation = blame.isColumnAffected(dataCol);
             }
         }
         if (needsBlameAnnotation)
@@ -385,13 +398,8 @@ public class WBSJTable extends JTable {
         return result;
     }
 
-    private final BlameModelDataListener BLAME_LISTENER = new BlameModelDataListener() {
-        @Override
-        public void blameDataChanged(BlameModelDataEvent e) {
-            if (e.getSource() == blameData)
-                repaint();
-        }
-    };
+    private final BlameModelDataListener BLAME_LISTENER = //
+            new BlameComponentRepainter(this);
 
 
 

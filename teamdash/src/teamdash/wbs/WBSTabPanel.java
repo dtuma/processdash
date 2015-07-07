@@ -88,6 +88,7 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
+import teamdash.hist.BlameModelData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
 
@@ -305,6 +306,15 @@ public class WBSTabPanel extends JLayeredPane
     public boolean displayHyperlinkedItem(String item) {
         int wbsId = Integer.parseInt(item);
         return wbsTable.selectAndShowNode(wbsId);
+    }
+
+    public BlameModelData getBlameData() {
+        return wbsTable.getBlameData();
+    }
+
+    public void setBlameData(BlameModelData blameData) {
+        wbsTable.setBlameData(blameData);
+        dataTable.setBlameData(blameData);
     }
 
     /** Get a list of file-related actions for the work breakdown structure */
