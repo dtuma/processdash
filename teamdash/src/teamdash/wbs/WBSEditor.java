@@ -699,7 +699,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public void setBlameData(BlameData blameData) {
         this.blameData = blameData;
-        tabPanel.setBlameData(blameData.get(ModelType.Wbs));
+        tabPanel.setBlameData(BlameData.getModel(blameData, ModelType.Wbs));
     }
 
     public void show() {

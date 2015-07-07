@@ -52,6 +52,10 @@ public class BlameData extends HashMap<ModelType, BlameModelData> {
         return result.toString();
     }
 
+    public static BlameModelData getModel(BlameData blameData, ModelType type) {
+        return (blameData == null ? null : blameData.get(type));
+    }
+
     private static final String SEPARATOR = //
     "----------------------------------------------------------------------\n";
 

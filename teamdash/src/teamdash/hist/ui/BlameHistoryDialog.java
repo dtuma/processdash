@@ -24,6 +24,8 @@
 package teamdash.hist.ui;
 
 import java.awt.Frame;
+import java.awt.event.WindowListener;
+import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -56,6 +58,8 @@ public class BlameHistoryDialog extends JDialog implements
 
     private Date historyDate;
 
+    private BlameData blameData;
+
     protected static final Resources resources = Resources
             .getDashBundle("WBSEditor.Blame");
 
@@ -72,6 +76,9 @@ public class BlameHistoryDialog extends JDialog implements
         pack();
         setAlwaysOnTop(true);
         setVisible(true);
+
+        addWindowListener(EventHandler.create(WindowListener.class, this,
+            "windowEvent"));
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -87,7 +94,7 @@ public class BlameHistoryDialog extends JDialog implements
                 projectHistory = ProjectHistoryFactory
                         .getProjectHistory(dataLocation);
 
-            BlameData blameData = BlameDataFactory.getBlameData(projectHistory,
+            blameData = BlameDataFactory.getBlameData(projectHistory,
                 historyDate);
             wbsEditor.setBlameData(blameData);
 
@@ -98,6 +105,10 @@ public class BlameHistoryDialog extends JDialog implements
         } catch (ProjectHistoryException e) {
             e.printStackTrace();
         }
+    }
+
+    public void windowEvent() {
+        wbsEditor.setBlameData(isVisible() ? blameData : null);
     }
 
 }
