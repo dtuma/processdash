@@ -131,8 +131,7 @@ public class BlameDataFactory extends ProjectDiff {
         String oldParentName = getParentName(modelA, nodeID);
         String newParentName = getParentName(modelB, nodeID);
         BlameNodeData nodeData = modelData.getNodeData(nodeID);
-        nodeData.addAttributeChange(BlameNodeData.PARENT_PATH, blamePoint,
-            oldParentName, newParentName);
+        nodeData.addParentPathChange(blamePoint, oldParentName, newParentName);
     }
 
     private String getParentName(WBSModel model, Integer nodeID) {

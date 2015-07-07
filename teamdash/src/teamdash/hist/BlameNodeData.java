@@ -34,21 +34,19 @@ import teamdash.wbs.WBSNode;
 
 public class BlameNodeData {
 
-    public static final String PARENT_PATH = "Parent_Path";
-
     private BlamePoint addedBy;
 
     private Map<WBSNode, BlamePoint> deletedChildren;
 
+    private BlameValueList nodeName;
+
+    private BlameValueList parentPath;
+
     private Map<String, BlameValueList> attributes;
 
     public boolean hasStructuralChange() {
-        if (addedBy != null || deletedChildren != null)
-            return true;
-        if (attributes == null)
-            return false;
-        return attributes.containsKey(PARENT_PATH)
-                || attributes.containsKey(NODE_NAME);
+        return addedBy != null || deletedChildren != null || nodeName != null
+                || parentPath != null;
     }
 
     public BlamePoint getAddedBy() {
@@ -69,19 +67,44 @@ public class BlameNodeData {
         deletedChildren.put(node, actor);
     }
 
+    public BlameValueList getNodeNameChanges() {
+        return nodeName;
+    }
+
+    public BlameValueList getParentPathChanges() {
+        return parentPath;
+    }
+
+    public void addParentPathChange(BlamePoint newActor, String oldParentName,
+            String newParentName) {
+        if (parentPath == null)
+            parentPath = new BlameValueList(oldParentName);
+        parentPath.put(newActor, newParentName);
+    }
+
     public Map<String, BlameValueList> getAttributes() {
         return attributes;
     }
 
     public void addAttributeChange(String attributeName, BlamePoint newActor,
             String oldValue, String newValue) {
-        if (attributes == null)
-            attributes = new HashMap();
-        BlameValueList values = attributes.get(attributeName);
-        if (values == null) {
-            values = new BlameValueList(oldValue);
-            attributes.put(attributeName, values);
+        BlameValueList values;
+
+        if (attributeName.equals(NODE_NAME)) {
+            if (nodeName == null)
+                nodeName = new BlameValueList(oldValue);
+            values = nodeName;
+
+        } else {
+            if (attributes == null)
+                attributes = new HashMap();
+            values = attributes.get(attributeName);
+            if (values == null) {
+                values = new BlameValueList(oldValue);
+                attributes.put(attributeName, values);
+            }
         }
+
         values.put(newActor, newValue);
     }
 
@@ -106,6 +129,10 @@ public class BlameNodeData {
         StringBuilder result = new StringBuilder();
         if (addedBy != null)
             result.append("added by ").append(addedBy).append('\n');
+        if (nodeName != null)
+            result.append("node name ").append(nodeName).append('\n');
+        if (parentPath != null)
+            result.append("parent path ").append(parentPath).append('\n');
         if (deletedChildren != null)
             maybePad(result).append("deleted children: ")
                     .append(deletedChildren).append('\n');
