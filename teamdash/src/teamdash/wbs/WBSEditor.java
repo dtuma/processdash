@@ -794,7 +794,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void showHyperlinkedItem(String href) {
-        String[] parts = href.split("/");
+        String[] parts = href.split("/", 2);
         MergeConflictHyperlinkHandler handler = getHyperlinkHandler(parts[0]);
         if (handler != null && parts.length > 1)
             handler.displayHyperlinkedItem(parts[1]);
@@ -802,6 +802,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private MergeConflictHyperlinkHandler getHyperlinkHandler(String modelType) {
         if (isModelTypeEqual(ModelType.Wbs, modelType)) {
+            frame.toFront();
             return tabPanel;
         } else if (isModelTypeEqual(ModelType.TeamList, modelType)) {
             showTeamListEditor();

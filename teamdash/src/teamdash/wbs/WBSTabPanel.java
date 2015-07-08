@@ -91,6 +91,7 @@ import teamdash.XMLUtils;
 import teamdash.hist.BlameData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.WBSNodeColumn;
 
 /** Class to display the WBS editor panel
  */
@@ -133,7 +134,7 @@ public class WBSTabPanel extends JLayeredPane
     JToolBar toolBar;
     JFileChooser fileChooser;
     UndoList undoList;
-    ArrayList tableColumnModels = new ArrayList();
+    ArrayList<TableColumnModel> tableColumnModels = new ArrayList();
     boolean customTabsDirty = false;
     GridBagLayout layout;
     ArrayList tabProperties = new ArrayList();
@@ -304,8 +305,43 @@ public class WBSTabPanel extends JLayeredPane
     }
 
     public boolean displayHyperlinkedItem(String item) {
-        int wbsId = Integer.parseInt(item);
-        return wbsTable.selectAndShowNode(wbsId);
+        String[] parts = item.split("/", 2);
+        int wbsId = Integer.parseInt(parts[0]);
+        return wbsTable.selectAndShowNode(wbsId) //
+                && selectColumn(parts.length > 1 ? parts[1] : null);
+    }
+
+    public boolean selectColumn(String columnID) {
+        // if the "node" column was requested, transfer focus to the WBS tree
+        if (columnID == null || WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            dataTable.getActionMap().get("focusTree").actionPerformed(null);
+            return true;
+        }
+
+        // otherwise, try selecting the given column in the data table. Look
+        // for the column on the current tab first, then on the next tab to the
+        // right, and so on.
+        int numTabs = tableColumnModels.size();
+        for (int i = 0; i < numTabs; i++) {
+            int tabPos = (tabbedPane.getSelectedIndex() + i) % numTabs;
+            TableColumnModel columns = tableColumnModels.get(tabPos);
+            try {
+                int columnPos = columns.getColumnIndex(columnID);
+
+                if (i != 0)
+                    tabbedPane.setSelectedIndex(tabPos);
+                columns.getSelectionModel().clearSelection();
+                dataTable.addColumnSelectionInterval(columnPos, columnPos);
+                dataTable.requestFocusInWindow();
+                return true;
+            } catch (IllegalArgumentException noSuchColumn) {
+                // if the column was not found on this tab, the getColumnIndex
+                // method will throw an IllegalArgumentException. Catch the
+                // exception so we can try the column model for the next tab.
+            }
+        }
+
+        return false;
     }
 
     public void setBlameData(BlameData blameData) {

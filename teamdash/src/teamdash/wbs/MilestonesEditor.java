@@ -104,8 +104,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
     }
 
     public boolean displayHyperlinkedItem(String item) {
-        int nodeId = Integer.parseInt(item);
-        if (table.selectAndShowNode(nodeId) == false)
+        if (table.displayHyperlinkedItem(item) == false)
             return false;
 
         show();

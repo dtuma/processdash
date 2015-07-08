@@ -309,6 +309,13 @@ public class WBSJTable extends JTable {
         }
     }
 
+    public boolean displayHyperlinkedItem(String item) {
+        String[] parts = item.split("/", 2);
+        int wbsNodeId = Integer.parseInt(parts[0]);
+        return selectAndShowNode(wbsNodeId) //
+                && selectColumn(parts.length > 1 ? parts[1] : null);
+    }
+
     public boolean selectAndShowNode(int wbsNodeId) {
         // find the node in the model with the specified ID
         WBSNode node = wbsModel.getNodeMap().get(wbsNodeId);
@@ -330,6 +337,19 @@ public class WBSJTable extends JTable {
         // select the row for the node in question, and scroll to it
         selectRows(new int[] { row }, true);
         return true;
+    }
+
+    public boolean selectColumn(String columnID) {
+        try {
+            int columnPos = 0;
+            if (columnID != null)
+                columnPos = getColumnModel().getColumnIndex(columnID);
+            getColumnModel().getSelectionModel().clearSelection();
+            addColumnSelectionInterval(columnPos, columnPos);
+            return true;
+        } catch (IllegalArgumentException noSuchColumn) {
+            return false;
+        }
     }
 
     /**
