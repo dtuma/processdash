@@ -67,6 +67,14 @@ public class BlameData extends HashMap<ModelType, BlameModelData> {
             return modelData.countAnnotations(caretPos);
     }
 
+    public boolean clearAnnotations(BlameCaretPos caretPos) {
+        BlameModelData modelData = get(caretPos.getModelType());
+        if (modelData == null)
+            return false;
+        else
+            return modelData.clearAnnotations(caretPos);
+    }
+
 
     /*
      * Property change listener support

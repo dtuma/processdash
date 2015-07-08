@@ -25,6 +25,7 @@ package teamdash.hist.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowListener;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
@@ -32,6 +33,8 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -66,6 +69,8 @@ public class BlameHistoryDialog extends JDialog implements
 
     private JTextArea blameChanges;
 
+    private ClearAction clearAction;
+
     private ProjectHistory projectHistory;
 
     private Date historyDate;
@@ -89,9 +94,12 @@ public class BlameHistoryDialog extends JDialog implements
         blameChanges.setLineWrap(true);
         blameChanges.setWrapStyleWord(true);
 
+        clearAction = new ClearAction();
+
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateChooser, BorderLayout.NORTH);
         content.add(new JScrollPane(blameChanges), BorderLayout.CENTER);
+        content.add(new JButton(clearAction), BorderLayout.SOUTH);
 
         getContentPane().add(content);
         pack();
@@ -119,6 +127,7 @@ public class BlameHistoryDialog extends JDialog implements
             oldCaretPos = blameData.getCaretPos();
             blameData.removePropertyChangeListener("caretPos", this);
             blameData = null;
+            setCaretPos(null);
         }
 
         try {
@@ -141,12 +150,14 @@ public class BlameHistoryDialog extends JDialog implements
         }
 
         wbsEditor.setBlameData(blameData);
-        if (blameData != null)
+        if (blameData != null && oldCaretPos != null)
             blameData.setCaretPos(oldCaretPos);
     }
 
     private void setCaretPos(BlameCaretPos caretPos) {
-        blameChanges.setText(getBlameComments(caretPos));
+        String blameComments = getBlameComments(caretPos);
+        blameChanges.setText(blameComments);
+        clearAction.setEnabled(caretPos != null && blameComments != null);
     }
 
     private String getBlameComments(BlameCaretPos caretPos) {
@@ -184,6 +195,22 @@ public class BlameHistoryDialog extends JDialog implements
 
     public void windowEvent() {
         wbsEditor.setBlameData(isVisible() ? blameData : null);
+    }
+
+    private class ClearAction extends AbstractAction {
+
+        public ClearAction() {
+            super("Clear");
+            setEnabled(false);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            blameData.clearAnnotations(blameData.getCaretPos());
+            blameChanges.setText(null);
+            setEnabled(false);
+        }
+
     }
 
 }

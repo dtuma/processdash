@@ -194,6 +194,41 @@ public class BlameNodeData {
         return result;
     }
 
+    public boolean clearAnnotations(BlameCaretPos caretPos) {
+        boolean madeChange = false;
+        for (String column : caretPos.getColumns()) {
+            if (clearAnnotations(column))
+                madeChange = true;
+        }
+        return madeChange;
+    }
+
+    private boolean clearAnnotations(String columnID) {
+        if (WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            if (!hasStructuralChange())
+                return false;
+
+            addedBy = null;
+            deletedChildren = null;
+            nodeName = null;
+            parentPath = null;
+            return true;
+
+        } else if (attributes != null) {
+            Iterator<BlameValueList> i = attributes.values().iterator();
+            while (i.hasNext()) {
+                BlameValueList v = i.next();
+                if (v.columnMatches(columnID)) {
+                    i.remove();
+                    if (attributes.isEmpty())
+                        attributes = null;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

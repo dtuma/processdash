@@ -61,6 +61,21 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
         return result;
     }
 
+    public boolean clearAnnotations(BlameCaretPos caretPos) {
+        boolean madeChange = false;
+        for (Integer nodeID : caretPos.getNodes()) {
+            BlameNodeData nodeData = get(nodeID);
+            if (nodeData != null && nodeData.clearAnnotations(caretPos)) {
+                madeChange = true;
+                if (nodeData.isEmpty())
+                    remove(nodeID);
+            }
+        }
+        if (madeChange)
+            fireBlameModelDataEvent();
+        return madeChange;
+    }
+
     public void addBlameModelDataListener(BlameModelDataListener l) {
         if (listeners == null)
             listeners = new ArrayList<BlameModelDataListener>();
