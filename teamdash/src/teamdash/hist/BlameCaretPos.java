@@ -46,12 +46,24 @@ public class BlameCaretPos {
         return modelType;
     }
 
+    public boolean isSingleCell() {
+        return nodes.size() == 1 && columns.size() == 1;
+    }
+
     public List<Integer> getNodes() {
         return nodes;
     }
 
+    public Integer getSingleNode() {
+        return nodes.get(0);
+    }
+
     public List<String> getColumns() {
         return columns;
+    }
+
+    public String getSingleColumn() {
+        return columns.get(0);
     }
 
     @Override

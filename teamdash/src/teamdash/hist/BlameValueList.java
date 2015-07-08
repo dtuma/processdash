@@ -45,6 +45,10 @@ public class BlameValueList extends TreeMap<BlamePoint, String> {
         this.column = column;
     }
 
+    public boolean columnMatches(String columnID) {
+        return column != null && columnID.equals(column.getColumnID());
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

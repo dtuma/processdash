@@ -178,8 +178,7 @@ public class BlameNodeData {
 
         } else if (attributes != null) {
             for (BlameValueList v : attributes.values()) {
-                ConflictCapableDataColumn col = v.getColumn();
-                if (col != null && columnID.equals(col.getColumnID()))
+                if (v.columnMatches(columnID))
                     return true;
             }
         }

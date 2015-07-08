@@ -23,6 +23,7 @@
 
 package teamdash.hist.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.event.WindowListener;
 import java.beans.EventHandler;
@@ -32,18 +33,27 @@ import java.io.IOException;
 import java.util.Date;
 
 import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
+import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.hist.BlameDataFactory;
+import teamdash.hist.BlameModelData;
+import teamdash.hist.BlameNodeData;
+import teamdash.hist.BlameValueList;
 import teamdash.hist.ProjectHistory;
 import teamdash.hist.ProjectHistoryException;
 import teamdash.hist.ProjectHistoryFactory;
+import teamdash.merge.ModelType;
 import teamdash.wbs.WBSEditor;
+import teamdash.wbs.columns.WBSNodeColumn;
 
 public class BlameHistoryDialog extends JDialog implements
         PropertyChangeListener {
@@ -53,6 +63,8 @@ public class BlameHistoryDialog extends JDialog implements
     private String dataLocation;
 
     private JDateChooser dateChooser;
+
+    private JTextArea blameChanges;
 
     private ProjectHistory projectHistory;
 
@@ -72,7 +84,16 @@ public class BlameHistoryDialog extends JDialog implements
         dateChooser = new JDateChooser();
         dateChooser.getDateEditor().addPropertyChangeListener("date", this);
 
-        getContentPane().add(dateChooser);
+        blameChanges = new JTextArea(5, 20);
+        blameChanges.setEditable(false);
+        blameChanges.setLineWrap(true);
+        blameChanges.setWrapStyleWord(true);
+
+        JPanel content = new JPanel(new BorderLayout());
+        content.add(dateChooser, BorderLayout.NORTH);
+        content.add(new JScrollPane(blameChanges), BorderLayout.CENTER);
+
+        getContentPane().add(content);
         pack();
         setAlwaysOnTop(true);
         setVisible(true);
@@ -82,12 +103,23 @@ public class BlameHistoryDialog extends JDialog implements
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        setHistoryDate(dateChooser.getDate());
+        String propertyName = evt.getPropertyName();
+        if ("date".equals(propertyName))
+            setHistoryDate((Date) evt.getNewValue());
+        else if ("caretPos".equals(propertyName))
+            setCaretPos((BlameCaretPos) evt.getNewValue());
     }
 
     private void setHistoryDate(Date historyDate) {
         if (NullSafeObjectUtils.EQ(historyDate, this.historyDate))
             return;
+
+        BlameCaretPos oldCaretPos = null;
+        if (blameData != null) {
+            oldCaretPos = blameData.getCaretPos();
+            blameData.removePropertyChangeListener("caretPos", this);
+            blameData = null;
+        }
 
         try {
             if (projectHistory == null)
@@ -96,15 +128,58 @@ public class BlameHistoryDialog extends JDialog implements
 
             blameData = BlameDataFactory.getBlameData(projectHistory,
                 historyDate);
-            wbsEditor.setBlameData(blameData);
+            blameData.addPropertyChangeListener("caretPos", this);
 
             this.historyDate = historyDate;
 
         } catch (IOException e) {
+            blameChanges.setText("IO Error!" + e.getMessage());
             e.printStackTrace();
         } catch (ProjectHistoryException e) {
+            blameChanges.setText("Project Error!" + e.getMessage());
             e.printStackTrace();
         }
+
+        wbsEditor.setBlameData(blameData);
+        if (blameData != null)
+            blameData.setCaretPos(oldCaretPos);
+    }
+
+    private void setCaretPos(BlameCaretPos caretPos) {
+        blameChanges.setText(getBlameComments(caretPos));
+    }
+
+    private String getBlameComments(BlameCaretPos caretPos) {
+        if (caretPos == null || blameData == null)
+            return null;
+
+        if (!caretPos.isSingleCell())
+            return "Selected " + blameData.countAnnotations(caretPos)
+                    + " changes";
+
+        ModelType modelType = caretPos.getModelType();
+        BlameModelData modelData = blameData.get(modelType);
+        if (modelData == null)
+            return null;
+
+        Integer nodeID = caretPos.getSingleNode();
+        BlameNodeData nodeData = modelData.get(nodeID);
+        if (nodeData == null)
+            return null;
+
+        String columnID = caretPos.getSingleColumn();
+        if (WBSNodeColumn.COLUMN_ID.equals(columnID))
+            return nodeData.toString();
+
+        if (nodeData.getAttributes() == null)
+            return null;
+
+        for (BlameValueList val : nodeData.getAttributes().values()) {
+            if (val.columnMatches(columnID))
+                return val.getColumn().getColumnName() + ": " + val;
+        }
+
+        return null;
     }
 
     public void windowEvent() {
