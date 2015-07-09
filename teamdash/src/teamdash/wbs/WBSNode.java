@@ -132,6 +132,12 @@ public class WBSNode implements Cloneable {
         this.uniqueID = uniqueID;
     }
 
+    /** Get an ID used for tree lookup scenarios. This is the same as the
+     * unique ID, with the exception of the root node which returns -1000. */
+    public int getTreeNodeID() {
+        return indentLevel == 0 ? -1000 : uniqueID;
+    }
+
     /** Get the type of this node.
      * @return the type of this node.  */
     public String getType() { return type; }

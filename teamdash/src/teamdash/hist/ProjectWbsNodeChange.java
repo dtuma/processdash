@@ -84,7 +84,7 @@ public class ProjectWbsNodeChange extends ProjectWbsChange {
 
         // add an initial row naming the parent node
         result.add(new ProjectChangeReportRow(0, true, "wbsChange", null,
-                fmt(getNode()), true, "wbs/" + getNode().getUniqueID()));
+                fmt(getNode()), true, "wbs/" + getNode().getTreeNodeID()));
 
         // now add rows for each of the affected children
         for (Entry<WBSNode, Object> e : children.entrySet()) {

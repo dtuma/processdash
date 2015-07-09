@@ -127,7 +127,7 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
     protected TreeNode<Integer, WBSNodeContent> buildTree(WBSNode node) {
-        int nodeId = (node.getIndentLevel() == 0 ? -1000 : node.getUniqueID());
+        int nodeId = node.getTreeNodeID();
         WBSNodeContent content = new WBSNodeContent(node);
         tweakTreeNodeContent(content);
         TreeNode<Integer, WBSNodeContent> result = new TreeNode(nodeId, content);

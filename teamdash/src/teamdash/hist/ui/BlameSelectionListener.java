@@ -133,7 +133,7 @@ public class BlameSelectionListener implements ListSelectionListener,
         List<Integer> nodes = new ArrayList();
         for (int i = 0; i < selectedRows.length; i++) {
             WBSNode node = wbsModel.getNodeForRow(selectedRows[i]);
-            nodes.add(node.getUniqueID());
+            nodes.add(node.getTreeNodeID());
         }
 
         BlameCaretPos caretPos = new BlameCaretPos(wbsModel.getModelType(),
