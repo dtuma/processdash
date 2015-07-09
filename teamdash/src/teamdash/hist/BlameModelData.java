@@ -24,9 +24,13 @@
 package teamdash.hist;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import teamdash.merge.ModelType;
+import teamdash.wbs.WBSNode;
 
 public class BlameModelData extends HashMap<Integer, BlameNodeData> {
 
@@ -74,6 +78,74 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
         if (madeChange)
             fireBlameModelDataEvent();
         return madeChange;
+    }
+
+    public BlameCaretPos findNextAnnotation(List<WBSNode> wbsNodes,
+            List<String> columns, BlameCaretPos currentCaret,
+            boolean searchForward) {
+        if (isEmpty())
+            return null;
+
+        int nodePos = findNodePos(wbsNodes, currentCaret, searchForward);
+        int columnPos = findColumnPos(columns, currentCaret, searchForward);
+        int increment = searchForward ? +1 : -1;
+
+        while (true) {
+            // search forward/backward for the next column.
+            columnPos += increment;
+
+            // if we run off the end of the column list, wrap and then move
+            // to another node.
+            if (outOfRange(columns, columnPos)) {
+                columnPos = (columnPos + columns.size()) % columns.size();
+
+                // search forward/backward for the next node with annotations.
+                // if we run off the end of the node list, return null.
+                while (true) {
+                    nodePos += increment;
+                    if (outOfRange(wbsNodes, nodePos))
+                        return null;
+                    if (containsKey(wbsNodes.get(nodePos).getTreeNodeID()))
+                        break;
+                }
+            }
+
+            String columnID = columns.get(columnPos);
+            int nodeID = wbsNodes.get(nodePos).getTreeNodeID();
+            BlameNodeData nodeData = get(nodeID);
+            if (nodeData != null && nodeData.isColumnAffected(columnID)) {
+                ModelType type = wbsNodes.get(0).getWbsModel().getModelType();
+                return new BlameCaretPos(type,
+                        Collections.singletonList(nodeID),
+                        Collections.singletonList(columnID));
+            }
+        }
+    }
+
+    private int findNodePos(List<WBSNode> wbsNodes, BlameCaretPos currentCaret,
+            boolean searchForward) {
+        if (currentCaret != null) {
+            int caretNodeID = currentCaret.getSingleNode();
+            for (int i = wbsNodes.size(); i-- > 0;) {
+                if (wbsNodes.get(i).getTreeNodeID() == caretNodeID)
+                    return i;
+            }
+        }
+        return searchForward ? 0 : wbsNodes.size() - 1;
+    }
+
+    private int findColumnPos(List<String> columns, BlameCaretPos currentCaret,
+            boolean searchForward) {
+        if (currentCaret != null) {
+            int pos = columns.indexOf(currentCaret.getSingleColumn());
+            if (pos != -1)
+                return pos;
+        }
+        return searchForward ? -1 : columns.size();
+    }
+
+    private boolean outOfRange(List list, int pos) {
+        return pos < 0 || pos >= list.size();
     }
 
     public void addBlameModelDataListener(BlameModelDataListener l) {

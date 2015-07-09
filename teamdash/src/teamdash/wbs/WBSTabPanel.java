@@ -46,9 +46,11 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -88,6 +90,7 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
+import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
@@ -348,6 +351,32 @@ public class WBSTabPanel extends JLayeredPane
         wbsTable.setBlameData(blameData);
         dataTable.setBlameData(blameData);
     }
+
+    public BlameCaretPos findNextAnnotation(BlameCaretPos currentCaret,
+            boolean searchForward) {
+        if (wbsTable.blameData == null)
+            return null;
+        else
+            return wbsTable.blameData.findNextAnnotation(
+                wbsTable.wbsModel.getWbsNodes(), getBlameColumnIDs(),
+                currentCaret, searchForward);
+    }
+
+    private List<String> getBlameColumnIDs() {
+        if (blameColumnIDs == null) {
+            Set<String> result = new LinkedHashSet<String>();
+            result.add(WBSNodeColumn.COLUMN_ID);
+            for (TableColumnModel tcm : tableColumnModels) {
+                for (int i = 0; i < tcm.getColumnCount(); i++) {
+                    result.add(tcm.getColumn(i).getIdentifier().toString());
+                }
+            }
+            blameColumnIDs = new ArrayList<String>(result);
+        }
+        return blameColumnIDs;
+    }
+    private List<String> blameColumnIDs;
+
 
     /** Get a list of file-related actions for the work breakdown structure */
     public Action[] getFileActions() {

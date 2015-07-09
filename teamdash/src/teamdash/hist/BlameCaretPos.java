@@ -66,6 +66,10 @@ public class BlameCaretPos {
         return columns.get(0);
     }
 
+    public String getAsHref() {
+        return modelType + "/" + getSingleNode() + "/" + getSingleColumn();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

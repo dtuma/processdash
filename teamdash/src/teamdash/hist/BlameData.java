@@ -40,6 +40,14 @@ public class BlameData extends HashMap<ModelType, BlameModelData> {
         changeSupport = new PropertyChangeSupport(this);
     }
 
+    public boolean isEmpty() {
+        for (BlameModelData modelData : values()) {
+            if (!modelData.isEmpty())
+                return false;
+        }
+        return true;
+    }
+
     public BlameModelData getOrCreate(ModelType type) {
         BlameModelData result = get(type);
         if (result == null) {

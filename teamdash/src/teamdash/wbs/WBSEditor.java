@@ -129,6 +129,7 @@ import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
+import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.hist.ui.BlameHistoryAction;
 import teamdash.merge.ModelType;
@@ -700,6 +701,17 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void setBlameData(BlameData blameData) {
         this.blameData = blameData;
         tabPanel.setBlameData(blameData);
+    }
+
+    public BlameCaretPos findNextAnnotation(BlameCaretPos currentCaret,
+            boolean searchForward) {
+        // look for the next annotation before/after the caret
+        BlameCaretPos result = tabPanel.findNextAnnotation(currentCaret,
+            searchForward);
+        // if no result, wrap the search to the top/bottom of the WBS
+        if (result == null)
+            result = tabPanel.findNextAnnotation(null, searchForward);
+        return result;
     }
 
     public void show() {

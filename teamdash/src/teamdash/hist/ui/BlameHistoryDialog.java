@@ -25,6 +25,7 @@ package teamdash.hist.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowListener;
 import java.beans.EventHandler;
@@ -43,6 +44,7 @@ import javax.swing.JTextArea;
 import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 import teamdash.hist.BlameCaretPos;
@@ -71,6 +73,8 @@ public class BlameHistoryDialog extends JDialog implements
 
     private ClearAction clearAction;
 
+    private NavigateAction nextAction, previousAction;
+
     private ProjectHistory projectHistory;
 
     private Date historyDate;
@@ -95,11 +99,15 @@ public class BlameHistoryDialog extends JDialog implements
         blameChanges.setWrapStyleWord(true);
 
         clearAction = new ClearAction();
+        nextAction = new NavigateAction(true);
+        previousAction = new NavigateAction(false);
+        BoxUtils buttonBox = BoxUtils.hbox(new JButton(previousAction), 5,
+            new JButton(clearAction), 5, new JButton(nextAction));
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateChooser, BorderLayout.NORTH);
         content.add(new JScrollPane(blameChanges), BorderLayout.CENTER);
-        content.add(new JButton(clearAction), BorderLayout.SOUTH);
+        content.add(buttonBox, BorderLayout.SOUTH);
 
         getContentPane().add(content);
         pack();
@@ -152,6 +160,14 @@ public class BlameHistoryDialog extends JDialog implements
         wbsEditor.setBlameData(blameData);
         if (blameData != null && oldCaretPos != null)
             blameData.setCaretPos(oldCaretPos);
+        enableNavigationActions();
+    }
+
+    private void enableNavigationActions() {
+        boolean enabled = blameData != null && !blameData.isEmpty();
+        nextAction.setEnabled(enabled);
+        previousAction.setEnabled(enabled);
+
     }
 
     private void setCaretPos(BlameCaretPos caretPos) {
@@ -209,8 +225,36 @@ public class BlameHistoryDialog extends JDialog implements
             blameData.clearAnnotations(blameData.getCaretPos());
             blameChanges.setText(null);
             setEnabled(false);
+            enableNavigationActions();
         }
 
+    }
+
+    private class NavigateAction extends AbstractAction {
+
+        private boolean searchForward;
+
+        public NavigateAction(boolean searchForward) {
+            super(searchForward ? "Next" : "Previous");
+            this.searchForward = searchForward;
+            setEnabled(false);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (blameData == null)
+                return;
+
+            BlameCaretPos currentCaret = blameData.getCaretPos();
+            BlameCaretPos newCaret = wbsEditor.findNextAnnotation(currentCaret,
+                searchForward);
+            if (newCaret == null) {
+                enableNavigationActions();
+                Toolkit.getDefaultToolkit().beep();
+            } else {
+                wbsEditor.showHyperlinkedItem(newCaret.getAsHref());
+            }
+        }
     }
 
 }
