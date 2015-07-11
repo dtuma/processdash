@@ -71,6 +71,8 @@ public class ProjectDiff {
 
     protected Set<String> indivTimeAttrs;
 
+    protected Set<String> deletedIndivAttrs;
+
     protected Map<String, String> memberZeroAttrs;
 
     protected Map<String, String> teamMemberNames;
@@ -97,6 +99,7 @@ public class ProjectDiff {
     private void loadTeamMemberData() throws IOException {
         Map<String, String> members = new HashMap<String, String>();
         indivTimeAttrs = new HashSet();
+        deletedIndivAttrs = new HashSet();
         memberZeroAttrs = new HashMap();
         teamMemberNames = new HashMap();
         Element teamB = parseXML(versionB, TEAM_LIST_FILENAME);
@@ -132,7 +135,9 @@ public class ProjectDiff {
             String id = indiv.getAttribute(TeamMember.ID_ATTR);
             String oldInitials = indiv.getAttribute(TeamMember.INITIALS_ATTR);
             String newInitials = members.get(id);
-            if (newInitials != null && !oldInitials.equals(newInitials)) {
+            if (newInitials == null) {
+                deletedIndivAttrs.add(oldInitials + TEAM_MEMBER_TIME_SUFFIX);
+            } else if (!oldInitials.equals(newInitials)) {
                 changedInitialAttrs.put(oldInitials + TEAM_MEMBER_TIME_SUFFIX,
                     newInitials + TEAM_MEMBER_TIME_SUFFIX);
                 changedInitialAttrs.put(
@@ -142,6 +147,7 @@ public class ProjectDiff {
         }
         if (!changedInitialAttrs.isEmpty())
             this.changedInitialAttrs = changedInitialAttrs;
+        deletedIndivAttrs.removeAll(indivTimeAttrs);
     }
 
     private WBSModel getWbsModel(Object version, ProjectDiff other)

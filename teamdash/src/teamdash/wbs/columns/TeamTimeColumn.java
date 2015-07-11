@@ -1505,7 +1505,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.columnName = resources.getString("Assigned_To.Name");
             this.preferredWidth = 200;
             this.conflictAttributeNamePattern = new PatternList()
-                    .addLiteralStartsWith(ROLE_ASSIGNMENT_PREFIX);
+                    .addLiteralStartsWith(ROLE_ASSIGNMENT_PREFIX)
+                    .addLiteralEquals(RESOURCES_PSEUDO_ATTR);
         }
 
         public Object getConflictDisplayValue(String value, WBSNode node) {
@@ -1640,6 +1641,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
     }
     public static final String RESOURCES_COL_ID = "Assigned To";
+    public static final String RESOURCES_PSEUDO_ATTR = "Assigned_To_Attr";
     private static String UNASSIGNED_TEXT = "???";
     private static final String UNASSIGNED_TOOLTIP = resources
             .getString("Team_Time.Need_Assignment_Tooltip");

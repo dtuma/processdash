@@ -24,6 +24,7 @@
 package teamdash.hist;
 
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
+import static teamdash.wbs.columns.TeamTimeColumn.RESOURCES_PSEUDO_ATTR;
 import static teamdash.wbs.columns.TeamTimeColumn.TEAM_TIME_ATTR;
 
 import java.io.FileNotFoundException;
@@ -43,6 +44,7 @@ import teamdash.merge.TreeDiff;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -203,14 +205,21 @@ public class BlameDataFactory extends ProjectDiff {
                         getMergedBlame(indivTimeAuthors), oldTime, newTime);
                 }
             }
+
+            // record a change to the value in the "Assigned To" column
+            if (tnc.getNode().getChildren().isEmpty()) {
+                String oldWho = getAssignedToString(base, true);
+                String newWho = getAssignedToString(mod, false);
+                if (!NullSafeObjectUtils.EQ(oldWho, newWho))
+                    nodeData.addAttributeChange(RESOURCES_PSEUDO_ATTR,
+                        getMergedBlame(indivTimeAuthors), oldWho, newWho);
+            }
         }
     }
 
     private BlamePoint getTimeAuthor(WBSNodeContent mod, String timeAttrName) {
         if (ProjectWbsTimeChange.timeEqualsSyncTime(mod, timeAttrName)) {
-            String initials = timeAttrName.substring(timeAttrName.length()
-                    - TEAM_MEMBER_TIME_SUFFIX.length());
-            String indivName = this.teamMemberNames.get(initials);
+            String indivName = teamMemberNames.get(timeAttrName);
             if (indivName != null)
                 return new BlamePoint(timestamp, indivName);
         }
@@ -219,6 +228,28 @@ public class BlameDataFactory extends ProjectDiff {
 
     private BlamePoint getMergedBlame(Collection<String> authors) {
         return new BlamePoint(timestamp, StringUtils.join(authors, ", "));
+    }
+
+    private String getAssignedToString(WBSNodeContent data,
+            boolean includeDeleted) {
+        Set<String> result = new TreeSet();
+        getAssignedToTokens(result, data, indivTimeAttrs);
+        if (includeDeleted)
+            getAssignedToTokens(result, data, deletedIndivAttrs);
+        return (result.isEmpty() ? null : StringUtils.join(result, ", "));
+    }
+
+    private void getAssignedToTokens(Set<String> result, WBSNodeContent data,
+            Set<String> timeAttrs) {
+        for (String indivAttr : timeAttrs) {
+            String val = data.get(indivAttr);
+            if (val != null) {
+                String initials = indivAttr.substring(0, indivAttr.length()
+                        - TEAM_MEMBER_TIME_SUFFIX.length());
+                String time = NumericDataValue.format(Double.parseDouble(val));
+                result.add(initials + "(" + time + ")");
+            }
+        }
     }
 
     private static final String SAVED_TEAM_TIME_ATTR = TEAM_TIME_ATTR + "_Save";
