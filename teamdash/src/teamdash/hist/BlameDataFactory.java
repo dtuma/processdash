@@ -23,14 +23,20 @@
 
 package teamdash.hist;
 
+import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
+import static teamdash.wbs.columns.TeamTimeColumn.TEAM_TIME_ATTR;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ModelType;
 import teamdash.merge.TreeDiff;
@@ -48,7 +54,7 @@ public class BlameDataFactory extends ProjectDiff {
             Object versionB, ProjectDiff other) throws IOException {
         super(hist, versionA, versionB, other);
 
-        WBSDiffCalc wbsBlameCalc = new WBSDiffCalc();
+        WBSBlameCalc wbsBlameCalc = new WBSBlameCalc();
         diff = wbsBlameCalc.getMainDiff();
 
         blamePoint = new BlamePoint(hist.getVersionDate(versionB),
@@ -148,21 +154,84 @@ public class BlameDataFactory extends ProjectDiff {
         WBSNodeContent base = diff.getBaseRoot().findNode(nodeID).getContent();
         WBSNodeContent mod = tnc.getNode().getContent();
         BlameNodeData nodeData = modelData.getNodeData(nodeID);
+        boolean isWBS = (diff == this.diff);
 
         Set<String> attrNames = new HashSet<String>(base.keySet());
         attrNames.addAll(mod.keySet());
+        Set<String> indivTimeAuthors = null;
+        boolean totalTimeExplicitlyChanged = false;
         for (String attr : attrNames) {
             String baseVal = base.get(attr);
             String modVal = mod.get(attr);
             if (NullSafeObjectUtils.EQ(baseVal, modVal)) {
                 // no changes in this attr
+
+            } else if (isWBS && attr.equals(TEAM_TIME_ATTR)) {
+                // the team time value might have been explicitly changed
+                baseVal = base.get(SAVED_TEAM_TIME_ATTR);
+                modVal = mod.get(SAVED_TEAM_TIME_ATTR);
+                if (!NullSafeObjectUtils.EQ(baseVal, modVal)) {
+                    totalTimeExplicitlyChanged = true;
+                    nodeData.addAttributeChange(attr, blamePoint, baseVal,
+                        modVal);
+                }
+
+            } else if (isWBS && attr.endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
+                // team member time changes can be reverse-synced, so we must
+                // determine the appropriate author for this change.
+                BlamePoint timeAuthor = getTimeAuthor(mod, attr);
+                if (indivTimeAuthors == null)
+                    indivTimeAuthors = new TreeSet<String>();
+                indivTimeAuthors.add(timeAuthor.getAuthor());
+                nodeData.addAttributeChange(attr, timeAuthor, baseVal, modVal);
+
             } else {
                 // record an attribute change for this node
                 nodeData.addAttributeChange(attr, blamePoint, baseVal, modVal);
             }
         }
+
+        // if any individuals changed time, record downstream attribute changes
+        if (indivTimeAuthors != null) {
+
+            // if we haven't logged a team time change yet, consider logging one
+            if (!totalTimeExplicitlyChanged) {
+                String oldTime = base.get(SAVED_TEAM_TIME_ATTR);
+                String newTime = mod.get(SAVED_TEAM_TIME_ATTR);
+                if (!NullSafeObjectUtils.EQ(oldTime, newTime)) {
+                    nodeData.addAttributeChange(TEAM_TIME_ATTR,
+                        getMergedBlame(indivTimeAuthors), oldTime, newTime);
+                }
+            }
+        }
     }
 
+    private BlamePoint getTimeAuthor(WBSNodeContent mod, String timeAttrName) {
+        if (ProjectWbsTimeChange.timeEqualsSyncTime(mod, timeAttrName)) {
+            String initials = timeAttrName.substring(timeAttrName.length()
+                    - TEAM_MEMBER_TIME_SUFFIX.length());
+            String indivName = this.teamMemberNames.get(initials);
+            if (indivName != null)
+                return new BlamePoint(timestamp, indivName);
+        }
+        return blamePoint;
+    }
+
+    private BlamePoint getMergedBlame(Collection<String> authors) {
+        return new BlamePoint(timestamp, StringUtils.join(authors, ", "));
+    }
+
+    private static final String SAVED_TEAM_TIME_ATTR = TEAM_TIME_ATTR + "_Save";
+
+    private class WBSBlameCalc extends WBSDiffCalc {
+        @Override
+        protected void tweakTreeNodeContent(WBSNodeContent content) {
+            String teamTime = content.get(TEAM_TIME_ATTR);
+            super.tweakTreeNodeContent(content);
+            if (teamTime != null)
+                content.put(SAVED_TEAM_TIME_ATTR, teamTime);
+        }
+    }
 
 
     public static BlameData getBlameData(ProjectHistory hist, Date onOrAfterDate)
