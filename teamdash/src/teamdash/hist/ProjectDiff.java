@@ -267,9 +267,14 @@ public class ProjectDiff {
                 boolean hasAssignedZeroFlag = (content.remove(zeroAttr) != null);
 
                 // if this person is assigned with zero, write "0.0" for time
-                if (hasAssignedZeroFlag && !content.containsKey(indivAttr))
+                if (hasAssignedZeroFlag && !content.containsKey(indivAttr)
+                        && isLeafNode(content.getWBSNode()))
                     content.put(indivAttr, "0.0");
             }
+        }
+
+        protected boolean isLeafNode(WBSNode wbsNode) {
+            return wbsNode.getWbsModel().isLeaf(wbsNode);
         }
 
     }
