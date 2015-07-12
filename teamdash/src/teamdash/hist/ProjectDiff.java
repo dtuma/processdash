@@ -271,6 +271,14 @@ public class ProjectDiff {
                         && isLeafNode(content.getWBSNode()))
                     content.put(indivAttr, "0.0");
             }
+
+            // if any individuals have been deleted from the team, erase their
+            // time values to trigger the effective change
+            if (deletedIndivAttrs != null && !deletedIndivAttrs.isEmpty()
+                    && content.getWBSNode().getWbsModel() == wbsB) {
+                for (String indivAttr : deletedIndivAttrs)
+                    content.remove(indivAttr);
+            }
         }
 
         protected boolean isLeafNode(WBSNode wbsNode) {
