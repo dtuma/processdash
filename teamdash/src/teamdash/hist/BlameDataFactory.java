@@ -26,13 +26,17 @@ package teamdash.hist;
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
 import static teamdash.wbs.columns.TeamTimeColumn.RESOURCES_PSEUDO_ATTR;
 import static teamdash.wbs.columns.TeamTimeColumn.TEAM_TIME_ATTR;
+import static teamdash.wbs.columns.TopDownBottomUpColumn.TOP_DOWN_ATTR_SUFFIX;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -41,6 +45,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ModelType;
 import teamdash.merge.TreeDiff;
+import teamdash.merge.TreeNode;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
@@ -264,11 +269,73 @@ public class BlameDataFactory extends ProjectDiff {
         protected void tweakTreeNodeContent(WBSNodeContent content) {
             String teamTime = content.get(TEAM_TIME_ATTR);
             super.tweakTreeNodeContent(content);
-            if (content.containsKey(TEAM_TIME_ATTR))
+            if (content.get(TEAM_TIME_ATTR) != null)
                 content.put(TEAM_TIME_EXPLICIT_FLAG, "t");
-            else
+            else if (teamTime != null)
                 content.put(TEAM_TIME_ATTR, teamTime);
         }
+
+        @Override
+        protected TreeNode<Integer, WBSNodeContent> buildTree(WBSNode node) {
+            TreeNode<Integer, WBSNodeContent> result = super.buildTree(node);
+            calcBottomUpSums(result);
+            return result;
+        }
+
+        private Map<String, Double> calcBottomUpSums(
+                TreeNode<Integer, WBSNodeContent> node) {
+            Map<String, Double> result = null;
+
+            // get the bottom up sums for each child, and sum those together
+            for (TreeNode<Integer, WBSNodeContent> child : node.getChildren()) {
+                Map<String, Double> childSums = calcBottomUpSums(child);
+                if (result == null) {
+                    result = childSums;
+
+                } else if (childSums != null) {
+                    for (Entry<String, Double> e : childSums.entrySet()) {
+                        String attr = e.getKey();
+                        Double childValue = e.getValue();
+                        Double prevTotal = result.get(attr);
+                        Double sum = (prevTotal == null ? childValue
+                                : prevTotal + childValue);
+                        result.put(attr, sum);
+                    }
+                }
+            }
+
+            // now find all top-down values stored on this node
+            for (Entry<String, String> e : node.getContent().entrySet()) {
+                String attr = e.getKey();
+                if (attr.endsWith(TOP_DOWN_ATTR_SUFFIX) && e.getValue() != null) {
+                    Double value = Double.valueOf(e.getValue());
+                    if (value > 0) {
+                        if (result == null)
+                            result = new HashMap<String, Double>();
+                        if (result.get(attr) != null) {
+                            // if we have both a nonzero child sum and a
+                            // top-down value, there is a top-down-bottom-up
+                            // mismatch. Follow the WBS Editor's lead and
+                            // use the nonzero child sum.
+                        } else {
+                            result.put(attr, value);
+                        }
+                    }
+                }
+            }
+
+            // finally, store bottom-up child sums into this node if needed
+            if (result != null) {
+                for (Entry<String, Double> e : result.entrySet()) {
+                    String attr = e.getKey();
+                    if (node.getContent().get(attr) == null)
+                        node.getContent().put(attr, e.getValue().toString());
+                }
+            }
+
+            return result;
+        }
+
     }
 
 
