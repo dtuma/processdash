@@ -224,7 +224,7 @@ public class DataJTable extends JTable {
         if (node == null)
             return null;
         else
-            return blameData.get(node.getUniqueID());
+            return blameData.get(node.getTreeNodeID());
     }
 
     @Override
