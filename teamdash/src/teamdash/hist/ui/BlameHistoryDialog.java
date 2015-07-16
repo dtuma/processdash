@@ -24,7 +24,6 @@
 package teamdash.hist.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowListener;
@@ -37,6 +36,7 @@ import java.util.Date;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -85,8 +85,9 @@ public class BlameHistoryDialog extends JDialog implements
             .getDashBundle("WBSEditor.Blame");
 
 
-    BlameHistoryDialog(WBSEditor wbsEditor, String dataLocation) {
-        super((Frame) null, resources.getString("Title"), false);
+    public BlameHistoryDialog(WBSEditor wbsEditor, JFrame frame,
+            String dataLocation) {
+        super(frame, resources.getString("Title"), false);
         this.wbsEditor = wbsEditor;
         this.dataLocation = dataLocation;
 
@@ -111,7 +112,6 @@ public class BlameHistoryDialog extends JDialog implements
 
         getContentPane().add(content);
         pack();
-        setAlwaysOnTop(true);
         setVisible(true);
 
         addWindowListener(EventHandler.create(WindowListener.class, this,

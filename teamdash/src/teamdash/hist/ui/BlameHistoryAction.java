@@ -26,6 +26,7 @@ package teamdash.hist.ui;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.JFrame;
 
 import teamdash.wbs.WBSEditor;
 
@@ -33,20 +34,24 @@ public class BlameHistoryAction extends AbstractAction {
 
     private WBSEditor wbsEditor;
 
+    private JFrame frame;
+
     private String dataLocation;
 
     private BlameHistoryDialog dialog;
 
-    public BlameHistoryAction(WBSEditor wbsEditor, String dataLocation) {
+    public BlameHistoryAction(WBSEditor wbsEditor, JFrame frame,
+            String dataLocation) {
         super(BlameHistoryDialog.resources.getString("Menu_Text"));
         this.wbsEditor = wbsEditor;
+        this.frame = frame;
         this.dataLocation = dataLocation;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (dialog == null) {
-            dialog = new BlameHistoryDialog(wbsEditor, dataLocation);
+            dialog = new BlameHistoryDialog(wbsEditor, frame, dataLocation);
         } else {
             dialog.setVisible(true);
         }
