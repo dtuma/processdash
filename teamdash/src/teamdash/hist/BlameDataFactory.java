@@ -161,22 +161,25 @@ public class BlameDataFactory extends ProjectDiff {
         Set<String> attrNames = new HashSet<String>(base.keySet());
         attrNames.addAll(mod.keySet());
         Set<String> indivTimeAuthors = null;
-        boolean totalTimeExplicitlyChanged = false;
+        boolean hasTotalTimeChange = false;
+        boolean hasExplicitTotalTimeChange = false;
         for (String attr : attrNames) {
             String baseVal = base.get(attr);
             String modVal = mod.get(attr);
             if (NullSafeObjectUtils.EQ(baseVal, modVal)) {
                 // no changes in this attr
 
+            } else if (attr == TEAM_TIME_EXPLICIT_FLAG) {
+                // no need to record changes to this pseudo flag
+
             } else if (isWBS && attr.equals(TEAM_TIME_ATTR)) {
-                // the team time value might have been explicitly changed
-                baseVal = base.get(SAVED_TEAM_TIME_ATTR);
-                modVal = mod.get(SAVED_TEAM_TIME_ATTR);
-                if (!NullSafeObjectUtils.EQ(baseVal, modVal)) {
-                    totalTimeExplicitlyChanged = true;
-                    nodeData.addAttributeChange(attr, blamePoint, baseVal,
-                        modVal);
-                }
+                // the team time value was changed
+                hasTotalTimeChange = true;
+                // remember whether the team time value was explicit (not just
+                // the sum of indiv times)
+                if (base.containsKey(TEAM_TIME_EXPLICIT_FLAG)
+                        || mod.containsKey(TEAM_TIME_EXPLICIT_FLAG))
+                    hasExplicitTotalTimeChange = true;
 
             } else if (isWBS && attr.endsWith(TEAM_MEMBER_TIME_SUFFIX)) {
                 // team member time changes can be reverse-synced, so we must
@@ -193,27 +196,28 @@ public class BlameDataFactory extends ProjectDiff {
             }
         }
 
-        // if any individuals changed time, record downstream attribute changes
-        if (indivTimeAuthors != null) {
+        // if any individuals changed time, record a change to the value in the
+        // "Assigned To" column
+        if (indivTimeAuthors != null && tnc.getNode().getChildren().isEmpty()) {
+            String oldWho = getAssignedToString(base, true);
+            String newWho = getAssignedToString(mod, false);
+            if (!NullSafeObjectUtils.EQ(oldWho, newWho))
+                nodeData.addAttributeChange(RESOURCES_PSEUDO_ATTR,
+                    getMergedBlame(indivTimeAuthors), oldWho, newWho);
+        }
 
-            // if we haven't logged a team time change yet, consider logging one
-            if (!totalTimeExplicitlyChanged) {
-                String oldTime = base.get(SAVED_TEAM_TIME_ATTR);
-                String newTime = mod.get(SAVED_TEAM_TIME_ATTR);
-                if (!NullSafeObjectUtils.EQ(oldTime, newTime)) {
-                    nodeData.addAttributeChange(TEAM_TIME_ATTR,
-                        getMergedBlame(indivTimeAuthors), oldTime, newTime);
-                }
+        // record a change to the team time attribute if needed
+        if (hasTotalTimeChange) {
+            BlamePoint blame = blamePoint;
+            if (indivTimeAuthors != null) {
+                if (hasExplicitTotalTimeChange)
+                    indivTimeAuthors.add(author);
+                blame = getMergedBlame(indivTimeAuthors);
             }
 
-            // record a change to the value in the "Assigned To" column
-            if (tnc.getNode().getChildren().isEmpty()) {
-                String oldWho = getAssignedToString(base, true);
-                String newWho = getAssignedToString(mod, false);
-                if (!NullSafeObjectUtils.EQ(oldWho, newWho))
-                    nodeData.addAttributeChange(RESOURCES_PSEUDO_ATTR,
-                        getMergedBlame(indivTimeAuthors), oldWho, newWho);
-            }
+            String oldTime = base.get(TEAM_TIME_ATTR);
+            String newTime = mod.get(TEAM_TIME_ATTR);
+            nodeData.addAttributeChange(TEAM_TIME_ATTR, blame, oldTime, newTime);
         }
     }
 
@@ -252,15 +256,18 @@ public class BlameDataFactory extends ProjectDiff {
         }
     }
 
-    private static final String SAVED_TEAM_TIME_ATTR = TEAM_TIME_ATTR + "_Save";
+    private static final String TEAM_TIME_EXPLICIT_FLAG = TEAM_TIME_ATTR
+            + "_Is_Explicit";
 
     private class WBSBlameCalc extends WBSDiffCalc {
         @Override
         protected void tweakTreeNodeContent(WBSNodeContent content) {
             String teamTime = content.get(TEAM_TIME_ATTR);
             super.tweakTreeNodeContent(content);
-            if (teamTime != null)
-                content.put(SAVED_TEAM_TIME_ATTR, teamTime);
+            if (content.containsKey(TEAM_TIME_ATTR))
+                content.put(TEAM_TIME_EXPLICIT_FLAG, "t");
+            else
+                content.put(TEAM_TIME_ATTR, teamTime);
         }
     }
 
