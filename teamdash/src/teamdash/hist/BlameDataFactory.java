@@ -30,7 +30,6 @@ import static teamdash.wbs.columns.TopDownBottomUpColumn.TOP_DOWN_ATTR_SUFFIX;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +56,8 @@ public class BlameDataFactory extends ProjectDiff {
 
     private BlamePoint blamePoint;
 
+    private Set<String> wbsAttributesWithSpecialAuthors;
+
     public BlameDataFactory(ProjectHistory hist, Object versionA,
             Object versionB, ProjectDiff other) throws IOException {
         super(hist, versionA, versionB, other);
@@ -71,7 +72,9 @@ public class BlameDataFactory extends ProjectDiff {
     public void addChanges(BlameData blameData) {
         BlameModelData wbsData = blameData.getOrCreate(ModelType.Wbs);
         maybeRemapInitials(wbsData);
+        wbsAttributesWithSpecialAuthors = new HashSet<String>();
         addChanges(wbsData, diff, wbsA, wbsB);
+        rollUpBlame(wbsData, diff.getModifiedRoot());
     }
 
     private void maybeRemapInitials(BlameModelData wbsData) {
@@ -215,10 +218,15 @@ public class BlameDataFactory extends ProjectDiff {
         if (hasTotalTimeChange) {
             BlamePoint blame = blamePoint;
             if (indivTimeAuthors != null) {
-                if (hasExplicitTotalTimeChange)
-                    indivTimeAuthors.add(author);
-                blame = getMergedBlame(indivTimeAuthors);
+                Set<String> allAuthors = indivTimeAuthors;
+                if (hasExplicitTotalTimeChange && !allAuthors.contains(author)) {
+                    allAuthors = new TreeSet(indivTimeAuthors);
+                    allAuthors.add(author);
+                }
+                blame = getMergedBlame(allAuthors);
             }
+            if (blame != blamePoint)
+                wbsAttributesWithSpecialAuthors.add(TEAM_TIME_ATTR);
 
             String oldTime = base.get(TEAM_TIME_ATTR);
             String newTime = mod.get(TEAM_TIME_ATTR);
@@ -229,14 +237,19 @@ public class BlameDataFactory extends ProjectDiff {
     private BlamePoint getTimeAuthor(WBSNodeContent mod, String timeAttrName) {
         if (ProjectWbsTimeChange.timeEqualsSyncTime(mod, timeAttrName)) {
             String indivName = teamMemberNames.get(timeAttrName);
-            if (indivName != null)
+            if (indivName != null && !indivName.equals(author)) {
+                wbsAttributesWithSpecialAuthors.add(timeAttrName);
                 return new BlamePoint(timestamp, indivName);
+            }
         }
         return blamePoint;
     }
 
-    private BlamePoint getMergedBlame(Collection<String> authors) {
-        return new BlamePoint(timestamp, StringUtils.join(authors, ", "));
+    private BlamePoint getMergedBlame(Set<String> authors) {
+        if (authors.size() == 1 && authors.contains(author))
+            return blamePoint;
+        else
+            return new BlamePoint(timestamp, authors);
     }
 
     private String getAssignedToString(WBSNodeContent data,
@@ -259,6 +272,57 @@ public class BlameDataFactory extends ProjectDiff {
                 result.add(initials + "(" + time + ")");
             }
         }
+    }
+
+    private void rollUpBlame(BlameModelData wbsData,
+            TreeNode<Integer, WBSNodeContent> node) {
+        for (String attr : wbsAttributesWithSpecialAuthors)
+            rollUpBlame(wbsData, node, attr);
+    }
+
+    private BlamePoint rollUpBlame(BlameModelData wbsData,
+            TreeNode<Integer, WBSNodeContent> node, String attr) {
+        // get the blame annotations for the node in question
+        BlameNodeData blameNodeData = wbsData.get(node.getID());
+        if (blameNodeData == null || blameNodeData.getAttributes() == null)
+            return null;
+
+        // now look up the annotations on this node for the given attribute
+        BlameValueList values = blameNodeData.getAttributes().get(attr);
+        if (values == null)
+            return null;
+
+        // find the change in the value list corresponding to the current diff
+        BlamePoint thisBlamePoint = null;
+        for (Entry<BlamePoint, String> e : values.entrySet()) {
+            if (e.getKey().equals(blamePoint)) {
+                thisBlamePoint = e.getKey();
+                break;
+            }
+        }
+        if (thisBlamePoint == null)
+            return null;
+
+        // Now, recursively find blame data for all of our children
+        Set<String> childAuthors = null;
+        for (TreeNode<Integer, WBSNodeContent> child : node.getChildren()) {
+            BlamePoint childBlame = rollUpBlame(wbsData, child, attr);
+            if (childBlame != null) {
+                if (childAuthors == null)
+                    childAuthors = new TreeSet<String>();
+                childAuthors.addAll(childBlame.getAuthors());
+            }
+        }
+
+        // when we initially created the annotation for this change, we assigned
+        // the blame to the default author, but yhat's very possibly incorrect.
+        // When a rolled up value changes, that change will be a result of
+        // changes in our children. So if we find a list of blame authors for
+        // our children, adopt it as the list for the rolled-up value too.
+        if (childAuthors != null && !childAuthors.isEmpty())
+            thisBlamePoint.setAuthors(childAuthors);
+
+        return thisBlamePoint;
     }
 
     private static final String TEAM_TIME_EXPLICIT_FLAG = TEAM_TIME_ATTR

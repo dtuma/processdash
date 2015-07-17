@@ -25,7 +25,11 @@ package teamdash.hist;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 public class BlamePoint implements Comparable<BlamePoint> {
 
@@ -35,9 +39,16 @@ public class BlamePoint implements Comparable<BlamePoint> {
 
     private String author;
 
+    private Set<String> authors;
+
     public BlamePoint(Date timestamp, String author) {
         this.timestamp = timestamp;
         this.author = author;
+    }
+
+    public BlamePoint(Date timestamp, Set<String> authors) {
+        this.timestamp = timestamp;
+        setAuthors(authors);
     }
 
     public Date getTimestamp() {
@@ -48,12 +59,18 @@ public class BlamePoint implements Comparable<BlamePoint> {
         return author;
     }
 
+    public Set<String> getAuthors() {
+        return (authors != null ? authors : Collections.singleton(author));
+    }
+
+    public void setAuthors(Set<String> authors) {
+        this.authors = authors;
+        this.author = StringUtils.join(authors, ", ");
+    }
+
     @Override
     public int compareTo(BlamePoint that) {
-        int result = this.timestamp.compareTo(that.timestamp);
-        if (result == 0)
-            result = this.author.compareTo(that.author);
-        return result;
+        return this.timestamp.compareTo(that.timestamp);
     }
 
     @Override
@@ -62,8 +79,7 @@ public class BlamePoint implements Comparable<BlamePoint> {
             return true;
         } else if (obj instanceof BlamePoint) {
             BlamePoint that = (BlamePoint) obj;
-            return this.author.equals(that.author)
-                    && this.timestamp.equals(that.timestamp);
+            return this.timestamp.equals(that.timestamp);
         } else {
             return false;
         }
