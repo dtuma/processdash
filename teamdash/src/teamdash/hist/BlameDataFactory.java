@@ -23,6 +23,7 @@
 
 package teamdash.hist;
 
+import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
 import static teamdash.wbs.columns.TeamMemberTimeColumn.TEAM_MEMBER_TIME_SUFFIX;
 import static teamdash.wbs.columns.TeamTimeColumn.RESOURCES_PSEUDO_ATTR;
 import static teamdash.wbs.columns.TeamTimeColumn.TEAM_TIME_ATTR;
@@ -48,13 +49,13 @@ import teamdash.merge.TreeNode;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
-import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSModelMergeConflictNotificationFactory;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class BlameDataFactory extends ProjectDiff {
 
@@ -218,6 +219,10 @@ public class BlameDataFactory extends ProjectDiff {
                 String modDisp = fmtTime(modVal, UNASSIGNED);
                 nodeData.addAttributeChange(attr, indivTimeColumnIDs.get(attr),
                     timeAuthor, baseDisp, modDisp);
+
+            } else if (attr.equals(NODE_NAME)) {
+                // the name of this node has changed
+                nodeData.addNodeNameChange(blamePoint, baseVal, modVal);
 
             } else {
                 // possibly record an attribute change for this node

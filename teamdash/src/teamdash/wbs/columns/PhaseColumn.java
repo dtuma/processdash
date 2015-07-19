@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import javax.swing.JComboBox;
 import javax.swing.Timer;
 import javax.swing.table.TableCellEditor;
 
+import teamdash.wbs.AbstractWBSModelMerger;
 import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
@@ -61,6 +62,7 @@ public class PhaseColumn extends AbstractDataColumn
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Phase.Name");
         this.preferredWidth = 100;
+        setConflictAttributeName(AbstractWBSModelMerger.NODE_TYPE);
         buildEditor(teamProcess);
     }
 

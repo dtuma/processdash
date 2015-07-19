@@ -244,7 +244,7 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
     public static final String NODE_NAME = "WBSNode_Name";
-    protected static final String NODE_TYPE = "WBSNode_Type";
+    public static final String NODE_TYPE = "WBSNode_Type";
 
     protected static final AttributeMerger SILENTLY_PREFER_MAIN =
         DefaultAttributeMerger.SILENTLY_PREFER_MAIN;

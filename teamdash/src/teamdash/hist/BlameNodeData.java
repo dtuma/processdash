@@ -23,8 +23,6 @@
 
 package teamdash.hist;
 
-import static teamdash.wbs.AbstractWBSModelMerger.NODE_NAME;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -89,27 +87,27 @@ public class BlameNodeData {
         parentPath.put(newActor, newParentName);
     }
 
+    public void addNodeNameChange(BlamePoint newActor, String oldName,
+            String newName) {
+        if (nodeName == null)
+            nodeName = new BlameValueList(null, oldName);
+        nodeName.put(newActor, newName);
+    }
+
     public Map<String, BlameValueList> getAttributes() {
         return attributes;
     }
 
     public void addAttributeChange(String attributeName, String columnID,
             BlamePoint newActor, String oldValue, String newValue) {
-        BlameValueList values;
 
-        if (attributeName.equals(NODE_NAME)) {
-            if (nodeName == null)
-                nodeName = new BlameValueList(columnID, oldValue);
-            values = nodeName;
+        if (attributes == null)
+            attributes = new HashMap();
 
-        } else {
-            if (attributes == null)
-                attributes = new HashMap();
-            values = attributes.get(attributeName);
-            if (values == null) {
-                values = new BlameValueList(columnID, oldValue);
-                attributes.put(attributeName, values);
-            }
+        BlameValueList values = attributes.get(attributeName);
+        if (values == null) {
+            values = new BlameValueList(columnID, oldValue);
+            attributes.put(attributeName, values);
         }
 
         values.put(newActor, newValue);
