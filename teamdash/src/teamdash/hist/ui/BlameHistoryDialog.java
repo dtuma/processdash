@@ -79,7 +79,11 @@ public class BlameHistoryDialog extends JDialog implements
 
     private ClearAction clearAction;
 
+    private RejectAction rejectAction;
+
     private NavigateAction nextAction, previousAction;
+
+    private DataProblemsTextArea dataProblems;
 
     private ProjectHistory projectHistory;
 
@@ -108,15 +112,20 @@ public class BlameHistoryDialog extends JDialog implements
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         sp.setPreferredSize(new Dimension(375, 200));
 
+        dataProblems = new DataProblemsTextArea(wbsDataModel);
+        BoxUtils contentBox = BoxUtils.vbox(sp, dataProblems);
+
         clearAction = new ClearAction();
+        rejectAction = new RejectAction();
         nextAction = new NavigateAction(true);
         previousAction = new NavigateAction(false);
         BoxUtils buttonBox = BoxUtils.hbox(new JButton(previousAction), 5,
-            new JButton(clearAction), 5, new JButton(nextAction));
+            new JButton(rejectAction), 5, new JButton(clearAction), 5,
+            new JButton(nextAction));
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateChooser, BorderLayout.NORTH);
-        content.add(sp, BorderLayout.CENTER);
+        content.add(contentBox, BorderLayout.CENTER);
         content.add(buttonBox, BorderLayout.SOUTH);
 
         getContentPane().add(content);
@@ -186,6 +195,8 @@ public class BlameHistoryDialog extends JDialog implements
 
     private boolean setBlameComments(BlameCaretPos caretPos) {
         blameChanges.clearRows();
+        dataProblems.setCurrentNode(null);
+        rejectAction.setEnabled(false);
         if (caretPos == null || blameData == null)
             return false;
 
@@ -210,6 +221,8 @@ public class BlameHistoryDialog extends JDialog implements
         String columnID = caretPos.getSingleColumn();
         if (WBSNodeColumn.COLUMN_ID.equals(columnID)) {
             blameChanges.setBlameNodeStructure(nodeData);
+            dataProblems.setCurrentNode(nodeID);
+            rejectAction.setEnabled(true);
             return nodeData.hasStructuralChange();
         }
 
@@ -219,6 +232,8 @@ public class BlameHistoryDialog extends JDialog implements
         for (BlameValueList val : nodeData.getAttributes().values()) {
             if (val.columnMatches(columnID)) {
                 blameChanges.setBlameValueList(val);
+                dataProblems.setCurrentNode(nodeID);
+                rejectAction.setEnabled(true);
                 return true;
             }
         }
@@ -242,9 +257,24 @@ public class BlameHistoryDialog extends JDialog implements
             blameData.clearAnnotations(blameData.getCaretPos());
             blameChanges.clearRows();
             setEnabled(false);
+            rejectAction.setEnabled(false);
+            dataProblems.setVisible(false);
             enableNavigationActions();
         }
 
+    }
+
+    private class RejectAction extends AbstractAction {
+        public RejectAction() {
+            super("Reject");
+            setEnabled(false);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            dataProblems.setVisible(true);
+            dataProblems.requestFocusInWindow();
+        }
     }
 
     private class NavigateAction extends AbstractAction {
