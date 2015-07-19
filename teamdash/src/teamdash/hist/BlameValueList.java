@@ -27,26 +27,21 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import teamdash.wbs.ConflictCapableDataColumn;
-
 public class BlameValueList extends TreeMap<BlamePoint, String> {
 
-    private ConflictCapableDataColumn column;
+    private String columnID;
 
-    public BlameValueList(String initialValue) {
+    public BlameValueList(String columnID, String initialValue) {
+        this.columnID = columnID;
         put(BlamePoint.INITIAL, initialValue);
     }
 
-    public ConflictCapableDataColumn getColumn() {
-        return column;
-    }
-
-    public void setColumn(ConflictCapableDataColumn column) {
-        this.column = column;
+    public String getColumnID() {
+        return columnID;
     }
 
     public boolean columnMatches(String columnID) {
-        return column != null && columnID.equals(column.getColumnID());
+        return columnID.equals(this.columnID);
     }
 
     @Override

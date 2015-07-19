@@ -193,7 +193,6 @@ public class DataJTable extends JTable {
                 this.blameSelectionListener = null;
             }
 
-            calcAffectedColumns(blameData);
             this.blameData = blameData;
 
             if (this.blameData != null) {
@@ -203,15 +202,6 @@ public class DataJTable extends JTable {
             }
 
             repaint();
-        }
-    }
-    
-    private void calcAffectedColumns(BlameModelData blameData) {
-        if (blameData != null) {
-            DataTableModel dataModel = (DataTableModel) getModel();
-            for (BlameNodeData nodeData : blameData.values())
-                nodeData.calcAffectedColumns(dataModel);
-            blameData.purgeUnchangedNodes();
         }
     }
 
@@ -236,8 +226,8 @@ public class DataJTable extends JTable {
         if (blame != null) {
             DataTableModel dataModel = (DataTableModel) getModel();
             column = convertColumnIndexToModel(column);
-            DataColumn dataCol = dataModel.getColumn(column);
-            if (blame.isColumnAffected(dataCol))
+            String columnID = dataModel.getColumn(column).getColumnID();
+            if (blame.isColumnAffected(columnID))
                 BlameAnnotationBorder.annotate(result);
         }
 

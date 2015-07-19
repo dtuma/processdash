@@ -32,9 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import teamdash.wbs.ConflictCapableDataColumn;
-import teamdash.wbs.DataTableModel;
-import teamdash.wbs.WBSModelMergeConflictNotificationFactory;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.columns.WBSNodeColumn;
 
@@ -88,7 +85,7 @@ public class BlameNodeData {
     public void addParentPathChange(BlamePoint newActor, String oldParentName,
             String newParentName) {
         if (parentPath == null)
-            parentPath = new BlameValueList(oldParentName);
+            parentPath = new BlameValueList(null, oldParentName);
         parentPath.put(newActor, newParentName);
     }
 
@@ -96,13 +93,13 @@ public class BlameNodeData {
         return attributes;
     }
 
-    public void addAttributeChange(String attributeName, BlamePoint newActor,
-            String oldValue, String newValue) {
+    public void addAttributeChange(String attributeName, String columnID,
+            BlamePoint newActor, String oldValue, String newValue) {
         BlameValueList values;
 
         if (attributeName.equals(NODE_NAME)) {
             if (nodeName == null)
-                nodeName = new BlameValueList(oldValue);
+                nodeName = new BlameValueList(columnID, oldValue);
             values = nodeName;
 
         } else {
@@ -110,7 +107,7 @@ public class BlameNodeData {
                 attributes = new HashMap();
             values = attributes.get(attributeName);
             if (values == null) {
-                values = new BlameValueList(oldValue);
+                values = new BlameValueList(columnID, oldValue);
                 attributes.put(attributeName, values);
             }
         }
@@ -135,41 +132,6 @@ public class BlameNodeData {
         }
         if (remapped != null)
             attributes.putAll(remapped);
-    }
-
-    public void calcAffectedColumns(DataTableModel model) {
-        if (attributes == null)
-            return;
-
-        Iterator<Entry<String, BlameValueList>> i = attributes.entrySet()
-                .iterator();
-        while (i.hasNext()) {
-            Entry<String, BlameValueList> e = i.next();
-            String attributeName = e.getKey();
-            BlameValueList blameValueList = e.getValue();
-            ConflictCapableDataColumn column = WBSModelMergeConflictNotificationFactory
-                    .findColumnForAttribute(model, attributeName);
-            if (column == null)
-                i.remove();
-            else
-                blameValueList.setColumn(column);
-        }
-
-        if (attributes.isEmpty())
-            attributes = null;
-    }
-
-    public boolean isColumnAffected(Object column) {
-        if (column instanceof WBSNodeColumn) {
-            return hasStructuralChange();
-
-        } else if (attributes != null) {
-            for (BlameValueList v : attributes.values()) {
-                if (v.getColumn() == column)
-                    return true;
-            }
-        }
-        return false;
     }
 
     public boolean isColumnAffected(String columnID) {

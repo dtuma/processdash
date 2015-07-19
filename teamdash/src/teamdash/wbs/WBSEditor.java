@@ -995,7 +995,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             WBSModel milestones, DataTableModel dataModel, String initials) {
         JMenuBar result = new JMenuBar();
 
-        result.add(buildFileMenu(tabPanel.getFileActions()));
+        result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
@@ -1012,7 +1012,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private Action saveAction, replaceAction, importFromCsvAction;
-    private JMenu buildFileMenu(Action[] fileActions) {
+    private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(saveAction = new SaveAction());
@@ -1031,7 +1031,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.addSeparator();
             if (!isZipWorkingDirectory())
                 result.add(new BlameHistoryAction(this, frame, workingDirectory
-                        .getDescription()));
+                        .getDescription(), dataModel));
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
         for (int i = 0; i < fileActions.length; i++) {

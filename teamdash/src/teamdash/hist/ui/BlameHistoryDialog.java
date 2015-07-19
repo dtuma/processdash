@@ -57,6 +57,7 @@ import teamdash.hist.ProjectHistory;
 import teamdash.hist.ProjectHistoryException;
 import teamdash.hist.ProjectHistoryFactory;
 import teamdash.merge.ModelType;
+import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSEditor;
 import teamdash.wbs.columns.WBSNodeColumn;
 
@@ -66,6 +67,8 @@ public class BlameHistoryDialog extends JDialog implements
     private WBSEditor wbsEditor;
 
     private String dataLocation;
+
+    private DataTableModel wbsDataModel;
 
     private JDateChooser dateChooser;
 
@@ -86,10 +89,11 @@ public class BlameHistoryDialog extends JDialog implements
 
 
     public BlameHistoryDialog(WBSEditor wbsEditor, JFrame frame,
-            String dataLocation) {
+            String dataLocation, DataTableModel wbsDataModel) {
         super(frame, resources.getString("Title"), false);
         this.wbsEditor = wbsEditor;
         this.dataLocation = dataLocation;
+        this.wbsDataModel = wbsDataModel;
 
         dateChooser = new JDateChooser();
         dateChooser.getDateEditor().addPropertyChangeListener("date", this);
@@ -144,7 +148,7 @@ public class BlameHistoryDialog extends JDialog implements
                         .getProjectHistory(dataLocation);
 
             blameData = BlameDataFactory.getBlameData(projectHistory,
-                historyDate);
+                historyDate, wbsDataModel);
             blameData.addPropertyChangeListener("caretPos", this);
 
             this.historyDate = historyDate;
@@ -203,7 +207,7 @@ public class BlameHistoryDialog extends JDialog implements
 
         for (BlameValueList val : nodeData.getAttributes().values()) {
             if (val.columnMatches(columnID))
-                return val.getColumn().getColumnName() + ": " + val;
+                return val.getColumnID() + ": " + val;
         }
 
         return null;

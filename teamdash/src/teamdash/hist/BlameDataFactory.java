@@ -48,19 +48,26 @@ import teamdash.merge.TreeNode;
 import teamdash.merge.TreeNodeChange;
 import teamdash.merge.TreeNodeChange.Type;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
+import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.ConflictCapableDataColumn;
+import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
+import teamdash.wbs.WBSModelMergeConflictNotificationFactory;
 import teamdash.wbs.WBSNode;
 
 public class BlameDataFactory extends ProjectDiff {
 
     private BlamePoint blamePoint;
 
+    private Map<String, String> indivTimeColumnIDs;
+
     private Set<String> wbsAttributesWithSpecialAuthors;
 
     public BlameDataFactory(ProjectHistory hist, Object versionA,
             Object versionB, ProjectDiff other) throws IOException {
         super(hist, versionA, versionB, other);
+        prepareTeamMemberTimeColumnIDs();
 
         WBSBlameCalc wbsBlameCalc = new WBSBlameCalc();
         diff = wbsBlameCalc.getMainDiff();
@@ -69,50 +76,60 @@ public class BlameDataFactory extends ProjectDiff {
                 hist.getVersionAuthor(versionB));
     }
 
-    public void addChanges(BlameData blameData) {
-        BlameModelData wbsData = blameData.getOrCreate(ModelType.Wbs);
-        maybeRemapInitials(wbsData);
-        wbsAttributesWithSpecialAuthors = new HashSet<String>();
-        addChanges(wbsData, diff, wbsA, wbsB);
-        rollUpBlame(wbsData, diff.getModifiedRoot());
+    private void prepareTeamMemberTimeColumnIDs() {
+        indivTimeColumnIDs = new HashMap<String, String>();
+        for (String attr : indivTimeAttrs) {
+            String columnID = attr.substring(0, attr.length()
+                    - TOP_DOWN_ATTR_SUFFIX.length());
+            indivTimeColumnIDs.put(attr, columnID);
+        }
     }
 
-    private void maybeRemapInitials(BlameModelData wbsData) {
+    public void addChanges(BlameData blameData, DataTableModel wbsDataModel) {
+        BlameModelData wbsBlameData = blameData.getOrCreate(ModelType.Wbs);
+        maybeRemapInitials(wbsBlameData);
+        wbsAttributesWithSpecialAuthors = new HashSet<String>();
+        addChanges(wbsBlameData, wbsDataModel, diff, wbsA, wbsB);
+        rollUpBlame(wbsBlameData, diff.getModifiedRoot());
+    }
+
+    private void maybeRemapInitials(BlameModelData wbsBlameData) {
         if (changedInitialAttrs != null)
-            for (BlameNodeData node : wbsData.values())
+            for (BlameNodeData node : wbsBlameData.values())
                 node.remapInitials(changedInitialAttrs);
     }
 
-    private void addChanges(BlameModelData modelData,
+    private void addChanges(BlameModelData blameModelData,
+            DataTableModel dataTableModel,
             TreeDiff<Integer, WBSNodeContent> diff, WBSModel modelA,
             WBSModel modelB) {
         for (TreeNodeChange<Integer, WBSNodeContent> tnc : diff.getChanges()) {
             switch (tnc.getType()) {
             case Add:
-                recordNodeAdded(modelData, tnc);
+                recordNodeAdded(blameModelData, tnc);
                 break;
             case Delete:
-                recordNodeDeleted(modelData, tnc, diff, modelA);
+                recordNodeDeleted(blameModelData, tnc, diff, modelA);
                 break;
             case Move:
-                recordNodeMoved(modelData, tnc, modelA, modelB);
+                recordNodeMoved(blameModelData, tnc, modelA, modelB);
                 break;
             case Reorder:
                 break;
             case Edit:
-                recordNodeEdited(modelData, tnc, diff);
+                recordNodeEdited(blameModelData, dataTableModel, tnc, diff);
                 break;
             }
         }
     }
 
-    private void recordNodeAdded(BlameModelData modelData,
+    private void recordNodeAdded(BlameModelData blameModelData,
             TreeNodeChange<Integer, WBSNodeContent> tnc) {
-        BlameNodeData nodeData = modelData.getNodeData(tnc.getNodeID());
+        BlameNodeData nodeData = blameModelData.getNodeData(tnc.getNodeID());
         nodeData.setAddedBy(blamePoint);
     }
 
-    private void recordNodeDeleted(BlameModelData modelData,
+    private void recordNodeDeleted(BlameModelData blameModelData,
             TreeNodeChange<Integer, WBSNodeContent> tnc,
             TreeDiff<Integer, WBSNodeContent> diff, WBSModel modelA) {
 
@@ -120,7 +137,7 @@ public class BlameDataFactory extends ProjectDiff {
         // this node where we can display any past blame changes. Remove its
         // blame data entry from our collection.
         Integer nodeID = tnc.getNodeID();
-        BlameNodeData removedNodeData = modelData.remove(nodeID);
+        BlameNodeData removedNodeData = blameModelData.remove(nodeID);
 
         // if this node was added and then deleted within the time period
         // of our blame analysis, treat these as a no-op, and don't report
@@ -136,17 +153,17 @@ public class BlameDataFactory extends ProjectDiff {
 
         // Record an entry on the parent that this child was deleted.
         WBSNode deletedNode = modelA.getNodeMap().get(nodeID);
-        BlameNodeData parentNodeData = modelData.getNodeData(parentID);
+        BlameNodeData parentNodeData = blameModelData.getNodeData(parentID);
         parentNodeData.addDeletedChild(deletedNode, blamePoint);
     }
 
-    private void recordNodeMoved(BlameModelData modelData,
+    private void recordNodeMoved(BlameModelData blameModelData,
             TreeNodeChange<Integer, WBSNodeContent> tnc, WBSModel modelA,
             WBSModel modelB) {
         Integer nodeID = tnc.getNodeID();
         String oldParentName = getParentName(modelA, nodeID);
         String newParentName = getParentName(modelB, nodeID);
-        BlameNodeData nodeData = modelData.getNodeData(nodeID);
+        BlameNodeData nodeData = blameModelData.getNodeData(nodeID);
         nodeData.addParentPathChange(blamePoint, oldParentName, newParentName);
     }
 
@@ -157,13 +174,14 @@ public class BlameDataFactory extends ProjectDiff {
         return parentName;
     }
 
-    private void recordNodeEdited(BlameModelData modelData,
+    private void recordNodeEdited(BlameModelData blameModelData,
+            DataTableModel dataTableModel,
             TreeNodeChange<Integer, WBSNodeContent> tnc,
             TreeDiff<Integer, WBSNodeContent> diff) {
         Integer nodeID = tnc.getNodeID();
         WBSNodeContent base = diff.getBaseRoot().findNode(nodeID).getContent();
         WBSNodeContent mod = tnc.getNode().getContent();
-        BlameNodeData nodeData = modelData.getNodeData(nodeID);
+        BlameNodeData nodeData = blameModelData.getNodeData(nodeID);
         boolean isWBS = (diff == this.diff);
 
         Set<String> attrNames = new HashSet<String>(base.keySet());
@@ -196,11 +214,25 @@ public class BlameDataFactory extends ProjectDiff {
                 if (indivTimeAuthors == null)
                     indivTimeAuthors = new TreeSet<String>();
                 indivTimeAuthors.add(timeAuthor.getAuthor());
-                nodeData.addAttributeChange(attr, timeAuthor, baseVal, modVal);
+                String baseDisp = fmtTime(baseVal, UNASSIGNED);
+                String modDisp = fmtTime(modVal, UNASSIGNED);
+                nodeData.addAttributeChange(attr, indivTimeColumnIDs.get(attr),
+                    timeAuthor, baseDisp, modDisp);
 
             } else {
-                // record an attribute change for this node
-                nodeData.addAttributeChange(attr, blamePoint, baseVal, modVal);
+                // possibly record an attribute change for this node
+                ConflictCapableDataColumn column = //
+                WBSModelMergeConflictNotificationFactory
+                        .findColumnForAttribute(dataTableModel, attr);
+                if (column != null) {
+                    String baseDisp = fmt(column.getConflictDisplayValue(
+                        baseVal, base.getWBSNode()));
+                    String modDisp = fmt(column.getConflictDisplayValue(modVal,
+                        mod.getWBSNode()));
+                    nodeData.addAttributeChange(attr, column.getColumnID(),
+                        blamePoint, baseDisp, modDisp);
+                }
+
             }
         }
 
@@ -211,6 +243,7 @@ public class BlameDataFactory extends ProjectDiff {
             String newWho = getAssignedToString(mod, false);
             if (!NullSafeObjectUtils.EQ(oldWho, newWho))
                 nodeData.addAttributeChange(RESOURCES_PSEUDO_ATTR,
+                    TeamTimeColumn.RESOURCES_COL_ID,
                     getMergedBlame(indivTimeAuthors), oldWho, newWho);
         }
 
@@ -230,7 +263,9 @@ public class BlameDataFactory extends ProjectDiff {
 
             String oldTime = base.get(TEAM_TIME_ATTR);
             String newTime = mod.get(TEAM_TIME_ATTR);
-            nodeData.addAttributeChange(TEAM_TIME_ATTR, blame, oldTime, newTime);
+            nodeData.addAttributeChange(TEAM_TIME_ATTR,
+                TeamTimeColumn.COLUMN_ID, blame, fmtTime(oldTime, "0"),
+                fmtTime(newTime, "0"));
         }
     }
 
@@ -245,6 +280,20 @@ public class BlameDataFactory extends ProjectDiff {
         return blamePoint;
     }
 
+    private String fmtTime(String rawTime, String defaultVal) {
+        if (rawTime == null)
+            return defaultVal;
+        else
+            return NumericDataValue.format(Double.parseDouble(rawTime));
+    }
+
+    private String fmt(Object obj) {
+        return (obj == null ? "" : obj.toString());
+    }
+
+    private static final String UNASSIGNED = resources
+            .getString("Blame.Unassigned");
+
     private BlamePoint getMergedBlame(Set<String> authors) {
         if (authors.size() == 1 && authors.contains(author))
             return blamePoint;
@@ -258,7 +307,7 @@ public class BlameDataFactory extends ProjectDiff {
         getAssignedToTokens(result, data, indivTimeAttrs);
         if (includeDeleted)
             getAssignedToTokens(result, data, deletedIndivAttrs);
-        return (result.isEmpty() ? null : StringUtils.join(result, ", "));
+        return (result.isEmpty() ? UNASSIGNED : StringUtils.join(result, ", "));
     }
 
     private void getAssignedToTokens(Set<String> result, WBSNodeContent data,
@@ -274,16 +323,16 @@ public class BlameDataFactory extends ProjectDiff {
         }
     }
 
-    private void rollUpBlame(BlameModelData wbsData,
+    private void rollUpBlame(BlameModelData wbsBlameData,
             TreeNode<Integer, WBSNodeContent> node) {
         for (String attr : wbsAttributesWithSpecialAuthors)
-            rollUpBlame(wbsData, node, attr);
+            rollUpBlame(wbsBlameData, node, attr);
     }
 
-    private BlamePoint rollUpBlame(BlameModelData wbsData,
+    private BlamePoint rollUpBlame(BlameModelData wbsBlameData,
             TreeNode<Integer, WBSNodeContent> node, String attr) {
         // get the blame annotations for the node in question
-        BlameNodeData blameNodeData = wbsData.get(node.getID());
+        BlameNodeData blameNodeData = wbsBlameData.get(node.getID());
         if (blameNodeData == null || blameNodeData.getAttributes() == null)
             return null;
 
@@ -306,7 +355,7 @@ public class BlameDataFactory extends ProjectDiff {
         // Now, recursively find blame data for all of our children
         Set<String> childAuthors = null;
         for (TreeNode<Integer, WBSNodeContent> child : node.getChildren()) {
-            BlamePoint childBlame = rollUpBlame(wbsData, child, attr);
+            BlamePoint childBlame = rollUpBlame(wbsBlameData, child, attr);
             if (childBlame != null) {
                 if (childAuthors == null)
                     childAuthors = new TreeSet<String>();
@@ -403,7 +452,8 @@ public class BlameDataFactory extends ProjectDiff {
     }
 
 
-    public static BlameData getBlameData(ProjectHistory hist, Date onOrAfterDate)
+    public static BlameData getBlameData(ProjectHistory hist,
+            Date onOrAfterDate, DataTableModel dataTableModel)
             throws IOException {
         BlameData result = new BlameData();
         List versions = hist.getVersions();
@@ -418,7 +468,7 @@ public class BlameDataFactory extends ProjectDiff {
                 Object prevVersion = versions.get(i - 1);
                 BlameDataFactory diff = new BlameDataFactory(hist, prevVersion,
                         oneVersion, prevDiff);
-                diff.addChanges(result);
+                diff.addChanges(result, dataTableModel);
                 prevDiff = diff;
             } catch (FileNotFoundException fnfe) {
                 // the change history file can sometimes contain more history

@@ -374,7 +374,6 @@ public class WBSJTable extends JTable {
                 this.blameSelectionListener = null;
             }
 
-            calcAffectedColumns(blameData);
             this.blameData = blameData;
 
             if (this.blameData != null) {
@@ -384,14 +383,6 @@ public class WBSJTable extends JTable {
             }
 
             repaint();
-        }
-    }
-
-    private void calcAffectedColumns(BlameModelData blameData) {
-        if (dataModel != null && blameData != null) {
-            for (BlameNodeData nodeData : blameData.values())
-                nodeData.calcAffectedColumns(dataModel);
-            blameData.purgeUnchangedNodes();
         }
     }
 
@@ -417,8 +408,8 @@ public class WBSJTable extends JTable {
             if (column == 0) {
                 needsBlameAnnotation = blame.hasStructuralChange();
             } else if (dataModel != null) {
-                DataColumn dataCol = dataModel.getColumn(column);
-                needsBlameAnnotation = blame.isColumnAffected(dataCol);
+                String columnID = dataModel.getColumn(column).getColumnID();
+                needsBlameAnnotation = blame.isColumnAffected(columnID);
             }
         }
         if (needsBlameAnnotation)
