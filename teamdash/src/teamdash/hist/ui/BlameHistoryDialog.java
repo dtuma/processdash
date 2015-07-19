@@ -24,6 +24,7 @@
 package teamdash.hist.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowListener;
@@ -39,7 +40,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -72,7 +73,9 @@ public class BlameHistoryDialog extends JDialog implements
 
     private JDateChooser dateChooser;
 
-    private JTextArea blameChanges;
+    private BlameValueTableModel blameChanges;
+
+    private BlameValueTable blameChangeTable;
 
     private ClearAction clearAction;
 
@@ -98,10 +101,12 @@ public class BlameHistoryDialog extends JDialog implements
         dateChooser = new JDateChooser();
         dateChooser.getDateEditor().addPropertyChangeListener("date", this);
 
-        blameChanges = new JTextArea(5, 20);
-        blameChanges.setEditable(false);
-        blameChanges.setLineWrap(true);
-        blameChanges.setWrapStyleWord(true);
+        blameChanges = new BlameValueTableModel();
+        blameChangeTable = new BlameValueTable(blameChanges);
+        JScrollPane sp = new JScrollPane(blameChangeTable,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.setPreferredSize(new Dimension(375, 200));
 
         clearAction = new ClearAction();
         nextAction = new NavigateAction(true);
@@ -111,7 +116,7 @@ public class BlameHistoryDialog extends JDialog implements
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateChooser, BorderLayout.NORTH);
-        content.add(new JScrollPane(blameChanges), BorderLayout.CENTER);
+        content.add(sp, BorderLayout.CENTER);
         content.add(buttonBox, BorderLayout.SOUTH);
 
         getContentPane().add(content);
@@ -154,10 +159,10 @@ public class BlameHistoryDialog extends JDialog implements
             this.historyDate = historyDate;
 
         } catch (IOException e) {
-            blameChanges.setText("IO Error!" + e.getMessage());
+            blameChanges.showMessage("IO Error!" + e.getMessage());
             e.printStackTrace();
         } catch (ProjectHistoryException e) {
-            blameChanges.setText("Project Error!" + e.getMessage());
+            blameChanges.showMessage("Project Error!" + e.getMessage());
             e.printStackTrace();
         }
 
@@ -171,46 +176,54 @@ public class BlameHistoryDialog extends JDialog implements
         boolean enabled = blameData != null && !blameData.isEmpty();
         nextAction.setEnabled(enabled);
         previousAction.setEnabled(enabled);
-
     }
 
     private void setCaretPos(BlameCaretPos caretPos) {
-        String blameComments = getBlameComments(caretPos);
-        blameChanges.setText(blameComments);
-        clearAction.setEnabled(caretPos != null && blameComments != null);
+        boolean enableClearButton = setBlameComments(caretPos);
+        clearAction.setEnabled(enableClearButton);
+        blameChangeTable.autoResizeColumns();
     }
 
-    private String getBlameComments(BlameCaretPos caretPos) {
+    private boolean setBlameComments(BlameCaretPos caretPos) {
+        blameChanges.clearRows();
         if (caretPos == null || blameData == null)
-            return null;
+            return false;
 
-        if (!caretPos.isSingleCell())
-            return "Selected " + blameData.countAnnotations(caretPos)
-                    + " changes";
+        if (!caretPos.isSingleCell()) {
+            int numChanges = blameData.countAnnotations(caretPos);
+            String message = resources.format("Multiple_Selected_FMT",
+                numChanges);
+            blameChanges.showMessage(message);
+            return numChanges > 0;
+        }
 
         ModelType modelType = caretPos.getModelType();
         BlameModelData modelData = blameData.get(modelType);
         if (modelData == null)
-            return null;
+            return false;
 
         Integer nodeID = caretPos.getSingleNode();
         BlameNodeData nodeData = modelData.get(nodeID);
         if (nodeData == null)
-            return null;
+            return false;
 
         String columnID = caretPos.getSingleColumn();
-        if (WBSNodeColumn.COLUMN_ID.equals(columnID))
-            return nodeData.toString();
-
-        if (nodeData.getAttributes() == null)
-            return null;
-
-        for (BlameValueList val : nodeData.getAttributes().values()) {
-            if (val.columnMatches(columnID))
-                return val.getColumnID() + ": " + val;
+        if (WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            blameChanges.setBlameNodeStructure(nodeData);
+            return nodeData.hasStructuralChange();
         }
 
-        return null;
+        if (nodeData.getAttributes() == null)
+            return false;
+
+        for (BlameValueList val : nodeData.getAttributes().values()) {
+            if (val.columnMatches(columnID)) {
+                blameChanges.setBlameValueList(val);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void windowEvent() {
@@ -227,7 +240,7 @@ public class BlameHistoryDialog extends JDialog implements
         @Override
         public void actionPerformed(ActionEvent e) {
             blameData.clearAnnotations(blameData.getCaretPos());
-            blameChanges.setText(null);
+            blameChanges.clearRows();
             setEnabled(false);
             enableNavigationActions();
         }
