@@ -48,6 +48,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import teamdash.merge.ModelType;
+import teamdash.wbs.WBSFilter.WithoutDescendants;
 
 
 /** This class maintains a tree-like work breakdown structure, and
@@ -698,12 +699,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private boolean calcfilteredNodes(WBSFilter[] filters,
             int alreadyMatchedLen, WBSNode node, Set<Integer> filteredIDs) {
         // check to see if this node matches all of the remaining filters.
-        int matchLen = filterMatchLen(filters, alreadyMatchedLen, node);
-        boolean shouldShow = (matchLen == filters.length);
+        int matchLen = filterMatchLen(filters, alreadyMatchedLen, false, node);
+        int fullMatchLen = filterMatchLen(filters, matchLen, true, node);
+        boolean shouldShow = (fullMatchLen == filters.length);
 
-        // if this node matches, all of its decendants match too; so we don't
-        // need to recurse, we can return immediately.
-        if (shouldShow)
+        // if this node matches, and we have are no "WithoutDescendants"
+        // filters, all of its decendants match too; so we don't need to
+        // recurse, we can return immediately.
+        if (matchLen == filters.length)
             return true;
 
         // recurse over each of our children.
@@ -734,6 +737,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
      *            already been satisfied, and which do not need to be evaluated
      *            for this node. Those initial filters will not be reordered by
      *            this method.
+     * @param checkWithoutDescendants
+     *            if true, only look for filters that implement the
+     *            WBSFilter.WithoutDescendants interface. If false, only look
+     *            for filters that do not implement it.
      * @param node
      *            the node that we should evaluate the filters for.
      * 
@@ -741,11 +748,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
      *         the alreadyMatchedLen
      */
     private int filterMatchLen(WBSFilter[] filters, int alreadyMatchedLen,
-            WBSNode node) {
+            boolean checkWithoutDescendants, WBSNode node) {
         int len = alreadyMatchedLen;
         for (int pos = len;  pos < filters.length;  pos++) {
             WBSFilter f = filters[pos];
-            if (f.match(node)) {
+            boolean isWithoutDescendants = f instanceof WithoutDescendants;
+            if (checkWithoutDescendants == isWithoutDescendants
+                    && f.match(node)) {
                 if (pos != len) {
                     // swap array entries to put the matching filter first.
                     filters[pos] = filters[len];

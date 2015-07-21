@@ -375,6 +375,7 @@ public class WBSJTable extends JTable {
             }
 
             this.blameData = blameData;
+            FILTER_ACTION.setBlameData(blameData);
 
             if (this.blameData != null) {
                 this.blameData.addBlameModelDataListener(BLAME_LISTENER);

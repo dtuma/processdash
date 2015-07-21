@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import teamdash.hist.BlameModelData;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
@@ -153,6 +154,15 @@ public class WBSFilterFactory {
             return TaskStatus.In_Progress;
         else
             return TaskStatus.Not_Started;
+    }
+
+
+    public static WBSFilter createBlameFilter(final BlameModelData wbsBlameData) {
+        return new WBSFilter.WithoutDescendants() {
+            public boolean match(WBSNode node) {
+                return wbsBlameData.containsKey(node.getTreeNodeID());
+            }
+        };
     }
 
 

@@ -61,6 +61,7 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
+import teamdash.hist.BlameModelData;
 import teamdash.wbs.WBSFilterFactory.TaskStatus;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -70,6 +71,8 @@ public class WBSFilterAction extends AbstractAction {
     private WBSJTable wbsTable;
 
     private WBSTabPanel tabPanel;
+
+    private BlameModelData wbsBlameData;
 
     private boolean isActive;
 
@@ -102,6 +105,29 @@ public class WBSFilterAction extends AbstractAction {
         showFilterFrame();
     }
 
+    public void setBlameData(BlameModelData blameData) {
+        // if blame data isn't changing (for example null -> null), do nothing
+        if (this.wbsBlameData == blameData)
+            return;
+
+        // store the new blame data
+        this.wbsBlameData = blameData;
+
+        // if the GUI has been built, update GUI and filtering state
+        if (blameFilter != null) {
+            // show/hide the blame filter as applicable
+            blameLabel.setVisible(blameData != null);
+            blameFilter.setVisible(blameData != null);
+            dialog.pack();
+            // if the blame filter was currently in effect, reapply filters
+            if (isActive && blameFilter.isSelected())
+                applyAction.actionPerformed(null);
+            // if we have no more blame data, turn off the blame filter.
+            if (blameData == null)
+                blameFilter.setSelected(false);
+        }
+    }
+
 
     private JDialog dialog;
 
@@ -116,6 +142,10 @@ public class WBSFilterAction extends AbstractAction {
     private CompletingField milestoneFilter;
 
     private TextField notesFilter;
+
+    private JLabel blameLabel;
+
+    private ChangedItemsField blameFilter;
 
     private boolean needsShowInfoMessage;
 
@@ -195,6 +225,14 @@ public class WBSFilterAction extends AbstractAction {
         notesFilter = new TextField();
         panel.add(notesFilter);  layout.setConstraints(notesFilter, vc);
 
+        lc.gridy++;  vc.gridy++;
+        blameLabel = new JLabel(resources.getString("Items.Changes"));
+        blameLabel.setVisible(wbsBlameData != null);
+        panel.add(blameLabel);  layout.setConstraints(blameLabel, lc);
+        blameFilter = new ChangedItemsField();
+        blameFilter.setVisible(wbsBlameData != null);
+        panel.add(blameFilter);  layout.setConstraints(blameFilter, vc);
+
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add(Box.createHorizontalGlue());
         buttonBox.add(new JButton(removeAction));
@@ -251,6 +289,9 @@ public class WBSFilterAction extends AbstractAction {
         String[] notes = notesFilter.getValues();
         if (notes != null)
             filters.add(WBSFilterFactory.createNoteFilter(notes));
+
+        if (wbsBlameData != null && blameFilter.isSelected())
+            filters.add(WBSFilterFactory.createBlameFilter(wbsBlameData));
 
         if (filters.isEmpty())
             return null;
@@ -565,32 +606,30 @@ public class WBSFilterAction extends AbstractAction {
     }
 
 
-    private class TaskStatusField extends CompletingField {
+    /** A component which displays a predetermined list of choices */
+    private abstract class CompletingChoicesField extends CompletingField {
 
-        public TaskStatusField() {
+        public CompletingChoicesField() {
             super(null);
         }
 
         protected JComboBox getComboBox() {
-            String[] items = new String[TASK_STATUS_RES_KEYS.length + 1];
-            items[0] = "";
-            for (int i = 0; i < TASK_STATUS_RES_KEYS.length; i++)
-                items[i + 1] = resources.getString("Items.Task_Status."
-                        + TASK_STATUS_RES_KEYS[i]);
-
-            JComboBox result = new JComboBox(items);
+            JComboBox result = new JComboBox(getChoices());
             result.setSelectedIndex(0);
             AutoCompleteDecorator.decorate(result);
             return result;
         }
 
-        public WBSFilter createTaskStatusFilter() {
-            int selIndex = valueField.getSelectedIndex();
-            if (selIndex > 0 && selIndex < TASK_STATUS_OPTIONS.length)
-                return WBSFilterFactory
-                        .createTaskStatusFilter(TASK_STATUS_OPTIONS[selIndex]);
-            else
-                return null;
+        protected abstract String[] getChoices();
+
+        protected String[] getChoices(String resourcePrefix,
+                String... choiceKeys) {
+            String[] items = new String[choiceKeys.length + 1];
+            items[0] = "";
+            for (int i = 0; i < choiceKeys.length; i++)
+                items[i + 1] = resources.getString(resourcePrefix
+                        + choiceKeys[i]);
+            return items;
         }
 
         @Override
@@ -602,16 +641,53 @@ public class WBSFilterAction extends AbstractAction {
                 super.keyPressed(e);
         }
 
+    }
+
+
+    /** A component which allows selection of task status */
+    private class TaskStatusField extends CompletingChoicesField {
+        
+        @Override
+        protected String[] getChoices() {
+            return getChoices("Items.Task_Status.", "Not_Started",
+                "In_Progress", "Incomplete", "Completed");
+        }
+
+        public WBSFilter createTaskStatusFilter() {
+            int selIndex = valueField.getSelectedIndex();
+            if (selIndex > 0 && selIndex < TASK_STATUS_OPTIONS.length)
+                return WBSFilterFactory
+                        .createTaskStatusFilter(TASK_STATUS_OPTIONS[selIndex]);
+            else
+                return null;
+        }
 
     }
 
-    private static final String[] TASK_STATUS_RES_KEYS = { "Not_Started",
-            "In_Progress", "Incomplete", "Completed" };
     private static final TaskStatus[][] TASK_STATUS_OPTIONS = {
         null, //
         { TaskStatus.Not_Started }, //
         { TaskStatus.In_Progress }, //
         { TaskStatus.Not_Started , TaskStatus.In_Progress }, //
         { TaskStatus.Completed } };
+
+
+    /** A component which allows selection of changed items only */
+    private class ChangedItemsField extends CompletingChoicesField {
+
+        @Override
+        protected String[] getChoices() {
+            return getChoices("Items.Changes.", "With");
+        }
+
+        public boolean isSelected() {
+            return valueField.getSelectedIndex() == 1;
+        }
+
+        public void setSelected(boolean selected) {
+            valueField.setSelectedIndex(selected ? 1 : 0);
+        }
+
+    }
 
 }
