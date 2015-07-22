@@ -121,6 +121,7 @@ public class BlameHistoryDialog extends JDialog implements
         this.wbsDataModel = wbsDataModel;
 
         dateChooser = new JDateChooser();
+        dateChooser.setMaxSelectableDate(new Date());
         dateChooser.getDateEditor().addPropertyChangeListener("date", this);
         BoxUtils dateBox = BoxUtils.hbox(resources.getString("Date_Prompt"), 5,
             dateChooser, 1);
@@ -373,6 +374,11 @@ public class BlameHistoryDialog extends JDialog implements
             if (currentCalculation == this && !isCancelled()) {
                 try {
                     installBlameData(get(), calcDate);
+
+                    Object firstVers = projectHistory.getVersions().get(0);
+                    Date firstDate = projectHistory.getVersionDate(firstVers);
+                    dateChooser.setSelectableDateRange(firstDate, new Date());
+
                 } catch (InterruptedException ie) {
                     // shouldn't happen
                 } catch (ExecutionException ee) {
