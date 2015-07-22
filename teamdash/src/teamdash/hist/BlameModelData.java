@@ -82,31 +82,45 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
 
     public BlameCaretPos findNextAnnotation(List<WBSNode> wbsNodes,
             List<String> columns, BlameCaretPos currentCaret,
-            boolean searchForward) {
+            boolean searchForward, boolean searchByColumns) {
         if (isEmpty())
             return null;
 
-        int nodePos = findNodePos(wbsNodes, currentCaret, searchForward);
-        int columnPos = findColumnPos(columns, currentCaret, searchForward);
+        int nodePos = findNodePos(wbsNodes, currentCaret, searchForward,
+            searchByColumns);
+        int columnPos = findColumnPos(columns, currentCaret, searchForward,
+            searchByColumns);
         int increment = searchForward ? +1 : -1;
 
         while (true) {
-            // search forward/backward for the next column.
-            columnPos += increment;
+            if (searchByColumns) {
+                // search forward/backward for the next node.
+                nodePos += increment;
 
-            // if we run off the end of the column list, wrap and then move
-            // to another node.
-            if (outOfRange(columns, columnPos)) {
-                columnPos = (columnPos + columns.size()) % columns.size();
+                // if we run off the end of the node list, wrap and then move
+                // to another column.
+                if (outOfRange(wbsNodes, nodePos)) {
+                    nodePos = wrapPos(wbsNodes, nodePos);
+                    columnPos += increment;
 
-                // search forward/backward for the next node with annotations.
-                // if we run off the end of the node list, return null.
-                while (true) {
+                    // If we run off the end of the column list, return null.
+                    if (outOfRange(columns, columnPos))
+                        return null;
+                }
+
+            } else {
+                // search forward/backward for the next column.
+                columnPos += increment;
+
+                // if we run off the end of the column list, wrap and then move
+                // to another node.
+                if (outOfRange(columns, columnPos)) {
+                    columnPos = wrapPos(columns, columnPos);
                     nodePos += increment;
+
+                    // if we run off the end of the node list, return null.
                     if (outOfRange(wbsNodes, nodePos))
                         return null;
-                    if (containsKey(wbsNodes.get(nodePos).getTreeNodeID()))
-                        break;
                 }
             }
 
@@ -123,7 +137,7 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
     }
 
     private int findNodePos(List<WBSNode> wbsNodes, BlameCaretPos currentCaret,
-            boolean searchForward) {
+            boolean searchForward, boolean searchByColumns) {
         if (currentCaret != null) {
             int caretNodeID = currentCaret.getSingleNode();
             for (int i = wbsNodes.size(); i-- > 0;) {
@@ -131,21 +145,27 @@ public class BlameModelData extends HashMap<Integer, BlameNodeData> {
                     return i;
             }
         }
-        return searchForward ? 0 : wbsNodes.size() - 1;
+        int offs = (searchByColumns ? 1 : 0);
+        return searchForward ? -offs : wbsNodes.size() - 1 + offs;
     }
 
     private int findColumnPos(List<String> columns, BlameCaretPos currentCaret,
-            boolean searchForward) {
+            boolean searchForward, boolean searchByColumns) {
         if (currentCaret != null) {
             int pos = columns.indexOf(currentCaret.getSingleColumn());
             if (pos != -1)
                 return pos;
         }
-        return searchForward ? -1 : columns.size();
+        int offs = (searchByColumns ? 0 : 1);
+        return searchForward ? -offs : columns.size() - 1 + offs;
     }
 
     private boolean outOfRange(List list, int pos) {
         return pos < 0 || pos >= list.size();
+    }
+    
+    private int wrapPos(List list, int pos) {
+        return (pos + list.size()) % list.size();
     }
 
     public void addBlameModelDataListener(BlameModelDataListener l) {

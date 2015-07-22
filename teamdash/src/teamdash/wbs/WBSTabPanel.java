@@ -353,13 +353,13 @@ public class WBSTabPanel extends JLayeredPane
     }
 
     public BlameCaretPos findNextAnnotation(BlameCaretPos currentCaret,
-            boolean searchForward) {
+            boolean searchForward, boolean searchByColumns) {
         if (wbsTable.blameData == null)
             return null;
         else
             return wbsTable.blameData.findNextAnnotation(
                 wbsTable.wbsModel.getWbsNodes(), getBlameColumnIDs(),
-                currentCaret, searchForward);
+                currentCaret, searchForward, searchByColumns);
     }
 
     private List<String> getBlameColumnIDs() {

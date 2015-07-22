@@ -300,6 +300,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
       <root classname="net.sourceforge.processdash.ui.lib.BoxUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.CheckboxTree"/>
+      <root classname="net.sourceforge.processdash.ui.lib.DropDownButton"/>
       <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
       <root classname="net.sourceforge.processdash.ui.lib.ExceptionDialog"/>
       <root classname="net.sourceforge.processdash.ui.lib.GuiPrefs"/>
@@ -342,7 +343,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 111) {
+        if (classCount > 112) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

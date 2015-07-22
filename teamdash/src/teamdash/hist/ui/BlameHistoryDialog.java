@@ -36,10 +36,12 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -49,6 +51,7 @@ import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
+import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
@@ -89,6 +92,8 @@ public class BlameHistoryDialog extends JDialog implements
     private ClearAction clearAction;
 
     private RejectAction rejectAction;
+
+    private JRadioButtonMenuItem searchByRows, searchByColumns;
 
     private NavigateAction nextAction, previousAction;
 
@@ -134,13 +139,25 @@ public class BlameHistoryDialog extends JDialog implements
         dataProblems = new DataProblemsTextArea(tabPanel, wbsDataModel);
         BoxUtils contentBox = BoxUtils.vbox(7, breadcrumb, sp, dataProblems);
 
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(searchByRows = new JRadioButtonMenuItem(resources
+                .getString("Button.Search_Rows"), true));
+        bg.add(searchByColumns = new JRadioButtonMenuItem(resources
+                .getString("Button.Search_Columns")));
+        guiPrefs.load("blameHistorySearchColumns", searchByColumns.getModel());
+
         clearAction = new ClearAction();
         rejectAction = new RejectAction();
         nextAction = new NavigateAction(true);
         previousAction = new NavigateAction(false);
+        DropDownButton nextButton = new DropDownButton(nextAction);
+        nextButton.setRunFirstMenuOption(false);
+        nextButton.getMenu().add(searchByRows);
+        nextButton.getMenu().add(searchByColumns);
+        nextButton.getButton().setEnabled(false);
         BoxUtils buttonBox = BoxUtils.hbox(GLUE, new JButton(previousAction),
             5, new JButton(rejectAction), 5, new JButton(clearAction), 5,
-            new JButton(nextAction), GLUE, new JButton(new CloseAction()), 1);
+            nextButton, GLUE, new JButton(new CloseAction()), 1);
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateBox, BorderLayout.NORTH);
@@ -430,7 +447,7 @@ public class BlameHistoryDialog extends JDialog implements
 
             BlameCaretPos currentCaret = blameData.getCaretPos();
             BlameCaretPos newCaret = wbsEditor.findNextAnnotation(currentCaret,
-                searchForward);
+                searchForward, searchByColumns.isSelected());
             if (newCaret == null) {
                 blameData.clear();
                 showReadyMessage();
@@ -438,6 +455,7 @@ public class BlameHistoryDialog extends JDialog implements
                 Toolkit.getDefaultToolkit().beep();
             } else {
                 wbsEditor.showHyperlinkedItem(newCaret.getAsHref());
+                blameData.setCaretPos(newCaret);
             }
         }
     }

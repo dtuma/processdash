@@ -710,13 +710,14 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public BlameCaretPos findNextAnnotation(BlameCaretPos currentCaret,
-            boolean searchForward) {
+            boolean searchForward, boolean searchByColumns) {
         // look for the next annotation before/after the caret
         BlameCaretPos result = tabPanel.findNextAnnotation(currentCaret,
-            searchForward);
+            searchForward, searchByColumns);
         // if no result, wrap the search to the top/bottom of the WBS
         if (result == null)
-            result = tabPanel.findNextAnnotation(null, searchForward);
+            result = tabPanel.findNextAnnotation(null, searchForward,
+                searchByColumns);
         return result;
     }
 
