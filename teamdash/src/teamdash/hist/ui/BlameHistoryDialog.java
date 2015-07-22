@@ -66,6 +66,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IconFactory;
 import teamdash.wbs.WBSEditor;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSTabPanel;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 public class BlameHistoryDialog extends JDialog implements
@@ -107,7 +108,8 @@ public class BlameHistoryDialog extends JDialog implements
 
 
     public BlameHistoryDialog(WBSEditor wbsEditor, JFrame frame,
-            GuiPrefs guiPrefs, String dataLocation, DataTableModel wbsDataModel) {
+            GuiPrefs guiPrefs, String dataLocation, WBSTabPanel tabPanel,
+            DataTableModel wbsDataModel) {
         super(frame, resources.getString("Title"), false);
         this.wbsEditor = wbsEditor;
         this.dataLocation = dataLocation;
@@ -129,7 +131,7 @@ public class BlameHistoryDialog extends JDialog implements
         sp.setAlignmentX(0f);
         sp.setPreferredSize(new Dimension(textHeight * 24, textHeight * 13));
 
-        dataProblems = new DataProblemsTextArea(wbsDataModel);
+        dataProblems = new DataProblemsTextArea(tabPanel, wbsDataModel);
         BoxUtils contentBox = BoxUtils.vbox(7, breadcrumb, sp, dataProblems);
 
         clearAction = new ClearAction();

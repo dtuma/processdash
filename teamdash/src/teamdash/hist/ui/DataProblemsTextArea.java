@@ -37,10 +37,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JTextArea;
 
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.UndoList;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSTabPanel;
 import teamdash.wbs.columns.ErrorNotesColumn;
 
 public class DataProblemsTextArea extends JTextArea implements FocusListener {
+
+    private WBSTabPanel tabPanel;
 
     private DataTableModel wbsDataModel;
 
@@ -54,8 +58,10 @@ public class DataProblemsTextArea extends JTextArea implements FocusListener {
 
     private Integer currentNodeID;
 
-    public DataProblemsTextArea(DataTableModel wbsDataModel) {
+    public DataProblemsTextArea(WBSTabPanel tabPanel,
+            DataTableModel wbsDataModel) {
         super(2, 20);
+        this.tabPanel = tabPanel;
         this.wbsDataModel = wbsDataModel;
         this.dataProblemsColumn = wbsDataModel
                 .findColumn(ErrorNotesColumn.COLUMN_ID);
@@ -110,13 +116,20 @@ public class DataProblemsTextArea extends JTextArea implements FocusListener {
 
     private void maybeSaveDataNotes() {
         WBSNode wbsNode = getNode(currentNodeID);
-        if (wbsNode != null) {
-            wbsDataModel.setValueAt(getText(), wbsNode, dataProblemsColumn);
-            int row = wbsDataModel.getWBSModel().getRowForNode(wbsNode);
-            if (row != -1) {
-                wbsDataModel.getWBSModel().fireTableCellUpdated(row, 0);
-                wbsDataModel.fireTableCellUpdated(row, dataProblemsColumn);
-            }
+        if (wbsNode == null)
+            return;
+
+        String currentText = ErrorNotesColumn.getTextAt(wbsNode);
+        String newText = getText().trim();
+        if (newText.equals(nvl(currentText)))
+            return;
+
+        wbsDataModel.setValueAt(newText, wbsNode, dataProblemsColumn);
+        UndoList.madeChange(tabPanel, "Editing value in 'Data Problems' column");
+        int row = wbsDataModel.getWBSModel().getRowForNode(wbsNode);
+        if (row != -1) {
+            wbsDataModel.getWBSModel().fireTableCellUpdated(row, 0);
+            wbsDataModel.fireTableCellUpdated(row, dataProblemsColumn);
         }
     }
 
@@ -125,6 +138,10 @@ public class DataProblemsTextArea extends JTextArea implements FocusListener {
             return null;
         else
             return wbsDataModel.getWBSModel().getNodeMap().get(nodeID);
+    }
+
+    private String nvl(String a) {
+        return (a == null ? "" : a.trim());
     }
 
 }

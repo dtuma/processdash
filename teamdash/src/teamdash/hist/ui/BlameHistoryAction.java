@@ -32,6 +32,7 @@ import net.sourceforge.processdash.ui.lib.GuiPrefs;
 
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSEditor;
+import teamdash.wbs.WBSTabPanel;
 
 public class BlameHistoryAction extends AbstractAction {
 
@@ -43,17 +44,21 @@ public class BlameHistoryAction extends AbstractAction {
 
     private String dataLocation;
 
+    private WBSTabPanel tabPanel;
+
     private DataTableModel wbsDataModel;
 
     private BlameHistoryDialog dialog;
 
     public BlameHistoryAction(WBSEditor wbsEditor, JFrame frame,
-            GuiPrefs guiPrefs, String dataLocation, DataTableModel wbsDataModel) {
+            GuiPrefs guiPrefs, String dataLocation, WBSTabPanel tabPanel,
+            DataTableModel wbsDataModel) {
         super(BlameHistoryDialog.resources.getString("Menu_Text"));
         this.wbsEditor = wbsEditor;
         this.frame = frame;
         this.guiPrefs = guiPrefs;
         this.dataLocation = dataLocation;
+        this.tabPanel = tabPanel;
         this.wbsDataModel = wbsDataModel;
     }
 
@@ -61,7 +66,7 @@ public class BlameHistoryAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         if (dialog == null) {
             dialog = new BlameHistoryDialog(wbsEditor, frame, guiPrefs,
-                    dataLocation, wbsDataModel);
+                    dataLocation, tabPanel, wbsDataModel);
         } else {
             dialog.setVisible(true);
         }
