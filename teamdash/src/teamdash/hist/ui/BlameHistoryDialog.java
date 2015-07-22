@@ -27,25 +27,26 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowListener;
-import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingWorker;
 
 import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 import teamdash.hist.BlameCaretPos;
@@ -55,7 +56,6 @@ import teamdash.hist.BlameModelData;
 import teamdash.hist.BlameNodeData;
 import teamdash.hist.BlameValueList;
 import teamdash.hist.ProjectHistory;
-import teamdash.hist.ProjectHistoryException;
 import teamdash.hist.ProjectHistoryFactory;
 import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
@@ -91,6 +91,9 @@ public class BlameHistoryDialog extends JDialog implements
 
     private BlameData blameData;
 
+    private BlameCalculator currentCalculation;
+
+
     protected static final Resources resources = Resources
             .getDashBundle("WBSEditor.Blame");
 
@@ -104,6 +107,8 @@ public class BlameHistoryDialog extends JDialog implements
 
         dateChooser = new JDateChooser();
         dateChooser.getDateEditor().addPropertyChangeListener("date", this);
+        BoxUtils dateBox = BoxUtils.hbox(resources.getString("Date_Prompt"), 5,
+            dateChooser, 1);
 
         blameChanges = new BlameValueTableModel();
         blameChangeTable = new BlameValueTable(blameChanges);
@@ -113,7 +118,7 @@ public class BlameHistoryDialog extends JDialog implements
         sp.setPreferredSize(new Dimension(375, 200));
 
         dataProblems = new DataProblemsTextArea(wbsDataModel);
-        BoxUtils contentBox = BoxUtils.vbox(sp, dataProblems);
+        BoxUtils contentBox = BoxUtils.vbox(7, sp, dataProblems);
 
         clearAction = new ClearAction();
         rejectAction = new RejectAction();
@@ -124,16 +129,37 @@ public class BlameHistoryDialog extends JDialog implements
             new JButton(nextAction));
 
         JPanel content = new JPanel(new BorderLayout());
-        content.add(dateChooser, BorderLayout.NORTH);
+        content.add(dateBox, BorderLayout.NORTH);
         content.add(contentBox, BorderLayout.CENTER);
         content.add(buttonBox, BorderLayout.SOUTH);
+        content.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
 
+        showReadyMessage();
+
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         getContentPane().add(content);
         pack();
         setVisible(true);
+    }
 
-        addWindowListener(EventHandler.create(WindowListener.class, this,
-            "windowEvent"));
+    @Override
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (visible)
+            wbsEditor.setBlameData(blameData);
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        wbsEditor.setBlameData(null);
+
+        if (currentCalculation != null) {
+            currentCalculation.cancel(true);
+            clearBlameData();
+            dateChooser.setDate(null);
+        }
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -145,40 +171,55 @@ public class BlameHistoryDialog extends JDialog implements
     }
 
     private void setHistoryDate(Date historyDate) {
+        if (historyDate != null)
+            historyDate = DateUtils.truncDate(historyDate);
         if (NullSafeObjectUtils.EQ(historyDate, this.historyDate))
             return;
 
-        BlameCaretPos oldCaretPos = null;
-        if (blameData != null) {
-            oldCaretPos = blameData.getCaretPos();
-            blameData.removePropertyChangeListener("caretPos", this);
-            blameData = null;
-            setCaretPos(null);
+        clearBlameData();
+
+        if (historyDate != null) {
+            showMessage(resources.getString("Message.Wait"));
+            new BlameCalculator(historyDate);
         }
+    }
 
-        try {
-            if (projectHistory == null)
-                projectHistory = ProjectHistoryFactory
-                        .getProjectHistory(dataLocation);
+    protected void clearBlameData() {
+        installBlameData(null, null);
+    }
 
-            blameData = BlameDataFactory.getBlameData(projectHistory,
-                historyDate, wbsDataModel);
+    private void installBlameData(BlameData newBlameData, Date newHistoryDate) {
+        if (blameData != null)
+            blameData.removePropertyChangeListener("caretPos", this);
+
+        this.blameData = newBlameData;
+        this.historyDate = newHistoryDate;
+
+        if (blameData != null)
             blameData.addPropertyChangeListener("caretPos", this);
 
-            this.historyDate = historyDate;
+        if (isVisible())
+            wbsEditor.setBlameData(blameData);
 
-        } catch (IOException e) {
-            blameChanges.showMessage("IO Error!" + e.getMessage());
-            e.printStackTrace();
-        } catch (ProjectHistoryException e) {
-            blameChanges.showMessage("Project Error!" + e.getMessage());
-            e.printStackTrace();
-        }
-
-        wbsEditor.setBlameData(blameData);
-        if (blameData != null && oldCaretPos != null)
-            blameData.setCaretPos(oldCaretPos);
+        setCaretPos(null);
         enableNavigationActions();
+        showReadyMessage();
+    }
+
+    protected void showReadyMessage() {
+        String resourceKey;
+        if (blameData == null)
+            resourceKey = "Message.Date";
+        else if (blameData.isEmpty())
+            resourceKey = "Message.Empty";
+        else
+            resourceKey = "Message.Ready";
+        showMessage(resources.getString(resourceKey));
+    }
+
+    private void showMessage(String text) {
+        blameChanges.showMessage(text);
+        blameChangeTable.autoResizeColumns();
     }
 
     private void enableNavigationActions() {
@@ -202,7 +243,7 @@ public class BlameHistoryDialog extends JDialog implements
 
         if (!caretPos.isSingleCell()) {
             int numChanges = blameData.countAnnotations(caretPos);
-            String message = resources.format("Multiple_Selected_FMT",
+            String message = resources.format("Message.Multiple_FMT",
                 numChanges);
             blameChanges.showMessage(message);
             return numChanges > 0;
@@ -241,9 +282,63 @@ public class BlameHistoryDialog extends JDialog implements
         return false;
     }
 
-    public void windowEvent() {
-        wbsEditor.setBlameData(isVisible() ? blameData : null);
+
+    private class BlameCalculator extends SwingWorker<BlameData, Object> {
+
+        private Date calcDate;
+
+        private BlameCalculator oldCalcToCancel;
+
+        BlameCalculator(Date calcDate) {
+            this.calcDate = calcDate;
+
+            oldCalcToCancel = currentCalculation;
+            if (oldCalcToCancel != null)
+                oldCalcToCancel.cancel(true);
+
+            currentCalculation = this;
+            historyDate = calcDate;
+
+            execute();
+        }
+
+        @Override
+        protected BlameData doInBackground() throws Exception {
+            if (oldCalcToCancel != null) {
+                try {
+                    oldCalcToCancel.get();
+                } catch (Exception e) {
+                }
+                oldCalcToCancel = null;
+            }
+
+            if (projectHistory == null)
+                projectHistory = ProjectHistoryFactory
+                        .getProjectHistory(dataLocation);
+
+            BlameData blameData = BlameDataFactory.getBlameData(projectHistory,
+                calcDate, wbsDataModel, this);
+            return blameData;
+        }
+
+        @Override
+        protected void done() {
+            if (currentCalculation == this && !isCancelled()) {
+                try {
+                    installBlameData(get(), calcDate);
+                } catch (InterruptedException ie) {
+                    // shouldn't happen
+                } catch (ExecutionException ee) {
+                    clearBlameData();
+                    showMessage(ee.getCause().getMessage());
+                    ee.printStackTrace();
+                }
+                currentCalculation = null;
+            }
+        }
+
     }
+
 
     private class ClearAction extends AbstractAction {
 
@@ -255,10 +350,10 @@ public class BlameHistoryDialog extends JDialog implements
         @Override
         public void actionPerformed(ActionEvent e) {
             blameData.clearAnnotations(blameData.getCaretPos());
-            blameChanges.clearRows();
             setEnabled(false);
             rejectAction.setEnabled(false);
             dataProblems.setVisible(false);
+            showReadyMessage();
             enableNavigationActions();
         }
 
@@ -296,6 +391,8 @@ public class BlameHistoryDialog extends JDialog implements
             BlameCaretPos newCaret = wbsEditor.findNextAnnotation(currentCaret,
                 searchForward);
             if (newCaret == null) {
+                blameData.clear();
+                showReadyMessage();
                 enableNavigationActions();
                 Toolkit.getDefaultToolkit().beep();
             } else {

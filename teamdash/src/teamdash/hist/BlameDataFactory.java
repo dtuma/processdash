@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Future;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -458,12 +459,15 @@ public class BlameDataFactory extends ProjectDiff {
 
 
     public static BlameData getBlameData(ProjectHistory hist,
-            Date onOrAfterDate, DataTableModel dataTableModel)
+            Date onOrAfterDate, DataTableModel dataTableModel, Future f)
             throws IOException {
         BlameData result = new BlameData();
         List versions = hist.getVersions();
         ProjectDiff prevDiff = null;
         for (int i = 1; i < versions.size(); i++) {
+            if (f != null && f.isDone())
+                return null;
+
             Object oneVersion = versions.get(i);
             Date versionDate = hist.getVersionDate(oneVersion);
             if (onOrAfterDate != null && versionDate.before(onOrAfterDate))

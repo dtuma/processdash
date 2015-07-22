@@ -55,7 +55,8 @@ public class BlameValueTableModel extends DefaultTableModel {
 
     public void showMessage(String message) {
         clearRows();
-        addBlameRow(null, message, null);
+        for (String row : StringUtils.breakDownString(message, 55, true))
+            addBlameRow(null, row, null);
     }
 
 
