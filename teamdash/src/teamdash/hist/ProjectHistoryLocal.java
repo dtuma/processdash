@@ -64,7 +64,10 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
         if (!dir.isDirectory())
             throw new FileNotFoundException("No such directory " + dir);
         this.dir = dir;
+        refresh();
+    }
 
+    public void refresh() throws IOException {
         versions = new ChangeHistory(dir).getEntries();
         List<Entry> firstEntries = null;
         if (versions.size() > 1)

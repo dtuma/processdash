@@ -30,6 +30,8 @@ import java.util.List;
 
 public interface ProjectHistory<V> {
 
+    public void refresh() throws IOException;
+
     public List<V> getVersions();
 
     public Date getVersionDate(V version);

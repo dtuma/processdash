@@ -338,6 +338,8 @@ public class BlameHistoryDialog extends JDialog implements
             if (projectHistory == null)
                 projectHistory = ProjectHistoryFactory
                         .getProjectHistory(dataLocation);
+            else
+                projectHistory.refresh();
 
             BlameData blameData = BlameDataFactory.getBlameData(projectHistory,
                 calcDate, wbsDataModel, this);

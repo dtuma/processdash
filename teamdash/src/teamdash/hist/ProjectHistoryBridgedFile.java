@@ -37,6 +37,11 @@ public class ProjectHistoryBridgedFile extends ProjectHistoryBridgedAbstract {
     }
 
     @Override
+    public void refresh() throws IOException {
+        // nothing to do
+    }
+
+    @Override
     protected InputStream getChangeHistory() throws IOException {
         return getVersionFile(WBSFilenameConstants.CHANGE_HISTORY_FILE,
             Long.MAX_VALUE);

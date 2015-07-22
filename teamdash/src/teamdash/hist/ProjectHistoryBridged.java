@@ -59,6 +59,11 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
             cacheFileRevisions(null, null);
     }
 
+    @Override
+    public void refresh() throws IOException {
+        initChanges();
+    }
+
     protected InputStream getChangeHistory() throws IOException {
         // connect to the server and download the change history for this WBS
         URL changeHistUrl = new URL(baseUrl,
