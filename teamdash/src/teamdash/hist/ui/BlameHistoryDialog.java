@@ -23,6 +23,8 @@
 
 package teamdash.hist.ui;
 
+import static net.sourceforge.processdash.ui.lib.BoxUtils.GLUE;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -40,6 +42,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import com.toedter.calendar.JDateChooser;
@@ -59,6 +62,7 @@ import teamdash.hist.ProjectHistory;
 import teamdash.hist.ProjectHistoryFactory;
 import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.IconFactory;
 import teamdash.wbs.WBSEditor;
 import teamdash.wbs.columns.WBSNodeColumn;
 
@@ -115,7 +119,7 @@ public class BlameHistoryDialog extends JDialog implements
         JScrollPane sp = new JScrollPane(blameChangeTable,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        sp.setPreferredSize(new Dimension(375, 200));
+        sp.setPreferredSize(new Dimension(376, 200));
 
         dataProblems = new DataProblemsTextArea(wbsDataModel);
         BoxUtils contentBox = BoxUtils.vbox(7, sp, dataProblems);
@@ -124,9 +128,9 @@ public class BlameHistoryDialog extends JDialog implements
         rejectAction = new RejectAction();
         nextAction = new NavigateAction(true);
         previousAction = new NavigateAction(false);
-        BoxUtils buttonBox = BoxUtils.hbox(new JButton(previousAction), 5,
-            new JButton(rejectAction), 5, new JButton(clearAction), 5,
-            new JButton(nextAction));
+        BoxUtils buttonBox = BoxUtils.hbox(GLUE, new JButton(previousAction),
+            5, new JButton(rejectAction), 5, new JButton(clearAction), 5,
+            new JButton(nextAction), GLUE, new JButton(new CloseAction()), 1);
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(dateBox, BorderLayout.NORTH);
@@ -224,6 +228,10 @@ public class BlameHistoryDialog extends JDialog implements
 
     private void enableNavigationActions() {
         boolean enabled = blameData != null && !blameData.isEmpty();
+        if (!enabled) {
+            clearAction.setEnabled(false);
+            rejectAction.setEnabled(false);
+        }
         nextAction.setEnabled(enabled);
         previousAction.setEnabled(enabled);
     }
@@ -343,25 +351,29 @@ public class BlameHistoryDialog extends JDialog implements
     private class ClearAction extends AbstractAction {
 
         public ClearAction() {
-            super("Clear");
+            putValue(SHORT_DESCRIPTION, resources.getString("Button.Accept"));
+            putValue(LARGE_ICON_KEY, IconFactory.getAcceptChangeIcon());
             setEnabled(false);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
             blameData.clearAnnotations(blameData.getCaretPos());
-            setEnabled(false);
-            rejectAction.setEnabled(false);
             dataProblems.setVisible(false);
-            showReadyMessage();
-            enableNavigationActions();
+            if (blameData.isEmpty()) {
+                showReadyMessage();
+                enableNavigationActions();
+            } else {
+                SwingUtilities.invokeLater(nextAction);
+            }
         }
 
     }
 
     private class RejectAction extends AbstractAction {
         public RejectAction() {
-            super("Reject");
+            putValue(SHORT_DESCRIPTION, resources.getString("Button.Reject"));
+            putValue(LARGE_ICON_KEY, IconFactory.getRejectChangeIcon());
             setEnabled(false);
         }
 
@@ -372,14 +384,21 @@ public class BlameHistoryDialog extends JDialog implements
         }
     }
 
-    private class NavigateAction extends AbstractAction {
+    private class NavigateAction extends AbstractAction implements Runnable {
 
         private boolean searchForward;
 
         public NavigateAction(boolean searchForward) {
-            super(searchForward ? "Next" : "Previous");
             this.searchForward = searchForward;
+            putValue(SHORT_DESCRIPTION, resources.getString( //
+                    (searchForward ? "Button.Next" : "Button.Previous")));
+            putValue(LARGE_ICON_KEY,
+                IconFactory.getHorizontalArrowIcon(searchForward));
             setEnabled(false);
+        }
+
+        public void run() {
+            actionPerformed(null);
         }
 
         @Override
@@ -399,6 +418,19 @@ public class BlameHistoryDialog extends JDialog implements
                 wbsEditor.showHyperlinkedItem(newCaret.getAsHref());
             }
         }
+    }
+
+    private class CloseAction extends AbstractAction {
+
+        public CloseAction() {
+            super(resources.getString("Button.Close"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            dispose();
+        }
+
     }
 
 }

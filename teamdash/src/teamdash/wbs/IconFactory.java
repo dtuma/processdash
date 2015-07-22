@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -327,6 +327,18 @@ public class IconFactory {
     }
     public static Icon getRightArrowIcon() {
         return getDemoteIcon();
+    }
+
+    public static Icon getHorizontalArrowIcon(boolean right) {
+        return (right ? getRightArrowIcon() : getLeftArrowIcon());
+    }
+
+    public static Icon getAcceptChangeIcon() {
+        return loadIconResource("accept.png");
+    }
+
+    public static Icon getRejectChangeIcon() {
+        return loadIconResource("reject.png");
     }
 
     public static Icon getExpandIcon() {
