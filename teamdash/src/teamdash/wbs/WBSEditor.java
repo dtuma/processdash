@@ -661,6 +661,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         return workingDirectory instanceof CompressedWorkingDirectory;
     }
 
+    private boolean isQuicklaunchedZipDirectory() {
+        // currently, the external location mapper is only operational in the
+        // WBS Editor process if we are running from a data backup ZIP.
+        return ExternalLocationMapper.getInstance().isMapping();
+    }
+
     private TaskDependencySource getTaskDependencySource() {
         if (isMode(MODE_PLAIN + MODE_HAS_MASTER))
             return new TaskDependencySourceMaster(teamProject);
@@ -1029,7 +1035,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(openAction);
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
-            if (!isZipWorkingDirectory())
+            if (!isZipWorkingDirectory() && !isQuicklaunchedZipDirectory())
                 result.add(new BlameHistoryAction(this, frame, workingDirectory
                         .getDescription(), dataModel));
             result.add(importFromCsvAction = new ImportFromCsvAction());
