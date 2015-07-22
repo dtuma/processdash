@@ -66,6 +66,7 @@ public class DataProblemsTextArea extends JTextArea implements FocusListener {
         setLineWrap(true);
         setWrapStyleWord(true);
         setBorder(BorderFactory.createEtchedBorder());
+        setAlignmentX(0f);
         setVisible(false);
 
         addFocusListener(this);

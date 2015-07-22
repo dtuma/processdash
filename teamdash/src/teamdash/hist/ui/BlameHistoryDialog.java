@@ -64,6 +64,7 @@ import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IconFactory;
 import teamdash.wbs.WBSEditor;
+import teamdash.wbs.WBSNode;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 public class BlameHistoryDialog extends JDialog implements
@@ -76,6 +77,8 @@ public class BlameHistoryDialog extends JDialog implements
     private DataTableModel wbsDataModel;
 
     private JDateChooser dateChooser;
+
+    private BlameBreadcrumb breadcrumb;
 
     private BlameValueTableModel blameChanges;
 
@@ -114,15 +117,18 @@ public class BlameHistoryDialog extends JDialog implements
         BoxUtils dateBox = BoxUtils.hbox(resources.getString("Date_Prompt"), 5,
             dateChooser, 1);
 
+        breadcrumb = new BlameBreadcrumb();
+
         blameChanges = new BlameValueTableModel();
         blameChangeTable = new BlameValueTable(blameChanges);
         JScrollPane sp = new JScrollPane(blameChangeTable,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.setAlignmentX(0f);
         sp.setPreferredSize(new Dimension(376, 200));
 
         dataProblems = new DataProblemsTextArea(wbsDataModel);
-        BoxUtils contentBox = BoxUtils.vbox(7, sp, dataProblems);
+        BoxUtils contentBox = BoxUtils.vbox(7, breadcrumb, sp, dataProblems);
 
         clearAction = new ClearAction();
         rejectAction = new RejectAction();
@@ -222,6 +228,7 @@ public class BlameHistoryDialog extends JDialog implements
     }
 
     private void showMessage(String text) {
+        breadcrumb.clear();
         blameChanges.showMessage(text);
         blameChangeTable.autoResizeColumns();
     }
@@ -243,6 +250,7 @@ public class BlameHistoryDialog extends JDialog implements
     }
 
     private boolean setBlameComments(BlameCaretPos caretPos) {
+        breadcrumb.clear();
         blameChanges.clearRows();
         dataProblems.setCurrentNode(null);
         rejectAction.setEnabled(false);
@@ -267,8 +275,12 @@ public class BlameHistoryDialog extends JDialog implements
         if (nodeData == null)
             return false;
 
+        WBSNode node = wbsDataModel.getWBSModel().getNodeMap().get(nodeID);
+        String nodePath = (node == null ? null : node.getFullName());
+
         String columnID = caretPos.getSingleColumn();
         if (WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            breadcrumb.setPath(nodePath, null);
             blameChanges.setBlameNodeStructure(nodeData);
             dataProblems.setCurrentNode(nodeID);
             rejectAction.setEnabled(true);
@@ -280,6 +292,9 @@ public class BlameHistoryDialog extends JDialog implements
 
         for (BlameValueList val : nodeData.getAttributes().values()) {
             if (val.columnMatches(columnID)) {
+                int col = wbsDataModel.findColumn(columnID);
+                String columnName = wbsDataModel.getColumnName(col);
+                breadcrumb.setPath(nodePath, columnName);
                 blameChanges.setBlameValueList(val);
                 dataProblems.setCurrentNode(nodeID);
                 rejectAction.setEnabled(true);
