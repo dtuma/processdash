@@ -1036,8 +1036,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
             if (!isZipWorkingDirectory() && !isQuicklaunchedZipDirectory())
-                result.add(new BlameHistoryAction(this, frame, workingDirectory
-                        .getDescription(), dataModel));
+                result.add(new BlameHistoryAction(this, frame, guiPrefs,
+                        workingDirectory.getDescription(), dataModel));
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
         for (int i = 0; i < fileActions.length; i++) {

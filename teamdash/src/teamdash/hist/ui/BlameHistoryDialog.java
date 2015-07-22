@@ -49,6 +49,7 @@ import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
@@ -106,7 +107,7 @@ public class BlameHistoryDialog extends JDialog implements
 
 
     public BlameHistoryDialog(WBSEditor wbsEditor, JFrame frame,
-            String dataLocation, DataTableModel wbsDataModel) {
+            GuiPrefs guiPrefs, String dataLocation, DataTableModel wbsDataModel) {
         super(frame, resources.getString("Title"), false);
         this.wbsEditor = wbsEditor;
         this.dataLocation = dataLocation;
@@ -118,6 +119,7 @@ public class BlameHistoryDialog extends JDialog implements
             dateChooser, 1);
 
         breadcrumb = new BlameBreadcrumb();
+        int textHeight = breadcrumb.getPreferredSize().height;
 
         blameChanges = new BlameValueTableModel();
         blameChangeTable = new BlameValueTable(blameChanges);
@@ -125,7 +127,7 @@ public class BlameHistoryDialog extends JDialog implements
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         sp.setAlignmentX(0f);
-        sp.setPreferredSize(new Dimension(376, 200));
+        sp.setPreferredSize(new Dimension(textHeight * 24, textHeight * 13));
 
         dataProblems = new DataProblemsTextArea(wbsDataModel);
         BoxUtils contentBox = BoxUtils.vbox(7, breadcrumb, sp, dataProblems);
@@ -149,6 +151,7 @@ public class BlameHistoryDialog extends JDialog implements
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         getContentPane().add(content);
         pack();
+        guiPrefs.load("blameHistoryDialog", this);
         setVisible(true);
     }
 
