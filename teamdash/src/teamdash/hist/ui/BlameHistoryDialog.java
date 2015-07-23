@@ -39,7 +39,9 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -63,6 +65,7 @@ import teamdash.hist.BlameModelData;
 import teamdash.hist.BlameNodeData;
 import teamdash.hist.BlameValueList;
 import teamdash.hist.ProjectHistory;
+import teamdash.hist.ProjectHistoryException;
 import teamdash.hist.ProjectHistoryFactory;
 import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
@@ -256,6 +259,32 @@ public class BlameHistoryDialog extends JDialog implements
         blameChangeTable.autoResizeColumns();
     }
 
+    public void showCalculationError(Throwable calcError) {
+        calcError.printStackTrace();
+
+        ProjectHistoryException phe;
+        if (calcError instanceof ProjectHistoryException) {
+            phe = (ProjectHistoryException) calcError;
+        } else if (projectHistory != null) {
+            phe = projectHistory.wrapException(calcError);
+        } else {
+            phe = new ProjectHistoryException(calcError,
+                    "Dir.Cannot_Read_HTML_FMT", dataLocation);
+        }
+
+        String title = resources.getString("Message.Error");
+        String message = "<html><div style='width:400px'>" + phe.getHtml()
+                + "</div></html>";
+        JEditorPane pane = new JEditorPane("text/html", message);
+        pane.setEditable(false);
+        pane.setBackground(null);
+        JOptionPane.showMessageDialog(this, pane, title,
+            JOptionPane.ERROR_MESSAGE);
+
+        showReadyMessage();
+    }
+
+
     private void enableNavigationActions() {
         boolean enabled = blameData != null && !blameData.isEmpty();
         if (!enabled) {
@@ -383,8 +412,8 @@ public class BlameHistoryDialog extends JDialog implements
                     // shouldn't happen
                 } catch (ExecutionException ee) {
                     clearBlameData();
-                    showMessage(ee.getCause().getMessage());
-                    ee.printStackTrace();
+                    dateChooser.setDate(null);
+                    showCalculationError(ee.getCause());
                 }
                 currentCalculation = null;
             }

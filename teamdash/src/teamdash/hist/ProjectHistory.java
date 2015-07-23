@@ -41,6 +41,6 @@ public interface ProjectHistory<V> {
     public InputStream getVersionFile(V version, String filename)
             throws IOException;
 
-    public ProjectHistoryException wrapException(Exception e);
+    public ProjectHistoryException wrapException(Throwable e);
 
 }

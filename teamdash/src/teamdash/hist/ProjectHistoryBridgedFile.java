@@ -48,7 +48,7 @@ public class ProjectHistoryBridgedFile extends ProjectHistoryBridgedAbstract {
     }
 
     @Override
-    public ProjectHistoryException wrapException(Exception e) {
+    public ProjectHistoryException wrapException(Throwable e) {
         return new ProjectHistoryException(e, "Dir.Cannot_Read_HTML_FMT",
                 "<test zip>");
     }

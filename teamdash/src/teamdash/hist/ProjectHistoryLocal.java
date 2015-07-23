@@ -202,7 +202,7 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
     }
 
     @Override
-    public ProjectHistoryException wrapException(Exception e) {
+    public ProjectHistoryException wrapException(Throwable e) {
         return new ProjectHistoryException(e, "Dir.Cannot_Read_HTML_FMT",
                 dir.getPath());
     }
