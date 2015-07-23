@@ -79,6 +79,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -1215,6 +1216,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     private void handleRelaunchWelcomePage() {
+        // don't proceed if we are running in the quick launcher.
+        if (CompressedInstanceLauncher.isRunningFromCompressedData())
+            throw new WizardError(RELAUNCH_INVALID_URL).param("quickLaunch");
+
         // don't proceed if we are running in read-only mode.
         if (Settings.isReadOnly())
             throw new WizardError(RELAUNCH_INVALID_URL).param("readOnly");

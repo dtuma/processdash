@@ -28,6 +28,11 @@ plugin, and you only have version <!--#echo Dash_Package_teamTools -->.
 You will need to upgrade to a more recent version of the Team Dashboard
 before you can use the Relaunch Wizard.
 
+<!--#elif quickLaunch -->
+Unfortunately, you are currently running the Team Dashboard against a Data
+Backup (e.g. ZIP/PDBK) file. The relaunch wizard can only operate against live
+data.
+
 <!--#elif readOnly -->
 Unfortunately, you are currently running the Team Dashboard in read-only
 mode.  Accordingly, you cannot relaunch this team project until you restart
