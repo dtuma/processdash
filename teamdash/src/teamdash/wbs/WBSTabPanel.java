@@ -333,9 +333,8 @@ public class WBSTabPanel extends JLayeredPane
 
                 if (i != 0)
                     tabbedPane.setSelectedIndex(tabPos);
-                columns.getSelectionModel().clearSelection();
-                dataTable.addColumnSelectionInterval(columnPos, columnPos);
                 dataTable.requestFocusInWindow();
+                dataTable.selectColumn(columnPos);
                 return true;
             } catch (IllegalArgumentException noSuchColumn) {
                 // if the column was not found on this tab, the getColumnIndex

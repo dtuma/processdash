@@ -109,6 +109,13 @@ public class DataJTable extends JTable {
                 getColumnCount() - 1);
     }
 
+    public void selectColumn(int col) {
+        timeOfLastColumnSelection = System.currentTimeMillis();
+        getColumnModel().getSelectionModel().clearSelection();
+        addColumnSelectionInterval(col, col);
+    }
+    long timeOfLastColumnSelection = -1;
+
     public void setColumnModel(TableColumnModel columnModel) {
         if (blameSelectionListener != null)
             blameSelectionListener.columnModelChanging();
@@ -248,6 +255,8 @@ public class DataJTable extends JTable {
 
         public void focusLost(FocusEvent e) {
             if (e.isTemporary() || e.getComponent() != DataJTable.this)
+                return;
+            if (System.currentTimeMillis() - timeOfLastColumnSelection < 300)
                 return;
             Component opposite = e.getOppositeComponent();
             if (opposite == null
