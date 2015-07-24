@@ -144,11 +144,11 @@ public class BlameHistoryDialog extends JDialog implements
         BoxUtils contentBox = BoxUtils.vbox(7, breadcrumb, sp, dataProblems);
 
         ButtonGroup bg = new ButtonGroup();
-        bg.add(searchByRows = new JRadioButtonMenuItem(resources
-                .getString("Button.Search_Rows"), true));
         bg.add(searchByColumns = new JRadioButtonMenuItem(resources
-                .getString("Button.Search_Columns")));
-        guiPrefs.load("blameHistorySearchColumns", searchByColumns.getModel());
+                .getString("Button.Search_Columns"), true));
+        bg.add(searchByRows = new JRadioButtonMenuItem(resources
+            .getString("Button.Search_Rows")));
+        guiPrefs.load("blameHistorySearchRows", searchByRows.getModel());
 
         clearAction = new ClearAction();
         rejectAction = new RejectAction();
