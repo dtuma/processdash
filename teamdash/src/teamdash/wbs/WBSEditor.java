@@ -1832,9 +1832,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (forceReadOnly)
             proj.setReadOnly(true);
-
-        if (owner == null && !forceReadOnly)
-            owner = getOwnerName();
+        else
+            owner = getOwnerName(owner);
 
         if (!indivMode)
             initials = null;
@@ -1997,20 +1996,20 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     }
 
-    private static String getOwnerName() {
+    private static String getOwnerName(String defaultValue) {
         String result = preferences.get("ownerName", null);
         if (result == null && isDumpAndExitMode())
             result = "(Batch Process)";
-        if (result == null) {
-            result = JOptionPane.showInputDialog(null, INPUT_NAME_MESSAGE,
-                    "Enter Your Name", JOptionPane.PLAIN_MESSAGE);
-            if (result != null)
-                preferences.put("ownerName", result);
+        while (result == null || result.trim().length() == 0) {
+            result = (String) JOptionPane.showInputDialog(null,
+                resources.getString("Enter_Name.Prompt"),
+                resources.getString("Enter_Name.Title"),
+                JOptionPane.PLAIN_MESSAGE, null, null, defaultValue);
+            if (result != null && result.trim().length() > 0)
+                preferences.put("ownerName", result.trim());
         }
         return result;
     }
-    private static final String INPUT_NAME_MESSAGE =
-        "To open the Work Breakdown Structure, please enter your name:";
 
     private String getExpandedNodesKey(String projectId) {
         return projectId + EXPANDED_NODES_KEY_SUFFIX;
