@@ -326,6 +326,11 @@ public class HttpAuthenticator extends Authenticator {
         }
     }
 
+    /** @since 2.1.10 */
+    public static String getLastUsername() {
+        return (INSTANCE == null ? null : INSTANCE.lastUsername);
+    }
+
     private static HttpAuthenticator INSTANCE = null;
 
 }

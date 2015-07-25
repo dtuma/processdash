@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2014 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.report.ListingHashcodeCalculator;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.tool.bridge.report.ResourceContentStream;
@@ -842,7 +843,14 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     private static String getUserId() {
-        return System.getProperty("user.name");
+        String result = null;
+        try {
+            result = HttpAuthenticator.getLastUsername();
+        } catch (Throwable t) {
+        }
+        if (result == null)
+            result = System.getProperty("user.name");
+        return result;
     }
 
     // when constructing a URL to retrieve via the HTTP GET method, this

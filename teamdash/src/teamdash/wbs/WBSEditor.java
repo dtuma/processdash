@@ -135,6 +135,7 @@ import teamdash.hist.ui.BlameHistoryAction;
 import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.team.PersonLookupDialog;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
@@ -1997,9 +1998,19 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static String getOwnerName(String defaultValue) {
+        // if we have an authenticated PDES session, try looking up the full
+        // name of the authenticated user
+        String authUser = HttpAuthenticator.getLastUsername();
+        String authPersonName = PersonLookupDialog.lookupNameForUser(authUser);
+        if (authPersonName != null)
+            return authPersonName;
+
+        // otherwise, check user preferences for the current user's full name
         String result = preferences.get("ownerName", null);
         if (result == null && isDumpAndExitMode())
             result = "(Batch Process)";
+
+        // if we don't know the user's name, prompt them for it.
         while (result == null || result.trim().length() == 0) {
             result = (String) JOptionPane.showInputDialog(null,
                 resources.getString("Enter_Name.Prompt"),

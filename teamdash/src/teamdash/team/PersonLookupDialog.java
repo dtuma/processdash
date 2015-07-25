@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.InputMap;
@@ -57,6 +60,7 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 
 public class PersonLookupDialog {
 
@@ -394,5 +398,47 @@ public class PersonLookupDialog {
         }
 
     }
+
+    public static String lookupNameForUser(String username) {
+        String lookupServerUrl = getLookupServerUrl();
+        if (username == null || lookupServerUrl == null)
+            return null;
+
+        StringBuffer urlStr = new StringBuffer(lookupServerUrl);
+        HTMLUtils.appendQuery(urlStr, "search", username);
+        HTMLUtils.appendQuery(urlStr, "save", "Save");
+        try {
+            URL url = new URL(urlStr.toString());
+            String doc = HTTPUtils.getResponseAsString(url.openConnection());
+            return getInputValue(doc, "displayName");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String getInputValue(String doc, String inputName) {
+        // find a tag in this document with the given name
+        String nameAttr = "name=\"" + inputName + "\"";
+        int pos = doc.indexOf(nameAttr);
+        if (pos == -1)
+            return null;
+
+        // find the beginning and end of the enclosing tag
+        int beg = doc.lastIndexOf('<', pos);
+        int end = doc.indexOf('>', pos + nameAttr.length());
+        if (beg == -1 || end == -1)
+            return null;
+
+        // extract the value and return it
+        String tag = doc.substring(beg, end);
+        Matcher m = VALUE_ATTR_PAT.matcher(tag);
+        if (m.find())
+            return HTMLUtils.unescapeEntities(m.group(1));
+        else
+            return null;
+    }
+
+    private static final Pattern VALUE_ATTR_PAT = Pattern.compile(
+        "\\bvalue=\"([^'\"]+)\"", Pattern.CASE_INSENSITIVE);
 
 }
