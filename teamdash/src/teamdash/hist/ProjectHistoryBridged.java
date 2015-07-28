@@ -31,7 +31,6 @@ import java.net.URLConnection;
 import java.util.Date;
 import java.util.List;
 
-import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.util.ClientHttpRequest;
 import net.sourceforge.processdash.util.DateUtils;
@@ -132,7 +131,7 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
 
         // save this ZIP data to a temporary file
         File f = TempFileFactory.get().createTempFile("wbsHist", ".zip");
-        if (debugCacheFiles)
+        if (DEBUG_CACHE_FILES)
             System.out.println("Caching project history file: " + f);
         else
             f.deleteOnExit();
@@ -157,9 +156,6 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
             endTimestamp = NEVER;
         }
     }
-
-    private boolean debugCacheFiles = Settings.getBool(
-        "wbsChangeHistory.debugCacheFiles", false);
 
     private String getResourceCollectionID(URL baseUrl) {
         String u = baseUrl.toString();
@@ -200,5 +196,8 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
             .getInstance("yyyy-MM-dd");
 
     private static final long NEVER = Long.MAX_VALUE / 2;
+
+    private static final boolean DEBUG_CACHE_FILES = Boolean.getBoolean( //
+            ProjectHistoryBridged.class.getName() + ".debugCacheFiles");
 
 }

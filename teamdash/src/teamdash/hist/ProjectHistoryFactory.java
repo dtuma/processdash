@@ -74,7 +74,7 @@ public class ProjectHistoryFactory {
         try {
             URL collectionUrl = new URL(serverUrl.toString() + "/");
             return new ProjectHistoryBridged(collectionUrl, //
-                    Settings.getBool("wbsChangeHistory.precacheAll", false));
+                    getBool("wbsChangeHistory.precacheAll", false));
         } catch (IOException ioe) {
             throw new ProjectHistoryException(ioe,
                     "Server.Cannot_Read_HTML_FMT", url);
@@ -107,6 +107,16 @@ public class ProjectHistoryFactory {
         } catch (IOException ioe) {
             throw new ProjectHistoryException(ioe, "Dir.Cannot_Read_HTML_FMT",
                     path);
+        }
+    }
+
+    private static boolean getBool(String name, boolean defaultValue) {
+        try {
+            return Settings.getBool(name, defaultValue);
+        } catch (Throwable t) {
+            // when running in the WBS Editor, the Settings class will not be
+            // present. Fall back to the default.
+            return defaultValue;
         }
     }
 
