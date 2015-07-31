@@ -318,6 +318,12 @@ The author(s) may be contacted at:
     <uri>/team/setup/summaryName.class</uri>
   </snippet>
 
+  <snippet id="pdash.teamDataScannerFilter" version="1.0" category="hidden">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <pageFilter mode="view">net.sourceforge.processdash.team.ui.ScannerFilter</pageFilter>
+  </snippet>
+
   <!-- Snippets associated with the Process Advisor -->
 
   <snippet id="pdash.processAdvisor" version="1.0" category="hidden">

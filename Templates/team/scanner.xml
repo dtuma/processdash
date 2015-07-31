@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<pdashCmsPage>
+
+<pageTitle>Project Data Scanner</pageTitle>
+
+<pageHeading>
+
+<snippet instanceId="1000" type="pdash.teamSummaryPageHeader" version="1.0" />
+
+<snippet instanceId="1" type="pdash.teamDataScannerFilter" version="1.0" />
+
+</pageHeading>
+
+
+<snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">General Tools</param>
+</parameters>]]></snippet>
+
+
+<snippet instanceId="200" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Planning Tools</param>
+</parameters>]]></snippet>
+
+
+<snippet instanceId="300" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Quality Tools</param>
+</parameters>]]></snippet>
+
+
+</pdashCmsPage>
