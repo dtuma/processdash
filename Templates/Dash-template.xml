@@ -308,6 +308,16 @@ The author(s) may be contacted at:
     <widget>net.sourceforge.processdash.ev.ui.EVMetricsWidget</widget>
   </snippet>
 
+  <!-- Snippets associated with team functionality -->
+
+  <snippet id="pdash.teamSummaryPageHeader" version="1.0" hide="true">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>Team Project Indiv Root</context>
+    <context>Team Project Root</context>
+    <context>Master Project Root</context>
+    <uri>/team/setup/summaryName.class</uri>
+  </snippet>
+
   <!-- Snippets associated with the Process Advisor -->
 
   <snippet id="pdash.processAdvisor" version="1.0" category="hidden">

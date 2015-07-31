@@ -698,7 +698,7 @@
     <context>PID Team Node Tag</context>
     <context>PID Master Root Tag</context>
     <context>PID Master Node Tag</context>
-    <uri>/PID/setup/summaryName.class</uri>
+    <uri>/team/setup/summaryName.class</uri>
     <pageFilter mode="view">net.sourceforge.processdash.team.ui.ProcessAdvisor</pageFilter>
   </snippet>
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,16 +36,8 @@ import net.sourceforge.processdash.util.VersionUtils;
 
 public class PlanSummaryNameHeader extends SelectWBSNode {
 
-    private String processID = null;
-
     protected void writeContents() throws IOException {
         getDataRepository().waitForCalculations();
-
-        if (processID == null) {
-            String scriptName = (String) env.get("SCRIPT_NAME");
-            int slashPos = scriptName.indexOf('/', 1);
-            processID = scriptName.substring(1, slashPos);
-        }
 
         String prefix = getPrefix();
         PropertyKey projectRootKey = getStartingKey();
@@ -145,12 +137,12 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
 
         boolean exporting = parameters.containsKey("EXPORT");
         if (!exporting) {
-            String href = WebServer.urlEncodePath(projectRoot) + "//"
-                    + processID + "/setup/" + uri;
+            String href = WebServer.urlEncodePath(projectRoot)
+                    + "//team/setup/" + uri;
             writeHyperlink(href, getSnippetParams(false, false));
         }
 
-        out.print("<img border=0 src='../hier.png' "
+        out.print("<img border=0 src='/Images/hier.png' "
                 + "style='margin-right:2px' width='16' height='23' ");
         if (!exporting)
             out.print("title='Drill-down in Hierarchy'></a>");
@@ -180,11 +172,11 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
      * using frames and relative paths
      */
     private void writeHierarchyIconFrame(String prefix, String projectRoot) {
-        String href = WebServer.urlEncodePath(projectRoot) + "//" + processID
-                + "/setup/selectWBSFrame.class";
+        String href = WebServer.urlEncodePath(projectRoot)
+                + "//team/setup/selectWBSFrame.class";
         writeHyperlink(href, getSnippetParams(true, true));
 
-        out.print("<img border=0 src='../hier.png' "
+        out.print("<img border=0 src='/Images/hier.png' "
                 + "title='Drill-down in Hierarchy' "
                 + "style='margin-right:2px' width=16 height=23></a>");
         if (prefix.equals(projectRoot))
