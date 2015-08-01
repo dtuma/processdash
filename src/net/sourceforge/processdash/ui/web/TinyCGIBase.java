@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import java.util.UUID;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.api.PDashContext;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -550,6 +551,10 @@ public class TinyCGIBase implements TinyCGI {
     }
     protected DashboardContext getDashboardContext() {
         return (DashboardContext) env.get(DASHBOARD_CONTEXT);
+    }
+    /** @since 2.1.11 */
+    protected PDashContext getPdash() {
+        return (PDashContext) env.get(PDashContext.REQUEST_ATTR);
     }
     /** Perform an internal http request. */
     protected byte[] getRequest(String uri, boolean skipHeaders)

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,6 +73,8 @@ public class PDashServletUtils {
         Map defaultEnv = (Map) baseRequest.getConnection().getServer()
                 .getAttribute(WebServer.DEFAULT_ENV_KEY);
         env.putAll(defaultEnv);
+        env.put(PDashContext.REQUEST_ATTR,
+            req.getAttribute(PDashContext.REQUEST_ATTR));
 
         // store the method, and protocol from the original request
         env.put("REQUEST_METHOD", req.getMethod());
