@@ -23,39 +23,18 @@
 
 package net.sourceforge.processdash.team.ui.scanner;
 
-import java.io.IOException;
 import java.util.List;
 
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
-import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.StringUtils;
+public class CompletedTasksWithZeroTime extends AbstractScanItemList {
 
-public class CompletedTasksWithZeroTime extends TinyCGIBase {
 
-    protected void writeContents() throws IOException {
-        List<Object[]> completedTasks = getPdash().getQuery().query(QUERY);
-        if (completedTasks.isEmpty()) {
-            out.write("<!-- no tasks with missing time were found -->\n");
-            return;
-        }
+    public CompletedTasksWithZeroTime() {
+        super("completedTasksMissingTime");
+    }
 
-        Resources res = (Resources) env.get(SnippetEnvironment.RESOURCES);
-        out.write("<html><body>\n<p>");
-        out.write(res.getHTML("Header"));
-        out.write("</p>\n");
-        out.write("<ul>\n");
-        for (Object[] oneTask : completedTasks) {
-            String text = res.format("Item_FMT", oneTask);
-            String html = HTMLUtils.escapeEntities(text);
-            html = StringUtils.findAndReplace(html, "--", "&mdash;");
-            out.write("<li>");
-            out.write(html);
-            out.write("</li>\n");
-        }
-        out.write("</ul>\n");
-        out.write("</body></html>\n");
+    @Override
+    protected List<Object[]> getItems() {
+        return getPdash().getQuery().query(QUERY);
     }
 
     private static final String QUERY = "select " //
