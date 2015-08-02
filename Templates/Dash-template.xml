@@ -324,6 +324,13 @@ The author(s) may be contacted at:
     <pageFilter mode="view">net.sourceforge.processdash.team.ui.ScannerFilter</pageFilter>
   </snippet>
 
+  <snippet id="pdash.completedTasksMissingTime" version="1.0" category="other">
+    <resources>Analysis.CompletedTasksMissingTime</resources>
+    <context>Team Project Root</context>
+    <uri>/dash/snippets/completedTasksMissingTime</uri>
+  </snippet>
+
+
   <!-- Snippets associated with the Process Advisor -->
 
   <snippet id="pdash.processAdvisor" version="1.0" category="hidden">
