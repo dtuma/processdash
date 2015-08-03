@@ -34,12 +34,36 @@ var DashScanner = {
 
    clearAllItems:
    function(checkbox) {
+      var params = "checked=" + checkbox.checked;
       var div = checkbox.parentNode.parentNode;
       var checkboxes = div.getElementsByTagName("INPUT");
       for (var i=1; i < checkboxes.length; i++) {
          checkboxes[i].checked = checkbox.checked;
          DashScanner.clearItem(checkboxes[i]);
-         changeNotifyElem(checkboxes[i]);
+         if (Ajax != null) {
+            var oneID = DashScanner.getItemID(checkboxes[i].name);
+            params += "&id=" + encodeURIComponent(oneID);
+         } else {
+             changeNotifyElem(checkboxes[i]);
+         }
+      }
+
+      if (Ajax != null) {
+         var url = self.location.href;
+         var pos = url.lastIndexOf("/+/");
+         if (pos == -1) { pos = url.lastIndexOf("//") }
+         var url = url.substring(0, pos) + "//dash/snippets/scannerBulkEdit";
+         new Ajax.Request(url, { parameters: params });
+      }
+   },
+
+   getItemID:
+   function(name) {
+      if (name.indexOf("[") != 0) {
+         return name;
+      } else {
+         var endPos = name.lastIndexOf("]");
+         return name.substring(1, endPos);
       }
    }
 
