@@ -57,8 +57,18 @@ public abstract class AbstractScanItemList extends TinyCGIBase {
 
         Resources res = (Resources) env.get(SnippetEnvironment.RESOURCES);
         boolean readOnly = Settings.isReadOnly();
-        out.write("<html><body>\n<div class=\"scanItemList " + listID + "\">");
-        out.write("<p>" + res.getHTML("Header") + "</p>\n");
+        out.write("<html><head>");
+        out.write(HTMLUtils.cssLinkHtml("/dash/scanner.css"));
+        if (!readOnly)
+            out.write(HTMLUtils.scriptLinkHtml("/dash/scanner.js"));
+        out.write("</head><body>\n<div class=\"scanItemList " + listID + "\">");
+        out.write("<p>");
+        if (!readOnly) {
+            out.write("<input type=\"checkbox\" name=\"notData\" title=\"");
+            out.write(resources.getHTML("Clear_All_Tooltip"));
+            out.write("\" onchange=\"DashScanner.clearAllItems(this);\">&nbsp;");
+        }
+        out.write(res.getHTML("Header") + "</p>\n");
         out.write(readOnly ? "<ul>\n" : "<table style=\"margin-left:1cm\">");
         String clearItemTooltip = resources.getHTML("Clear_Item_Tooltip");
 
@@ -75,7 +85,8 @@ public abstract class AbstractScanItemList extends TinyCGIBase {
                 out.write(HTMLUtils.escapeEntities(getItemID(oneItem)));
                 out.write("]d\" title=\"");
                 out.write(clearItemTooltip);
-                out.write("\"></td><td>");
+                out.write("\" onchange=\"DashScanner.clearItem(this);\">");
+                out.write("</td><td>");
             }
             out.write(itemHtml);
             out.write(readOnly ? "</li>\n" : "</td></tr>\n");

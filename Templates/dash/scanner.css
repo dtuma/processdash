@@ -1,0 +1,5 @@
+/* Stylesheet for displaying content from the project data scanner */
+
+tr.scanItemCleared {
+    text-decoration: line-through;
+}
