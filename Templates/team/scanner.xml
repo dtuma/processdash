@@ -14,7 +14,7 @@
 
 <snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
-  <param name="Name">General Tools</param>
+  <param name="Name">Missing Data Checks</param>
 </parameters>]]></snippet>
 
 <snippet instanceId="101" type="pdash.completedTasksMissingTime" version="1.0" />
