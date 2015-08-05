@@ -318,6 +318,14 @@ The author(s) may be contacted at:
     <uri>/team/setup/summaryName.class</uri>
   </snippet>
 
+  <snippet id="pdash.estErrorScatterChart" version="1.0" category="charts">
+    <resources>Analysis.EstErrorScatterChart</resources>
+    <context>Team Project Root</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/estErrorScatter</uri>
+    <uri mode="edit">/dash/snippets/estErrorScatterEdit.shtm</uri>
+  </snippet>
+
   <snippet id="pdash.teamDataScannerFilter" version="1.0" category="hidden">
     <resources>CMS.Snippet.Anonymous</resources>
     <context>*</context>

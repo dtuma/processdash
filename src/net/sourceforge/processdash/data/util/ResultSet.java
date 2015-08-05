@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -114,6 +114,11 @@ public class ResultSet {
             for (int i = columns.length;  i-- > 0; ) {
                 result.data[row][i+1] = this.data[row][columns[i]];
             }
+        }
+        for (int i = columns.length;  i-- > 0; ) {
+            result.prefix[i+1] = this.prefix[columns[i]];
+            result.suffix[i+1] = this.suffix[columns[i]];
+            result.multiplier[i+1] = this.multiplier[columns[i]];
         }
         return result;
     }

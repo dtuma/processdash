@@ -25,6 +25,8 @@
   <param name="Name">Planning Tools</param>
 </parameters>]]></snippet>
 
+<snippet instanceId="201" type="pdash.estErrorScatterChart" version="1.0" persister="xml.v1" />
+
 
 <snippet instanceId="300" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
