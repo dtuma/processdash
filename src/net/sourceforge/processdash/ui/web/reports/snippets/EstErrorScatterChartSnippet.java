@@ -47,6 +47,7 @@ public class EstErrorScatterChartSnippet extends AbstractChartSnippet {
         Resources res = (Resources) env.get(SnippetEnvironment.RESOURCES);
         appendParam(args, "title", res.getString("Title"));
         copyParam(args, "TargetPercent", "pct");
+        copyParam(args, "CutoffPercent", "cut");
 
         buildData(res);
         appendParam(args, "useData", DATA_NAME);
@@ -109,6 +110,7 @@ public class EstErrorScatterChartSnippet extends AbstractChartSnippet {
         }
 
         // go back and calculate size estimating errors
+        boolean requireSize = parameters.containsKey("RequireSize");
         for (int i = data.numRows(); i > 0; i--) {
             DoubleData plan = (DoubleData) data.getData(i, 2);
             DoubleData actual = (DoubleData) data.getData(i, 3);
@@ -116,6 +118,8 @@ public class EstErrorScatterChartSnippet extends AbstractChartSnippet {
                 double sizeError = (actual.getDouble() - plan.getDouble())
                         / plan.getDouble();
                 data.setData(i, 4, new DoubleData(sizeError));
+            } else if (requireSize) {
+                data.removeRow(i);
             }
         }
 

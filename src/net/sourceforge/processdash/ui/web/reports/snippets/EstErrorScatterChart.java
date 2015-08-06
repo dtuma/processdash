@@ -23,13 +23,21 @@
 
 package net.sourceforge.processdash.ui.web.reports.snippets;
 
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYBoxAnnotation;
 import org.jfree.chart.annotations.XYLineAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.ui.RectangleEdge;
 
 import net.sourceforge.processdash.ui.web.reports.XYChart;
 
@@ -46,34 +54,73 @@ public class EstErrorScatterChart extends XYChart {
     public JFreeChart createChart() {
         JFreeChart chart = super.createChart();
 
-        // set minimum bounds on the two axes
+        // set minimum/maximum bounds on the two axes
         XYPlot xyPlot = chart.getXYPlot();
-        tweakAxis(xyPlot.getDomainAxis());
-        tweakAxis(xyPlot.getRangeAxis());
+        double cutoff = getPercentParam("cut", 100, 200, 5000);
+        xyPlot.setDomainAxis(truncAxis(xyPlot.getDomainAxis(), cutoff));
+        xyPlot.setRangeAxis(truncAxis(xyPlot.getRangeAxis(), cutoff));
+        xyPlot.setRenderer(new TruncatedItemRenderer(xyPlot.getRenderer()));
 
         // add a box illustrating the target range
-        double box = getTargetPercent();
-        xyPlot.addAnnotation(new XYBoxAnnotation(-box, -box, box, box));
-        xyPlot.addAnnotation(new XYLineAnnotation(-box, 0, box, 0));
-        xyPlot.addAnnotation(new XYLineAnnotation(0, -box, 0, box));
+        if (data.numRows() > 0) {
+            double box = getPercentParam("pct", 0, 50, 100);
+            xyPlot.addAnnotation(new XYBoxAnnotation(-box, -box, box, box));
+            xyPlot.addAnnotation(new XYLineAnnotation(-box, 0, box, 0));
+            xyPlot.addAnnotation(new XYLineAnnotation(0, -box, 0, box));
+        }
 
         return chart;
     }
 
-    private void tweakAxis(ValueAxis va) {
-        NumberAxis axis = (NumberAxis) va;
-        Range range = axis.getRange();
-        range = Range.expandToInclude(range, -100);
-        range = Range.expandToInclude(range, +100);
-        axis.setRange(range);
+    private int getPercentParam(String paramName, int min, int def, int max) {
+        try {
+            int pct = Integer.parseInt(getParameter(paramName));
+            return Math.max(min, Math.min(max, pct));
+        } catch (Exception e) {
+            return def;
+        }
     }
 
-    private int getTargetPercent() {
-        try {
-            int pct = Integer.parseInt(getParameter("pct"));
-            return Math.min(100, Math.max(0, pct));
-        } catch (Exception e) {
-            return 50;
+    private TruncatedNumberAxis truncAxis(ValueAxis va, double maxValue) {
+        NumberAxis axis = (NumberAxis) va;
+        double upper = Math.max(100, Math.min(maxValue, axis.getUpperBound()));
+        return new TruncatedNumberAxis(va.getLabel(), upper);
+    }
+
+    private class TruncatedNumberAxis extends NumberAxis {
+        private double maxValue;
+
+        TruncatedNumberAxis(String label, double upper) {
+            super(label);
+            setRange(-100, upper * 1.02);
+            this.maxValue = upper;
+        }
+
+        @Override
+        public double valueToJava2D(double value, Rectangle2D area,
+                RectangleEdge edge) {
+            if (value > maxValue)
+                value = maxValue;
+            return super.valueToJava2D(value, area, edge);
+        }
+    }
+
+    private class TruncatedItemRenderer extends XYLineAndShapeRenderer {
+
+        public TruncatedItemRenderer(XYItemRenderer r) {
+            super(false, true);
+            setBaseToolTipGenerator(r.getBaseToolTipGenerator());
+            setURLGenerator(r.getURLGenerator());
+        }
+
+        @Override
+        public XYItemRendererState initialise(Graphics2D g2,
+                Rectangle2D dataArea, XYPlot plot, XYDataset data,
+                PlotRenderingInfo info) {
+            XYItemRendererState state = super.initialise(g2, dataArea, plot,
+                data, info);
+            state.setProcessVisibleItemsOnly(false);
+            return state;
         }
     }
 
