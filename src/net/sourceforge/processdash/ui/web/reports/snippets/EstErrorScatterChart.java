@@ -39,7 +39,7 @@ public class EstErrorScatterChart extends XYChart {
     protected void buildData() {
         // retrieve the result set, and extract the % error columns
         super.buildData();
-        data = data.pluckColumns(3, 6);
+        data = data.pluckColumns(4, 7);
     }
 
     @Override
