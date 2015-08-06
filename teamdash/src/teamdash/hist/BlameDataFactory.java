@@ -461,6 +461,10 @@ public class BlameDataFactory extends ProjectDiff {
     public static BlameData getBlameData(ProjectHistory hist,
             Date onOrAfterDate, DataTableModel dataTableModel, Future f)
             throws IOException {
+        if (hist instanceof ProjectHistoryBridged)
+            ((ProjectHistoryBridged) hist).cacheFileRevisions(onOrAfterDate,
+                null);
+
         BlameData result = new BlameData();
         List versions = hist.getVersions();
         ProjectDiff prevDiff = null;

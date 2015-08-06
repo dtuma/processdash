@@ -110,8 +110,7 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         cacheFileRevisions(new Date(newStart), new Date(newEnd));
     }
 
-    private void cacheFileRevisions(Date startDate, Date endDate)
-            throws IOException {
+    void cacheFileRevisions(Date startDate, Date endDate) throws IOException {
         // download a ZIP file containing historical file versions
         // for the given resource collection
         URL dataHistUrl = new URL(baseUrl,
