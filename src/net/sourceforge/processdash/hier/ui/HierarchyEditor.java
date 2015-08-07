@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2012 Tuma Solutions, LLC
+// Copyright (C) 1999-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1540,6 +1540,12 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             (cutStatus.substring (idx + 1), String.valueOf (REQUIRED_PARENT));
         while (st.hasMoreElements())                        /* matches required parent */
             if (parentID.equals(st.nextElement())) return true;
+
+        // special case: team project roots in the personal dashboard can be
+        // moved under arbitrary plain nodes
+        if ((cutID.endsWith("/IndivRoot") || cutID.endsWith("/Indiv2Root"))
+                && "".equals(parentID))
+            return true;
 
         return false;
     }
