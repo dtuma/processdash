@@ -43,6 +43,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.util.AdaptiveNumberFormat;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 
@@ -82,6 +83,18 @@ public class RecentReviews extends HttpServlet {
         for (Object[] oneRow : defectCounts)
             storeDefectCounts(reviews, oneRow);
         req.setAttribute("reviews", reviews);
+
+        // flag older reviews if necessary
+        if (!reviews.isEmpty()) {
+            Date newestDate = reviews.get(reviews.size() - 1).completionDate;
+            long cutoff = newestDate.getTime() - 2 * DateUtils.WEEKS;
+            boolean oneHidden = false;
+            for (ReviewRow review : reviews) {
+                if (review.setCutoff(cutoff))
+                    oneHidden = true;
+            }
+            req.setAttribute("hasHiddenRows", oneHidden);
+        }
     }
 
     private String[] getHql(HttpServletRequest req) throws IOException {
@@ -107,15 +120,17 @@ public class RecentReviews extends HttpServlet {
 
         private int planItemKey;
 
-        public String taskName;
+        private String taskName;
 
-        public Date completionDate;
+        private Date completionDate;
 
-        public double planTime, actualTime, timeRatio;
+        private double planTime, actualTime, timeRatio;
 
-        public int numDefects;
+        private int numDefects;
 
-        public String personName;
+        private String personName;
+
+        private boolean hidden;
 
         private ReviewRow(Object[] taskStatus) {
             this.planItemKey = (Integer) taskStatus[0];
@@ -129,6 +144,15 @@ public class RecentReviews extends HttpServlet {
 
         private double num(Object[] row, int col) {
             return ((Number) row[col]).doubleValue();
+        }
+
+        private boolean setCutoff(long cutoff) {
+            hidden = completionDate.getTime() < cutoff;
+            return hidden;
+        }
+
+        public boolean isHidden() {
+            return hidden;
         }
 
         public String getTaskName() {

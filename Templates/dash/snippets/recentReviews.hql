@@ -11,7 +11,7 @@ join task.planItem.phase.mapsToPhase mapsTo
 where mapsTo.process.identifier = ?
   and mapsTo.shortName in (?)
   and task.actualCompletionDate is not null
-order by task.actualCompletionDate desc;
+order by task.actualCompletionDate;
 
 select defect.planItem.key, count(*)
 from DefectLogFact as defect
