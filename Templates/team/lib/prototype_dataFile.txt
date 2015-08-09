@@ -224,6 +224,9 @@ undefine([Use_Rollup]);
 [/PID/TYPE_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Type eq 'TYPE' --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 <!--#endfor-->
 
+[/PID/Review_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Is_Review --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+[/PID/Inspection_Phase_List] = "<!--#foreach name=Phase list=Phase_List #--><!--#if Phase_Is_Inspection --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
+
 
 
 /*

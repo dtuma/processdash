@@ -33,5 +33,7 @@
   <param name="Name">Quality Tools</param>
 </parameters>]]></snippet>
 
+<snippet instanceId="301" type="pdash.recentReviews" version="1.0" persister="xml.v1" />
+
 
 </pdashCmsPage>

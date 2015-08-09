@@ -338,6 +338,12 @@ The author(s) may be contacted at:
     <uri>/dash/snippets/completedTasksMissingTime</uri>
   </snippet>
 
+  <snippet id="pdash.recentReviews" version="1.0" category="other">
+    <resources>Analysis.RecentReviews</resources>
+    <context>Team Project Root</context>
+    <uri>/dash/snippets/recentReviews</uri>
+  </snippet>
+
 
   <!-- Snippets associated with the Process Advisor -->
 

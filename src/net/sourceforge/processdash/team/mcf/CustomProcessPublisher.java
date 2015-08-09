@@ -443,8 +443,11 @@ public class CustomProcessPublisher {
         if (PhaseUtil.isAppraisalPhaseType(phaseType)) {
             setParam(id + "_Is_Appraisal", "t");
             setParam(id + "_Is_Quality", "t");
-            if (phaseType.endsWith("INSP"))
+            if (phaseType.endsWith("INSP") && !"Reqts Review".equals(phaseName)
+                    && !"HLD Review".equals(phaseName))
                 setParam(id + "_Is_Inspection", "t");
+            else if (!phaseType.equals("APPRAISAL"))
+                setParam(id + "_Is_Review", "t");
         } else if (PhaseUtil.isFailurePhaseType(phaseType)) {
             setParam(id + "_Is_Failure", "t");
             setParam(id + "_Is_Quality", "t");

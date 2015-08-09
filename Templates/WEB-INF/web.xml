@@ -49,4 +49,14 @@
 		<url-pattern>/cms/*</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>recentReviews</servlet-name>
+		<servlet-class>net.sourceforge.processdash.ui.web.reports.snippets.RecentReviews</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>recentReviews</servlet-name>
+		<url-pattern>/dash/snippets/recentReviews</url-pattern>
+	</servlet-mapping>
+
 </web-app>

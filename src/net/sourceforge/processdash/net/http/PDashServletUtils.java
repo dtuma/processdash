@@ -26,9 +26,12 @@ package net.sourceforge.processdash.net.http;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.jstl.core.Config;
+import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 
 import org.eclipse.jetty.server.Request;
 
@@ -52,6 +55,30 @@ public class PDashServletUtils {
     public static boolean isSnippetRequest(ServletRequest req) {
         Map env = (Map) req.getAttribute(LocalConnector.EXTRA_ENVIRONMENT_KEY);
         return (env != null && env.get(SnippetEnvironment.SNIPPET_ID) != null);
+    }
+
+    /**
+     * Store the given bundle as the default resource bundle for a request, so
+     * it can be used by JSTL &lt;fmt&gt; tags
+     */
+    public static void storeDefaultResourceBundle(ServletRequest req,
+            ResourceBundle bundle) {
+        Config.set(req, Config.FMT_LOCALIZATION_CONTEXT,
+            new LocalizationContext(bundle));
+    }
+
+    /**
+     * Find the resource bundle that was set as part of the snippet environment,
+     * and register it as the default bundle for use by
+     */
+    public static void registerSnippetBundle(ServletRequest req) {
+        Map extraEnv = (Map) req
+                .getAttribute(LocalConnector.EXTRA_ENVIRONMENT_KEY);
+        if (extraEnv != null) {
+            ResourceBundle bundle = (ResourceBundle) extraEnv
+                    .get(SnippetEnvironment.RESOURCES);
+            storeDefaultResourceBundle(req, bundle);
+        }
     }
 
 
