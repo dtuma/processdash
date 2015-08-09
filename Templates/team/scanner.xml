@@ -7,8 +7,6 @@
 
 <snippet instanceId="1000" type="pdash.teamSummaryPageHeader" version="1.0" />
 
-<snippet instanceId="1" type="pdash.teamDataScannerFilter" version="1.0" />
-
 </pageHeading>
 
 
@@ -35,5 +33,10 @@
 
 <snippet instanceId="301" type="pdash.recentReviews" version="1.0" persister="xml.v1" />
 
+<pageFooter>
+
+<snippet instanceId="999" type="pdash.teamDataScannerFooter" version="1.0" />
+
+</pageFooter>
 
 </pdashCmsPage>

@@ -326,9 +326,10 @@ The author(s) may be contacted at:
     <uri mode="edit">/dash/snippets/estErrorScatterEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.teamDataScannerFilter" version="1.0" category="hidden">
+  <snippet id="pdash.teamDataScannerFooter" version="1.0" category="hidden">
     <resources>CMS.Snippet.Anonymous</resources>
     <context>*</context>
+    <uri>/dash/snippets/scannerFooter.htm</uri>
     <pageFilter mode="view">net.sourceforge.processdash.team.ui.ScannerFilter</pageFilter>
   </snippet>
 
