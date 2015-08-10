@@ -47,7 +47,7 @@
      type="DATE" dateStyle="SHORT" /></td>
 <td><c:out value="${review.planTime}" /></td>
 <td><c:out value="${review.actualTime}" /></td>
-<td><fmt:formatNumber value="${review.timeRatio}" type="PERCENT"/></td>
+<td><c:out value="${review.timeRatio}" /></td>
 <td><c:out value="${review.numDefects}" /></td>
 <td><c:out value="${review.defectsPerHour}" /></td>
 </tr>

@@ -175,8 +175,11 @@ public class RecentReviews extends HttpServlet {
             return FormatUtil.formatTime(actualTime);
         }
 
-        public double getTimeRatio() {
-            return timeRatio;
+        public String getTimeRatio() {
+            if (planTime > 0)
+                return FormatUtil.formatPercent(timeRatio);
+            else
+                return AdaptiveNumberFormat.INF_STRING;
         }
 
         public int getNumDefects() {
