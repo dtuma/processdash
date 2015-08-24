@@ -100,6 +100,9 @@ public class TemplateLoader {
     private static final String WEB_INF_DIR = "WEB-INF/";
     private static final String WEB_INF_XML_FILE = WEB_INF_DIR + XML_TEMPLATE_FILE;
 
+    private static final String EXTRA_DIR_SETTING_PREFIX = TemplateLoader.class
+            .getName() + ".extraDir.";
+
     public static final DashboardPermission LOAD_TEMPLATES_PERMISSION =
         new DashboardPermission("templateLoader.loadTemplates");
     public static final DashboardPermission RESET_TEMPLATES_PERMISSION =
@@ -576,6 +579,18 @@ public class TemplateLoader {
                 result.add(appTemplateDir.toURI().toURL());
                 scanDirForJarFiles(appTemplateDir, result);
             } catch (MalformedURLException e) {}
+        }
+
+        int i = 1;
+        while (true) {
+            String extraDir = System.getProperty(EXTRA_DIR_SETTING_PREFIX + i);
+            if (extraDir == null)
+                break;
+
+            File dirToScan = new File(extraDir);
+            if (dirToScan.isDirectory())
+                scanDirForJarFiles(dirToScan, result);
+            i++;
         }
 
         String baseDir = getBaseDir();
