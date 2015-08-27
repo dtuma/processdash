@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,10 +24,13 @@
 
 package net.sourceforge.processdash.process;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
@@ -44,12 +47,39 @@ public class DefectTypeStandard extends OptionList {
 
     public String getName() { return defectTypeName; }
 
+    public void getAsXml(XmlSerializer ser, boolean markAsDefault)
+            throws IOException {
+        ser.startTag(null, STANDARD_TAG);
+        if (defectTypeName != null)
+            ser.attribute(null, NAME_ATTR, defectTypeName);
+        if (markAsDefault)
+            ser.attribute(null, DEFAULT_ATTR, "true");
+
+        for (int i = 0; i < options.size(); i++) {
+            String oneOption = (String) options.get(i);
+            String oneComment = (String) comments.get(oneOption);
+            ser.startTag(null, TYPE_TAG);
+            ser.attribute(null, NAME_ATTR, oneOption);
+            if (oneComment != null)
+                ser.attribute(null, DESCRIPTION_ATTR, oneComment);
+            ser.endTag(null, TYPE_TAG);
+        }
+
+        ser.endTag(null, STANDARD_TAG);
+    }
+
     private static final String DATA_PREFIX = "/Defect Type Standard/";
     private static final String PRIORITY_PREFIX = "/Defect Type Priority/";
     private static final String SETTING_DATA_NAME = "Defect Type Standard";
     private static final String CONTENTS_DATA_NAME =
         "Defect Type Standard Contents";
     private static final String TITLE_DELIMITER = ":::";
+    public static final String STANDARDS_TAG = "defectTypeStandards";
+    public static final String STANDARD_TAG = "defectTypeStandard";
+    private static final String DEFAULT_ATTR = "isDefault";
+    private static final String TYPE_TAG = "type";
+    private static final String DESCRIPTION_ATTR = "description";
+    private static final String NAME_ATTR = "name";
 
     /** Get the defect type standard for the named project/task */
     public static DefectTypeStandard get(String path, DataRepository r) {

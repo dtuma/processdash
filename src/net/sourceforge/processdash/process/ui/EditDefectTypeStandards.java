@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,12 @@ package net.sourceforge.processdash.process.ui;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -34,6 +40,7 @@ import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 
@@ -47,6 +54,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected static final String NAME = "name";
     protected static final String SAVE = "save";
     protected static final String SET_DEFAULT = "setDefault";
+    protected static final String EXPORT = "export";
     protected static final String CONTENTS = "contents";
 
     protected static final String[] OPTIONS = {
@@ -73,6 +81,9 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             save(getParameter(NAME), getParameter(CONTENTS));
         } else if (parameters.containsKey(SET_DEFAULT)) {
             saveDefault(getParameter(NAME));
+        } else if (parameters.containsKey(EXPORT)) {
+            handleExport();
+            return;
         }
 
         out.print("Location: dtsEdit.class?"+uniqueNumber+"\r\n\r\n");
@@ -102,6 +113,8 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             copyExisting(name);
         else if (OPTIONS[DEFAULT].equals(action))
             setDefault(name);
+        else if (EXPORT.equals(action))
+            showExportPage();
         else
             showListOfDefinedStandards();
     }
@@ -171,9 +184,14 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                 }
                 out.println("</tr>");
             }
+            out.print("</table></li>");
+
+            out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+EXPORT+"\">");
+            out.print(resources.getHTML("Export_Option"));
+            out.println("</a></li>");
         }
 
-        out.print("</table></li></ul></body></html>");
+        out.print("</ul></body></html>");
     }
 
     protected void showName(String standardName, boolean editable)
@@ -308,4 +326,91 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected void saveDefault(String standardName) {
         DefectTypeStandard.saveDefault(getDataRepository(), "", standardName);
     }
+
+    protected void showExportPage() throws IOException {
+        String[] standards = DefectTypeStandard
+                .getDefinedStandards(getDataRepository());
+        if (standards.length == 0) {
+            showListOfDefinedStandards();
+            return;
+        }
+
+        writeHTMLHeader();
+        out.print("<h2>");
+        out.print(resources.getHTML("Export.Title"));
+        out.println("</h2>\n<p>");
+        out.print(resources.getHTML("Export.Prompt"));
+        out.println("<form action='dtsEdit.class' method='POST'>");
+
+        out.print("<ul style='list-style:none'>");
+        for (int i = 0; i < standards.length; i++) {
+            String stdName = standards[i];
+            out.print("<li><input type='hidden' name='std"+i+"' value='");
+            out.print(HTMLUtils.escapeEntities(stdName));
+            out.print("'/><input type='checkbox' name='sel' value='"+i+"'/> ");
+            out.print(HTMLUtils.escapeEntities(stdName));
+            out.print("</li>\n");
+        }
+        out.print("</ul>");
+
+        out.print("<p><input type=submit name='" + EXPORT + "' value='");
+        out.print(resources.getHTML("Export"));
+        out.print("'></p>");
+
+        out.print("<p><a href='dtsEdit.class'>");
+        out.print(resources.getHTML("Export.Return"));
+        out.print("</a></p>");
+
+        out.print("</form></body></html>");
+    }
+
+    protected void handleExport() throws IOException {
+        List<DefectTypeStandard> standardsToExport = getStandardsToExport();
+        if (standardsToExport.isEmpty()) {
+            writeHeader();
+            showExportPage();
+            return;
+        }
+        String defaultName = DefectTypeStandard.get("", getDataRepository())
+                .getName();
+
+        out.print("Content-Type: text/xml\r\n");
+        out.print("Content-Disposition: attachment; "
+                + "filename=\"defectTypeStandards.dtsxml\"\r\n\r\n");
+        out.flush();
+
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(outStream, "UTF-8");
+        xml.startDocument("UTF-8", null);
+
+        xml.startTag(null, DefectTypeStandard.STANDARDS_TAG);
+        xml.attribute(null, "exportTime", XMLUtils.saveDate(new Date()));
+        xml.attribute(null, "srcDataset", DashController.getDatasetID());
+
+        for (DefectTypeStandard std : standardsToExport) {
+            boolean isDefault = std.getName().equals(defaultName);
+            std.getAsXml(xml, isDefault);
+        }
+
+        xml.endTag(null, DefectTypeStandard.STANDARDS_TAG);
+        xml.endDocument();
+    }
+
+    private List<DefectTypeStandard> getStandardsToExport() {
+        String[] selected = (String[]) parameters.get("sel_ALL");
+        if (selected == null || selected.length == 0)
+            return Collections.EMPTY_LIST;
+
+        List<DefectTypeStandard> result = new ArrayList(selected.length);
+        DataRepository data = getDataRepository();
+        for (String selectedNum : selected) {
+            String selectedName = getParameter("std" + selectedNum);
+            DefectTypeStandard selectedStandard = DefectTypeStandard.getByName(
+                selectedName, data);
+            if (selectedStandard != null)
+                result.add(selectedStandard);
+        }
+        return result;
+    }
+
 }
