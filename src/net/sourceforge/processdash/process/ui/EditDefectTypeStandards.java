@@ -390,8 +390,6 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             showExportPage();
             return;
         }
-        String defaultName = DefectTypeStandard.get("", getDataRepository())
-                .getName();
 
         out.print("Content-Type: text/xml\r\n");
         out.print("Content-Disposition: attachment; "
@@ -407,8 +405,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
         xml.attribute(null, "srcDataset", DashController.getDatasetID());
 
         for (DefectTypeStandard std : standardsToExport) {
-            boolean isDefault = std.getName().equals(defaultName);
-            std.getAsXml(xml, isDefault);
+            std.getAsXml(xml, false);
         }
 
         xml.endTag(null, DefectTypeStandard.STANDARDS_TAG);
