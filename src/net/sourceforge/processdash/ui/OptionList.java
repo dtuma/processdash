@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -108,6 +108,17 @@ public class OptionList {
             translations = new HashMap(list.translations);
     }
 
+
+    public String getSpec() {
+        StringBuffer result = new StringBuffer();
+        for (Object option : options) {
+            result.append("|").append(option);
+            Object comment = comments.get(option);
+            if (comment != null)
+                result.append(" (").append(comment).append(")");
+        }
+        return (result.length() == 0 ? "" : result.substring(1));
+    }
 
     public String getAsHTML(String name) {
         StringBuffer result = new StringBuffer();

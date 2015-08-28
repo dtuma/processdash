@@ -26,10 +26,14 @@ package net.sourceforge.processdash.process;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.Settings;
@@ -38,12 +42,33 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ui.OptionList;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class DefectTypeStandard extends OptionList {
 
     private String defectTypeName = null;
 
     private DefectTypeStandard(String s) { super(s); }
+
+    public DefectTypeStandard(Element xml) {
+        super(Collections.EMPTY_LIST);
+        comments = new HashMap();
+        translations = null;
+
+        defectTypeName = xml.getAttribute(NAME_ATTR);
+
+        NodeList nl = xml.getElementsByTagName(TYPE_TAG);
+        for (int i = 0; i < nl.getLength(); i++) {
+            Element oneTag = (Element) nl.item(i);
+            String oneOption = oneTag.getAttribute(NAME_ATTR).trim();
+            this.options.add(oneOption);
+            String oneComment = oneTag.getAttribute(DESCRIPTION_ATTR);
+            if (XMLUtils.hasValue(oneComment))
+                comments.put(oneOption, oneComment);
+        }
+
+        comments = Collections.unmodifiableMap(comments);
+    }
 
     public String getName() { return defectTypeName; }
 
@@ -195,7 +220,8 @@ public class DefectTypeStandard extends OptionList {
         while (k.hasNext()) {
             String name = (String) k.next();
             if (name.startsWith(DATA_PREFIX))
-                names.add(name.substring(DATA_PREFIX.length()));
+                if (r.getSimpleValue(name) != null)
+                    names.add(name.substring(DATA_PREFIX.length()));
         }
         if (names.isEmpty())
             names.add(DEFAULT_NAME);
@@ -219,14 +245,17 @@ public class DefectTypeStandard extends OptionList {
                 if (t.equals(ignorableType)) continue;
                 buf.append("|").append(t);
             }
-        String saveValue = buf.toString();
-        data = r;
+        String saveValue = (buf.length() == 0 ? null : buf.substring(1));
 
-        if (saveValue.length() == 0)
+        save(defectTypeName, r, saveValue);
+    }
+
+    public static void save(String defectTypeName, DataRepository r, String spec) {
+        data = r;
+        if (spec == null || spec.length() == 0)
             data.putValue(DATA_PREFIX + defectTypeName, null);
         else
-            data.putValue(DATA_PREFIX + defectTypeName,
-                          StringData.create(saveValue.substring(1)));
+            data.putValue(DATA_PREFIX + defectTypeName, StringData.create(spec));
         cache.remove(defectTypeName);
     }
 

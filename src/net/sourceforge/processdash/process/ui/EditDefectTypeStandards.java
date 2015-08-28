@@ -24,12 +24,15 @@
 package net.sourceforge.processdash.process.ui;
 
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashController;
@@ -55,6 +58,8 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected static final String SAVE = "save";
     protected static final String SET_DEFAULT = "setDefault";
     protected static final String EXPORT = "export";
+    protected static final String IMPORT = "import";
+    protected static final String IMPORT_CONFIRM = "doImport";
     protected static final String CONTENTS = "contents";
 
     protected static final String[] OPTIONS = {
@@ -76,7 +81,12 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             return;
         }
 
-        parseFormData();
+        String contentType = (String) env.get("CONTENT_TYPE");
+        if (contentType.toLowerCase().contains("multipart/form-data"))
+            parseMultipartFormData();
+        else
+            parseFormData();
+
         if (parameters.containsKey(SAVE)) {
             save(getParameter(NAME), getParameter(CONTENTS));
         } else if (parameters.containsKey(SET_DEFAULT)) {
@@ -84,6 +94,11 @@ public class EditDefectTypeStandards extends TinyCGIBase {
         } else if (parameters.containsKey(EXPORT)) {
             handleExport();
             return;
+        } else if (parameters.containsKey(IMPORT)) {
+            handleImportForm();
+            return;
+        } else if (parameters.containsKey(IMPORT_CONFIRM)) {
+            handleImportConfirm();
         }
 
         out.print("Location: dtsEdit.class?"+uniqueNumber+"\r\n\r\n");
@@ -115,6 +130,8 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             setDefault(name);
         else if (EXPORT.equals(action))
             showExportPage();
+        else if (IMPORT.equals(action))
+            showImportForm(null);
         else
             showListOfDefinedStandards();
     }
@@ -185,11 +202,13 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                 out.println("</tr>");
             }
             out.print("</table></li>");
-
-            out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+EXPORT+"\">");
-            out.print(resources.getHTML("Export_Option"));
-            out.println("</a></li>");
         }
+
+        out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+IMPORT+"\">");
+        out.print(resources.getHTML("Import_Option"));
+        out.println("</a> / <a href=\"dtsEdit.class?"+ACTION+"="+EXPORT+"\">");
+        out.print(resources.getHTML("Export_Option"));
+        out.println("</a></li>");
 
         out.print("</ul></body></html>");
     }
@@ -411,6 +430,107 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                 result.add(selectedStandard);
         }
         return result;
+    }
+
+    private void showImportForm(String errKey) throws IOException {
+        writeHTMLHeader();
+        out.print("<h2>");
+        out.print(resources.getHTML("Import.Title"));
+        out.println("</h2>");
+
+        if (errKey != null) {
+            out.print("<p style='background-color:#faa; padding:0.5em'>");
+            out.print(resources.getHTML(errKey));
+            out.println("</p>");
+        }
+
+        out.print("<p>");
+        out.print(resources.getHTML("Import.Prompt"));
+        out.println("<form action='dtsEdit.class' method='POST' "
+                + "enctype='multipart/form-data'>");
+
+        out.print("<input type='file' name='file'>");
+
+        out.print("<p><input type=submit name='"+IMPORT+"' value='");
+        out.print(resources.getHTML("Next"));
+        out.print("'>&nbsp;");
+
+        out.print("<input type=submit name='cancel' value='");
+        out.print(resources.getHTML("Cancel"));
+        out.print("'>");
+        out.print("</form></body></html>");
+    }
+
+    private void handleImportForm() throws IOException {
+        writeHeader();
+
+        // retrieve the file that was uploaded in the form
+        byte[] file = (byte[]) parameters.remove("file_CONTENTS");
+        if (file == null || file.length == 0) {
+            showImportForm("Import.No_File_Uploaded");
+            return;
+        }
+
+        // parse the file as XML and find the defect type standards
+        NodeList nl = null;
+        try {
+            Element xml = XMLUtils.parse(new ByteArrayInputStream(file))
+                    .getDocumentElement();
+            if (DefectTypeStandard.STANDARDS_TAG.equals(xml.getTagName()))
+                nl = xml.getElementsByTagName(DefectTypeStandard.STANDARD_TAG);
+        } catch (Exception e) {}
+        if (nl == null || nl.getLength() == 0) {
+            showImportForm("Import.Not_DTS_File");
+            return;
+        }
+
+        // parse the defect type standards from the XML
+        List<DefectTypeStandard> standards = new ArrayList();
+        for (int i = 0; i < nl.getLength(); i++)
+            standards.add(new DefectTypeStandard((Element) nl.item(i)));
+
+        // display a page asking the user which standards they wish to import
+        writeHTMLHeader();
+        out.print("<h2>");
+        out.print(resources.getHTML("Import.Title"));
+        out.println("</h2>\n<p>");
+        out.print(resources.getHTML("Import.Confirm_Prompt"));
+        out.println("<form action='dtsEdit.class' method='POST'>");
+
+        out.print("<ul style='list-style:none'>");
+        for (int i = 0; i < standards.size(); i++) {
+            DefectTypeStandard standard = standards.get(i);
+            out.print("<li><input type='hidden' name='name"+i+"' value='");
+            out.print(XMLUtils.escapeAttribute(standard.getName()));
+            out.print("'/><input type='hidden' name='spec"+i+"' value='");
+            out.print(XMLUtils.escapeAttribute(standard.getSpec()));
+            out.print("'/><input type='checkbox' name='sel' value='"+i+"'/> ");
+            out.print(HTMLUtils.escapeEntities(standard.getName()));
+            out.print("</li>\n");
+        }
+        out.print("</ul>");
+
+        out.print("<p><input type=submit name='"+IMPORT_CONFIRM+"' value='");
+        out.print(resources.getHTML("Import"));
+        out.print("'>&nbsp;");
+
+        out.print("<input type=submit name='cancel' value='");
+        out.print(resources.getHTML("Cancel"));
+        out.print("'>");
+        out.print("</form></body></html>");
+    }
+
+    protected void handleImportConfirm() throws IOException {
+        // save each of the selected defect type standards
+        String[] selected = (String[]) parameters.get("sel_ALL");
+        if (selected != null) {
+            DataRepository data = getDataRepository();
+            for (String selectedNum : selected) {
+                String oneName = getParameter("name" + selectedNum);
+                String oneSpec = getParameter("spec" + selectedNum);
+                DefectTypeStandard.save(oneName, data, oneSpec);
+            }
+        }
     }
 
 }
