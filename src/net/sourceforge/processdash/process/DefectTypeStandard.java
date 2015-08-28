@@ -24,7 +24,9 @@
 
 package net.sourceforge.processdash.process;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import java.util.LinkedList;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.Settings;
@@ -41,6 +44,8 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.OptionList;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -329,6 +334,61 @@ public class DefectTypeStandard extends OptionList {
         return null;
     }
 
+    public static void registerStandardsFromTemplates(DataRepository r) {
+        data = r;
+        for (Element cfg : ExtensionManager
+                .getXmlConfigurationElements("defect-types")) {
+            String uri = ExtensionManager.getConfigUri(cfg, "uri");
+            String errMsg = registerStandardsFromTemplate(uri);
+            if (errMsg != null)
+                System.err.println("For <defect-types> tag, " + errMsg + " in "
+                        + ExtensionManager.getDebugDescriptionOfSource(cfg));
+        }
+    }
+
+    private static String registerStandardsFromTemplate(String uri) {
+        try {
+            URL url = TemplateLoader.resolveURL(uri);
+            if (url == null)
+                return "uri '" + uri + "' not found";
+
+            Element xml = XMLUtils.parse(url.openStream()).getDocumentElement();
+            if (!STANDARDS_TAG.equals(xml.getTagName()))
+                return "uri '" + uri + "' not a defect type standard document";
+
+            NodeList nl = xml.getElementsByTagName(STANDARD_TAG);
+            if (nl == null || nl.getLength() == 0)
+                return null;
+
+            StringBuilder buf = new StringBuilder();
+            for (int i = 0; i < nl.getLength(); i++) {
+                Element dtsItem = (Element) nl.item(i);
+                DefectTypeStandard dts = new DefectTypeStandard(dtsItem);
+                String dataName = dts.defectTypeName.replace('=',
+                    DataRepository.EQUALS_SIGN_REPL);
+                buf.append(DATA_PREFIX).append(dataName).append("==")
+                        .append(StringData.saveString(dts.getSpec()))
+                        .append("\n");
+                if ("true".equals(dtsItem.getAttribute(DEFAULT_ATTR))) {
+                    String priority = dtsItem.getAttribute("priority");
+                    if (!XMLUtils.hasValue(priority))
+                        priority = "100";
+                    buf.append(PRIORITY_PREFIX).append(dataName).append("==")
+                            .append(priority).append("\n");
+                }
+            }
+            data.addGlobalDefinitions(new ByteArrayInputStream(buf.toString()
+                    .getBytes("UTF-8")), true);
+            return null;
+
+        } catch (SAXException e) {
+            return "uri '" + uri + "' not a defect type standard document";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "unexpected error " + e.getMessage();
+        }
+    }
 
     private static DataRepository data = null;
 

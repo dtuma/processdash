@@ -117,6 +117,7 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.cms.CmsDefaultConfig;
 import net.sourceforge.processdash.net.http.DashboardURLStreamHandlerFactory;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.process.LegacySupport;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
@@ -338,6 +339,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Translator.init();
         LookAndFeelSettings.loadLocalizedSettings();
         pt.click("Set locale specific defaults");
+        DefectTypeStandard.registerStandardsFromTemplates(data);
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         pt.click("Set datafile search URLs");
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
