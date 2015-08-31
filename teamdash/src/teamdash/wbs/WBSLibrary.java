@@ -28,6 +28,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Random;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -41,10 +43,13 @@ public abstract class WBSLibrary {
 
     private static final String PROCESS_NAME_ATTR = "processName";
     private static final String PROCESS_VERSION_ATTR = "processVersion";
+    private static final String LIBRARY_ID_ATTR = "libraryID";
+    private static final String EXPORT_TIMESTAMP_ATTR = "exportTime";
 
     private File file;
     private String processName;
     private String processVersion;
+    private String libraryID;
     private WBSModel wbs;
 
 
@@ -103,9 +108,13 @@ public abstract class WBSLibrary {
             if (getRootTag().equals(xml.getTagName())) {
                 processName = xml.getAttribute(PROCESS_NAME_ATTR);
                 processVersion = xml.getAttribute(PROCESS_VERSION_ATTR);
+                libraryID = xml.getAttribute(LIBRARY_ID_ATTR);
                 Element wbsElement = (Element) xml.getElementsByTagName
                     (WBSModel.WBS_MODEL_TAG).item(0);
                 wbs = loadFromXml(wbsElement);
+
+                if (!XMLUtils.hasValue(libraryID))
+                    save();
             }
         } catch (IOException ioe) {
             throw ioe;
@@ -121,7 +130,9 @@ public abstract class WBSLibrary {
             RobustFileWriter out = new RobustFileWriter(file, "UTF-8");
             out.write("<" + getRootTag() + " ");
             out.write(PROCESS_NAME_ATTR + "='" + XMLUtils.escapeAttribute(processName) + "' ");
-            out.write(PROCESS_VERSION_ATTR + "='" + XMLUtils.escapeAttribute(processVersion) + "'>\n");
+            out.write(PROCESS_VERSION_ATTR + "='" + XMLUtils.escapeAttribute(processVersion) + "' ");
+            out.write(LIBRARY_ID_ATTR + "='" + XMLUtils.escapeAttribute(getLibraryID()) + "' ");
+            out.write(EXPORT_TIMESTAMP_ATTR + "='" + XMLUtils.saveDate(new Date()) + "'>\n");
             wbs.getAsXML(out);
             out.write("</" + getRootTag() + ">");
             out.close();
@@ -137,6 +148,22 @@ public abstract class WBSLibrary {
     public String getFileName() {
         return file.getName();
     }
+
+    public String getLibraryID() {
+        if (!XMLUtils.hasValue(libraryID))
+            libraryID = generateLibraryID();
+        return libraryID;
+    }
+
+    private String generateLibraryID() {
+        StringBuilder result = new StringBuilder("lib0");
+        Random r = new Random();
+        for (int i = 5; i-- > 0;)
+            result.append(Integer.toString(r.nextInt(Character.MAX_RADIX),
+                Character.MAX_RADIX));
+        return result.toString();
+    }
+
 
     public static class Workflows extends WBSLibrary {
 
