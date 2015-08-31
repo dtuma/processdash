@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -100,6 +100,13 @@ public abstract class WBSLibrary {
             getProcessVersion().equals(process.getProcessVersion());
     }
 
+    public void setImportSourceIDs() {
+        for (WBSNode node : wbs.getWbsNodes()) {
+            String sourceID = libraryID + ":" + node.getUniqueID();
+            node.setAttribute("importSourceID", sourceID);
+        }
+    }
+
 
     private void load() throws IOException {
         try {
@@ -190,6 +197,25 @@ public abstract class WBSLibrary {
             return new WorkflowWBSModel(xml);
         }
 
+        @Override
+        public void setImportSourceIDs() {
+            // set the generic import source IDs
+            super.setImportSourceIDs();
+
+            // now, record phase mapping attributes for each phase.
+            String libraryID = getLibraryID();
+            String mappingAttr = null;
+            for (WBSNode node : getWbs().getWbsNodes()) {
+                if (node.getIndentLevel() == 1) {
+                    mappingAttr = "Phase Mapping WF:" + libraryID + ":"
+                            + node.getUniqueID();
+                } else if (mappingAttr != null && node.getIndentLevel() > 1) {
+                    String mappingVal = "WF:" + libraryID + ":"
+                            + node.getUniqueID();
+                    node.setAttribute(mappingAttr, mappingVal);
+                }
+            }
+        }
     }
 
     public static class Proxies extends WBSLibrary {

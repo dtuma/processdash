@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -330,6 +330,8 @@ public abstract class AbstractLibraryEditor {
             if (result != null)
                 break;
         }
+        if (export == false)
+            result.setImportSourceIDs();
         this.libraryFile = result;
         this.library = result.getWbs();
         this.library.getRoot().setName(resources.getString("Library_Root_Name"));
