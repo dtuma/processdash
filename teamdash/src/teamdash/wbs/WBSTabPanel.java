@@ -36,8 +36,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -127,6 +128,8 @@ public class WBSTabPanel extends JLayeredPane
     public static final String TEAM_MEMBER_PLAN_TIMES_ID = "TeamMemberTimes";
     public static final String TEAM_MEMBER_ACTUAL_TIMES_ID = "TeamMemberActualTimes";
     public static final String CUSTOM_COLUMNS_ID = "CustomColumnSet";
+
+    public static final String CUSTOM_TABS_SYS_PROP = "teamdash.wbs.customTabURLs";
 
     WBSColumnSelectorDialog columnSelectorDialog;
     WBSJTable wbsTable;
@@ -1111,6 +1114,19 @@ public class WBSTabPanel extends JLayeredPane
         return tabColumnsMap;
     }
 
+    public void loadDefaultCustomTabs() {
+        String sysProp = System.getProperty(CUSTOM_TABS_SYS_PROP);
+        if (sysProp != null) {
+            for (String url : sysProp.trim().split("\\s+")) {
+                try {
+                    loadTabs(new URL(url));
+                } catch (Exception e) {
+                    System.out.println("Could not load custom tabs from " + url);
+                }
+            }
+        }
+    }
+
     /**
      * Load custom tab definitions from file.
      * @param file
@@ -1118,7 +1134,17 @@ public class WBSTabPanel extends JLayeredPane
      */
     public void loadTabs(File file) throws LoadTabsException {
         try {
-            Document document = XMLUtils.parse(new FileInputStream(file));
+            loadTabs(file.toURI().toURL());
+        } catch (MalformedURLException exception) {
+            LoadTabsException e = new LoadTabsException(LOAD_TABS_ERROR_MESSAGE);
+            e.initCause(exception);
+            throw e;
+        }
+    }
+
+    private void loadTabs(URL url) throws LoadTabsException {
+        try {
+            Document document = XMLUtils.parse(url.openStream());
             if (!WBS_TABS_ELEMENT.equals(document.getDocumentElement().getTagName()))
                 throw new LoadTabsException(INVALID_FILE_MESSAGE);
 

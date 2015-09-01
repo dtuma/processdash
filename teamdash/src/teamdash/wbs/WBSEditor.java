@@ -399,7 +399,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         // read in custom tabs file
         try {
-            tabPanel.loadTabs(customTabsFile);
+            if (customTabsFile.isFile())
+                tabPanel.loadTabs(customTabsFile);
+            else
+                tabPanel.loadDefaultCustomTabs();
         } catch (LoadTabsException e) {
         }
         tabPanel.wbsTable.setEnterInsertsLine(getInsertOnEnterPref(teamProject

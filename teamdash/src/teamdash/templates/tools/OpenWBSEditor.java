@@ -65,6 +65,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.FilenameMapper;
 import teamdash.wbs.WBSEditor;
+import teamdash.wbs.WBSTabPanel;
 
 public class OpenWBSEditor extends TinyCGIBase {
 
@@ -258,7 +259,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         result.put("teamdash.wbs.owner", getOwner());
         result.put("teamdash.wbs.processSpecURL", getProcessURL());
         result.put(teamdash.wbs.columns.CustomColumnManager.SYS_PROP_NAME,
-            getCustomColumnSpecURLs());
+            getTemplateResourceURLs("customWbsColumns", "specFile"));
+        result.put(WBSTabPanel.CUSTOM_TABS_SYS_PROP,
+            getTemplateResourceURLs("customWbsTabs", "specFile"));
         result.put("teamdash.wbs.globalInitialsPolicy",
             getGlobalInitialsPolicy());
         if (StringUtils.hasValue(itemHref))
@@ -301,15 +304,15 @@ public class OpenWBSEditor extends TinyCGIBase {
             return null;
     }
 
-    private String getCustomColumnSpecURLs() {
+    private String getTemplateResourceURLs(String tagName, String uriAttr) {
         List<Element> configElements = ExtensionManager
-                .getXmlConfigurationElements("customWbsColumns");
+                .getXmlConfigurationElements(tagName);
         if (configElements == null || configElements.isEmpty())
             return null;
 
         StringBuffer result = new StringBuffer();
         for (Element xml : configElements) {
-            String uri = xml.getAttribute("specFile");
+            String uri = ExtensionManager.getConfigUri(xml, uriAttr);
             URL url = TemplateLoader.resolveURL(uri);
             if (url != null && !url.toString().startsWith("processdash"))
                 result.append(" ").append(url.toString());
