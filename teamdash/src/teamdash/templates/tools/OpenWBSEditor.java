@@ -64,8 +64,10 @@ import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.FilenameMapper;
+import teamdash.wbs.ProxyLibraryEditor;
 import teamdash.wbs.WBSEditor;
 import teamdash.wbs.WBSTabPanel;
+import teamdash.wbs.WorkflowLibraryEditor;
 
 public class OpenWBSEditor extends TinyCGIBase {
 
@@ -262,6 +264,10 @@ public class OpenWBSEditor extends TinyCGIBase {
             getTemplateResourceURLs("customWbsColumns", "specFile"));
         result.put(WBSTabPanel.CUSTOM_TABS_SYS_PROP,
             getTemplateResourceURLs("customWbsTabs", "specFile"));
+        result.put(WorkflowLibraryEditor.ORG_WORKFLOWS_SYS_PROP,
+            getTemplateResourceURLs("orgWorkflows", "uri"));
+        result.put(ProxyLibraryEditor.ORG_PROXIES_SYS_PROP,
+            getTemplateResourceURLs("orgProxies", "uri"));
         result.put("teamdash.wbs.globalInitialsPolicy",
             getGlobalInitialsPolicy());
         if (StringUtils.hasValue(itemHref))

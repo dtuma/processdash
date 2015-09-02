@@ -27,8 +27,14 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Random;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -56,7 +62,7 @@ public abstract class WBSLibrary {
 
     public WBSLibrary(File f) throws IOException {
         this.file = f;
-        load();
+        load(new FileInputStream(f));
     }
 
     public WBSLibrary(File f, TeamProcess process) throws IOException {
@@ -66,11 +72,40 @@ public abstract class WBSLibrary {
         this.file = f;
         this.processName = process.getProcessName();
         this.processVersion = process.getProcessVersion();
-        this.wbs = createEmptyWbs();
+        this.wbs = createCleanWbs();
+    }
+
+    public WBSLibrary(String[] urls, TeamProcess process) {
+        WBSModel mergedWbs = createCleanWbs();
+
+        for (String oneUrl : urls) {
+            try {
+                // load the libraries, one at a time; skip incompatible ones
+                load(new URL(oneUrl).openStream());
+                if (!XMLUtils.hasValue(libraryID) || !compatible(process))
+                    continue;
+
+                // merge each compatible library into the target object
+                setImportSourceIDs();
+                mergedWbs.replaceBaseItems(wbs, getAllDefinitionNames(wbs));
+            } catch (IOException ioe) {
+                // skip URLs that cause problems
+            }
+        }
+
+        // store the merged library WBS into this object
+        this.wbs = mergedWbs;
+        this.processName = process.getProcessName();
+        this.processVersion = process.getProcessVersion();
+    }
+
+    private WBSModel createCleanWbs() {
+        WBSModel result = createEmptyWbs();
         // The constructor for WBSModel will create a 'default' WBS which we
         // don't want.  Delete those contents, leaving only the root.
-        WBSNode[] children = this.wbs.getDescendants(this.wbs.getRoot());
-        this.wbs.deleteNodes(Arrays.asList(children));
+        WBSNode[] children = result.getDescendants(result.getRoot());
+        result.deleteNodes(Arrays.asList(children));
+        return result;
     }
 
     protected abstract String getRootTag();
@@ -91,6 +126,10 @@ public abstract class WBSLibrary {
         return wbs;
     }
 
+    public boolean isNotEmpty() {
+        return !wbs.isLeaf(wbs.getRoot());
+    }
+
     public boolean isValid() {
         return (processName != null && processVersion != null && wbs != null);
     }
@@ -108,9 +147,9 @@ public abstract class WBSLibrary {
     }
 
 
-    private void load() throws IOException {
+    private void load(InputStream in) throws IOException {
         try {
-            Document doc = XMLUtils.parse(new FileInputStream(file));
+            Document doc = XMLUtils.parse(in);
             Element xml = doc.getDocumentElement();
             if (getRootTag().equals(xml.getTagName())) {
                 processName = xml.getAttribute(PROCESS_NAME_ATTR);
@@ -120,7 +159,7 @@ public abstract class WBSLibrary {
                     (WBSModel.WBS_MODEL_TAG).item(0);
                 wbs = loadFromXml(wbsElement);
 
-                if (!XMLUtils.hasValue(libraryID))
+                if (file != null && !XMLUtils.hasValue(libraryID))
                     save();
             }
         } catch (IOException ioe) {
@@ -134,6 +173,9 @@ public abstract class WBSLibrary {
 
     public void save() throws IOException {
         try {
+            if (file == null)
+                throw new IOException("Attempting to save nonfile library");
+
             RobustFileWriter out = new RobustFileWriter(file, "UTF-8");
             out.write("<" + getRootTag() + " ");
             out.write(PROCESS_NAME_ATTR + "='" + XMLUtils.escapeAttribute(processName) + "' ");
@@ -153,7 +195,7 @@ public abstract class WBSLibrary {
     }
 
     public String getFileName() {
-        return file.getName();
+        return file == null ? null : file.getName();
     }
 
     public String getLibraryID() {
@@ -172,6 +214,15 @@ public abstract class WBSLibrary {
     }
 
 
+    static List<String> getAllDefinitionNames(WBSModel wbs) {
+        HashSet<String> names = new LinkedHashSet<String>();
+        for (WBSNode node : wbs.getChildren(wbs.getRoot()))
+            names.add(node.getName());
+        names.remove("");
+        return new ArrayList<String>(names);
+    }
+
+
     public static class Workflows extends WBSLibrary {
 
         public Workflows(File f) throws IOException {
@@ -180,6 +231,10 @@ public abstract class WBSLibrary {
 
         public Workflows(File f, TeamProcess process) throws IOException {
             super(f, process);
+        }
+
+        Workflows(String[] urls, TeamProcess process) {
+            super(urls, process);
         }
 
         @Override
@@ -226,6 +281,10 @@ public abstract class WBSLibrary {
 
         public Proxies(File f, TeamProcess process) throws IOException {
             super(f, process);
+        }
+
+        Proxies(String[] urls, TeamProcess process) {
+            super(urls, process);
         }
 
         @Override

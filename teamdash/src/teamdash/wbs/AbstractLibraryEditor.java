@@ -37,9 +37,6 @@ import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import javax.swing.Box;
@@ -62,6 +59,8 @@ import net.sourceforge.processdash.i18n.Resources;
 
 
 public abstract class AbstractLibraryEditor {
+
+    public enum Mode { Export, Import, ImportOrg }
 
     /** The team project that we are operating against. */
     TeamProject teamProject;
@@ -110,14 +109,17 @@ public abstract class AbstractLibraryEditor {
     public class UserCancelledException extends Exception {}
 
     public AbstractLibraryEditor(TeamProject teamProject, JFrame parent,
-            boolean export, Resources resources, String filenameExtension)
-            throws UserCancelledException {
+            Mode mode, Resources resources, String filenameExtension,
+            String orgAssetsSystemProperty) throws UserCancelledException {
         this.teamProject = teamProject;
-        this.export = export;
+        this.export = (mode == Mode.Export);
         this.resources = resources;
         this.filenameExtension = filenameExtension;
 
-        openLibrary(parent, export);
+        if (mode == Mode.ImportOrg)
+            openOrgLibrary(orgAssetsSystemProperty);
+        else
+            openLibrary(parent, export);
         openModels();
         libraryModel.setEditingEnabled(false);
         projectModel.setEditingEnabled(false);
@@ -195,8 +197,11 @@ public abstract class AbstractLibraryEditor {
         layout.setConstraints(label, c);
         panel.add(label);
 
-        label = new JLabel(resources.format("Library_Heading_FMT",
-            libraryFile.getFileName()));
+        String libraryFileName = libraryFile.getFileName();
+        String header = (libraryFileName != null
+                ? resources.format("Library_Heading_FMT", libraryFileName)
+                : resources.getString("Org_Library_Heading"));
+        label = new JLabel(header);
         initConstraints(c, 3, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST, insets0);
         layout.setConstraints(label, c);
         panel.add(label);
@@ -266,20 +271,12 @@ public abstract class AbstractLibraryEditor {
 
     public void addAllDefinitionsAction() {
         List selectedNames = (List) selectedDefinitionNames.getValue();
-        List allNames = getAllDefinitionNames(getSourceWBSModel());
+        List allNames = WBSLibrary.getAllDefinitionNames(getSourceWBSModel());
         if (allNames != null && !allNames.isEmpty()) {
             getDestWBSModel().replaceBaseItems(getSourceWBSModel(), allNames);
             selectedDefinitionNames.setValue(selectedNames);
             dirtyFlag = true;
         }
-    }
-
-    private List<String> getAllDefinitionNames(WBSModel wbs) {
-        HashSet<String> names = new LinkedHashSet<String>();
-        for (WBSNode node : wbs.getChildren(wbs.getRoot()))
-            names.add(node.getName());
-        names.remove("");
-        return new ArrayList<String>(names);
     }
 
     public void cancelAction() {
@@ -319,6 +316,20 @@ public abstract class AbstractLibraryEditor {
     public abstract boolean doImport();
 
 
+    private void openOrgLibrary(String systemProperty)
+            throws UserCancelledException {
+        String propVal = System.getProperty(systemProperty);
+        if (propVal == null)
+            throw new UserCancelledException();
+
+        libraryFile = openOrgLibrary(propVal.trim().split("\\s+"));
+        library = libraryFile.getWbs();
+        library.getRoot().setName(resources.getString("Org_Library_Root_Name"));
+    }
+
+    protected abstract WBSLibrary openOrgLibrary(String[] urls);
+
+
     private void openLibrary(Component parent, boolean export)
             throws UserCancelledException {
         WBSLibrary result = null;
@@ -332,9 +343,9 @@ public abstract class AbstractLibraryEditor {
         }
         if (export == false)
             result.setImportSourceIDs();
-        this.libraryFile = result;
-        this.library = result.getWbs();
-        this.library.getRoot().setName(resources.getString("Library_Root_Name"));
+        libraryFile = result;
+        library = result.getWbs();
+        library.getRoot().setName(resources.getString("Library_Root_Name"));
     }
 
     private WBSLibrary openLibrary(Component parent, boolean export,

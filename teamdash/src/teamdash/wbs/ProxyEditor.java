@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import javax.swing.event.TableModelListener;
 import net.sourceforge.processdash.i18n.Resources;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.wbs.AbstractLibraryEditor.Mode;
 
 public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
@@ -137,8 +138,13 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
 
-        if (teamProject.isReadOnly())
+        if (teamProject.isReadOnly()) {
             IMPORT.setEnabled(false);
+            IMPORT_ORG.setEnabled(false);
+        }
+        TeamProcess teamProcess = teamProject.getTeamProcess();
+        if (ProxyLibraryEditor.orgAssetsAreAvailable(teamProcess))
+            addToolbarButton(IMPORT_ORG);
         addToolbarButton(IMPORT);
         addToolbarButton(EXPORT);
     }
@@ -181,7 +187,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         }
         public void actionPerformed(ActionEvent e) {
             try {
-                new ProxyLibraryEditor(teamProject, frame, true);
+                new ProxyLibraryEditor(teamProject, frame, Mode.Export);
             } catch (ProxyLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -192,6 +198,25 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
 
 
+    private class ImportOrgAction extends AbstractAction {
+        public ImportOrgAction() {
+            super(resources.getString("Import_Org_Tooltip"), //
+                    IconFactory.getImportOrgProxiesIcon());
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new ProxyLibraryEditor(teamProject, frame, Mode.ImportOrg);
+                undoList.madeChange("Imported organizational proxies");
+            } catch (ProxyLibraryEditor.UserCancelledException uce) {
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action IMPORT_ORG = new ImportOrgAction();
+
+
+
     private class ImportAction extends AbstractAction {
         public ImportAction() {
             super(resources.getString("Import_Tooltip"), //
@@ -199,7 +224,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         }
         public void actionPerformed(ActionEvent e) {
             try {
-                new ProxyLibraryEditor(teamProject, frame, false);
+                new ProxyLibraryEditor(teamProject, frame, Mode.Import);
                 undoList.madeChange("Imported proxies");
             } catch (ProxyLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {

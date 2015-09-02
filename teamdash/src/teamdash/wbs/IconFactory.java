@@ -286,6 +286,12 @@ public class IconFactory {
     }
     private static Icon IMPORT_WORKFLOWS_ICON = null;
 
+    public static Icon getImportOrgWorkflowsIcon() {
+        return new ConcatenatedIcon(getWorkflowIcon(),
+                    new EmptyIcon(2, 1), getLeftArrowIcon(),
+                    new EmptyIcon(1, 1), getProcessAssetIcon());
+    }
+
     public static Icon getExportWorkflowsIcon() {
         if (EXPORT_WORKFLOWS_ICON == null) {
             EXPORT_WORKFLOWS_ICON = new ConcatenatedIcon(getWorkflowIcon(),
@@ -305,6 +311,12 @@ public class IconFactory {
         return IMPORT_PROXIES_ICON;
     }
     private static Icon IMPORT_PROXIES_ICON = null;
+
+    public static Icon getImportOrgProxiesIcon() {
+        return new ConcatenatedIcon(getProxyTableIcon(),
+                    new EmptyIcon(2, 1), getLeftArrowIcon(),
+                    new EmptyIcon(1, 1), getProcessAssetIcon());
+    }
 
     public static Icon getExportProxiesIcon() {
         if (EXPORT_PROXIES_ICON == null) {
@@ -327,6 +339,9 @@ public class IconFactory {
     }
     public static Icon getRightArrowIcon() {
         return getDemoteIcon();
+    }
+    public static Icon getProcessAssetIcon() {
+        return loadIconResource("process-asset.png");
     }
 
     public static Icon getHorizontalArrowIcon(boolean right) {

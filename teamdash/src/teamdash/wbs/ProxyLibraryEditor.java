@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,14 +33,18 @@ import net.sourceforge.processdash.i18n.Resources;
 
 public class ProxyLibraryEditor extends AbstractLibraryEditor {
 
+    public static final String ORG_PROXIES_SYS_PROP = //
+            "teamdash.wbs.orgProxyURLs";
+
     private static final Resources RESOURCES = Resources
             .getDashBundle("WBSEditor.Proxy_Library");
 
     private static final String FILENAME_EXTENSION = ".estxml";
 
     public ProxyLibraryEditor(TeamProject teamProject, JFrame parent,
-            boolean export) throws UserCancelledException {
-        super(teamProject, parent, export, RESOURCES, FILENAME_EXTENSION);
+            Mode mode) throws UserCancelledException {
+        super(teamProject, parent, mode, RESOURCES, FILENAME_EXTENSION,
+                ORG_PROXIES_SYS_PROP);
     }
 
     @Override
@@ -64,6 +68,11 @@ public class ProxyLibraryEditor extends AbstractLibraryEditor {
     }
 
     @Override
+    protected WBSLibrary openOrgLibrary(String[] urls) {
+        return new WBSLibrary.Proxies(urls, teamProject.getTeamProcess());
+    }
+
+    @Override
     protected WBSLibrary openNewLibrary(File file) throws IOException {
         return new WBSLibrary.Proxies(file, teamProject.getTeamProcess());
     }
@@ -72,6 +81,18 @@ public class ProxyLibraryEditor extends AbstractLibraryEditor {
     public boolean doImport() {
         teamProject.getProxies().copyFrom(projectWbs);
         return true;
+    }
+
+    public static boolean orgAssetsAreAvailable(TeamProcess process) {
+        try {
+            String sysprop = System.getProperty(ORG_PROXIES_SYS_PROP);
+            if (sysprop == null)
+                return false;
+            String[] urls = sysprop.trim().split("\\s+");
+            return new WBSLibrary.Proxies(urls, process).isNotEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

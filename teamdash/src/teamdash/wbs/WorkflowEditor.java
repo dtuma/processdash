@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.wbs.AbstractLibraryEditor.Mode;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
 
 /** A graphical user interface for editing common workflows.
@@ -215,7 +216,16 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         addToolbarButtons(table.getEditingActions());
         addToolbarButtons(actions);
         toolBar.addSeparator();
-        addToolbarButtons(getWorkflowActions());
+
+        if (teamProject.isReadOnly()) {
+            IMPORT.setEnabled(false);
+            IMPORT_ORG.setEnabled(false);
+        }
+        TeamProcess teamProcess = teamProject.getTeamProcess();
+        if (WorkflowLibraryEditor.orgAssetsAreAvailable(teamProcess))
+            addToolbarButton(IMPORT_ORG);
+        addToolbarButton(IMPORT);
+        addToolbarButton(EXPORT);
     }
 
     /** Add one or more buttons to the internal tool bar */
@@ -297,7 +307,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
         public void actionPerformed(ActionEvent e) {
             try {
-                new WorkflowLibraryEditor(teamProject, frame, true);
+                new WorkflowLibraryEditor(teamProject, frame, Mode.Export);
             } catch (WorkflowLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -308,6 +318,25 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
 
 
+    private class ImportAssetAction extends AbstractAction {
+        public ImportAssetAction() {
+            super(resources.getString("Import_Org_Tooltip"), //
+                    IconFactory.getImportOrgWorkflowsIcon());
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new WorkflowLibraryEditor(teamProject, frame, Mode.ImportOrg);
+                undoList.madeChange("Imported organizational workflows");
+            } catch (WorkflowLibraryEditor.UserCancelledException uce) {
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action IMPORT_ORG = new ImportAssetAction();
+
+
+
     private class ImportAction extends AbstractAction {
         public ImportAction() {
             super(resources.getString("Import_Tooltip"), //
@@ -315,7 +344,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
         public void actionPerformed(ActionEvent e) {
             try {
-                new WorkflowLibraryEditor(teamProject, frame, false);
+                new WorkflowLibraryEditor(teamProject, frame, Mode.Import);
                 undoList.madeChange("Imported workflows");
             } catch (WorkflowLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
@@ -326,12 +355,6 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     final Action IMPORT = new ImportAction();
 
 
-
-    public Action[] getWorkflowActions() {
-        if (teamProject.isReadOnly())
-            IMPORT.setEnabled(false);
-        return new Action[] { IMPORT, EXPORT };
-    }
 
     private class UndoableEventRepeater implements TableModelListener {
 
