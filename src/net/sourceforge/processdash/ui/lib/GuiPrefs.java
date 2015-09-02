@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2014 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -93,6 +93,17 @@ public class GuiPrefs {
 
         // initialize the list of registered items
         this.registeredItems = new HashMap<String, RegisteredItem>();
+    }
+
+
+    /**
+     * Retrieve a preferences node that is a child of the pref node this class
+     * is using.
+     * 
+     * @since 2.1.12
+     */
+    public Preferences node(String childPathName) {
+        return prefsBase.node(childPathName);
     }
 
 

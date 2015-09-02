@@ -1527,7 +1527,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         Set expandedNodes = new HashSet();
         for (int i = 1;  i < wbsNodes.size(); i++) {
             WBSNode node = (WBSNode) wbsNodes.get(i);
-            if (node.isExpanded()) {
+            if (node.isExpanded() && !isLeaf(node)) {
                 expandedNodes.add(Integer.toString(node.getUniqueID()));
             }
         }

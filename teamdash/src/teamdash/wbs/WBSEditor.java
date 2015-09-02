@@ -214,9 +214,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     static Resources resources = Resources.getDashBundle("WBSEditor");
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
-    private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
-    private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
-    private static final String OPTIMIZE_FOR_INDIV_KEY = "optimizeForIndiv";
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
@@ -405,8 +402,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 tabPanel.loadDefaultCustomTabs();
         } catch (LoadTabsException e) {
         }
-        tabPanel.wbsTable.setEnterInsertsLine(getInsertOnEnterPref(teamProject
-                .getProjectID()));
+        tabPanel.wbsTable.loadGuiPrefs(guiPrefs);
         guiPrefs.load(tabPanel.tabbedPane);
 
         tabPanel.addChangeListener(this.dirtyListener);
@@ -1734,9 +1730,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (!isDirty() || maybeSave(true)) {
             // Set expanded nodes preference
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
-            setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
-            setInsertOnEnterPref(teamProject.getProjectID(),
-                tabPanel.wbsTable.getEnterInsertsLine());
+            setExpandedNodesPref(expandedNodes);
             guiPrefs.saveAll();
 
             shutDown();
@@ -2025,45 +2019,30 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    private String getExpandedNodesKey(String projectId) {
-        return projectId + EXPANDED_NODES_KEY_SUFFIX;
-    }
-
     private Set getExpandedNodesPref(String projectId) {
-        String value = PreferencesUtils.getCLOB(preferences,
-                getExpandedNodesKey(projectId), null);
+        // look for a legacy value of this setting
+        String legacyKey = projectId + "_EXPANDEDNODES";
+        String value = PreferencesUtils.getCLOB(preferences, legacyKey, null);
+        if (value != null) {
+            // if a legacy value was found, clear it and store in new location
+            PreferencesUtils.removeCLOB(preferences, legacyKey);
+            Set result = new HashSet(Arrays.asList(value.split("\u0001")));
+            setExpandedNodesPref(result);
+            return result;
+        }
+
+        // look in the new location for the expanded nodes pref
+        value = PreferencesUtils.getCLOB(guiPrefs.node("expandedNodes"),
+            "list", null);
         if (value == null)
             return null;
-
-        String[] nodesArray = value.split(EXPANDED_NODES_DELIMITER);
-        Set nodesToExpand = new HashSet(Arrays.asList(nodesArray));
-
-        return nodesToExpand;
+        else
+            return new HashSet(Arrays.asList(value.split(",")));
     }
 
-    private void setExpandedNodesPref(String projectId, Set value) {
-        PreferencesUtils.putCLOB(preferences, getExpandedNodesKey(projectId),
-                StringUtils.join(value, EXPANDED_NODES_DELIMITER));
-    }
-
-    private String getInsertOnEnterKey(String projectId) {
-        return projectId + "_InsertOnEnter";
-    }
-
-    private boolean getInsertOnEnterPref(String projectId) {
-        return preferences.getBoolean(getInsertOnEnterKey(projectId), true);
-    }
-
-    private void setInsertOnEnterPref(String projectId, boolean value) {
-        preferences.putBoolean(getInsertOnEnterKey(projectId), value);
-    }
-
-    private boolean getOptimizeForIndivPref() {
-        return preferences.getBoolean(OPTIMIZE_FOR_INDIV_KEY, true);
-    }
-
-    private void setOptimizeForIndivPref(boolean value) {
-        preferences.putBoolean(OPTIMIZE_FOR_INDIV_KEY, value);
+    private void setExpandedNodesPref(Set value) {
+        PreferencesUtils.putCLOB(guiPrefs.node("expandedNodes"), "list",
+                StringUtils.join(value, ","));
     }
 
     private static boolean isDumpAndExitMode() {
@@ -2660,7 +2639,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
 
-    private class OptimizeEditingForIndivMenuItem extends JCheckBoxMenuItem
+    private class OptimizeEditingForIndivMenuItem extends CheckBoxMenuItem
             implements ChangeListener, InitialsListener {
         private String initials;
         private WatchCoworkerTimesMenuItem watchMenu;
@@ -2669,7 +2648,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             super("Optimize Edit Operations for: " + t.getName());
             this.initials = t.getInitials();
             this.watchMenu = watchMenu;
-            setSelected(getOptimizeForIndivPref());
+            setSelected(true);
+            load("optimizeForIndiv");
             updateDependentObjects();
             addChangeListener(this);
             teamProject.getTeamMemberList().addInitialsListener(this);
@@ -2678,7 +2658,6 @@ public class WBSEditor implements WindowListener, SaveListener,
             // this method is called when the user selects this menu option
             // and toggles the state of our checkbox.
             updateDependentObjects();
-            setOptimizeForIndivPref(isSelected());
         }
         public void initialsChanged(String oldInitials, String newInitials) {
             // this method is called when someone alters the initials of an

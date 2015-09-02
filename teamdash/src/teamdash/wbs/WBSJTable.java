@@ -68,6 +68,8 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
+import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JCheckBox;
@@ -87,6 +89,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellRenderer;
@@ -99,6 +103,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.CheckboxTree;
 import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -151,7 +156,7 @@ public class WBSJTable extends JTable {
     /** Is indentation disabled for this WBS? */
     private boolean disableIndentation = false;
     /** Should the enter key insert a new line into the WBS? */
-    private boolean enterInsertsLine = true;
+    private ButtonModel enterInsertsLine = new DefaultButtonModel();
     /** The initials of a team member for whom editing operations should
      *  be optimized */
     private String optimizeForIndiv = null;
@@ -224,13 +229,8 @@ public class WBSJTable extends JTable {
         recalculateEnablement();
     }
 
-    public void setEnterInsertsLine(boolean enterInsertsLine) {
-        this.enterInsertsLine = enterInsertsLine;
-        TOGGLE_ENTER_BEHAVIOR_ACTION.updateAppearance();
-    }
-
-    public boolean getEnterInsertsLine() {
-        return enterInsertsLine;
+    public void loadGuiPrefs(GuiPrefs prefs) {
+        prefs.load("insertOnEnter", enterInsertsLine);
     }
 
     public String getOptimizeForIndiv() {
@@ -1301,7 +1301,7 @@ public class WBSJTable extends JTable {
     private class EnterAction extends InsertAfterAction {
         @Override
         protected void insertRowBefore(int row, int rowToCopy) {
-            if (enterInsertsLine) {
+            if (enterInsertsLine.isSelected()) {
                 super.insertRowBefore(row, rowToCopy);
             } else if (row > 0 && row < getRowCount()) {
                 setRowSelectionInterval(row, row);
@@ -1313,12 +1313,15 @@ public class WBSJTable extends JTable {
 
 
     /** An action to configure the enterInsertsLine property */
-    private class ToggleEnterBehaviorAction extends AbstractAction {
+    private class ToggleEnterBehaviorAction extends AbstractAction implements
+            ChangeListener {
         public ToggleEnterBehaviorAction() {
-            updateAppearance();
+            enterInsertsLine.setSelected(true);
+            enterInsertsLine.addChangeListener(this);
+            stateChanged(null);
         }
-        public void updateAppearance() {
-            if (enterInsertsLine) {
+        public void stateChanged(ChangeEvent e) {
+            if (enterInsertsLine.isSelected()) {
                 putValue(Action.SMALL_ICON, IconFactory.getInsertOnEnterIcon());
                 putValue(Action.SHORT_DESCRIPTION,
                     "<html>Pressing &lt;Enter&gt; in the WBS inserts a new row</html>");
@@ -1332,7 +1335,7 @@ public class WBSJTable extends JTable {
             }
         }
         public void actionPerformed(ActionEvent e) {
-            setEnterInsertsLine(!getEnterInsertsLine());
+            enterInsertsLine.setSelected(!enterInsertsLine.isSelected());
         }
     }
     final ToggleEnterBehaviorAction TOGGLE_ENTER_BEHAVIOR_ACTION =
