@@ -3,7 +3,7 @@
 
 
 /*  Browser.java - A browser launcher.
- *  Copyright (C) 1999, 2000 Fredrik Ehnbom
+ *  Copyright (C) 1999, 2000 Fredrik Ehnbom, 2000-2015 David Tuma
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,10 @@
  */
 package net.sourceforge.processdash.ui;
 
+import java.awt.Desktop;
+import java.awt.Toolkit;
 import java.io.IOException;
+import java.net.URI;
 
 import javax.swing.JOptionPane;
 
@@ -36,9 +39,9 @@ import net.sourceforge.processdash.ui.lib.BrowserLauncher;
  */
 public class Browser {
 
-    // static { try { maybeSetupForWindowsIE(); } catch (Exception e) {} }
     private static String defaultHost = "localhost";
     private static int defaultPort = 2468;
+    private static boolean useDesktop = Desktop.isDesktopSupported();
 
     public static final String BROWSER_LAUNCHER = "BrowserLauncher";
 
@@ -66,6 +69,25 @@ public class Browser {
         url = mapURL(url);
         String cmd = Settings.getFile("browser.command");
 
+        // try using AWT Desktop if it is supported on this platform
+        if (cmd == null && useDesktop) {
+            URI uri;
+            try {
+                uri = new URI(url);
+            } catch (Exception e) {
+                System.err.println("Bad URL: " + url);
+                Toolkit.getDefaultToolkit().beep();
+                return;     // bad/malformed URL? abort
+            }
+            try {
+                Desktop.getDesktop().browse(uri);
+                return;     // exit on success
+            } catch (Exception e) {
+                useDesktop = false;
+            }
+        }
+
+        // if AWT Desktop failed, try other legacy approaches
         try {
             if (cmd != null) {
                 if (BROWSER_LAUNCHER.equalsIgnoreCase(cmd))
