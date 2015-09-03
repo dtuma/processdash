@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,6 +95,12 @@ public class FileResourceCollection implements ResourceCollection,
 
     public String getDescription() {
         return directory.getPath();
+    }
+
+
+    public void validate() throws IOException {
+        if (!directory.isDirectory())
+            throw new FileNotFoundException(directory.getPath());
     }
 
 

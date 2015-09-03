@@ -541,6 +541,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         URLConnection conn = makeGetRequest(LIST_ACTION);
         conn.connect();
         // now, while the server is thinking, do our calculations locally.
+        localCollection.validate();
         ResourceCollectionInfo localList = new ResourceListing(localCollection,
                 ResourceFilterFactory.DEFAULT_FILTER);
         // finally, retrieve the list from the server and compare the two.

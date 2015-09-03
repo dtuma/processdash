@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface ResourceCollection extends ReadableResourceCollection {
+
+    /**
+     * Test to ensure that the given collection is valid and can be read.
+     */
+    public void validate() throws IOException;
 
     /**
      * Return an output stream that can be used to write data to a particular
