@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2013 Tuma Solutions, LLC
+// Copyright (C) 1998-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -235,9 +235,13 @@ public class BrokenDataFileHandler {
 
     private boolean safelyRename(File srcFile, File destFile) {
         try {
+            System.out.println("**************** REPAIRING CORRUPT "
+                    + destFile.getName() + " with data from "
+                    + srcFile.getName() + " *****************");
             FileUtils.renameFile(srcFile, destFile);
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
