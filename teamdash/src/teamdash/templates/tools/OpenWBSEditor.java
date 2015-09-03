@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeSet;
 
 import org.w3c.dom.Element;
 
@@ -265,9 +266,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         result.put(WBSTabPanel.CUSTOM_TABS_SYS_PROP,
             getTemplateResourceURLs("customWbsTabs", "specFile"));
         result.put(WorkflowLibraryEditor.ORG_WORKFLOWS_SYS_PROP,
-            getTemplateResourceURLs("orgWorkflows", "uri"));
+            getTemplateResourceURLs("org-workflows", "uri"));
         result.put(ProxyLibraryEditor.ORG_PROXIES_SYS_PROP,
-            getTemplateResourceURLs("orgProxies", "uri"));
+            getTemplateResourceURLs("org-proxies", "uri"));
         result.put("teamdash.wbs.globalInitialsPolicy",
             getGlobalInitialsPolicy());
         if (StringUtils.hasValue(itemHref))
@@ -316,9 +317,16 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (configElements == null || configElements.isEmpty())
             return null;
 
-        StringBuffer result = new StringBuffer();
+        // build a list of dashboard URIs to the named template resources
+        TreeSet<String> uriList = new TreeSet<String>();
         for (Element xml : configElements) {
             String uri = ExtensionManager.getConfigUri(xml, uriAttr);
+            uriList.add(uri);
+        }
+
+        // resolve the template URIs into absolute URLs, and add to a list
+        StringBuffer result = new StringBuffer();
+        for (String uri : uriList) {
             URL url = TemplateLoader.resolveURL(uri);
             if (url != null && !url.toString().startsWith("processdash"))
                 result.append(" ").append(url.toString());
