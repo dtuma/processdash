@@ -328,6 +328,20 @@ Authors:
     </ant>
   </target>
 
+  <target name="pkgAssets" depends="compile">
+    <jar destfile="${dist}/pkgAssets.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+           value="net.sourceforge.processdash.templates.ProcessAssetPackager"/>
+      </manifest>
+
+      <classfileset dir="${build}"
+           rootclass="net.sourceforge.processdash.templates.ProcessAssetPackager"/>
+      <fileset dir="${src}"
+           includes="net/sourceforge/processdash/templates/ProcessAssetPackager.txt"/>
+    </jar>
+  </target>
+
 
   <target name="parser" depends="init,-parser-depend"
           description="Regenerate source code for the data parser if needed."
