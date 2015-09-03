@@ -1,0 +1,27 @@
+Creates a Process Dashboard add-on containing organizational process assets.
+
+Usage: java -jar pkgAssets.jar <dest> <pkgId> <pkgVers> <pkgName> [assets...]
+
+Where:
+    <dest>     the name of the ZIP or JAR file to write
+    <pkgId>    an alphanumeric identifier for this collection of assets
+    <pkgVers>  the version number for this build of this asset collection.
+               Version numbers must be a series of numbers, separated by
+               the period character (for example, "1.2.3.4567"). If
+               you supply a version number ending with "...", a build
+               timestamp will be appended as the last element of the
+               version number.
+    <pkgName>  the name to display to the user to describe this collection
+               of assets. (This value will appear in the "Help > About >
+               Configuration" page of the Process Dashboard.) If the name
+               includes spaces, make certain to enclose the name in quotes,
+               as appropriate for the command-shell you are using.
+    assets...  filenames of various process asset files to include
+
+
+Process asset files may include files of the following formats:
+
+    .wfxml     Files containing custom team workflows
+    .tabxml    Files containing custom WBS Editor tabs
+    .estxml    Files containing custom estimating proxy tables
+    .dtsxml    Files containing defect type standards
