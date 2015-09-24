@@ -179,7 +179,8 @@ public class Settings {
     }
 
     public static void setDatasetID(String id) {
-        datasetID = id;
+        if (id != null)
+            datasetID = id;
     }
     private static String datasetID = "anonymous";
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010, 2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,11 @@ public class UUIDFile {
     private static final String ENCODING = "UTF-8";
 
     public static String getIdentifier(File file) throws IOException {
+        return getIdentifier(file, true);
+    }
+
+    public static String getIdentifier(File file, boolean assignIfMissing)
+            throws IOException {
         File directory = file.getParentFile();
         if (directory == null)
             throw new IOException("No directory specified: '" + file + "'");
@@ -49,7 +54,7 @@ public class UUIDFile {
         if (file.isFile())
             result = readIdentifier(file);
 
-        if (result == null)
+        if (result == null && assignIfMissing)
             result = assignAndWriteIdentifier(file);
 
         return result;

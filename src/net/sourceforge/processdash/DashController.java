@@ -517,6 +517,10 @@ public class DashController {
     }
 
     public static String getDatasetID() {
+        return getDatasetID(true);
+    }
+
+    public static String getDatasetID(boolean assignIfMissing) {
         String result;
         synchronized (DashController.class) {
             result = datasetID;
@@ -526,7 +530,7 @@ public class DashController {
             File dataDir = getDataDirectory();
             File idFile = new File(dataDir, "datasetID.dat");
             try {
-                result = UUIDFile.getIdentifier(idFile);
+                result = UUIDFile.getIdentifier(idFile, assignIfMissing);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                     "Unable to retrieve dataset identifier", e);

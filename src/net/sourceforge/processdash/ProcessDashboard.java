@@ -564,7 +564,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
         DashController.setDashboard(this);
-        Settings.setDatasetID(DashController.getDatasetID());
+        Settings.setDatasetID(DashController.getDatasetID(false));
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
