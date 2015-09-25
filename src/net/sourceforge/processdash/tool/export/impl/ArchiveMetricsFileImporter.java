@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2013 Tuma Solutions, LLC
+// Copyright (C) 2005-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -114,6 +114,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
         } finally {
             owner = null;
             exportTimestamp = null;
+            srcDatasetID = null;
             defns = null;
             if (zipFile != null)
                 try {
@@ -131,6 +132,8 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     private Date exportTimestamp;
 
+    private String srcDatasetID;
+
     private Map defns;
 
     private boolean shouldDeleteArchiveFileOnCompletion;
@@ -145,6 +148,10 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     public String getOwner() {
         return owner;
+    }
+
+    public String getSrcDatasetID() {
+        return srcDatasetID;
     }
 
     public String getPrefix() {
@@ -194,6 +201,8 @@ public class ArchiveMetricsFileImporter implements Runnable,
                     String id = parser.getAttributeValue(null, PACKAGE_ID_ATTR);
                     String version = parser.getAttributeValue(null, VERSION_ATTR);
                     packageIDs.put(id, version);
+                } else if (FROM_DATASET_TAG.equals(parser.getName())) {
+                    srcDatasetID = parser.getAttributeValue(null, FROM_DATASET_ID_ATTR);
                 } else if (FILE_ELEM.equals(parser.getName())) {
                     String name = parser.getAttributeValue(null, FILE_NAME_ATTR);
                     String type = parser.getAttributeValue(null, TYPE_ATTR);
@@ -274,6 +283,9 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
         if (exportTimestamp != null)
             defns.put(prefix + WHEN_ATTR, new DateData(exportTimestamp, false));
+
+        if (XMLUtils.hasValue(srcDatasetID))
+            defns.put(prefix + FROM_DATASET_ID_ATTR, StringData.create(srcDatasetID));
 
         ListData packageList = new ListData();
         String packagePrefix = prefix + PACKAGE_ELEM + "/";

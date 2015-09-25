@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
@@ -103,12 +105,14 @@ public class TeamMetricsStatus extends TinyCGIBase {
 
     private List<ImportData> getImportData(ListData prefixList) {
         List<ImportData> result = new ArrayList<ImportData>();
+        Map<String, ImportData> datasetIdMap = new HashMap();
         if (prefixList != null) {
             for (int i = prefixList.size(); i-- > 0;) {
                 String onePrefix = StringUtils.asString(prefixList.get(i));
                 String metadataPrefix = getMetadataPrefix(onePrefix);
                 if (metadataPrefix != null)
-                    result.add(new ImportData(onePrefix, metadataPrefix));
+                    result.add(new ImportData(onePrefix, metadataPrefix,
+                            datasetIdMap));
             }
         }
         return result;
@@ -160,6 +164,11 @@ public class TeamMetricsStatus extends TinyCGIBase {
         else
             out.print("<i>Name Unavailable</i>");
 
+        if (d.hasDatasetIdCollision)
+            out.print("&nbsp;<img src='/Images/warningRed.gif' "
+                    + "title='Colliding value in datasetID.dat; "
+                    + "project calculations may be incorrect'>");
+
         out.print("</td><td>");
 
         if (d.exportDate != null)
@@ -190,17 +199,28 @@ public class TeamMetricsStatus extends TinyCGIBase {
 
         String ownerName;
 
+        String datasetID;
+
+        boolean hasDatasetIdCollision;
+
         Date exportDate;
 
         String dashVersion;
 
         Date wbsLastSync;
 
-        public ImportData(String prefix, String metadataPrefix) {
+        public ImportData(String prefix, String metadataPrefix,
+                Map<String, ImportData> datasetIdMap) {
             this.ownerName = getString(OWNER_VAR, metadataPrefix);
+            this.datasetID = getString(DATASET_ID_VAR, metadataPrefix);
             this.exportDate = getDate(TIMESTAMP_VAR, metadataPrefix);
             this.dashVersion = getString(DASH_VERSION_VAR, metadataPrefix);
             this.wbsLastSync = getDate(TeamDataConstants.LAST_SYNC_TIMESTAMP, prefix);
+
+            ImportData other = datasetIdMap.put(datasetID, this);
+            if (other != null && XMLUtils.hasValue(datasetID)
+                    && !this.ownerName.equals(other.ownerName))
+                this.hasDatasetIdCollision = other.hasDatasetIdCollision = true;
         }
 
         private SimpleData get(String name, String prefix) {
@@ -243,6 +263,8 @@ public class TeamMetricsStatus extends TinyCGIBase {
     private static final String METADATA = "Import_Metadata";
 
     private static final String OWNER_VAR = METADATA + "/exported.byOwner";
+
+    private static final String DATASET_ID_VAR = METADATA + "/exported.datasetID";
 
     private static final String TIMESTAMP_VAR = METADATA + "/exported.when";
 
