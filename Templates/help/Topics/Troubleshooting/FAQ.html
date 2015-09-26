@@ -56,7 +56,7 @@
  <LI><a href="FAQ.html#WebServerWorms">Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</a></LI>
  <LI><A HREF="#AutoUpdate">When the dashboard starts up, it's attempting to make a connection to the internet.  Why is it doing this?</A></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
- <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
+ <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, change the active hierarchy path, and open the defect dialog?</A></LI>
  <LI><A HREF="#TeamSupport">Does the Process Dashboard support teams?</A></LI>
  <LI><a href="FAQ.html#Website">Where can I get the latest information about the Process Dashboard?</A></LI>
  <LI><a href="FAQ.html#BugReport">I think I've found a bug.  Whom do I contact?</A></LI>
@@ -598,7 +598,7 @@ these processes are no longer available.</p>
 
 <P><HR><a name="Auto"></a><B>I would like to integrate the dashboard more 
 closely with my IDE. Is it possible to programatically start/stop the timer, 
-and change the active hierarchy path?</B>
+change the active hierarchy path, and open the defect dialog?</B>
 
 <P>Yes! If you issue an HTTP request of the form:
 
@@ -617,7 +617,20 @@ to change the current hierarchy path <b>and</b> start the timer, use
 
 <PRE><FONT SIZE="-2">...//control/setPath.class<B>?start</B></FONT></PRE>
 
-<B>Note</B>: these commands will have no effect unless the HTTP
+<P>To open the defect dialog and log a new defect against the active task (the
+same action as clicking the defect button), use
+
+<PRE><FONT SIZE="-2">http://localhost:2468/control/showDefectDialog</FONT></PRE>
+
+To open the defect dialog and edit an existing defect, use
+
+<PRE><FONT SIZE="-2">http://localhost:2468/Project/Foo/Some+task//control/showDefectDialog?id=42</FONT></PRE>
+
+where "/Project/Foo/Some+task" is the URL-encoded project/path that the defect
+was logged against, and "42" is the ID of the existing defect. (These values
+can be seen in the Defect Log Editor.)
+
+<p><B>Note</B>: these commands will have no effect unless the HTTP
 request originates from the same machine where the dashboard is
 running.
 

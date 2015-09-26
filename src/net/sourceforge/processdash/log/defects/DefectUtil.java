@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.process.ProcessUtil;
 
@@ -121,7 +122,8 @@ public class DefectUtil {
         // in the case of a PSP3 project, we need to keep both the cycle name
         // and the phase name.
         int prefixLength = defectPath.length() + 1;
-        if (taskPath.length() > prefixLength)
+        if (taskPath.length() > prefixLength
+                && Filter.pathMatches(taskPath, defectPath))
             return taskPath.substring(prefixLength);
 
         // no luck so far.  Look at the task in question, and see if it only
