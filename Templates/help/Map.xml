@@ -78,6 +78,7 @@
 
   <mapID target="ConfigurationFile" url="Topics/AdvancedTopics/ConfigurationFile.html" />
   <mapID target="ApiSizeMetrics" url="Topics/AdvancedTopics/ApiSizeMetrics.html" />
+  <mapID target="ApiTaskStatus" url="Topics/AdvancedTopics/ApiTaskStatus.html" />
   <mapID target="DatabaseOverview" url="Topics/AdvancedTopics/Database.html" />
   <mapID target="Execution" url="Topics/Execution/Execution.html" />
 

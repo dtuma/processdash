@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@ package net.sourceforge.processdash.ui.web.api;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 
 import net.sourceforge.processdash.DashController;
@@ -54,6 +56,10 @@ public class WebApiUtils {
         out.write("Status: " + ex.getHttpCode() + " " + ex.getErrorCode() + "\r\n");
         out.write("Content-Type: application/json\r\n\r\n");
         out.write(ex.asJSON().toString());
+        out.flush();
     }
+
+    static final DateFormat DATE_FMT = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss");
 
 }

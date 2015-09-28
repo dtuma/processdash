@@ -91,6 +91,7 @@
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
       <tocitem image="PageIcon" target="CustomLOCCounter" text="Defining a custom LOC counter"/>
       <tocitem image="PageIcon" target="DefiningOwnProcesses" text="Defining your own custom processes"/>
+      <tocitem image="PageIcon" target="ApiTaskStatus" text="REST API for Task Status"/>
       <tocitem image="PageIcon" target="ApiSizeMetrics" text="REST API for Size Metrics"/>
 
       <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->

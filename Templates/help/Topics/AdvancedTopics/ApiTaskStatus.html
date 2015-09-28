@@ -1,0 +1,246 @@
+<HTML>
+<head>
+<TITLE>Task Status API</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+<BODY>
+
+<H1>Task Status API</H1>
+
+<table border cellpadding="7">
+
+<tr><td valign="top"><b>Name</b></td>
+<td><tt>taskStatus</tt></td></tr>
+
+<tr><td valign="top"><b>URI</b></td>
+<td><tt>/api/taskStatus</tt></td></tr>
+
+<tr><td valign="top"><b>URL Example</b></td>
+<td><tt>http://localhost:2468/api/taskStatus</tt></td></tr>
+
+<tr><td valign="top"><b>Description</b></td>
+<td>This API makes it possible to retrieve and set the completion date for a
+particular task.</td></tr>
+
+<tr><td valign="top"><b>Context</b></td>
+<td>Personal dashboard only, for a leaf task within the hierarchy</td></tr>
+
+<tr><td valign="top"><b>HTTP Methods</b></td>
+<td><ul style="margin-bottom:0px">
+<li><a href="#get">GET</a> - retrieves the current completion date for a leaf
+    task</li>
+<li><a href="#post">POST</a> - sets or clears the completion date for a leaf
+    task</li>
+</ul></td></tr>
+
+</table>
+
+
+
+<h2><a name="get"></a>HTTP GET</h2>
+
+<p>Retrieves the current completion date for a task in the personal
+hierarchy.</p>
+
+<p>By default, invocations of this GET method will be rejected unless they
+originate from the same computer where the Process Dashboard is running.  This
+policy can be disabled by <a href="PreferencesTool.html#advanced">setting an
+advanced preference</a> with the name <tt>api.taskStatus.allowRemote</tt> and
+the value <tt>true</tt>.</p>
+
+
+<h3>Request Parameters</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Field</th><th>Type</th><th>Description</th></tr>
+
+
+<tr><td valign="top"><b>hierarchyPath</b> (optional)</td>
+<td valign="top">String</td>
+
+<td>The full dashboard hierarchy path to the project and component/task whose
+status should be returned. (Example:
+<tt>/Project/My&nbsp;Team&nbsp;Project/Component&nbsp;A/Code</tt>).</p>
+
+<p>The path must name a leaf task in the dashboard hierarchy.</p>
+
+<p>This parameter is optional.  If omitted, the default is to use the task
+which is currently selected in the Process Dashboard toolbar.</p></td></tr>
+
+</table>
+
+
+<h3>Errors</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Error Code</th><th>Description</th></tr>
+
+<tr><td valign="top"><tt>personal-only</tt></td>
+
+<td>Returned if this request is made against a team dashboard instead of a
+personal dashboard.</td></tr>
+
+<tr><td valign="top"><tt>no-such-task</tt></td>
+
+<td>The <tt>hierarchyPath</tt> parameter names a task that does not exist in
+the dashboard hierarchy.</td></tr>
+
+<tr><td valign="top"><tt>not-leaf-task</tt></td>
+
+<td>The <tt>hierarchyPath</tt> parameter names a task that has children
+(rather than a leaf task).</td></tr>
+
+</table>
+
+
+<h3>Results</h3>
+
+<p><b>application/json</b> - successful completion examples</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "ok",
+    "taskPath" : "/Project/Team Project/Component/Task 1",
+    "completionDate" : "2015-01-02 13:45:56"
+}</pre></td></tr>
+<tr><td>
+<pre style="margin:0px">{
+    "stat" : "ok",
+    "taskPath" : "/Project/Team Project/Component/Task 2",
+    "completionDate" : null
+}</pre></td></tr></table>
+
+
+<p><b>application/json</b> - error example</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "fail",
+    "err" : {
+        "code" : "no-such-task",
+        "msg" : "The task '/Foo/Bar/Baz' was not found."
+    }
+}</pre></td></tr></table>
+
+
+
+<h2><a name="post"></a>HTTP POST</h2>
+
+<p>Sets or clears the completion date for a task in the personal
+hierarchy.</p>
+
+<p>By default, invocations of this POST method will be rejected unless they
+originate from the same computer where the Process Dashboard is running.  This
+policy can be disabled by <a href="PreferencesTool.html#advanced">setting an
+advanced preference</a> with the name <tt>api.taskStatus.allowRemote</tt> and
+the value <tt>true</tt>.</p>
+
+
+<h3>Request Parameters</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Field</th><th>Type</th><th>Description</th></tr>
+
+
+<tr><td valign="top"><b>hierarchyPath</b> (optional)</td>
+<td valign="top">String</td>
+
+<td>The full dashboard hierarchy path to the project and component/task whose
+completion status should be altered. (Example:
+<tt>/Project/My&nbsp;Team&nbsp;Project/Component&nbsp;A/Code</tt>).</p>
+
+<p>The path must name a leaf task in the dashboard hierarchy.</p>
+
+<p>This parameter is optional.  If omitted, the default is to use the task
+which is currently selected in the Process Dashboard toolbar.</p></td></tr>
+
+
+<tr><td valign="top"><b>completionDate</b></td>
+<td valign="top">Date</td>
+
+<td>The date to store for the given task. The following legal values are
+recognized:
+<ul style="margin-top: 0px; margin-bottom:0px">
+
+<li><tt><b>null</b></tt> - to mark this task incomplete</li>
+
+<li><tt><b>now</b></tt> - to mark this task complete with the current
+    date/time</li>
+
+<li><tt><b>YYYY-MM-DD HH:MM:SS</b></tt> - the completion date/time to store
+    for this task, recorded in the local time zone.</li>
+
+</ul>
+</td></tr>
+
+
+</table>
+
+
+<h3>Errors</h3>
+
+<table border cellpadding="7">
+
+<tr><th>Error Code</th><th>Description</th></tr>
+
+<tr><td valign="top"><tt>personal-only</tt></td>
+
+<td>Returned if this request is made against a team dashboard instead of a
+personal dashboard.</td></tr>
+
+<tr><td valign="top"><tt>no-such-task</tt></td>
+
+<td>The <tt>hierarchyPath</tt> parameter names a task that does not exist in
+the dashboard hierarchy.</td></tr>
+
+<tr><td valign="top"><tt>not-leaf-task</tt></td>
+
+<td>The <tt>hierarchyPath</tt> parameter names a task that has children
+(rather than a leaf task).</td></tr>
+
+<tr><td valign="top"><tt>date-not-editable</tt></td>
+
+<td>The completion date cannot be set for the given task. For example, this
+could occur if the given task is the root node of a team project, for an
+individual who has not been assigned any tasks. Because no tasks are present,
+the node happens to be a leaf in the dashboard hierarchy; but it still
+represents a container for future project work and cannot be marked complete
+itself.</td></tr>
+
+<tr><td valign="top"><tt>parameter-invalid</tt></td>
+
+<td>The <tt>completionDate</tt> parameter is not in the expected
+format.</td></tr>
+
+</table>
+
+
+<h3>Results</h3>
+
+<p><b>application/json</b> - successful completion</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "ok"
+}</pre></td></tr></table>
+
+
+<p><b>application/json</b> - error example</p>
+
+<table border cellpadding="7"><tr><td>
+<pre style="margin:0px">{
+    "stat" : "fail"
+    "err" : {
+        "code" : "parameter-invalid",
+        "msg" : "The 'completionDate' parameter value 'foo' is not a valid date",
+        "param" : "completionDate"
+    }
+}</pre></td></tr></table>
+
+
+
+</BODY>
+</HTML>
