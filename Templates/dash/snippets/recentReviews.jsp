@@ -18,7 +18,7 @@
 </c:when>
 
 <c:otherwise>
-<table border width="100%">
+<p><table border width="100%">
 <tr>
 <th rowspan="2"><fmt:message key="Columns.Task" />
 <c:if test="${hasHiddenRows}"><a style="font-weight:normal; margin-left:1in"
@@ -53,7 +53,7 @@
 </tr>
 </c:forEach>
 
-</table>
+</table></p>
 </c:otherwise>
 </c:choose>
 </body>

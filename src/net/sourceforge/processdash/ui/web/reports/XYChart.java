@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,10 +24,14 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
+import java.text.DateFormat;
+import java.text.NumberFormat;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -60,12 +64,19 @@ public class XYChart extends CGIChartBase {
 
         Object autoZero = parameters.get("autoZero");
 
-        if ((data.numRows() > 0 && data.numCols() > 0 &&
-             data.getData(1,1) instanceof DateData) ||
-            parameters.get("xDate") != null)
+        boolean firstColumnContainsDate = data.numRows() > 0
+                && data.numCols() > 0 && data.getData(1, 1) instanceof DateData;
+        if (firstColumnContainsDate || parameters.get("xDate") != null) {
             chart = ChartFactory.createTimeSeriesChart
                 (null, xLabel, yLabel, data.xyDataSource(), true, true, false);
-        else {
+            if (firstColumnContainsDate
+                    && ((DateData) data.getData(1, 1)).isFormatAsDateOnly())
+                chart.getXYPlot().getRenderer().setBaseToolTipGenerator(
+                    new StandardXYToolTipGenerator(
+                        StandardXYToolTipGenerator.DEFAULT_TOOL_TIP_FORMAT,
+                        DateFormat.getDateInstance(DateFormat.SHORT),
+                        NumberFormat.getInstance()));
+        } else {
             XYDataset src = data.xyDataSource();
             chart = ChartFactory.createScatterPlot
                 (null, xLabel, yLabel, src, PlotOrientation.VERTICAL,

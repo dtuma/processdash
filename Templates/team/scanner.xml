@@ -33,6 +33,8 @@
 
 <snippet instanceId="301" type="pdash.recentReviews" version="1.0" persister="xml.v1" />
 
+<snippet instanceId="302" type="pdash.cumDefects" version="1.0" persister="xml.v1" />
+
 <pageFooter>
 
 <snippet instanceId="999" type="pdash.teamDataScannerFooter" version="1.0" />

@@ -52,17 +52,12 @@ function imgSrc() {
 	h = self.innerHeight;
     }
 
-    var chart = "line.class";
-    if (window.location.search.indexOf("chart=xy") != -1)
-        chart = "xy.class";
-    else if (window.location.search.indexOf("chart=pie") != -1)
-        chart = "pie.class";
-    else if (window.location.search.indexOf("chart=bar") != -1)
-        chart = "bar.class";
-    else if (window.location.search.indexOf("chart=radar") != -1)
-        chart = "radar.class";
-    else if (window.location.search.indexOf("chart=estErrorScatter") != -1)
-        chart = "estErrorScatter.class";
+    var chart = window.location.search.parseQuery()["chart"];
+    if (chart) {
+        chart = chart + ".class";
+    } else {
+        chart = "line.class";
+    }
     return (chart + window.location.search + "&width="+w + "&height="+h);
 }
 

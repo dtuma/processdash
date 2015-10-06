@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -92,9 +92,13 @@ public class AbstractChartSnippet extends TinyCGIBase {
                 + extraQueryForSmallVersion
                 + "&href=" + HTMLUtils.urlEncode(href.toString());
         String imageHtml = getRequestAsString(resolveRelativeURI(imageUri));
-        out.write(OVERLIB_HEADER_HTML);
+
+        boolean includable = (parameters.get("includable") != null);
+        if (!includable)
+            out.write(OVERLIB_HEADER_HTML);
         out.write(imageHtml);
-        out.write("\n</body></html>\n");
+        if (!includable)
+            out.write("\n</body></html>\n");
     }
 
     private static final String OVERLIB_HEADER_HTML = "<html><head>"

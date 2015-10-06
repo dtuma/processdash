@@ -326,6 +326,13 @@ The author(s) may be contacted at:
     <uri mode="edit">/dash/snippets/estErrorScatterEdit.shtm</uri>
   </snippet>
 
+  <snippet id="pdash.cumDefects" version="1.0" category="charts">
+    <resources>Defects.CumDefects</resources>
+    <context>Team Project Root</context>
+    <context>Master Project Root</context>
+    <uri>/dash/snippets/cumDefects</uri>
+  </snippet>
+
   <snippet id="pdash.teamDataScannerFooter" version="1.0" category="hidden">
     <resources>CMS.Snippet.Anonymous</resources>
     <context>*</context>
