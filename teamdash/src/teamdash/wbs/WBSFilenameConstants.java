@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,8 @@ public interface WBSFilenameConstants {
     String MILESTONES_FILENAME = "milestones.xml";
 
     String PROCESS_FILENAME = "process.xml";
+
+    String COLUMNS_FILENAME = "columns.xml";
 
     String SETTINGS_FILENAME = "settings.xml";
 

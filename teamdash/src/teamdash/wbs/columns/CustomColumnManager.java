@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2012 Tuma Solutions, LLC
+// Copyright (C) 2011-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,9 +25,8 @@ package teamdash.wbs.columns;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.table.TableColumnModel;
 
@@ -45,10 +44,14 @@ public class CustomColumnManager {
 
     private DataTableModel dataModel;
 
+    private CustomColumnSpecs projectColumnSpecs;
+
     private List<DataColumn> customColumns;
 
-    public CustomColumnManager(DataTableModel dataModel, String processID) {
+    public CustomColumnManager(DataTableModel dataModel,
+            CustomColumnSpecs projectColumnSpecs, String processID) {
         this.dataModel = dataModel;
+        this.projectColumnSpecs = projectColumnSpecs;
         this.customColumns = createColumns(processID);
         dataModel.addRemoveDataColumns(customColumns, null);
     }
@@ -59,13 +62,14 @@ public class CustomColumnManager {
     }
 
     private List<DataColumn> createColumns(String processID) {
-        // Find all of the column specs, and index them by ID.  If two
-        // definitions are found for the same column ID, take the earlier one.
-        Map<String, Element> columnSpecs = new LinkedHashMap<String, Element>();
-        for (Element e : loadColumnSpecs()) {
-            String columnId = e.getAttribute(COLUMN_ID_ATTR);
-            if (!columnSpecs.containsKey(columnId))
-                columnSpecs.put(columnId, e);
+        // load column specs from any registered process assets.
+        CustomColumnSpecs columnSpecs = loadColumnSpecsFromProcessAssets();
+
+        // add project-specific columns, replacing any asset-provided columns
+        // that have conflicting IDs.
+        for (Entry<String, Element> e : projectColumnSpecs.entrySet()) {
+            columnSpecs.remove(e.getKey());
+            columnSpecs.put(e.getKey(), e.getValue());
         }
 
         // Now, iterate over the column specs that we found, and create the
@@ -79,8 +83,10 @@ public class CustomColumnManager {
         return result;
     }
 
-    private List<Element> loadColumnSpecs() {
-        List<Element> result = new ArrayList<Element>();
+    private CustomColumnSpecs loadColumnSpecsFromProcessAssets() {
+        // Find all of the column specs, and index them by ID.  If two
+        // definitions are found for the same column ID, take the earlier one.
+        CustomColumnSpecs result = new CustomColumnSpecs();
         String locations = System.getProperty(SYS_PROP_NAME);
         if (locations != null) {
             for (String url : locations.trim().split("\\s+"))
@@ -89,11 +95,11 @@ public class CustomColumnManager {
         return result;
     }
 
-    private void loadColumnSpecs(List<Element> result, String url) {
+    private void loadColumnSpecs(CustomColumnSpecs result, String url) {
         try {
             Element doc = XMLUtils.parse(new URL(url).openStream())
                     .getDocumentElement();
-            result.addAll(XMLUtils.getChildElements(doc));
+            result.load(doc, false);
         } catch (Exception e) {
             System.out.println("Could not open custom column spec from " + url);
             e.printStackTrace();
@@ -133,9 +139,9 @@ public class CustomColumnManager {
         return XMLUtils.hasValue(s);
     }
 
-    private static final String COLUMN_TAG = "column";
+    static final String COLUMN_TAG = "column";
 
-    private static final String COLUMN_ID_ATTR = "id";
+    static final String COLUMN_ID_ATTR = "id";
 
     private static final String COLUMN_NAME_ATTR = "name";
 

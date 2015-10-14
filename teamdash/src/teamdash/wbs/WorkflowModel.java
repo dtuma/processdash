@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -49,7 +50,7 @@ public class WorkflowModel extends DataTableModel {
 
     public WorkflowModel(WBSModel workflows, TeamProcess teamProcess,
             TeamMemberList teamList) {
-        super(workflows, teamList, teamProcess, null, null, null, null, null);
+        super(workflows, teamList, teamProcess, null, null, null, null, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -60,6 +61,7 @@ public class WorkflowModel extends DataTableModel {
                                     WorkflowWBSModel workflows,
                                     ProxyWBSModel proxies,
                                     MilestonesWBSModel milestones,
+                                    CustomColumnSpecs columns,
                                     TaskDependencySource dependencySource,
                                     String currentUser)
     {

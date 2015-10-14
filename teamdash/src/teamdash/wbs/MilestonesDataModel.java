@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.wbs;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
@@ -33,7 +34,7 @@ import teamdash.wbs.columns.WBSNodeColumn;
 public class MilestonesDataModel extends DataTableModel {
 
     public MilestonesDataModel(MilestonesWBSModel milestones) {
-        super(milestones, null, null, null, null, milestones, null, null);
+        super(milestones, null, null, null, null, milestones, null, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -44,6 +45,7 @@ public class MilestonesDataModel extends DataTableModel {
                                     WorkflowWBSModel workflows,
                                     ProxyWBSModel proxies,
                                     MilestonesWBSModel milestones,
+                                    CustomColumnSpecs columns,
                                     TaskDependencySource dependencySource,
                                     String currentUser)
     {

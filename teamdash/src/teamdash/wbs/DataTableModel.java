@@ -45,6 +45,7 @@ import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
@@ -102,6 +103,7 @@ public class DataTableModel extends AbstractTableModel {
                           WorkflowWBSModel workflows,
                           ProxyWBSModel proxies,
                           MilestonesWBSModel milestones,
+                          CustomColumnSpecs customColumns,
                           TaskDependencySource dependencySource,
                           String currentUser)
     {
@@ -118,7 +120,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setInitialDelay(3000);
 
         buildDataColumns(teamList, teamProcess, workflows, proxies, milestones,
-            dependencySource, currentUser);
+            customColumns, dependencySource, currentUser);
         initializeColumnDependencies();
     }
 
@@ -350,6 +352,7 @@ public class DataTableModel extends AbstractTableModel {
     protected void buildDataColumns(TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             ProxyWBSModel proxies, MilestonesWBSModel milestones,
+            CustomColumnSpecs projectColumns,
             TaskDependencySource dependencySource, String currentUser)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));
@@ -370,8 +373,8 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new NotesColumn(currentUser));
         addDataColumn(new ErrorNotesColumn(currentUser));
         addDataColumn(new PlanTimeWatcher(this));
-        customColumnManager = new CustomColumnManager(this, teamProcess
-                .getProcessID());
+        customColumnManager = new CustomColumnManager(this, projectColumns,
+                teamProcess.getProcessID());
     }
 
     /** Return the work breakdown structure model that this data model

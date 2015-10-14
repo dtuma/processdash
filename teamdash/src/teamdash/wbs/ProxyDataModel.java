@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.wbs;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.ProxyRateColumn;
 import teamdash.wbs.columns.ProxySizeColumn;
 import teamdash.wbs.columns.ProxyTimeColumn;
@@ -32,7 +33,7 @@ import teamdash.wbs.columns.WBSNodeColumn;
 public class ProxyDataModel extends DataTableModel {
 
     public ProxyDataModel(ProxyWBSModel proxies, TeamProcess process) {
-        super(proxies, null, process, null, proxies, null, null, null);
+        super(proxies, null, process, null, proxies, null, null, null, null);
     }
 
     /**
@@ -42,7 +43,8 @@ public class ProxyDataModel extends DataTableModel {
     protected void buildDataColumns(TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             ProxyWBSModel proxies, MilestonesWBSModel milestones,
-            TaskDependencySource dependencySource, String currentUser) {
+            CustomColumnSpecs columns, TaskDependencySource dependencySource,
+            String currentUser) {
         addDataColumn(new WBSNodeColumn(proxies));
         ProxySizeColumn size = new ProxySizeColumn(this, teamProcess);
         ProxyRateColumn rate = new ProxyRateColumn(this, size);

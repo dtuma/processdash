@@ -253,7 +253,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getWorkflows(),
              teamProject.getProxies(), teamProject.getMilestones(),
-             taskDependencySource, owner);
+             teamProject.getColumns(), taskDependencySource, owner);
 
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
                 teamProject.getTeamProcess());

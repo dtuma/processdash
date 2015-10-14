@@ -165,6 +165,7 @@ public class DashboardBackupFactory {
             m.add("workflow.xml");
             m.add("proxies.xml");
             m.add("milestones.xml");
+            m.add("columns.xml");
             m.add("tabs.xml");
             m.add("changehistory.xml");
             m.add("user-settings.ini");

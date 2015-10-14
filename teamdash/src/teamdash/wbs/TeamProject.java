@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnSpecs;
 
 public class TeamProject implements WBSFilenameConstants {
 
@@ -59,6 +60,7 @@ public class TeamProject implements WBSFilenameConstants {
     private WorkflowWBSModel workflows;
     private ProxyWBSModel proxies;
     private MilestonesWBSModel milestones;
+    private CustomColumnSpecs columnSpecs;
     private long fileModTime;
     private String masterProjectID;
     private ImportDirectory masterProjectDirectory;
@@ -106,6 +108,7 @@ public class TeamProject implements WBSFilenameConstants {
         openWorkflows();
         openProxies();
         openMilestones();
+        openColumns();
         openWBS();
     }
 
@@ -154,6 +157,7 @@ public class TeamProject implements WBSFilenameConstants {
         result = saveWorkflows(directory) && result;
         result = saveProxies(directory) && result;
         result = saveMilestones(directory) && result;
+        result = saveColumns(directory) && result;
         return result;
     }
 
@@ -201,6 +205,11 @@ public class TeamProject implements WBSFilenameConstants {
     /** Get the milestones for this project */
     public MilestonesWBSModel getMilestones() {
         return milestones;
+    }
+
+    /** Get the custom columns for this project */
+    public CustomColumnSpecs getColumns() {
+        return columnSpecs;
     }
 
     /** If this project is part of a master project, get the directory where
@@ -537,7 +546,7 @@ public class TeamProject implements WBSFilenameConstants {
             if (XMLUtils.hasValue(relativeTemplateLocation)) {
                 File templateJar =
                     new File(directory, relativeTemplateLocation);
-                String jarURL = templateJar.toURL().toString();
+                String jarURL = templateJar.toURI().toURL().toString();
                 String xmlURL = "jar:" + jarURL + "!/settings.xml";
                 Document doc = XMLUtils.parse((new URL(xmlURL)).openStream());
                 xml = doc.getDocumentElement();
@@ -662,6 +671,38 @@ public class TeamProject implements WBSFilenameConstants {
     private boolean saveMilestones(File directory) {
         return saveXML(milestones, directory, MILESTONES_FILENAME);
     }
+
+
+
+    /** Open the file containing the custom project columns */
+    private void openColumns() {
+        try {
+            columnSpecs = new CustomColumnSpecs();
+            Element xml = openXML(checkEditable(new File(directory,
+                    COLUMNS_FILENAME)));
+            if (xml != null)
+                columnSpecs.load(xml, true);
+        } catch (Exception e) {
+        }
+    }
+
+    /** Save the project milestones */
+    private boolean saveColumns(File directory) {
+        try {
+            File f = new File(directory, COLUMNS_FILENAME);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            columnSpecs.getAsXML(buf);
+            buf.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+
 
     public long getFileModificationTime() {
         return fileModTime;
