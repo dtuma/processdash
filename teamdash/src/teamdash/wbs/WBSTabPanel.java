@@ -464,9 +464,11 @@ public class WBSTabPanel extends JLayeredPane
     }
 
     public Action[] getTabActions() {
+        Action customColumnsAction = ((DataTableModel) dataTable.getModel())
+                .getCustomColumnsAction(this);
         return new Action[] {NEW_TAB_ACTION, DUPLICATE_TAB_ACTION,
                 DELETE_TAB_ACTION, IMPORT_TABS_ACTION, EXPORT_TABS_ACTION,
-                CHANGE_TAB_COLUMNS_ACTION, RENAME_TAB_ACTION};
+                CHANGE_TAB_COLUMNS_ACTION, customColumnsAction, RENAME_TAB_ACTION};
     }
 
     private class NewTabAction extends AbstractAction {

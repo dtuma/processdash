@@ -24,6 +24,7 @@
 
 package teamdash.wbs;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.swing.Action;
 import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
@@ -46,6 +48,7 @@ import javax.swing.table.TableColumnModel;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.CustomColumnSpecs;
+import teamdash.wbs.columns.CustomColumnsAction;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
@@ -347,6 +350,9 @@ public class DataTableModel extends AbstractTableModel {
         customColumnManager.addColumnsToColumnModel(columnModel);
     }
 
+    public Action getCustomColumnsAction(Component parent) {
+        return new CustomColumnsAction(parent, customColumnManager);
+    }
 
     /** Create a set of data columns for this data model. */
     protected void buildDataColumns(TeamMemberList teamList,

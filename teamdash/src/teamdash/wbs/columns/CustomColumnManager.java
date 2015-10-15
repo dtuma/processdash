@@ -61,6 +61,14 @@ public class CustomColumnManager {
             columnModel.addColumn(new DataTableColumn(dataModel, col));
     }
 
+    public List<DataColumn> getProjectSpecificColumns() {
+        List<DataColumn> result = new ArrayList<DataColumn>();
+        for (DataColumn column : customColumns)
+            if (projectColumnSpecs.containsKey(column.getColumnID()))
+                result.add(column);
+        return result;
+    }
+
     private List<DataColumn> createColumns(String processID) {
         // load column specs from any registered process assets.
         CustomColumnSpecs columnSpecs = loadColumnSpecsFromProcessAssets();
