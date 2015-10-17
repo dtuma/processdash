@@ -23,8 +23,10 @@
 
 package teamdash.wbs.columns;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -207,12 +209,38 @@ public class CustomColumnManager {
         return XMLUtils.hasValue(s);
     }
 
+
     public void exportColumns(File dest) throws IOException {
         BufferedWriter out = new BufferedWriter(new RobustFileWriter(dest,
                 "UTF-8"));
         projectColumnSpecs.getAsXML(out);
         out.close();
     }
+
+
+    public void importColumns(File src) throws Exception {
+        CustomColumnSpecs specs = new CustomColumnSpecs();
+        specs.load(XMLUtils.parse(new BufferedInputStream(
+            new FileInputStream(src))).getDocumentElement(), false);
+        if (specs.isEmpty())
+            throw new IOException("Not a custom columns file");
+
+        for (Entry<String, Element> e : specs.entrySet()) {
+            String id = e.getKey();
+            CustomColumn oldColumn = findColumnById(id);
+            CustomColumn newColumn = createColumn(e.getValue(), null);
+            if (newColumn != null)
+                changeColumn(oldColumn, newColumn);
+        }
+    }
+
+    private CustomColumn findColumnById(String id) {
+        for (CustomColumn col : customColumns)
+            if (col.getColumnID().equals(id))
+                return col;
+        return null;
+    }
+
 
     static final String COLUMN_TAG = "column";
 

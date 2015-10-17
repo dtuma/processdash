@@ -39,12 +39,14 @@ public class CustomColumnSpecs extends LinkedHashMap<String, Element> {
     public CustomColumnSpecs() {}
 
     public CustomColumnSpecs load(Element xml, boolean replaceExisting) {
-        for (Element tag : XMLUtils.getChildElements(xml)) {
-            if (COLUMN_TAG.equals(tag.getTagName())) {
-                String id = tag.getAttribute(COLUMN_ID_ATTR);
-                if (XMLUtils.hasValue(id))
-                    if (replaceExisting || !containsKey(id))
-                        put(id, tag);
+        if (xml.getTagName().equals(COLUMN_SPECS_TAG)) {
+            for (Element tag : XMLUtils.getChildElements(xml)) {
+                if (COLUMN_TAG.equals(tag.getTagName())) {
+                    String id = tag.getAttribute(COLUMN_ID_ATTR);
+                    if (XMLUtils.hasValue(id))
+                        if (replaceExisting || !containsKey(id))
+                            put(id, tag);
+                }
             }
         }
 

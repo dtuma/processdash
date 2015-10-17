@@ -185,14 +185,10 @@ public class CustomColumnsAction extends AbstractAction {
 
     }
 
-    private class ColumnAction extends AbstractAction {
+    private abstract class ColumnAction extends AbstractAction {
 
         private ColumnAction(String resKey) {
             super(resources.getString(resKey));
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(null, "Not yet implemented");
         }
 
     }
@@ -264,9 +260,57 @@ public class CustomColumnsAction extends AbstractAction {
     private class ImportAction extends ColumnAction {
 
         public ImportAction() {
-            super("Import_Button");
+            super("Import.Button");
         }
 
+        public void actionPerformed(ActionEvent e) {
+            File src = getFile();
+            if (src != null) {
+                try {
+                    columnManager.importColumns(src);
+                    init();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(columnList,
+                        fileMsg("Import.Failure_Message_FMT", src),
+                        resources.getString("Import.Title"),
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }            
+        }
+
+        private File getFile() {
+            String title = resources.getString("Import.Title");
+            File file = null;
+            JFileChooser chooser = getFileChooser();
+            chooser.setDialogTitle(title);
+            chooser.setApproveButtonToolTipText(title);
+            int returnValue = chooser.showDialog(columnList,
+                (String) getValue(NAME));
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                file = chooser.getSelectedFile();
+
+                // check for an extension and add it if it is missing
+                if (file.getName().indexOf('.') == -1)
+                    file = new File(file.getParentFile(), file.getName()
+                            + COLXML_EXTENSION);
+
+                if (!file.exists()) {
+                    JOptionPane.showMessageDialog(columnList,
+                        fileMsg("Import.No_Such_File_FMT", file), title,
+                        JOptionPane.ERROR_MESSAGE);
+                    file = getFile();
+
+                } else if (!file.canRead()) {
+                    JOptionPane.showMessageDialog(columnList,
+                        fileMsg("Import.Cannot_Read_File_FMT", file), title,
+                        JOptionPane.ERROR_MESSAGE);
+                    file = getFile();
+                }
+            }
+
+            return file;
+        }
     }
 
     private ImportAction importAction = new ImportAction();
