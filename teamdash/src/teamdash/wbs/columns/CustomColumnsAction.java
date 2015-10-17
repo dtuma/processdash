@@ -47,9 +47,11 @@ import javax.swing.event.ListSelectionListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 
-import teamdash.wbs.DataColumn;
+import teamdash.wbs.DataTableModel;
 
 public class CustomColumnsAction extends AbstractAction {
+
+    private DataTableModel dataModel;
 
     private CustomColumnManager columnManager;
 
@@ -65,9 +67,10 @@ public class CustomColumnsAction extends AbstractAction {
             .getDashBundle("WBSEditor.CustomColumns");
 
 
-    public CustomColumnsAction(Component parent,
+    public CustomColumnsAction(Component parent, DataTableModel dataModel,
             CustomColumnManager columnManager) {
         super(resources.getString("Menu"));
+        this.dataModel = dataModel;
         this.columnManager = columnManager;
         this.parentWindow = SwingUtilities.getWindowAncestor(parent);
 
@@ -145,7 +148,7 @@ public class CustomColumnsAction extends AbstractAction {
 
     private class DataColumnList extends AbstractListModel {
 
-        private List<DataColumn> dataColumns;
+        private List<CustomColumn> dataColumns;
 
         private DataColumnList() {
             dataColumns = columnManager.getProjectSpecificColumns();
@@ -157,6 +160,22 @@ public class CustomColumnsAction extends AbstractAction {
 
         public Object getElementAt(int index) {
             return dataColumns.get(index).getColumnName();
+        }
+
+        protected void addElement(CustomColumn column) {
+            int index = dataColumns.size();
+            dataColumns.add(column);
+            fireIntervalAdded(this, index, index);
+        }
+
+        protected void replaceElement(int index, CustomColumn column) {
+            dataColumns.set(index, column);
+            fireContentsChanged(this, index, index);
+        }
+
+        protected void removeElement(int index) {
+            dataColumns.remove(index);
+            fireIntervalRemoved(this, index, index);
         }
 
     }
@@ -180,6 +199,11 @@ public class CustomColumnsAction extends AbstractAction {
             super("Add_Button");
         }
 
+        public void actionPerformed(ActionEvent e) {
+            CustomColumn column = createMockColumn(null);
+            columnManager.changeColumn(null, column);
+            model.addElement(column);
+        }
     }
 
     private AddAction addAction = new AddAction();
@@ -191,6 +215,15 @@ public class CustomColumnsAction extends AbstractAction {
             super("Edit_Button");
         }
 
+        public void actionPerformed(ActionEvent e) {
+            int selectedIndex = columnList.getSelectedIndex();
+            if (selectedIndex == -1)
+                return;
+            CustomColumn oldColumn = model.dataColumns.get(selectedIndex);
+            CustomColumn newColumn = createMockColumn(oldColumn.getColumnID());
+            columnManager.changeColumn(oldColumn, newColumn);
+            model.replaceElement(selectedIndex, newColumn);
+        }
     }
 
     private EditAction editAction = new EditAction();
@@ -199,9 +232,25 @@ public class CustomColumnsAction extends AbstractAction {
     private class DeleteAction extends ColumnAction {
 
         public DeleteAction() {
-            super("Delete_Button");
+            super("Delete.Button");
         }
 
+        public void actionPerformed(ActionEvent e) {
+            int selectedIndex = columnList.getSelectedIndex();
+            if (selectedIndex == -1)
+                return;
+            CustomColumn column = model.dataColumns.get(selectedIndex);
+
+            String title = resources.getString("Delete.Confirm_Title");
+            String msg = resources.format("Delete.Confirm_Msg_FMT",
+                column.getColumnName());
+            int userChoice = JOptionPane.showConfirmDialog(columnList, msg,
+                title, JOptionPane.YES_NO_OPTION);
+            if (userChoice == JOptionPane.YES_OPTION) {
+                columnManager.changeColumn(column, null);
+                model.removeElement(selectedIndex);
+            }
+        }
     }
 
     private DeleteAction deleteAction = new DeleteAction();
@@ -227,5 +276,14 @@ public class CustomColumnsAction extends AbstractAction {
     }
 
     private ExportAction exportAction = new ExportAction();
+
+    private CustomColumn createMockColumn(String columnID) {
+        int num = mockColumnNum++;
+        if (columnID == null)
+            columnID = "mock" + num;
+        return new AncestorSelectionColumn(dataModel, columnID, //
+            "Mock Column " + num, -1, "Mock_Label_" + num);
+    }
+    private int mockColumnNum = 1;
 
 }

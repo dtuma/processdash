@@ -95,12 +95,16 @@ import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnListener;
+import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.CustomColumnsAction;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 /** Class to display the WBS editor panel
  */
-public class WBSTabPanel extends JLayeredPane
-    implements TeamMemberList.InitialsListener, MergeConflictHyperlinkHandler
+public class WBSTabPanel extends JLayeredPane implements
+        TeamMemberList.InitialsListener, CustomColumnListener,
+        MergeConflictHyperlinkHandler
 {
 
     private static final String SAVE_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being saved.";
@@ -141,6 +145,8 @@ public class WBSTabPanel extends JLayeredPane
     JFileChooser fileChooser;
     UndoList undoList;
     ArrayList<TableColumnModel> tableColumnModels = new ArrayList();
+    TableColumnModel customColumnsTab;
+    int customColumnInsertPosDelta;
     boolean customTabsDirty = false;
     GridBagLayout layout;
     ArrayList tabProperties = new ArrayList();
@@ -241,6 +247,8 @@ public class WBSTabPanel extends JLayeredPane
                 tableModel.addTeamMemberActualTimes(columnModel);
                 isProtected = true;
             } else if (CUSTOM_COLUMNS_ID.equals(columnIDs[i])) {
+                customColumnsTab = columnModel;
+                customColumnInsertPosDelta = columnIDs.length - i - 1;
                 tableModel.addCustomColumns(columnModel);
             } else {
                 try {
@@ -464,11 +472,16 @@ public class WBSTabPanel extends JLayeredPane
     }
 
     public Action[] getTabActions() {
-        Action customColumnsAction = ((DataTableModel) dataTable.getModel())
-                .getCustomColumnsAction(this);
         return new Action[] {NEW_TAB_ACTION, DUPLICATE_TAB_ACTION,
                 DELETE_TAB_ACTION, IMPORT_TABS_ACTION, EXPORT_TABS_ACTION,
-                CHANGE_TAB_COLUMNS_ACTION, customColumnsAction, RENAME_TAB_ACTION};
+                CHANGE_TAB_COLUMNS_ACTION, makeCustomColumnsAction(),
+                RENAME_TAB_ACTION};
+    }
+
+    private CustomColumnsAction makeCustomColumnsAction() {
+        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        colMgr.setCustomColumnListener(this);
+        return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);
     }
 
     private class NewTabAction extends AbstractAction {
@@ -704,6 +717,51 @@ public class WBSTabPanel extends JLayeredPane
             public void run() {
                 undoList.clear();
             }});
+    }
+
+
+
+    public void columnAdded(String id, DataColumn newColumn) {
+        // insert the column near the end of the Task Details tab
+        if (customColumnsTab != null) {
+            int pos = customColumnsTab.getColumnCount();
+            customColumnsTab.addColumn(new DataTableColumn(wbsTable.dataModel,
+                newColumn));
+            customColumnsTab.moveColumn(pos, pos - customColumnInsertPosDelta);
+            // fire a dirty change event (without recording an undoable action)
+            undoList.notifyAllChangeListeners();
+        }
+    }
+
+    public void columnChanged(String id, DataColumn oldColumn,
+            DataColumn newColumn) {
+        // Find columns with the given ID and replace them.
+        for (TableColumnModel tcm : tableColumnModels) {
+            for (int col = tcm.getColumnCount(); col-- > 0;) {
+                TableColumn column = tcm.getColumn(col);
+                if (id.equals(column.getIdentifier())) {
+                    tcm.removeColumn(column);
+                    tcm.addColumn(new DataTableColumn(wbsTable.dataModel,
+                            newColumn));
+                    tcm.moveColumn(tcm.getColumnCount() - 1, col);
+                }
+            }
+        }
+        // fire a dirty change event (but without recording an undoable action)
+        undoList.notifyAllChangeListeners();
+    }
+
+    public void columnDeleted(String id, DataColumn oldColumn) {
+        // Find columns with the given ID and delete them.
+        for (TableColumnModel tcm : tableColumnModels) {
+            for (int col = tcm.getColumnCount(); col-- > 0;) {
+                TableColumn column = tcm.getColumn(col);
+                if (id.equals(column.getIdentifier()))
+                    tcm.removeColumn(column);
+            }
+        }
+        // fire a dirty change event (but without recording an undoable action)
+        undoList.notifyAllChangeListeners();
     }
 
 

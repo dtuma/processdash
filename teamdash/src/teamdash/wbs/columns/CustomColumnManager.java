@@ -23,8 +23,11 @@
 
 package teamdash.wbs.columns;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -34,7 +37,6 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
-import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableColumn;
 import teamdash.wbs.DataTableModel;
 
@@ -46,7 +48,9 @@ public class CustomColumnManager {
 
     private CustomColumnSpecs projectColumnSpecs;
 
-    private List<DataColumn> customColumns;
+    private List<CustomColumn> customColumns;
+
+    private CustomColumnListener listener;
 
     public CustomColumnManager(DataTableModel dataModel,
             CustomColumnSpecs projectColumnSpecs, String processID) {
@@ -57,19 +61,71 @@ public class CustomColumnManager {
     }
 
     public void addColumnsToColumnModel(TableColumnModel columnModel) {
-        for (DataColumn col : customColumns)
+        for (CustomColumn col : customColumns)
             columnModel.addColumn(new DataTableColumn(dataModel, col));
     }
 
-    public List<DataColumn> getProjectSpecificColumns() {
-        List<DataColumn> result = new ArrayList<DataColumn>();
-        for (DataColumn column : customColumns)
+    public List<CustomColumn> getProjectSpecificColumns() {
+        List<CustomColumn> result = new ArrayList<CustomColumn>();
+        for (CustomColumn column : customColumns)
             if (projectColumnSpecs.containsKey(column.getColumnID()))
                 result.add(column);
         return result;
     }
 
-    private List<DataColumn> createColumns(String processID) {
+    public void setCustomColumnListener(CustomColumnListener l) {
+        listener = l;
+    }
+
+    public void changeColumn(CustomColumn oldColumn, CustomColumn newColumn) {
+        // update our data structures
+        removeOldColumn(oldColumn);
+        addNewColumn(newColumn);
+
+        // propagate column changes into the data model
+        dataModel.addRemoveDataColumns(
+            newColumn == null ? null : Collections.singletonList(newColumn),
+            oldColumn == null ? null : Collections.singletonList(oldColumn));
+
+        // notify our registered listener
+        if (listener != null) {
+            if (newColumn == null)
+                listener.columnDeleted(oldColumn.getColumnID(), oldColumn);
+            else if (oldColumn == null)
+                listener.columnAdded(newColumn.getColumnID(), newColumn);
+            else
+                listener.columnChanged(newColumn.getColumnID(), oldColumn,
+                    newColumn);
+        }
+    }
+
+    protected void removeOldColumn(CustomColumn oldColumn) {
+        if (oldColumn != null) {
+            customColumns.remove(oldColumn);
+            projectColumnSpecs.remove(oldColumn.getColumnID());
+        }
+    }
+
+    protected void addNewColumn(CustomColumn newColumn) {
+        if (newColumn != null) {
+            try {
+                StringWriter buf = new StringWriter();
+                PrintWriter out = new PrintWriter(buf);
+                newColumn.getAsXml(out);
+                out.flush();
+                Element spec = XMLUtils.parse(buf.toString())
+                        .getDocumentElement();
+
+                customColumns.add(newColumn);
+                projectColumnSpecs.put(newColumn.getColumnID(), spec);
+            } catch (Exception e) {
+                System.out.println("Unable to add new custom WBS column");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private List<CustomColumn> createColumns(String processID) {
         // load column specs from any registered process assets.
         CustomColumnSpecs columnSpecs = loadColumnSpecsFromProcessAssets();
 
@@ -82,9 +138,9 @@ public class CustomColumnManager {
 
         // Now, iterate over the column specs that we found, and create the
         // actual column objects for each one.
-        List<DataColumn> result = new ArrayList<DataColumn>();
+        List<CustomColumn> result = new ArrayList<CustomColumn>();
         for (Element e : columnSpecs.values()) {
-            DataColumn col = createColumn(e, processID);
+            CustomColumn col = createColumn(e, processID);
             if (col != null)
                 result.add(col);
         }
@@ -114,7 +170,7 @@ public class CustomColumnManager {
         }
     }
 
-    private DataColumn createColumn(Element e, String processID) {
+    private CustomColumn createColumn(Element e, String processID) {
         if (!COLUMN_TAG.equals(e.getTagName()))
             // this element is not a custom column tag. Ignore it.
             return null;
@@ -132,10 +188,10 @@ public class CustomColumnManager {
             // that this WBS is using.
             return null;
 
-        if (TYPE_ANCESTOR_SELECTION.equals(type))
+        if (AncestorSelectionColumn.TYPE.equals(type))
             return new AncestorSelectionColumn(dataModel, id, name, e);
 
-        else if (TYPE_TEXT.equals(type))
+        else if (CustomTextColumn.TYPE.equals(type))
             return new CustomTextColumn(dataModel, id, name, e);
 
         System.out.println("Unrecognized type '" + type
@@ -151,14 +207,14 @@ public class CustomColumnManager {
 
     static final String COLUMN_ID_ATTR = "id";
 
-    private static final String COLUMN_NAME_ATTR = "name";
+    static final String COLUMN_NAME_ATTR = "name";
 
-    private static final String COLUMN_TYPE_ATTR = "type";
+    static final String COLUMN_TYPE_ATTR = "type";
 
     private static final String COLUMN_PROCESS_ATTR = "forProcess";
 
-    private static final String TYPE_ANCESTOR_SELECTION = "AncestorSelectionColumn";
+    static final String COL_WIDTH = "width";
 
-    private static final String TYPE_TEXT = "TextColumn";
+    static final String SYNC_AS_LABEL = "syncAsLabel";
 
 }

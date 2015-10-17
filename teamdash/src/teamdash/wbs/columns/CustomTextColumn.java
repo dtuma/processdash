@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2013 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package teamdash.wbs.columns;
 
+import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,11 +38,13 @@ import teamdash.wbs.WBSNode;
 import teamdash.wbs.WrappedValue;
 
 public class CustomTextColumn extends AbstractLabelColumn implements
-        WbsNodeAttributeSource {
+        CustomColumn, WbsNodeAttributeSource {
+
+    static final String TYPE = "TextColumn";
 
     private static final String VALUE_SUFFIX = "-CustomText";
 
-    private boolean inherits;
+    private boolean multivalued, inherits, autocomplete;
 
     private Set<String> allowedValues;
 
@@ -51,7 +54,7 @@ public class CustomTextColumn extends AbstractLabelColumn implements
         String safeId = id.replace('_', ' ').replace('@', ' ');
         String attrName = safeId + VALUE_SUFFIX;
 
-        String labelPrefix = xml.getAttribute("syncAsLabel");
+        String labelPrefix = xml.getAttribute(CustomColumnManager.SYNC_AS_LABEL);
         if (labelPrefix == null || labelPrefix.length() == 0)
             labelPrefix = null;
         else if ("true".equals(labelPrefix))
@@ -59,10 +62,10 @@ public class CustomTextColumn extends AbstractLabelColumn implements
         else
             labelPrefix = labelPrefix + ":";
 
-        int width = XMLUtils.getXMLInt(xml, "width");
-        boolean multivalued = test(xml, "multivalued", false);
+        int width = XMLUtils.getXMLInt(xml, CustomColumnManager.COL_WIDTH);
+        multivalued = test(xml, "multivalued", false);
         inherits = test(xml, "inherit", true);
-        boolean autocomplete = test(xml, "autocomplete", true);
+        autocomplete = test(xml, "autocomplete", true);
 
         allowedValues = parseAllowedValues(xml);
 
@@ -91,6 +94,53 @@ public class CustomTextColumn extends AbstractLabelColumn implements
             result.add(XMLUtils.getTextContents(oneTag));
         }
         return result;
+    }
+
+    public void getAsXml(PrintWriter out) {
+        out.write("<" + CustomColumnManager.COLUMN_TAG);
+        writeAttr(out, CustomColumnManager.COLUMN_ID_ATTR, columnID);
+        writeAttr(out, CustomColumnManager.COLUMN_TYPE_ATTR, TYPE);
+        writeAttr(out, CustomColumnManager.COLUMN_NAME_ATTR, columnName);
+
+        // write label sync info
+        if ("".equals(labelPrefix))
+            writeAttr(out, CustomColumnManager.SYNC_AS_LABEL, "true");
+        else if (labelPrefix != null)
+            writeAttr(out, CustomColumnManager.SYNC_AS_LABEL,
+                labelPrefix.substring(0, labelPrefix.length() - 1));
+
+        // write preferred width
+        if (preferredWidth > 0)
+            writeAttr(out, CustomColumnManager.COL_WIDTH,
+                Integer.toString(preferredWidth));
+
+        // write text completion info
+        writeAttr(out, "multivalued", Boolean.toString(multivalued));
+        writeAttr(out, "inherit", Boolean.toString(inherits));
+        writeAttr(out, "autocomplete", Boolean.toString(autocomplete));
+
+        // write allowed values
+        if (allowedValues == null) {
+            out.write("/>");
+        } else {
+            out.write(">\n");
+            for (String value : allowedValues) {
+                out.write("        <value>");
+                out.write(XMLUtils.escapeAttribute(value));
+                out.write("</value>\n");
+            }
+            out.write("</" + CustomColumnManager.COLUMN_TAG + ">");
+        }
+    }
+
+    private void writeAttr(PrintWriter out, String attr, String value) {
+        if (XMLUtils.hasValue(value)) {
+            out.write(" ");
+            out.write(attr);
+            out.write("='");
+            out.write(XMLUtils.escapeAttribute(value));
+            out.write("'");
+        }
     }
 
     @Override

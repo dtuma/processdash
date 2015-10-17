@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2013 Tuma Solutions, LLC
+// Copyright (C) 2011-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package teamdash.wbs.columns;
 
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +52,9 @@ import teamdash.wbs.WBSNode;
  * @author Tuma
  */
 public class AncestorSelectionColumn extends AbstractDataColumn implements
-        CalculatedDataColumn, LabelSource, WbsNodeAttributeSource {
+        CalculatedDataColumn, CustomColumn, LabelSource, WbsNodeAttributeSource {
+
+    static final String TYPE = "AncestorSelectionColumn";
 
     private WBSModel wbsModel;
 
@@ -76,8 +79,32 @@ public class AncestorSelectionColumn extends AbstractDataColumn implements
 
     public AncestorSelectionColumn(DataTableModel dataModel, String id,
             String name, Element e) {
-        this(dataModel, id, name, XMLUtils.getXMLInt(e, "width"),
-                e.getAttribute("syncAsLabel"));
+        this(dataModel, id, name, //
+                XMLUtils.getXMLInt(e, CustomColumnManager.COL_WIDTH), //
+                e.getAttribute(CustomColumnManager.SYNC_AS_LABEL));
+    }
+
+    public void getAsXml(PrintWriter out) {
+        out.write("<" + CustomColumnManager.COLUMN_TAG);
+        writeAttr(out, CustomColumnManager.COLUMN_ID_ATTR, columnID);
+        writeAttr(out, CustomColumnManager.COLUMN_TYPE_ATTR, TYPE);
+        writeAttr(out, CustomColumnManager.COLUMN_NAME_ATTR, columnName);
+        if (preferredWidth > 0)
+            writeAttr(out, CustomColumnManager.COL_WIDTH,
+                Integer.toString(preferredWidth));
+        if (labelName != null)
+            writeAttr(out, CustomColumnManager.SYNC_AS_LABEL, labelName);
+        out.write("/>");
+    }
+
+    private void writeAttr(PrintWriter out, String attr, String value) {
+        if (XMLUtils.hasValue(value)) {
+            out.write(" ");
+            out.write(attr);
+            out.write("='");
+            out.write(XMLUtils.escapeAttribute(value));
+            out.write("'");
+        }
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {}
