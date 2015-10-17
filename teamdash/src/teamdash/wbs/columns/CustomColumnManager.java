@@ -23,6 +23,9 @@
 
 package teamdash.wbs.columns;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -35,6 +38,7 @@ import javax.swing.table.TableColumnModel;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.DataTableColumn;
@@ -201,6 +205,13 @@ public class CustomColumnManager {
 
     private boolean hasValue(String s) {
         return XMLUtils.hasValue(s);
+    }
+
+    public void exportColumns(File dest) throws IOException {
+        BufferedWriter out = new BufferedWriter(new RobustFileWriter(dest,
+                "UTF-8"));
+        projectColumnSpecs.getAsXML(out);
+        out.close();
     }
 
     static final String COLUMN_TAG = "column";

@@ -31,18 +31,21 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.beans.EventHandler;
+import java.io.File;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -62,6 +65,8 @@ public class CustomColumnsAction extends AbstractAction {
     private JPanel content;
 
     private DataColumnList model;
+
+    private static final String COLXML_EXTENSION = ".colxml";
 
     private static final Resources resources = Resources
             .getDashBundle("WBSEditor.CustomColumns");
@@ -270,12 +275,93 @@ public class CustomColumnsAction extends AbstractAction {
     private class ExportAction extends ColumnAction {
 
         public ExportAction() {
-            super("Export_Button");
+            super("Export.Button");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            File dest = getFile();
+            if (dest != null) {
+                try {
+                    columnManager.exportColumns(dest);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(columnList,
+                        fileMsg("Export.Failure_Message_FMT", dest),
+                        resources.getString("Export.Title"),
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+
+        private File getFile() {
+            String title = resources.getString("Export.Title");
+            File file = null;
+            JFileChooser chooser = getFileChooser();
+            chooser.setDialogTitle(title);
+            chooser.setApproveButtonToolTipText(title);
+            int returnValue = chooser.showDialog(columnList,
+                (String) getValue(NAME));
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                file = chooser.getSelectedFile();
+
+                // check for an extension and add it if it is missing
+                if (file.getName().indexOf('.') == -1)
+                    file = new File(file.getParentFile(), file.getName()
+                            + COLXML_EXTENSION);
+
+                if (file.exists()) {
+                    if (file.canWrite()) {
+                        int option = JOptionPane.showConfirmDialog(columnList,
+                            fileMsg("Export.Confirm_Prompt_FMT", file), title,
+                            JOptionPane.YES_NO_OPTION);
+                        if (option != JOptionPane.YES_OPTION)
+                            file = getFile();
+
+                    } else {
+                        JOptionPane.showMessageDialog(columnList,
+                            fileMsg("Export.Cannot_Write_FMT", file), title,
+                            JOptionPane.ERROR_MESSAGE);
+                        file = getFile();
+                    }
+                }
+            }
+
+            return file;
         }
 
     }
 
     private ExportAction exportAction = new ExportAction();
+
+
+
+    private JFileChooser getFileChooser() {
+        if (fileChooser == null) {
+            fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new ColumnFileFilter());
+            fileChooser.setMultiSelectionEnabled(false);
+        }
+        return fileChooser;
+    }
+    private JFileChooser fileChooser;
+    
+    private class ColumnFileFilter extends FileFilter {
+
+        public boolean accept(File f) {
+            return (f.isDirectory() || f.getName().endsWith(COLXML_EXTENSION));
+        }
+
+        public String getDescription() {
+            return resources.getString("File_Type");
+        }
+
+    }
+
+    private String[] fileMsg(String resKey, File f) {
+        return resources.formatStrings(resKey, f.getName());
+    }
+
+
 
     private CustomColumn createMockColumn(String columnID) {
         int num = mockColumnNum++;
