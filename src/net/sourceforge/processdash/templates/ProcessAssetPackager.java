@@ -230,6 +230,7 @@ public class ProcessAssetPackager {
     private static final String[][] ASSET_FORMATS = { //
             { ".wfxml", "org-workflows", "uri" }, //
             { ".tabxml", "customWbsTabs", "specFile" }, //
+            { ".colxml", "customWbsColumns", "specFile" }, //
             { ".estxml", "org-proxies", "uri" }, //
             { ".dtsxml", "defect-types", "uri" }, //
     };

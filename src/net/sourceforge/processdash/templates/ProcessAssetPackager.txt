@@ -23,5 +23,6 @@ Process asset files may include files of the following formats:
 
     .wfxml     Files containing custom team workflows
     .tabxml    Files containing custom WBS Editor tabs
+    .colxml    Files containing custom WBS columns
     .estxml    Files containing custom estimating proxy tables
     .dtsxml    Files containing defect type standards
