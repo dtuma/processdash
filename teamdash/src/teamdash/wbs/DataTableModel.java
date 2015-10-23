@@ -85,9 +85,9 @@ public class DataTableModel extends AbstractTableModel {
     /** A set of columns that need recalculating */
     private Set dirtyColumns;
     /** A list of the columns which are sources of label data */
-    private IntList labelSources;
+    private Set<Integer> labelSources;
     /** A list of the columns which are sources of attribute data */
-    private IntList attrSources;
+    private Set<Integer> attrSources;
     /** A timer for triggering recalculations */
     private Timer recalcJanitorTimer;
     /** Object which manages columns for team members */
@@ -112,8 +112,8 @@ public class DataTableModel extends AbstractTableModel {
 
         columns = new ArrayList();
         dirtyColumns = new HashSet();
-        labelSources = new IntList();
-        attrSources = new IntList();
+        labelSources = new HashSet<Integer>();
+        attrSources = new HashSet<Integer>();
 
         recalcJanitorTimer = new Timer(1000, new RecalcJanitor());
         recalcJanitorTimer.setRepeats(false);
@@ -256,6 +256,8 @@ public class DataTableModel extends AbstractTableModel {
         if (column instanceof IndexAwareDataColumn)
             ((IndexAwareDataColumn) column).setColumnIndex(-1);
         columns.set(pos, new NullDataColumn());
+        labelSources.remove(pos);
+        attrSources.remove(pos);
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
@@ -268,12 +270,12 @@ public class DataTableModel extends AbstractTableModel {
             return columns.indexOf(column);
     }
 
-    public int[] getLabelSourceColumns() {
-        return labelSources.getAsArray();
+    public Integer[] getLabelSourceColumns() {
+        return labelSources.toArray(new Integer[labelSources.size()]);
     }
 
-    public int[] getAttributeSourceColumns() {
-        return attrSources.getAsArray();
+    public Integer[] getAttributeSourceColumns() {
+        return attrSources.toArray(new Integer[attrSources.size()]);
     }
 
     /** Add a list of data columns and remove another list of data columns.

@@ -184,6 +184,9 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
     }
 
     public String getLabels(WBSNode node) {
+        if (labelPrefix == null)
+            return null;
+
         String nodeValue = (String) WrappedValue.unwrap(getValueAt(node));
         List<String> values = getValues(nodeValue, false);
         if (values.isEmpty())

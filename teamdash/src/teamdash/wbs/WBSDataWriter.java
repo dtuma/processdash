@@ -109,9 +109,9 @@ public class WBSDataWriter {
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
     /** The column numbers of the task labels column */
-    private int[] labelColumns;
+    private Integer[] labelColumns;
     /** The column numbers of the task attribute columns */
-    private int[] attrColumns;
+    private Integer[] attrColumns;
     /** The column number of the task dependencies column */
     private int dependencyColumn;
     /** Maps XML tag names to objects capable of writing their attributes.
@@ -146,8 +146,6 @@ public class WBSDataWriter {
                     dataModel.findColumn(SIZE_COLUMN_IDS[i]);
             directSizeUnitsColumn =
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
-            labelColumns = dataModel.getLabelSourceColumns();
-            attrColumns = dataModel.getAttributeSourceColumns();
             dependencyColumn =
                 dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
         }
@@ -171,10 +169,13 @@ public class WBSDataWriter {
     public void write(Writer out) throws IOException {
         // initialize
         if (dataModel == null) {
+            labelColumns = attrColumns = null;
             teamMemberColumns = null;
             initials = syncAttrs = zeroAssignmentAttrs = null;
             deferredMilestoneIDs = Collections.EMPTY_SET;
         } else {
+            labelColumns = dataModel.getLabelSourceColumns();
+            attrColumns = dataModel.getAttributeSourceColumns();
             teamMemberColumns = dataModel.getTeamMemberColumnIDs();
             int numTeamMembers = teamMemberColumns.size();
 

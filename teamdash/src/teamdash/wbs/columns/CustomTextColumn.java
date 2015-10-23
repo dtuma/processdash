@@ -44,7 +44,7 @@ public class CustomTextColumn extends AbstractLabelColumn implements
 
     private static final String VALUE_SUFFIX = "-CustomText";
 
-    private boolean multivalued, inherits, autocomplete;
+    boolean multivalued, inherits, autocomplete;
 
     private Set<String> allowedValues;
 
@@ -73,6 +73,26 @@ public class CustomTextColumn extends AbstractLabelColumn implements
 
         init(dataModel, id, name, width, attrName, separatorRegexp,
             labelPrefix, inherits, autocomplete);
+    }
+
+    public CustomTextColumn(DataTableModel dataModel, String id, String name,
+            boolean autocomplete, boolean multivalued, boolean inherits,
+            Set<String> allowedValues, String labelPrefix) {
+        String safeId = id.replace('_', ' ').replace('@', ' ');
+        String attrName = safeId + VALUE_SUFFIX;
+
+        if (labelPrefix != null && labelPrefix.length() > 0)
+            labelPrefix = labelPrefix + ":";
+
+        this.multivalued = multivalued;
+        this.inherits = inherits;
+        this.autocomplete = autocomplete;
+        this.allowedValues = allowedValues;
+
+        String separatorRegexp = multivalued ? "," : null;
+
+        init(dataModel, id, name, -1, attrName, separatorRegexp, labelPrefix,
+            inherits, autocomplete);
     }
 
     private boolean test(Element xml, String attrName, boolean defaultVal) {

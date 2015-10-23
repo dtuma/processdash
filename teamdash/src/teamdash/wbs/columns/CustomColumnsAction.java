@@ -201,9 +201,12 @@ public class CustomColumnsAction extends AbstractAction {
         }
 
         public void actionPerformed(ActionEvent e) {
-            CustomColumn column = createMockColumn(null);
-            columnManager.changeColumn(null, column);
-            model.addElement(column);
+            CustomColumnEditor editor = new CustomColumnEditor(dataModel);
+            CustomColumn column = editor.showAddWindow(content);
+            if (column != null) {
+                columnManager.changeColumn(null, column);
+                model.addElement(column);
+            }
         }
     }
 
@@ -220,10 +223,13 @@ public class CustomColumnsAction extends AbstractAction {
             int selectedIndex = columnList.getSelectedIndex();
             if (selectedIndex == -1)
                 return;
+            CustomColumnEditor editor = new CustomColumnEditor(dataModel);
             CustomColumn oldColumn = model.dataColumns.get(selectedIndex);
-            CustomColumn newColumn = createMockColumn(oldColumn.getColumnID());
-            columnManager.changeColumn(oldColumn, newColumn);
-            model.replaceElement(selectedIndex, newColumn);
+            CustomColumn newColumn = editor.showEditWindow(content, oldColumn);
+            if (newColumn != null) {
+                columnManager.changeColumn(oldColumn, newColumn);
+                model.replaceElement(selectedIndex, newColumn);
+            }
         }
     }
 
@@ -276,7 +282,7 @@ public class CustomColumnsAction extends AbstractAction {
                         resources.getString("Import.Title"),
                         JOptionPane.ERROR_MESSAGE);
                 }
-            }            
+            }
         }
 
         private File getFile() {
@@ -387,8 +393,9 @@ public class CustomColumnsAction extends AbstractAction {
         }
         return fileChooser;
     }
+
     private JFileChooser fileChooser;
-    
+
     private class ColumnFileFilter extends FileFilter {
 
         public boolean accept(File f) {
@@ -404,16 +411,5 @@ public class CustomColumnsAction extends AbstractAction {
     private String[] fileMsg(String resKey, File f) {
         return resources.formatStrings(resKey, f.getName());
     }
-
-
-
-    private CustomColumn createMockColumn(String columnID) {
-        int num = mockColumnNum++;
-        if (columnID == null)
-            columnID = "mock" + num;
-        return new AncestorSelectionColumn(dataModel, columnID, //
-            "Mock Column " + num, -1, "Mock_Label_" + num);
-    }
-    private int mockColumnNum = 1;
 
 }
