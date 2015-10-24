@@ -728,6 +728,8 @@ public class WBSTabPanel extends JLayeredPane implements
             customColumnsTab.addColumn(new DataTableColumn(wbsTable.dataModel,
                 newColumn));
             customColumnsTab.moveColumn(pos, pos - customColumnInsertPosDelta);
+            // switch to the custom columns tab so the user can see the change
+            selectCustomColumnsTab();
             // fire a dirty change event (without recording an undoable action)
             undoList.notifyAllChangeListeners();
         }
@@ -747,6 +749,8 @@ public class WBSTabPanel extends JLayeredPane implements
                 }
             }
         }
+        // switch to the custom columns tab so the user can see the change
+        selectCustomColumnsTab();
         // fire a dirty change event (but without recording an undoable action)
         undoList.notifyAllChangeListeners();
     }
@@ -762,6 +766,13 @@ public class WBSTabPanel extends JLayeredPane implements
         }
         // fire a dirty change event (but without recording an undoable action)
         undoList.notifyAllChangeListeners();
+    }
+
+    private void selectCustomColumnsTab() {
+        if (customColumnsTab != null) {
+            int pos = tableColumnModels.indexOf(customColumnsTab);
+            tabbedPane.setSelectedIndex(pos);
+        }
     }
 
 
