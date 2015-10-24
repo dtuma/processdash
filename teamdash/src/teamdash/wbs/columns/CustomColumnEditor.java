@@ -28,10 +28,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -44,10 +49,12 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JHintTextField;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.DataTableModel;
 
-public class CustomColumnEditor {
+public class CustomColumnEditor implements ActionListener {
 
     private DataTableModel dataModel;
 
@@ -61,9 +68,11 @@ public class CustomColumnEditor {
 
     private JTextField columnName;
 
-    private JComboBox columnType;
+    private JComboBox textColumnType;
 
     private JCheckBox autocomplete, multivalued, inherited, syncAsLabel;
+
+    private JHintTextField allowedValues;
 
 
     private static final Resources resources = Resources
@@ -91,22 +100,28 @@ public class CustomColumnEditor {
 
         l.gridy = f.gridy = 0;
         add(new JLabel(resources.getString("Column_ID")), l);
-        add(columnID = new JTextField(15), f);
+        add(columnID = hintField("Column_ID_Hint", 15), f);
         add(columnIDLabel = new JLabel(), f);
         ((AbstractDocument) columnID.getDocument())
                 .setDocumentFilter(new ColumnIDFilter());
 
         l.gridy = ++f.gridy;
         add(new JLabel(resources.getString("Column_Name")), l);
-        add(columnName = new JTextField(15), f);
+        add(columnName = hintField("Column_Name_Hint", 15), f);
 
         l.gridy = ++f.gridy;
         add(new JLabel(resources.getString("Column_Type")), l);
-        add(columnType = new JComboBox(resources.getStrings("Column_Type_",
+        add(textColumnType = new JComboBox(resources.getStrings("Column_Type_",
             TEXT_TYPES)), f);
 
         ++f.gridy;
         add(autocomplete = checkbox("Autocomplete", true), f);
+
+        GridBagConstraints ff = (GridBagConstraints) f.clone();
+        ff.fill = GridBagConstraints.HORIZONTAL;
+        add(allowedValues = hintField("Values_Hint", 0), ff);
+        add(Box.createHorizontalStrut(new JLabel(allowedValues.getHint())
+                .getPreferredSize().width), f);
 
         ++f.gridy;
         add(multivalued = checkbox("Multivalued", false), f);
@@ -116,6 +131,9 @@ public class CustomColumnEditor {
 
         ++f.gridy;
         add(syncAsLabel = checkbox("Sync_As_Label", false), f);
+
+        textColumnType.addActionListener(this);
+        actionPerformed(null);
     }
 
     private void add(Component comp, GridBagConstraints constraints) {
@@ -123,8 +141,20 @@ public class CustomColumnEditor {
         layout.setConstraints(comp, constraints);
     }
 
+    private JHintTextField hintField(String resKey, int columns) {
+        return new JHintTextField(resources.getString(resKey), columns);
+    }
+
     private JCheckBox checkbox(String resKey, boolean selected) {
         return new JCheckBox(resources.getString(resKey), selected);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e == null || e.getSource() == textColumnType) {
+            int type = textColumnType.getSelectedIndex();
+            autocomplete.setVisible(type == TEXT_TYPE_FREETEXT);
+            allowedValues.setVisible(type == TEXT_TYPE_VALUES);
+        }
     }
 
 
@@ -138,6 +168,7 @@ public class CustomColumnEditor {
      */
     public CustomColumn showAddWindow(Component parent) {
         columnIDLabel.setVisible(false);
+        textColumnType.setSelectedIndex(TEXT_TYPE_FREETEXT);
         return showWindow(parent, true);
     }
 
@@ -174,8 +205,18 @@ public class CustomColumnEditor {
         // load the column name
         columnName.setText(oldCol.getColumnName());
 
+        // set the column type and configure allowed values for the column
+        Set<String> values;
+        if (oldCol.allowedValues != null) {
+            textColumnType.setSelectedIndex(TEXT_TYPE_VALUES);
+            values = oldCol.allowedValues;
+        } else {
+            textColumnType.setSelectedIndex(TEXT_TYPE_FREETEXT);
+            values = oldCol.getAutocompleteValues();
+        }
+        allowedValues.setText(StringUtils.join(values, ", "));
+
         // load other details about the column
-        columnType.setSelectedIndex(TEXT_TYPE_FREETEXT);
         autocomplete.setSelected(oldCol.autocomplete);
         multivalued.setSelected(oldCol.multivalued);
         inherited.setSelected(oldCol.inherits);
@@ -228,13 +269,38 @@ public class CustomColumnEditor {
         if (newColumnName.length() == 0)
             throw new ColumnException("Name_Missing");
 
+        // Determine allowed values and autocompletion
+        boolean auto_complete;
+        Set<String> allowed_values;
+        if (textColumnType.getSelectedIndex() == TEXT_TYPE_VALUES) {
+            auto_complete = true;
+            allowed_values = parseAllowedValues();
+        } else { // TEXT_TYPE_FREETEXT
+            auto_complete = autocomplete.isSelected();
+            allowed_values = null;
+        }
+
         // Determine the label prefix to use
         String labelPrefix = (syncAsLabel.isSelected() ? newColumnName : null);
 
         // build an appropriate column
         return new CustomTextColumn(dataModel, newColumnID, newColumnName,
-                autocomplete.isSelected(), multivalued.isSelected(),
-                inherited.isSelected(), null, labelPrefix);
+                auto_complete, multivalued.isSelected(),
+                inherited.isSelected(), allowed_values, labelPrefix);
+    }
+
+    private Set<String> parseAllowedValues() throws ColumnException {
+        Set<String> result = new LinkedHashSet<String>();
+        for (String oneValue : allowedValues.getText().split(",")) {
+            oneValue = oneValue.trim();
+            if (oneValue.length() > 0)
+                result.add(oneValue);
+        }
+
+        if (result.isEmpty())
+            throw new ColumnException("Values_Missing");
+
+        return result;
     }
 
     private boolean columnsEqual(CustomColumn a, CustomColumn b) {
@@ -255,6 +321,7 @@ public class CustomColumnEditor {
         return buf.toString();
     }
 
+
     private static class ColumnException extends Exception {
 
         ColumnException(String resKey, String... args) {
@@ -263,6 +330,7 @@ public class CustomColumnEditor {
         }
 
     }
+
 
     private static class ColumnIDFilter extends DocumentFilter {
 
@@ -290,13 +358,16 @@ public class CustomColumnEditor {
 
     }
 
+
     private static final Pattern COLUMN_ID_PAT = Pattern.compile("[a-z0-9.]*",
         Pattern.CASE_INSENSITIVE);
 
     private static final String CUST_ID_PREFIX = "custom.";
 
-    private static final String[] TEXT_TYPES = { "Text" };
+    private static final String[] TEXT_TYPES = { "Text", "Values" };
 
     private static final int TEXT_TYPE_FREETEXT = 0;
+
+    private static final int TEXT_TYPE_VALUES = 1;
 
 }

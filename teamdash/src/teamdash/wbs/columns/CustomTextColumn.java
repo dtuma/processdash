@@ -46,7 +46,7 @@ public class CustomTextColumn extends AbstractLabelColumn implements
 
     boolean multivalued, inherits, autocomplete;
 
-    private Set<String> allowedValues;
+    Set<String> allowedValues;
 
     public CustomTextColumn(DataTableModel dataModel, String id, String name,
             Element xml) {
