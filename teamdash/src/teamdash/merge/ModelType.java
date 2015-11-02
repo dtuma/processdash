@@ -59,6 +59,17 @@ public enum ModelType {
         }
     },
 
+    Columns {
+        public Object getAssociatedModel(TeamProject teamProject) {
+            return teamProject.getColumns();
+        }
+
+        @Override
+        public String getNodeName(Object node) {
+            return node.toString();
+        }
+    },
+
     TeamList {
         public Object getAssociatedModel(TeamProject teamProject) {
             return teamProject.getTeamMemberList();

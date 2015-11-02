@@ -33,7 +33,9 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.swing.table.TableColumnModel;
@@ -54,6 +56,8 @@ public class CustomColumnManager {
 
     private CustomColumnSpecs projectColumnSpecs;
 
+    private String processID;
+
     private List<CustomColumn> customColumns;
 
     private CustomColumnListener listener;
@@ -62,6 +66,7 @@ public class CustomColumnManager {
             CustomColumnSpecs projectColumnSpecs, String processID) {
         this.dataModel = dataModel;
         this.projectColumnSpecs = projectColumnSpecs;
+        this.processID = processID;
         this.customColumns = createColumns(processID);
         dataModel.addRemoveDataColumns(customColumns, null);
     }
@@ -77,6 +82,31 @@ public class CustomColumnManager {
             if (projectColumnSpecs.containsKey(column.getColumnID()))
                 result.add(column);
         return result;
+    }
+
+    public void replaceProjectSpecificColumns(CustomColumnSpecs newSpecs) {
+        // make a list of all new and old column IDs
+        Set<String> columnIDs = new HashSet<String>(newSpecs.keySet());
+        columnIDs.addAll(projectColumnSpecs.keySet());
+
+        // replace the specs and rebuild the columns
+        projectColumnSpecs.clear();
+        projectColumnSpecs.putAll(newSpecs);
+        List<CustomColumn> oldColumns = customColumns;
+        customColumns = createColumns(processID);
+        dataModel.addRemoveDataColumns(customColumns, oldColumns);
+
+        // send events to our registered listener
+        for (String oneID : columnIDs) {
+            CustomColumn oldColumn = findColumnById(oneID, oldColumns);
+            CustomColumn newColumn = findColumnById(oneID, customColumns);
+            if (oldColumn == null)
+                listener.columnAdded(oneID, newColumn);
+            else if (newColumn == null)
+                listener.columnDeleted(oneID, oldColumn);
+            else
+                listener.columnChanged(oneID, oldColumn, newColumn);
+        }
     }
 
     public void setCustomColumnListener(CustomColumnListener l) {
@@ -227,15 +257,15 @@ public class CustomColumnManager {
 
         for (Entry<String, Element> e : specs.entrySet()) {
             String id = e.getKey();
-            CustomColumn oldColumn = findColumnById(id);
+            CustomColumn oldColumn = findColumnById(id, customColumns);
             CustomColumn newColumn = createColumn(e.getValue(), null);
             if (newColumn != null)
                 changeColumn(oldColumn, newColumn);
         }
     }
 
-    private CustomColumn findColumnById(String id) {
-        for (CustomColumn col : customColumns)
+    private CustomColumn findColumnById(String id, List<CustomColumn> columns) {
+        for (CustomColumn col : columns)
             if (col.getColumnID().equals(id))
                 return col;
         return null;

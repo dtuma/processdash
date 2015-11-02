@@ -223,6 +223,7 @@ public class TeamProjectMergeCoordinator {
         TeamProject.FLOW_FILENAME, //
         TeamProject.PROXY_FILENAME, //
         TeamProject.MILESTONES_FILENAME, //
+        TeamProject.COLUMNS_FILENAME, //
         TeamProject.WBS_FILENAME);
 
 }

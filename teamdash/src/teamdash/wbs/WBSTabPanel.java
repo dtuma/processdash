@@ -97,6 +97,7 @@ import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnListener;
 import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.CustomColumnsAction;
 import teamdash.wbs.columns.WBSNodeColumn;
 
@@ -482,6 +483,11 @@ public class WBSTabPanel extends JLayeredPane implements
         CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
         colMgr.setCustomColumnListener(this);
         return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);
+    }
+
+    public void replaceCustomColumns(CustomColumnSpecs columns) {
+        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        colMgr.replaceProjectSpecificColumns(columns);
     }
 
     private class NewTabAction extends AbstractAction {

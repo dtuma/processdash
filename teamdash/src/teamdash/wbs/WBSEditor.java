@@ -1212,6 +1212,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         replaceProxies(srcProject);
         replaceMilestones(srcProject);
         replaceWBS(srcProject);
+        replaceColumns(srcProject);
         replaceTabs(srcDir);
         replaceUserSettings(srcProject);
         appendReplacementChange(srcDir);
@@ -1325,6 +1326,10 @@ public class WBSEditor implements WindowListener, SaveListener,
                 }
             }
         }
+    }
+
+    private void replaceColumns(TeamProject srcProject) {
+        tabPanel.replaceCustomColumns(srcProject.getColumns());
     }
 
     private void replaceTabs(File srcDir) {

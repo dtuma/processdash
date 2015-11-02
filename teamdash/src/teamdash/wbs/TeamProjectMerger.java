@@ -34,6 +34,8 @@ import teamdash.merge.ui.DataModelSource;
 import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMemberList;
 import teamdash.team.TeamMemberListMerger;
+import teamdash.wbs.columns.CustomColumnSpecs;
+import teamdash.wbs.columns.CustomColumnsMerger;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WorkflowResourcesColumn;
@@ -78,13 +80,14 @@ public class TeamProjectMerger {
         WorkflowWBSModel workflows = mergeWorkflows();
         ProxyWBSModel proxies = mergeProxies();
         MilestonesWBSModel milestones = mergeMilestones();
+        CustomColumnSpecs columns = mergeColumns();
         WBSModel wbs = mergeWBS();
         Map userSettings = mergeUserSettings();
 
         // create a TeamProject object to hold the merged data.
         File dir = new File("no such directory " + System.currentTimeMillis());
         merged = new TeamProject(dir, "Unused", team, wbs, workflows, proxies,
-                milestones, userSettings);
+                milestones, columns, userSettings);
     }
 
     private TeamMemberList mergeTeams() {
@@ -150,6 +153,17 @@ public class TeamProjectMerger {
         conflicts.addAll(milestonesMerger.getConflictNotifications());
 
         return milestonesMerger.getMerged();
+    }
+
+    private CustomColumnSpecs mergeColumns() {
+        // calculate the merged custom column specifications
+        CustomColumnsMerger columnsMerger = new CustomColumnsMerger(base, main,
+                incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(columnsMerger.getConflictNotifications());
+
+        return columnsMerger.getMerged();
     }
 
     private WBSModel mergeWBS() {

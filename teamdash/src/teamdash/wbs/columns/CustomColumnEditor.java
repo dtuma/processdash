@@ -362,7 +362,7 @@ public class CustomColumnEditor implements ActionListener {
     private static final Pattern COLUMN_ID_PAT = Pattern.compile("[a-z0-9.]*",
         Pattern.CASE_INSENSITIVE);
 
-    private static final String CUST_ID_PREFIX = "custom.";
+    static final String CUST_ID_PREFIX = "custom.";
 
     private static final String[] TEXT_TYPES = { "Text", "Values" };
 
