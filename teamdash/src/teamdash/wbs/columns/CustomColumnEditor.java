@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -50,6 +51,7 @@ import javax.swing.text.DocumentFilter;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JHintTextField;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.DataTableModel;
@@ -235,9 +237,12 @@ public class CustomColumnEditor implements ActionListener {
     private CustomColumn showWindow(Component parent, boolean isAddOperation) {
         String title = resources.getString(isAddOperation ? "Add_Title"
                 : "Edit_Title");
+        JComponent fieldToFocus = isAddOperation ? columnID : columnName;
 
         while (true) {
-            int userChoice = JOptionPane.showConfirmDialog(parent, contents,
+            Object[] message = new Object[] { contents,
+                    new JOptionPaneTweaker.GrabFocus(fieldToFocus) };
+            int userChoice = JOptionPane.showConfirmDialog(parent, message,
                 title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null);
             if (userChoice != JOptionPane.OK_OPTION)
@@ -248,6 +253,8 @@ public class CustomColumnEditor implements ActionListener {
             } catch (ColumnException ce) {
                 JOptionPane.showMessageDialog(parent, ce.getMessage(), title,
                     JOptionPane.ERROR_MESSAGE);
+                if (ce.fieldToFocus != null)
+                    fieldToFocus = ce.fieldToFocus;
             }
         }
     }
@@ -257,17 +264,17 @@ public class CustomColumnEditor implements ActionListener {
         // Ensure we have a nonempty column ID.
         String usrColumnID = columnID.getText().trim();
         if (usrColumnID.length() == 0)
-            throw new ColumnException("ID_Missing");
+            throw new ColumnException("ID_Missing", columnID);
         String newColumnID = CUST_ID_PREFIX + usrColumnID;
 
         // When adding a new column, ensure that the column ID is unique.
         if (checkUniqueID && dataModel.findColumn(newColumnID) != -1)
-            throw new ColumnException("ID_Not_Unique_FMT", usrColumnID);
+            throw new ColumnException("ID_Not_Unique_FMT", columnID, usrColumnID);
 
         // Ensure they entered a column name.
         String newColumnName = columnName.getText().trim();
         if (newColumnName.length() == 0)
-            throw new ColumnException("Name_Missing");
+            throw new ColumnException("Name_Missing", columnName);
 
         // Determine allowed values and autocompletion
         boolean auto_complete;
@@ -298,7 +305,7 @@ public class CustomColumnEditor implements ActionListener {
         }
 
         if (result.isEmpty())
-            throw new ColumnException("Values_Missing");
+            throw new ColumnException("Values_Missing", allowedValues);
 
         return result;
     }
@@ -324,9 +331,12 @@ public class CustomColumnEditor implements ActionListener {
 
     private static class ColumnException extends Exception {
 
-        ColumnException(String resKey, String... args) {
+        JComponent fieldToFocus;
+
+        ColumnException(String resKey, JComponent fieldToFocus, String... args) {
             super(args.length == 0 ? resources.getString("Errors." + resKey)
                     : resources.format("Errors." + resKey, args[0]));
+            this.fieldToFocus = fieldToFocus;
         }
 
     }
