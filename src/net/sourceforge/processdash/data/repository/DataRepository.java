@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2014 Tuma Solutions, LLC
+// Copyright (C) 1998-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,18 +30,21 @@ package net.sourceforge.processdash.data.repository;
  * in the root directory of this project for more information.
  */
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
 import java.io.Reader;
@@ -50,6 +53,7 @@ import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -113,7 +117,7 @@ import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HashTree;
 import net.sourceforge.processdash.util.PatternList;
-import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class DataRepository implements Repository, DataContext,
@@ -3071,7 +3075,7 @@ public class DataRepository implements Repository, DataContext,
 
     public static String getDatasetEncoding() {
         return Settings.getBool(USE_UTF8_SETTING, false) ?
-            "UTF-8" : System.getProperty("file.encoding");
+            "UTF-8" : Charset.defaultCharset().name();
     }
 
     public static void enableUtf8Encoding() {
@@ -3641,12 +3645,10 @@ public class DataRepository implements Repository, DataContext,
             }
 
             // Write the saved values
-            RobustFileWriter rfw;
+            RobustFileOutputStream rfos;
             BufferedWriter out;
             try {
-                String encoding = getDatasetEncoding();
-
-                rfw = new RobustFileWriter(datafile.file, encoding);
+                rfos = new RobustFileOutputStream(datafile.file);
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while opening "
                         + datafile.file.getPath() + "; save aborted", e);
@@ -3654,7 +3656,9 @@ public class DataRepository implements Repository, DataContext,
             }
 
             try {
-                out = new BufferedWriter(rfw);
+                String encoding = getDatasetEncoding();
+                out = new BufferedWriter(new OutputStreamWriter(
+                        new NullByteWatcher(rfos), encoding));
 
                 // if the data file has an include statement, write it to the file
                 if (datafile.inheritsFrom != null) {
@@ -3676,7 +3680,7 @@ public class DataRepository implements Repository, DataContext,
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while writing to "
                         + datafile.file.getPath() + "; save aborted", e);
-                try { rfw.abort(); } catch (Exception ex) {}
+                try { rfos.abort(); } catch (Exception ex) {}
                 return;
             }
 
@@ -3690,7 +3694,7 @@ public class DataRepository implements Repository, DataContext,
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while closing "
                         + datafile.file.getPath() + "; save aborted", e);
-                try { rfw.abort(); } catch (Exception ex) {}
+                try { rfos.abort(); } catch (Exception ex) {}
             }
 
         } finally {
@@ -3698,6 +3702,19 @@ public class DataRepository implements Repository, DataContext,
             if (!saveSuccessful)
                 datafile.dirtyCount = 1000;
         } }
+    }
+
+    private static class NullByteWatcher extends FilterOutputStream {
+        boolean armed = true;
+        public NullByteWatcher(OutputStream out) {
+            super(new BufferedOutputStream(out));
+        }
+        @Override public void write(int b) throws IOException {
+            if (armed && b == 0)
+                throw new IOException("Invalid initial null byte - aborting");
+            super.write(b);
+            armed = false;
+        }
     }
 
 
