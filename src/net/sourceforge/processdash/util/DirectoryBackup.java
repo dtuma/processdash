@@ -26,6 +26,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -152,18 +153,23 @@ public abstract class DirectoryBackup {
     protected abstract void doBackup(File destFile) throws IOException;
 
     public void cleanupOldBackups(int numDays) {
+        cleanupOldBackups(numDays, numDays);
+    }
+
+    public void cleanupOldBackups(int numDays, int numFiles) {
         if (!destDirectory.isDirectory())
             return;
 
         File[] backupFiles = destDirectory.listFiles();
         if (backupFiles == null || backupFiles.length == 0)
             return;
+        Arrays.sort(backupFiles);
 
         Date cutoffDate = new Date(System.currentTimeMillis() - numDays
                 * DAY_MILLIS);
         String cutoffStr = DATE_FMT.format(cutoffDate);
 
-        for (int i = 0; i < backupFiles.length; i++) {
+        for (int i = 0; i < backupFiles.length - numFiles; i++) {
             File oneFile = backupFiles[i];
             String filename = oneFile.getName();
 
