@@ -27,19 +27,27 @@ package net.sourceforge.processdash;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -47,6 +55,8 @@ import javax.swing.JScrollPane;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -82,6 +92,11 @@ public class BrokenDataFileHandler {
     private File[] lostFiles;
 
     /**
+     * a collection of files that contain null bytes
+     */
+    private Set<File> nullByteFiles;
+
+    /**
      * a mapping whose keys are data file prefixes, and whose values are the
      * names of data files which could not be found.
      */
@@ -96,7 +111,7 @@ public class BrokenDataFileHandler {
     /**
      * Make a list of files that appear to be lost or corrupt.
      */
-    public void findCorruptFiles(String searchDir) {
+    public void findCorruptFiles(String searchDir, WorkingDirectory workingDir) {
         File searchFile = new File(searchDir);
 
         // First make sure we have a directory, then get a list of files in
@@ -108,6 +123,12 @@ public class BrokenDataFileHandler {
                     return filename.startsWith(TEMP_FILE_PREFIX);
                 }
             });
+        }
+
+        // get a list of files that contain null bytes, for later investigation
+        if (workingDir instanceof AbstractWorkingDirectory) {
+            nullByteFiles = ((AbstractWorkingDirectory) workingDir)
+                    .getFilesWithNullBytes();
         }
     }
 
@@ -121,6 +142,14 @@ public class BrokenDataFileHandler {
      * to ignore the problem, returns true. Otherwise, returns false.
      */
     public boolean repairCorruptFiles(Component dialogParent) {
+        if (repairLostFiles(dialogParent) == false)
+            return false;
+
+        repairFilesWithNullBytes(dialogParent);
+        return true;
+    }
+
+    private boolean repairLostFiles(Component dialogParent) {
         if (lostFiles == null || lostFiles.length == 0)
             return true;
 
@@ -239,6 +268,8 @@ public class BrokenDataFileHandler {
                     + destFile.getName() + " with data from "
                     + srcFile.getName() + " *****************");
             FileUtils.renameFile(srcFile, destFile);
+            if (nullByteFiles != null)
+                nullByteFiles.remove(destFile);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -255,6 +286,115 @@ public class BrokenDataFileHandler {
                 result.append(file.getName()).append("\n");
 
         return result.toString();
+    }
+
+
+
+    /**
+     * If any files have been corrupted with null bytes, attempt to find
+     * replacements from a backup. If successful, display a warning to the user
+     * about what just happened.
+     */
+    private void repairFilesWithNullBytes(Component dialogParent) {
+        if (nullByteFiles == null || nullByteFiles.isEmpty())
+            return;
+
+        Set<String> repairedNullFiles = new TreeSet<String>();
+        for (File file : nullByteFiles) {
+            if (shouldRepairNull(file) && repairNullByteFile(file))
+                repairedNullFiles.add("        " + file.getPath());
+        }
+
+        if (repairedNullFiles.isEmpty())
+            return;
+
+        // If we repaired any null files, display a warning. (No warning is
+        // displayed for files that could not be repaired; these will trigger a
+        // warning later when the corrupt data is encountered by the dashboard.)
+        ProcessDashboard.dropSplashScreen();
+        Resources r = Resources.getDashBundle("ProcessDashboard.Errors");
+        String title = r.getString("Repaired_Null.Title");
+        Object message = new Object[] { r.getString("Repaired_Null.Header"),
+                StringUtils.join(repairedNullFiles, "\n"), " ",
+                r.getString("Repaired_Null.Footer") };
+        JOptionPane.showMessageDialog(dialogParent, message, title,
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+    private boolean shouldRepairNull(File f) {
+        String name = f.getName().toLowerCase(Locale.ENGLISH);
+        for (String extension : FILE_TYPES_FOR_NULL_REPAIR)
+            if (name.endsWith(extension))
+                return startsWithNullByte(f);
+
+        return false;
+    }
+
+    private static final String[] FILE_TYPES_FOR_NULL_REPAIR = { ".dat",
+            ".def", ".xml", "pspdash.ini", "state" };
+
+    private boolean repairNullByteFile(File f) {
+        InputStream in = findReplacementFromBackup(f);
+        if (in == null)
+            return false;
+
+        try {
+            FileUtils.copyFile(in, f);
+            in.close();
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
+    }
+
+    private InputStream findReplacementFromBackup(File f) {
+        // look for a "backup" subdirectory
+        File backupDir = new File(f.getParentFile(), "backup");
+        if (!backupDir.isDirectory())
+            return null;
+
+        // find a list of ZIP file in that directory, and look inside each
+        // one (starting with the most recent) for a copy of the given file.
+        File[] backupZipFiles = backupDir.listFiles(new FilenameFilter() {
+            public boolean accept(File location, String name) {
+                return name.startsWith("pdash-") && name.endsWith(".zip");
+            }
+        });
+        Arrays.sort(backupZipFiles);
+        for (int i = backupZipFiles.length; i-- > 0;) {
+            try {
+                File zip = backupZipFiles[i];
+                ZipInputStream in = new ZipInputStream(new BufferedInputStream(
+                        new FileInputStream(zip)));
+                ZipEntry e;
+                while ((e = in.getNextEntry()) != null) {
+                    if (e.getName().equalsIgnoreCase(f.getName())) {
+                        PushbackInputStream pb = new PushbackInputStream(in, 1);
+                        int b = pb.read();
+                        if (b == 0)
+                            // this ZIP contains a corrupt version of the file.
+                            // abort and try the next ZIP.
+                            break;
+
+                        // otherwise, we've found a viable historical file.
+                        System.out.println("*************** REPAIRING CORRUPT "
+                                + f.getName() + " with data from backup/"
+                                + zip.getName() + " *****************");
+                        pb.unread(b);
+                        return pb;
+                    }
+                }
+                in.close();
+            } catch (IOException ioe) {
+                // if a given ZIP file is damaged or corrupt, skip it and look
+                // through the previous ZIP files to scan further back in time
+            }
+        }
+
+        // no replacement file was found in the recent backups.
+        System.out.println("*************** FILE " + f.getName()
+                + " APPEARS TO BE CORRUPT *****************");
+        return null;
     }
 
     public void logMissingDataFileError(String prefix, String filename) {

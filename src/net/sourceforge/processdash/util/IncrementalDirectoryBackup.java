@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2014 Tuma Solutions, LLC
+// Copyright (C) 2000-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,8 +37,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -71,6 +73,9 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     /** A forced timestamp to use for the historical log file */
     private long histLogTimestamp;
 
+    /** A list of backed-up files that start with null bytes (maybe corrupt) */
+    private Set<File> filesWithNullBytes = new HashSet<File>();
+
 
     public int getCompressionLevel() {
         return compressionLevel;
@@ -102,6 +107,10 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
     public void setHistLogTimestamp(long timestamp) {
         this.histLogTimestamp = timestamp;
+    }
+
+    public Set<File> getFilesWithNullBytes() {
+        return filesWithNullBytes;
     }
 
 
@@ -388,9 +397,13 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
         OutputStream fileOut = new BufferedOutputStream(newBackupOut);
         int c, d;
         int matchLength = 0;
+        boolean firstByte = true;
         try {
             while ((c = fileIn.read()) != -1) {
                 fileOut.write(c);
+                if (firstByte && c == 0)
+                    filesWithNullBytes.add(file);
+                firstByte = false;
 
                 // if we are still comparing the two files for identity
                 //  (they've matched so far)

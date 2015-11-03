@@ -358,7 +358,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // determine if corrupt Data Files are present in the pspdata directory
         // and take steps to repair them.
         brokenData = new BrokenDataFileHandler();
-        brokenData.findCorruptFiles(property_directory);
+        brokenData.findCorruptFiles(property_directory, workingDirectory);
         pt.click("Checked for lost data files");
         if (brokenData.repairCorruptFiles(this) == false) {
 

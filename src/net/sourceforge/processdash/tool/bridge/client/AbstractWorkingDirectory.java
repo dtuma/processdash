@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,9 +31,12 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Set;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
+import net.sourceforge.processdash.util.DirectoryBackup;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.IncrementalDirectoryBackup;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
@@ -52,6 +55,8 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
     protected File workingDirectory;
 
     protected FileConcurrencyLock processLock;
+
+    private Set<File> filesWithNullBytes;
 
     protected AbstractWorkingDirectory(File targetDirectory, String remoteURL,
             FileResourceCollectionStrategy strategy, File workingDirectoryParent) {
@@ -103,8 +108,23 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
 
     protected URL doBackupImpl(File directory, String qualifier)
             throws IOException {
-        File result = strategy.getBackupHandler(directory).backup(qualifier);
+        // get an appropriate handler and back up the directory
+        DirectoryBackup handler = strategy.getBackupHandler(directory);
+        File result = handler.backup(qualifier);
+
+        // possibly keep track of null byte files that were found
+        if ("startup".equals(qualifier)
+                && handler instanceof IncrementalDirectoryBackup)
+            filesWithNullBytes = ((IncrementalDirectoryBackup) handler)
+                    .getFilesWithNullBytes();
+        else
+            filesWithNullBytes = null;
+
         return result.toURI().toURL();
+    }
+
+    public Set<File> getFilesWithNullBytes() {
+        return filesWithNullBytes;
     }
 
     protected String getMetadata(String name) throws IOException {
