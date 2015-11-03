@@ -485,11 +485,6 @@ public class WBSTabPanel extends JLayeredPane implements
         return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);
     }
 
-    public void replaceCustomColumns(CustomColumnSpecs columns) {
-        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
-        colMgr.replaceProjectSpecificColumns(columns);
-    }
-
     private class NewTabAction extends AbstractAction {
         public NewTabAction() {
             super("New Tab", IconFactory.getNewTabIcon());
@@ -775,10 +770,63 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private void selectCustomColumnsTab() {
-        if (customColumnsTab != null) {
+        if (customColumnsTab != null && !currentlyReplacingCustomColumns) {
             int pos = tableColumnModels.indexOf(customColumnsTab);
             tabbedPane.setSelectedIndex(pos);
         }
+    }
+
+
+    public void replaceCustomColumns(CustomColumnSpecs columns) {
+        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        try {
+            currentlyReplacingCustomColumns = true;
+            colMgr.replaceProjectSpecificColumns(columns);
+        } finally {
+            currentlyReplacingCustomColumns = false;
+        }
+
+        // rearrange the columns on the custom column tab so they appear in the
+        // same order they were presented in the new set of specs
+        if (customColumnsTab != null && !columns.isEmpty()) {
+            int destPos = customColumnsTab.getColumnCount()
+                    - customColumnInsertPosDelta - columns.size();
+            for (String oneID : columns.keySet()) {
+                int pos = customColumnsTab.getColumnIndex(oneID);
+                if (pos != -1 && pos != destPos)
+                    customColumnsTab.moveColumn(pos, destPos);
+                destPos++;
+            }
+        }
+    }
+
+    private boolean currentlyReplacingCustomColumns = false;
+
+
+    /**
+     * Update the project-specific custom column model so its contents match the
+     * order the columns appear in the UI
+     */
+    public void saveOrderOfProjectSpecificCustomColumns() {
+        if (customColumnsTab == null)
+            return;
+
+        // get the IDs of project-specific custom columns
+        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        Set<String> customColumnIDs = colMgr.getProjectSpecificColumnIDs();
+        if (customColumnIDs.isEmpty())
+            return;
+
+        // find the order that columns appear on the custom columns tab
+        List<String> columnOrder = new ArrayList<String>();
+        for (int i = 0; i < customColumnsTab.getColumnCount(); i++) {
+            Object oneID = customColumnsTab.getColumn(i).getIdentifier();
+            if (customColumnIDs.contains(oneID))
+                columnOrder.add((String) oneID);
+        }
+
+        // tell the custom column manager to rearrange the columns in its model
+        colMgr.setOrderOfProjectSpecificColumns(columnOrder);
     }
 
 

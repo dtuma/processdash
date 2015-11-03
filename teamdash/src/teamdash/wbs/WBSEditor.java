@@ -1499,6 +1499,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return true;
 
         // merge in any changes that have been saved by other individuals.
+        tabPanel.saveOrderOfProjectSpecificCustomColumns();
         mergeExternalChanges(true);
 
         // ensure that we have a lock for editing the data.
@@ -2266,6 +2267,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             long start = System.currentTimeMillis();
             try {
                 // do the work.
+                tabPanel.saveOrderOfProjectSpecificCustomColumns();
                 dataWasMerged = mergeExternalChanges(false);
             } catch (Exception e) {
                 mergeException = e;

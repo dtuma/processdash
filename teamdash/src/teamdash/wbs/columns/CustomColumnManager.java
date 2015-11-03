@@ -34,9 +34,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.swing.table.TableColumnModel;
 
@@ -84,6 +85,10 @@ public class CustomColumnManager {
         return result;
     }
 
+    public Set<String> getProjectSpecificColumnIDs() {
+        return new LinkedHashSet<String>(projectColumnSpecs.keySet());
+    }
+
     public void replaceProjectSpecificColumns(CustomColumnSpecs newSpecs) {
         // make a list of all new and old column IDs
         Set<String> columnIDs = new HashSet<String>(newSpecs.keySet());
@@ -107,6 +112,25 @@ public class CustomColumnManager {
             else
                 listener.columnChanged(oneID, oldColumn, newColumn);
         }
+    }
+
+    public void setOrderOfProjectSpecificColumns(List<String> columnOrder) {
+        // make a copy of the custom column specs for this project.
+        CustomColumnSpecs specs = new CustomColumnSpecs();
+        specs.putAll(projectColumnSpecs);
+
+        // clear out the custom column specs for this project. Then add them
+        // back in the requested order.
+        projectColumnSpecs.clear();
+        for (String oneID : columnOrder) {
+            Element oneSpec = specs.remove(oneID);
+            if (oneSpec != null)
+                projectColumnSpecs.put(oneID, oneSpec);
+        }
+
+        // if the requested order overlooked any preexisting columns, add them
+        // back in to the model at the end of the list.
+        projectColumnSpecs.putAll(specs);
     }
 
     public void setCustomColumnListener(CustomColumnListener l) {
