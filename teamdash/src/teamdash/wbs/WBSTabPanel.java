@@ -136,7 +136,6 @@ public class WBSTabPanel extends JLayeredPane implements
 
     public static final String CUSTOM_TABS_SYS_PROP = "teamdash.wbs.customTabURLs";
 
-    WBSColumnSelectorDialog columnSelectorDialog;
     WBSJTable wbsTable;
     DataJTable dataTable;
     JScrollPane scrollPane;
@@ -1217,9 +1216,9 @@ public class WBSTabPanel extends JLayeredPane implements
      * Display dialog to allow user to select columns to display on the current tab.
      */
     private void showColumnSelector() {
-        if (columnSelectorDialog == null)
-            columnSelectorDialog = new WBSColumnSelectorDialog((JFrame) SwingUtilities.getWindowAncestor(this), COLUMN_SELECTOR_DIALOG_TITLE, getAvailableTabColumns());
-
+        WBSColumnSelectorDialog columnSelectorDialog = new WBSColumnSelectorDialog(
+                (JFrame) SwingUtilities.getWindowAncestor(this),
+                COLUMN_SELECTOR_DIALOG_TITLE, getAvailableTabColumns());
         columnSelectorDialog.setTableColumnModel((TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setLocationRelativeTo(this);
