@@ -4,7 +4,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2014 Tuma Solutions, LLC
+Copyright (C) 2001-2015 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -190,7 +190,7 @@ Authors:
     </target>
 
     <target name="-izpack.exe" if="isWindows" unless="no-exe-needed">
-        <property name="launch4j.config" value="files/launch4j-config.xml"/>
+        <property name="launch4j.config" value="files/installer-launch4j-config.xml"/>
         <launch4j configFile="${launch4j.config}"
             jar="${dist}/${izpack.output}.jar"
             outfile="${dist}/${izpack.output}.exe"/>
