@@ -396,7 +396,8 @@ public class EVCalculatorData extends EVCalculator {
                 !task.isLevelOfEffortTask() && !task.isUserPruned()) {
                 metrics.addTask(0, task.actualNodeTime, null,
                                 metrics.startDate());
-                schedule.saveCompletedTaskCost(metrics.startDate(),
+                if (!evLeaves.contains(task))
+                    schedule.saveCompletedTaskCost(metrics.startDate(),
                         task.actualNodeTime);
             }
         }
