@@ -132,12 +132,12 @@
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true" os="windows"
+	          src="../dist/QuickLauncher.exe"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/dashicon.png"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/launcher.png"/>
 

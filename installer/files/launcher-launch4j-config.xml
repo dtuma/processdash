@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <dontWrapJar>true</dontWrapJar>
+  <errTitle>Process Dashboard Quick Launcher</errTitle>
+  <icon>../../src/net/sourceforge/processdash/ui/launcher.ico</icon>
+  <classPath>
+    <mainClass>net.sourceforge.processdash.tool.quicklauncher.QuickLauncher</mainClass>
+    <cp>%EXEDIR%\pspdash.jar</cp>
+  </classPath>
+  <jre>
+    <minVersion>1.6.0</minVersion>
+  </jre>
+</launch4jConfig>

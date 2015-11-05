@@ -779,6 +779,7 @@ Authors:
     <delete quiet="true" file="${dist}/l10nTool.jar"/>
     <delete quiet="true" file="${dist}/extras.jar"/>
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
+    <delete quiet="true" file="${dist}/QuickLauncher.exe"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
     <delete><fileset dir="${installer}/files" includes="izpack-customizations.jar
            cleanupMacData.jar mergeSettings.jar"/></delete>

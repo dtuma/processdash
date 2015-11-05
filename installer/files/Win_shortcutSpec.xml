@@ -44,11 +44,8 @@
      applications="no"
      startMenu="no"
      startup="no"
-     target="javaw"
-     commandLine="-cp &quot;$INSTALL_PATH\pspdash.jar&quot; net.sourceforge.processdash.tool.quicklauncher.QuickLauncher"
+     target="$INSTALL_PATH\QuickLauncher.exe"
      description="Launch Process Dashboard instances for data in ZIP files or arbitrary directories"
-     iconFile="$INSTALL_PATH\launcher.ico"
-     iconIndex="0"
      initialState="normal">
        <createForPack name="teamTools"/>
        <createForPack name="pspInstrTools"/>

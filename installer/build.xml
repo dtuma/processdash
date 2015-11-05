@@ -63,6 +63,7 @@ Authors:
 
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
+    <property name="launcher.exe" value="QuickLauncher.exe" />
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
@@ -126,6 +127,20 @@ Authors:
     </target>
 
 
+    <target name="windows-exe" depends="init,-windows-exe-depend"
+            description="build windows executables to launch the dashboard"
+            unless="windowsExe.upToDate">
+        <launch4j configFile="files/launcher-launch4j-config.xml"
+            outfile="${dist}/${launcher.exe}"/>
+    </target>
+    <target name="-windows-exe-depend">
+        <uptodate property="windowsExe.upToDate"
+            targetfile="${dist}/${launcher.exe}">
+            <srcfiles dir="files" includes="*-launch4j-config.xml"/>
+        </uptodate>
+    </target>
+
+
 
     <target name="install.xml"
             description="Create an install.xml file to feed to IzPack">
@@ -179,7 +194,7 @@ Authors:
 
     <target name="-izpack" depends="init,-izpack.jar,-izpack.exe"/>
 
-    <target name="-izpack.jar">
+    <target name="-izpack.jar" depends="windows-exe">
         <property name="izpack.output"
             value="pdash-install-${qualifier}-${dashboard-version}"/>
         <property name="izpack.type" value="standard"/>
