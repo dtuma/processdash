@@ -133,13 +133,19 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
             <file targetdir="$INSTALL_PATH" override="true" os="windows"
+	          src="../dist/ProcessDashboard.exe"/>
+            <file targetdir="$INSTALL_PATH" override="true" os="windows"
 	          src="../dist/QuickLauncher.exe"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/dashicon.png"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/launcher.png"/>
+
+            <!-- Write runtime JVM args for launch4j EXE file on Windows -->
+            <singlefile src="files/dashboard-launch4j.ini" override="true"
+                  target="$INSTALL_PATH/ProcessDashboard.l4j.ini" os="windows"/>
+            <parsable targetfile="$INSTALL_PATH/ProcessDashboard.l4j.ini"
+                  os="windows"/>
 
             <!-- Create an Application icon on Mac OS X -->
             <fileset targetdir="$MAC_APPL/Process Dashboard.app"

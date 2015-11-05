@@ -13,12 +13,9 @@
      applications="no"
      startMenu="no"
      startup="no"
-     target="javaw"
-     commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH\pspdash.jar&quot;"
+     target="$INSTALL_PATH\ProcessDashboard.exe"
      workingDirectory="$DATA_PATH"
      description="Process Dashboard"
-     iconFile="$INSTALL_PATH\dashicon.ico"
-     iconIndex="0"
      initialState="normal"/>
 
   <shortcut
@@ -28,8 +25,8 @@
      applications="no"
      startMenu="no"
      startup="no"
-     target="javaw"
-     commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH\pspdash.jar&quot; &quot;-location=$TEAM_DATA_PATH&quot;"
+     target="$INSTALL_PATH\ProcessDashboard.exe"
+     commandLine="&quot;-location=$TEAM_DATA_PATH&quot;"
      description="Process Dashboard instance containing your team data"
      iconFile="$INSTALL_PATH\teamicon.ico"
      iconIndex="0"

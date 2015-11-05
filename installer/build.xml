@@ -63,6 +63,7 @@ Authors:
 
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
+    <property name="dashboard.exe" value="ProcessDashboard.exe" />
     <property name="launcher.exe" value="QuickLauncher.exe" />
 
     <!-- the the IZPACK home directory -->
@@ -130,12 +131,14 @@ Authors:
     <target name="windows-exe" depends="init,-windows-exe-depend"
             description="build windows executables to launch the dashboard"
             unless="windowsExe.upToDate">
+        <launch4j configFile="files/dashboard-launch4j-config.xml"
+            outfile="${dist}/${dashboard.exe}"/>
         <launch4j configFile="files/launcher-launch4j-config.xml"
             outfile="${dist}/${launcher.exe}"/>
     </target>
     <target name="-windows-exe-depend">
         <uptodate property="windowsExe.upToDate"
-            targetfile="${dist}/${launcher.exe}">
+            targetfile="${dist}/${dashboard.exe}">
             <srcfiles dir="files" includes="*-launch4j-config.xml"/>
         </uptodate>
     </target>

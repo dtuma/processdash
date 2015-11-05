@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <dontWrapJar>true</dontWrapJar>
+  <errTitle>Process Dashboard</errTitle>
+  <jar>pspdash.jar</jar>
+  <icon>../../src/net/sourceforge/processdash/ui/dashicon.ico</icon>
+  <jre>
+    <minVersion>1.6.0</minVersion>
+  </jre>
+</launch4jConfig>
