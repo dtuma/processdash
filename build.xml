@@ -781,6 +781,7 @@ Authors:
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete quiet="true" file="${dist}/ProcessDashboard.exe"/>
     <delete quiet="true" file="${dist}/QuickLauncher.exe"/>
+    <delete quiet="true" file="${dist}/uninstaller.exe"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
     <delete><fileset dir="${installer}/files" includes="izpack-customizations.jar
            cleanupMacData.jar mergeSettings.jar"/></delete>

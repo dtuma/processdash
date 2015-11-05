@@ -55,8 +55,7 @@
      applications="no"
      startMenu="no"
      startup="no"
-     target="javaw"
-     commandLine="-jar &quot;$INSTALL_PATH\Uninstaller\uninstaller.jar&quot;"
+     target="$INSTALL_PATH\Uninstaller\uninstaller.exe"
      description="Process Dashboard Uninstaller"/>
   
 </shortcuts>

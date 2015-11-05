@@ -29,10 +29,6 @@
 
     <listeners>
         <listener installer="com.izforge.izpack.pdash.DashboardPostInstallAction" />
-        <listener installer="RegistryInstallerListener"
-                  uninstaller="RegistryUninstallerListener">
-            <os family="windows"/>
-        </listener>
     </listeners>
 
     <guiprefs height="480" resizable="yes" width="640">
@@ -112,8 +108,6 @@
     <!-- The native libraries to add -->
     <native type="izpack" name="ShellLink.dll"/>
     <native type="izpack" name="ShellLink_x64.dll"/>
-    <native type="3rdparty" name="COIOSHelper.dll" stage="both"/>
-    <native type="3rdparty" name="COIOSHelper_x64.dll" stage="both"/>
 
     <!-- The custom java code to add -->
     <jar src="files/izpack-customizations.jar"/>
@@ -136,6 +130,8 @@
 	          src="../dist/ProcessDashboard.exe"/>
             <file targetdir="$INSTALL_PATH" override="true" os="windows"
 	          src="../dist/QuickLauncher.exe"/>
+            <file targetdir="$INSTALL_PATH/Uninstaller" os="windows"
+	          src="../dist/uninstaller.exe" override="true"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/dashicon.png"/>
             <file targetdir="$INSTALL_PATH" override="true"
