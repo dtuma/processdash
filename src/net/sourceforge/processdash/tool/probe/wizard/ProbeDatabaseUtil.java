@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -221,7 +221,7 @@ public class ProbeDatabaseUtil {
         WorkflowEnactmentHelper tasks = new WorkflowEnactmentHelper(data,
                 prefix);
         Map<String, String> targetTasks = tasks.getEnactmentTasks(
-            TaskMapType.PhaseName, TaskNodeType.Leaf);
+            TaskMapType.PhaseName, TaskNodeType.Leaf, TaskNodeType.PSP);
         if (targetTasks == null)
             // null indicates that the database queries failed. Abort.
             return Double.NaN;
