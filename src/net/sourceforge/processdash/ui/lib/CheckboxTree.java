@@ -149,7 +149,7 @@ public class CheckboxTree extends JTree {
         fireListSelectionEvent(true);
     }
 
-    protected void setCheckedStatusRecursive(TreeNode node, boolean checked) {
+    public void setCheckedStatusRecursive(TreeNode node, boolean checked) {
         setCheckedStatus(node, checked);
         for (int i = node.getChildCount();   i-- > 0; )
             setCheckedStatusRecursive(node.getChildAt(i), checked);

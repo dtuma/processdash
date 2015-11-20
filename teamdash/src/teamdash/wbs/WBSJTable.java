@@ -1741,6 +1741,9 @@ public class WBSJTable extends JTable {
                     }
                 }
                 workflowTreeModel.nodeStructureChanged(workflowTreeRoot);
+                if (useEntireWbs.isSelected())
+                    workflowTree.setCheckedStatusRecursive(workflowTreeRoot,
+                        false);
                 for (int i = workflowTree.getRowCount(); i-- > 0;)
                     workflowTree.collapseRow(i);
                 if (enactments.size() == 1)
