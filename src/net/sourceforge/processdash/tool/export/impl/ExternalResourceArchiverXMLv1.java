@@ -173,6 +173,7 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
             return false;
         return filename.endsWith(DataImporter.EXPORT_FILE_OLD_SUFFIX)
                 || filename.endsWith(DataImporter.EXPORT_FILE_SUFFIX)
+                || filename.endsWith(".ini")
                 || filename.endsWith(".xml");
     }
 
