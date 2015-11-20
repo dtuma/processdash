@@ -1499,7 +1499,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             return true;
 
         // merge in any changes that have been saved by other individuals.
-        tabPanel.saveOrderOfProjectSpecificCustomColumns();
+        if (tabPanel != null)
+            tabPanel.saveOrderOfProjectSpecificCustomColumns();
         mergeExternalChanges(true);
 
         // ensure that we have a lock for editing the data.
