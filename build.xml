@@ -665,6 +665,7 @@ Authors:
         <exclude name="TOC.html"/>
         <exclude name="Skeleton.html"/>
         <exclude name="book.html"/>
+        <exclude name="help-review.html"/>
       </srcfiles>
     </uptodate>
   </target>

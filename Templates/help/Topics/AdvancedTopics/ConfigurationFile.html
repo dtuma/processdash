@@ -25,16 +25,15 @@ changes to take effect.</p>
 <ul>
 
  <li><strong>browser.command</strong><br>
-   Command used to bring up HTML browser.  On Windows and Mac OS X, the
-   dashboard attempts to launch your default browser, so this command is
-   generally not required.  On Unix/Linux, the dashboard will launch
-   firefox by default, so you can use this parameter to select
-   a different browser.<BR>
+   Command used to bring up a web browser.  The dashboard will normally
+   launch your default web browser, so this command is generally not
+   required.  However, if no web browser appears when you make a
+   selection from the reports/scripts button, setting a value for this
+   parameter might help.<BR>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td>a command line.</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>On Windows and Mac OS X
-      platforms, uses the system default web browser.  On Unix/Linux
-      systems, uses "firefox".</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>Use the system default
+         web browser.</td></tr>
     <tr valign="top"><td NOWRAP>Examples:</td>
         <td>browser.command = /usr/local/bin/opera</td></tr>
    </table>

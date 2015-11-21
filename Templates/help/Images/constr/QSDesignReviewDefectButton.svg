@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="551"
+   width="577"
    height="94"
    id="svg5776"
    sodipodi:version="0.32"
@@ -62,13 +62,13 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="117.61248"
+       x="125.61248"
        y="83.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="117.61248"
+         x="125.61248"
          y="83.197029">Defect button</tspan></text>
     <image
        y="-10"
@@ -77,10 +77,10 @@
        height="66"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesignReviewDefectButton.png"
        xlink:href="QSDesignReviewDefectButton.png"
-       width="551" />
+       width="577" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 116.86086,47.035111 L 138.6502,68.824447"
+       d="M 124.86086,47.035111 L 146.6502,68.824447"
        id="path5927" />
   </g>
 </svg>

@@ -8,6 +8,194 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.2</h2>
+
+<ul>
+
+<li>It is now possible to create custom data columns in the Work Breakdown
+Structure Editor. These can be used to tag WBS elements with team- or
+organization-specific attributes, such as priority, relevant subsystem, issue
+tracker ID, etc. The values entered can be used to filter team reports, and
+are also accessible to data warehouse queries.</li>
+
+<li>The WBS Editor includes several powerful new features to make assigning
+and reassigning work easier:
+
+    <ul>
+
+    <li>The workflow editor includes a new "Performed By" column.  You can
+        enter generic role names like "author," "reviewer," "tester," etc. in
+        this column; or if a specific person is always responsible for a
+        certain task, you can enter their initials.  When the workflow is
+        applied to the WBS, team member initials result in automatic
+        assignments, and role names are displayed as placeholders.  You can
+        click on a placeholder like &laquo;author&raquo; to assign an
+        individual to all of the matching tasks.</li>
+
+    <li>In the past, the Assigned To column was only editable for leaf tasks.
+        Now, it is editable for parent components as well. This makes it
+        simple to reassign all of the tasks under a given component from one
+        person to another.</li>
+
+    <li>Autocompletion support is provided in the Assigned To column as you
+        type the initials of the assigned team members.</li>
+
+    </ul></li>
+
+<li>The WBS Editor include several powerful new features to assist with
+balancing and capacity planning:
+
+    <ul>
+
+    <li>In the WBS Editor, you can now choose a subset of the team and focus
+        the colored balancing bar on those individuals.  This makes it
+        possible to see optimized balanced completion dates for a subgroup of
+        people on a multidisciplinary team (for example, just the developers
+        or just the testers).  Subteams can be saved for use in future WBS
+        editing sessions.</li>
+
+    <li>The WBS Editor has historically allowed the creation of "leaf"
+        components, that have a time estimate but no subtasks; these are
+        useful for many purposes such as capacity analysis and strategic
+        planning.  Now, it is also possible to assign such a component to one
+        or more individuals, to model ownership and to perform rough capacity
+        planning at the personal level.</li>
+
+    <li>It is now possible to highlight an individual milestone to assist with
+        workload balancing: just click on a milestone segment in one of the
+        colored balancing bars.</li>
+
+    <li>To visualize the workload balance of multiple milestones, you can now
+        choose to recolor the balancing bars by milestone (rather than by
+        individual).</li>
+
+    <li>The WBS Editor now includes an option to hide the horizontal and
+        vertical bars that depict the balanced team duration.</li>
+
+    </ul></li>
+
+<li>Two new features make it easy to see how the Work Breakdown Structure has
+changed over time:
+
+    <ul>
+
+    <li>In the WBS Editor, the "File" menu now includes an option to
+        "Highlight and Review Changes." This option can flag all of the cells
+        that have been modified since a certain date. Selecting a flagged cell
+        then displays the history of how the value has changed over time,
+        along with the name of the individual who made each change.</li>
+
+    <li>A new report is available in the Team Dashboard that displays a
+        chronological list of changes that have been made to the WBS of a
+        project. The report displays information about tasks that have been
+        added, deleted, and modified, and shows changes to the planned time
+        for various WBS items.</li>
+
+    </ul></li>
+
+<li>The WBS Editor now provides a "Reapply Workflow" menu option. This can
+find tasks in the WBS that were created by applying a workflow in the past,
+and update those tasks based on the current workflow definition, to include:
+
+    <ul>
+
+    <li>Inserting new workflow steps in the right order</li>
+
+    <li>Updating the names and types of workflow steps that have changed</li>
+
+    <li>Rearranging workflow steps if necessary</li>
+
+    <li>Deleting WBS tasks for workflow steps that have been deleted</li>
+
+    <li>Automatically assigning new tasks to individuals based on previously
+        assigned workflow roles</li>
+
+    <li>Reallocating time across tasks based on updated workflow rates and/or
+        percentages</li>
+
+    </ul></li>
+
+<li>A number of new charts have been added:
+
+    <ul>
+
+    <li>A chart showing the cumulative defect removal curve for a team
+        project</li>
+
+    <li>A scatter chart showing the size and time estimating errors for all of
+        the components in a team project</li>
+
+    <li>A trend chart showing how the CPI has changed over time</li>
+
+    <li>A variation on the Direct Time Trend chart which shows a line for each
+        team member</li>
+
+    <li>A variation on the Earned Value Trend chart which shows a line for
+        each team member</li>
+
+    <li>A two-dimensional trend chart displaying the evolution of actual/plan
+        ratios for direct time and task cost</li>
+
+    </ul></li>
+
+<li>In the past, organizations that created their own custom metrics
+collection frameworks were required to refresh those frameworks each time a
+new version of the dashboard was released. This task is no longer necessary;
+teams will enjoy the full benefits of each new version simply by upgrading the
+dashboard.</li>
+
+<li>The WBS Editor now includes a feature to create and edit proxy tables,
+which can be used to quickly estimate the size and time of WBS
+components.</li>
+
+<li>The active task selector now dynamically moves older tasks into a
+"Completed Items" submenu.  This reduces clutter and makes it easier to focus
+on active tasks.  Users can configure the length of time that should pass
+before a completed task is moved into this menu.</li>
+
+<li>Several usability enhancements were made in the Task &amp; Schedule
+window:
+
+    <ul>
+
+    <li>Right-clicking on a task displays a menu of useful shortcuts. You can
+        open the time or defect log for the selected task, or copy task
+        details to the clipboard for pasting into another program.</li>
+
+    <li>In the "Date" column, you can now use copy-and-paste to mark several
+        tasks complete with the same completion date.</li>
+
+    <li>In the Chart dialog, you can now right-click on a chart and choose
+        "Copy" to copy the image to the clipboard.</li>
+
+    <li>The Cumulative Earned Value and Cumulative Direct Time charts now
+        include a "Replan" line.</li>
+
+    <li>When the Task &amp; Schedule window opens, it will automatically
+        select the row for the current week, and display it with a bold
+        font.</li>
+
+    </ul></li>
+
+<li>The buttons on the main toolbar now have larger icons when the "large
+fonts" preference has been enabled, and the icon for the reports/scripts/tools
+button has been updated to better suggest its function.</li>
+
+<li>By default, the dashboard will select the next task after you mark a task
+complete. If this behavior is undesired, it can now be disabled via the
+Preferences dialog.</li>
+
+<li>In the personal dashboard, the Hierarchy Editor now allows individuals to
+move team projects to a different folder, by using the "Cut" and "Paste"
+buttons. Individuals can use this to move old project cycles to an "archive"
+folder.</li>
+
+<li>It is now possible to export defect type standards to an XML file, then
+import them into another team or personal dashboard.</li>
+
+</ul>
+
+
 <h2>Features new in version 2.1</h2>
 
 <ul>

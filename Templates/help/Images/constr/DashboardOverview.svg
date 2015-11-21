@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="572"
+   width="602"
    height="278"
    id="svg2"
    sodipodi:version="0.32"
@@ -64,7 +64,7 @@
        x="2"
        id="image2042"
        height="66"
-       width="572"
+       width="602"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png" />
     <text
@@ -81,127 +81,127 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="86.773117"
+       x="90.773117"
        y="240.34448"
        id="text1945"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1947"
-         x="86.773117"
+         x="90.773117"
          y="240.34448">Time entry via Play / Pause buttons</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="146.40958"
+       x="162.40958"
        y="188.84383"
        id="text1949"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1951"
-         x="146.40958"
+         x="162.40958"
          y="188.84383">Defect entry</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="172.63065"
+       x="194.63065"
        y="163.09349"
        id="text1953"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1955"
-         x="172.63065"
-         y="163.09349">Process scripts and tools</tspan></text>
+         x="194.63065"
+         y="163.09349">Project reports, forms, scripts and tools</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="362.16168"
+       x="392.16168"
        y="207.65521"
        id="text1957"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1959"
-         x="362.16168"
+         x="392.16168"
          y="207.65521">Task complete checkbox</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="272.12677"
+       x="296.12677"
        y="85.9673"
        id="text1965"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1967"
-         x="272.12677"
+         x="296.12677"
          y="85.9673">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000012;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 554.54978,45.170492 L 518.26599,196.47831"
+       d="M 584.54978,45.170492 L 548.26599,196.47831"
        id="path2883" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 142.62151,47.210334 L 170.415,150.93703"
+       d="M 164.62151,47.210334 L 192.415,150.93703"
        id="path2897" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 111.08366,47.720294 L 145.95072,177.84592"
+       d="M 127.08366,47.720294 L 161.95072,177.84592"
        id="path2901" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000024px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 51.856587,48.230262 L 99.642252,226.1658"
+       d="M 57.856587,48.230262 L 105.64225,226.1658"
        id="path2903" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 17.808756,47.720297 L 72.41532,251.20217"
+       d="M 21.808756,47.720297 L 76.41532,251.20217"
        id="path2905" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.19257259px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 170.98982,51.698059 C 176.88695,59.372057 181.84422,65.118829 191.39891,65.118829 C 218.21199,65.118829 273.20413,65.072084 329.94313,65.02331 C 332.68327,65.020955 339.21807,70.676933 339.65156,70.386199 C 342.17291,68.695087 346.41334,65.009154 349.65813,65.006375 C 405.0332,64.958942 459.16266,64.914496 487.54066,64.914496 C 497.48889,64.914496 498.44056,58.731801 503.78621,51.775461"
+       d="M 194.98982,51.698059 C 200.88695,59.372057 205.84422,65.118829 215.39891,65.118829 C 242.21199,65.118829 297.20413,65.072084 353.94313,65.02331 C 356.68327,65.020955 363.21807,70.676933 363.65156,70.386199 C 366.17291,68.695087 370.41334,65.009154 373.65813,65.006375 C 429.0332,64.958942 483.16266,64.914496 511.54066,64.914496 C 521.48889,64.914496 522.44056,58.731801 527.78621,51.775461"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <text
        sodipodi:linespacing="125%"
        id="text2117"
        y="214.59415"
-       x="124.18851"
+       x="136.18851"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        xml:space="preserve"><tspan
          y="214.59415"
-         x="124.18851"
+         x="136.18851"
          id="tspan2119"
          sodipodi:role="line">Percent Spent Indicator</tspan></text>
     <path
        id="path2123"
-       d="M 86.856557,48.230236 L 127.82611,201.16569"
+       d="M 98.856557,48.230236 L 139.82611,201.16569"
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.9999997px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     <text
        sodipodi:linespacing="125%"
        id="text2780"
-       y="113.65521"
-       x="408.16168"
+       y="109.65521"
+       x="438.16168"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        xml:space="preserve"><tspan
-         y="113.65521"
-         x="408.16168"
+         y="109.65521"
+         x="438.16168"
          id="tspan2782"
          sodipodi:role="line">Note Indicator</tspan></text>
     <path
        id="path1897"
-       d="M 515.54977,43.170495 L 501.54208,103.47831"
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000012;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       d="M 545.54977,43.170512 L 531.54208,99.478351"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="372.16168"
-       y="145.65521"
+       x="402.16168"
+       y="135.65521"
        id="text2047"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2049"
-         x="372.16168"
-         y="145.65521">Dependency Indicator</tspan></text>
+         x="402.16168"
+         y="135.65521">Dependency Indicator</tspan></text>
     <path
        id="path2938"
-       d="M 534.72954,44.990728 L 513.08623,135.246"
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       d="M 564.72954,44.990707 L 543.08623,124.24594"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>

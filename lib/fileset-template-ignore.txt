@@ -13,6 +13,7 @@ Templates/DCR.template
 Templates/help/Images/constr/
 Templates/help/createBroker.class.link
 Templates/help/help.config
+Templates/help/help-review.html
 Templates/help/javaHelp-manifest.txt
 Templates/help/make*.xslt
 Templates/help/style.css
