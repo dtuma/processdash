@@ -219,6 +219,7 @@ The author(s) may be contacted at:
         <exclude name="TOC.html"/>
         <exclude name="Skeleton.html"/>
         <exclude name="book.html"/>
+        <exclude name="teamhelp-review.html"/>
       </srcfiles>
     </uptodate>
     <!-- Check to see if optional packages are present -->
@@ -412,6 +413,7 @@ class dependency has been added in a dashboard class?)
         <include name="Templates/TeamTools-template.xml" />
         <include name="${teamhelp}/" />
         <exclude name="**/.gitignore" />
+        <exclude name="${teamhelp}/teamhelp-review.html" />
         <exclude name="${teamhelp}/help.config" />
         <exclude name="${teamhelp}/makeSkeleton.xslt" />
         <exclude name="${teamhelp.imgsrc}/" />

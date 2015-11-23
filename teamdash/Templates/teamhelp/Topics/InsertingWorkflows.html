@@ -26,24 +26,61 @@ from the Workflow menu, it would produce the following WBS:</p>
 
 <p class="figure"><img src="../Images/workflow-insert-example-after.png"></p>
 
-<p>If you make a mistake (for example, inserting the workflow under
-the wrong WBS item), you can always undo it using the undo button
-(<img src="../Images/icon-undo.png">).</p>
+<p>You can also insert a workflow by highlighting a component and typing
+Ctrl-W (or Command-W on Mac OS X).  If you make a mistake (for example,
+inserting the workflow under the wrong WBS item), you can always undo it using
+the undo button (<img src="../Images/icon-undo.png">).</p>
 
-<p><a name="copiesOnly"></a>It is important to note that the items
-inserted into your WBS via
-this method are <i>copies</i> of the items in the defined process or
-workflow. As a result, you can freely edit the inserted items (for
-example, deleting steps that are unnecessary for the current
-situation) without affecting the process/workflow definition. This
-also means, however, that if you use the Common Team Workflows Editor
-to alter the definition of a process/workflow later, those changes
-will not be propagated into the team's WBS. For example, if you were
-to open the Common Team Workflows Editor and delete the Planning step
-from the definition of the "Simple Process" workflow, that change
-would not affect the list of tasks under Component B. It would
-continue to include a Planning step.</p>
+<p><a name="copiesOnly"></a>It is important to note that the items inserted
+into your WBS via this method are <i>copies</i> of the items in the defined
+process or workflow. As a result, you can freely edit the inserted items (for
+example: deleting steps that are unnecessary for the current situation,
+subdividing steps, etc) without affecting the process/workflow definition.
+This also means, however, that if you use the Common Team Workflows Editor to
+alter the definition of a process/workflow later, those changes will not
+automatically be propagated into the team's WBS.  For example, if you were to
+open the Common Team Workflows Editor and delete the Compile step from the
+definition of the "Simple Process" workflow shown above, that change would not
+automatically affect the list of tasks under Component B.  It would continue
+to include a Compile step.</p>
 
+<p>If you make a change to a workflow and you <b>would</b> like that change to
+propagate into the WBS, use the "Reapply Workflow" option on the workflow
+menu.  This option can be used in several ways:</p>
+
+<ul>
+
+<li>If you highlight an existing task that was created from a workflow,
+choosing the Reapply option will let you update the workflow-related tasks for
+the enclosing component.</li>
+
+<li>If you choose a component or higher branch of the WBS, you can update all
+of the workflow-related tasks for that branch of the hierarchy.</li>
+
+<li>If desired, you can search the entire WBS for workflow-related tasks, and
+update them to match the current workflow definitions.</li>
+
+</ul>
+
+<p>Reapplying a workflow will make the following changes:</p>
+
+<ul>
+
+<li>Insert new workflow steps in the right order</li>
+
+<li>Update the names and types of workflow steps that have changed</li>
+
+<li>Rearrange workflow steps if necessary</li>
+
+<li>Delete WBS tasks for workflow steps that have been deleted</li>
+
+<li>Automatically assign new tasks to individuals based on previously assigned
+    workflow roles</li>
+
+</ul>
+
+<p>You can optionally choose to update task time estimates based on the latest
+workflow rates/percentages.</p>
 
 </body>
 </html>

@@ -18,6 +18,13 @@ to perform these two tasks simultaneously. As a result, you may wish to
 consider merging TSP launch meeting No. 4 and meeting No. 6 into a single
 launch meeting.</p>
 
+<p>The tasks below involve "fleshing out" the project and creating detailed
+plans for the next iteration.  This effort is often ideally suited for
+<a href="SimultaneousWBSEditing.html">simultaneous editing</a>.  Allowing all
+team members to work in parallel, refining their portions of the plan, is a
+perfect example of the high-maturity concept of self-directed teams, and is
+strongly considered a best practice.</p>
+
 <h2><a name="refining"></a>Refining Project Components</h2>
 
 <p>The first step in creating a team plan is to refine the high-level
@@ -85,13 +92,13 @@ the Task Time tab.</p>
 
 <p class="figure"><img src="../Images/wbs-with-time-estimates.png"></p>
 
-<p>If your workflow definitions <a
-href="EditWorkflows.html#pct">included percentages but did not include
-rates</a>, your team should use engineering judgement to produce your
-best estimate of the time needed for a WBS item, and enter this
-estimate on the Task Time tab.  The WBS will spread your time estimate
-across the tasks in the workflow according to the percentages you
-entered in the Workflow editor.</p>
+<p>If your workflow definitions <a href="EditWorkflows.html#pct">included
+percentages but did not include rates</a>, your team should use engineering
+judgement or <a href="PlanProjectStrategy.html#proxies">proxy estimation
+tables</a> to produce your best estimate of the time needed for a WBS item,
+and enter this estimate on the Task Time tab.  The WBS will spread your
+time estimate across the tasks in the workflow according to the percentages
+you entered in the Workflow editor.</p>
 
 <p>These workflow tools make it very easy to create a large number of
 tasks quickly.  Unfortunately, if teams aren't paying attention, they
@@ -189,7 +196,11 @@ to see the Bottom Up Time Panel. You can alternately show and hide
 this panel by selecting the Show Bottom Up Time Panel option from the
 Team menu.  Or if you only need to see the balanced team duration, you
 can click the icon to the left of the "Team (Balanced)" label to
-collapse the team member bars.</p>
+collapse the team member bars.  Finally, if you wish to see bars for
+each person but hide the balanced team bar, open the Team menu and
+uncheck the "Show Balanced Team Bar" item.</p>
+
+<h3><a name="subteam"></a>Balancing within a Subteam</h3>
 
 <p>At other times, you may wish to balance work among a subset of the
 team.  For example, on a multidisciplinary team made up of architects,
@@ -257,14 +268,19 @@ the vertical black bar will show the optimal team completion date for
 that milestone.</p>
 
 
-<p id="taskLabels"><b>Task Labels:</b> The Task Labels column allows you to
-associate keywords with the various tasks in your WBS. If you enter keywords
-in this column, the team project plan summary will allow you to filter project
-metrics rollups, to include only the tasks matching a given search
-expression. For more information on this filtering capability, see the <a
-href="TeamLeader.html#labelFiltering">Analyzing Filtered Data Using Labels</a>
-help topic.</p>
+<p><a name="taskLabels"></a><b>Task Labels:</b> The Task Labels column allows
+you to associate keywords with the various tasks in your WBS. If you enter
+keywords in this column, the team project plan summary will allow you to
+filter project metrics rollups, to include only the tasks matching a given
+search expression. For more information on this filtering capability, see the
+<a href="TeamLeader.html#labelFiltering">Analyzing Filtered Data Using
+Labels</a> help topic.</p>
 
+
+<p><b>Estimated Proxy Type</b> and <b>Rel. Size:</b> These columns are used
+to quickly estimate the size and time of a component.  See the help topic
+on <a href="PlanProjectStrategy.html#proxies">using estimating proxies</a>
+for more information.</p>
 
 <p><b>Task Dependencies:</b> The Task Dependencies column allows you
 to define dependencies between tasks. You can declare dependencies on
@@ -282,17 +298,42 @@ effectively. For more information on task dependencies, please see the
 <a href="../../help/Topics/Planning/TaskScheduleDependencies.html">Task
 Dependencies</a> help topic.</p>
 
-<p id="taskNotes"><b>Notes:</b> As you create a plan and enter estimates, it
-is sometimes helpful to capture contextual information about a task. For
-example, you may want to capture the high-level scope for a particular work
-item, the assumptions used to generate the estimates, the ticket number in
-your issue tracking system, etc. Just double-click on the Notes column to
-enter comments about any component or task.</p>
+<p><a name="taskNotes"></a><b>Notes:</b> As you create a plan and enter
+estimates, it is sometimes helpful to capture contextual information about a
+task. For example, you may want to capture the high-level scope for a
+particular work item, the assumptions used to generate the estimates,
+etc. Just double-click on the Notes column to enter comments about any
+component or task.</p>
 
 <p>The resulting notes will appear as tooltips over the WBS hierarchy
 on the left-hand-side of the window.  In addition, the notes will be
 copied into the personal plans of each team member for future
-reference.</p>
+reference.  These notes are quickly accessible on the main dashboard
+toolbar while an individual is working on the annotated component or task.</p>
+
+<p>If you include a URL in a note, the associated webpage will appear on the
+project reports/tools button when an individual is working on this item.
+This technique has many useful applications.  You could include links to the
+issue tracker page for a new feature, the wiki page for team discussions
+about a component, or the page for an online code review.  If your team has
+shortcuts that are universally applicable for the entire project, you can
+enter them in a note on the root element of the project, and they will always
+be a click or two away for all team members.  For sites that require a login,
+you can tell the dashboard the name of the target page by enclosing the URL
+and page name in square brackets (e.g. <tt>[http://url/to/some/page Display
+This Title]</tt>).</p>
+
+<p>For much more information on the use of task notes, see the
+<a href="../../help/Topics/Execution/NoteIndicator.html">Note Indicator</a>
+help topic.</p>
+
+<p><b>Custom Columns:</b> The columns described above can be very useful for
+capturing details about the components and tasks in your plan.  But if you
+need to capture project, team, or organization-specific values, you can
+create custom columns as well.  See the help topic on
+<a href="EditingWBSMetrics.html#customColumns">Editing WBS Metrics</a>
+for more information.</p>
+
 
 <h2 NO_NUMBER="true">Saving Changes</h2>
 

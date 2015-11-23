@@ -7,10 +7,11 @@
 
 <h1>Create Team Configuration Directory (Team Leader)</h1>
 
-<p>The team support add-on for the Process Dashboard currently uses a shared
+<p>The open-source bundle of the Process Dashboard currently uses a shared
 network directory to facilitate team collaboration.  When a particular team
 begins using the Team Dashboard for the first time, it will be necessary to
-create a network directory for them to use.</p>
+create a network directory for them to use.  (If this is difficult in your
+organization, <a href="#pdes">see below</a> for other options.)</p>
 
 <p>This <i>team configuration directory</i> will contain important team
 planning information, such as the list of all the project iterations the team
@@ -75,6 +76,64 @@ location, you can look it up by opening the Team Dashboard, choosing
 Help&nbsp;&#8594;&nbsp;About Process Dashboard, and clicking the Configuration
 tab.  The first paragraph on the Configuration tab will provide the location
 of the team configuration directory.</p>
+
+<h2><a name="pdes"></a>Other Options: Process Dashboard Enterprise Server</h2>
+
+<p>As stated above, the open-source bundle of the Process Dashboard uses a
+shared network directory to facilitate team collaboration.  That approach was
+selected because it makes use of simple network services that are commonly
+available in the vast majority of organizations. However, it is not a perfect
+fit for every organization:</p>
+
+<ul>
+
+<li style="margin-bottom:12px">Some organizations do not have shared file
+servers in use, or their system administrators are reluctant to create
+them.</li>
+
+<li style="margin-bottom:12px">When a team is comprised of members in multiple
+locations, there may not be a network file server that all team members can
+access.  And even when a particular server is reachable by the entire team,
+some individuals may encounter problems stemming from network latency or poor
+connectivity.</li>
+
+<li style="margin-bottom:12px">When teams are using a mix of Windows, Mac,
+Unix, and/or Linux, there is not a universal way to type the network path that
+is meaningful to all of the operating systems.  In addition, "mount" commands
+on Mac/Unix/Linux may have to be hand-tweaked on each computer to ensure that
+file locking protocols work correctly.  These problems make initial setup
+challenging for some team members.</li>
+
+<li style="margin-bottom:12px">Finding an appropriate server, creating a new
+team directory, and properly adjusting the permissions can take time.  If a
+team forgets to perform these steps in advance, their initial project launch
+may be needlessly delayed while the entire team waits for these tasks to
+finish.</li>
+
+<li style="margin-bottom:12px">It can be a challenge to manage filesystem
+permissions based on changing team membership.  Mistakes in the configuration
+of permission inheritance can sometimes go undetected and cause problems
+later.</li>
+
+<li>In a large organization with a sizeable process improvement initiative,
+many teams may be using the Process Dashboard.  It can be labor-intensive to
+create network directories for each team and help them to overcome the
+problems listed above.  Even worse, the organization's valuable process
+improvement data is then scattered across an unknown number of network
+locations.  This makes it harder for coaches to work with multiple teams;
+makes it challenging to ensure that proper backups are taking place; and makes
+it difficult to perform any sort of organization-wide data analysis.</li>
+
+</ul>
+
+<p>The Process Dashboard Enterprise Server was created to solve these
+problems.  It also provides teams and organizations with many significant new
+benefits.  For example, it offers the option to look back in time and see
+reports, charts, and data as they appeared at some point in the past.  For
+more information on the server, visit:</p>
+
+<pre style="margin-left:1cm">http://www.processdash.com/pdes</pre>
+
 
 <!-- Add blank space to the bottom of the page, so we can scroll to -->
 <!-- all of the HTML anchors named above -->

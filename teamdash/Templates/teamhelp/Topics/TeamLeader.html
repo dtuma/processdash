@@ -107,11 +107,20 @@ for analyzing arbitrary subsets of team data based on keywords called
 Structure editor. During the team launch, you may not wish to spend
 the entire team's time entering these labels. But after the launch is
 complete, you might want to open the WBS and attach keywords to
-various tasks. This is done by entering values in the &quot;Task
+various tasks. This can be done by entering values in the &quot;Task
 Labels&quot; column on the &quot;Task Details&quot; tab. Each task can
 have any number of labels, separated by commas or spaces. Tasks will
 inherit the labels of their WBS parent unless you request
 otherwise.</p>
+
+<p>If you use labels extensively, you may find that the Labels column becomes
+cluttered with keywords for many different categories.  In this case, it is
+wise to create <a href="EditingWBSMetrics.html#customColumns">custom
+columns</a> for each independent categorization.  As you define the custom
+column, check the box to "Show values as labels in team reports."  This will
+allow you to filter team charts and reports based on the values in the column.
+When you use this approach, the Labels column can be used primarily for
+one-off keywords.</p>
 
 <p>After you edit labels and save the Work Breakdown Structure, you
 can apply a label filter from any page of your Team Project Plan
@@ -259,6 +268,41 @@ change should take the following steps:
     </ol></li>
 
 </ol>
+
+<h2><a name="reviewingChanges"></a>Reviewing Changes in the Team Plan</h2>
+
+<p>Throughout the course of the project, teams will frequently refine their
+plan based on newly available information.  As a result, the team plan will
+change continually over time.  Reviewing and monitoring these changes is an
+important part of project management and tracking, so two review methods are
+provided.</p>
+
+<p>For a quick and simple review, choose "WBS Change History Report" from the
+Team Dashboard.  This will display a chronological report showing:</p>
+
+<ul>
+<li>Tasks that were added, deleted, and modified</li>
+<li>Task reassignments and changes to planned time</li>
+</ul>
+
+<p>You may find it useful to review the contents of this report in preparation
+for your weekly team meeting, or during the meeting itself.</p>
+
+<p>For a more detailed review of changes, open the WBS Editor and choose
+"Highlight and Review Changes" from the "File" menu.  This will invite you to
+select a date in the past; then it will find changes that have occurred in the
+team plan since that date.  The WBS Editor will display a triangular
+annotation in the top-left corner of each modified cell.  If you select one of
+these annotated cells, a floating window will show you the history of how that
+cell has changed over time, along with the name of the individual who made
+each change.</p>
+
+<p class="figure"><img src="../Images/wbs-highlight-changes.png"></p>
+
+<p>You can use the arrow buttons to move from one change to the next.  If you
+discover something worrisome or problematic, you can click the red "X" to
+bring the problem to the <a href="#dataProblems">team's attention</a>.</p>
+
 
 <h2><a name="dataProblems"></a>Bringing Problems to the Team's Attention</h2>
 

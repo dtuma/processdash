@@ -10,14 +10,14 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="566"
+   width="591"
    height="141"
    id="svg2854"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    sodipodi:docname="indiv-dashboard-example-annotated.svg"
    version="1.0"
-   sodipodi:docbase="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr">
+   sodipodi:docbase="C:\Tuma\projects\processdash\teamdash\Templates\teamhelp\Images\constr">
   <defs
      id="defs2856">
     <inkscape:perspective
@@ -45,8 +45,8 @@
      inkscape:current-layer="layer1"
      inkscape:window-width="1101"
      inkscape:window-height="851"
-     inkscape:window-x="136"
-     inkscape:window-y="116"
+     inkscape:window-x="669"
+     inkscape:window-y="178"
      width="567px"
      height="141px"
      showgrid="false"
@@ -74,9 +74,9 @@
      id="layer1"
      transform="translate(-2,9.637816)">
     <image
-       sodipodi:absref="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr\../indiv-dashboard-example.png"
+       sodipodi:absref="C:\Tuma\projects\processdash\teamdash\Templates\teamhelp\Images\constr\../indiv-dashboard-example.png"
        xlink:href="../indiv-dashboard-example.png"
-       width="566"
+       width="591"
        height="66"
        id="image2935"
        x="2"
@@ -84,78 +84,78 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="2.9186466"
+       x="14.918648"
        y="81.879028"
        id="text2938"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2940"
-         x="2.9186466"
+         x="14.918648"
          y="81.879028">Play/Pause button</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="215"
+       x="239"
        y="81.879028"
        id="text2944"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2946"
-         x="215"
+         x="239"
          y="81.879028">Active Task Selector</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="397"
+       x="423"
        y="82.859985"
        id="text2948"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2950"
-         x="397"
+         x="423"
          y="82.859985">Note Indicator</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="382.80591"
+       x="408.80591"
        y="104.03162"
        id="text2952"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2954"
-         x="382.80591"
+         x="408.80591"
          y="104.03162">Dependency Indicator</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="378"
+       x="404"
        y="128.35999"
        id="text2956"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2958"
-         x="378"
+         x="404"
          y="128.35999">Task Completion Checkbox</tspan></text>
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 176.06303,45.262639 C 177.6358,44.289802 176.32632,59.533228 186.54982,59.533228 C 223.28012,59.533228 270.21117,59.533228 270.21117,59.533228 L 278.60061,69.046954 L 287.92221,58.898979 C 287.92221,58.898979 422.25701,59.865143 483.6758,59.533228 C 494.65374,59.468868 493.81303,45.738325 493.81303,45.738325"
+       d="M 200.06303,45.262639 C 201.6358,44.289802 200.32632,59.533228 210.54982,59.533228 C 247.28012,59.533228 294.21117,59.533228 294.21117,59.533228 L 302.60061,69.046954 L 311.92221,58.898979 C 311.92221,58.898979 446.25701,59.865143 507.6758,59.533228 C 518.65374,59.468868 517.81303,45.738325 517.81303,45.738325"
        id="path2960"
        sodipodi:nodetypes="cscccsc" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 509.9639,45.949527 L 488.0361,71.323889"
+       d="M 535.9639,45.949527 L 514.0361,71.323889"
        id="path2972" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 528.98043,45.933001 L 504.90002,91.116696"
+       d="M 554.98043,45.933001 L 530.90002,91.116696"
        id="path2974" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 546.98494,45.35407 L 537,111.3"
+       d="M 572.98494,45.35407 L 563,111.3"
        id="path2976" />
     <path
        style="fill:none;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 21.5,70.362183 L 45.5,45"
+       d="M 33.5,70.362183 L 57.5,45"
        id="path2980" />
   </g>
 </svg>
