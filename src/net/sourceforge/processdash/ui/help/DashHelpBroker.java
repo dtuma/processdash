@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This library is free software; you can redistribute it and/or
@@ -76,6 +76,17 @@ public class DashHelpBroker implements DashHelpProvider {
 
     /** Reflectively create a new JavaHelp broker */
     private Object instantiateBroker() throws Exception {
+        try {
+            // configure the help viewer to use our custom content viewer UI.
+            // that UI opens http URLs in a real web browser, and does a better
+            // job of scrolling to named anchors within an HTML page.
+            Class util = classloader.loadClass(UTILS_CLASS_NAME);
+            util.getMethod("setContentViewerUI", String.class).invoke(null,
+                CONTENT_VIEWER_CLASS_NAME);
+        } catch (Throwable t) {
+            // if the code above fails, continue with the standard viewer UI.
+        }
+
         Class c = classloader.loadClass(BROKER_CLASS_NAME);
         return c.newInstance();
     }
@@ -201,7 +212,7 @@ public class DashHelpBroker implements DashHelpProvider {
         // succeeds, we can just return our classloader.
         try {
             ClassLoader cl = DashHelpBroker.class.getClassLoader();
-            cl.loadClass(BROKER_CLASS_NAME);
+            cl.loadClass(UTILS_CLASS_NAME);
             return cl;
         } catch (Throwable t) {}
 
@@ -215,7 +226,10 @@ public class DashHelpBroker implements DashHelpProvider {
         // We found javahelp.  Use the URL of the resource we found to
         // construct an appropriate classloader for loading javahelp classes.
         File dashHelpFile = new File(dashHelpPackage.filename);
-        URL[] classPath = new URL[] { dashHelpFile.toURI().toURL() };
+        File dashHelpExt = new File(dashHelpFile.getParentFile(),
+                "dashHelpExt.jar");
+        URL[] classPath = new URL[] { dashHelpFile.toURI().toURL(),
+                dashHelpExt.toURI().toURL() };
         return new URLClassLoader(classPath);
     }
 
@@ -254,6 +268,10 @@ public class DashHelpBroker implements DashHelpProvider {
         }
     }
 
+    private static final String UTILS_CLASS_NAME =
+        "javax.help.SwingHelpUtilities";
+    private static final String CONTENT_VIEWER_CLASS_NAME =
+        "net.sourceforge.processdash.ui.help.DashHelpContentViewerUI";
     private static final String BROKER_CLASS_NAME =
         "javax.help.DefaultHelpBroker";
     private static final String HELPSET_CLASS_NAME = "javax.help.HelpSet";

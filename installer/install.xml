@@ -282,6 +282,8 @@
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/dashHelp.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/dashHelpExt.jar"/>
         </pack>
 	
 

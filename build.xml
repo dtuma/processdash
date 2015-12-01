@@ -221,6 +221,7 @@ Authors:
       <zipfileset dir="${help}" includes="javaHelp-manifest.txt"
           fullpath="META-INF/PDASH.MF"/>
     </mergeJars>
+    <copy file="${lib}/dashHelpExt.jar" todir="${dist}"/>
   </target>
 
 

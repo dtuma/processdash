@@ -2,6 +2,7 @@ pspdash.jar
 l10nTool.jar
 extras.jar
 dashHelp.jar
+dashHelpExt.jar
 pspProc2.jar
 importPSP.jar
 pspForEng.jar
