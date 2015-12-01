@@ -19,6 +19,7 @@
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />
+  <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDir.html#pdes" />
   <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
   <mapID target="TeamInviteJoin" url="Topics/InviteJoin.html" />
   <mapID target="TeamMemberJoin" url="Topics/MembersJoin.html" />

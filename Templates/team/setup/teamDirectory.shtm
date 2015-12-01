@@ -35,30 +35,43 @@ have adequate file permissions to create this file, then click
 
 <!--#if [setup//Is_Master] -->
 
-<P>The team-oriented processes in the dashboard use a &quot;team
-directory&quot; to facilitate coordination.  This directory will be used to
-hold team-level planning information, such as the project's work breakdown
-structure.</P>
+<p>The team-oriented processes in the dashboard use a <b>shared network
+&quot;team directory&quot;</b> to facilitate coordination.  This directory
+will be used to hold team-level planning information, such as the project's
+work breakdown structure.</p>
 
-<p>The &quot;team directory&quot; must be accessible and readable by the
-leaders of all the team projects associated with this master project.
-Because of this, it should generally be a shared network directory.<p>
+<p>The &quot;team directory&quot; must be <b>accessible and readable</b> by
+the leaders of all the team projects associated with this master project.</p>
 
 <!--#else-->
 
-<p>The team-oriented processes in the dashboard use a &quot;team
-directory&quot; to facilitate coordination.  The primary purpose of
-this directory is to hold exported snapshots of individual data; the
-team project instance imports this data and uses it to compute
-rolled-up team data.</p>
+<p>The team-oriented processes in the dashboard use a <b>shared network
+&quot;team directory&quot;</b> to facilitate coordination.  This directory
+will be used to hold team-level planning information, such as the project's
+work breakdown structure.  It will also hold exported snapshots of individual
+data, for use in computing team reports.</p>
 
-<p>The &quot;team directory&quot; must be accessible, readable, and
-writable by all team members.  Because of this, it should generally be
-a shared network directory.  Since the directory will hold PSP data
-collected by individuals, it should be configured with permissions
-that forbid file access by non-team members.<p>
+<p>The &quot;team directory&quot; must be <b>accessible, readable, and
+writable by all team members</b>.  Because of this, it needs to be a shared
+network directory.  Since the directory will hold personal data collected by
+individuals, it should be configured with permissions that forbid file access
+by non-team members.<p>
 
 <!--#endif-->
+
+<table border=0><tr>
+
+<td><img width=60 height=24 src="/teamhelp/Images/finger.png"></td>
+
+<td>The Process Dashboard was designed to use shared network directories
+because they are commonly available in a vast majority of organizations.
+However, they are not a perfect fit for every organization.  If you cannot
+create a shared directory that all team members can access, an alternative is
+available. <a target="_blank"
+href="/teamhelp/frame.html?TeamConfigDir.pdes">Click here for more
+information.</a></td>
+
+</tr></table>
 
 <p>Any number of projects can share the same team directory; the
 process dashboard will still be able to track which data belongs to
