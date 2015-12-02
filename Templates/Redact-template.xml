@@ -92,5 +92,6 @@ The author(s) may be contacted at:
   <redact-wbs-attr-filter class="&pkg;FilterWbsLabelAttrs"/>
   <redact-wbs-attr-filter class="&pkg;FilterWbsNoteAttrs"/>
   <redact-wbs-attr-filter class="&pkg;FilterWbsPeopleAttrs"/>
+  <redact-wbs-attr-filter class="&pkg;FilterWbsWorkflowRoles"/>
 
 </dashboard-process-template>
