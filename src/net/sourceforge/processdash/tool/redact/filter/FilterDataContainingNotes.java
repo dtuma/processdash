@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,11 @@
 
 package net.sourceforge.processdash.tool.redact.filter;
 
+import java.util.Date;
+
+import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
-import net.sourceforge.processdash.tool.redact.EnabledFor;
 
 @EnabledFor(RedactFilterIDs.NOTES)
 public class FilterDataContainingNotes extends AbstractDataStringFilter {
@@ -46,6 +48,23 @@ public class FilterDataContainingNotes extends AbstractDataStringFilter {
     @EnabledFor("/Diff_Annotation_Data$")
     public String deleteSizeEstDiffAnnotationData(String data) {
         return null;
+    }
+
+    @EnabledFor("Task-Schedule/.*/Snapshot/")
+    public String fixBaselineDescription(String data) {
+        int tagEnd = data.indexOf('>') + 1;
+        String tag = data.substring(0, tagEnd);
+
+        try {
+            String date = RedactFilterUtils.getXmlAttr(tag, "when");
+            Date ts = new Date(Long.parseLong(date.substring(1)));
+            String newName = "Baseline saved " + ts;
+            tag = RedactFilterUtils.replaceXmlAttr(tag, "name", newName);
+        } catch (Exception e) {
+        }
+        tag = RedactFilterUtils.discardXmlAttr(tag, "comment");
+
+        return tag + data.substring(tagEnd);
     }
 
 }
