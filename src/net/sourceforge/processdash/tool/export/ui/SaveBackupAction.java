@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -322,6 +322,7 @@ public class SaveBackupAction extends AbstractAction {
         ExampleFileFilter ff = makeFilter(PDBK);
         for (String type : BACKUP_FILE_TYPES)
             ff.addExtension(type);
+        ff.addFilename("state");
         fc.addChoosableFileFilter(ff);
         fc.setFileFilter(ff);
 

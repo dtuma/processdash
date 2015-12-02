@@ -41,6 +41,7 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -69,6 +70,7 @@ import javax.swing.filechooser.FileFilter;
 public class ExampleFileFilter extends FileFilter {
 
     private Set filters = null;
+    private Set filenames = null;
     private String description = null;
     private String fullDescription = null;
     private boolean useExtensionsInDescription = true;
@@ -152,6 +154,11 @@ public class ExampleFileFilter extends FileFilter {
             if(f.isDirectory()) {
                 return true;
             }
+
+            if (filenames != null
+                    && filenames.contains(f.getName().toLowerCase()))
+                return true;
+
             String extension = getExtension(f);
             return (extension != null && filters.contains(extension));
         }
@@ -200,6 +207,16 @@ public class ExampleFileFilter extends FileFilter {
              filters = new LinkedHashSet(5);
          filters.add(extension.toLowerCase());
          fullDescription = null;
+    }
+
+    /**
+     * Add a "special" filename that should be included in the filter,
+     * regardless of its extension.
+     */
+    public void addFilename(String filename) {
+        if (filenames == null)
+            filenames = new HashSet();
+        filenames.add(filename.toLowerCase());
     }
 
 
