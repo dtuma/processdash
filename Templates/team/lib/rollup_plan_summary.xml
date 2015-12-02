@@ -217,6 +217,8 @@
   <param name="YAxisLabel">Defects / KLOC</param>
 </parameters>]]></snippet>
 
+<snippet instanceId="44" type="pdash.cumDefects" version="1.0" persister="xml.v1" />
+
 <snippet instanceId="42" type="pdash.qualityProfile" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <param name="Which">Plan</param>
@@ -226,6 +228,8 @@
 <parameters>
   <param name="Which">Actual</param>
 </parameters>]]></snippet>
+
+<snippet instanceId="45" type="pdash.estErrorScatterChart" version="1.0" persister="xml.v1" />
 
 <snippet instanceId="50" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
   <param name="Name">Defect Reports</param>
