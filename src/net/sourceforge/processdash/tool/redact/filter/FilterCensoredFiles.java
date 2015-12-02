@@ -33,6 +33,9 @@ import net.sourceforge.processdash.util.PatternList;
 
 public class FilterCensoredFiles implements RedactFilter {
 
+    @EnabledFor(RedactFilterIDs.NOTES)
+    private boolean deleteNotes;
+
     @EnabledFor(RedactFilterIDs.LOG_FILES)
     private boolean deleteLogFiles;
 
@@ -44,6 +47,9 @@ public class FilterCensoredFiles implements RedactFilter {
             .addLiteralEndsWith("/changehistory.xml")
             .addLiteralEndsWith("/tabs.xml")
             .addLiteralEndsWith("/workflowdump.xml");
+
+        if (deleteNotes)
+            filenamePatterns.addLiteralEndsWith("/columns.xml");
 
         if (deleteLogFiles)
             filenamePatterns
