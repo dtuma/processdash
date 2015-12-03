@@ -138,6 +138,8 @@ Authors:
             outfile="${dist}/${launcher.exe}"/>
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
             outfile="${dist}/${uninstaller.exe}"/>
+        <echo file="files/dashboard-launch4j.ini"
+            ># Process Dashboard JVM arguments&#13;&#10;-Xmx&#36;{MAX_MEMORY}m&#13;&#10;</echo>
     </target>
     <target name="-windows-exe-depend">
         <uptodate property="windowsExe.upToDate"

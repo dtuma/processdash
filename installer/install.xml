@@ -138,7 +138,7 @@
                   src="files/launcher.png"/>
 
             <!-- Write runtime JVM args for launch4j EXE file on Windows -->
-            <singlefile src="files/dashboard-launch4j.ini" override="true"
+            <singlefile src="files/dashboard-launch4j.ini" override="false"
                   target="$INSTALL_PATH/ProcessDashboard.l4j.ini" os="windows"/>
             <parsable targetfile="$INSTALL_PATH/ProcessDashboard.l4j.ini"
                   os="windows"/>
