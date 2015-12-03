@@ -290,11 +290,21 @@ public class PauseButton extends DropDownButton implements ActionListener,
         JMenu menu = getMenu();
         menu.removeAll();
 
+        int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
         Iterator recentItems = loggingModel.getRecentPaths().iterator();
         while (recentItems.hasNext()) {
             String path = (String) recentItems.next();
             JMenuItem itemToAdd = new JMenuItem(path);
             itemToAdd.addActionListener(this);
+
+            if (menu.getMenuComponentCount() + 1 >= maxItemsPerMenu) {
+                JMenu moreSubmenu = new JMenu(Resources.getGlobalBundle()
+                        .getDlgString("More"));
+                menu.insert(moreSubmenu, 0);
+                menu.insertSeparator(1);
+                menu = moreSubmenu;
+            }
+
             menu.add(itemToAdd);
         }
     }
