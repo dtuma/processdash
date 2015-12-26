@@ -28,7 +28,7 @@
       <key>MainClass</key>
       <string>net.sourceforge.processdash.Main</string>
       <key>JVMVersion</key>
-      <string>1.5*</string>
+      <string>1.6+</string>
       <key>ClassPath</key>
       <array>
         <string>$JAVAROOT/empty.jar</string>

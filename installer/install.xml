@@ -10,7 +10,7 @@
             <author email="tuma@users.sourceforge.net" name="David Tuma"/>
         </authors>
         <url>http://www.processdash.com</url>
-	<javaversion>1.5</javaversion>
+	<javaversion>1.6</javaversion>
     </info>
 
     <conditions>
