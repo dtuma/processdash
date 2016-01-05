@@ -14,7 +14,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleExecutable</key>
-    <string>JavaApplicationStub</string>
+    <string>universalJavaApplicationStub</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundlePackageType</key>
@@ -39,7 +39,7 @@
         </array>
       </dict>
     </array>
-    <key>Java</key>
+    <key>JavaX</key>
     <dict>
       <key>MainClass</key>
       <string>net.sourceforge.processdash.tool.quicklauncher.QuickLauncher</string>

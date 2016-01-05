@@ -248,7 +248,7 @@
             <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>
-            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/JavaApplicationStub" stage="never">
+            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
 	        <os name="Mac OS X"/>
 	    </executable>
         </pack>
@@ -326,7 +326,7 @@
             <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>
-            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/JavaApplicationStub" stage="never">
+            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
 	        <os name="Mac OS X"/>
 	    </executable>
 
