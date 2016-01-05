@@ -148,7 +148,6 @@
                   dir="files/dashboard_app" override="true">
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
-                <exclude name="**/JavaApplicationStub-License.rtf"/>
             </fileset>
             <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
@@ -156,7 +155,7 @@
             <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Resources/dataLocation.txt">
                 <os name="Mac OS X"/>
             </parsable>
-            <executable targetfile="$MAC_APPL/Process Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+            <executable targetfile="$MAC_APPL/Process Dashboard.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
 	        <os name="Mac OS X"/>
 	    </executable>
 

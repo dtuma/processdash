@@ -14,7 +14,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleExecutable</key>
-    <string>JavaApplicationStub</string>
+    <string>universalJavaApplicationStub</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundlePackageType</key>
@@ -23,7 +23,7 @@
     <string>????</string>
     <key>CFBundleIconFile</key>
     <string>Process Dashboard.icns</string>
-    <key>Java</key>
+    <key>JavaX</key>
     <dict>
       <key>MainClass</key>
       <string>net.sourceforge.processdash.Main</string>
@@ -34,10 +34,12 @@
         <string>$JAVAROOT/empty.jar</string>
         <string>$INSTALL_PATH/pspdash.jar</string>
       </array>
+      <key>WorkingDirectory</key>
+      <string>$APP_PACKAGE/Contents/Resources</string>
       <key>Properties</key>
       <dict>
         <key>net.sourceforge.processdash.dataDirLinkFile</key>
-        <string>$JAVAROOT/../dataLocation.txt</string>
+        <string>dataLocation.txt</string>
       </dict>
       <key>VMOptions</key>
       <string>-Xmx${MAX_MEMORY}m</string>
