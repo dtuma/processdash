@@ -313,7 +313,7 @@
             <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Resources/dataLocation.txt">
                 <os name="Mac OS X"/>
             </parsable>
-            <executable targetfile="$MAC_APPL/Team Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+            <executable targetfile="$MAC_APPL/Team Dashboard.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
 	        <os name="Mac OS X"/>
 	    </executable>
 
