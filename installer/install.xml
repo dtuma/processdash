@@ -156,8 +156,12 @@
                 <os name="Mac OS X"/>
             </parsable>
             <executable targetfile="$MAC_APPL/Process Dashboard.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
-	        <os name="Mac OS X"/>
-	    </executable>
+                <os name="Mac OS X"/>
+            </executable>
+            <executable targetfile="/usr/bin/touch" stage="postinstall">
+                <os name="Mac OS X"/>
+                <args><arg value="$MAC_APPL/Process Dashboard.app"/></args>
+            </executable>
 
             <!-- create a script file for unix variants -->
             <file targetdir="$DATA_PATH" src="files/run-dash.sh"
@@ -249,8 +253,12 @@
                 <os name="Mac OS X"/>
             </parsable>
             <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
-	        <os name="Mac OS X"/>
-	    </executable>
+                <os name="Mac OS X"/>
+            </executable>
+            <executable targetfile="/usr/bin/touch" stage="postinstall">
+                <os name="Mac OS X"/>
+                <args><arg value="$MAC_APPL/Process Dashboard Quick Launcher.app"/></args>
+            </executable>
         </pack>
 
 
@@ -314,8 +322,12 @@
                 <os name="Mac OS X"/>
             </parsable>
             <executable targetfile="$MAC_APPL/Team Dashboard.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
-	        <os name="Mac OS X"/>
-	    </executable>
+                <os name="Mac OS X"/>
+            </executable>
+            <executable targetfile="/usr/bin/touch" stage="postinstall">
+                <os name="Mac OS X"/>
+                <args><arg value="$MAC_APPL/Team Dashboard.app"/></args>
+            </executable>
 
             <!-- Create Quick Launcher application on Mac OS X --> 
             <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
@@ -327,8 +339,12 @@
                 <os name="Mac OS X"/>
             </parsable>
             <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/universalJavaApplicationStub" stage="never">
-	        <os name="Mac OS X"/>
-	    </executable>
+                <os name="Mac OS X"/>
+            </executable>
+            <executable targetfile="/usr/bin/touch" stage="postinstall">
+                <os name="Mac OS X"/>
+                <args><arg value="$MAC_APPL/Process Dashboard Quick Launcher.app"/></args>
+            </executable>
 
             <singlefile target="$TEAM_DATA_PATH/run-dash.sh" override="false"
                   src="files/run-team.sh" condition="teamDataIsNotHttp"/>
