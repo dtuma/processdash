@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -98,6 +98,7 @@ import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
+import net.sourceforge.processdash.util.FastDateFormat;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
@@ -1892,8 +1893,7 @@ public class EVReport extends CGIChartBase {
             out.println("</tr>");
         }
 
-        DateFormat f = DateFormat.getDateTimeInstance
-            (DateFormat.MEDIUM, DateFormat.SHORT);
+        FastDateFormat f = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
         for (int series = 0;  series < seriesCount;   series++) {
             int itemCount = xydata.getItemCount(series);
             for (int item = 0;   item < itemCount;   item++) {
