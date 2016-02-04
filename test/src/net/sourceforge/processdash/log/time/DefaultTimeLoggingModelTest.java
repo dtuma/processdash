@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ package net.sourceforge.processdash.log.time;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -102,10 +101,9 @@ public class DefaultTimeLoggingModelTest extends AbstractTimeLogTest implements
         timeLog = new TimeLogModifications(new EmptyBaseTimeLog(),
                 timeLogModsFile, new DummyIdSource());
 
-        timeLoggingModel = new DefaultTimeLoggingModel(timeLog, approver);
+        timeLoggingModel = new DefaultTimeLoggingModel(timeLog, approver, data);
 
-        TimingMetricsRecorder recorder = new TimingMetricsRecorder(timeLog,
-                data, hier, approver);
+        new TimingMetricsRecorder(timeLog, data, hier, approver);
     }
 
     public void testPlayPause() throws Exception {

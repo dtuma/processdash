@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,7 +72,7 @@ public class DashboardTimeLog implements ModifiableTimeLog,
         this.listeners = new LinkedList();
         this.timeLog.addTimeLogListener(new TimeLogEventRepeater(this));
 
-        this.loggingModel = new DefaultTimeLoggingModel(this, this);
+        this.loggingModel = new DefaultTimeLoggingModel(this, this, data);
         this.metricsRecorder = new TimingMetricsRecorder(this, data, hierarchy,
                 this);
         this.timingForbiddenPaths = Collections.EMPTY_LIST;

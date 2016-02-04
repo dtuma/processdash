@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,11 +28,17 @@ import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.ChangeFlagged;
@@ -44,6 +50,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
     TimeLoggingApprover approver;
 
+    DataContext data;
+
     ActiveTaskModel activeTaskModel;
 
     boolean paused = true;
@@ -51,6 +59,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     Stopwatch stopwatch = null;
 
     PropertyKey currentPhase = null;
+
+    private boolean pauseInProgress;
 
     private double multiplier = 1.0;
 
@@ -72,9 +82,10 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         (DefaultTimeLoggingModel.class.getName());
 
     public DefaultTimeLoggingModel(ModifiableTimeLog timeLog,
-            TimeLoggingApprover approver) {
+            TimeLoggingApprover approver, DataContext data) {
         this.timeLog = timeLog;
         this.approver = approver;
+        this.data = data;
 
         activeRefreshTimer = new javax.swing.Timer(refreshIntervalMillis,
                 (ActionListener) EventHandler.create(ActionListener.class,
@@ -189,14 +200,19 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     }
 
     public void stopTiming() {
-        logger.fine("stopTiming");
-        if (paused == false) {
-            paused = true;
-            propertyChangeSupport.firePropertyChange(PAUSED_PROPERTY, false, true);
-        }
-        if (stopwatch != null) {
-            stopwatch.stop();
-            saveCurrentTimeLogEntry(false);
+        try {
+            logger.fine("stopTiming");
+            if (paused == false) {
+                paused = pauseInProgress = true;
+                propertyChangeSupport.firePropertyChange(PAUSED_PROPERTY,
+                    false, true);
+            }
+            if (stopwatch != null) {
+                stopwatch.stop();
+                saveCurrentTimeLogEntry(false);
+            }
+        } finally {
+            pauseInProgress = false;
         }
     }
 
@@ -281,6 +297,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
         logger.fine("updating current time log entry");
         double elapsedMinutes = stopwatch.minutesElapsedDouble();
+        if (shouldForceTimeLogEntry(elapsedMinutes))
+            elapsedMinutes = 1.0;
         long roundedElapsedMinutes = (long) (elapsedMinutes + 0.5);
 
         if (currentTimeLogEntry == null) {
@@ -326,6 +344,59 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
                 updatingCurrentTimeLogEntry = false;
             }
         }
+    }
+
+    /**
+     * In some usage scenarios, an individual needs to mark several tasks
+     * complete in a row, but still reflect the fact that they "worked" on them.
+     * If the timer is running when the user marks a task complete, and no time
+     * has ever been logged against that task, round the current time log entry
+     * up to 1 minute if it isn't there already.
+     */
+    private boolean shouldForceTimeLogEntry(double elapsedMinutes) {
+        // If some time has already been logged, there is no need to force a
+        // time log entry.
+        if (elapsedMinutes > 1.0)
+            return false;
+
+        // If the timer is paused (and not because it is being programmatically
+        // paused at this very moment), don't force a time log entry.
+        if (paused && !pauseInProgress)
+            return false;
+
+        // Check a user setting to see if this functionality is disabled.
+        if (!Settings.getBool("pauseButton.forceCompletedTaskTime", true))
+            return false;
+
+        // Check the data repository to see if the current task has been
+        // flagged as one that should never receive "forced" time log entries.
+        String path = currentPhase.path();
+        SaveableData sd = DataRepository.getInheritableValue(data,
+            new StringBuffer(path), "Force_Completed_Task_Time");
+        if (sd != null && sd.getSimpleValue().test() == false)
+            return false;
+
+        // If time has been logged against this task in the past, don't force
+        // a new time log entry.
+        String dataName = DataRepository.createDataName(path, "Time");
+        if (sd != null && sd.getSimpleValue().test())
+            return false;
+
+        // Check to see if the current task was *just* marked complete. If so,
+        // force a time log entry.
+        dataName = DataRepository.createDataName(path, "Completed");
+        sd = data.getSimpleValue(dataName);
+        if (sd instanceof DateData) {
+            Date completed = ((DateData) sd).getValue();
+            long age = System.currentTimeMillis() - completed.getTime();
+            if (age < 1000) {
+                logger.fine("Forcing 1 minute time log entry for "
+                        + "completed task " + path);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
