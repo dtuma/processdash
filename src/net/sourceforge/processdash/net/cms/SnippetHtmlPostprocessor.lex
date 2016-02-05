@@ -5,7 +5,7 @@
 // file directly; your edits will be overwritten.
 //
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2016 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -184,7 +184,7 @@ import net.sourceforge.processdash.util.StringUtils;
     }
 
     private String rerootURI(String uri) {
-        if (uri.startsWith("/"))
+        if (uri.startsWith("/") || uri.startsWith("http"))
             return uri;
         if (uri.startsWith("PAGE_URL")) {
             if (uri.startsWith("PAGE_URL?") && selfURI.indexOf('?') != -1)

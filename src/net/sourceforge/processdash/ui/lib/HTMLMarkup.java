@@ -32,17 +32,21 @@ import net.sourceforge.processdash.util.StringUtils;
 public class HTMLMarkup {
 
     public static String textToHtml(String markupText) {
+        return textToHtml(markupText, null);
+    }
+
+    public static String textToHtml(String markupText, String extraLinkAttrs) {
         if (markupText == null || markupText.length() == 0)
             return markupText;
 
         StringBuilder html = new StringBuilder();
         html.append(HTMLUtils.escapeEntities(markupText));
-        markupHyperlinks(html);
+        markupHyperlinks(html, extraLinkAttrs);
         markupFormatting(html);
         return html.toString();
     }
 
-    private static void markupHyperlinks(StringBuilder html) {
+    private static void markupHyperlinks(StringBuilder html, String extraAttrs) {
         int pos = 0;
         int len = html.length();
         while (pos < len) {
@@ -69,7 +73,9 @@ public class HTMLMarkup {
             }
 
             // construct the URL and insert it into the string
-            String link = "<a href=\"" + href + "\">" + text + "</a>";
+            String link = "<a href=\"" + href + "\"" //
+                    + (extraAttrs == null ? "" : " " + extraAttrs) + ">" //
+                    + text + "</a>";
             html.replace(beg, end, link);
             pos = beg + link.length();
             len = html.length();

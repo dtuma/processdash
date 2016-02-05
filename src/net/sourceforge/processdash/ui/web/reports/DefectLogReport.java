@@ -164,7 +164,8 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         out.println("<TD ALIGN='center'>" + Integer.toString(d.fix_count) + "</TD>");
         out.println("<TD ALIGN='center'>" + esc(d.fix_defect) + "</TD>");
         out.println("<TD ALIGN='center'>" + (d.fix_pending ? "*" : "") + "</TD>");
-        out.println("<TD>" + HTMLMarkup.textToHtml(d.description) + "</TD>");
+        out.println("<TD>" + HTMLMarkup.textToHtml(d.description, //
+            "target='_top'") + "</TD>");
         out.println("</TR>");
     }
 }
