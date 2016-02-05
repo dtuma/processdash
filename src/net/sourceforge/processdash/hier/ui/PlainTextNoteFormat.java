@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,8 +28,6 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JEditorPane;
 import javax.swing.ToolTipManager;
@@ -52,11 +50,10 @@ import javax.swing.text.StyledEditorKit;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.util.ThreeWayDiff;
-import net.sourceforge.processdash.util.ThreeWayTextDiff;
 import net.sourceforge.processdash.util.ThreeWayDiff.ResultItem;
+import net.sourceforge.processdash.util.ThreeWayTextDiff;
 
 public class PlainTextNoteFormat implements HierarchyNoteFormat {
 
@@ -72,49 +69,9 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
     public String getAsHTML(HierarchyNote note) {
         if (note == null)
             return null;
-
-        StringBuffer html = new StringBuffer();
-        html.append(HTMLUtils.escapeEntities(getNoteText(note)));
-        markupHyperlinks(html);
-        StringUtils.findAndReplace(html, "\n", "<br>");
-        StringUtils.findAndReplace(html, "  ", "&nbsp;&nbsp;");
-        return html.toString();
+        else
+            return HTMLMarkup.textToHtml(getNoteText(note));
     }
-
-    private void markupHyperlinks(StringBuffer html) {
-        int pos = 0;
-        int len = html.length();
-        while (pos < len) {
-            Matcher m = HYPERLINK_PATTERN.matcher(html.subSequence(pos, len));
-            if (m.find() == false)
-                return; // no more hyperlinks found
-
-            // record the boundaries of the hyperlink, as well as its target
-            int beg = pos + m.start();
-            int end = pos + m.end();
-            String href = m.group();
-            String text = href;
-
-            // check to see if the hyperlink was part of a wiki-style link
-            // of the form [URL text to display].  If so, extract the text to
-            // display and adjust the hyperlink boundaries.
-            if (beg > 0 && html.charAt(beg-1) == '[') {
-                int linkEnd = html.indexOf("]", end);
-                if (linkEnd != -1) {
-                    text = html.substring(end, linkEnd).trim();
-                    beg = beg - 1;
-                    end = linkEnd + 1;
-                }
-            }
-
-            // construct the URL and insert it into the string
-            String link = "<a href=\"" + href + "\">" + text + "</a>";
-            html.replace(beg, end, link);
-            pos = beg + link.length();
-            len = html.length();
-        }
-    }
-    private static final Pattern HYPERLINK_PATTERN = Pattern.compile("http\\S+");
 
     private String getNoteText(HierarchyNote note) {
         if (note == null) return "";

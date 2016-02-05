@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
+import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -163,7 +164,7 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         out.println("<TD ALIGN='center'>" + Integer.toString(d.fix_count) + "</TD>");
         out.println("<TD ALIGN='center'>" + esc(d.fix_defect) + "</TD>");
         out.println("<TD ALIGN='center'>" + (d.fix_pending ? "*" : "") + "</TD>");
-        out.println("<TD>" + esc(d.description) + "</TD>");
+        out.println("<TD>" + HTMLMarkup.textToHtml(d.description) + "</TD>");
         out.println("</TR>");
     }
 }
