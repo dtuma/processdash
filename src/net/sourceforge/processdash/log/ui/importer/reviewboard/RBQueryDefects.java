@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,10 +30,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectDataBag;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.ErrorDataValueException;
@@ -68,7 +71,7 @@ public class RBQueryDefects extends RBAbstractQuery {
             List<Map> issues = getIssues(response);
 
             // convert the issues into appropriate defect data
-            return convertDefects(issues);
+            return convertDefects(issues, reviewRequestNumber);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,7 +101,8 @@ public class RBQueryDefects extends RBAbstractQuery {
 
 
     /** Convert RB issues into Defect data maps */
-    private List convertDefects(List<Map> rawIssueData) {
+    private List convertDefects(List<Map> rawIssueData,
+            String reviewRequestNumber) {
 
         List result = new ArrayList();
         for (Map rawIssue : rawIssueData) {
@@ -107,7 +111,8 @@ public class RBQueryDefects extends RBAbstractQuery {
             Object defectId = rawIssue.get("id");
             String type = getTypeFlag(rawIssue);
             defect.put(ATTR_ID, "RB" + type + defectId);
-            defect.put(ATTR_DESCRIPTION, rawIssue.get("text"));
+            defect.put(ATTR_DESCRIPTION,
+                getDefectDescription(rawIssue, reviewRequestNumber, type));
             defect.put(ATTR_DATE, parseDate(rawIssue.get("timestamp")));
 
             result.add(defect);
@@ -124,6 +129,115 @@ public class RBQueryDefects extends RBAbstractQuery {
             return flag;
     }
 
+    private String getDefectDescription(Map issue, String reviewRequestNumber,
+            String type) {
+        StringBuilder result = new StringBuilder();
+        Object text = issue.get("text");
+        if (text instanceof String)
+            result.append((String) text);
+
+        String filename = getFilename(issue);
+        String url = getReviewUrl(issue, reviewRequestNumber, type);
+
+        if (result.length() > 0 && (filename != null || url != null))
+            result.append("\n----------");
+        if (filename != null)
+            result.append("\n").append(filename);
+        if (url != null)
+            result.append("\n[").append(url).append("  ")
+                    .append(map.getResource("Issue_URL_Title")).append("]");
+
+        return result.toString();
+    }
+
+    private String getFilename(Map issue) {
+        // most common case: extract filename from a file diff comment. If
+        // this issue is not a file diff comment, exceptions will be thrown
+        // and the next case will be tried
+        try {
+            String filename = getLinkAttr(issue, "filediff", "title");
+            for (Pattern p : DIFF_FILENAME_PATTERNS) {
+                Matcher m = p.matcher(filename);
+                if (m.find()) {
+                    filename = m.group(1);
+                    break;
+                }
+            }
+            int firstLine = parseInt(issue.get("first_line"));
+            int numLines = parseInt(issue.get("num_lines"));
+            int lastLine = firstLine + numLines - 1;
+            return formatFilename(filename, firstLine, lastLine);
+        } catch (Exception e) {
+        }
+
+        // next case: extract filename from a file attachment comment. If this
+        // issue is not a file attachment comment, exceptions will be thrown
+        try {
+            String filename = getLinkAttr(issue, "file_attachment", "title");
+            int firstLine, lastLine;
+            try {
+                Map extraData = (Map) issue.get("extra_data");
+                firstLine = parseInt(extraData.get("beginLineNum"));
+                lastLine = parseInt(extraData.get("endLineNum"));
+            } catch (Exception e) {
+                firstLine = lastLine = -1;
+            }
+            return formatFilename(filename, firstLine, lastLine);
+        } catch (Exception e) {
+        }
+
+        // This is not a comment type that we recognize.
+        return null;
+    }
+
+    private String getReviewUrl(Map issue, String reviewRequestNumber,
+            String type) {
+        String baseUrl;
+        try {
+            String href = getLinkAttr(issue, "self", "href");
+            int pos = href.indexOf("/api/");
+            baseUrl = href.substring(0, pos);
+        } catch (Exception e) {
+            return null;
+        }
+
+        String reviewUrl = (String) issue.get("review_url");
+        if (StringUtils.hasValue(reviewUrl))
+            return baseUrl + reviewUrl;
+
+        Object commentId = issue.get("id");
+        reviewUrl = baseUrl + "/r/" + reviewRequestNumber + "/#"
+                + type.toLowerCase() + "comment" + commentId;
+        return reviewUrl;
+    }
+
+    private String formatFilename(String filename, int firstLine, int lastLine) {
+        Resources res = (Resources) map.getResources();
+        if (firstLine < 0)
+            return res.format("Filename.No_Lines_FMT", filename);
+        else if (lastLine > firstLine)
+            return res.format("Filename.Multiple_Lines_FMT", filename,
+                firstLine, lastLine);
+        else
+            return res.format("Filename.One_Line_FMT", filename, firstLine);
+    }
+
+    private String getLinkAttr(Map issue, String linkName, String attrName)
+            throws NullPointerException, ClassCastException {
+        Map links = (Map) issue.get("links");
+        Map link = (Map) links.get(linkName);
+        return (String) link.get(attrName);
+    }
+
+    private int parseInt(Object val) {
+        if (val instanceof Number)
+            return ((Number) val).intValue();
+        else if (val instanceof String)
+            return Integer.parseInt((String) val);
+        else
+            return -1;
+    }
+
     private Object parseDate(Object val) {
         Object result = RBRestClient.parseDate(val);
         return (result != null ? result : new Date());
@@ -133,6 +247,10 @@ public class RBQueryDefects extends RBAbstractQuery {
     private static final List<String> COMMENT_TYPES = Collections
             .unmodifiableList(Arrays.asList("diff_comments",
                 "screenshot_comments", "file_attachment_comments"));
+
+    private static final Pattern[] DIFF_FILENAME_PATTERNS = {
+        Pattern.compile(" -> (.+) \\(")
+    };
 
     private static final String ATTR_DATE = DefectDataBag.ATTRS[DefectDataBag.DATE];
 
