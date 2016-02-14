@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -428,8 +428,8 @@ public class WBSJTable extends JTable {
     public Action[] getEditingActions() {
         return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
             PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
-            EXPAND_ALL_ACTION, MOVEUP_ACTION, MOVEDOWN_ACTION,
-            INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
+            EXPAND_ALL_ACTION, COLLAPSE_ALL_ACTION, MOVEUP_ACTION,
+            MOVEDOWN_ACTION, INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
     }
 
     /** Return a list of workflow-related actions */
@@ -1891,6 +1891,7 @@ public class WBSJTable extends JTable {
         }
     }
 
+
     /** An action to perform an "expand" operation */
     private class ExpandAction extends AbstractAction implements
             EnablementCalculation {
@@ -1933,6 +1934,7 @@ public class WBSJTable extends JTable {
         }
     }
     final ExpandAction EXPAND_ACTION = new ExpandAction();
+
 
     /** An action to perform an "expand all" operation */
     private class ExpandAllAction extends AbstractAction implements
@@ -2018,6 +2020,48 @@ public class WBSJTable extends JTable {
         }
     }
     final CollapseAction COLLAPSE_ACTION = new CollapseAction();
+
+
+    /** An action to perform a "collapse all" operation */
+    private class CollapseAllAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public CollapseAllAction() {
+            super("Collapse All", IconFactory.getCollapseAllIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0)
+                return;
+
+            // stop editing the current cell.
+            stopCellEditing();
+
+            // collapse selected nodes and all descendants
+            List selectedNodes = wbsModel.getNodesForRows(rows, false);
+            List nodesToCollapse = new ArrayList(selectedNodes);
+            for (Iterator i = selectedNodes.iterator(); i.hasNext();) {
+                WBSNode node = (WBSNode) i.next();
+                WBSNode[] descendants = wbsModel.getDescendants(node);
+                nodesToCollapse.addAll(Arrays.asList(descendants));
+            }
+
+            Set nodeIDs = getNodeIDs(nodesToCollapse);
+            Set expandedNodeIDs = wbsModel.getExpandedNodeIDs();
+            expandedNodeIDs.removeAll(nodeIDs);
+            wbsModel.setExpandedNodeIDs(expandedNodeIDs);
+
+            // update selection
+            selectRows(wbsModel.getRowsForNodes(nodesToCollapse));
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(selectedRows != null && selectedRows.length > 0);
+        }
+    }
+    final CollapseAllAction COLLAPSE_ALL_ACTION = new CollapseAllAction();
 
 
     /** An action to perform a "move up" operation */

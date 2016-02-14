@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -373,6 +373,12 @@ public class IconFactory {
         return COLLAPSE_ICON;
     }
     private static Icon COLLAPSE_ICON = null;
+
+    public static Icon getCollapseAllIcon() {
+        if (COLLAPSE_ALL_ICON == null) COLLAPSE_ALL_ICON = loadIconResource("collapse-all.png");
+        return COLLAPSE_ALL_ICON;
+    }
+    private static Icon COLLAPSE_ALL_ICON = null;
 
     public static Icon getColumnsIcon() {
         if (COLUMNS_ICON == null) COLUMNS_ICON = loadIconResource("columns.png");
