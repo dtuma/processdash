@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,10 +86,16 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
 
     public OverspentDiscItemRenderer(CategoryDataset underlyingDataset,
             Color overspentColor) {
+        this(underlyingDataset, overspentColor, null);
+    }
+
+    public OverspentDiscItemRenderer(CategoryDataset underlyingDataset,
+            Color overspentColor, PaintKeyMapper paintKeyMapper) {
         this.underlyingDataset = underlyingDataset;
 
         setShowQuantiles(true);
         setOverspentColor(overspentColor);
+        setPaintKeyMapper(paintKeyMapper);
     }
 
     public boolean isShowQuantiles() {

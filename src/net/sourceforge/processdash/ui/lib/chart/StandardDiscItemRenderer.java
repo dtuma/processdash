@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,11 +50,18 @@ import org.jfree.data.general.PieDataset;
 
 public class StandardDiscItemRenderer implements DiscItemRenderer {
 
+    public interface PaintKeyMapper {
+        public Comparable getPaintKey(Comparable dataKey);
+    }
+
     /** The plot. */
     private DiscPlot plot;
 
     /** The disc paint map. */
     private PaintMap discPaintMap;
+
+    /** An object that can lookup paint-specific keys for data elements */
+    private PaintKeyMapper paintKeyMapper;
 
     /** The base disc paint (fallback). */
     private transient Paint baseDiscPaint;
@@ -94,6 +101,19 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
         this.baseOutlineStroke = Plot.DEFAULT_OUTLINE_STROKE;
     }
 
+    /** Get the object that maps data keys to paint keys */
+    public PaintKeyMapper getPaintKeyMapper() {
+        return paintKeyMapper;
+    }
+
+    /**
+     * Install an object that maps data keys to paint keys
+     * @since 2.2.1
+     */
+    public void setPaintKeyMapper(PaintKeyMapper paintKeyMapper) {
+        this.paintKeyMapper = paintKeyMapper;
+    }
+
     /**
      * Returns the paint for the specified disc. This is equivalent to
      * <code>lookupDiscPaint(section, false)</code>.
@@ -121,6 +141,10 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
      * @return The paint.
      */
     protected Paint lookupDiscPaint(Comparable key, boolean autoPopulate) {
+
+        // if a paint key mapper is in effect, use it to translate the key
+        if (paintKeyMapper != null)
+            key = paintKeyMapper.getPaintKey(key);
 
         // check if there is a paint defined for the specified key
         Paint result = this.discPaintMap.getPaint(key);
