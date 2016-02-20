@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2012 Tuma Solutions, LLC
+// Copyright (C) 2009-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 
 package net.sourceforge.processdash.ui.lib.binding;
 
-import java.awt.FontMetrics;
+import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,14 +37,13 @@ import java.util.ResourceBundle;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
-
-import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class BoundRadioButtons extends JPanel implements ActionListener {
 
@@ -60,7 +59,6 @@ public class BoundRadioButtons extends JPanel implements ActionListener {
 
     private BoundMap map;
     private String propertyName;
-    private String resourcesId;
     private JPanel buttonsPannel;
     private ButtonGroup buttonGroup;
 
@@ -81,41 +79,22 @@ public class BoundRadioButtons extends JPanel implements ActionListener {
                         Map<String, Option> options) {
         this.map = map;
         this.propertyName = propertyName;
-        this.resourcesId = resourcesId;
+
+        setLayout(new BorderLayout());
 
         buttonsPannel = getButtonPanel(options);
         buttonsPannel.setBorder(
             BorderFactory.createEmptyBorder(0, BUTTONS_LEFT_INDENT, 0, 0));
-        this.add(buttonsPannel);
+        this.add(buttonsPannel, BorderLayout.CENTER);
+
+        String label = map.getResource(resourcesId + ".Border_Label");
+        this.add(new JLabel(label), BorderLayout.NORTH);
 
         Object listener = EventHandler.create(PropertyChangeListener.class,
             this, "updateFromMap");
         map.addPropertyChangeListener(this.propertyName, (PropertyChangeListener) listener);
 
         updateFromMap();
-
-        // The border has to be created once all components are drawn in order
-        //  for its width to be computed correctly
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createBorder();
-            }
-        });
-    }
-
-    private void createBorder() {
-        String label = map.getResource(resourcesId + ".Border_Label");
-
-        FontMetrics metrics = this.getFontMetrics(this.getFont());
-        int buttonsPannelWidth = buttonsPannel.getWidth();
-        int borderLabelWidth = metrics.stringWidth(label);
-        int rightPadding = buttonsPannelWidth > borderLabelWidth ?
-                            0 : borderLabelWidth - buttonsPannelWidth;
-
-        TitledBorder border = BorderFactory.createTitledBorder(
-            BorderFactory.createEmptyBorder(0, 0, 0, rightPadding),
-            label);
-        this.setBorder(border);
     }
 
     private JPanel getButtonPanel(Map<String, Option> options) {
