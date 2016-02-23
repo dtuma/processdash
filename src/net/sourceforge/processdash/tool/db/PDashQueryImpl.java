@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -192,6 +192,13 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
         if (alias != null)
             StringUtils.findAndReplace(query, alias + ".planItem", //
                 alias + ".rootItem");
+
+        // special handling when the query references PlanItemDependencyFact
+        alias = QueryUtils.addCriteriaToHqlIfEntityPresent(query,
+            "PlanItemDependencyFact", args, projectCriteria);
+        if (alias != null)
+            StringUtils.findAndReplace(query, alias + ".planItem", //
+                alias + ".successor");
     }
 
     private List getProjectSpecificCriteria(FilterMode filterMode) {
