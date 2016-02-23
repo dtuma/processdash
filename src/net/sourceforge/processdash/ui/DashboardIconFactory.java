@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2015 Tuma Solutions, LLC
+// Copyright (C) 2003-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -233,6 +233,11 @@ public class DashboardIconFactory {
     public static Icon getScriptIcon() {
         String name = (STD_ICON_HEIGHT > 18 ? "script19" : "script");
         return loadNamedIcon(name, null);
+    }
+
+    private static Icon extLinkIcon = null;
+    public static Icon getExternalLinkIcon() {
+        return extLinkIcon = loadNamedIcon("externalLink", extLinkIcon);
     }
 
     public static Icon getTaskOverflowIcon() {

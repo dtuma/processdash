@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.ui.lib;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,12 +43,29 @@ public class HTMLMarkup {
 
         StringBuilder html = new StringBuilder();
         html.append(HTMLUtils.escapeEntities(markupText));
-        markupHyperlinks(html, extraLinkAttrs);
+        markupHyperlinks(html, extraLinkAttrs, null);
         markupFormatting(html);
         return html.toString();
     }
 
-    private static void markupHyperlinks(StringBuilder html, String extraAttrs) {
+
+    /**
+     * Retrieve a collection of the hyperlinks that appear in the given markup
+     * text.
+     *
+     * @return a Map whose keys are the display text of the hyperlink, and whose
+     *         values are the associated URLs. The Map will return links in
+     *         the order they appeared in the markup text.
+     */
+    public static LinkedHashMap<String, String> getHyperlinks(String markupText) {
+        LinkedHashMap<String, String> links = new LinkedHashMap<String, String>();
+        markupHyperlinks(new StringBuilder(markupText), null, links);
+        return links;
+    }
+
+
+    private static void markupHyperlinks(StringBuilder html, String extraAttrs,
+            Map<String, String> linkInfo) {
         int pos = 0;
         int len = html.length();
         while (pos < len) {
@@ -79,6 +98,10 @@ public class HTMLMarkup {
             html.replace(beg, end, link);
             pos = beg + link.length();
             len = html.length();
+
+            // record hyperlink information if requested
+            if (linkInfo != null)
+                linkInfo.put(text, href);
         }
     }
     private static final Pattern HYPERLINK_PATTERN = Pattern.compile("http\\S+");

@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -73,6 +74,14 @@ public class DropDownLabel extends JPanel {
 
     public String getText() {
         return label.getText();
+    }
+
+    public void setIcon(Icon icon) {
+        label.setIcon(icon);
+    }
+
+    public Icon getIcon() {
+        return label.getIcon();
     }
 
     public JMenu getMenu() {

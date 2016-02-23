@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2012 Tuma Solutions, LLC
+// Copyright (C) 2000-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -38,6 +39,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -53,16 +55,21 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -75,11 +82,13 @@ import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.DropDownLabel;
+import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.Stopwatch;
@@ -103,6 +112,7 @@ public class DefectDialog extends JDialog
     JDateChooser fix_date;
     JTextField fix_defect;
     DecimalField fix_time, fix_count;
+    ExternalLinksButton linksButton;
     JTextArea description;
     JComboBox defect_type, phase_injected, phase_removed;
     PendingSelector pendingSelector;
@@ -316,7 +326,9 @@ public class DefectDialog extends JDialog
         g.insets = small_margin;
         g.anchor = GridBagConstraints.WEST;
         g.gridwidth = 1;
-        c = new JLabel(resources.getString("Description_Label"));
+        linksButton = new ExternalLinksButton();
+        c = BoxUtils.hbox(new JLabel(resources.getString("Description_Label")),
+            linksButton);
         g.gridx = 0;   layout.setConstraints(c, g);
         panel.add(c);
 
@@ -589,6 +601,7 @@ public class DefectDialog extends JDialog
         pendingSelector.setPending(d.fix_pending);
         description.setText(d.description);
         description.setCaretPosition(0);
+        linksButton.scanForLinks();
         extra_attrs = d.extra_attrs;
     }
 
@@ -707,18 +720,23 @@ public class DefectDialog extends JDialog
     // Implementation of the DocumentListener interface
 
     private void handleDocumentEvent(DocumentEvent e) {
-        if (e.getDocument() == fix_time.getDocument())
+        if (e.getDocument() == fix_time.getDocument()) {
             // If the user edited the "Fix Time" field, perform the
             // necessary recalculations.
             fixTimeChanged();
 
-        else
+        } else {
             // The user changed one of the other text fields on the form
             // (for example, the Fix Defect or the Description).
             setDirty(true);
+
+            // if the change was in the description, scan for external links
+            if (e.getDocument() == description.getDocument())
+                linksButton.defectDescriptionChanged();
+        }
     }
 
-    public void changedUpdate(DocumentEvent e) {}
+    public void changedUpdate(DocumentEvent e) { handleDocumentEvent(e); }
     public void insertUpdate(DocumentEvent e)  { handleDocumentEvent(e); }
     public void removeUpdate(DocumentEvent e)  { handleDocumentEvent(e); }
 
@@ -836,6 +854,93 @@ public class DefectDialog extends JDialog
                 startButton.setToolTipText(resources.getString("Timing.Start"));
             }
         }
+    }
+
+    private class ExternalLinksButton extends DropDownLabel implements
+            PopupMenuListener, ActionListener {
+
+        private Timer rescanTimer;
+
+        private Map<String, String> links = Collections.EMPTY_MAP;
+
+        public ExternalLinksButton() {
+            super(" ");
+            setIcon(DashboardIconFactory.getExternalLinkIcon());
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setVisible(false);
+
+            rescanTimer = new Timer(1000, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    scanForLinks();
+                }});
+
+            getMenu().getPopupMenu().addPopupMenuListener(this);
+        }
+
+        // messaged when the user edits the defect description
+        private void defectDescriptionChanged() {
+            rescanTimer.restart();
+        }
+
+        private void scanForLinks() {
+            rescanTimer.stop();
+            String descrText = description.getText();
+            Map newLinks = HTMLMarkup.getHyperlinks(descrText);
+            if (!newLinks.equals(links)) {
+                links = newLinks;
+                getMenu().removeAll();
+                for (String linkText : links.keySet()) {
+                    JMenuItem menuItem = new JMenuItem(linkText);
+                    menuItem.addActionListener(this);
+                    getMenu().add(menuItem);
+                }
+                setToolTipText(calcToolTip());
+            }
+            setVisible(!links.isEmpty());
+        }
+
+        private String calcToolTip() {
+            switch (links.size()) {
+            case 0: return null;
+            case 1: return links.keySet().iterator().next();
+            default: return resources.getString("External_Link_Tooltip");
+            }
+        }
+
+        public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+            // rescan to ensure that we have the most recent list of links
+            scanForLinks();
+            if (links.size() > 1)
+                // if multiple links are present, let the menu appear normally
+                return;
+
+            else if (links.size() == 0)
+                // if there are no links, hide the external links button
+                setVisible(false);
+
+            else if (links.size() == 1)
+                // if there is just one link, open it.
+                Browser.launch(links.values().iterator().next());
+
+            // when 0 or 1 link is present, cancel display of the popup menu
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    getMenu().setPopupMenuVisible(false);
+                }});
+        }
+
+        public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+        public void popupMenuCanceled(PopupMenuEvent e) {}
+
+        // called when the user clicks an option in the popup menu
+        public void actionPerformed(ActionEvent e) {
+            JMenuItem menuItem = (JMenuItem) e.getSource();
+            String itemText = menuItem.getText();
+            String url = links.get(itemText);
+            if (url != null)
+                Browser.launch(url);
+        }
+
     }
 
     private class OKButtonAction extends AbstractAction {
