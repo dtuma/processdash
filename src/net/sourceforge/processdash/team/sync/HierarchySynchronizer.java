@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -719,13 +719,46 @@ public class HierarchySynchronizer {
     }
 
 
+    private PropertyKey findProjectWithID(String projectID) {
+        return findNodeWithNamedID(PropertyKey.ROOT,
+            TeamDataConstants.PROJECT_ID, projectID, false);
+    }
+
+    private PropertyKey findNodeWithNamedID(PropertyKey node, String dataName,
+            String targetID, boolean canNest) {
+
+        // get the ID of this node. if it matches, return it.
+        String thisNodeID = getStringData(getData(node.path(), dataName));
+        if (targetID.equals(thisNodeID)) {
+            return node;
+
+        } else if (StringUtils.hasValue(thisNodeID) && canNest == false) {
+            // if this node has an ID, and nodes of this type cannot nest,
+            // return null.
+            return null;
+
+        } else {
+            // otherwise, look within children for a node with this ID
+            for (int i = hierarchy.getNumChildren(node); i-- > 0;) {
+                PropertyKey child = hierarchy.getChildKey(node, i);
+                PropertyKey result = findNodeWithNamedID(child, dataName,
+                    targetID, canNest);
+                if (result != null)
+                    return result;
+            }
+
+            // no match was found in this branch of the tree.
+            return null;
+        }
+    }
+
     private List findHierarchyNodesByID(String id) {
         ArrayList results = new ArrayList();
         findHierarchyNodesByID(projectKey, id, results);
         return results;
     }
     private void findHierarchyNodesByID(PropertyKey node, String id,
-            List results) {
+            List<PropertyKey> results) {
         if (node == null)
             return;
 
@@ -2035,7 +2068,7 @@ public class HierarchySynchronizer {
             if (currentTemplateID == null && !isTeam()) {
                 if (matchingNodes == null)
                     matchingNodes = getCompatibleNodesWithID(nodeID);
-                PropertyKey sourceNode = getBestNodeToMove(matchingNodes);
+                PropertyKey sourceNode = getBestNodeToMove(matchingNodes, node);
                 if (sourceNode != null) {
                     currentTemplateID = getTemplateIDForKey(sourceNode);
                     String oldPath = sourceNode.path();
@@ -2081,7 +2114,7 @@ public class HierarchySynchronizer {
             return result;
         }
 
-        private PropertyKey getBestNodeToMove(List movableNodes) {
+        protected PropertyKey getBestNodeToMove(List movableNodes,  Element xml) {
             if (movableNodes == null || movableNodes.isEmpty())
                 return null;
 
@@ -2768,6 +2801,50 @@ public class HierarchySynchronizer {
             compatibleTemplateIDs.add("PSP1");
             compatibleTemplateIDs.add("PSP1.1");
             compatibleTemplateIDs.add("PSP2");
+        }
+
+        @Override
+        protected PropertyKey getBestNodeToMove(List movableNodes, Element xml) {
+            // use the regular logic to find a task within the current project.
+            PropertyKey result = super.getBestNodeToMove(movableNodes, xml);
+            if (result != null)
+                return result;
+
+            // check to see if this PSP task was relaunched from a prior project
+            String relaunchSourceID = xml.getAttribute("rsid");
+            if (!XMLUtils.hasValue(relaunchSourceID))
+                return null;
+
+            // extract the project ID and WBS ID from the relaunch source ID
+            String[] idParts = relaunchSourceID.split(":", 2);
+            if (idParts.length != 2)
+                return null;
+            String sourceProjectID = idParts[0];
+            String sourceWbsID = idParts[1];
+
+            // search for the given node within the given project
+            List<PropertyKey> results = new LinkedList();
+            PropertyKey sourceProject = findProjectWithID(sourceProjectID);
+            if (sourceProject != null)
+                findHierarchyNodesByID(sourceProject, sourceWbsID, results);
+
+            // if we found a result, document its relaunch source ID and
+            // return it.
+            if (!results.isEmpty()) {
+                result = results.get(0);
+                forceData(result.path(),
+                    TeamDataConstants.RELAUNCH_SOURCE_WBS_ID,
+                    StringData.create(relaunchSourceID));
+                return result;
+            }
+
+            // search all projects for a task with this relaunch source ID. This
+            // will find a node that might have already be moved by a previous
+            // relaunch operation.
+            result = findNodeWithNamedID(PropertyKey.ROOT,
+                TeamDataConstants.RELAUNCH_SOURCE_WBS_ID, relaunchSourceID,
+                true);
+            return result;            
         }
 
         @Override
