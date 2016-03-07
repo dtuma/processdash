@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2014 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -150,7 +150,8 @@ public class DynamicImportDirectory implements ImportDirectory {
         // Server support. That is a rare transition, and is better handled
         // elsewhere as a configuration change, rather than being checked every
         // time the ImportDirectory.update() is called.
-        if (delegate instanceof LocalImportDirectory) {
+        if (delegate instanceof LocalImportDirectory
+                || delegate instanceof CachingLocalImportDirectory) {
             if (locations.length == 1
                     && !TeamServerSelector.isDefaultTeamServerConfigured())
                 return false;

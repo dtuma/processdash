@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,24 +26,27 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 
 /**
- * Bridged import directories copy the files in a collection to a local
+ * Other ImportDirectory implementations copy files in a collection to a local
  * directory for quick access.  This class provides access to those locally
  * cached files, even when no network is available.
  */
 public class CachedImportDirectory implements ImportDirectory {
 
+    protected String location;
+
     protected String remoteURL;
 
     protected File importDirectory;
 
-    protected CachedImportDirectory(String remoteURL) {
+    protected CachedImportDirectory(String location, String remoteURL) {
+        this.location = location;
         this.remoteURL = remoteURL;
         this.importDirectory = BridgedImportDirectory
-                .getCacheDirectoryForBridgedImport(remoteURL);
+                .getCacheDirectoryForBridgedImport(location);
     }
 
     public String getDescription() {
-        return remoteURL;
+        return location;
     }
 
     public File getDirectory() {

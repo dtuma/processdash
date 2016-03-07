@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,8 @@ public class ImportDirectoryFactory {
 
     private String[] preferCachesFor;
 
+    private String[] noCachesFor;
+
     private ImportDirectoryFactory() {
         cache = Collections
                 .synchronizedMap(new HashMap<String, ImportDirectory>());
@@ -68,6 +70,10 @@ public class ImportDirectoryFactory {
 
     public void setPreferCachesFor(String[] preferCachesFor) {
         this.preferCachesFor = preferCachesFor;
+    }
+
+    public void setNoCachesFor(String[] noCachesFor) {
+        this.noCachesFor = noCachesFor;
     }
 
     /**
@@ -123,7 +129,7 @@ public class ImportDirectoryFactory {
             if (TeamServerSelector.isUrlFormat(location)) {
                 // See if a cached version of the data is available.  If so,
                 // and a cached version is preferred, return it.
-                ImportDirectory c = getCachedImportDirectory(location);
+                ImportDirectory c = getCachedImportDirectory(location, true);
                 if (isViable(c, REQUIRE_CONTENTS)) {
                     if (preferCacheFor(location))
                         return c;
@@ -157,16 +163,32 @@ public class ImportDirectoryFactory {
                 } else {
                     dir = new File(location);
                 }
+
+                // See if a cached version of the data is available. If so,
+                // and a cached version is preferred, return it.
+                String absPath = dir.getAbsolutePath();
+                if (!cacheDisabledFor(absPath)) {
+                    ImportDirectory c = getCachedImportDirectory(absPath, false);
+                    if (isViable(c, REQUIRE_CONTENTS)) {
+                        if (preferCacheFor(location))
+                            return c;
+                        else if (fallbackResult == null)
+                            fallbackResult = c;
+                    }
+                }
+
+                // Try to find the named local directory
                 ImportDirectory fileResult = get(dir, CHECK_REMOTE);
                 if (isViable(fileResult, NO_CONTENTS_REQUIRED))
                     return fileResult;
 
-                // if the local directory doesn't exist, see if there is a
-                // cached import directory that appears to correspond to the
-                // desired directory
+                // if the local directory doesn't exist, see if it appears to
+                // be accessible via the default team server. This handles the
+                // situation where a dir was migrated at some point in the past,
+                // but has already been physically deleted from the filesystem.
                 String possibleURL = TeamServerSelector.getDefaultURL(dir);
-                if (possibleURL != null) {
-                    ImportDirectory c = getCachedImportDirectory(possibleURL);
+                if (possibleURL != null && fallbackResult == null) {
+                    ImportDirectory c = getImpl(new String[] { possibleURL });
                     if (isViable(c, REQUIRE_CONTENTS))
                         fallbackResult = c;
                 }
@@ -182,10 +204,6 @@ public class ImportDirectoryFactory {
         }
 
         return fallbackResult;
-    }
-
-    public ImportDirectory get(File dir) {
-        return get(dir, CHECK_REMOTE);
     }
 
     private ImportDirectory get(File dir, boolean noRemote) {
@@ -204,11 +222,15 @@ public class ImportDirectoryFactory {
         if (cached != null)
             return refresh(cached);
 
-        ImportDirectory result = new LocalImportDirectory(dir);
+        ImportDirectory result;
+        if (noRemote || cacheDisabledFor(dir))
+            result = new LocalImportDirectory(dir);
+        else
+            result = new CachingLocalImportDirectory(dir);
         return putInCache(path, result);
     }
 
-    public ImportDirectory get(URL url) throws IOException {
+    private ImportDirectory get(URL url) throws IOException {
         String urlStr = url.toString();
         ImportDirectory cached = cache.get(urlStr);
         if (cached != null)
@@ -220,25 +242,54 @@ public class ImportDirectoryFactory {
     }
 
     private boolean preferCacheFor(String location) {
-        if (location == null || preferCachesFor == null)
+        if (cacheDisabledFor(location))
+            return false;
+        else
+            return locationContainsToken(location, preferCachesFor);
+    }
+
+    private boolean cacheDisabledFor(File dir) {
+        if (dir == null)
+            return false;
+
+        String path = dir.getAbsolutePath();
+        if (cacheDisabledFor(path) || cacheDisabledFor(normalize(path)))
+            return true;
+
+        String userHome = System.getProperty("user.home");
+        if (path.startsWith(userHome))
+            return true;
+
+        if (baseDirectory.equals(dir.getParentFile()))
+            return true;
+
+        return false;
+    }
+
+    private boolean cacheDisabledFor(String location) {
+        return locationContainsToken(location, noCachesFor);
+    }
+
+    private boolean locationContainsToken(String location, String[] tokens) {
+        if (location == null || tokens == null)
             return false;
 
         location = location.toLowerCase();
-        for (String preferCacheToken : preferCachesFor)
-            if ("*".equals(preferCacheToken)
-                    || location.contains(preferCacheToken))
+        for (String token : tokens)
+            if ("*".equals(token) || location.contains(token))
                 return true;
 
         return false;
     }
 
-    private ImportDirectory getCachedImportDirectory(String url) {
-        String key = "[CACHED]:" + url;
+    private ImportDirectory getCachedImportDirectory(String loc, boolean isUrl) {
+        String key = "[CACHED]:" + loc;
         ImportDirectory cached = cache.get(key);
         if (cached != null)
             return refresh(cached);
 
-        ImportDirectory result = new CachedImportDirectory(url);
+        String url = (isUrl ? loc : null);
+        ImportDirectory result = new CachedImportDirectory(loc, url);
         return putInCache(key, result);
     }
 
