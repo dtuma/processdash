@@ -27,6 +27,7 @@ public interface TeamDataConstants {
 
     public static final String PROJECT_ID = "Project_ID";
     public static final String PROCESS_ID = "Team_Process_PID";
+    public static final String PROCESS_NAME = "Team_Process_Name";
     public static final String TEAM_DIRECTORY = "Team_Directory";
     public static final String TEAM_DIRECTORY_UNC = "Team_Directory_UNC";
     public static final String TEAM_DATA_DIRECTORY = "Team_Data_Directory";

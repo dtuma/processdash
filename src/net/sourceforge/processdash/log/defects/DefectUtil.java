@@ -38,6 +38,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -112,7 +113,7 @@ public class DefectUtil {
                 boolean firstPhase = true;
                 for (Phase onePhase : phase.getWorkflow().getPhases()) {
                     DefectPhase dp = new DefectPhase(onePhase.getPhaseName());
-                    dp.workflowName = onePhase.getWorkflow().getWorkflowName();
+                    dp.processName = onePhase.getWorkflow().getWorkflowName();
                     dp.phaseID = onePhase.getPhaseId();
                     dp.legacyPhase = onePhase.getMcfPhase();
 
@@ -166,9 +167,16 @@ public class DefectUtil {
         String removalPhase = guessRemovalPhase(defectPath, taskPath, context);
         String injectionPhase = guessInjectionPhase(phaseNames, removalPhase);
 
+        String processName = null;
+        SaveableData sd = context.getData().getInheritableValue(taskPath,
+            TeamDataConstants.PROCESS_NAME);
+        if (sd != null)
+            processName = sd.getSimpleValue().format();
+
         DefectPhaseList result = new DefectPhaseList();
         for (String onePhase : phaseNames) {
             DefectPhase dp = new DefectPhase(onePhase);
+            dp.processName = processName;
 
             if (onePhase.equals(injectionPhase))
                 result.defaultInjectionPhase = result.size();

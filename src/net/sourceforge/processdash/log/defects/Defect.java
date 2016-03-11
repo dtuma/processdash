@@ -107,14 +107,14 @@ public class Defect implements Cloneable {
         if (XMLUtils.hasValue(id)) {
             result.phaseID = id;
 
-            String workflowName = "";
+            String processName = "";
             String phaseName = extractXmlAttr(prefix + XML.NAME_ATTR_SUFFIX);
             int slashPos = phaseName.indexOf('/');
             if (slashPos != -1) {
-                workflowName = phaseName.substring(0, slashPos);
+                processName = phaseName.substring(0, slashPos);
                 phaseName = phaseName.substring(slashPos + 1);
             }
-            result.workflowName = workflowName;
+            result.processName = processName;
             result.phaseName = phaseName;
         }
 
@@ -246,7 +246,7 @@ public class Defect implements Cloneable {
         if (phase != null && phase.phaseID != null) {
             ser.attribute(null, prefix + XML.ID_ATTR_SUFFIX, phase.phaseID);
             ser.attribute(null, prefix + XML.NAME_ATTR_SUFFIX,
-                phase.workflowName + "/" + phase.phaseName);
+                phase.processName + "/" + phase.phaseName);
         }
     }
 

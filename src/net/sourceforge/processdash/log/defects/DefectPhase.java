@@ -29,7 +29,7 @@ import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 
 public class DefectPhase {
 
-    public String workflowName;
+    public String processName;
 
     public String phaseName;
 
@@ -68,7 +68,7 @@ public class DefectPhase {
         result = prime * result
                 + ((phaseName == null) ? 0 : phaseName.hashCode());
         result = prime * result
-                + ((workflowName == null) ? 0 : workflowName.hashCode());
+                + ((processName == null) ? 0 : processName.hashCode());
         return result;
     }
 
@@ -78,7 +78,7 @@ public class DefectPhase {
             return true;
         } else if (obj instanceof DefectPhase) {
             DefectPhase that = (DefectPhase) obj;
-            return EQ(this.workflowName, that.workflowName) //
+            return EQ(this.processName, that.processName) //
                     && EQ(this.phaseName, that.phaseName) //
                     && EQ(this.phaseID, that.phaseID) //
                     && EQ(this.legacyPhase, that.legacyPhase);

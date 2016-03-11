@@ -6,6 +6,7 @@
 [Project_ID] = "Enter Project Identifier";
 [Project_WBS_ID] = [Project_ID];
 [Team_Process_PID] = "<!--#echo Process_ID -->";
+[Team_Process_Name] = "<!--#echo Full_Name -->";
 
 
 /*
