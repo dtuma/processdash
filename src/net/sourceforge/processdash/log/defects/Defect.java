@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2012 Tuma Solutions, LLC
+// Copyright (C) 1998-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ public class Defect implements Cloneable {
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,
                   fix_time, fix_defect, description;
+    public DefectPhase injected, removed;
     public int fix_count = 1;
     public boolean fix_pending;
     public Map<String, String> extra_attrs;
@@ -56,7 +57,9 @@ public class Defect implements Cloneable {
             number = tok.nextToken();
             defect_type = tok.nextToken();
             phase_injected = tok.nextToken();
+            injected = new DefectPhase(phase_injected);
             phase_removed = tok.nextToken();
+            removed = new DefectPhase(phase_removed);
             fix_time = tok.nextToken();
             fix_defect = tok.nextToken();
             description = tok.nextToken();
@@ -72,7 +75,9 @@ public class Defect implements Cloneable {
         number = extractXmlAttr(XML.NUM_ATTR);
         defect_type = extractXmlAttr(XML.DEFECT_TYPE_ATTR);
         phase_injected = extractXmlAttr(XML.INJECTED_ATTR);
+        injected = extractXmlPhaseAttrs(XML.INJECTED_ATTR, phase_injected);
         phase_removed = extractXmlAttr(XML.REMOVED_ATTR);
+        removed = extractXmlPhaseAttrs(XML.REMOVED_ATTR, phase_removed);
         fix_time = extractXmlAttr(XML.FIX_TIME_ATTR);
         fix_defect = extractXmlAttr(XML.FIX_DEFECT_ATTR);
         description = extractXmlAttr(XML.DESCRIPTION_ATTR);
@@ -93,6 +98,27 @@ public class Defect implements Cloneable {
                 return Integer.parseInt(value);
         } catch (Exception e) {}
         return defaultVal;
+    }
+
+    private DefectPhase extractXmlPhaseAttrs(String prefix, String legacyPhase) {
+        DefectPhase result = new DefectPhase(legacyPhase);
+
+        String id = extractXmlAttr(prefix + XML.ID_ATTR_SUFFIX);
+        if (XMLUtils.hasValue(id)) {
+            result.phaseID = id;
+
+            String workflowName = "";
+            String phaseName = extractXmlAttr(prefix + XML.NAME_ATTR_SUFFIX);
+            int slashPos = phaseName.indexOf('/');
+            if (slashPos != -1) {
+                workflowName = phaseName.substring(0, slashPos);
+                phaseName = phaseName.substring(slashPos + 1);
+            }
+            result.workflowName = workflowName;
+            result.phaseName = phaseName;
+        }
+
+        return result;
     }
 
     private String token(String s, boolean multiline) {
@@ -173,7 +199,9 @@ public class Defect implements Cloneable {
     }
 
     public boolean needsXmlSaveFormat() {
-        return fix_count != 1 || fix_pending;
+        return fix_count != 1 || fix_pending //
+                || (injected != null && injected.phaseID != null) //
+                || (removed != null && removed.phaseID != null);
     }
 
     public String toString() {
@@ -195,7 +223,9 @@ public class Defect implements Cloneable {
         ser.attribute(null, XML.NUM_ATTR, xmlToken(number));
         ser.attribute(null, XML.DEFECT_TYPE_ATTR, xmlToken(defect_type));
         ser.attribute(null, XML.INJECTED_ATTR, xmlToken(phase_injected));
+        writePhaseAttrs(ser, XML.INJECTED_ATTR, injected);
         ser.attribute(null, XML.REMOVED_ATTR, xmlToken(phase_removed));
+        writePhaseAttrs(ser, XML.REMOVED_ATTR, removed);
         ser.attribute(null, XML.FIX_TIME_ATTR, xmlToken(getFixTimeXmlStr()));
         ser.attribute(null, XML.FIX_DEFECT_ATTR, xmlToken(fix_defect));
         ser.attribute(null, XML.DESCRIPTION_ATTR, xmlToken(description));
@@ -209,6 +239,15 @@ public class Defect implements Cloneable {
             for (Map.Entry<String, String> attr : extra_attrs.entrySet())
                 ser.attribute(null, attr.getKey(), attr.getValue());
         ser.endTag(null, XML.DEFECT_TAG);
+    }
+
+    public void writePhaseAttrs(XmlSerializer ser, String prefix,
+            DefectPhase phase) throws IOException {
+        if (phase != null && phase.phaseID != null) {
+            ser.attribute(null, prefix + XML.ID_ATTR_SUFFIX, phase.phaseID);
+            ser.attribute(null, prefix + XML.NAME_ATTR_SUFFIX,
+                phase.workflowName + "/" + phase.phaseName);
+        }
     }
 
     private String xmlToken(String s) {
@@ -225,7 +264,9 @@ public class Defect implements Cloneable {
                         && eq(this.number, that.number)
                         && eq(this.defect_type, that.defect_type)
                         && eq(this.phase_injected, that.phase_injected)
+                        && eq(this.injected, that.injected)
                         && eq(this.phase_removed, that.phase_removed)
+                        && eq(this.removed, that.removed)
                         && eq(this.fix_time, that.fix_time)
                         && eq(this.fix_defect, that.fix_defect)
                         && eq(this.description, that.description)
@@ -257,7 +298,9 @@ public class Defect implements Cloneable {
         result = (result << 1) ^ hc(this.number);
         result = (result << 1) ^ hc(this.defect_type);
         result = (result << 1) ^ hc(this.phase_injected);
+        result = (result << 1) ^ hc(this.injected);
         result = (result << 1) ^ hc(this.phase_removed);
+        result = (result << 1) ^ hc(this.removed);
         result = (result << 1) ^ hc(this.fix_time);
         result = (result << 1) ^ hc(this.fix_defect);
         result = (result << 1) ^ hc(this.description);

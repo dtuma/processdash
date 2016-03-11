@@ -25,8 +25,10 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -42,29 +44,33 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -79,9 +85,12 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
+import net.sourceforge.processdash.log.defects.DefectPhase;
+import net.sourceforge.processdash.log.defects.DefectPhaseList;
 import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.process.WorkflowInfo.Phase;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -91,6 +100,7 @@ import net.sourceforge.processdash.ui.lib.DropDownLabel;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.Stopwatch;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -101,6 +111,7 @@ public class DefectDialog extends JDialog
     ProcessDashboard parent;
     String defectFilename;
     PropertyKey defectPath;
+    PropertyKey taskPath;
     DefectLog defectLog = null;
     Stopwatch stopwatch = null;
     StopwatchSynchronizer stopwatchSynchronizer;
@@ -114,6 +125,7 @@ public class DefectDialog extends JDialog
     DecimalField fix_time, fix_count;
     ExternalLinksButton linksButton;
     JTextArea description;
+    DefectPhaseList workflowPhases, processPhases;
     JComboBox defect_type, phase_injected, phase_removed;
     PendingSelector pendingSelector;
     Map<String, String> extra_attrs;
@@ -127,17 +139,22 @@ public class DefectDialog extends JDialog
     private static Hashtable defectDialogs = new Hashtable();
     /** A timer object for refreshing the fix time field. */
     private javax.swing.Timer activeRefreshTimer = null;
+    /** Objects representing "special" injection/removal phases */
+    private static final DefectPhase //
+        beforeDevelopment = new DefectPhase("Before Development"),
+        afterDevelopment = new DefectPhase("After Development"),
+        moreOptions = new DefectPhase(".");
 
     Resources resources = Resources.getDashBundle("Defects.Editor");
 
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
-                 PropertyKey defectPath) {
-        this(dash, defectFilename, defectPath, true);
+            PropertyKey defectPath, PropertyKey taskPath) {
+        this(dash, defectFilename, defectPath, taskPath, true);
     }
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
-                 PropertyKey defectPath, boolean guessDefaults) {
+            PropertyKey defectPath, PropertyKey taskPath, boolean guessDefaults) {
         super(dash);
         setTitle(resources.getString("Window_Title"));
         PCSH.enableHelpKey(this, "EnteringDefects");
@@ -145,6 +162,7 @@ public class DefectDialog extends JDialog
         parent = dash;
         this.defectFilename = defectFilename;
         this.defectPath = defectPath;
+        this.taskPath = taskPath;
         defectLog = new DefectLog(defectFilename, defectPath.path(),
                                   dash.getData());
         date = new Date();
@@ -221,28 +239,31 @@ public class DefectDialog extends JDialog
         g.fill = GridBagConstraints.HORIZONTAL;
         g.anchor = GridBagConstraints.NORTHWEST;
 
-        List defectPhases = DefectUtil.getDefectPhases(defectPath.path(),
-                parent);
+        workflowPhases = DefectUtil.getWorkflowDefectPhases(taskPath.path(),
+            parent);
+        processPhases = DefectUtil.getDefectPhaseList(defectPath.path(),
+            taskPath.path(), parent);
 
-        String defaultRemovalPhase = null;
-        if (guessDefaults)
-            defaultRemovalPhase = guessRemovalPhase(defectPath);
-        phase_removed = phaseComboBox(defectPhases, defaultRemovalPhase);
+        DefectPhaseList defectPhaseList;
+        if (workflowPhases != null && !workflowPhases.isEmpty())
+            defectPhaseList = workflowPhases;
+        else
+            defectPhaseList = processPhases;
+
+        phase_removed = phaseComboBox(defectPhaseList,
+            guessDefaults ? defectPhaseList.defaultRemovalPhase : -1);
         phase_removed.setToolTipText(resources.getString("Removed_Tooltip"));
 
-        String defaultInjectionPhase = null;
-        if (guessDefaults && defaultRemovalPhase != null)
-            defaultInjectionPhase = DefectUtil.guessInjectionPhase(defectPhases,
-                    defaultRemovalPhase);
-        phase_injected = phaseComboBox(defectPhases, defaultInjectionPhase);
+        phase_injected = phaseComboBox(defectPhaseList,
+            guessDefaults ? defectPhaseList.defaultInjectionPhase : -1);
         phase_injected.setToolTipText(resources.getString("Injected_Tooltip"));
 
-        phase_injected.insertItemAt("Before Development", 0);
+        phase_injected.insertItemAt(beforeDevelopment, 0);
         phase_injected.addActionListener(this);
         g.gridx = 0;   layout.setConstraints(phase_injected, g);
         panel.add(phase_injected);
 
-        phase_removed.addItem("After Development");
+        phase_removed.addItem(afterDevelopment);
         phase_removed.addActionListener(this);
         g.insets = bottom_margin;
         g.gridx = 1; layout.setConstraints(phase_removed, g);
@@ -403,7 +424,7 @@ public class DefectDialog extends JDialog
 
     private DefectDialog(ProcessDashboard dash, String defectFilename,
                          PropertyKey defectPath, Defect defect) {
-        this(dash, defectFilename, defectPath, false);
+        this(dash, defectFilename, defectPath, defectPath, false);
         stopTimingDefect();
         setValues(defect);
         setDirty(false);
@@ -448,8 +469,10 @@ public class DefectDialog extends JDialog
             d.date = date;
         d.number = defectNumber;
         d.defect_type = (String)defect_type.getSelectedItem();
-        d.phase_injected = (String)phase_injected.getSelectedItem();
-        d.phase_removed = (String)phase_removed.getSelectedItem();
+        d.injected = (DefectPhase) phase_injected.getSelectedItem();
+        d.phase_injected = d.injected.legacyPhase;
+        d.removed = (DefectPhase) phase_removed.getSelectedItem();
+        d.phase_removed = d.removed.legacyPhase;
         d.fix_time = fix_time.getText();
         try {
             d.fix_count = (int) FormatUtil.parseNumber(fix_count.getText());
@@ -530,27 +553,66 @@ public class DefectDialog extends JDialog
         }
     }
 
-    private JComboBox phaseComboBox(List phases, String selectedChild) {
-        JComboBox result = new JComboBox();
+    private void phaseComboSelect(JComboBox cb, DefectPhase target) {
+        if (target == null)
+            return;
+        
+        if (target.phaseID != null) {
+            // try to match the phase by exact ID
+            for (int i = cb.getItemCount(); i-- > 0; ) {
+                DefectPhase onePhase = (DefectPhase) cb.getItemAt(i);
+                if (onePhase.phaseID != null
+                        && onePhase.phaseID.equals(target.phaseID)) {
+                    cb.setSelectedIndex(i);
+                    return;
+                }
+            }
+            // next try to match the phase by trailing ID
+            for (int i = cb.getItemCount(); i-- > 0; ) {
+                DefectPhase onePhase = (DefectPhase) cb.getItemAt(i);
+                if (onePhase.phaseID != null
+                        && onePhase.phaseID.endsWith(target.phaseID)) {
+                    cb.setSelectedIndex(i);
+                    return;
+                }
+            }
+            // next try to match by workflow and phase name
+            for (int i = cb.getItemCount(); i-- > 0; ) {
+                DefectPhase onePhase = (DefectPhase) cb.getItemAt(i);
+                if (onePhase.phaseID != null && onePhase.workflowName != null
+                        && onePhase.phaseName != null
+                        && onePhase.workflowName.equals(target.workflowName)
+                        && onePhase.phaseName.equals(target.phaseName)) {
+                    cb.setSelectedIndex(i);
+                    return;
+                }
+            }
 
-        for (Iterator i = phases.iterator(); i.hasNext();) {
-            String phase = (String) i.next();
-            result.addItem(phase);
-            if (phase.equals(selectedChild))
-                result.setSelectedItem(phase);
+        } else {
+            // try to match by legacy phase
+            for (int i = cb.getItemCount(); i-- > 0; ) {
+                DefectPhase onePhase = (DefectPhase) cb.getItemAt(i);
+                if (onePhase.phaseID == null
+                        && onePhase.legacyPhase.equals(target.legacyPhase)) {
+                    cb.setSelectedIndex(i);
+                    return;
+                }
+            }
         }
 
-        return result;
+        // fallback: add the item to the list and select it.
+        cb.insertItemAt(target, 0);
+        cb.setSelectedItem(target);
     }
 
-
-    /** Make an educated guess about which removal phase might correspond to
-     * the current dashboard state.
-     */
-    private String guessRemovalPhase(PropertyKey defectPath) {
-        String phasePath = parent.getCurrentPhase().path();
-        return DefectUtil.guessRemovalPhase(defectPath.path(), phasePath,
-                parent);
+    private JComboBox phaseComboBox(DefectPhaseList phases, int selectedPos) {
+        JComboBox result = new JComboBox();
+        result.setRenderer(new PhaseItemRenderer());
+        for (DefectPhase p : phases)
+            result.addItem(p);
+        if (selectedPos != -1)
+            result.setSelectedIndex(selectedPos);
+        return result;
     }
 
 
@@ -581,9 +643,12 @@ public class DefectDialog extends JDialog
             saveDialogInCache();
             autoCreated = true;
         }
-        DefectDialog d = new DefectDialog(parent, defectFilename, defectPath);
+        DefectDialog d = new DefectDialog(parent, defectFilename, defectPath,
+                taskPath);
         d.fix_defect.setText(defectNumber);
-        comboSelect(d.phase_injected, (String)phase_removed.getSelectedItem());
+        DefectPhase p = (DefectPhase) phase_removed.getSelectedItem();
+        phaseComboSelect(d.phase_injected, p);
+        phaseComboSelect(d.phase_removed, p);
         d.setDirty(false);
     }
 
@@ -593,8 +658,8 @@ public class DefectDialog extends JDialog
         defectNumber = d.number;
         number.setText(formatDefectNum(d.number));
         comboSelect(defect_type, d.defect_type);
-        comboSelect(phase_injected, d.phase_injected);
-        comboSelect(phase_removed, d.phase_removed);
+        phaseComboSelect(phase_injected, d.injected);
+        phaseComboSelect(phase_removed, d.removed);
         fix_time.setText(d.getLocalizedFixTime()); // will trigger fixTimeChanged
         fix_count.setText(FormatUtil.formatNumber(d.fix_count));
         fix_defect.setText(d.fix_defect);
@@ -629,28 +694,64 @@ public class DefectDialog extends JDialog
             (Settings.getVal("defectDialog.restrictSequence")))
             return true;
 
-        // Ensure that the user isn't removing a defect before it is
-        // injected.
-        String injected = (String)phase_injected.getSelectedItem();
-        String removed  = (String)phase_removed.getSelectedItem();
+        // retrieve the phases the defect was injected and removed.
+        DefectPhase injected = (DefectPhase) phase_injected.getSelectedItem();
+        DefectPhase removed  = (DefectPhase) phase_removed.getSelectedItem();
+        if (injected == removed)
+            return true;
 
-        int numOptions = phase_injected.getItemCount();
-        String option;
-        for (int i = 0;  i < numOptions;  i++) {
-            option = (String) phase_injected.getItemAt(i);
-            if (option.equalsIgnoreCase(injected))
+        // if the phases are from different workflows, we can't compare them
+        // in any meaningful way.
+        if (!NullSafeObjectUtils.EQ(injected.workflowName, removed.workflowName))
+            return true;
+
+        if (injected.workflowName != null) {
+            // if the phases came from a workflow, retrieve the rich phase data
+            // from the WorkflowInfo object.
+            Phase injPhase = getWorkflowInfoPhase(injected);
+            Phase remPhase = getWorkflowInfoPhase(removed);
+            if (injPhase == null || remPhase == null)
                 return true;
-            if (option.equalsIgnoreCase(removed)) {
-                JOptionPane.showMessageDialog
-                    (this,
-                     resources.getStrings("Sequence_Error_Message"),
-                     resources.getString("Sequence_Error_Title"),
-                     JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+
+            // compare the positions of the phases within the workflow
+            List<Phase> phases = injPhase.getWorkflow().getPhases();
+            int injPos = phases.indexOf(injPhase);
+            int remPos = phases.indexOf(remPhase);
+
+            // if the pos is -1, these phases weren't from the same workflow
+            // after all, and we can't compare them in any meaningful way.
+            if (injPos == -1 || remPos == -1)
+                return true;
+
+            // if the injection phase precedes the removal phase, it's good
+            if (injPos <= remPos)
+                return true;
+
+        } else {
+            // if the phases are legacy process phases, compare their positions
+            // within the process.
+            int injPos = processPhases.indexOf(injected);
+            int remPos = processPhases.indexOf(removed);
+            if (injPos == -1 || remPos == -1)
+                return true;
+
+            // if the injection phase precedes the removal phase, it's good
+            if (injPos <= remPos)
+                return true;
         }
-        // We shouldn't get here...
-        return true;
+
+        JOptionPane.showMessageDialog(this,
+            resources.getStrings("Sequence_Error_Message"),
+            resources.getString("Sequence_Error_Title"),
+            JOptionPane.ERROR_MESSAGE);
+        return false;
+    }
+    
+    private Phase getWorkflowInfoPhase(DefectPhase p) {
+        if (workflowPhases == null || workflowPhases.workflowInfo == null)
+            return null;
+        else
+            return workflowPhases.workflowInfo.getPhase(p.getTerminalPhaseID());
     }
 
 
@@ -781,6 +882,84 @@ public class DefectDialog extends JDialog
                     pausedByTimeLoggingModel = false;
                 }
             }
+        }
+    }
+
+    private class PhaseItemRenderer extends DefaultListCellRenderer {
+
+        private JPanel panel;
+
+        private JSeparator separator;
+
+        private JLabel label;
+
+        private Border border;
+
+        private boolean hasMultipleWorkflows;
+
+        int lastScannedSize = -1;
+
+        public PhaseItemRenderer() {
+            panel = new JPanel(new BorderLayout());
+            panel.add(separator = new JSeparator(), BorderLayout.NORTH);
+            panel.add(label = new JLabel(), BorderLayout.CENTER);
+            Font font = label.getFont();
+            label.setFont(font.deriveFont(Font.PLAIN, font.getSize2D() * 0.8f));
+            border = BorderFactory.createEmptyBorder(1, 15, 1, 1);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value,
+                int index, boolean isSelected, boolean cellHasFocus) {
+            checkForMultipleWorkflows(list);
+            super.getListCellRendererComponent(list, value, index, isSelected,
+                cellHasFocus);
+            if (index == -1 || hasMultipleWorkflows == false)
+                return this;
+
+            DefectPhase phase = (DefectPhase) value;
+
+            boolean isFirstPhase = isFirstPhase(list, phase, index);
+            separator.setVisible(index > 0 && isFirstPhase);
+
+            label.setText(phase.workflowName);
+            label.setVisible(isFirstPhase);
+
+            if (StringUtils.hasValue(phase.workflowName))
+                setBorder(border);
+            panel.add(this, BorderLayout.SOUTH);
+
+            return panel;
+        }
+
+        private void checkForMultipleWorkflows(JList list) {
+            int numItems = list.getModel().getSize();
+            if (numItems == lastScannedSize)
+                return;
+
+            hasMultipleWorkflows = false;
+            String workflowNameFound = null;
+            for (int i = numItems; i-- > 0;) {
+                DefectPhase p = (DefectPhase) list.getModel().getElementAt(i);
+                String oneName = p.workflowName;
+                if (oneName != null) {
+                    if (workflowNameFound == null)
+                        workflowNameFound = oneName;
+                    else if (!workflowNameFound.equals(oneName))
+                        hasMultipleWorkflows = true;
+                }
+            }
+            lastScannedSize = numItems;
+        }
+
+        private boolean isFirstPhase(JList list, DefectPhase phase, int index) {
+            if (index < 1)
+                return true;
+
+            DefectPhase prev = (DefectPhase) list.getModel().getElementAt(
+                index - 1);
+            return !NullSafeObjectUtils.EQ(phase.workflowName,
+                prev.workflowName);
         }
     }
 

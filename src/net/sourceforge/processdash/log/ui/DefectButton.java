@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2015 Tuma Solutions, LLC
+// Copyright (C) 2000-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ public class DefectButton extends JButton implements ActionListener,
     List forbiddenPaths;
     String defectLogFileName = null;
     PropertyKey defectPath = null;
+    PropertyKey taskPath = null;
     String tooltip, disabledTooltip;
 
     public DefectButton(ProcessDashboard dash) {
@@ -86,7 +87,7 @@ public class DefectButton extends JButton implements ActionListener,
 
     private void updateAll() {
         PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
-        setPaths(parent.getHierarchy().defectLog(currentPhase , parent.getDirectory()));
+        setPaths(currentPhase);
     }
 
     private boolean shouldAllowDefectLogging() {
@@ -95,7 +96,10 @@ public class DefectButton extends JButton implements ActionListener,
             && !Filter.matchesFilter(forbiddenPaths, defectPath.path());
     }
 
-    public void setPaths(DefectLogID defectLog) {
+    private void setPaths(PropertyKey activeTask) {
+        taskPath = activeTask;
+        DefectLogID defectLog = parent.getHierarchy().defectLog(taskPath,
+            parent.getDirectory());
         if (defectLog == null) {
             defectLogFileName = null;
             defectPath = null;
@@ -111,7 +115,7 @@ public class DefectButton extends JButton implements ActionListener,
     public void actionPerformed(ActionEvent e) {
         if (shouldAllowDefectLogging()) {
             // pop up a defect log dialog
-            new DefectDialog(parent, defectLogFileName, defectPath);
+            new DefectDialog(parent, defectLogFileName, defectPath, taskPath);
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ public class OpenDefectDialog extends TinyCGIBase {
         if (StringUtils.hasValue(id))
             openExistingDefectDialog(defectLog, id);
         else
-            openNewDefectDialog(defectLog);
+            openNewDefectDialog(defectLog, path);
 
         DashController.printNullDocument(out);
     }
@@ -97,10 +97,11 @@ public class OpenDefectDialog extends TinyCGIBase {
         dlg.toFront();
     }
 
-    private void openNewDefectDialog(DefectLogID defectLog) {
+    private void openNewDefectDialog(DefectLogID defectLog, String path) {
         ProcessDashboard dash = getDash();
+        PropertyKey task = dash.getHierarchy().findClosestKey(path);
         DefectDialog dlg = new DefectDialog(dash, defectLog.filename,
-                defectLog.path);
+                defectLog.path, task);
         if (!defectLog.path.equals(dash.getCurrentPhase()))
             dlg.setTitle(defectLog.path.path());
     }
