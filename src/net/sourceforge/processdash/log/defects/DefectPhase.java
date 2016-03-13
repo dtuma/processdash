@@ -25,6 +25,7 @@ package net.sourceforge.processdash.log.defects;
 
 import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 
+import net.sourceforge.processdash.process.WorkflowInfo;
 
 
 public class DefectPhase {
@@ -40,6 +41,13 @@ public class DefectPhase {
     public DefectPhase(String name) {
         this.phaseName = name;
         this.legacyPhase = name;
+    }
+
+    public DefectPhase(WorkflowInfo.Phase phase) {
+        this.processName = phase.getWorkflow().getWorkflowName();
+        this.phaseName = phase.getPhaseName();
+        this.phaseID = phase.getPhaseId();
+        this.legacyPhase = phase.getMcfPhase();
     }
 
     public String getTerminalPhaseID() {

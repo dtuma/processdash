@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,6 +77,10 @@ public class DefectDataBag extends AbstractTableModel {
 
     private StringMapper[] fieldMappers = new StringMapper[ATTRS.length];
 
+    private DefectPhase defaultInjectedPhase, defaultRemovedPhase;
+
+    private PhaseLookup phaseLookup;
+
     public void setDefectData(List data) {
         if (data == null)
             this.defectData = Collections.EMPTY_LIST;
@@ -88,9 +92,28 @@ public class DefectDataBag extends AbstractTableModel {
     public void setStringMapper(int column, StringMapper m) {
         if (getColumnClass(column) == String.class) {
             fieldMappers[column] = m;
-            fireTableChanged(new TableModelEvent(this, 0, getRowCount() - 1,
-                    column));
+            fireColumnChanged(column);
         }
+    }
+
+    public void setDefaultInjectedPhase(DefectPhase defaultInjectedPhase) {
+        this.defaultInjectedPhase = defaultInjectedPhase;
+        fireColumnChanged(INJECTED);
+    }
+
+    public void setDefaultRemovedPhase(DefectPhase defaultRemovedPhase) {
+        this.defaultRemovedPhase = defaultRemovedPhase;
+        fireColumnChanged(REMOVED);
+    }
+
+    public void setPhaseLookup(PhaseLookup phaseLookup) {
+        this.phaseLookup = phaseLookup;
+        fireColumnChanged(INJECTED);
+        fireColumnChanged(REMOVED);
+    }
+
+    private void fireColumnChanged(int col) {
+        fireTableChanged(new TableModelEvent(this, 0, getRowCount() - 1, col));
     }
 
     public int getColumnCount() {
@@ -103,6 +126,8 @@ public class DefectDataBag extends AbstractTableModel {
             return Boolean.class;
         case DATE:
             return Date.class;
+        case INJECTED: case REMOVED:
+            return DefectPhase.class;
         default:
             return String.class;
         }
@@ -132,6 +157,22 @@ public class DefectDataBag extends AbstractTableModel {
             result = Boolean.TRUE;
         else if (fieldMappers[columnIndex] != null)
             result = fieldMappers[columnIndex].getString((String) result);
+
+        // special handling for injected/removed phases
+        if (columnIndex == INJECTED || columnIndex == REMOVED) {
+            if (result instanceof String) {
+                if (phaseLookup != null)
+                    result = phaseLookup.getPhaseForName((String) result);
+                else
+                    result = new DefectPhase((String) result);
+            }
+            if (!(result instanceof DefectPhase))
+                result = (columnIndex == INJECTED ? defaultInjectedPhase
+                        : defaultRemovedPhase);
+            if (result == null)
+                result = Defect.UNSPECIFIED_PHASE;
+        }
+
         return result;
     }
 
@@ -202,8 +243,10 @@ public class DefectDataBag extends AbstractTableModel {
             d.number = getStringAt(row, ID);
             if ("".equals(d.number)) d.number = null;
             d.defect_type = getStringAt(row, TYPE);
-            d.phase_injected = getStringAt(row, INJECTED);
-            d.phase_removed = getStringAt(row, REMOVED);
+            d.injected = (DefectPhase) getValueAt(row, INJECTED);
+            d.phase_injected = d.injected.legacyPhase;
+            d.removed = (DefectPhase) getValueAt(row, REMOVED);
+            d.phase_removed = d.removed.legacyPhase;
             d.fix_time = getStringAt(row, FIX_TIME, "0");
             d.fix_defect = getStringAt(row, FIX_DEFECT);
             d.description = getStringAt(row, DESCRIPTION);

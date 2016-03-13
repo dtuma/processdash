@@ -25,10 +25,8 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -43,7 +41,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -51,37 +48,27 @@ import java.util.Stack;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -97,7 +84,6 @@ import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.process.WorkflowInfo.Phase;
-import net.sourceforge.processdash.process.WorkflowInfo.Workflow;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -105,8 +91,6 @@ import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.DropDownLabel;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
-import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
-import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
@@ -151,9 +135,7 @@ public class DefectDialog extends JDialog
     /** Objects representing "special" injection/removal phases */
     private static final DefectPhase //
         BEFORE_DEVELOPMENT = new DefectPhase("Before Development"),
-        AFTER_DEVELOPMENT = new DefectPhase("After Development"),
-        MORE_OPTIONS = new DefectPhase(".");
-
+        AFTER_DEVELOPMENT = new DefectPhase("After Development");
     static Resources resources = Resources.getDashBundle("Defects.Editor");
 
 
@@ -279,8 +261,10 @@ public class DefectDialog extends JDialog
         panel.add(phase_removed);
 
         if (workflowPhases != null && !workflowPhases.workflowInfo.isEmpty()) {
-            new MorePhaseOptionsHandler(phase_injected);
-            new MorePhaseOptionsHandler(phase_removed);
+            new MorePhaseOptionsHandler(phase_injected, workflowPhases,
+                    processPhases, true);
+            new MorePhaseOptionsHandler(phase_removed, workflowPhases,
+                    processPhases, false);
         }
 
                                 // fifth row
@@ -567,10 +551,10 @@ public class DefectDialog extends JDialog
         }
     }
 
-    private void phaseComboSelect(JComboBox cb, DefectPhase target) {
+    public static void phaseComboSelect(JComboBox cb, DefectPhase target) {
         if (target == null)
             return;
-        
+
         if (target.phaseID != null) {
             // try to match the phase by exact ID
             for (int i = cb.getItemCount(); i-- > 0; ) {
@@ -615,13 +599,18 @@ public class DefectDialog extends JDialog
         }
 
         // fallback: add the item to the list and select it.
-        cb.insertItemAt(target, cb == phase_injected ? 1 : 0);
+        int insPos = 0;
+        if (cb.getItemCount() > 0)
+            if (cb.getItemAt(0) == BEFORE_DEVELOPMENT
+                    || cb.getItemAt(0) == Defect.UNSPECIFIED_PHASE)
+                insPos = 1;
+        cb.insertItemAt(target, insPos);
         cb.setSelectedItem(target);
     }
 
     private JComboBox phaseComboBox(DefectPhaseList phases, int selectedPos) {
         JComboBox result = new JComboBox();
-        result.setRenderer(new PhaseItemRenderer());
+        result.setRenderer(new DefectPhaseItemRenderer());
         for (DefectPhase p : phases)
             result.addItem(p);
         if (selectedPos != -1)
@@ -898,234 +887,6 @@ public class DefectDialog extends JDialog
             }
         }
     }
-
-    private class PhaseItemRenderer extends DefaultListCellRenderer {
-
-        private JPanel panel;
-
-        private JSeparator separator;
-
-        private JLabel label;
-
-        private Border border;
-
-        private String moreItemText;
-
-        private boolean hasMultipleProcesses;
-
-        int lastScannedSize = -1;
-
-        public PhaseItemRenderer() {
-            panel = new JPanel(new BorderLayout());
-            panel.add(separator = new JSeparator(), BorderLayout.NORTH);
-            panel.add(label = new JLabel(), BorderLayout.CENTER);
-            Font font = label.getFont();
-            label.setFont(font.deriveFont(Font.PLAIN, font.getSize2D() * 0.8f));
-            border = BorderFactory.createEmptyBorder(1, 15, 1, 1);
-            moreItemText = resources.getString("More_Options.List_Item");
-        }
-
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value,
-                int index, boolean isSelected, boolean cellHasFocus) {
-            checkForMultipleWorkflows(list);
-            Object display = (value == MORE_OPTIONS ? moreItemText : value);
-            super.getListCellRendererComponent(list, display, index,
-                isSelected, cellHasFocus);
-            if (index == -1 || hasMultipleProcesses == false)
-                return this;
-
-            DefectPhase phase = (DefectPhase) value;
-
-            boolean isFirstPhase = isFirstPhase(list, phase, index);
-            separator.setVisible(index > 0 && isFirstPhase);
-
-            label.setText(phase.processName);
-            label.setVisible(isFirstPhase);
-
-            if (StringUtils.hasValue(phase.processName))
-                setBorder(border);
-            panel.add(this, BorderLayout.SOUTH);
-
-            return panel;
-        }
-
-        private void checkForMultipleWorkflows(JList list) {
-            int numItems = list.getModel().getSize();
-            if (numItems == lastScannedSize)
-                return;
-
-            hasMultipleProcesses = false;
-            String processNameFound = null;
-            for (int i = numItems; i-- > 0;) {
-                DefectPhase p = (DefectPhase) list.getModel().getElementAt(i);
-                String oneName = p.processName;
-                if (oneName != null) {
-                    if (processNameFound == null)
-                        processNameFound = oneName;
-                    else if (!processNameFound.equals(oneName))
-                        hasMultipleProcesses = true;
-                }
-            }
-            lastScannedSize = numItems;
-        }
-
-        private boolean isFirstPhase(JList list, DefectPhase phase, int index) {
-            if (index < 1)
-                return true;
-
-            DefectPhase prev = (DefectPhase) list.getModel().getElementAt(
-                index - 1);
-            return !NullSafeObjectUtils.EQ(phase.processName, prev.processName);
-        }
-    }
-
-    private class MorePhaseOptionsHandler implements ActionListener {
-
-        private DefectPhase lastSelectedPhase;
-
-        public MorePhaseOptionsHandler(JComboBox cb) {
-            cb.addItem(MORE_OPTIONS);
-            cb.addActionListener(this);
-            lastSelectedPhase = (DefectPhase) cb.getSelectedItem();
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JComboBox cb = (JComboBox) e.getSource();
-            DefectPhase selectedItem = (DefectPhase) cb.getSelectedItem();
-            if (selectedItem == MORE_OPTIONS) {
-                cb.hidePopup();
-                DefectPhase p = showMorePhasesDialog(cb == phase_injected);
-                if (p != null)
-                    phaseComboSelect(cb, lastSelectedPhase = p);
-                else
-                    cb.setSelectedItem(lastSelectedPhase);
-            } else {
-                lastSelectedPhase = selectedItem;
-            }
-        }
-
-        private DefectPhase showMorePhasesDialog(boolean isInj) {
-            if (phaseOptionsTree == null)
-                phaseOptionsTree = buildTree();
-
-            // display a dialog to the user prompting for a phase selection
-            String title = resources.getString("More_Options.Window_Title");
-            String prompt = resources.getString("More_Options."
-                    + (isInj ? "Injected" : "Removed") + "_Prompt");
-            Object[] message = new Object[] { prompt,
-                    new JScrollPane(phaseOptionsTree),
-                    new JOptionPaneTweaker.GrabFocus(phaseOptionsTree) };
-            setSelectedPhase();
-            int userChoice = JOptionPane.showConfirmDialog(getContentPane(),
-                message, title, JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE, null);
-            if (userChoice != JOptionPane.OK_OPTION)
-                return null;
-
-            // Return the phase object selected by the user
-            TreePath selPath = phaseOptionsTree.getSelectionPath();
-            if (selPath == null)
-                return null;
-            DefaultMutableTreeNode selNode = (DefaultMutableTreeNode) selPath
-                    .getLastPathComponent();
-            Object selItem = selNode.getUserObject();
-            if (selItem instanceof DefectPhase)
-                return (DefectPhase) selItem;
-            else
-                return null;
-        }
-
-        private void setSelectedPhase() {
-            phaseOptionsTree.clearSelection();
-            for (int row = 0; row < phaseOptionsTree.getRowCount(); row++)
-                phaseOptionsTree.collapseRow(row);
-            phaseOptionsTree.scrollRowToVisible(0);
-
-            DefaultMutableTreeNode selNode = getSelectedPhaseNode();
-            if (selNode != null) {
-                TreePath path = new TreePath(selNode.getPath());
-                phaseOptionsTree.setSelectionPath(path);
-                phaseOptionsTree.scrollPathToVisible(path);
-            }
-        }
-
-        private DefaultMutableTreeNode getSelectedPhaseNode() {
-            if (lastSelectedPhase == null)
-                return null;
-            String phaseID = lastSelectedPhase.getTerminalPhaseID();
-
-            TreeNode root = (TreeNode) phaseOptionsTree.getModel().getRoot();
-            Enumeration<TreeNode> workflows = root.children();
-            while (workflows.hasMoreElements()) {
-                TreeNode oneWorkflow = workflows.nextElement();
-                Enumeration<DefaultMutableTreeNode> phases = oneWorkflow
-                        .children();
-                while (phases.hasMoreElements()) {
-                    DefaultMutableTreeNode phaseNode = phases.nextElement();
-                    DefectPhase onePhase = (DefectPhase) phaseNode
-                            .getUserObject();
-                    if (phaseID == null) {
-                        if (onePhase.phaseID == null
-                                && lastSelectedPhase.legacyPhase
-                                        .equals(onePhase.legacyPhase))
-                            return phaseNode;
-                    } else if (phaseID.equals(onePhase.phaseID)) {
-                        return phaseNode;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private JTree buildTree() {
-            // build a tree model to contain the phase options.
-            DefaultMutableTreeNode root = new DefaultMutableTreeNode();
-
-            // Add all known workflows to the model.
-            for (Workflow workflow : workflowPhases.workflowInfo.getWorkflows()) {
-                DefaultMutableTreeNode workflowNode = new DefaultMutableTreeNode(
-                        workflow.getWorkflowName());
-                root.add(workflowNode);
-                for (Phase onePhase : workflow.getPhases()) {
-                    DefectPhase dp = new DefectPhase(onePhase.getPhaseName());
-                    dp.processName = onePhase.getWorkflow().getWorkflowName();
-                    dp.phaseID = onePhase.getPhaseId();
-                    dp.legacyPhase = onePhase.getMcfPhase();
-
-                    workflowNode.add(new DefaultMutableTreeNode(dp));
-                }
-            }
-
-            // Add MCF phases to the model.
-            if (!processPhases.isEmpty()) {
-                String processName = processPhases.get(0).processName;
-                if (!StringUtils.hasValue(processName))
-                    processName = resources
-                            .getString("More_Options.Process_Phases");
-                DefaultMutableTreeNode mcfNode = new DefaultMutableTreeNode(
-                        processName);
-                root.add(mcfNode);
-                for (DefectPhase onePhase : processPhases)
-                    mcfNode.add(new DefaultMutableTreeNode(onePhase));
-            }
-
-            // Create a JTree for this model.
-            JTree result = new JTree(root);
-            result.setRootVisible(false);
-            result.setShowsRootHandles(true);
-            result.setToggleClickCount(4);
-            result.getSelectionModel().setSelectionMode(
-                TreeSelectionModel.SINGLE_TREE_SELECTION);
-            result.setVisibleRowCount(10);
-            new JOptionPaneClickHandler().install(result);
-            return result;
-        }
-    }
-
-    private JTree phaseOptionsTree;
 
     private class PendingSelector extends DropDownLabel {
         private boolean pending;

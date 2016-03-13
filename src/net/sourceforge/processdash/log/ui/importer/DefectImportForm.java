@@ -51,6 +51,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -61,7 +64,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
-import net.sourceforge.processdash.log.defects.DefectUtil;
+import net.sourceforge.processdash.log.defects.DefectPhase;
 import net.sourceforge.processdash.log.ui.importer.clipboard.ClipboardDataSource;
 import net.sourceforge.processdash.log.ui.importer.clipboard.ClipboardDefectData;
 import net.sourceforge.processdash.log.ui.importer.clipboard.ExtraDescriptionSelector;
@@ -80,9 +83,6 @@ import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.ui.lib.binding.BoundSqlConnection;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class DefectImportForm extends BoundForm {
 
@@ -360,33 +360,8 @@ public class DefectImportForm extends BoundForm {
                 DefaultTypeSelector.TYPE_ID, //
                 null);
 
-        List defectPhases = DefectUtil.getDefectPhases(defectLogPath,
+        new DefectPhaseMapper(this, defectLogPath, selectedPath,
                 dashboardContext);
-        String removalPhase = DefectUtil.guessRemovalPhase(defectLogPath,
-                selectedPath, dashboardContext);
-        String injectionPhase = DefectUtil.guessInjectionPhase(defectPhases,
-                removalPhase);
-
-        defectPhases.add(0, Defect.UNSPECIFIED);
-        put(DefaultPhaseSelector.PHASE_LIST_ID, defectPhases);
-
-        if (!defectPhases.contains(injectionPhase))
-            injectionPhase = Defect.UNSPECIFIED;
-        put(DefaultPhaseSelector.INJ_PHASE_ID, injectionPhase);
-        new DefectFieldMapper(this, //
-                BoundDefectData.getMapperId(BoundDefectData.INJECTED), //
-                "FIXME-inj-translator", //
-                DefaultPhaseSelector.INJ_PHASE_ID, //
-                defectPhases);
-
-        if (!defectPhases.contains(removalPhase))
-            removalPhase = Defect.UNSPECIFIED;
-        put(DefaultPhaseSelector.REM_PHASE_ID, removalPhase);
-        new DefectFieldMapper(this, //
-                BoundDefectData.getMapperId(BoundDefectData.REMOVED), //
-                "FIXME-rem-translator", //
-                DefaultPhaseSelector.REM_PHASE_ID, //
-                defectPhases);
     }
 
     public Object addFormElement(Element xml, String type) {
@@ -500,8 +475,10 @@ public class DefectImportForm extends BoundForm {
             } else {
                 Defect originalDefect = (Defect) oldDefect.clone();
                 oldDefect.defect_type = merge(oldDefect.defect_type, newDefect.defect_type);
-                oldDefect.phase_injected = merge(oldDefect.phase_injected, newDefect.phase_injected);
-                oldDefect.phase_removed = merge(oldDefect.phase_removed, newDefect.phase_removed);
+                oldDefect.injected = merge(oldDefect.injected, newDefect.injected);
+                oldDefect.phase_injected = oldDefect.injected.legacyPhase;
+                oldDefect.removed = merge(oldDefect.removed, newDefect.removed);
+                oldDefect.phase_removed = oldDefect.removed.legacyPhase;
                 oldDefect.description = merge(oldDefect.description, newDefect.description);
                 oldDefect.fix_time = merge(oldDefect.fix_time, newDefect.fix_time);
                 oldDefect.fix_defect = merge(oldDefect.fix_defect, newDefect.fix_defect);
@@ -534,6 +511,13 @@ public class DefectImportForm extends BoundForm {
 
     private static String merge(String a, String b) {
         if (a == null || a.trim().length() == 0 || Defect.UNSPECIFIED.equals(a))
+            return b;
+        else
+            return a;
+    }
+
+    private static DefectPhase merge(DefectPhase a, DefectPhase b) {
+        if (a == null || a == Defect.UNSPECIFIED_PHASE)
             return b;
         else
             return a;

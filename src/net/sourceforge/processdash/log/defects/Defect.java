@@ -39,6 +39,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 public class Defect implements Cloneable {
 
     public static final String UNSPECIFIED = "Unspecified";
+    public static final DefectPhase UNSPECIFIED_PHASE = new DefectPhase(
+            UNSPECIFIED);
 
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,

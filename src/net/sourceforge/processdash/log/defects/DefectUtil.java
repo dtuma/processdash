@@ -112,10 +112,7 @@ public class DefectUtil {
                 // add all of the phases in the given workflow to our result
                 boolean firstPhase = true;
                 for (Phase onePhase : phase.getWorkflow().getPhases()) {
-                    DefectPhase dp = new DefectPhase(onePhase.getPhaseName());
-                    dp.processName = onePhase.getWorkflow().getWorkflowName();
-                    dp.phaseID = onePhase.getPhaseId();
-                    dp.legacyPhase = onePhase.getMcfPhase();
+                    DefectPhase dp = new DefectPhase(onePhase);
 
                     // potentially set the default injection/removal phases
                     if (onePhase == phase) {

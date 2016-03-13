@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,15 +34,14 @@ import java.util.Map;
 
 import javax.swing.Timer;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectDataBag;
-import net.sourceforge.processdash.log.ui.importer.DefaultPhaseSelector;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.ErrorTokens;
 import net.sourceforge.processdash.ui.lib.binding.ErrorValue;
 import net.sourceforge.processdash.util.FormatUtil;
-
-import org.w3c.dom.Element;
 
 public class ClipboardDefectData implements ClipboardDataIDs {
 
@@ -141,9 +140,6 @@ public class ClipboardDefectData implements ClipboardDataIDs {
         /** a list of columns whose data should be appended to the description */
         List<TabularDataColumn> extraDescriptionColumns;
 
-        /** the official list of phases within this process */
-        List<String> phaseList;
-
         /** The string prefix that the user wants appended to each defect ID */
         String idPrefix;
 
@@ -162,8 +158,6 @@ public class ClipboardDefectData implements ClipboardDataIDs {
             hasHeaderRow = (map.get(HAS_HEADER) == Boolean.TRUE);
             columnPositions = loadColumnPositions();
             extraDescriptionColumns = (List) map.get(EXTRA_DESCRIPTION_ID);
-            phaseList = (List<String>) map
-                    .get(DefaultPhaseSelector.PHASE_LIST_ID);
             idPrefix = cleanup((String) map.get(DEFECTID_PREFIX_ID));
             now = new Date();
             fixTimeUnits = map.get(FIX_TIME_UNITS_ID);
@@ -231,11 +225,9 @@ public class ClipboardDefectData implements ClipboardDataIDs {
             store(defect, DefectDataBag.TYPE, type);
 
             String phase = extract(rawDefect, DefectDataBag.INJECTED);
-            phase = filterPhase(phase);
             store(defect, DefectDataBag.INJECTED, phase);
 
             phase = extract(rawDefect, DefectDataBag.REMOVED);
-            phase = filterPhase(phase);
             store(defect, DefectDataBag.REMOVED, phase);
 
             String fixId = cleanup(extract(rawDefect, DefectDataBag.FIX_DEFECT));
@@ -321,21 +313,6 @@ public class ClipboardDefectData implements ClipboardDataIDs {
                 String attrName = DefectDataBag.ATTRS[which];
                 defect.put(attrName, value);
             }
-        }
-
-        /**
-         * Ensure that the value is in the list of recognized phases. If so,
-         * return the canonical capitalization. If this value is not a legal
-         * phase in the process for defect logging, return null.
-         */
-        private String filterPhase(String value) {
-            if (value == null)
-                return null;
-            value = value.trim();
-            for (String phase : phaseList)
-                if (value.equalsIgnoreCase(phase))
-                    return phase;
-            return null;
         }
 
         /**

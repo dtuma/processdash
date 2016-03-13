@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.log.defects.DefectDataBag;
+import net.sourceforge.processdash.log.defects.DefectPhase;
+import net.sourceforge.processdash.log.defects.PhaseLookup;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.ErrorData;
 import net.sourceforge.processdash.util.StringMapper;
@@ -91,6 +93,7 @@ public class BoundDefectData extends DefectDataBag {
 
 
     private void bindMappers() {
+        // configure objects that translate values in various defect fields
         PropertyChangeListener l = new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
                 updateMapper(evt);
@@ -104,6 +107,30 @@ public class BoundDefectData extends DefectDataBag {
             form.addPropertyChangeListener(mapperId, l);
             setStringMapper(i, (StringMapper) form.get(mapperId));
         }
+
+        // configure the object that translates strings to phases
+        setPhaseLookup((PhaseLookup) form
+                .get(DefectPhaseMapper.PHASE_LOOKUP_ID));
+
+        // register the default injection phase, and follow future changes
+        l = new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                Object phase = form.get(DefaultPhaseSelector.INJ_PHASE_ID);
+                setDefaultInjectedPhase((DefectPhase) phase);
+            }
+        };
+        form.addPropertyChangeListener(DefaultPhaseSelector.INJ_PHASE_ID, l);
+        l.propertyChange(null);
+
+        // register the default removal phase, and follow future changes
+        l = new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                Object phase = form.get(DefaultPhaseSelector.REM_PHASE_ID);
+                setDefaultRemovedPhase((DefectPhase) phase);
+            }
+        };
+        form.addPropertyChangeListener(DefaultPhaseSelector.REM_PHASE_ID, l);
+        l.propertyChange(null);
     }
 
     private static final String MAPPER_ID_PREFIX = "DefectMapper.";
