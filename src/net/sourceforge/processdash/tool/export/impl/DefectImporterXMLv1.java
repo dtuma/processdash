@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2013 Tuma Solutions, LLC
+// Copyright (C) 2004-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,13 +29,14 @@ import java.io.Reader;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectPhase;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.util.XMLDepthFirstIterator;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class DefectImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
         ArchiveMetricsXmlConstants, DefectXmlConstantsv1 {
@@ -88,8 +89,10 @@ public class DefectImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
                 d.date = XMLUtils.getXMLDate(e, DATE_ATTR);
                 d.number = ""; // e.getAttribute(NUM_ATTR);
                 d.defect_type = e.getAttribute(DEFECT_TYPE_ATTR);
-                d.phase_injected = e.getAttribute(INJECTED_ATTR);
-                d.phase_removed = e.getAttribute(REMOVED_ATTR);
+                d.injected = getPhaseAttr(e, INJECTED_ATTR);
+                d.phase_injected = d.injected.legacyPhase;
+                d.removed = getPhaseAttr(e, REMOVED_ATTR);
+                d.phase_removed = d.removed.legacyPhase;
                 d.fix_time = e.getAttribute(FIX_TIME_ATTR);
                 int fixCount = XMLUtils.getXMLInt(e, FIX_COUNT_ATTR);
                 d.fix_count = (fixCount < 0 ? 1 : fixCount);
@@ -110,6 +113,28 @@ public class DefectImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
                 return "Yes";
             else
                 return " ";
+        }
+
+        private DefectPhase getPhaseAttr(Element e, String attr) {
+            String legacyPhase = e.getAttribute(attr);
+            DefectPhase result = new DefectPhase(legacyPhase);
+
+            String id = e.getAttribute(attr + ID_ATTR_SUFFIX);
+            if (XMLUtils.hasValue(id)) {
+                result.phaseID = id;
+
+                String processName = "";
+                String phaseName = e.getAttribute(attr + NAME_ATTR_SUFFIX);
+                int slashPos = phaseName.indexOf('/');
+                if (slashPos != -1) {
+                    processName = phaseName.substring(0, slashPos);
+                    phaseName = phaseName.substring(slashPos + 1);
+                }
+                result.processName = processName;
+                result.phaseName = phaseName;
+            }
+
+            return result;
         }
 
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2012 Tuma Solutions, LLC
+// Copyright (C) 2004-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.Iterator;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.DefectPhase;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class DefectExporterXMLv1 implements DefectExporter,
@@ -81,7 +82,9 @@ public class DefectExporterXMLv1 implements DefectExporter,
             writeAttr(NUM_ATTR, d.number);
             writeAttr(DEFECT_TYPE_ATTR, d.defect_type);
             writeAttr(INJECTED_ATTR, d.phase_injected);
+            writePhaseAttrs(INJECTED_ATTR, d.injected);
             writeAttr(REMOVED_ATTR, d.phase_removed);
+            writePhaseAttrs(REMOVED_ATTR, d.removed);
             writeAttr(FIX_TIME_ATTR, Float.toString(d.getFixTime()));
             writeAttr(FIX_DEFECT_ATTR, d.fix_defect);
             if (d.fix_count != 1)
@@ -99,6 +102,14 @@ public class DefectExporterXMLv1 implements DefectExporter,
                 out.print("=\"");
                 out.print(XMLUtils.escapeAttribute(value));
                 out.print("\"");
+            }
+        }
+
+        private void writePhaseAttrs(String prefix, DefectPhase phase) {
+            if (phase != null && phase.phaseID != null) {
+                writeAttr(prefix + ID_ATTR_SUFFIX, phase.phaseID);
+                writeAttr(prefix + NAME_ATTR_SUFFIX, //
+                    phase.processName + "/" + phase.phaseName);
             }
         }
 
