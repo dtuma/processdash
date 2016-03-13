@@ -158,8 +158,8 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         out.println("<TD>" + FormatUtil.formatDate(d.date) + "</TD>");
         out.println("<TD>" + esc(d.number) + "</TD>");
         out.println("<TD>" + esc(d.defect_type) + "</TD>");
-        out.println("<TD>" + esc(d.phase_injected) + "</TD>");
-        out.println("<TD>" + esc(d.phase_removed) + "</TD>");
+        out.println("<TD>" + esc(d.injected.phaseName) + "</TD>");
+        out.println("<TD>" + esc(d.removed.phaseName) + "</TD>");
         out.println("<TD ALIGN='center'>" + esc(d.getLocalizedFixTime()) + "</TD>");
         out.println("<TD ALIGN='center'>" + Integer.toString(d.fix_count) + "</TD>");
         out.println("<TD ALIGN='center'>" + esc(d.fix_defect) + "</TD>");

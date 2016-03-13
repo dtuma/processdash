@@ -471,8 +471,8 @@ public class DefectLogEditor extends Component implements
                 row [0] = dle.pk.path();
                 row [1] = dle.defect.number;
                 row [2] = dle.defect.defect_type;
-                row [3] = dle.defect.phase_injected;
-                row [4] = dle.defect.phase_removed;
+                row [3] = dle.defect.injected.phaseName;
+                row [4] = dle.defect.removed.phaseName;
                 row [5] = dle.defect.getLocalizedFixTime();
                 row [6] = Integer.toString(dle.defect.fix_count);
                 row [7] = dle.defect.fix_defect;
