@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,12 +29,14 @@ import java.util.Map;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 
@@ -66,8 +68,9 @@ public class DefectAnalyzer {
             DatabasePlugin plugin = QueryUtils.getDatabasePlugin(data);
             ListData criteria = getDatabaseCriteria(data, prefix,
                 queryParameters);
-            if (plugin != null && criteria != null)
-                ImportedDefectManager.run(plugin, criteria.asList(), t);
+            String pid = getProcessID(data, prefix);
+            if (plugin != null && criteria != null && pid != null)
+                ImportedDefectManager.run(plugin, criteria.asList(), pid, t);
 
         } else {
             String [] prefixes = ResultSet.getPrefixList
@@ -85,6 +88,13 @@ public class DefectAnalyzer {
         dataName = DataRepository.createDataName(prefix, dataName);
         ListData criteria = ListData.asListData(data.getSimpleValue(dataName));
         return criteria;
+    }
+
+    private static String getProcessID(DataRepository data, String prefix) {
+        String dataName = DataRepository.createDataName(prefix,
+            TeamDataConstants.PROCESS_ID);
+        SimpleData sd = data.getSimpleValue(dataName);
+        return (sd == null ? null : sd.format());
     }
 
     public static void run(DashHierarchy props, DataRepository data,

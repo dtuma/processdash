@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2013 Tuma Solutions, LLC
+// Copyright (C) 2004-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -247,16 +247,20 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
      * 
      * @param plugin the database plugin
      * @param dbCriteria the criteria to use against the database
+     * @param processID the ID of the base process to map phase data to
      * @param t the analysis task to run
      */
     public static void run(DatabasePlugin plugin, List dbCriteria,
-            DefectAnalyzer.Task t) {
+            String processID, DefectAnalyzer.Task t) {
         QueryRunner queryRunner = plugin.getObject(QueryRunner.class);
         if (queryRunner == null)
             return;
 
         StringBuilder query = new StringBuilder(DEFECT_HQL_QUERY);
-        List args = QueryUtils.addCriteriaToHql(query, "d", null, dbCriteria);
+        List args = new ArrayList();
+        args.add(processID);
+        args.add(processID);
+        QueryUtils.addCriteriaToHql(query, "d", args, dbCriteria);
 
         List<DefectToAnalyze> defects = new ArrayList();
         List<Object[]> rawData = queryRunner.queryHql(query.toString(),
@@ -277,16 +281,26 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
             + "d.planItem.wbsElement.name, " // 1
             + "d.foundDate, " // 2
             + "d.defectType.name, " // 3
-            + "d.injectedPhase.shortName, " // 4
-            + "d.removedPhase.shortName, " // 5
-            + "d.fixPending, " // 6
-            + "d.fixTimeMin, " // 7
-            + "d.fixCount, " // 8
-            + "d.fixDefect, " // 9
-            + "description.text " // 10
+            + "injPhase.shortName, " // 4
+            + "d.injectedPhase.identifier, " // 5
+            + "d.injectedPhase.process.name, " // 6
+            + "d.injectedPhase.shortName, " // 7
+            + "remPhase.shortName, " // 8
+            + "d.removedPhase.identifier, " // 9
+            + "d.removedPhase.process.name, " // 10
+            + "d.removedPhase.shortName, " // 11
+            + "d.fixPending, " // 12
+            + "d.fixTimeMin, " // 13
+            + "d.fixCount, " // 14
+            + "d.fixDefect, " // 15
+            + "description.text " // 16
             + "from DefectLogFact d " //
             + "left outer join d.description as description " //
-            + "where d.versionInfo.current = 1 ";
+            + "join d.injectedPhase.mapsToPhase injPhase " //
+            + "join d.removedPhase.mapsToPhase remPhase " //
+            + "where d.versionInfo.current = 1 " //
+            + "and injPhase.process.identifier in (?, '*Unspecified*', '*INVALID*') " //
+            + "and remPhase.process.identifier in (?, '*Unspecified*', '*INVALID*')";
 
     private static String getDefectPathFromHqlResultRow(Object[] row) {
         String projectName = asString(row[0]);
@@ -307,13 +321,43 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         d.date = (Date) row[2];
         d.defect_type = asString(row[3]);
         d.phase_injected = asString(row[4]);
-        d.phase_removed = asString(row[5]);
-        d.fix_pending = (row[6] == Boolean.TRUE);
-        d.fix_time = asString(row[7]);
-        d.fix_count = ((Number) row[8]).intValue();
-        d.fix_defect = (row[9] == null ? " " : "Yes");
-        d.description = asString(row[10]);
+        d.injected = getDefectPhase(row, 4);
+        d.phase_removed = asString(row[8]);
+        d.removed = getDefectPhase(row, 8);
+        d.fix_pending = (row[12] == Boolean.TRUE);
+        d.fix_time = asString(row[13]);
+        d.fix_count = ((Number) row[14]).intValue();
+        d.fix_defect = (row[15] == null ? " " : "Yes");
+        d.description = asString(row[16]);
         return d;
+    }
+
+    private static DefectPhase getDefectPhase(Object[] row, int pos) {
+        DefectPhase result = new DefectPhase(asString(row[pos]));
+
+        String phaseID = asString(row[pos + 1]);
+        if (phaseID.startsWith("WF:")) {
+            result.processName = asString(row[pos + 2]);
+            result.phaseName = asString(row[pos + 3]);
+            result.phaseID = unpackWorkflowPhaseIdentifier(phaseID);
+        }
+
+        return result;
+    }
+
+    private static String unpackWorkflowPhaseIdentifier(String phaseID) {
+        int colonPos = phaseID.indexOf(':', 3);
+        String projectID = phaseID.substring(3, colonPos);
+        String[] nodeIDs = phaseID.substring(colonPos + 1).split("/");
+        StringBuilder result = new StringBuilder();
+        for (String oneID : nodeIDs) {
+            if ("0123456789".indexOf(oneID.charAt(0)) != -1)
+                result.append(",").append(projectID).append(":");
+            else
+                result.append("/");
+            result.append(oneID);
+        }
+        return result.substring(1);
     }
 
     private static String asString(Object obj) {
