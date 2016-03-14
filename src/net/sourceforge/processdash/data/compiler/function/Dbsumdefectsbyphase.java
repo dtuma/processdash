@@ -40,14 +40,13 @@ public class Dbsumdefectsbyphase extends DbAbstractFunction {
      * 
      * Expected arguments: (Process_ID, Criteria)
      */
-    @SuppressWarnings("unused")
     public Object call(List arguments, ExpressionContext context) {
         String processId = asStringVal(getArg(arguments, 0));
         List criteria = collapseLists(arguments, 1);
 
         try {
-            List result = queryHql(context, BASE_INJ_QUERY, "f", criteria);
-            result.addAll(queryHql(context, BASE_REM_QUERY, "f", criteria));
+            List result = queryHql(context, BASE_INJ_QUERY, "f", criteria, processId);
+            result.addAll(queryHql(context, BASE_REM_QUERY, "f", criteria, processId));
             return new ResultSetData(result, COLUMN_NAMES);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error while calculating", e);
@@ -58,19 +57,23 @@ public class Dbsumdefectsbyphase extends DbAbstractFunction {
     private static final String[] COLUMN_NAMES = { "Phase", "Type", "Count" };
 
     private static final String BASE_INJ_QUERY = "select " //
-            + "f.injectedPhase.shortName, " //
+            + "injPhase.shortName, " //
             + "'Injected', " //
             + "sum(f.fixCount) " //
             + "from DefectLogFact f " //
+            + "join f.injectedPhase.mapsToPhase injPhase " //
             + "where f.versionInfo.current = 1 " //
-            + "group by f.injectedPhase.shortName";
+            + "and injPhase.process.identifier = ? "
+            + "group by injPhase.shortName";
 
     private static final String BASE_REM_QUERY = "select " //
-            + "f.removedPhase.shortName, " //
+            + "remPhase.shortName, " //
             + "'Removed', " //
             + "sum(f.fixCount) " //
             + "from DefectLogFact f " //
+            + "join f.removedPhase.mapsToPhase remPhase " //
             + "where f.versionInfo.current = 1 " //
-            + "group by f.removedPhase.shortName";
+            + "and remPhase.process.identifier = ? "
+            + "group by remPhase.shortName";
 
 }
