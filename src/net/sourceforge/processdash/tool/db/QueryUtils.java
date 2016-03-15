@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2014 Tuma Solutions, LLC
+// Copyright (C) 2013-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,14 +86,17 @@ public class QueryUtils {
         return result;
     }
 
-    public static <K, V> Map<K, V> mapColumns(List data, int keyCol,
-            int valueCol) {
+    public static <K, V> Map<K, V> mapColumns(List data, int... columns) {
         Map result = new LinkedHashMap();
-        for (Iterator i = data.iterator(); i.hasNext();) {
-            Object[] row = (Object[]) i.next();
-            result.put(row[keyCol], row[valueCol]);
-        }
+        mapColumns(result, data, columns);
         return result;
+    }
+
+    public static void mapColumns(Map dest, List<Object[]> data, int... columns) {
+        int keyCol = (columns.length == 2 ? columns[0] : 0);
+        int valCol = (columns.length == 2 ? columns[1] : 1);
+        for (Object[] row : data)
+            dest.put(row[keyCol], row[valCol]);
     }
 
     public static <T> T singleValue(List l) {

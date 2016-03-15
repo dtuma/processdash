@@ -134,8 +134,8 @@ public class DefectDialog extends JDialog
     private javax.swing.Timer activeRefreshTimer = null;
     /** Objects representing "special" injection/removal phases */
     private static final DefectPhase //
-        BEFORE_DEVELOPMENT = new DefectPhase("Before Development"),
-        AFTER_DEVELOPMENT = new DefectPhase("After Development");
+        BEFORE_DEVELOPMENT = Defect.BEFORE_DEVELOPMENT_PHASE,
+        AFTER_DEVELOPMENT = Defect.AFTER_DEVELOPMENT_PHASE;
     static Resources resources = Resources.getDashBundle("Defects.Editor");
 
 

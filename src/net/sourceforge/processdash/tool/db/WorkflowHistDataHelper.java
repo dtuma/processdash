@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.util.TreeMap;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.util.DataPair;
 
 public class WorkflowHistDataHelper {
@@ -337,6 +338,11 @@ public class WorkflowHistDataHelper {
         return query(WORKFLOW_PHASE_QUERY, getWorkflowKey());
     }
 
+    private Map<Integer, String> getWorkflowStepsByKey() {
+        String query = "select phase.key," + WORKFLOW_PHASE_QUERY.substring(6);
+        return QueryUtils.mapColumns(query(query, getWorkflowKey()));
+    }
+
     private static final String WORKFLOW_PHASE_QUERY = //
     "select phase.shortName from Phase phase " //
             + "where phase.process.key = ? " //
@@ -426,5 +432,129 @@ public class WorkflowHistDataHelper {
             + "and pi.includesItem.key = size.planItem.key "
             + "and size.versionInfo.current = 1 "
             + "group by size.sizeMetric.shortName, size.measurementType.name";
+
+
+
+    /**
+     * Retrieve the actual defects injected and removed by workflow phase.
+     * 
+     * @return an array with two elements. The element at position 0 contains
+     *         the injected defects by phase, and the element at position 1
+     *         contains the removed defects. Although the Map values are
+     *         {@link DataPair} objects, only their "actual" value will contain
+     *         data; the "plan" value will be zero. The two maps will contain
+     *         entries for "Before Development" and "After Development", in
+     *         addition to a Total row.
+     */
+    public Map<String, DataPair>[] getDefectsByPhase() {
+        Map<Integer, String> stepMap = getWorkflowStepsByKey();
+        Map<String, DataPair>[] result = new Map[2];
+        result[INJ] = new LinkedHashMap<String, DataPair>();
+        result[REM] = new LinkedHashMap<String, DataPair>();
+        result[INJ].put(Defect.BEFORE_DEVELOPMENT, new DataPair());
+        for (String step : stepMap.values()) {
+            result[INJ].put(step, new DataPair());
+            result[REM].put(step, new DataPair());
+        }
+        result[REM].put(Defect.AFTER_DEVELOPMENT, new DataPair());
+        DataPair total = new DataPair();
+        result[INJ].put(TOTAL_PHASE_KEY, total);
+        result[REM].put(TOTAL_PHASE_KEY, total);
+
+        Integer workflow = getWorkflowKey();
+        List<Object[]> rawData1 = query(DEFECT_QUERY_1, getEnactmentKeys());
+        List<Object[]> rawData2 = query(DEFECT_QUERY_2, workflow, workflow);
+        mapMissingPhases(stepMap, rawData1, rawData2);
+        addDefectData(result, total, rawData1, stepMap);
+        addDefectData(result, total, rawData2, stepMap);
+
+        return result;
+    }
+
+    private void mapMissingPhases(Map<Integer, String> stepMap,
+            List<Object[]>... defectPhaseLists) {
+        Set<Integer> missingKeys = new HashSet<Integer>();
+        for (List<Object[]> oneDefectList : defectPhaseLists) {
+            for (Object[] oneDefect : oneDefectList) {
+                for (Object onePhaseKey : oneDefect) {
+                    if (!stepMap.containsKey(onePhaseKey))
+                        missingKeys.add((Integer) onePhaseKey);
+                }
+            }
+        }
+        if (!missingKeys.isEmpty()) {
+            QueryUtils.mapColumns(stepMap,
+                query(PHASE_MAP_QUERY, missingKeys, getWorkflowKey()));
+        }
+    }
+
+    private void addDefectData(Map<String, DataPair>[] result, DataPair total,
+            List<Object[]> rawData, Map<Integer, String> stepMap) {
+        for (Object[] row : rawData) {
+            Integer injPhaseKey = (Integer) row[INJ];
+            String injPhaseName = stepMap.get(injPhaseKey);
+            Integer remPhaseKey = (Integer) row[REM];
+            String remPhaseName = stepMap.get(remPhaseKey);
+
+            // if neither phase was recognized, this is most likely a legacy
+            // defect that was recorded against MCF buckets. But even if it
+            // wasn't, it is a defect that spanned this workflow process and
+            // isn't relevant to our calculations. Disregard it.
+            if (injPhaseName == null && remPhaseName == null)
+                continue;
+
+            if (injPhaseName == null)
+                injPhaseName = Defect.BEFORE_DEVELOPMENT;
+            result[INJ].get(injPhaseName).actual++;
+
+            if (remPhaseName == null)
+                remPhaseName = Defect.AFTER_DEVELOPMENT;
+            result[REM].get(remPhaseName).actual++;
+
+            total.actual++;
+        }
+    }
+
+    private static final int INJ = 0, REM = 1;
+
+    /*
+     * Query to find defects logged against one of our included enactments
+     */
+    private static final String DEFECT_QUERY_1 = "select " //
+            + "defect.injectedPhase.key, " //
+            + "defect.removedPhase.key " //
+            + "from ProcessEnactment pe, ProcessEnactment pi, DefectLogFact defect " //
+            + "where pe.key in (?) " //
+            + "and pe.rootItem.key = pi.rootItem.key " //
+            + "and pe.process.key = pi.process.key " //
+            + "and pi.includesItem.key = defect.planItem.key " //
+            + "and defect.versionInfo.current = 1";
+
+    /*
+     * Query to find defects that were injected in one of our workflow phases,
+     * but were not logged against an enactment of this workflow
+     */
+    private static final String DEFECT_QUERY_2 = "select " //
+            + "injected.key, " //
+            + "defect.removedPhase.key " //
+            + "from DefectLogFact as defect " //
+            + "join defect.injectedPhase.mapsToPhase injected " //
+            + "where injected.process.key = ? " //
+            + "and not exists ( " //
+            + "    from ProcessEnactment pi " //
+            + "    where defect.planItem.key = pi.includesItem.key " //
+            + "    and pi.process.key = ?) "
+            + "and defect.versionInfo.current = 1";
+
+    /*
+     * Query to find the workflow phases that a set of other phases map to
+     */
+    private static final String PHASE_MAP_QUERY = "select " //
+            + "missingPhase.key, " //
+            + "targetPhase.shortName " //
+            + "from Phase missingPhase " //
+            + "join missingPhase.mapsToPhase targetPhase " //
+            + "where missingPhase.key in (?) " //
+            + "and targetPhase.process.key = ?";
 
 }

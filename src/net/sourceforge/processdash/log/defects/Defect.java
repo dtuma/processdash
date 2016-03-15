@@ -38,6 +38,14 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class Defect implements Cloneable {
 
+    public static final String BEFORE_DEVELOPMENT = "Before Development";
+    public static final DefectPhase BEFORE_DEVELOPMENT_PHASE = new DefectPhase(
+            BEFORE_DEVELOPMENT);
+
+    public static final String AFTER_DEVELOPMENT = "After Development";
+    public static final DefectPhase AFTER_DEVELOPMENT_PHASE = new DefectPhase(
+            AFTER_DEVELOPMENT);
+
     public static final String UNSPECIFIED = "Unspecified";
     public static final DefectPhase UNSPECIFIED_PHASE = new DefectPhase(
             UNSPECIFIED);
