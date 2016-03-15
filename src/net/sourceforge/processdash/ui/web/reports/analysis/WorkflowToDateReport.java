@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -170,6 +171,7 @@ public class WorkflowToDateReport extends TinyCGIBase {
             printTable("Defects_Injected", null, defectsByPhase[0], Format.Number, true);
             printTable("Defects_Removed", null, defectsByPhase[1], Format.Number, true);
             printDefectsByPhaseCharts(defectsByPhase);
+            writeAdvancedDefectMetrics(defectsByPhase, timeInPhase);
             out.print("</div>\n");
         }
 
@@ -271,6 +273,148 @@ public class WorkflowToDateReport extends TinyCGIBase {
         printTableRow(res("Appraisal_to_Failure_Ratio"), afr, Format.Number);
 
         out.print("</table>\n");
+    }
+
+    private void writeAdvancedDefectMetrics(
+            Map<String, DataPair>[] defectsByPhase,
+            Map<String, DataPair> timeInPhase) {
+
+        Map<String, DataPair> processYields = new LinkedHashMap<String, DataPair>();
+        Map<String, DataPair> phaseYields = new LinkedHashMap<String, DataPair>();
+        calculateYields(defectsByPhase[0], defectsByPhase[1], processYields,
+            phaseYields);
+        printTable("Workflow.Analysis.Phase_Yields", null, phaseYields,
+            Format.Percent, false);
+        printTable("Workflow.Analysis.Process_Yields",
+            "Workflow.Analysis.%_Removed_Before", processYields,
+            Format.Percent, false);
+
+        Map<String, DataPair> injRates = divide(defectsByPhase[0], timeInPhase);
+        Map<String, DataPair> remRates = divide(defectsByPhase[1], timeInPhase);
+        multiply(60, injRates, remRates); // convert minutes to hours
+        replaceNaNs(0.0, injRates, remRates); // clean up 0/0 rates
+        applyLegacyMultiplier(defectsByPhase, injRates, remRates);
+        printTable("Workflow.Analysis.Defect_Injection_Rates",
+            "Defects_Injected_per_Hour", injRates, Format.Number, false);
+        printTable("Workflow.Analysis.Defect_Removal_Rates",
+            "Defects_Removed_per_Hour", remRates, Format.Number, false);
+    }
+
+    private void calculateYields(Map<String, DataPair> inj,
+            Map<String, DataPair> rem, Map<String, DataPair> processYields,
+            Map<String, DataPair> phaseYields) {
+
+        // calculate cumulative defects injected and removed so far by phase
+        Map<String, DataPair> cumInj = cum(inj);
+        Map<String, DataPair> cumRem = cum(rem);
+        cumRem.remove(Defect.AFTER_DEVELOPMENT);
+
+        // special handling for the first phase
+        Iterator<String> phaseNames = cumRem.keySet().iterator();
+        String firstPhase = phaseNames.next();
+        DataPair firstPhaseYield = new DataPair(rem.get(firstPhase))
+                .divide(cumInj.get(firstPhase));
+        phaseYields.put(firstPhase, firstPhaseYield);
+        String prevPhase = firstPhase;
+
+        // iterate over remaining phases and calculate yields
+        while (phaseNames.hasNext()) {
+            String phase = phaseNames.next();
+            DataPair processYield = new DataPair(cumRem.get(prevPhase))
+                    .divide(cumInj.get(prevPhase));
+            processYields.put(phase, processYield);
+
+            DataPair phaseYield = new DataPair(rem.get(phase))
+                    .divide(new DataPair(cumInj.get(phase)).subtract(cumRem
+                            .get(prevPhase)));
+            phaseYields.put(phase, phaseYield);
+            prevPhase = phase;
+        }
+
+        // write an entry for total process yield
+        DataPair totalProcessYield = new DataPair(cumRem.get(prevPhase))
+                .divide(cumInj.get(prevPhase));
+        processYields.put(res("Workflow.Analysis.Workflow_Completion"),
+            totalProcessYield);
+
+        // to clean up the report, replace 0/0 yields with #DIV/0!
+        replaceNaNs(Double.POSITIVE_INFINITY, processYields, phaseYields);
+    }
+
+    private Map<String, DataPair> cum(Map<String, DataPair> phaseData) {
+        Map<String, DataPair> result = new LinkedHashMap<String, DataPair>();
+        DataPair cum = new DataPair();
+        for (Entry<String, DataPair> e : phaseData.entrySet()) {
+            cum.add(e.getValue());
+            result.put(e.getKey(), new DataPair(cum));
+        }
+        result.remove(TOTAL_KEY);
+        return result;
+    }
+
+    private Map<String, DataPair> divide(Map<String, DataPair> numerators,
+            Map<String, DataPair> denominators) {
+        Map<String, DataPair> result = new LinkedHashMap<String, DataPair>();
+        for (Entry<String, DataPair> e : denominators.entrySet()) {
+            String phaseName = e.getKey();
+            DataPair denominator = e.getValue();
+            DataPair numerator = numerators.get(phaseName);
+            if (numerator == null)
+                continue;
+
+            DataPair ratio = new DataPair(numerator).divide(denominator);
+            result.put(phaseName, ratio);
+        }
+
+        return result;
+    }
+
+    private void multiply(double factor, Map<String, DataPair>... dataToFix) {
+        for (Map<String, DataPair> oneDataSet : dataToFix) {
+            for (DataPair pair : oneDataSet.values()) {
+                pair.multiply(factor);
+            }
+        }
+    }
+
+    private void replaceNaNs(double replacementValue,
+            Map<String, DataPair>... dataToFix) {
+        for (Map<String, DataPair> oneDataSet : dataToFix) {
+            for (DataPair pair : oneDataSet.values()) {
+                pair.replaceNaN(replacementValue);
+            }
+        }
+    }
+
+    /**
+     * Teams that have been using the dashboard for a while will have legacy
+     * (MCF-phase) defects in their defect log. Once they begin collecting
+     * defect data against workflow phases, they will receive useful numbers for
+     * inj/rem % by phase, as well as yield. But unfortunately, the injection
+     * and removal rates will be too low, since we are dividing by time in phase
+     * (which includes time from legacy project cycles where the defects were
+     * collected the old way).
+     * 
+     * To avoid this problem, we count the number of legacy defects and apply a
+     * scaling factor to let defect counts and time in phase relate in an
+     * apples-to-apples way. This is an engineering compromise, based on the
+     * observation that useful, meaningful defects rates are better than no
+     * rates at all.
+     * 
+     * In the future, when teams collect all data against workflow phases, this
+     * method will be a no-op.
+     */
+    private void applyLegacyMultiplier(Map<String, DataPair>[] defectsByPhase,
+            Map<String, DataPair>... dataToFix) {
+        DataPair total = defectsByPhase[1].get(TOTAL_KEY);
+        DataPair unrecognized = defectsByPhase[2].get(TOTAL_KEY);
+        if (total.actual > 0 && unrecognized.actual > 0) {
+            double factor = 1 + (unrecognized.actual / total.actual);
+            for (Map<String, DataPair> oneDataSet : dataToFix) {
+                for (DataPair pair : oneDataSet.values())
+                    pair.actual *= factor;
+            }
+        }
     }
 
     private void printTable(String titleRes, String subtitleRes,

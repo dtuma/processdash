@@ -438,17 +438,20 @@ public class WorkflowHistDataHelper {
     /**
      * Retrieve the actual defects injected and removed by workflow phase.
      * 
-     * @return an array with two elements. The element at position 0 contains
+     * @return an array with three elements. The element at position 0 contains
      *         the injected defects by phase, and the element at position 1
      *         contains the removed defects. Although the Map values are
      *         {@link DataPair} objects, only their "actual" value will contain
      *         data; the "plan" value will be zero. The two maps will contain
      *         entries for "Before Development" and "After Development", in
-     *         addition to a Total row.
+     *         addition to a Total row. The Map in position 2 of the result will
+     *         contain a single entry, with the Total key and a DataPair whose
+     *         actual field gives the number of unrecognized defects (whose
+     *         injection and removed phases are both not part of this workflow).
      */
     public Map<String, DataPair>[] getDefectsByPhase() {
         Map<Integer, String> stepMap = getWorkflowStepsByKey();
-        Map<String, DataPair>[] result = new Map[2];
+        Map<String, DataPair>[] result = new Map[3];
         result[INJ] = new LinkedHashMap<String, DataPair>();
         result[REM] = new LinkedHashMap<String, DataPair>();
         result[INJ].put(Defect.BEFORE_DEVELOPMENT, new DataPair());
@@ -457,6 +460,8 @@ public class WorkflowHistDataHelper {
             result[REM].put(step, new DataPair());
         }
         result[REM].put(Defect.AFTER_DEVELOPMENT, new DataPair());
+        DataPair unrecognized = new DataPair();
+        result[UNK] = Collections.singletonMap(TOTAL_PHASE_KEY, unrecognized);
         DataPair total = new DataPair();
         result[INJ].put(TOTAL_PHASE_KEY, total);
         result[REM].put(TOTAL_PHASE_KEY, total);
@@ -465,8 +470,8 @@ public class WorkflowHistDataHelper {
         List<Object[]> rawData1 = query(DEFECT_QUERY_1, getEnactmentKeys());
         List<Object[]> rawData2 = query(DEFECT_QUERY_2, workflow, workflow);
         mapMissingPhases(stepMap, rawData1, rawData2);
-        addDefectData(result, total, rawData1, stepMap);
-        addDefectData(result, total, rawData2, stepMap);
+        addDefectData(result, unrecognized, total, rawData1, stepMap);
+        addDefectData(result, unrecognized, total, rawData2, stepMap);
 
         return result;
     }
@@ -488,8 +493,9 @@ public class WorkflowHistDataHelper {
         }
     }
 
-    private void addDefectData(Map<String, DataPair>[] result, DataPair total,
-            List<Object[]> rawData, Map<Integer, String> stepMap) {
+    private void addDefectData(Map<String, DataPair>[] result,
+            DataPair unrecognized, DataPair total, List<Object[]> rawData,
+            Map<Integer, String> stepMap) {
         for (Object[] row : rawData) {
             Integer injPhaseKey = (Integer) row[INJ];
             String injPhaseName = stepMap.get(injPhaseKey);
@@ -500,8 +506,10 @@ public class WorkflowHistDataHelper {
             // defect that was recorded against MCF buckets. But even if it
             // wasn't, it is a defect that spanned this workflow process and
             // isn't relevant to our calculations. Disregard it.
-            if (injPhaseName == null && remPhaseName == null)
+            if (injPhaseName == null && remPhaseName == null) {
+                unrecognized.actual++;
                 continue;
+            }
 
             if (injPhaseName == null)
                 injPhaseName = Defect.BEFORE_DEVELOPMENT;
@@ -515,7 +523,7 @@ public class WorkflowHistDataHelper {
         }
     }
 
-    private static final int INJ = 0, REM = 1;
+    private static final int INJ = 0, REM = 1, UNK = 2;
 
     /*
      * Query to find defects logged against one of our included enactments

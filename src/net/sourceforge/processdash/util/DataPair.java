@@ -82,6 +82,13 @@ public class DataPair {
         return this;
     }
 
+    public void replaceNaN(double replacementValue) {
+        if (Double.isNaN(plan))
+            plan = replacementValue;
+        if (Double.isNaN(actual))
+            actual = replacementValue;
+    }
+
     @Override
     public String toString() {
         return "(" + plan + ", " + actual + ")";
