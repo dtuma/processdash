@@ -72,23 +72,23 @@ public class DefectUtil {
         WorkflowInfo workflowInfo = WorkflowInfoFactory.get(data, taskPath);
         if (workflowInfo == null || workflowInfo.isEmpty())
             return null;
-        DefectPhaseList result = new DefectPhaseList();
-        result.workflowInfo = workflowInfo;
 
         // check to see if this is a PSP task.
+        String path = taskPath;
         String parentPath = DataRepository.chopPath(taskPath);
         String phaseSuffix = null;
         if (isPspTask(data, parentPath)) {
             phaseSuffix = taskPath.substring(parentPath.length());
-            taskPath = parentPath;
+            path = parentPath;
         } else if (isPspTask(data, taskPath)) {
             phaseSuffix = "/Code";
+            taskPath += "/Code";
         }
 
         // see if the current task came from a (potentially nested) workflow.
-        // If so, add all applicable workflow phases to our result.
-        String path = taskPath;
-        Set<Phase> phasesSeen = new HashSet<Phase>();
+        // If so, create (potentially nested) workflow phase objects to
+        // represent all of the enclosing workflow tasks.
+        Map<String, DefectPhase> enclosingPhases = new HashMap();
         while (path != null) {
 
             // see if this task represents a phase in a workflow.
@@ -99,41 +99,124 @@ public class DefectUtil {
             if (phase == null)
                 break; // not a workflow phase. We are done.
 
-            // if this is a new phase we haven't seen before, add to our result.
-            // (Phases we've seen before will represent subdivided tasks.)
-            if (!phasesSeen.contains(phase)) {
+            // if this is a new phase we haven't seen before, create
+            // DefectPhase objects for it. (Phases we've seen before will
+            // represent subdivided tasks.)
+            if (!enclosingPhases.containsKey(phase.getPhaseId())) {
 
-                // if we have any phases in our result already, they must be
-                // nested underneath the current task. Update their phase IDs
-                // to document this nested relationship.
-                for (DefectPhase dp : result)
+                // if our DefectPhase set contains any phases at all, they must
+                // represent processes that are nested underneath the current
+                // task. Update their phase IDs to document this relationship.
+                for (DefectPhase dp : enclosingPhases.values())
                     dp.phaseID = phase.getPhaseId() + "," + dp.phaseID;
 
-                // add all of the phases in the given workflow to our result
-                boolean firstPhase = true;
+                // add all of the phases in the given workflow to our set of
+                // enclosing phases
                 for (Phase onePhase : phase.getWorkflow().getPhases()) {
                     DefectPhase dp = new DefectPhase(onePhase);
-
-                    // potentially set the default injection/removal phases
-                    if (onePhase == phase) {
-                        if (!firstPhase && result.defaultInjectionPhase == -1)
-                            result.defaultInjectionPhase = result.size() - 1;
-                        if (result.defaultRemovalPhase == -1)
-                            result.defaultRemovalPhase = result.size();
-                    }
-
-                    phasesSeen.add(onePhase);
-                    result.add(dp);
-                    firstPhase = false;
+                    enclosingPhases.put(onePhase.getPhaseId(), dp);
                 }
             }
 
-            // step up to the parent and look for phases there, as well.
+            // step up to the parent and look for enclosing phases there, too
             path = DataRepository.chopPath(path);
             phaseSuffix = null;
         }
 
+        // now that we have found the root of this enactment, scan all tasks
+        // underneath to find any other workflows that are represented. Add
+        // them to our result in the order they appear.
+        DefectPhaseList result = new DefectPhaseList();
+        result.workflowInfo = workflowInfo;
+        if (!enclosingPhases.isEmpty()) {
+            DashHierarchy hier = context.getHierarchy();
+            scanForWorkflowTasks(data, hier, hier.findExistingKey(path), null,
+                getDevelopmentPhases(data, path), result, new HashSet(),
+                enclosingPhases, taskPath);
+
+            // set the default injection phase, if necessary
+            if (result.defaultRemovalPhase == -1)
+                result.defaultInjectionPhase = -1;
+            else if (result.defaultInjectionPhase == -1)
+                result.defaultInjectionPhase = result.defaultRemovalPhase - 1;
+        }
+
         return result;
+    }
+
+    private static Set<String> getDevelopmentPhases(DataRepository data,
+            String path) {
+        Set<String> result = new HashSet();
+        ListData list = ListData.asListData(data.getInheritableValue(path,
+            "Development_Phase_List"));
+        if (list != null)
+            result.addAll(list.asList());
+        return result;
+    }
+
+    private static boolean scanForWorkflowTasks(DataContext data,
+            DashHierarchy hier, PropertyKey parent, String parentWorkflowId,
+            Set<String> developmentPhases, DefectPhaseList result,
+            Set<Phase> phasesSeen, Map<String, DefectPhase> directPhases,
+            String taskPath) {
+
+        // quick check to see if the parent node is a non-workflow PSP task
+        int numChildren = hier.getNumChildren(parent);
+        boolean parentIsPSP = numChildren > 5 && isPspTask(data, parent.path());
+        if (parentIsPSP && parentWorkflowId == null)
+            return false;
+
+        // scan the nodes that appear under the parent hierarchy node
+        for (int i = 0; i < numChildren; i++) {
+
+            // see if this node came from a workflow
+            PropertyKey node = hier.getChildKey(parent, i);
+            String path = node.path();
+            String workflowId;
+            if (parentIsPSP)
+                workflowId = parentWorkflowId + "/" + node.name();
+            else
+                workflowId = getWorkflowID(data, path);
+            Phase phase = result.workflowInfo.getPhase(workflowId);
+
+            // if this task came from a workflow, and we haven't added this
+            // workflow to our result list yet, do that now.
+            if (phase != null && !phasesSeen.contains(phase)) {
+                for (Phase onePhase : phase.getWorkflow().getPhases()) {
+                    DefectPhase dp = directPhases.get(onePhase.getPhaseId());
+                    if (dp == null)
+                        dp = new DefectPhase(onePhase);
+
+                    result.add(dp);
+                    phasesSeen.add(onePhase);
+                }
+            }
+
+            // recurse over children of this node
+            boolean nodeIsLeaf = parentIsPSP
+                    || scanForWorkflowTasks(data, hier, node, workflowId,
+                        developmentPhases, result, phasesSeen, directPhases,
+                        taskPath);
+
+            // possibly set the default injection and removal phases
+            if (result.defaultRemovalPhase == -1 && nodeIsLeaf
+                    && workflowId != null && phase != null) {
+                if (path.equals(taskPath))
+                    result.defaultRemovalPhase = findStep(result, workflowId);
+                else if (developmentPhases.contains(phase.getMcfPhase()))
+                    result.defaultInjectionPhase = findStep(result, workflowId);
+            }
+        }
+
+        return numChildren == 0;
+    }
+
+    private static int findStep(DefectPhaseList result, String workflowId) {
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i).phaseID.endsWith(workflowId))
+                return i;
+        }
+        return -1;
     }
 
     private static boolean isPspTask(DataContext data, String path) {
@@ -162,7 +245,8 @@ public class DefectUtil {
             String taskPath, DashboardContext context) {
         List<String> phaseNames = getDefectPhases(defectPath, context);
         String removalPhase = guessRemovalPhase(defectPath, taskPath, context);
-        String injectionPhase = guessInjectionPhase(phaseNames, removalPhase);
+        String injectionPhase = guessInjectionPhase(phaseNames, removalPhase,
+            taskPath, context);
 
         String processName = null;
         SaveableData sd = context.getData().getInheritableValue(taskPath,
@@ -250,7 +334,7 @@ public class DefectUtil {
     /** Make an educated guess about which removal phase might correspond to
      * a particular dashboard task
      */
-    public static String guessRemovalPhase(String defectPath,
+    private static String guessRemovalPhase(String defectPath,
             String taskPath, DashboardContext context) {
 
         // first, check to see if this task has registered an effective phase
@@ -298,14 +382,23 @@ public class DefectUtil {
     /** Make an educated guess about which injection phase might correspond
      *  to the given removal phase.
      */
-    public static String guessInjectionPhase(List phases, String removalPhase)
-    {
+    private static String guessInjectionPhase(List phases, String removalPhase,
+            String taskPath, DashboardContext context) {
         if (removalPhase == null || removalPhase.trim().length() == 0)
             return null;
 
+        // first, check the list of development phases for the current process,
+        // and see if we can find one that precedes the removal phase.
+        Set<String> dPhases = getDevelopmentPhases(context.getData(), taskPath);
+        for (int pos = phases.indexOf(removalPhase); pos-- > 0;) {
+            String onePhase = (String) phases.get(pos);
+            if (dPhases.contains(onePhase))
+                return onePhase;
+        }
+
         String result, mappedGuess, onePhase;
 
-        // first, check the user's phase map setting for a potential match.
+        // next, check the user's phase map setting for a potential match.
         int pos = removalPhase.lastIndexOf('/');
         if (pos == -1)
             mappedGuess = (String) INJ_REM_PAIRS.get(removalPhase);
