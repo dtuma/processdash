@@ -168,6 +168,7 @@ public class WorkflowToDateReport extends TinyCGIBase {
 
         if (defectsByPhase[1].get(TOTAL_KEY).actual > 0) {
             out.print("<div id=\"defects\">\n");
+            setBeforeAndAfterRowLabels(timeInPhase);
             printTable("Defects_Injected", null, defectsByPhase[0], Format.Number, true);
             printTable("Defects_Removed", null, defectsByPhase[1], Format.Number, true);
             printDefectsByPhaseCharts(defectsByPhase);
@@ -482,12 +483,35 @@ public class WorkflowToDateReport extends TinyCGIBase {
         if (TOTAL_KEY.equals(rowLabel))
             return res("Total");
         else if (Defect.BEFORE_DEVELOPMENT.equals(rowLabel))
-            return res("Before_Development");
+            return beforeRowLabel;
         else if (Defect.AFTER_DEVELOPMENT.equals(rowLabel))
-            return res("After_Development");
+            return afterRowLabel;
         else
             return rowLabel;
     }
+
+    private void setBeforeAndAfterRowLabels(Map<String, DataPair> timeInPhase) {
+        if (timeInPhase.size() < 2) {
+            beforeRowLabel = res("Before_Development");
+            afterRowLabel = res("After_Development");
+        } else {
+            Iterator<String> i = timeInPhase.keySet().iterator();
+            String firstPhase = i.next();
+            String lastPhase = firstPhase;
+            while (i.hasNext()) {
+                String onePhase = i.next();
+                if (!TOTAL_KEY.equals(onePhase))
+                    lastPhase = onePhase;
+            }
+            beforeRowLabel = resources.format("Workflow.Analysis.Before_FMT",
+                firstPhase);
+            afterRowLabel = resources.format("Workflow.Analysis.After_FMT",
+                lastPhase);
+        }
+    }
+
+    private String beforeRowLabel, afterRowLabel;
+
 
     private enum Format {
         Number, Time, Percent
