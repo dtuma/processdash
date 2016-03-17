@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2015 Tuma Solutions, LLC
+// Copyright (C) 1999-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,6 +63,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.PopupMenuEvent;
@@ -338,11 +339,35 @@ public class DefectLogEditor extends Component implements
         updateDefectLog (dl);       // TBD - optimize?
     }
 
-    public void defectUpdated(DefectLog log, Defect d) {
-        updateDefectLog(log, d);
+    public void defectUpdated(final DefectLog log, final Defect d) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            updateDefectLog(log, d);
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        updateDefectLog(log, d);
+                    }
+                });
+            } catch (Exception ex) {
+            }
+        }
     }
 
-    public void hierarchyChanged(DashHierarchy.Event e) { reloadAll(null); }
+    public void hierarchyChanged(DashHierarchy.Event e) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            reloadAll(null);
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        reloadAll(null);
+                    }
+                });
+            } catch (Exception ex) {
+            }
+        }
+    }
 
     public void reloadAll(DashHierarchy newProps) {
         if (newProps != null)
@@ -650,7 +675,8 @@ public class DefectLogEditor extends Component implements
             Component result = super.getTableCellRendererComponent(table,
                         value, isSelected, hasFocus, row, column);
 
-            if (Defect.UNSPECIFIED.equals(value)) {
+            if (Defect.UNSPECIFIED.equals(value)
+                    || value.toString().endsWith(" ")) {
                 result.setForeground(Color.RED);
                 if (boldFont == null)
                     boldFont = table.getFont().deriveFont(Font.BOLD);

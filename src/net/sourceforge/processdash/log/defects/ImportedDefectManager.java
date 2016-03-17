@@ -334,6 +334,8 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
 
     private static DefectPhase getDefectPhase(Object[] row, int pos) {
         DefectPhase result = new DefectPhase(asString(row[pos]));
+        if ("*INVALID*/Unrecognized".equals(row[pos + 1]))
+            result.phaseName += " ";
 
         String phaseID = asString(row[pos + 1]);
         if (phaseID.startsWith("WF:")) {
