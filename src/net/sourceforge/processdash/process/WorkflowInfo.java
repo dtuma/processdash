@@ -149,6 +149,18 @@ public class WorkflowInfo {
         return phases.get(phaseId);
     }
 
+    public Phase getPhase(String workflowName, String phaseName) {
+        Workflow workflow = getWorkflow(workflowName);
+        if (workflow != null){
+            for (Phase phase : workflow.getPhases()) {
+                if (phase.getPhaseName().equalsIgnoreCase(phaseName))
+                    return phase;
+            }
+        }
+
+        return null;
+    }
+
     private void buildWorkflow(Element xml) {
         if ("workflow".equals(xml.getTagName())) {
             Workflow workflow = new Workflow(xml);

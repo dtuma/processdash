@@ -50,6 +50,23 @@ public class DefectPhase {
         this.legacyPhase = phase.getMcfPhase();
     }
 
+    public boolean updateFrom(WorkflowInfo.Phase phase) {
+        boolean madeChange = false;
+        if (!phase.getWorkflow().getWorkflowName().equals(processName)) {
+            this.processName = phase.getWorkflow().getWorkflowName();
+            madeChange = true;
+        }
+        if (!phase.getPhaseName().equals(phaseName)) {
+            this.phaseName = phase.getPhaseName();
+            madeChange = true;
+        }
+        if (!phase.getMcfPhase().equals(legacyPhase)) {
+            this.legacyPhase = phase.getMcfPhase();
+            madeChange = true;
+        }
+        return madeChange;
+    }
+
     public String getTerminalPhaseID() {
         if (phaseID == null)
             return null;

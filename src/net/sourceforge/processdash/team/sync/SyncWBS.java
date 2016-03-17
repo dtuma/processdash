@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -105,6 +106,8 @@ public class SyncWBS extends TinyCGIBase {
     private File workflowFile;
     /** The templates directory for the project */
     private File templatesDir;
+    /** The directory where the dashboard is storing data files */
+    private String dataDir;
     /** The initials of the current team member, if applicable */
     private String initials;
     /** True if this is the team rollup side of the project */
@@ -164,7 +167,7 @@ public class SyncWBS extends TinyCGIBase {
             HierarchySynchronizer synch = new HierarchySynchronizer
                 (projectRoot, processID, wbsLocation, workflowLocation,
                  initials, getOwner(), fullCopyMode, pspToDateSubset,
-                 promptForPspToDateSubset, getPSPProperties(),
+                 promptForPspToDateSubset, dataDir, getPSPProperties(),
                  getDataRepository());
 
             // double-check individual initials
@@ -264,6 +267,7 @@ public class SyncWBS extends TinyCGIBase {
 
         wbsLocation = getWBSLocation(data);
         workflowLocation = getWorkflowLocation(wbsLocation);
+        dataDir = ((ProcessDashboard) getDashboardContext()).getDirectory();
 
         // look up the unique ID for this project.
         SimpleData d = data.getSimpleValue(DataRepository.createDataName
