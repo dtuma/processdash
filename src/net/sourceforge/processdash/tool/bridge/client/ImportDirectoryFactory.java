@@ -26,8 +26,10 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -88,11 +90,27 @@ public class ImportDirectoryFactory {
      *         object could be successfully created from the list of locations
      */
     public ImportDirectory get(String... locations) {
-        try {
-            return new DynamicImportDirectory(locations);
-        } catch (IOException e) {
+        // discard null/empty locations from the list.
+        List<String> realLocations = new ArrayList(locations.length);
+        for (String location : locations)
+            if (StringUtils.hasValue(location))
+                realLocations.add(location);
+        if (realLocations.isEmpty())
             return null;
+        else if (realLocations.size() != locations.length)
+            locations = realLocations.toArray(new String[realLocations.size()]);
+
+        // retrieve this object from the cache, or create a new one if needed
+        String key = "[DYNAMIC]:" + StringUtils.join(realLocations, "\n");
+        ImportDirectory result = refresh(cache.get(key));
+        try {
+            if (result == null) {
+                result = new DynamicImportDirectory(locations);
+                cache.put(key, result);
+            }
+        } catch (IOException e) {
         }
+        return result;
     }
 
     /**

@@ -45,6 +45,7 @@ import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -57,6 +58,7 @@ import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.UserNotificationManager;
@@ -181,6 +183,12 @@ public class SyncWBS extends TinyCGIBase {
                 savePermissionData();
             else
                 maybeSynchronize(synch);
+
+            // make certain the contents of the WBS directory are locally
+            // cached, so the WBS data can be used by other dashboard features
+            // in the future. Perform this step after all other work is done,
+            // so it doesn't affect the responsiveness of the sync operation.
+            precacheWbsImportDirectory();
 
         } catch (TinyCGIException e) {
             // the signalError() method uses a TinyCGIException to abort
@@ -867,6 +875,15 @@ public class SyncWBS extends TinyCGIBase {
             return null;
     }
 
+
+    private void precacheWbsImportDirectory() {
+        DataContext data = getDataRepository().getSubcontext(projectRoot);
+        SimpleData d = data.getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY);
+        String dir = (d == null ? null : d.format());
+        d = data.getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
+        String url = (d == null ? null : d.format());
+        ImportDirectoryFactory.getInstance().get(url, dir);
+    }
 
 
     private void maybeDumpDebugLog(HierarchySynchronizer synch) {
