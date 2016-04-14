@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -189,6 +188,7 @@ import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.Disposable;
@@ -422,7 +422,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 currentWeek, 0, true));
         }
 
-        frame.setVisible(true);
+        WindowUtils.showWindowToFront(frame);
 
         // if the task list is empty, open the add task dialog immediately.
         if (((EVTask) model.getRoot()).isLeaf() && Settings.isReadWrite())
@@ -841,10 +841,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void show() {
-        if (frame.getState() == Frame.ICONIFIED)
-            frame.setState(Frame.NORMAL);
-        frame.setVisible(true);
-        frame.toFront();
+        WindowUtils.showWindowToFront(frame);
     }
 
     protected Map getErrors() {
