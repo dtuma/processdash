@@ -136,8 +136,13 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
             QueryUtils.waitForAllProjects(databasePlugin);
 
         // if desired, find any versioned entities in the query, and add
-        // "is current" conditions to the WHERE clause
-        if (filterMode.compareTo(FilterMode.CURRENT) >= 0)
+        // "is current" conditions to the WHERE clause. (Note that we do not
+        // add "is current" conditions if the query is accessing baseline data,
+        // since baseline data is never "current." Instead, we must wait for all
+        // projects to be loaded, since baseline facts are loaded last.)
+        if (query.indexOf(".baseline") != -1)
+            QueryUtils.waitForAllProjects(databasePlugin);
+        else if (filterMode.compareTo(FilterMode.CURRENT) >= 0)
             addCriteriaForEntities(query, queryArgs, getVersionedEntityNames(),
                 IS_CURRENT_CRITERIA);
 
