@@ -1,0 +1,3 @@
+class:net.sourceforge.processdash.team.ui.scanner.SkippedWorkflowSteps
+numIdFields==1
+itemFormat=={7}/{8} -- {6}

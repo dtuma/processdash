@@ -3,7 +3,7 @@
 <!--
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2015 Tuma Solutions, LLC
+Copyright (C) 2001-2016 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -344,6 +344,12 @@ The author(s) may be contacted at:
     <resources>Analysis.CompletedTasksMissingTime</resources>
     <context>Team Project Root</context>
     <uri>/dash/snippets/completedTasksMissingTime</uri>
+  </snippet>
+
+  <snippet id="pdash.skippedWorkflowSteps" version="1.0" category="other">
+    <resources>Analysis.SkippedWorkflowSteps</resources>
+    <context>Team Project Root</context>
+    <uri>/dash/snippets/skippedWorkflowSteps</uri>
   </snippet>
 
   <snippet id="pdash.recentReviews" version="1.0" category="other">
