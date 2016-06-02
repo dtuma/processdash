@@ -26,7 +26,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar" sourcepath="misc/zips/jetty-8.1.15-src.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-8.1.19.jar" sourcepath="misc/zips/jetty-8.1.19-src.jar"/>
 	<classpathentry kind="lib" path="teamdash/lib/swingx-0.9.1.jar" sourcepath="teamdash/lib/swingx-0.9.1-src.zip"/>
 	<classpathentry kind="lib" path="teamdash/lib/poi-3.0.1-FINAL-20070705.jar" sourcepath="teamdash/lib/poi-src-3.0.1-FINAL-20070705.zip"/>
 	<classpathentry kind="output" path="bin"/>

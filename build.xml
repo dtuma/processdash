@@ -128,7 +128,7 @@ Authors:
   <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
   <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
   <property name="xmlrpc-com.jar" value="${lib}/xmlrpc-common-3.1.1.jar"/>
-  <property name="jetty.jar"      value="${lib}/jetty-8.1.15.jar"/>
+  <property name="jetty.jar"      value="${lib}/jetty-8.1.19.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
