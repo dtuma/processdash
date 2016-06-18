@@ -83,6 +83,7 @@ import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationExce
 import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
+import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
@@ -2113,6 +2114,8 @@ public class HierarchySynchronizer {
             try {
                 String projIDs = node.getAttribute(TASK_ID_ATTR);
                 setTaskIDs(pathPrefix, cleanupProjectIDs(projIDs));
+                hierarchy.pget(hierarchy.findExistingKey(pathPrefix))
+                        .setNodeID(projectID + ":root");
                 maybeFixPreviouslyClobberedTeamTimeElement(pathPrefix);
                 if (!isTeam())
                     maybeSaveNote(pathPrefix, node, ROOT_NODE_PSEUDO_ID);
@@ -2275,6 +2278,8 @@ public class HierarchySynchronizer {
             try {
                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));
+                hierarchy.pget(hierarchy.findExistingKey(path)).setNodeID(
+                    projectID + ":" + nodeID);
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
                 if (workflowURLsSupported)
@@ -3236,6 +3241,57 @@ public class HierarchySynchronizer {
                 SYNC_LOCKS.notifyAll();
             }
         }
+    }
+
+
+    public static boolean copyNodeIDsToHierarchy(DataRepository data,
+            DashHierarchy hier) {
+        return copyNodeIDsToHierarchy(data, hier, PropertyKey.ROOT, null);
+    }
+
+    private static boolean copyNodeIDsToHierarchy(DataContext data,
+            DashHierarchy hier, PropertyKey key, String projectID) {
+
+        String taskPath = key.path();
+        String nodeID = null;
+        boolean madeChange = false;
+
+        if (projectID == null) {
+            projectID = getStringData(data, taskPath,
+                TeamDataConstants.PROJECT_ID);
+            if (projectID != null)
+                nodeID = projectID + ":root";
+        }
+
+        if (nodeID == null && projectID != null) {
+            String wbsId = getStringData(data, taskPath,
+                TeamDataConstants.WBS_ID_DATA_NAME);
+            if (wbsId != null)
+                nodeID = projectID + ":" + wbsId;
+        }
+
+        if (nodeID != null) {
+            Prop p = hier.pget(key);
+            if (!nodeID.equals(p.getNodeID())) {
+                p.setNodeID(nodeID);
+                madeChange = true;
+            }
+        }
+
+        for (int i = hier.getNumChildren(key); i-- > 0;) {
+            PropertyKey child = hier.getChildKey(key, i);
+            if (copyNodeIDsToHierarchy(data, hier, child, projectID))
+                madeChange = true;
+        }
+
+        return madeChange;
+    }
+
+    private static String getStringData(DataContext data, String path,
+            String dataElemName) {
+        String dataName = DataRepository.createDataName(path, dataElemName);
+        SimpleData sd = data.getSimpleValue(dataName);
+        return (sd != null && sd.test() ? sd.format() : null);
     }
 
 }

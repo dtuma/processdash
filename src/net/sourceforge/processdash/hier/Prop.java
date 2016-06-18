@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2013 Tuma Solutions, LLC
+// Copyright (C) 2000-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ public class Prop
     // attributes
     protected String defectLog  = null;
     protected String myID       = null;
+    protected String nodeID     = null;
     protected String scriptFile = null;
     protected String dataFile   = null;
     protected String extraData  = null;
@@ -53,6 +54,7 @@ public class Prop
     public Prop (Prop p) {
         defectLog  = p.defectLog;
         myID       = p.myID;
+        nodeID     = p.nodeID;
         scriptFile = p.scriptFile;
         dataFile   = p.dataFile;
         status     = p.status;
@@ -69,6 +71,7 @@ public class Prop
     // methods
     public void setDefectLog  (String log) { defectLog     = log; }
     public void setID         (String id)  { myID          = id;  }
+    public void setNodeID     (String id)  { nodeID        = id;  }
     public void setScriptFile (String log) { scriptFile    = log; }
     public void setDataFile   (String log) { dataFile      = log; }
     public void setExtraData  (String d)   { extraData     = d;   }
@@ -143,6 +146,7 @@ public class Prop
 
     public String getDefectLog ()  { return defectLog; }
     public String getID ()         { return myID; }
+    public String getNodeID()      { return nodeID; }
     public String getScriptFile () { return scriptFile; }
     public String getDataFile ()   { return dataFile; }
     public String getExtraData()   { return extraData; }

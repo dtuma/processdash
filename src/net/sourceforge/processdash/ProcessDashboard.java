@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2015 Tuma Solutions, LLC
+// Copyright (C) 1998-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -124,6 +124,7 @@ import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
+import net.sourceforge.processdash.team.sync.HierarchySynchronizer;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -499,6 +500,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Fixed misparented data");
         timeLog.setTimingForbiddenPaths(getBrokenDataPaths());
         SizeEstimatingTemplate.migrateLegacyData(props, data);
+        maybeAssignHierarchyNodeIDs();
 
         try {
             objectCache =
@@ -836,6 +838,18 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         propItem.add(props);
         propItem.add(String.valueOf(hierChangeCount++));
         data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
+    }
+
+    private void maybeAssignHierarchyNodeIDs() {
+        boolean madeChange = false;
+        if (HierarchySynchronizer.copyNodeIDsToHierarchy(data, props))
+            madeChange = true;
+        if (props.assignMissingNodeIDs())
+            madeChange = true;
+        if (madeChange) {
+            saveHierarchy();
+            DataVersionChecker.registerDataRequirement("pspdash", "2.2.3.1");
+        }
     }
 
     private void configureTeamOrPersonalDatasetMode() {

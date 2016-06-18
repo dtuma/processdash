@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2013 Tuma Solutions, LLC
+// Copyright (C) 1999-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,23 +54,24 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.event.EventListenerList;
 
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.defects.DefectLogID;
-import net.sourceforge.processdash.process.ScriptID;
-import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.RobustFileWriter;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.defects.DefectLogID;
+import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
-public class DashHierarchy extends Hashtable implements ItemSelectable,
-        Comparator, PropertyKeyHierarchy {
+
+public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
+        ItemSelectable, Comparator, PropertyKeyHierarchy {
 
     protected EventListenerList ell = new EventListenerList();
     protected int nextDataFileNumber  = 0;
@@ -332,19 +333,6 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         //fireHierarchyChanged();
     }
 
-    public void copy (PropertyKey fromKey,
-                      PropertyKey toKey) {
-        Prop aProp = pget (fromKey);
-        for (int ii = 0; ii < aProp.getNumChildren(); ii++) {
-            PropertyKey fc = aProp.getChild(ii);
-            PropertyKey tc = new PropertyKey (toKey, fc.name());
-                aProp.setChild (tc, ii);
-            copy (fc, tc);
-        }
-        put (toKey, aProp);
-        //fireHierarchyChanged();
-    }
-
     public Vector load (InputStream propStream) throws IOException {
         return load(propStream, true);
     }
@@ -427,6 +415,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public static final String DATA_REPOSITORY_NAME = "///Hierarchy";
 
     public static final String NAME_ATTR = "name";
+    public static final String NODE_ID_ATTR = "nodeID";
     public static final String TEMPLATE_ATTR = "templateID";
     public static final String DATAFILE_ATTR = "dataFile";
     public static final String DEFECTLOG_ATTR = "defectLog";
@@ -513,6 +502,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             }
 
             val.setID(e.getAttribute(TEMPLATE_ATTR));
+            val.setNodeID(e.getAttribute(NODE_ID_ATTR));
 
             // Copy script and status information from the template, if there is one.
             if (template == null) {
@@ -653,6 +643,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         out.write("<node " + NAME_ATTR + "=\"" +
                   XMLUtils.escapeAttribute(key.name()) + "\"");
         maybePrintAttribute(out, TEMPLATE_ATTR, prop.getID());
+        maybePrintAttribute(out, NODE_ID_ATTR, prop.getNodeID());
         maybePrintAttribute(out, DATAFILE_ATTR, prop.getDataFile());
         maybePrintAttribute(out, DEFECTLOG_ATTR, prop.getDefectLog());
         if (selected) maybePrintAttribute(out, SELECTED_ATTR, "true");
@@ -837,12 +828,43 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         return aFile;
     }
 
+    public boolean assignMissingNodeIDs() {
+        // first, find the largest node ID currently in use
+        int maxIdNum = 0;
+        boolean sawMissingID = false;
+        for (Prop p : values()) {
+            String oneID = p.getNodeID();
+            if (!StringUtils.hasValue(oneID)) {
+                sawMissingID = true;
+            } else if (oneID.startsWith("0:")) {
+                try {
+                    int oneIdNum = Integer.parseInt(oneID.substring(2));
+                    maxIdNum = Math.max(maxIdNum, oneIdNum);
+                } catch (Exception e) {}
+            }
+        }
+
+        // next, assign node IDs to any nodes that don't have one.
+        if (sawMissingID) {
+            for (Prop p : values()) {
+                String thisID = p.getNodeID();
+                if (!StringUtils.hasValue(thisID))
+                    p.setNodeID("0:" + (++maxIdNum));
+            }
+            pget(PropertyKey.ROOT).setNodeID("0:root");
+        }
+
+        // return true if we made any assignments.
+        return sawMissingID;
+    }
+
 
     public void copyFrom (DashHierarchy fromProps,
                           PropertyKey   fromKey,
                           PropertyKey   toKey) {
         Prop fromProp = fromProps.pget (fromKey);
         Prop aProp = new Prop (fromProp);
+        aProp.setNodeID(null);
         for (int ii = 0; ii < aProp.getNumChildren(); ii++) {
             PropertyKey fc = aProp.getChild(ii);
             PropertyKey tc = new PropertyKey (toKey, fc.name());

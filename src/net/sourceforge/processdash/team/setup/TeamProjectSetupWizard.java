@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -637,6 +637,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         alterTeamTemplateID(teamPID);
+        setProjectRootNodeId(projectID);
         String scheduleID = createTeamSchedule (teamSchedule);
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
             teamSchedule, scheduleID, relaunchSourceID, relaunchSourcePath);
@@ -1073,6 +1074,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     protected void alterTeamTemplateID(String teamPID) {
         DashController.alterTemplateID(getPrefix(), TEAM_STUB_ID, teamPID);
+    }
+
+    private void setProjectRootNodeId(String projectID) {
+        DashHierarchy hier = getPSPProperties();
+        PropertyKey rootKey = hier.findExistingKey(getPrefix());
+        hier.pget(rootKey).setNodeID(projectID + ":root");
     }
 
     protected void handleJoinTeamSchedPage() {
@@ -2027,6 +2034,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
+        setProjectRootNodeId(projectID);
         boolean joinSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);
         importDisseminatedTeamData();
