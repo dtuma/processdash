@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,8 +33,11 @@ import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.BackgroundTaskManager;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataComparator;
 import net.sourceforge.processdash.data.DoubleData;
@@ -51,6 +54,7 @@ import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -243,6 +247,15 @@ public class EVTaskListData extends EVTaskList
         r.saveDependencyInformation();
 
         super.save(newName);
+
+        // rearranging tasks might alter data in a lot of data files. Flush
+        // all of those changes to disk, then export project data if needed.
+        data.saveAllDatafiles();
+        maybeStartBackgroundExport();
+    }
+
+    public void saveMetadata() {
+        saveMetadata(taskListName, data);
     }
 
     public void hierarchyChanged(DashHierarchy.Event e) {
@@ -404,6 +417,61 @@ public class EVTaskListData extends EVTaskList
                     evNodeChanged(task, false);
                 }
             }
+        }
+    }
+
+    private void maybeStartBackgroundExport() {
+        if (SwingUtilities.isEventDispatchThread()) {
+            Set<String> exportPaths = new HashSet<String>();
+            scanForExportPaths(exportPaths, getTaskRoot());
+            if (!exportPaths.isEmpty()) {
+                BackgroundTaskManager.getInstance().addTask(
+                    new AsyncExporter(exportPaths));
+            }
+        }
+    }
+
+    private void scanForExportPaths(Set<String> exportPaths, EVTask taskRoot) {
+        for (int i = taskRoot.getNumChildren(); i-- > 0;) {
+            EVTask topLevelTask = taskRoot.getChild(i);
+            StringBuffer path = new StringBuffer(topLevelTask.getFullName());
+            if (data.getInheritableValue(path, ExportManager.EXPORT_DATANAME) != null) {
+                exportPaths.add(path.toString());
+            } else {
+                scanSubtasksForExportPaths(exportPaths, topLevelTask);
+            }
+        }
+    }
+
+    private void scanSubtasksForExportPaths(Set<String> exportPaths, EVTask task) {
+        for (int i = task.getNumChildren(); i-- > 0;) {
+            EVTask child = task.getChild(i);
+            SimpleData sd = child
+                    .getValue(ExportManager.EXPORT_DATANAME, false);
+            if (sd != null && sd.test()) {
+                exportPaths.add(child.getFullName());
+            } else {
+                scanSubtasksForExportPaths(exportPaths, child);
+            }
+        }
+    }
+
+    private static class AsyncExporter implements Runnable {
+
+        private Set<String> exportPaths;
+
+        AsyncExporter(Set<String> exportPaths) {
+            this.exportPaths = exportPaths;
+        }
+
+        public void run() {
+            for (String path : exportPaths) {
+                DashController.exportData(path);
+            }
+        }
+
+        public String toString() {
+            return "EV AsyncExporter: " + exportPaths;
         }
     }
 

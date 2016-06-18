@@ -1315,7 +1315,7 @@ public class HierarchySynchronizer {
         } else if (needSyncUpdate) {
             // no changes were made, but we need to save sync data.  It's OK to
             // do this, even in what-if mode.
-            tl.save();
+            tl.saveMetadata();
         }
     }
 
