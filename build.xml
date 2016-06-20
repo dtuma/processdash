@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2015 Tuma Solutions, LLC
+Copyright (C) 2001-2016 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -881,7 +881,7 @@ Authors:
   </target>
 
   <target name="pdash-mvn-all"
-      depends="pdash-mvn, pdash-util, pdash-ui-lib, pdash-servlet-api" />
+      depends="pdash-mvn, pdash-util, pdash-ui-lib, pdash-timelog, pdash-servlet-api" />
 
   <target name="pdash-mvn" depends="jar">
     <exec executable="cmd" osfamily="windows">
@@ -927,6 +927,31 @@ Authors:
       <arg value="-Dfile=${dist}/pdash-ui-lib.jar"/>
       <arg value="-DgroupId=net.sourceforge.processdash"/>
       <arg value="-DartifactId=pdash-ui-lib"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
+  <target name="pdash-timelog-jar" depends="compile">
+    <jar destfile="${dist}/pdash-timelog.jar" duplicate="fail">
+      <fileset dir="${build}">
+        <include name="net/sourceforge/processdash/log/*.class"/>
+        <include name="net/sourceforge/processdash/log/time/"/>
+        <include name="net/sourceforge/processdash/hier/Filter.class"/>
+        <include name="net/sourceforge/processdash/hier/PathRenamingInstruction.class"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="pdash-timelog" depends="pdash-timelog-jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-timelog.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-timelog"/>
       <arg value="-Dversion=${dashboard.version}"/>
       <arg value="-Dpackaging=jar"/>
       <arg value="-DgeneratePom=true"/>
