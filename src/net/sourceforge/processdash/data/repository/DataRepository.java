@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2015 Tuma Solutions, LLC
+// Copyright (C) 1998-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2399,7 +2399,15 @@ public class DataRepository implements Repository, DataContext,
         waitForCalculations();
         String aliasName = getAliasedName(name);
         putValue(aliasName, value, IS_NOT_DEFAULT_VAL);
+        if (TIMESTAMPED_DATA_NAMES.matches(aliasName)) {
+            putValue(aliasName + "/Edit_Timestamp", new DateData(),
+                IS_NOT_DEFAULT_VAL);
+        }
     }
+
+    private static final PatternList TIMESTAMPED_DATA_NAMES = new PatternList()
+            .addLiteralEndsWith("/Estimated Time") //
+            .addLiteralEndsWith("/Completed");
 
     public void waitForCalculations() {
         while (dataFreezer.flush() || dataNotifier.flush()) {
