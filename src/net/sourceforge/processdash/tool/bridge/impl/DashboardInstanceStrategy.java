@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ public class DashboardInstanceStrategy implements
     }
 
     public FilenameFilter getFilenameFilter() {
-        return DashboardBackupFactory.DASH_FILE_FILTER;
+        return DASHBOARD_FILE_FILTER;
     }
 
     public String getLockFilename() {
@@ -53,7 +53,7 @@ public class DashboardInstanceStrategy implements
     }
 
     public FilenameFilter getUnlockedFilter() {
-        return null;
+        return UNLOCKED_DASHBOARD_FILE_FILTER;
     }
 
     public boolean isFilePossiblyCorrupt(File file) {
@@ -77,5 +77,26 @@ public class DashboardInstanceStrategy implements
             // No checks at this time for corrupt defect logs or other files
             return false;
     }
+
+    private static class UnlockedDashboardFileFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            // accept the "import" subdirectory, along with any .PDASH and
+            // messages.xml files it contains.
+            return name.startsWith("import/")
+                    && name.lastIndexOf('/') == 6
+                    && (name.length() == 7
+                            || name.endsWith("/messages.xml")
+                            || name.toLowerCase().endsWith(".pdash"));
+        }
+    }
+    private static final FilenameFilter UNLOCKED_DASHBOARD_FILE_FILTER = new UnlockedDashboardFileFilter();
+
+    private static class DashboardFileFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            return DashboardBackupFactory.DASH_FILE_FILTER.accept(dir, name)
+                    || UNLOCKED_DASHBOARD_FILE_FILTER.accept(dir, name);
+        }
+    }
+    private static final FilenameFilter DASHBOARD_FILE_FILTER = new DashboardFileFilter();
 
 }
