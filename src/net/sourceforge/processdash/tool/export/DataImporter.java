@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
+import net.sourceforge.processdash.tool.export.impl.MessageImporterXMLv1;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.mgr.ImportInstructionSpecProvider;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -68,6 +69,7 @@ public class DataImporter extends Thread {
 
     public static final String EXPORT_FILE_OLD_SUFFIX = ".txt";
     public static final String EXPORT_FILE_SUFFIX = ".pdash";
+    public static final String MESSAGES_FILE = "messages.xml";
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
 
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
@@ -353,6 +355,10 @@ public class DataImporter extends Thread {
             return filename.substring(0,
                     filename.length() - EXPORT_FILE_SUFFIX.length());
 
+        else if (filename.equals(MESSAGES_FILE))
+            // accept new message XML files
+            return filename;
+
         else
             // reject other files.
             return null;
@@ -456,6 +462,8 @@ public class DataImporter extends Thread {
             ArchiveMetricsFileImporter task = new ArchiveMetricsFileImporter(
                     data, f, prefix, instructionSpec);
             task.doImport();
+        } else if (filename.equals(MESSAGES_FILE)) {
+            MessageImporterXMLv1.importServerMessageFile(f);
         }
 
         prefixes.put(f.getName(), prefix);

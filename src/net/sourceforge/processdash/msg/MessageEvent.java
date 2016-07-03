@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,9 +49,16 @@ public class MessageEvent {
         return id;
     }
 
+    public String getServerId() {
+        String id = xml.getAttribute(SERVER_ID_ATTR);
+        return id.length() == 0 ? null : id;
+    }
+
 
     private static final String TYPE_ATTR = "type";
 
     private static final String ID_ATTR = "msgId";
+
+    private static final String SERVER_ID_ATTR = "pdesId";
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,18 +23,21 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class MessageImporterXMLv1 implements
         ArchiveMetricsFileImporter.Handler, ArchiveMetricsXmlConstants {
@@ -45,21 +48,40 @@ public class MessageImporterXMLv1 implements
 
     public void handle(ArchiveMetricsFileImporter caller, InputStream in,
             String type, String version) throws Exception {
+        doImport(caller, in);
+    }
 
-        // read the XML document from the input stream. XMLUtils.parse()
-        // closes the input stream after reading the document, which is not
-        // acceptable for our purposes; so we have to read and cache the
-        // file ourselves first.
-        InputStream xmlIn = new ByteArrayInputStream(FileUtils.slurpContents(
-            in, false));
+    public static void importServerMessageFile(File f) throws IOException {
+        InputStream in = null;
+        try {
+            in = new FileInputStream(f);
+            boolean sawMessages = doImport(null, in);
+            if (sawMessages == false)
+                MessageDispatcher.getInstance().noServerMessagesPresent();
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (Exception e) {
+            throw new IOException(e);
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+    }
+
+    private static boolean doImport(ArchiveMetricsFileImporter caller,
+            InputStream in) throws Exception {
+
+        // read the XML document from the input stream.
+        InputStream xmlIn = new NonclosingInputStream(in);
         Document doc = XMLUtils.parse(xmlIn);
 
         // Now, find all of the messages in the document
+        boolean sawMessage = false;
         NodeList messages = doc.getElementsByTagName(MESSAGE_TAG);
         if (messages != null) {
             for (int i = 0; i < messages.getLength(); i++) {
                 Element msg = (Element) messages.item(i);
                 MessageEvent msgEvent = new MessageEvent(msg);
+                sawMessage = true;
 
                 // Register a task to dispatch each message later on the
                 // background thread.  (Message handling logic is defined
@@ -72,8 +94,10 @@ public class MessageImporterXMLv1 implements
         }
 
         NodeList nl = doc.getElementsByTagName(DELETE_TAG);
-        if (nl != null && nl.getLength() > 0)
+        if (nl != null && nl.getLength() > 0 && caller != null)
             caller.deleteArchiveFileOnCompletion();
+
+        return sawMessage;
     }
 
     private static class MessageDispatchTask implements Runnable {

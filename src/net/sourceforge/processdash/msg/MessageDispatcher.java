@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.security.DashboardPermission;
@@ -90,8 +91,9 @@ public class MessageDispatcher {
     public boolean dispatch(MessageEvent message, boolean redo) {
         DISPATCH_PERMISSION.checkPermission();
 
+        String serverID = message.getServerId();
         String messageID = message.getMessageId();
-        if (redo == false && isMessageHandled(messageID))
+        if (redo == false && isMessageHandled(serverID, messageID))
             return true;
 
         String messageType = message.getMessageType();
@@ -104,7 +106,7 @@ public class MessageDispatcher {
             // infinite loops if a message somehow triggers itself again. It
             // also gives the handler an opportunity to explicitly clear the
             // "handled" flag as part of its work.
-            setMessageHandled(messageID, true);
+            setMessageHandled(serverID, messageID, true);
             // handle the message
             handler.handle(message);
             return true;
@@ -113,23 +115,51 @@ public class MessageDispatcher {
                 "Encountered exception when handling message [msgId='"
                         + messageID + "', type='" + messageType + "']", e);
             // undo our optimistic assumption about handling the message
-            setMessageHandled(messageID, false);
+            setMessageHandled(serverID, messageID, false);
             return false;
         }
     }
 
     public void setMessageHandled(MessageEvent event, boolean handled) {
-        setMessageHandled(event.getMessageId(), handled);
+        setMessageHandled(event.getServerId(), event.getMessageId(), handled);
     }
 
-    public void setMessageHandled(String messageID, boolean handled) {
+    private void setMessageHandled(String serverID, String messageID,
+            boolean handled) {
+        if (serverID != null) {
+            ListData l = ListData.asListData(data.getValue(SERVER_MESSAGES));
+            if (l == null)
+                l = new ListData();
+            if (handled == true)
+                l.setAdd(serverID);
+            else
+                l.remove(serverID);
+            data.putValue(SERVER_MESSAGES, l);
+            if (messageID.contains("/pdes/"))
+                return;
+        }
+
         SimpleData value = (handled ? ImmutableDoubleData.TRUE : null);
         data.putValue(getHandledDataName(messageID), value);
     }
 
-    private boolean isMessageHandled(String messageID) {
+    private boolean isMessageHandled(String serverID, String messageID) {
+        if (serverID != null) {
+            ListData l = ListData.asListData(data.getValue(SERVER_MESSAGES));
+            if (l != null && l.contains(serverID))
+                return true;
+            else if (messageID.contains("/pdes/"))
+                return false;
+        }
+
         SimpleData d = data.getSimpleValue(getHandledDataName(messageID));
-        return (d != null && d.test());
+        if (d == null || !d.test()) {
+            return false;
+        } else {
+            if (serverID != null)
+                setMessageHandled(serverID, messageID, true);
+            return true;
+        }
     }
 
     private String getHandledDataName(String messageID) {
@@ -138,5 +168,12 @@ public class MessageDispatcher {
         return "/MessageDispatch_Handled/" + messageID;
     }
 
+    public void noServerMessagesPresent() {
+        data.putValue(SERVER_MESSAGES, null);
+    }
+
     private static final String EXTENSION_NAME = "messageHandler";
+
+    private static final String SERVER_MESSAGES = "/MessageDispatch_Handled/Server_Message_IDs";
+
 }
