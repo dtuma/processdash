@@ -26,6 +26,7 @@ package net.sourceforge.processdash.msg;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -168,8 +169,20 @@ public class MessageDispatcher {
         return "/MessageDispatch_Handled/" + messageID;
     }
 
-    public void noServerMessagesPresent() {
-        data.putValue(SERVER_MESSAGES, null);
+    public void setKnownServerMessagesIDs(Set<String> currentServerIDs) {
+        ListData oldList = ListData.asListData(data.getValue(SERVER_MESSAGES));
+        if (oldList != null) {
+            ListData newList = new ListData();
+            for (int i = 0; i < oldList.size(); i++) {
+                Object oneID = oldList.get(i);
+                if (currentServerIDs.contains(oneID))
+                    newList.add(oneID);
+            }
+
+            if (newList.size() == 0)
+                newList = null;
+            data.putValue(SERVER_MESSAGES, newList);
+        }
     }
 
     private static final String EXTENSION_NAME = "messageHandler";

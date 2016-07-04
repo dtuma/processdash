@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,16 +50,14 @@ public class MessageImporterXMLv1 implements
 
     public void handle(ArchiveMetricsFileImporter caller, InputStream in,
             String type, String version) throws Exception {
-        doImport(caller, in);
+        doImport(caller, in, false);
     }
 
     public static void importServerMessageFile(File f) throws IOException {
         InputStream in = null;
         try {
             in = new FileInputStream(f);
-            boolean sawMessages = doImport(null, in);
-            if (sawMessages == false)
-                MessageDispatcher.getInstance().noServerMessagesPresent();
+            doImport(null, in, true);
         } catch (IOException ioe) {
             throw ioe;
         } catch (Exception e) {
@@ -67,29 +67,35 @@ public class MessageImporterXMLv1 implements
         }
     }
 
-    private static boolean doImport(ArchiveMetricsFileImporter caller,
-            InputStream in) throws Exception {
+    private static void doImport(ArchiveMetricsFileImporter caller,
+            InputStream in, boolean serverMode) throws Exception {
 
         // read the XML document from the input stream.
         InputStream xmlIn = new NonclosingInputStream(in);
         Document doc = XMLUtils.parse(xmlIn);
+        Set<String> serverIDs = new HashSet();
 
         // Now, find all of the messages in the document
-        boolean sawMessage = false;
         NodeList messages = doc.getElementsByTagName(MESSAGE_TAG);
         if (messages != null) {
             for (int i = 0; i < messages.getLength(); i++) {
                 Element msg = (Element) messages.item(i);
                 MessageEvent msgEvent = new MessageEvent(msg);
-                sawMessage = true;
+                if (serverMode) {
+                    // handle server messages immediately, and keep track of
+                    // the server message IDs we've seen.
+                    MessageDispatcher.getInstance().dispatch(msgEvent, false);
+                    serverIDs.add(msgEvent.getServerId());
 
-                // Register a task to dispatch each message later on the
-                // background thread.  (Message handling logic is defined
-                // by third parties, and we have no guarantee that it will
-                // finish in a timely manner.  We can't risk hanging the
-                // import operation indefinitely.)
-                BackgroundTaskManager.getInstance().addTask(
-                    new MessageDispatchTask(msgEvent));
+                } else {
+                    // Register a task to dispatch each message later on the
+                    // background thread.  (Message handling logic is defined
+                    // by third parties, and we have no guarantee that it will
+                    // finish in a timely manner.  We can't risk hanging the
+                    // import operation indefinitely.)
+                    BackgroundTaskManager.getInstance().addTask(
+                        new MessageDispatchTask(msgEvent));
+                }
             }
         }
 
@@ -97,7 +103,9 @@ public class MessageImporterXMLv1 implements
         if (nl != null && nl.getLength() > 0 && caller != null)
             caller.deleteArchiveFileOnCompletion();
 
-        return sawMessage;
+        if (serverMode)
+            MessageDispatcher.getInstance()
+                    .setKnownServerMessagesIDs(serverIDs);
     }
 
     private static class MessageDispatchTask implements Runnable {
