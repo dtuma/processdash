@@ -408,6 +408,9 @@ The author(s) may be contacted at:
   <messageHandler
      class="net.sourceforge.processdash.ev.TaskListAltererMessageHandler"/>
 
+  <messageHandler
+     class="net.sourceforge.processdash.log.time.TimeLogMessageHandler"/>
+
   <messageHandler requires="personalMode"
      class="net.sourceforge.processdash.team.setup.TeamStartMessageHandler"/>
 
