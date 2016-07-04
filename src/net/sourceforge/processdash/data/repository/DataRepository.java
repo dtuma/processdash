@@ -67,6 +67,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -2852,6 +2853,29 @@ public class DataRepository implements Repository, DataContext,
         loadDatafile(null, new StringReader(contents), dest, DO_FOLLOW_INCLUDES,
                 DO_CLOSE);
     }
+
+    public Map<String, SimpleData> parseSimpleData(String contents)
+            throws InvalidDatafileFormat {
+        Map<String, Object> rawData = new HashMap();
+        try {
+            loadDatafile(null, new StringReader(contents), rawData,
+                DO_NOT_FOLLOW_INCLUDES, DO_CLOSE);
+        } catch (InvalidDatafileFormat idf) {
+            throw idf;
+        } catch (Exception e) {
+            return Collections.EMPTY_MAP;
+        }
+
+        Map<String, SimpleData> result = new HashMap();
+        for (Entry<String, Object> e : rawData.entrySet()) {
+            SaveableData sd = instantiateValue(e.getKey(), "", e.getValue(),
+                false);
+            if (sd == null || sd instanceof SimpleData)
+                result.put(e.getKey(), (SimpleData) sd);
+        }
+        return result;
+    }
+
 
     private final Hashtable defineDeclarations = new Hashtable();
     public void putDefineDeclarations(String datafile, String decls) {

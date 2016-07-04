@@ -264,6 +264,16 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         return result;
     }
 
+    public PropertyKey findKeyByNodeID(String nodeID) {
+        if (StringUtils.hasValue(nodeID)) {
+            for (Map.Entry<PropertyKey, Prop> e : entrySet()) {
+                if (nodeID.equals(e.getValue().getNodeID()))
+                    return e.getKey();
+            }
+        }
+        return null;
+    }
+
     /* returns true IIF the property has a datafile. */
     private boolean hasDataFile(Prop p) {
         String datafile = p.getDataFile();

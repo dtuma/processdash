@@ -400,6 +400,9 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.ui.web.api.McfSizeMetricApiHandler" />
 
   <messageHandler
+     class="net.sourceforge.processdash.data.repository.DataMessageHandler"/>
+
+  <messageHandler
      class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
 
   <messageHandler
