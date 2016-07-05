@@ -284,8 +284,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException ioe) {
             default_directory = prop_file.getParentFile().getAbsolutePath();
         }
-        ImportDirectoryFactory.getInstance().setBaseDirectory(
-            new File(default_directory));
+        ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
         pt.click("Set default directory");
 
 

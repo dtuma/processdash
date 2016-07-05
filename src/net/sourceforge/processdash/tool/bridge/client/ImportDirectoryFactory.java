@@ -53,7 +53,7 @@ public class ImportDirectoryFactory {
 
     private Map<String, ImportDirectory> cache;
 
-    private File baseDirectory;
+    private WorkingDirectory baseDirectory;
 
     private String[] preferCachesFor;
 
@@ -66,12 +66,16 @@ public class ImportDirectoryFactory {
         preferCachesFor = null;
     }
 
-    public void setBaseDirectory(File dir) {
+    public void setBaseDirectory(WorkingDirectory dir) {
         this.baseDirectory = dir;
     }
 
     public void setPreferCachesFor(String[] preferCachesFor) {
         this.preferCachesFor = preferCachesFor;
+    }
+
+    boolean isCaching() {
+        return preferCachesFor != null;
     }
 
     public void setNoCachesFor(String[] noCachesFor) {
@@ -177,7 +181,14 @@ public class ImportDirectoryFactory {
                 File dir;
                 if ((location.startsWith("./") || location.startsWith(".\\"))
                         && baseDirectory != null) {
-                    dir = new File(baseDirectory, location.substring(2));
+                    String subdir = location.substring(2);
+                    if (baseDirectory instanceof BridgedWorkingDirectory) {
+                        return new BridgedImportSubdirectory(
+                                (BridgedWorkingDirectory) baseDirectory, subdir);
+                    } else {
+                        dir = new File(baseDirectory.getDirectory(), subdir);
+                    }
+
                 } else {
                     dir = new File(location);
                 }

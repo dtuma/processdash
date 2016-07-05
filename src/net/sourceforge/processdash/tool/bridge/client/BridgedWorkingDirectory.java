@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -199,6 +199,14 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             acquireOnlineWriteLock(ownerName);
         worker = new Worker(lockHandler);
         registerShutdownHook();
+    }
+
+    /**
+     * @return true if we have acquired a write lock in the past, and have not
+     *         explicitly released it yet.
+     */
+    protected boolean hasAcquiredWriteLock() {
+        return worker != null;
     }
 
     private void resumeOfflineWriteLock(String ownerName)

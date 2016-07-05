@@ -128,7 +128,8 @@ public class DynamicImportDirectory implements ImportDirectory {
         // is that we will never switch from a bridged directory back to a
         // local directory. But the need to do that is rare: it would only
         // be useful if the Team Server shut down while we were running.
-        if (delegate instanceof BridgedImportDirectory)
+        if (delegate instanceof BridgedImportDirectory
+                || delegate instanceof BridgedImportSubdirectory)
             return false;
 
         // If we're using cached files on our hard drive, we always want to
