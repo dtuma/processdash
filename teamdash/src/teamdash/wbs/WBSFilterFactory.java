@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -181,6 +181,8 @@ public class WBSFilterFactory {
 
             for (int i = 0; i < tokens.length; i++) {
                 String t = tokens[i];
+                if (t == null)
+                    continue;
                 if (is(WHOLE_WORDS))
                     t = t.trim();
                 if (is(IGNORE_CASE))
@@ -191,6 +193,9 @@ public class WBSFilterFactory {
 
         public boolean match(WBSNode node) {
             String text = getNodeText(node);
+            if (text == null && tokens.length > 0 && tokens[0] == null)
+                return true;
+
             if (text == null || text.length() == 0)
                 return false;
 

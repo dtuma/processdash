@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -217,6 +217,7 @@ public class WBSFilterAction extends AbstractAction {
         panel.add(label);  layout.setConstraints(label, lc);
         milestoneFilter = new CompletingField(MilestoneColumn.COLUMN_ID);
         milestoneFilter.mask = WBSFilterFactory.ENTIRE_VALUE;
+        milestoneFilter.nullItemText = resources.getString("Items.Milestone_None");
         panel.add(milestoneFilter);  layout.setConstraints(milestoneFilter, vc);
 
         lc.gridy++;  vc.gridy++;
@@ -513,6 +514,8 @@ public class WBSFilterAction extends AbstractAction {
     private class CompletingField extends AbstractFilterField implements
             KeyListener {
 
+        protected String nullItemText;
+
         protected JComboBox valueField;
 
         private TableCellEditor cellEditor;
@@ -529,6 +532,7 @@ public class WBSFilterAction extends AbstractAction {
         protected JComponent makeComponent() {
             // create the combo box to hold our values.
             valueField = getComboBox();
+            maybeAddNullItem();
 
             // the table-cell-editor component won't have a border.  Give it
             // the same border and preferred size as the plain-text editors
@@ -553,6 +557,14 @@ public class WBSFilterAction extends AbstractAction {
         public void refreshValues() {
             cellEditor.getTableCellEditorComponent(tabPanel.dataTable,
                 getValue(), false, 0, -1);
+            maybeAddNullItem();
+        }
+
+        private void maybeAddNullItem() {
+            if (nullItemText != null) {
+                String itemText = "\u00AB" + nullItemText + "\u00BB ";
+                valueField.insertItemAt(itemText, 0);
+            }
         }
 
         @Override
@@ -564,6 +576,14 @@ public class WBSFilterAction extends AbstractAction {
             Object item = valueField.getSelectedItem();
             String result = (item == null ? "" : item.toString().trim());
             return (result.length() > 0 ? result : null);
+        }
+
+        @Override
+        public String[] getValues() {
+            if (nullItemText != null && valueField.getSelectedIndex() == 0)
+                return new String[] { null };
+            else
+                return super.getValues();
         }
 
         public void keyPressed(KeyEvent e) {
