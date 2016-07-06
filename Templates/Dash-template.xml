@@ -415,6 +415,9 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.team.setup.TeamStartMessageHandler"/>
 
   <messageHandler
+     class="net.sourceforge.processdash.tool.export.impl.RefreshImportMessageHandler"/>
+
+  <messageHandler
      class="net.sourceforge.processdash.ui.web.api.ApiMessageRepeater"/>
 
  <!-- definitions for the preferences dialog. -->

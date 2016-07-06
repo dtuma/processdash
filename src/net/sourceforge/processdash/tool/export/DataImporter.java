@@ -172,6 +172,19 @@ public class DataImporter extends Thread {
         }
         return result;
     }
+    public static List<String> refreshLocation(String location) {
+        location = massagePrefix(location);
+        List<String> result = new ArrayList<String>();
+        for (DataImporter importer : importers.values()) {
+            String oneLoc = massagePrefix(importer.directory.getDescription());
+            if (oneLoc.endsWith(location)) {
+                logger.info("checking " + importer.importPrefix + "=>"
+                        + importer.directory.getDescription());
+                importer.checkFiles(result);
+            }
+        }
+        return result;
+    }
     public static void refreshCachedFiles() {
         for (DataImporter importer : importers.values())
             importer.refreshIfCached();
