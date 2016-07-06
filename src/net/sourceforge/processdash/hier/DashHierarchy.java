@@ -838,6 +838,10 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         return aFile;
     }
 
+    public boolean hasNodeIDs() {
+        return StringUtils.hasValue(pget(PropertyKey.ROOT).getNodeID());
+    }
+
     public boolean assignMissingNodeIDs() {
         // first, find the largest node ID currently in use
         int maxIdNum = 0;
@@ -846,9 +850,9 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
             String oneID = p.getNodeID();
             if (!StringUtils.hasValue(oneID)) {
                 sawMissingID = true;
-            } else if (oneID.startsWith("0:")) {
+            } else if (oneID.indexOf(':') == -1) {
                 try {
-                    int oneIdNum = Integer.parseInt(oneID.substring(2));
+                    int oneIdNum = Integer.parseInt(oneID);
                     maxIdNum = Math.max(maxIdNum, oneIdNum);
                 } catch (Exception e) {}
             }
@@ -859,7 +863,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
             for (Prop p : values()) {
                 String thisID = p.getNodeID();
                 if (!StringUtils.hasValue(thisID))
-                    p.setNodeID("0:" + (++maxIdNum));
+                    p.setNodeID(Integer.toString(++maxIdNum));
             }
             pget(PropertyKey.ROOT).setNodeID("0:root");
         }

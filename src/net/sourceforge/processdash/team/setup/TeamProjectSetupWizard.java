@@ -55,6 +55,7 @@ import org.w3c.dom.Document;
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
@@ -66,6 +67,7 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -637,7 +639,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         alterTeamTemplateID(teamPID);
-        setProjectRootNodeId(projectID);
+        maybeSetProjectRootNodeId(projectID);
         String scheduleID = createTeamSchedule (teamSchedule);
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
             teamSchedule, scheduleID, relaunchSourceID, relaunchSourcePath);
@@ -1076,10 +1078,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         DashController.alterTemplateID(getPrefix(), TEAM_STUB_ID, teamPID);
     }
 
-    private void setProjectRootNodeId(String projectID) {
+    private void maybeSetProjectRootNodeId(String projectID) {
         DashHierarchy hier = getPSPProperties();
-        PropertyKey rootKey = hier.findExistingKey(getPrefix());
-        hier.pget(rootKey).setNodeID(projectID + ":root");
+        if (hier.hasNodeIDs()) {
+            PropertyKey rootKey = hier.findExistingKey(getPrefix());
+            hier.pget(rootKey).setNodeID(projectID + ":root");
+        }
     }
 
     protected void handleJoinTeamSchedPage() {
@@ -2034,7 +2038,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
-        setProjectRootNodeId(projectID);
+        maybeSetProjectRootNodeId(projectID);
         boolean joinSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);
         importDisseminatedTeamData();
@@ -2275,6 +2279,38 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return this;
         }
 
+    }
+
+
+    public static boolean copyNodeIDsToHierarchy(DataRepository data,
+            DashHierarchy hier) {
+        return copyNodeIDsToHierarchy(data, hier, PropertyKey.ROOT);
+    }
+
+    private static boolean copyNodeIDsToHierarchy(DataContext data,
+            DashHierarchy hier, PropertyKey key) {
+
+        boolean madeChange = false;
+        SimpleData projectID = data.getSimpleValue(DataRepository
+                .createDataName(key.path(), TeamDataConstants.PROJECT_ID));
+
+        if (projectID != null && projectID.test()) {
+            String nodeID = projectID.format() + ":root";
+            Prop p = hier.pget(key);
+            if (!nodeID.equals(p.getNodeID())) {
+                p.setNodeID(nodeID);
+                madeChange = true;
+            }
+
+        } else {
+            for (int i = hier.getNumChildren(key); i-- > 0;) {
+                PropertyKey child = hier.getChildKey(key, i);
+                if (copyNodeIDsToHierarchy(data, hier, child))
+                    madeChange = true;
+            }
+        }
+
+        return madeChange;
     }
 
 }

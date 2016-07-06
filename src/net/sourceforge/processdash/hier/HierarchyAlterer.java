@@ -481,7 +481,8 @@ public class HierarchyAlterer implements ItemListener {
         readNodesAndLeaves(nodesAndLeaves, data);
         setNodesAndLeaves(nodesAndLeaves, data, useProps, PropertyKey.ROOT);
         clearNodesAndLeaves(nodesAndLeaves, data);
-        useProps.assignMissingNodeIDs();
+        if (useProps.hasNodeIDs())
+            useProps.assignMissingNodeIDs();
     }
 
     public static final String NODE_TAG = "/node";
