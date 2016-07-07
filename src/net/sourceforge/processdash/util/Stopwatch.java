@@ -149,4 +149,21 @@ public class Stopwatch {
         return (long)minutesInterruptDouble();
     }
 
+    public void setStopTime(Date newStopTime) {
+        if (newStopTime.before(createTime))
+            throw new IllegalArgumentException(
+                    "cannot stop a stopwatch before it was created");
+
+        stop();
+        if (stopTime != null && stopTime.after(newStopTime)) {
+            long overlap = (stopTime.getTime() - newStopTime.getTime()) / 1000;
+            if (overlap < elapsedTime) {
+                elapsedTime -= overlap;
+                stopTime = newStopTime;
+            } else {
+                reset();
+            }
+        }
+    }
+
 }

@@ -60,6 +60,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
     PropertyKey currentPhase = null;
 
+    private Date activeTaskDate = null;
+
     private boolean pauseInProgress;
 
     private double multiplier = 1.0;
@@ -252,6 +254,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
 
         if (newCurrentPhase != null)
             currentPhase = newCurrentPhase;
+        activeTaskDate = new Date();
 
         if (!paused)
             startTiming();
@@ -446,6 +449,27 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         result.setMultiplier(multiplier);
         return result;
     }
+
+    public void handleExternalAddition(TimeLogEntry tle) {
+        // Check to see if this event represents a time log entry that started
+        // after our stopwatch was created
+        Date otherStart = tle.getStartTime();
+        if (stopwatch != null && otherStart.after(stopwatch.getCreateTime())) {
+            // another client started a time log entry after us. Update our
+            // state to ensure that our time log entry doesn't overlap.
+            stopTiming();
+            stopwatch.setStopTime(otherStart);
+            saveAndReleaseCurrentTimeLogEntry();
+        }
+
+        // possibly change the active task, to reflect the activity the external
+        // client was logging time against
+        if (activeTaskDate == null || activeTaskDate.before(otherStart)) {
+            if (getActiveTaskModel().setPath(tle.getPath()))
+                activeTaskDate = otherStart;
+        }
+    }
+
 
     private class ExternalChangeListener implements PropertyChangeListener {
 

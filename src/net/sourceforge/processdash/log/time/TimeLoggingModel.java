@@ -125,4 +125,10 @@ public interface TimeLoggingModel extends SaveableDataSource {
      */
     public void setMultiplier(double multiplier);
 
+    /**
+     * Update state based on some other time log entry, which has been added
+     * by another client.
+     */
+    public void handleExternalAddition(TimeLogEntry externallyAddedEntry);
+
 }

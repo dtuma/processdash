@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.log.ChangeFlagged;
 import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.msg.MessageHandler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -97,8 +98,13 @@ public class TimeLogMessageHandler implements MessageHandler {
         }
 
         // add the modification to the dashboard time log
-        ((ModifiableTimeLog) ctx.getTimeLog())
-                .addModification((ChangeFlaggedTimeLogEntry) mod);
+        DashboardTimeLog timeLog = (DashboardTimeLog) ctx.getTimeLog();
+        ChangeFlaggedTimeLogEntry cftle = (ChangeFlaggedTimeLogEntry) mod;
+        timeLog.addModification(cftle);
+
+        // notify the time logging model about external additions
+        if (cftle.getChangeFlag() == ChangeFlagged.ADDED)
+            timeLog.getTimeLoggingModel().handleExternalAddition(mod);
     }
 
 }
