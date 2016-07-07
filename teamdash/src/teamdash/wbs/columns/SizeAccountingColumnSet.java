@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -90,10 +90,13 @@ public class SizeAccountingColumnSet {
 
     private static class AddedSizeColumn extends TopDownBottomUpColumn {
 
+        private String restoreCandidateAttrName;
+
         public AddedSizeColumn(DataTableModel m, String name, Pruner p) {
             super(m, name, name, p);
             setHideInheritedValues(true);
             setConflictAttributeName(topDownAttrName);
+            restoreCandidateAttrName = bottomUpAttrName + " Restore Candidate";
         }
 
         @Override
@@ -139,6 +142,54 @@ public class SizeAccountingColumnSet {
             }
             return probeTask;
         }
+
+        @Override
+        protected double maybeRestoreTopDownValueForLeaf(WBSNode node) {
+            // the goal of this method is to improve the user experience when
+            // all of the tasks are deleted from underneath a component. In that
+            // case, we'd like the component to remember the size it had
+            // immediately before the deletion occurred.
+
+            // first, check to see if this task is a candidate for restoration.
+            if (node.removeAttribute(restoreCandidateAttrName) == null)
+                return 0;
+
+            // If so, restore the previous bottom up value, if one was present.
+            double bottomUpValue = node.getNumericAttribute(bottomUpAttrName);
+            if (bottomUpValue > 0) {
+                node.setNumericAttribute(topDownAttrName, bottomUpValue);
+                return bottomUpValue;
+            }
+
+            // no bottom up size was present to restore.
+            return 0;
+        }
+
+        @Override
+        protected double sumUpChildValues(WBSNode[] children, int numToInclude) {
+            double result = super.sumUpChildValues(children, numToInclude);
+
+            // This node is a candidate for bottom-up size restoration if it
+            // has a nonzero bottom-up size, and if it has children that are
+            // tasks (rather than components). Record this fact, either way.
+            WBSNode parent = wbsModel.getParent(children[0]);
+            if (result > 0 && hasTaskChildren(children, numToInclude))
+                parent.setAttribute(restoreCandidateAttrName, "t");
+            else
+                parent.removeAttribute(restoreCandidateAttrName);
+
+            return result;
+        }
+
+        private boolean hasTaskChildren(WBSNode[] children, int numToInclude) {
+            for (int i = numToInclude; i-- > 0;) {
+                String type = children[i].getType();
+                if (type != null && type.endsWith(" Task"))
+                    return true;
+            }
+            return false;
+        }
+
     }
 
     private static class NewChangedSizeColumn extends AbstractNumericColumn

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -163,7 +163,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
         if (numToInclude == 0) {
             // this is a leaf. The bottom up value equals the top-down value.
-            if (Double.isNaN(topDownValue)) topDownValue = 0;
+            if (Double.isNaN(topDownValue))
+                topDownValue = maybeRestoreTopDownValueForLeaf(node);
             else if (topDownValue == 0) node.removeAttribute(topDownAttrName);
             node.setNumericAttribute(bottomUpAttrName, topDownValue);
             node.setAttribute(inheritedAttrName, null);
@@ -204,6 +205,11 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             setInheritedValue(children[i], inheritedVal);
 
         return result;
+    }
+
+    protected double maybeRestoreTopDownValueForLeaf(WBSNode node) {
+        // default behavior: do not restore any top-down value.
+        return 0;
     }
 
     protected double sumUpChildValues(WBSNode[] children, int numToInclude) {
