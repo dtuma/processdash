@@ -88,10 +88,9 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.log.defects.DefectLog;
-import net.sourceforge.processdash.log.defects.DefectPhase;
+import net.sourceforge.processdash.log.defects.DefectWorkflowPhaseUpdater;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.WorkflowInfo;
-import net.sourceforge.processdash.process.WorkflowInfo.Phase;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
@@ -1595,107 +1594,21 @@ public class HierarchySynchronizer {
 
     private void updateWorkflowPhasesInDefects() {
         if (workflowXml != null) {
-            DefectWorkflowPhaseUpdater u = new DefectWorkflowPhaseUpdater();
+            DefectWorkflowPhaseUpdater u = new DefectWorkflowPhaseUpdater(
+                    new WorkflowInfo(workflowXml), !whatIfMode) {
+                public void defectNeedsSave(String path, Defect d) {
+                    saveDefect(path, d);
+                }
+            };
             DefectAnalyzer.run(hierarchy, projectKey, true, u);
+
+            // Log a "sync change" to tell the user about invalid phases.
+            for (String path : u.getPathsWithNewInvalidPhases()) {
+                String msg = resources.format("Bad_Defect_Phase_FMT", path);
+                if (!changes.contains(msg))
+                    changes.add(msg);
+            }
         }
-    }
-
-    private class DefectWorkflowPhaseUpdater implements DefectAnalyzer.Task {
-
-        private WorkflowInfo info;
-
-        public DefectWorkflowPhaseUpdater() {
-            info = new WorkflowInfo(workflowXml);
-        }
-
-        @Override
-        public void analyze(String path, Defect d) {
-            boolean needsSave = false;
-            if (maybeFixPhase(path, d.injected)) {
-                d.phase_injected = d.injected.legacyPhase;
-                needsSave = true;
-            }
-            if (maybeFixPhase(path, d.removed)) {
-                d.phase_removed = d.removed.legacyPhase;
-                needsSave = true;
-            }
-            if (needsSave)
-                saveDefect(path, d);
-        }
-
-        private boolean maybeFixPhase(String path, DefectPhase p) {
-            if (p == null || p.phaseID == null)
-                // this is not a workflow phase. Nothing to do
-                return false;
-
-            boolean needsSave = false;
-
-            Phase workflowPhase = null;
-            if (p.phaseID.indexOf(',') == -1) {
-                // Look up the phase specified by this phaseID.
-                workflowPhase = info.getPhase(p.phaseID);
-
-            } else {
-                // this phaseID field is multivalued, with comma-separated IDs
-                // specifying nested workflow phases. Scan these IDs to make
-                // sure they are still valid.
-                List idList = new ArrayList(Arrays.asList(p.phaseID.split(",")));
-                for (int i = idList.size(); i-- > 0;) {
-                    String oneID = (String) idList.get(i);
-                    Phase onePhase = info.getPhase(oneID);
-                    if (onePhase == null) {
-                        idList.remove(i);
-                        needsSave = true;
-                    } else if (workflowPhase == null) {
-                        workflowPhase = onePhase;
-                    }
-                }
-                if (idList.isEmpty()) {
-                    // if we scanned all of the items in the ID list and came
-                    // up emptyhanded, don't discard the bad IDs.
-                    needsSave = false;
-                } else if (needsSave) {
-                    // if we modified the ID list without completely emptying
-                    // it, save the new value into the DefectPhase object.
-                    p.phaseID = StringUtils.join(idList, ",");
-                }
-            }
-
-            if (workflowPhase == null) {
-                // the workflow phase with this ID no longer exists in the
-                // project. See if we can find a phase with the same name; if
-                // so, update the phaseID to match what we found.
-                workflowPhase = info.getPhase(p.processName, p.phaseName.trim());
-                if (workflowPhase != null) {
-                    p.phaseID = workflowPhase.getPhaseId();
-                    needsSave = true;
-                }
-            }
-
-            if (workflowPhase == null) {
-                // The phaseID is invalid, and we couldn't fix it. Erroneous
-                // phases like this should be flagged with a terminal space in
-                // the phase name.If that space isn't present, add it.
-                if (!p.phaseName.endsWith(" ")) {
-                    p.phaseName += " ";
-                    needsSave = !whatIfMode;
-
-                    // Log a "sync change" to tell the user about the problem.
-                    String msg = resources.format("Bad_Defect_Phase_FMT", path);
-                    if (!changes.contains(msg))
-                        changes.add(msg);
-                }
-
-            } else {
-                // we found an appropriate workflow phase. Make certain the
-                // names and MCF phase match; update them if needed.
-                if (p.updateFrom(workflowPhase))
-                    needsSave = true;
-            }
-
-            return needsSave;
-        }
-
     }
 
     public void saveDefect(final String path, final Defect d) {
