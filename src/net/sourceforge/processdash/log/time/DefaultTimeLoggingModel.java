@@ -457,8 +457,8 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         if (stopwatch != null && otherStart.after(stopwatch.getCreateTime())) {
             // another client started a time log entry after us. Update our
             // state to ensure that our time log entry doesn't overlap.
+            stopwatch.cancelTimingAsOf(otherStart);
             stopTiming();
-            stopwatch.setStopTime(otherStart);
             saveAndReleaseCurrentTimeLogEntry();
         }
 

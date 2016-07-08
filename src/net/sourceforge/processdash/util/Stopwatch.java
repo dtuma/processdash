@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2005 Tuma Solutions, LLC
+// Copyright (C) 1998-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -71,13 +71,16 @@ public class Stopwatch {
                 interruptTime = interruptTime +
                     ((startTime.getTime() - stopTime.getTime()) / 1000);
             }
-            stopTime = null;
         }
     }
 
     public void stop() {
+        stopAsOf(new Date());
+    }
+
+    private void stopAsOf(Date when) {
         if (startTime != null) {
-            stopTime = new Date();
+            stopTime = when;
             elapsedTime = elapsedTime +
                 ((stopTime.getTime() - startTime.getTime()) / 1000);
             startTime = null;
@@ -149,19 +152,52 @@ public class Stopwatch {
         return (long)minutesInterruptDouble();
     }
 
-    public void setStopTime(Date newStopTime) {
-        if (newStopTime.before(createTime))
-            throw new IllegalArgumentException(
-                    "cannot stop a stopwatch before it was created");
+    public void cancelTimingAsOf(Date cancellationTime) {
+        // sanity check the parameter
+        Date now = new Date();
+        if (cancellationTime.after(now))
+            cancellationTime = now;
 
-        stop();
-        if (stopTime != null && stopTime.after(newStopTime)) {
-            long overlap = (stopTime.getTime() - newStopTime.getTime()) / 1000;
-            if (overlap < elapsedTime) {
-                elapsedTime -= overlap;
-                stopTime = newStopTime;
+        if (startTime != null) {
+            // the timer is currently running.
+
+            if (startTime.before(cancellationTime)) {
+                // the timer was started sometime before cancellation time. All
+                // we need to do is stop the timer retroactively.
+                stopAsOf(cancellationTime);
+                return;
+
             } else {
+                // the timer should not have been started at all, because the
+                // required cancellation time precedes it.
+
+                // see if we have a period of interrupt time that precedes the
+                // bad start time. If so, discard that period of interrupt time.
+                if (stopTime != null) {
+                    long interruptToDiscard = (startTime.getTime()
+                            - stopTime.getTime()) / 1000;
+                    interruptTime -= interruptToDiscard;
+                    if (interruptTime < 0)
+                        interruptTime = 0;
+                }
+
+                // Finally, cancel the current timing period without accruing
+                // any logged time.
+                startTime = null;
+            }
+        }
+
+        if (stopTime != null && cancellationTime.before(stopTime)) {
+            // The timer was stopped sometime in the past, but not soon enough.
+            // Move the stop time backward, deleting the overlap from the
+            // accrued logged time.
+            long overlapTime = (stopTime.getTime()
+                    - cancellationTime.getTime()) / 1000;
+            if (overlapTime > elapsedTime) {
                 reset();
+            } else {
+                elapsedTime -= overlapTime;
+                stopTime = cancellationTime;
             }
         }
     }
