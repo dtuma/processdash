@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2003 Tuma Solutions, LLC
+// Copyright (C) 2000-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ package net.sourceforge.processdash.log.ui;
 import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.event.*;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Color;
@@ -145,9 +146,6 @@ public class ValidatingTable extends JPanel {
         }
         if (data != null)
             ((VTableModel)table.getModel()).setDataVector(data,null);
-        //table.setMultipleSelectionAllowed (false);
-        table.setColumnSelectionAllowed (false);
-        table.setRowSelectionAllowed (false);
 
         // Put the table and header into a scrollPane
         JScrollPane scrollpane = new JScrollPane(table);
@@ -240,5 +238,20 @@ public class ValidatingTable extends JPanel {
     }
 
     public void doResizeRepaint() { table.doResizeRepaint(); }
+
+    public String getTextForSelection() {
+        StringBuilder buf = new StringBuilder();
+        for (int row : table.getSelectedRows()) {
+            for (int col = 0; col < table.getColumnCount(); col++) {
+                if (col > 0)
+                    buf.append("\t");
+                Object cellValue = table.getValueAt(row, col);
+                if (cellValue != null)
+                    buf.append(cellValue);
+            }
+            buf.append(System.getProperty("line.separator"));
+        }
+        return buf.toString();
+    }
 
 }

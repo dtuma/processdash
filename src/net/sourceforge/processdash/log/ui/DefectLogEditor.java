@@ -31,12 +31,14 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.PrintJob;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -48,6 +50,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -64,6 +67,7 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.PopupMenuEvent;
@@ -89,7 +93,12 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectLogID;
+import net.sourceforge.processdash.log.defects.DefectPhase;
+import net.sourceforge.processdash.log.defects.DefectUtil;
+import net.sourceforge.processdash.log.defects.DefectWorkflowPhaseUpdater;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.process.WorkflowInfo;
+import net.sourceforge.processdash.process.WorkflowInfoFactory;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.ConfigureButton;
@@ -97,6 +106,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class DefectLogEditor extends Component implements
@@ -119,7 +129,7 @@ public class DefectLogEditor extends Component implements
     protected ValidatingTable table;
     protected JSplitPane      splitPane;
     protected DataRepository  data;
-    protected Vector          currentLog   = new Vector();
+    protected Vector<DefectListEntry> currentLog   = new Vector();
     protected DropDownButton  importButton;
     protected JButton editButton, deleteButton, closeButton, dtsEditButton;
     protected JComboBox dtsSelector;
@@ -192,6 +202,8 @@ public class DefectLogEditor extends Component implements
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
         tree.setRowHeight(-1);      // Make tree ask for the height of each row.
+        tree.setDropMode(DropMode.ON);
+        tree.setTransferHandler(new TreeTransferHandler());
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -617,13 +629,14 @@ public class DefectLogEditor extends Component implements
         DefectCellRenderer rend = new DefectCellRenderer();
         for (int col = 2;  col < 5;  col++)
             table.table.getColumnModel().getColumn(col).setCellRenderer(rend);
-        table.table.setRowSelectionAllowed (false);
         table.table.getSelectionModel().addListSelectionListener(this);
         table.table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2)
                     editButton.doClick();
             } } );
+        table.table.setTransferHandler(new TableTransferHandler());
+        table.table.setDragEnabled(true);
 
         retPanel.add ("Center", table);
 
@@ -919,6 +932,177 @@ public class DefectLogEditor extends Component implements
             setSelectedNode(parent);
         else
             setSelectedNode(phase);
+    }
+    private void selectDefects(PropertyKey pk, List<String> idsToSelect) {
+        table.table.clearSelection();
+        for (int i = currentLog.size(); i-- > 0;) {
+            DefectListEntry oneItem = currentLog.get(i);
+            if (pk.equals(oneItem.pk)
+                    && idsToSelect.contains(oneItem.defect.number))
+                table.table.addRowSelectionInterval(i, i);
+        }
+    }
+
+
+    private class TableTransferHandler extends TransferHandler {
+
+        @Override
+        public int getSourceActions(JComponent c) {
+            return COPY_OR_MOVE;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            List<DefectListEntry> selectedDefects = new ArrayList();
+            for (int row : table.table.getSelectedRows())
+                selectedDefects.add(currentLog.elementAt(row));
+            String selectionText = table.getTextForSelection();
+            return new DefectLogSelection(selectedDefects, selectionText);
+        }
+
+    }
+
+    private class TreeTransferHandler extends TransferHandler {
+
+        @Override
+        public boolean canImport(TransferSupport support) {
+            return getTarget(support) != null;
+        }
+
+        @Override
+        public boolean importData(TransferSupport support) {
+            // determine the location where the defects should be moved
+            DefectListID destination = getTarget(support);
+            if (destination == null)
+                return false;
+
+            // create objects to help with checking defect phase data
+            String path = destination.pk.path();
+            DefectWorkflowPhaseUpdater workflowFixer = getWorkflowFixer(path);
+            List phases = DefectUtil.getDefectPhases(path, dashboard);
+            phases.add("PROBE");
+
+            try {
+                // move the defects, and keep track of the IDs assigned to them
+                // in the new defect log
+                List<DefectListEntry> entries = (List) support
+                        .getTransferable().getTransferData(
+                            DefectLogSelection.FLAVOR);
+                List<String> newIds = new ArrayList<String>();
+                for (DefectListEntry oneEntry : entries) {
+                    String newId = moveDefect(oneEntry, destination,
+                        workflowFixer, phases);
+                    newIds.add(newId);
+                }
+ 
+                // show the defects in the new location
+                setSelectedNode(destination.pk);
+                selectDefects(destination.pk, newIds);
+                return true;
+
+            } catch (Exception e) {
+            }
+
+            return false;
+        }
+
+        private DefectListID getTarget(TransferSupport support) {
+            if (!support.isDataFlavorSupported(DefectLogSelection.FLAVOR))
+                return null;
+
+            TreePath path;
+            if (support.isDrop()) {
+                // find the path the user dropped the entries on.
+                DropLocation loc = support.getDropLocation();
+                path = ((JTree.DropLocation) loc).getPath();
+            } else {
+                // for cut/paste, we paste to the selected path.
+                path = tree.getSelectionPath();
+            }
+            if (path == null)
+                return null;
+
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+                    .getLastPathComponent();
+            PropertyKey key = treeModel.getPropKey(useProps, node.getPath());
+            if (key != null && hasDefLog(key))
+                return (DefectListID) defectLogs.get(key);
+            else
+                return null;
+        }
+    }
+
+    private DefectWorkflowPhaseUpdater getWorkflowFixer(String path) {
+        WorkflowInfo workflows = WorkflowInfoFactory.get(data, path);
+        if (workflows != null)
+            return new DefectWorkflowPhaseUpdater(workflows, true);
+        else
+            return null;
+    }
+
+    private String moveDefect(DefectListEntry src, DefectListID dest,
+            DefectWorkflowPhaseUpdater workflowFixer, List phases) {
+        // if the defect is already in the right place, do nothing.
+        Defect defect = src.defect;
+        if (src.pk.equals(dest.pk))
+            return defect.number;
+
+        // remove the defect from its current defect log.
+        src.dl.deleteDefect(defect.number);
+        DefectDialog dlg = getDialogForDefect(src, false);
+        if (dlg != null)
+            dlg.dispose();
+
+        // check the defect phases for validity, and flag problems
+        if (workflowFixer != null) {
+            // if the defect was dropped into a team project, repair the
+            // workflow phase associations in the defect.
+            workflowFixer.analyze(dest.pk.path(), defect);
+        } else {
+            // if a defect with workflow phases was dropped outside a team
+            // project, flag the workflow phases as erroneous
+            flagWorkflowPhaseAsErroneous(defect.injected);
+            flagWorkflowPhaseAsErroneous(defect.removed);
+        }
+        // check the legacy phase types of the defect. If they are invalid for
+        // the new location, flag them as erroneous.
+        defect.phase_injected = checkPhase(defect.phase_injected, phases);
+        defect.phase_removed = checkPhase(defect.phase_removed, phases);
+
+        // add the defect to the new defect log
+        if (hasIntegerIdNumber(defect)
+                || dest.dl.getDefect(defect.number) != null)
+            src.defect.number = null;
+        dest.dl.writeDefect(defect);
+
+        // return the ID number assigned to the defect in the new log.
+        return defect.number;
+    }
+
+    private boolean hasIntegerIdNumber(Defect d) {
+        try {
+            Integer.parseInt(d.number);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void flagWorkflowPhaseAsErroneous(DefectPhase p) {
+        if (p != null && StringUtils.hasValue(p.phaseID)
+                && StringUtils.hasValue(p.phaseName)) {
+            p.phaseName = p.phaseName.trim() + " ";
+        }
+    }
+
+    private String checkPhase(String phase, List phases) {
+        if (phase == null)
+            return null;
+        phase = phase.trim();
+        if (phases.contains(phase))
+            return phase;
+        else
+            return phase + " ";
     }
 
 }

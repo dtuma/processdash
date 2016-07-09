@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -298,6 +298,11 @@ public class DefectLog {
     }
     private void modifyDataValue(String dataName, int increment,
             boolean ignoreExistingValue) {
+        // when phases are invalid, they are stored with a trailing space in
+        // the phase name. don't store or modify counts associated with these.
+        if (dataName.contains(" /Defects "))
+            return;
+
         String prefix = dataPrefix + getDataNamespace();
         dataName = DataRepository.createDataName(prefix, dataName);
         DoubleData val;
