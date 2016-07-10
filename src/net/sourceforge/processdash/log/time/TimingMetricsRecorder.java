@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2014 Tuma Solutions, LLC
+// Copyright (C) 2005-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.log.time;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,9 +57,9 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
 
     private TimeLoggingApprover approver;
 
-    private Set allPathsTouched;
+    private Set<String> allPathsTouched;
 
-    private Set pathsToCompute;
+    private Set<String> pathsToCompute;
 
 
 
@@ -68,8 +69,8 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
         this.timeLog = timeLog;
         this.hierarchy = hierarchy;
         this.approver = approver;
-        this.allPathsTouched = new HashSet();
-        this.pathsToCompute = new HashSet();
+        this.allPathsTouched = Collections.synchronizedSet(new HashSet());
+        this.pathsToCompute = Collections.synchronizedSet(new HashSet());
 
         timeLog.addTimeLogListener(this);
     }
@@ -99,11 +100,13 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
     }
 
     protected void queueTiming(String basePath) {
-        if (basePath == null) {
-            pathsToCompute.clear();
-            pathsToCompute.add(null);
-        } else if (!pathsToCompute.contains(null)) {
-            pathsToCompute.add(basePath);
+        synchronized (pathsToCompute) {
+            if (basePath == null) {
+                pathsToCompute.clear();
+                pathsToCompute.add(null);
+            } else if (!pathsToCompute.contains(null)) {
+                pathsToCompute.add(basePath);
+            }
         }
         if (data instanceof DataConsistencyEventSource)
             ((DataConsistencyEventSource) data).addDataConsistencyObserver(this);
@@ -112,8 +115,17 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
     }
 
     protected void processQueue() {
-        while (!pathsToCompute.isEmpty()) {
-            String path = (String) pathsToCompute.iterator().next();
+        while (true) {
+            // get one path to process, in a threadsafe way
+            String path;
+            synchronized (pathsToCompute) {
+                if (pathsToCompute.isEmpty())
+                    break;
+                else
+                    path = pathsToCompute.iterator().next(); 
+            }
+
+            // process the path we found
             if (saveTiming(path))
                 pathsToCompute.remove(path);
             else
@@ -203,7 +215,11 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
     }
 
     private void initMapFromTouchedPaths(String prefix, Map result) {
-        for (Iterator iter = allPathsTouched.iterator(); iter.hasNext();) {
+        List paths;
+        synchronized (allPathsTouched) {
+            paths = new ArrayList(allPathsTouched);
+        }
+        for (Iterator iter = paths.iterator(); iter.hasNext();) {
             String path = (String) iter.next();
             if (prefix == null || Filter.pathMatches(path, prefix, true))
                 result.put(path, null);
