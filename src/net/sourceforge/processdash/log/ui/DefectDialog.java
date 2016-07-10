@@ -730,6 +730,19 @@ public class DefectDialog extends JDialog
             if (injPos <= remPos)
                 return true;
 
+            // if the removal phase is part of a PSP task but the injection
+            // phase isn't, this might be a case where a PSP task is immediately
+            // followed by one or more related inspections. (The Task & Schedule
+            // logic inserts those phases in between the related PSP steps, so
+            // we should respect the same ordering logic.) Handle this special
+            // case by comparing the legacy process phases.
+            if (!injPhase.isPspPhase() && remPhase.isPspPhase()) {
+                injPos = getLegacyPhasePos(injPhase);
+                remPos = getLegacyPhasePos(remPhase);
+                if (injPos <= remPos || injPos == -1 || remPos == -1)
+                    return true;
+            }
+
         } else {
             // if the phases are legacy process phases, compare their positions
             // within the process.
@@ -755,6 +768,15 @@ public class DefectDialog extends JDialog
             return null;
         else
             return workflowPhases.workflowInfo.getPhase(p.getTerminalPhaseID());
+    }
+
+    private int getLegacyPhasePos(Phase workflowPhase) {
+        String legacyPhase = workflowPhase.getMcfPhase();
+        for (int i = processPhases.size(); i-- > 0;) {
+            if (processPhases.get(i).legacyPhase.equals(legacyPhase))
+                return i;
+        }
+        return -1;
     }
 
 

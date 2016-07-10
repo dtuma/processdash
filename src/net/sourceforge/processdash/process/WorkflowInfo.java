@@ -68,6 +68,8 @@ public class WorkflowInfo {
 
         private String phaseName, phaseId, mcfPhase;
 
+        private boolean isPspPhase;
+
         private Phase(Workflow workflow, Element xml, String phaseName,
                 String pspPhase) {
             this.workflow = workflow;
@@ -77,10 +79,12 @@ public class WorkflowInfo {
 
             if (pspPhase == null) {
                 this.mcfPhase = xml.getAttribute("phaseName");
+                this.isPspPhase = false;
             } else {
                 this.mcfPhase = pspPhase;
                 this.phaseName = this.phaseName + "/" + pspPhase;
                 this.phaseId = this.phaseId + "/" + pspPhase;
+                this.isPspPhase = true;
                 shortPhaseId = shortPhaseId + "/" + pspPhase;
             }
 
@@ -103,6 +107,10 @@ public class WorkflowInfo {
 
         public String getMcfPhase() {
             return mcfPhase;
+        }
+
+        public boolean isPspPhase() {
+            return isPspPhase;
         }
 
     }
