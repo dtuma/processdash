@@ -32,8 +32,10 @@
 [Autosync_Disabled] = [Project_Is_Done]
     || lookup([Team_Settings_Node] & "Disable_Indiv_Auto_Sync");
 
+[Indiv_Auto_Labels] = indivAutoLabels();
+[Indiv_Auto_Labels_Deferred] = indivAutoLabelsDeferred("Indiv_Auto_Labels");
 [Task_Labels] = list([Synchronized_Task_Labels],
-    [Synchronized_Task_Milestones]);
+    [Synchronized_Task_Milestones], [Indiv_Auto_Labels_Deferred]);
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Defect_Injection --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
