@@ -187,7 +187,8 @@ public class DefectUtil {
                     if (dp == null)
                         dp = new DefectPhase(onePhase);
 
-                    result.add(dp);
+                    if (!"Postmortem".equals(dp.legacyPhase))
+                        result.add(dp);
                     phasesSeen.add(onePhase);
                 }
             }

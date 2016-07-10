@@ -171,7 +171,8 @@ public class MorePhaseOptionsHandler implements ActionListener {
             root.add(workflowNode);
             for (Phase onePhase : workflow.getPhases()) {
                 DefectPhase dp = new DefectPhase(onePhase);
-                workflowNode.add(new DefaultMutableTreeNode(dp));
+                if (!"Postmortem".equals(dp.legacyPhase))
+                    workflowNode.add(new DefaultMutableTreeNode(dp));
             }
         }
 
