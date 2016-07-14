@@ -1706,7 +1706,7 @@ public class WBSJTable extends JTable {
             dialog.setVisible(true);
 
             // if the user clicked OK, apply the changes
-            if (pane.getValue() == (Integer) JOptionPane.OK_OPTION)
+            if (Integer.valueOf(JOptionPane.OK_OPTION).equals(pane.getValue()))
                 applyChanges();
         }
 

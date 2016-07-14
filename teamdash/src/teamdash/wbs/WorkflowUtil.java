@@ -49,6 +49,7 @@ import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WorkflowLabelColumn;
+import teamdash.wbs.columns.WorkflowMinTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
@@ -610,6 +611,43 @@ public class WorkflowUtil {
         if (totalPct < 1)
             return;
 
+        // check for minimum times on workflow steps, and make a note of the
+        // steps whose times need to be bumped up.
+        Map<WBSNode, Double> minTimes = new HashMap();
+        double timeToSpread = totalTime;
+        double pctToSpread = totalPct;
+        while (true) {
+            boolean madeChangeToMinTimesDuringThisPass = false;
+            for (WBSNode workflowNode : nodesToTweak.keySet()) {
+                if (minTimes.containsKey(workflowNode))
+                    continue;
+                double minStepTime = WorkflowMinTimeColumn
+                        .getMinTimeAt(workflowNode);
+                if (!(minStepTime > 0))
+                    continue;
+
+                double stepPercent = WorkflowPercentageColumn
+                        .getExplicitValueForNode(workflowNode);
+                double stepTime = timeToSpread * stepPercent / pctToSpread;
+                if (stepTime < minStepTime) {
+                    minTimes.put(workflowNode, minStepTime);
+                    timeToSpread -= minStepTime;
+                    pctToSpread -= stepPercent;
+                    madeChangeToMinTimesDuringThisPass = true;
+                }
+            }
+            if (madeChangeToMinTimesDuringThisPass == false)
+                break;
+        }
+
+        // if the minimum times exceeded the top-down time we were spreading,
+        // ignore them and fall back to straight percentages.
+        if (timeToSpread <= 0 || pctToSpread <= 0) {
+            timeToSpread = totalTime;
+            pctToSpread = totalPct;
+            minTimes.clear();
+        }
+
         // distribute the time across the workflow phases
         Set<WBSNode> nonLeafTasks = new HashSet<WBSNode>(destChildren);
         for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
@@ -617,7 +655,10 @@ public class WorkflowUtil {
             Set<WBSNode> leafTasksForStep = e.getValue();
             double thisStepPct = WorkflowPercentageColumn
                     .getExplicitValueForNode(workflowStep);
-            double thisStepTime = totalTime * thisStepPct / totalPct;
+            double thisStepTime = timeToSpread * thisStepPct / pctToSpread;
+            Double stepMinTime = minTimes.get(workflowStep);
+            if (stepMinTime != null)
+                thisStepTime = stepMinTime;
             distributeTimeOverTasks(dataModel, timeCol, thisStepTime,
                 new ArrayList(leafTasksForStep));
             nonLeafTasks.removeAll(leafTasksForStep);

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -291,11 +291,51 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             return false;
 
         // At this point, we appear to have a valid workflow insertion
-        // scenario.  Subdivide the time over the leaf tasks.
+        // scenario. Next, check for minimum times on workflow steps, and make
+        // a note of the steps whose times need to be bumped up.
+        Map<WBSNode, Double> minTimes = new HashMap();
+        double timeToSpread = topDownValue;
+        double pctToSpread = totalPercent;
+        while (true) {
+            boolean madeChangeToMinTimesDuringThisPass = false;
+            for (WBSNode leaf : leaves) {
+                if (minTimes.containsKey(leaf))
+                    continue;
+                double leafMinTime = WorkflowMinTimeColumn.getMinTimeAt(leaf);
+                if (!(leafMinTime > 0))
+                    continue;
+
+                double leafPercent = WorkflowPercentageColumn
+                        .getExplicitValueForNode(leaf);
+                double leafTime = timeToSpread * leafPercent / pctToSpread;
+                if (leafTime < leafMinTime) {
+                    minTimes.put(leaf, leafMinTime);
+                    timeToSpread -= leafMinTime;
+                    pctToSpread -= leafPercent;
+                    madeChangeToMinTimesDuringThisPass = true;
+                }
+            }
+            if (madeChangeToMinTimesDuringThisPass == false)
+                break;
+        }
+
+        // if the minimum times exceeded the top-down time we were spreading,
+        // ignore them and fall back to straight percentages.
+        if (timeToSpread <= 0 || pctToSpread <= 0) {
+            timeToSpread = topDownValue;
+            pctToSpread = totalPercent;
+            minTimes.clear();
+        }
+
+        // Subdivide the time over the leaf tasks, based on what we've found.
         for (WBSNode leaf : leaves) {
             double leafPercent = WorkflowPercentageColumn
                     .getExplicitValueForNode(leaf);
-            double leafTime = topDownValue * leafPercent / totalPercent;
+            double leafTime = timeToSpread * leafPercent / pctToSpread;
+            Double leafMinTime = minTimes.get(leaf);
+            if (leafMinTime != null) {
+                leafTime = leafMinTime;
+            }
             userChangingValue(leaf, leafTime);
             leaf.setNumericAttribute(topDownAttrName, leafTime);
         }

@@ -63,6 +63,10 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
 
     @Override
     public double getValueForNode(WBSNode node) {
+        return getMinTimeAt(node);
+    }
+
+    public static double getMinTimeAt(WBSNode node) {
         return node.getNumericAttribute(ATTR_NAME);
     }
 
