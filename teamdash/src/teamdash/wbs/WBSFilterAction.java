@@ -562,7 +562,7 @@ public class WBSFilterAction extends AbstractAction {
 
         private void maybeAddNullItem() {
             if (nullItemText != null) {
-                String itemText = "\u00AB" + nullItemText + "\u00BB ";
+                String itemText = "\u00AB" + nullItemText + "\u00BB";
                 valueField.insertItemAt(itemText, 0);
             }
         }
