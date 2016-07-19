@@ -151,6 +151,12 @@ public interface ResourceBridgeConstants {
     String GET_BACKUP_ACTION = "getBackup";
 
     /**
+     * value of action parameter requesting to retrieve a token that identifies
+     * the location of this collection.
+     */
+    String LOCATION_TOKEN_ACTION = "getLocationToken";
+
+    /**
      * when peforming write operations, this request parameter indicates the
      * human-readable name of the person performing the operation.
      */
