@@ -172,6 +172,22 @@ scroll bar, and select from the following choices:</p>
 
 <ul>
 
+<li>The Min Time column can be used to specify the minimum time for a
+particular workflow step. Values in this column should be specified in
+hours, but you can enter a number smaller than 1.0 if needed.
+
+<p>This column can be helpful when a particular step is a very small
+percentage of the overall workflow. Entering a minimum time can prevent the
+task from receiving an impossibly small time estimate if the workflow is
+applied to a small component.</p>
+
+<p>This column also makes it possible to specify a fixed time for a
+particular step.  Just enter the fixed time in this column, and leave the
+percentage and rate columns blank.  (A blank percentage is equivalent to
+zero percent, so it would normally receive no time; but that zero will
+then be overridden by the time you enter in this column.)</p></li>
+
+
 <li>The Labels column can contain any number of words, separated by
 spaces or commas.  These values will automatically be entered into the
 <a href="CreateBalancedPlan.html#taskLabels">Task Labels</a> column of the
