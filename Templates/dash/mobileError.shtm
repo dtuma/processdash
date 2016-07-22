@@ -1,0 +1,69 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2016 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Process Dashboard Mobile Companion App</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+</head>
+<body>
+<h1>Process Dashboard Mobile Companion App</h1>
+
+<p>The Process Dashboard Companion app is designed to let you view and edit
+Process Dashboard data from a mobile device.  Your edits in the mobile app
+stay synchronized with the data you enter in the Process Dashboard app on your
+computer.  That synchronization support is provided by a product called the 
+<a href="http://www.processdash.com/pdes">Process Dashboard Enterprise
+Server</a>.</p>
+
+<!--#if upgradePdes -->
+
+<p>Synchronization support for the mobile app was added in version 3.6.0 of
+the Enterprise Server.  Unfortunately, your organization is running an older
+version of the server.  Please contact the individual who is managing the
+Enterprise Server for your organization, and ask them about upgrading to the
+most recent version of the server software.</li>
+
+<!--#elif notBridged -->
+
+<p>So to use the mobile application, your team needs to have the Process
+Dashboard Enterprise Server installed, and you need to enroll your personal
+data with the Server.</p>
+
+<p>Please contact your coach or team leader, and ask whether your organization
+is running the Enterprise Server. <b>If not</b>, encourage them to look into
+the <a href="http://www.processdash.com/pdes">many benefits</a> that the
+server can provide your organization.</p>
+
+<p>If your organization <b>does</b> have a copy of Enterprise Server version
+3.6.0 or higher, ask for help migrating your personal dashboard into the
+server.  Once your data is stored in the server, you will be able to use the
+mobile application to access your data from your smartphone.</p>
+
+<!--#endif-->
+
+
+</body>
+</html>

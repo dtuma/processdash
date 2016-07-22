@@ -1,0 +1,60 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2016 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Process Dashboard Mobile Companion App</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+</head>
+<body>
+<h1>Process Dashboard Mobile Companion App</h1>
+
+<p>Your dashboard is now ready for use with the mobile application.</p>
+
+<p>If you haven't already done so, please download and install the "Process
+Dashboard Companion" application from the app store on your device.</p>
+
+<p>When you first open the app, you will be prompted to log in.  Provide the
+following information on the login screen:</p>
+
+<table style="margin-left:1cm">
+<tr>
+<td><b>Data Token:</b></td>
+<td><tt><!--#echo [mobile//Data_Token] --></tt></td>
+</tr>
+<tr>
+<td><b>Username:</b></td>
+<td><!--#if [mobile//Username] --><tt><!--#echo [mobile//Username]
+    --></tt><!--#else--><i>The username you use to log in to the Process
+    Dashboard Enterprise Server</i><!--#endif--></td>
+</tr>
+<tr>
+<td><b>Password:</b></td>
+<td><i>The password that accompanies your username</i></td>
+</tr>
+</table>
+
+</body>
+</html>
