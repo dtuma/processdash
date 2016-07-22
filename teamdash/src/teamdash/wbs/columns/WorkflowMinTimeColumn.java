@@ -78,7 +78,7 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
     }
 
     public static void storeMinTimeAt(WBSNode node, double value) {
-        if (value == 0 || Double.isNaN(value))
+        if (value <= 0 || Double.isNaN(value))
             node.removeAttribute(ATTR_NAME);
         else
             node.setNumericAttribute(ATTR_NAME, value);
