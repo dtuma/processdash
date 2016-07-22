@@ -39,6 +39,8 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
 
     public static final String ATTR_NAME = "Workflow Min Time";
 
+    public static final String REPL_ATTR_NAME = ATTR_NAME + " (Replaced)";
+
     private static final String COLUMN_ID = ATTR_NAME;
 
     private WBSModel wbsModel;
@@ -72,10 +74,30 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
 
     @Override
     protected void setValueForNode(double value, WBSNode node) {
+        storeMinTimeAt(node, value);
+    }
+
+    public static void storeMinTimeAt(WBSNode node, double value) {
         if (value == 0 || Double.isNaN(value))
             node.removeAttribute(ATTR_NAME);
         else
             node.setNumericAttribute(ATTR_NAME, value);
+    }
+
+    public static void storeReplacedTimeAt(WBSNode node, double replacedTime) {
+        if (Double.isNaN(replacedTime))
+            node.removeAttribute(REPL_ATTR_NAME);
+        else
+            node.setNumericAttribute(REPL_ATTR_NAME, replacedTime);
+    }
+
+    public static double getReplacedTimeAt(WBSNode node) {
+        return node.getNumericAttribute(REPL_ATTR_NAME);
+    }
+
+    public static void clearMinTimeAttrs(WBSNode node) {
+        node.removeAttribute(ATTR_NAME);
+        node.removeAttribute(REPL_ATTR_NAME);
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {

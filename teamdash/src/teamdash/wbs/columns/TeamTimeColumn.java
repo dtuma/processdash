@@ -151,6 +151,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     }
 
 
+    @Override
+    public void setValueAt(Object aValue, WBSNode node) {
+        // if the user directly edits the team time for a particular node,
+        // clear the min time attrs for the node in question.
+        if (aValue instanceof String && !isNoOpEdit(aValue, node))
+            WorkflowMinTimeColumn.clearMinTimeAttrs(node);
+
+        // now, follow through with remaining logic to handle this edit.
+        super.setValueAt(aValue, node);
+    }
+
     public Object getValueAt(WBSNode node) {
         return getValueAt(node, false);
     }
@@ -334,6 +345,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             double leafTime = timeToSpread * leafPercent / pctToSpread;
             Double leafMinTime = minTimes.get(leaf);
             if (leafMinTime != null) {
+                WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, leafTime);
                 leafTime = leafMinTime;
             }
             userChangingValue(leaf, leafTime);
@@ -341,6 +353,112 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
         return true;
     }
+
+    @Override
+    protected void multiplyValuesUnder(WBSNode topNode, double newTopDownValue,
+            double oldTopDownValue, double ratio) {
+        // our goal with this method is to scale the team time across subtasks
+        // while still observing minimum time constraints.
+
+        // find a list of the tasks under this node that need multiplying.
+        // see if any of those nodes have minimum times set.
+        Map<WBSNode, Double> weights = new HashMap();
+        Map<WBSNode, Double> minTimes = new HashMap();
+        double totalWeight = 0;
+        for (WBSNode child : wbsModel.getDescendants(topNode)) {
+            // only scale nodes that have non-null, nonzero top-down values.
+            double val = child.getNumericAttribute(topDownAttrName);
+            if (!(val > 0))
+                continue;
+
+            // look for a minimum time setting on this node.
+            double minTime = WorkflowMinTimeColumn.getMinTimeAt(child);
+            if (minTime > 0) {
+                minTimes.put(child, minTime);
+
+                // if the current node's time is the result of a previous "min
+                // time" adjustment, allocate the node a weight based on the
+                // time that was originally replaced by the minimum.
+                double replacedTime = WorkflowMinTimeColumn
+                        .getReplacedTimeAt(child);
+                if (!Double.isNaN(replacedTime))
+                    val = replacedTime;
+            }
+
+            // store the weight of this node in our map.
+            weights.put(child, val);
+            totalWeight += val;
+
+            // if we previously saw a parent of this node, its top-down time
+            // must have been a top-down-bottom-up mismatch. remove it from our
+            // data structures and don't try to scale it.
+            WBSNode parent = wbsModel.getParent(child);
+            Double parentWeight = weights.remove(parent);
+            if (parentWeight != null)
+                totalWeight -= parentWeight;
+        }
+
+        // if we didn't find any min times, fall back to standard scaling logic.
+        if (minTimes.isEmpty()) {
+            super.multiplyValuesUnder(topNode, newTopDownValue, oldTopDownValue,
+                ratio);
+            return;
+        }
+
+        // we need to scale values, while respecting min times. Calculate the
+        // weight-based time allocation for each node, and see if any of the
+        // nodes will need a min time adjustment.
+        Map<WBSNode, Double> minTimesToUse = new HashMap();
+        double timeToSpread = newTopDownValue;
+        double weightToSpread = totalWeight;
+        while (true) {
+            boolean madeChangeToMinTimesDuringThisPass = false;
+            for (Entry<WBSNode, Double> e : weights.entrySet()) {
+                WBSNode leaf = e.getKey();
+                if (minTimesToUse.containsKey(leaf))
+                    continue;
+                Double leafMinTime = minTimes.get(leaf);
+                if (leafMinTime == null)
+                    continue;
+
+                double leafWeight = e.getValue();
+                double leafTime = timeToSpread * leafWeight / weightToSpread;
+                if (leafTime < leafMinTime) {
+                    minTimesToUse.put(leaf, leafMinTime);
+                    timeToSpread -= leafMinTime;
+                    weightToSpread -= leafWeight;
+                    madeChangeToMinTimesDuringThisPass = true;
+                }
+            }
+            if (madeChangeToMinTimesDuringThisPass == false)
+                break;
+        }
+
+        // if the minimum times exceeded the top-down time we were spreading,
+        // ignore them and fall back to straight weights.
+        if (timeToSpread <= 0 || weightToSpread <= 0) {
+            timeToSpread = newTopDownValue;
+            weightToSpread = totalWeight;
+            minTimesToUse.clear();
+        }
+
+        // Subdivide the time over the leaf tasks, based on what we've found.
+        for (Entry<WBSNode, Double> e : weights.entrySet()) {
+            WBSNode leaf = e.getKey();
+            double leafWeight = e.getValue();
+            double leafTime = timeToSpread * leafWeight / weightToSpread;
+            Double leafMinTime = minTimesToUse.get(leaf);
+            if (leafMinTime != null) {
+                WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, leafTime);
+                leafTime = leafMinTime;
+            } else {
+                WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, Double.NaN);
+            }
+            userChangingValue(leaf, leafTime);
+            leaf.setNumericAttribute(topDownAttrName, leafTime);
+        }
+    }
+
 
     public void replanInProgressTime() {
         for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot())) {
@@ -1465,6 +1583,22 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
         protected abstract void setValueAtLeaf(double value, LeafTaskData nd);
         protected void setValueAtNode(double value, WBSNode node) { }
+
+        @Override
+        public void setValueAt(Object aValue, WBSNode node) {
+            if (isNoOpEdit(aValue, node)) {
+                // if the user started an editing session but ultimately made
+                // no changes, do nothing
+                ;
+            } else {
+                // if the user directly edits the value for a particular node,
+                // clear the min time attrs for the node in question.
+                if (aValue instanceof String)
+                    WorkflowMinTimeColumn.clearMinTimeAttrs(node);
+
+                setValueForNode(NumericDataValue.parse(aValue), node);
+            }
+        }
 
         public boolean recalculate() { return true; }
         public void storeDependentColumn(String ID, int columnNumber) {}

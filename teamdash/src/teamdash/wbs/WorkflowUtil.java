@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -656,11 +656,15 @@ public class WorkflowUtil {
             double thisStepPct = WorkflowPercentageColumn
                     .getExplicitValueForNode(workflowStep);
             double thisStepTime = timeToSpread * thisStepPct / pctToSpread;
-            Double stepMinTime = minTimes.get(workflowStep);
-            if (stepMinTime != null)
-                thisStepTime = stepMinTime;
+            double minStepTime = WorkflowMinTimeColumn.getMinTimeAt(workflowStep);
+            double replacedTime = Double.NaN;
+            Double activatedMinTime = minTimes.get(workflowStep);
+            if (activatedMinTime != null) {
+                replacedTime = thisStepTime;
+                thisStepTime = activatedMinTime;
+            }
             distributeTimeOverTasks(dataModel, timeCol, thisStepTime,
-                new ArrayList(leafTasksForStep));
+                minStepTime, replacedTime, new ArrayList(leafTasksForStep));
             nonLeafTasks.removeAll(leafTasksForStep);
         }
 
@@ -696,11 +700,13 @@ public class WorkflowUtil {
     }
 
     private static void distributeTimeOverTasks(DataTableModel dataModel,
-            int timeCol, double timeToSpread, List<WBSNode> tasks) {
-        if (tasks.size() == 1 || timeToSpread == 0) {
-            // only one task, or no time to distribute? Assign time directly
+            int timeCol, double timeToSpread, double minStepTime,
+            double replacedTime, List<WBSNode> tasks) {
+        if (tasks.size() == 1) {
+            // only one task? Assign time directly
             for (WBSNode task : tasks)
-                dataModel.setValueAt(timeToSpread, task, timeCol);
+                allocateTimeToTask(dataModel, timeCol, timeToSpread,
+                    minStepTime, replacedTime, task, 1.0);
 
         } else {
             // we have a number of tasks mapping to this workflow step. Sum
@@ -720,20 +726,30 @@ public class WorkflowUtil {
             if (sawZero || totalOldTime == 0) {
                 // if any of the tasks had zero planned time, spread the step
                 // time equally across all of our tasks.
-                double equalTime = timeToSpread / tasks.size();
+                double percent = 1.0 / tasks.size();
                 for (WBSNode task : tasks)
-                    dataModel.setValueAt(equalTime, task, timeCol);
+                    allocateTimeToTask(dataModel, timeCol, timeToSpread,
+                        minStepTime, replacedTime, task, percent);
 
             } else {
                 // if all of the tasks had nonzero planned times, use those
                 // times as weights to spread out the step time.
                 for (int i = oldTimes.length; i-- > 0; ) {
                     WBSNode task = tasks.get(i);
-                    double newTaskTime = oldTimes[i] * timeToSpread / totalOldTime;
-                    dataModel.setValueAt(newTaskTime, task, timeCol);
+                    double percent = oldTimes[i] / totalOldTime;
+                    allocateTimeToTask(dataModel, timeCol, timeToSpread,
+                        minStepTime, replacedTime, task, percent);
                 }
             }
         }
+    }
+
+    private static void allocateTimeToTask(DataTableModel dataModel,
+            int timeCol, double timeToSpread, double minStepTime,
+            double replacedTime, WBSNode task, double percent) {
+        dataModel.setValueAt(timeToSpread * percent, task, timeCol);
+        WorkflowMinTimeColumn.storeMinTimeAt(task, minStepTime * percent);
+        WorkflowMinTimeColumn.storeReplacedTimeAt(task, replacedTime * percent);
     }
 
     private static double parse(Object num) {

@@ -319,7 +319,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         if (!Double.isNaN(ratio) &&
             !Double.isInfinite(ratio) &&
             ratio != 0) {
-            multiplyValue(node, ratio);
+            multiplyValuesUnder(node, newValue, oldValue, ratio);
         } else {
             WBSNode delegate = getSingleLeafForNode(node, oldValue != 0);
             if (delegate != null) {
@@ -338,6 +338,11 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
                 }
             }
         }
+    }
+
+    protected void multiplyValuesUnder(WBSNode node, double newValue,
+            double oldValue, double ratio) {
+        multiplyValue(node, ratio);
     }
 
     protected WBSNode getSingleLeafForNode(WBSNode node, boolean withValue) {

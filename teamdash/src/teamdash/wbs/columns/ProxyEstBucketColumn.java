@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -118,8 +118,10 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
 
     private void maybeStoreTimeEstimate(WBSNode node, WBSNode bucket) {
         NumericDataValue time = ProxyTimeColumn.getTimeValueAt(bucket);
-        if (time != null)
+        if (time != null) {
+            WorkflowMinTimeColumn.clearMinTimeAttrs(node);
             dataModel.setValueAt(time.value, node, timeColumnPos);
+        }
     }
 
     private void maybeStoreSizeEstimate(WBSNode node, WBSNode bucket) {
