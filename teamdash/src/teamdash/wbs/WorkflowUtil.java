@@ -577,6 +577,11 @@ public class WorkflowUtil {
         int rateCol = dataModel.findColumn(TeamTimeColumn.RATE_COL_ID);
         for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
             WBSNode workflowNode = e.getKey();
+
+            double minTime = WorkflowMinTimeColumn.getMinTimeAt(workflowNode);
+            for (WBSNode destNode : e.getValue())
+                WorkflowMinTimeColumn.storeMinTimeAt(destNode, minTime);
+
             Object units = workflowNode.getAttribute(UNITS_ATTR);
             double rate = workflowNode.getNumericAttribute(RATE_ATTR);
             if (rate > 0) {

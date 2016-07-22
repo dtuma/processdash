@@ -1020,7 +1020,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             // size.
             if (timePerPerson == 0) {
                 rate = node.getNumericAttribute(RATE_ATTR);
-                timePerPerson = safe(size / rate);
+                timePerPerson = adjustRateDrivenTimeForMin(safe(size / rate));
             }
 
             // if that didn't work, revert to the last known good time
@@ -1033,6 +1033,23 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
             // possibly recalculate the effective rate.
             recalculateRate();
+        }
+
+        private double adjustRateDrivenTimeForMin(double rateDrivenTimePerPerson) {
+            if (rateDrivenTimePerPerson > 0) {
+                double minTime = WorkflowMinTimeColumn.getMinTimeAt(node);
+                if (minTime > 0) {
+                    figureNumPeople();
+                    double minTimePerPerson = safe(minTime / numPeople);
+                    if (minTimePerPerson > rateDrivenTimePerPerson) {
+                        WorkflowMinTimeColumn.storeReplacedTimeAt(node,
+                            rateDrivenTimePerPerson * numPeople);
+                        return minTimePerPerson;
+                    }
+                }
+                WorkflowMinTimeColumn.storeReplacedTimeAt(node, Double.NaN);
+            }
+            return rateDrivenTimePerPerson;
         }
 
         void figureNumPeople() {
@@ -1104,7 +1121,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 // if there is a saved value for the rate, and the size value
                 // entered is meaningful, we should recalculate the time per
                 // person based upon that rate.
-                userSetTimePerPerson(size / savedRate);
+                userSetTimePerPerson(adjustRateDrivenTimeForMin(size / savedRate));
             else
                 // if there is no saved value for the rate, recalculate the
                 // effective rate based upon the new size.
@@ -1152,7 +1169,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             } else {
                 rate = value;
                 node.setNumericAttribute(RATE_ATTR, rate);
-                userSetTimePerPerson(size / rate);
+                userSetTimePerPerson(adjustRateDrivenTimeForMin(size / rate));
             }
         }
 
