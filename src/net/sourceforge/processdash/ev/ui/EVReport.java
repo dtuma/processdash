@@ -820,6 +820,7 @@ public class EVReport extends CGIChartBase {
         out.print(title);
         if (!exportingToExcel()) {
             interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
+            interpOutLink(SHOW_MONTH_LINK, EVReportSettings.PURPOSE_WEEK);
             printAlternateViewLinks();
             interpOutLink(SHOW_CHARTS_LINK, EVReportSettings.PURPOSE_OTHER);
         }
@@ -1274,6 +1275,9 @@ public class EVReport extends CGIChartBase {
     static final String SHOW_WEEK_LINK = "<span " + HEADER_LINK_STYLE + ">"
             + "<span class='doNotPrint'><a href='week.class???'>"
             + "${Report.Show_Weekly_View}</a></span></span>";
+    static final String SHOW_MONTH_LINK = "<span " + HEADER_LINK_STYLE + ">"
+            + "<span class='doNotPrint'><a href='month???'>"
+            + "${Report.Show_Monthly_View}</a></span></span>";
     static final String SHOW_ALT_LINK = "<span " + HEADER_LINK_STYLE + ">"
             + "<span class='doNotPrint'><a href='../[URI]???'>"
             + "${Link_Text}</a></span></span>";

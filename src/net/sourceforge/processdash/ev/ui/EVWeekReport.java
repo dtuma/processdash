@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ package net.sourceforge.processdash.ev.ui;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -83,8 +84,10 @@ public class EVWeekReport extends TinyCGIBase {
 
     private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
             * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
+    private static final double WEEKS_PER_MONTH = 365.25 / (7 * 12);
 
     private static Resources resources = Resources.getDashBundle("EV.Week");
+    private static Resources monthRes = Resources.getDashBundle("EV.Month");
 
     /** Generate CGI output. */
     protected void writeContents() throws IOException {
@@ -123,6 +126,7 @@ public class EVWeekReport extends TinyCGIBase {
         if (effDateParam != null) try {
             effDate = new Date(Long.parseLong(effDateParam));
         } catch (Exception e) {}
+        boolean monthly = isMonthly(settings);
 
         if (effDate == null || parameters.containsKey(ADJ_EFF_DATE_PARAM)) {
             // if the user hasn't specified an effective date, then use the
@@ -133,7 +137,7 @@ public class EVWeekReport extends TinyCGIBase {
             Date now = effDate;
             if (now == null) now = EVCalculator.getFixedEffectiveDate();
             if (now == null) now = new Date();
-            int dayOffset = (effDate == null ? 3 : 7);
+            int dayOffset = (monthly ? 0 : (effDate == null ? 3 : 7));
             Date effDateTime = new Date(now.getTime()
                     + EVSchedule.WEEK_MILLIS * dayOffset / 7);
 
@@ -143,10 +147,17 @@ public class EVWeekReport extends TinyCGIBase {
             Date firstPeriodEnd = schedule.get(1).getEndDate();
             if (effDateTime.compareTo(scheduleEnd) >= 0) {
                 if (effDate == null)
-                    effDate = scheduleEnd;
+                    effDate = maybeRoundToMonthEnd(monthly, scheduleEnd);
+                else if (monthly)
+                    effDate = roundToMonthEnd(effDate);
                 else
                     effDate = extrapolateWeekAfterScheduleEnd(effDateTime,
                         scheduleEnd);
+            } else if (monthly) {
+                Date scheduleStart = schedule.get(1).getBeginDate();
+                if (effDateTime.before(scheduleStart))
+                    effDateTime = scheduleStart;
+                effDate = roundToMonthEnd(effDateTime);
             } else if (effDateTime.compareTo(firstPeriodEnd) <= 0)
                 effDate = firstPeriodEnd;
             else
@@ -154,7 +165,7 @@ public class EVWeekReport extends TinyCGIBase {
 
             // make certain we have an effective date to proceed with.
             if (effDate == null)
-                effDate = new Date();
+                effDate = maybeRoundToMonthEnd(monthly, new Date());
         }
 
         int purpose = PLAIN_REPORT;
@@ -163,6 +174,20 @@ public class EVWeekReport extends TinyCGIBase {
             purpose = SPLIT_REPORT;
         writeReport(taskListName, evModel, effDate, settings, taskFilter,
             purpose);
+    }
+
+    private Date maybeRoundToMonthEnd(boolean shouldRound, Date d) {
+        return (shouldRound ? roundToMonthEnd(d) : d);
+    }
+
+    private Date roundToMonthEnd(Date d) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        c.set(Calendar.DAY_OF_MONTH, 1);
+        c.add(Calendar.MONTH, 1);
+        return c.getTime();
     }
 
     private Date extrapolateWeekAfterScheduleEnd(Date effDate, Date scheduleEnd) {
@@ -196,10 +221,19 @@ public class EVWeekReport extends TinyCGIBase {
         boolean showLabels = evModel.showLabelsColumn();
         int numOptionalCols = (showAssignedTo ? 1 : 0) //
                 + (showMilestones ? 1 : 0) + (showLabels ? 1 : 0);
+        boolean monthly = isMonthly(settings);
+        Resources effRes = (monthly ? monthRes : resources);
 
-        // Calculate the dates one week before and after the effective date.
-        Date lastWeek = adjustDate(effDate, -EVSchedule.WEEK_MILLIS);
-        Date nextWeek = adjustDate(effDate, EVSchedule.WEEK_MILLIS);
+        // Calculate the dates one week/month before and after the effective date.
+        Date lastWeek, nextWeek;
+        if (monthly) {
+            long eff = effDate.getTime();
+            lastWeek = roundToMonthEnd(new Date(eff - 5 * MILLIS_PER_WEEK));
+            nextWeek = roundToMonthEnd(new Date(eff + MILLIS_PER_WEEK));
+        } else {
+            lastWeek = adjustDate(effDate, -EVSchedule.WEEK_MILLIS);
+            nextWeek = adjustDate(effDate, EVSchedule.WEEK_MILLIS);
+        }
         Date startDate = schedule.getStartDate();
         if (lastWeek.before(startDate)) lastWeek = startDate;
         Date effDateDisplay = new Date(effDate.getTime() - 1000);
@@ -215,7 +249,7 @@ public class EVWeekReport extends TinyCGIBase {
 
         // Calculate future cutoff dates for task dependency display
         Date dependDate = getFutureCutoffDate(effDate,
-            Settings.getInt("ev.numDependencyWeeks", 3));
+            Settings.getInt("ev.numDependencyWeeks", monthly ? 5 : 3));
         Date revDependDate = getFutureCutoffDate(effDate,
             Settings.getInt("ev.numReverseDependencyWeeks", 6));
 
@@ -262,20 +296,37 @@ public class EVWeekReport extends TinyCGIBase {
         double completedTasksTotalPlanTime = 0;
         double completedTasksTotalActualTime = 0;
 
+        // keep track of plan and actual value, this week and to date
+        double planValueThisWeek = 0;
+        double valueEarnedThisWeek = 0;
+        double planValueToDate = 0;
+        double valueEarnedToDate = 0;
+
         for (int i = 0;   i < taskListLen;   i++) {
+            double taskValue = parseTime(tasks.getValueAt(i,
+                -EVTaskList.PLAN_DTIME_COLUMN));
             Date completed =
                 (Date) tasks.getValueAt(i, EVTaskList.DATE_COMPLETE_COLUMN);
 
+            // check to see if the task was due this week, or in the past
+            Date due = (Date) tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN);
+            if (due != null && due.before(effDate)) {
+                planValueToDate += taskValue;
+                if (!due.before(lastWeek))
+                    planValueThisWeek += taskValue;
+            }
+
             if (completed != null && completed.before(effDate)) {
-                    completedTasksTotalPlanTime += parseTime
-                        (tasks.getValueAt(i, -EVTaskList.PLAN_DTIME_COLUMN));
+                    completedTasksTotalPlanTime += taskValue;
                     completedTasksTotalActualTime += parseTime
                         (tasks.getValueAt(i, -EVTaskList.ACT_DTIME_COLUMN));
+                    valueEarnedToDate += taskValue;
 
                     if (!completed.before(lastWeek) &&
                         completed.before(nextWeek)) {
                         completedLastWeek[i] = oneCompletedLastWeek = true;
                         completedTasksTimeThisWeek += actualTimeThisWeek[i];
+                        valueEarnedThisWeek += taskValue;
 
                     } else if (actualTimeThisWeek[i] > 0) {
                         // if the task was marked complete in the past, but
@@ -286,8 +337,6 @@ public class EVWeekReport extends TinyCGIBase {
                     }
 
             } else {
-                Date due =
-                    (Date) tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN);
                 Date replannedDue =
                     (Date) tasks.getValueAt(i, EVTaskList.REPLAN_DATE_COLUMN);
                 Date taskStarted =
@@ -339,13 +388,24 @@ public class EVWeekReport extends TinyCGIBase {
         boolean showTimeThisWeek = (completedTasksTimeThisWeek > 0
                 || inProgressTasksTimeThisWeek > 0);
 
+        // look up planned values from the schedule, if appropriate
+        if (!monthly || Settings.getBool("ev.month.extrapolatePV", true)) {
+            planValueThisWeek = weekSlice.planValue();
+            planValueToDate = weekSlice.getCumPlanValue();
+        }
+        // look up earned values from the schedule, if not in monthly mode
+        if (!monthly) {
+            valueEarnedThisWeek = weekSlice.earnedValue();
+            valueEarnedToDate = weekSlice.getCumEarnedValue();
+        }
+
         /*
          * Okay, we have all the data we need.  Lets generate the HTML.
          */
 
         if (isTopLevel(purpose)) {
             String taskListDisplayName = EVTaskList.cleanupName(taskListName);
-            String titleHTML = resources.format("Title_FMT", taskListDisplayName);
+            String titleHTML = effRes.format("Title_FMT", taskListDisplayName);
             titleHTML = HTMLUtils.escapeEntities(titleHTML);
             StringBuffer header = new StringBuffer(HEADER_HTML);
             StringUtils.findAndReplace(header, TITLE_VAR, titleHTML);
@@ -356,8 +416,9 @@ public class EVWeekReport extends TinyCGIBase {
             out.print(header);
 
             out.print("<h2>");
-            String endDateStr = encodeHTML(effDateDisplay);
-            out.print(resources.format("Header_HTML_FMT", endDateStr));
+            String endDateStr = monthly ? formatMonth(effDateDisplay)
+                    : encodeHTML(effDateDisplay);
+            out.print(effRes.format("Header_HTML_FMT", endDateStr));
             if (!isExporting() || getParameter(EFF_DATE_PARAM) == null) {
                 if (lastWeek.compareTo(startDate) > 0)
                     printNavLink(lastWeek, "Previous", settings, purpose);
@@ -420,30 +481,41 @@ public class EVWeekReport extends TinyCGIBase {
                 + "<td class=header>${Summary.Ratio}</td></tr>\n");
 
         String thisWeekKey;
-        if (reportingPeriodIncludesToday) thisWeekKey = "This_Week";
-        else if (reportingPeriodPrecedesToday) thisWeekKey = "Last_Week";
+        String keySuffix = (monthly ? "_Month" : "_Week");
+        if (reportingPeriodIncludesToday) thisWeekKey = "This" + keySuffix;
+        else if (reportingPeriodPrecedesToday) thisWeekKey = "Last" + keySuffix;
         else thisWeekKey = "This_Period";
         out.print("<tr><td class=left>"
-                + resources.getHTML("Summary." + thisWeekKey)
+                + effRes.getHTML("Summary." + thisWeekKey)
                 + "</td><td></td>");
         if (taskFilter == null) {
-            printTimeData(weekSlice.getPlanDirectTime(),
-                    weekSlice.getActualDirectTime());
+            double directTimeThisWeek;
+            if (monthly)
+                directTimeThisWeek = sumActualTime(actualTimeThisWeek);
+            else
+                directTimeThisWeek = weekSlice.getActualDirectTime();
+            printTimeData(weekSlice.getPlanDirectTime(), directTimeThisWeek);
             out.print("<td></td>");
         }
-        printPctData(weekSlice.planValue()/totalPlanTime,
-                     weekSlice.earnedValue()/totalPlanTime);
+        printPctData(planValueThisWeek / totalPlanTime, //
+            valueEarnedThisWeek / totalPlanTime);
         out.print("</tr>\n");
 
         out.print("<tr><td class=left>" + encodeHTML(resources.format(
                 "Summary.To_Date_FMT", effDateDisplay)) + "</td><td></td>");
+        double directTimeToDate = 0;
         if (taskFilter == null) {
-            printTimeData(weekSlice.getCumPlanDirectTime(),
-                          weekSlice.getCumActualDirectTime());
+            if (monthly)
+                directTimeToDate = schedule.get(0).getActualDirectTime()
+                        + sumActualTime(getActualTimeSpent(tasks, startDate,
+                            effDate));
+            else
+                directTimeToDate = weekSlice.getCumActualDirectTime();
+            printTimeData(weekSlice.getCumPlanDirectTime(), directTimeToDate);
             out.print("<td></td>");
         }
-        printPctData(weekSlice.getCumPlanValue()/totalPlanTime,
-                     weekSlice.getCumEarnedValue()/totalPlanTime);
+        printPctData(planValueToDate / totalPlanTime, //
+            valueEarnedToDate / totalPlanTime);
         out.print("</tr>\n");
 
         double numWeeks = Double.NaN;
@@ -451,19 +523,22 @@ public class EVWeekReport extends TinyCGIBase {
             numWeeks = (effDate.getTime() - startDate.getTime() - EVSchedule
                     .dstDifference(startDate.getTime(), effDate.getTime()))
                     / (double) MILLIS_PER_WEEK;
-        interpOut("<tr" + indivDetail
-                + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
+        if (monthly) {
+            numWeeks = numWeeks / WEEKS_PER_MONTH;
+            interpOut("<tr" + indivDetail + "><td class=left>"
+                    + "${Month.Summary.Average_per_Month}</td><td></td>");
+        } else {
+            interpOut("<tr" + indivDetail
+                    + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
+        }
         if (taskFilter == null) {
             double planTimePerWeek = weekSlice.getCumPlanDirectTime() / numWeeks;
-            double actualTimePerWeek =
-                weekSlice.getCumActualDirectTime() / numWeeks;
+            double actualTimePerWeek = directTimeToDate / numWeeks;
             printTimeData(planTimePerWeek, actualTimePerWeek);
             out.print("<td></td>");
         }
-        double planEVPerWeek =
-            weekSlice.getCumPlanValue() / (totalPlanTime * numWeeks);
-        double actualEVPerWeek =
-            weekSlice.getCumEarnedValue() / (totalPlanTime * numWeeks);
+        double planEVPerWeek = planValueToDate / (totalPlanTime * numWeeks);
+        double actualEVPerWeek = valueEarnedToDate / (totalPlanTime * numWeeks);
         printPctData(planEVPerWeek, actualEVPerWeek);
         out.print("</tr>\n");
 
@@ -496,11 +571,15 @@ public class EVWeekReport extends TinyCGIBase {
                 "Completed_Tasks.Header_Tip_FMT", lastWeek, effDateDisplay));
             String completedTasksHeader;
             if (reportingPeriodIncludesToday)
-                completedTasksHeader = resources
+                completedTasksHeader = effRes
                         .getHTML("Completed_Tasks.Header");
             else if (reportingPeriodPrecedesToday)
-                completedTasksHeader = resources
+                completedTasksHeader = effRes
                         .getHTML("Completed_Tasks.Header_Last");
+            else if (monthly)
+                completedTasksHeader = effRes.format(
+                    "Completed_Tasks.Header_Month_HTML_FMT",
+                    formatMonth(effDateDisplay));
             else
                 completedTasksHeader = completedTasksTooltip;
             out.print("<h3 title='" + completedTasksTooltip + "'>"
@@ -509,7 +588,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printCompletedTaskTableHeader(showTimeThisWeek, showAssignedTo,
-                    showMilestones, showLabels);
+                    showMilestones, showLabels, monthly);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -572,7 +651,7 @@ public class EVWeekReport extends TinyCGIBase {
                 "Tasks_In_Progress.Header_Tip_FMT", effDateDisplay));
             String inProgressHeader;
             if (reportingPeriodIncludesToday || reportingPeriodPrecedesToday)
-                inProgressHeader = resources.getHTML("Tasks_In_Progress.Header");
+                inProgressHeader = effRes.getHTML("Tasks_In_Progress.Header");
             else
                 inProgressHeader = encodeHTML(resources.format(
                     "Tasks_In_Progress.Header_Long_FMT", effDateDisplay));
@@ -582,7 +661,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printUncompletedTaskTableHeader(showTimeThisWeek,
-                    showAssignedTo, showMilestones, showLabels, true);
+                    showAssignedTo, showMilestones, showLabels, true, monthly);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -654,9 +733,9 @@ public class EVWeekReport extends TinyCGIBase {
                 "Due_Tasks.Header_Tip_FMT", effDateDisplay, nextWeekDisplay));
             String dueTasksHeader;
             if (reportingPeriodIncludesToday)
-                dueTasksHeader = resources.getHTML("Due_Tasks.Header");
+                dueTasksHeader = effRes.getHTML("Due_Tasks.Header");
             else if (reportingPeriodPrecedesToday)
-                dueTasksHeader = resources.getHTML("Due_Tasks.Header_This");
+                dueTasksHeader = effRes.getHTML("Due_Tasks.Header_This");
             else
                 dueTasksHeader = encodeHTML(resources.format(
                     "Due_Tasks.Header_Long_FMT", nextWeekDisplay));
@@ -666,7 +745,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printUncompletedTaskTableHeader(false, showAssignedTo,
-                    showMilestones, showLabels, false);
+                    showMilestones, showLabels, false, monthly);
 
                 double timeRemaining = 0;
                 for (int i = 0;   i < taskListLen;   i++)
@@ -825,6 +904,13 @@ public class EVWeekReport extends TinyCGIBase {
         }
     }
 
+    private double sumActualTime(double[] actualTime) {
+        double result = 0;
+        for (double d : actualTime)
+            result += d;
+        return result;
+    }
+
     private Set<Integer> getProjectKeys(TableModel tasks, ProjectLocator loc) {
         // scan the tasks in the plan and make a list of the IDs for the
         // team projects they come from
@@ -897,7 +983,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printUncompletedTaskTableHeader(boolean showTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean inProgressThisWeek) {
+            boolean inProgressThisWeek, boolean monthly) {
         String HTMLTableId = (inProgressThisWeek) ? "$$$_progress" : "$$$_due";
 
         interpOut("<table border=1 name='dueTask' class='sortable' id='" + HTMLTableId+
@@ -907,7 +993,8 @@ public class EVWeekReport extends TinyCGIBase {
                   "<td class=header>${Columns.Actual_Time}</td>");
 
         if (inProgressThisWeek && showTimeThisWeek)
-            interpOut("<td class=header>${Columns.Actual_Time_Week}</td>");
+            interpOut("<td class=header>${Columns.Actual_Time_"
+                    + (monthly ? "Month" : "Week") + "}</td>");
         if (inProgressThisWeek)
             interpOut("<td class=header>${Columns.Planned_Value}</td>");
 
@@ -933,14 +1020,16 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     private void printCompletedTaskTableHeader(boolean showTimeThisWeek,
-            boolean showAssignedTo, boolean showMilestones, boolean showLabels) {
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
+            boolean monthly) {
         interpOut("<table border=1 name='compTask' class='sortable' " +
                         "id='$$$_comp'><tr>" +
                   "<td></td>"+
                   "<td class=header>${Columns.Planned_Time}</td>"+
                   "<td class=header>${Columns.Actual_Time}</td>");
         if (showTimeThisWeek)
-            interpOut("<td class=header>${Columns.Actual_Time_Week}</td>");
+            interpOut("<td class=header>${Columns.Actual_Time_"
+                    + (monthly ? "Month" : "Week") + "}</td>");
         interpOut("<td class=header>${Columns.Percent_Spent}</td>");
         if (showAssignedTo)
             interpOut("<td class=header>${Columns.Assigned_To}</td>");
@@ -1127,7 +1216,8 @@ public class EVWeekReport extends TinyCGIBase {
     private void printNavLink(String effDateParam, String resKey,
             EVReportSettings settings, int purpose, String extraHtml,
             String onClick) {
-        StringBuffer href = new StringBuffer("week.class");
+        StringBuffer href = new StringBuffer();
+        href.append(isMonthly(settings) ? "month" : "week.class");
         HTMLUtils.appendQuery(href, EFF_DATE_PARAM, effDateParam);
         HTMLUtils.appendQuery(href,
                 settings.getQueryString(EVReportSettings.PURPOSE_NAV_LINK));
@@ -1144,6 +1234,10 @@ public class EVWeekReport extends TinyCGIBase {
         out.print("'>");
         out.print(resources.getHTML(resKey));
         out.print("</a></span>");
+    }
+
+    private boolean isMonthly(EVReportSettings settings) {
+        return settings.getParameters().containsKey("month");
     }
 
 
@@ -1550,6 +1644,13 @@ public class EVWeekReport extends TinyCGIBase {
 
         return HTMLUtils.escapeEntities(text.toString());
     }
+
+    static String formatMonth(Date d) {
+        return HTMLUtils.escapeEntities(MONTH_FORMAT.format(d));
+    }
+
+    private static final FastDateFormat MONTH_FORMAT = FastDateFormat
+            .getInstance("MMMM yyyy");
 
     final static String getResource(String key) {
         return encodeHTML(resources.getString(key)).replace('\n', ' ');
