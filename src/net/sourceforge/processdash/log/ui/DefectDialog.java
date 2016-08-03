@@ -74,6 +74,8 @@ import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
@@ -240,6 +242,7 @@ public class DefectDialog extends JDialog
             defectPhaseList = workflowPhases;
         else
             defectPhaseList = processPhases;
+        stopwatchSynchronizer.workflowRoot = defectPhaseList.workflowRoot;
 
         phase_removed = phaseComboBox(defectPhaseList,
             guessDefaults ? defectPhaseList.defaultRemovalPhase : -1);
@@ -879,6 +882,7 @@ public class DefectDialog extends JDialog
     private class StopwatchSynchronizer implements PropertyChangeListener {
 
         TimeLoggingModel timeLoggingModel;
+        PropertyKey workflowRoot;
         boolean pausedByTimeLoggingModel = false;
 
         public StopwatchSynchronizer(TimeLoggingModel timeLoggingModel) {
@@ -895,7 +899,8 @@ public class DefectDialog extends JDialog
         }
 
         public void propertyChange(PropertyChangeEvent evt) {
-            if (TimeLoggingModel.PAUSED_PROPERTY.equals(evt.getPropertyName())) {
+            String propName = evt.getPropertyName();
+            if (TimeLoggingModel.PAUSED_PROPERTY.equals(propName)) {
                 boolean mainTimerIsPaused = timeLoggingModel.isPaused();
                 if (mainTimerIsPaused && stopwatch.isRunning()) {
                     stopTimingDefect();
@@ -906,7 +911,83 @@ public class DefectDialog extends JDialog
                     startTimingDefect();
                     pausedByTimeLoggingModel = false;
                 }
+
+            } else if (TimeLoggingModel.ACTIVE_TASK_PROPERTY.equals(propName)
+                    && !activeTaskMatches()) {
+                // the global active task just changed, to something that
+                // doesn't match the path we are logging a defect against.
+                // stop the timer if it is running.
+                if (stopwatch.isRunning())
+                    stopTimingDefect();
+
+                // don't implicitly restart the timer in the future
+                pausedByTimeLoggingModel = false;
             }
+        }
+
+        private boolean activeTaskMatches() {
+            // get the user's preference about how strict matching should be
+            String userPref = getTaskMatchPref();
+            if ("none".equalsIgnoreCase(userPref))
+                return true;
+
+            // retrieve the active task (the one selected on the main dashboard
+            // toolbar). Is it the same as the task we are logging a defect
+            // against?
+            PropertyKey activeTask = timeLoggingModel.getActiveTaskModel()
+                    .getNode();
+            if (taskPath.equals(activeTask))
+                return true;
+            else if (activeTask == null || "exact".equalsIgnoreCase(userPref))
+                return false;
+
+            // is the active task underneath the node that owns our defect log?
+            if (under(activeTask, defectPath))
+                return true;
+            else if ("defectLog".equalsIgnoreCase(userPref))
+                return false;
+
+            // is the active task underneath the current workflow root?
+            if (under(activeTask, workflowRoot))
+                return true;
+            else if ("workflow".equals(userPref))
+                return false;
+
+            // is the active task is under the same component as the task we
+            // are logging a defect against?
+            if (under(activeTask, getEnclosingComponent(taskPath)))
+                return true;
+            else
+                return false;
+        }
+
+        private String getTaskMatchPref() {
+            String result = Settings.getVal("defectDialog.taskMatch");
+            if (StringUtils.hasValue(result))
+                return result;
+
+            SimpleData sd = parent.getData().getSimpleValue(
+                "/Defect_Timer_Task_Match_Policy");
+            if (sd != null && sd.test())
+                return sd.format();
+
+            return "component";
+        }
+
+        private boolean under(PropertyKey node, PropertyKey parent) {
+            return (node != null && parent != null
+                    && (node.equals(parent) || node.isChildOf(parent)));
+        }
+
+        private PropertyKey getEnclosingComponent(PropertyKey node) {
+            DashHierarchy hier = parent.getHierarchy();
+            while (node != null) {
+                String templateID = hier.getID(node);
+                if (templateID != null && templateID.endsWith("ReadOnlyNode"))
+                    return node;
+                node = node.getParent();
+            }
+            return null;
         }
     }
 

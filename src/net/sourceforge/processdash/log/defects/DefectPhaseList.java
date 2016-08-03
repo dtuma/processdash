@@ -25,6 +25,7 @@ package net.sourceforge.processdash.log.defects;
 
 import java.util.ArrayList;
 
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.process.WorkflowInfo;
 
 public class DefectPhaseList extends ArrayList<DefectPhase> {
@@ -32,6 +33,8 @@ public class DefectPhaseList extends ArrayList<DefectPhase> {
     public int defaultInjectionPhase = -1;
 
     public int defaultRemovalPhase = -1;
+
+    public PropertyKey workflowRoot;
 
     public WorkflowInfo workflowInfo;
 

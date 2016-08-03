@@ -130,7 +130,8 @@ public class DefectUtil {
         result.workflowInfo = workflowInfo;
         if (!enclosingPhases.isEmpty()) {
             DashHierarchy hier = context.getHierarchy();
-            scanForWorkflowTasks(data, hier, hier.findExistingKey(path), null,
+            result.workflowRoot = hier.findExistingKey(path);
+            scanForWorkflowTasks(data, hier, result.workflowRoot, null,
                 getDevelopmentPhases(data, path), result, new HashSet(),
                 enclosingPhases, taskPath);
 
