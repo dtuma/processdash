@@ -60,34 +60,42 @@ defect calculations (such as yield, defect density, and defect removal
 rate) to continue working as expected.</p>
 
 <a name="timing"></a><h2>Timing the Defect Fix</h2>
-<P>The defect dialog has its own built in timer independent of the main 
-dashboard timer.  By default, when the dialog first appears, it starts timing 
-the fix of the defect.  The fix time display will show the time passing.  The 
-intent of this behavior is that most people will discover a defect, push the 
-defect button on the dashboard and immediately start fixing the defect.  In 
-this scenario, the dialog will immediately start timing the fix.  This 
-behavior can be changed via an entry in the preferences editor.  Adding the 
-following advanced setting will cause the defect dialog to appear without
-starting the defect timer.</P>
 
-<PRE>defectDialog.autostart=false</PRE>
+<p>When fixing defects, it is helpful to track of the amount of time that was
+spent finding the root cause and fixing it.  Tracking this information makes
+it possible to analyze the relative costs of different defect types, so you
+can continually improve your development process.</p>
 
-<P>For more information about making this configuration change see the <a 
-href="../AdvancedTopics/ConfigurationFile.html">advanced settings</a> help 
-topic.</P>
+<p>The defect dialog has a field where you can enter the defect fix time
+directly.  But generally, it is easier to use the fix timer buttons.  Just
+start the defect fix timer as soon as you become aware of a defect, and stop
+it when the defect has been fixed.  Of course, you can also pause the timer if
+you begin working on some other task, and restart it when you resume working
+on this defect.</p>
 
-<P>The play and pause buttons allow starting and stopping of the defect 
-timer.  If you stop fixing the given defect but are not finished with the 
-fix, you can press this button to stop the timer.</P>
+<p>Of course, when you are fixing a defect, you generally need to log time
+against the corresponding project task as well.  So the defect timer and the
+main timer work together to help you collect accurate data.  For example:</p>
 
-<P>The defect fix timer can be started and stopped independently of the main
-dashboard timer. However, if both timers are running and you pause the main
-dashboard timer, the defect fix timer will pause too.  After being paused in
-this way, if you restart the main dashboard timer, the defect timer will
-restart as well.</p>
+<ul>
 
-<P>In any case, you can stop the timer and enter a specific time in the fix 
-time display box.</P>
+<li>If the main timer is running when you click the defect button to log a new
+defect, the defect fix timer will start automatically as well.</li>
+
+<li>If you start timing a defect, the dashboard will start the main timer
+automatically.  If the main timer is pointing at a different task, the
+dashboard will ask you if you'd like to switch to the task where this defect
+was logged.</li>
+
+<li>If you are timing a defect and you pause the main timer, the defect timer
+will pause as well.  After being paused in this way, if you restart the main
+dashboard timer, the defect timer will restart too.</li>
+
+<li>If you are timing a defect and you change the main timer to log time to an
+unrelated task, the defect timer will pause automatically.</li>
+
+</ul>
+
 
 <h2>Fix Count</h2>
 

@@ -412,7 +412,9 @@ public class DefectDialog extends JDialog
         panel.setMinimumSize(panel.getPreferredSize());
         setVisible(true);
 
-        if ("true".equalsIgnoreCase(Settings.getVal("defectDialog.autostart")))
+        if (guessDefaults && Settings.getBool("defectDialog.autostart", true)
+                && parent.getTimeLoggingModel().isPaused() == false
+                && stopwatchSynchronizer.activeTaskMatches())
             startTimingDefect();
         setDirty(false);
     }
@@ -884,6 +886,8 @@ public class DefectDialog extends JDialog
         TimeLoggingModel timeLoggingModel;
         PropertyKey workflowRoot;
         boolean pausedByTimeLoggingModel = false;
+        boolean implicitlyStartedTimeLoggingModel = false;
+        boolean currentlyChangingTimeLoggingModel = false;
 
         public StopwatchSynchronizer(TimeLoggingModel timeLoggingModel) {
             this.timeLoggingModel = timeLoggingModel;
@@ -894,11 +898,90 @@ public class DefectDialog extends JDialog
             timeLoggingModel.removePropertyChangeListener(this);
         }
 
-        public void userToggledDefectTimer() {
+        public void userToggledDefectTimer(boolean defectTimerWillBeRunning)
+                throws IllegalStateException {
             pausedByTimeLoggingModel = false;
+
+            try {
+                currentlyChangingTimeLoggingModel = true;
+
+                if (defectTimerWillBeRunning) {
+                    // the user is starting the defect timer.
+                    implicitlyStartedTimeLoggingModel = false;
+
+                    if (!activeTaskMatches()) {
+                        // if this defect is for a task that conflicts with the
+                        // global active task, display a warning to make sure
+                        // the user wants to continue, and take appropriate actions.
+                        warnAboutTimingDefectDuringActiveTaskMismatch();
+
+                    } else if (timeLoggingModel.isPaused()) {
+                        // the active task agrees with the defect task, but the
+                        // global timer is not running. Start it so it agrees
+                        // with the defect timer.
+                        timeLoggingModel.setPaused(false);
+                        implicitlyStartedTimeLoggingModel = true;
+                    }
+
+                } else {
+                    // the user just stopped the defect timer.
+
+                    // if this object was previously responsible for implicitly
+                    // starting the global timer, stop it again.
+                    if (implicitlyStartedTimeLoggingModel) {
+                        timeLoggingModel.setPaused(true);
+                        implicitlyStartedTimeLoggingModel = false;
+                    }
+                }
+            } finally {
+                currentlyChangingTimeLoggingModel = false;
+            }
+        }
+
+        private void warnAboutTimingDefectDuringActiveTaskMismatch() {
+            // user pref options: 
+            // * "strict" forces the user to keep things in sync.
+            // * "moderate" will warn them about the problem, but let them
+            //    choose "No", which will just stop the main timer
+            // * "relaxed" will warn them about the problem, but let them
+            //    choose "No", which will then do nothing
+            // * "none" won't warn the user at all, or take any action
+            String userPref = getTaskMatchPref("defectDialog.timerMatch",
+                "/Defect_Timer_Match_Policy", "relaxed");
+            if ("none".equalsIgnoreCase(userPref))
+                return;
+
+            String title = resources.getString("Timing.Task_Mismatch_Title");
+            String[] message = resources.formatStrings(
+                "Timing.Task_Mismatch_FMT", taskPath.path());
+            int optionsToDisplay;
+            if ("strict".equalsIgnoreCase(userPref))
+                optionsToDisplay = JOptionPane.OK_CANCEL_OPTION;
+            else
+                optionsToDisplay = JOptionPane.YES_NO_CANCEL_OPTION;
+
+            int userChoice = JOptionPane.showConfirmDialog(DefectDialog.this,
+                message, title, optionsToDisplay, JOptionPane.WARNING_MESSAGE);
+
+            if (userChoice == JOptionPane.OK_OPTION
+                    || userChoice == JOptionPane.YES_OPTION) {
+                timeLoggingModel.getActiveTaskModel().setNode(taskPath);
+                timeLoggingModel.setPaused(false);
+                implicitlyStartedTimeLoggingModel = true;
+            } else if (userChoice == JOptionPane.NO_OPTION) {
+                if (!"relaxed".equalsIgnoreCase(userPref)) {
+                    timeLoggingModel.setPaused(true);
+                    implicitlyStartedTimeLoggingModel = false;
+                }
+            } else {
+                throw new IllegalStateException();
+            }
         }
 
         public void propertyChange(PropertyChangeEvent evt) {
+            if (currentlyChangingTimeLoggingModel)
+                return;
+
             String propName = evt.getPropertyName();
             if (TimeLoggingModel.PAUSED_PROPERTY.equals(propName)) {
                 boolean mainTimerIsPaused = timeLoggingModel.isPaused();
@@ -911,6 +994,7 @@ public class DefectDialog extends JDialog
                     startTimingDefect();
                     pausedByTimeLoggingModel = false;
                 }
+                implicitlyStartedTimeLoggingModel = false;
 
             } else if (TimeLoggingModel.ACTIVE_TASK_PROPERTY.equals(propName)
                     && !activeTaskMatches()) {
@@ -920,14 +1004,16 @@ public class DefectDialog extends JDialog
                 if (stopwatch.isRunning())
                     stopTimingDefect();
 
-                // don't implicitly restart the timer in the future
+                // don't implicitly restart timers in the future.
                 pausedByTimeLoggingModel = false;
+                implicitlyStartedTimeLoggingModel = false;
             }
         }
 
         private boolean activeTaskMatches() {
             // get the user's preference about how strict matching should be
-            String userPref = getTaskMatchPref();
+            String userPref = getTaskMatchPref("defectDialog.taskMatch",
+                "/Defect_Timer_Task_Match_Policy", "component");
             if ("none".equalsIgnoreCase(userPref))
                 return true;
 
@@ -961,17 +1047,17 @@ public class DefectDialog extends JDialog
                 return false;
         }
 
-        private String getTaskMatchPref() {
-            String result = Settings.getVal("defectDialog.taskMatch");
+        private String getTaskMatchPref(String prefName, String dataName,
+                String defaultValue) {
+            String result = Settings.getVal(prefName);
             if (StringUtils.hasValue(result))
                 return result;
 
-            SimpleData sd = parent.getData().getSimpleValue(
-                "/Defect_Timer_Task_Match_Policy");
+            SimpleData sd = parent.getData().getSimpleValue(dataName);
             if (sd != null && sd.test())
                 return sd.format();
 
-            return "component";
+            return defaultValue;
         }
 
         private boolean under(PropertyKey node, PropertyKey parent) {
@@ -1039,7 +1125,13 @@ public class DefectDialog extends JDialog
         public void actionPerformed(ActionEvent e) {
             boolean shouldBeRunning = (e.getSource() == startButton);
             if (running != shouldBeRunning) {
-                stopwatchSynchronizer.userToggledDefectTimer();
+                try {
+                    stopwatchSynchronizer
+                            .userToggledDefectTimer(shouldBeRunning);
+                } catch (IllegalStateException ise) {
+                    return;
+                }
+
                 if (shouldBeRunning)
                     startTimingDefect();
                 else
