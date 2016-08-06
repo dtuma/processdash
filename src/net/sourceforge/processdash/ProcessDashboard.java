@@ -46,6 +46,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
@@ -1945,6 +1948,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 title = args[i];
         }
 
+        CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         HttpAuthenticator.maybeInitialize(title);
         MacGUIUtils.tweakLookAndFeel();
 
