@@ -366,6 +366,7 @@ public class WBSSynchronizer {
         return null;
     }
 
+
     private Map<String, Integer> buildClientIdMap(WBSModel wbs) {
         Map<String, Integer> result = new HashMap<String, Integer>();
         for (WBSNode node : wbs.getWbsNodes()) {
@@ -376,6 +377,19 @@ public class WBSSynchronizer {
         return result;
     }
 
+    public static String getMaxClientIdStr(WBSNode root) {
+        Map<String, Integer> maxClientIds = buildMaxClientIdMap(root);
+        if (maxClientIds.isEmpty())
+            return null;
+
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, Integer> e : maxClientIds.entrySet()) {
+            result.append(',').append(e.getKey()).append('=')
+                    .append(e.getValue());
+        }
+        result.append(',');
+        return result.toString();
+    }
 
     private static Map<String, Integer> buildMaxClientIdMap(WBSNode root) {
         Map<String, Integer> result = new TreeMap<String, Integer>();

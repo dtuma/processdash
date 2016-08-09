@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -222,6 +222,8 @@ public class WBSDataWriter {
         writeAttr(out, NAME_ATTR, getWbsNodeName(node));
         writeAttr(out, ID_ATTR, node.getUniqueID());
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
+        writeAttr(out, CLIENT_ID_ATTR,
+            (String) node.getAttribute(WBSSynchronizer.CLIENT_ID_ATTR));
         writeAttr(out, RELAUNCH_SOURCE_ID_ATTR, getRelaunchSourceID(node));
         writeAttr(out, LABELS_ATTR, getLabelSaveString(node));
         writeAttr(out, WORKFLOW_ID_ATTR, getWorkflowIdSaveString(node));
@@ -606,6 +608,8 @@ public class WBSDataWriter {
                 version = "999";
             writeAttr(out, VERSION_ATTR, version);
             writeAttr(out, SAVE_DATE_ATTR, new Date());
+            writeAttr(out, MAX_CLIENT_IDS_ATTR,
+                WBSSynchronizer.getMaxClientIdStr(node));
             // writeAttr(out, "workflowPhaseMatch", "relaxed");
             if ("true".equals(getUserSetting(PROJECT_CLOSED_SETTING)))
                 writeAttr(out, PROJECT_CLOSED_SETTING, "true");
@@ -843,6 +847,8 @@ public class WBSDataWriter {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String CLIENT_ID_ATTR = "cid";
+    private static final String MAX_CLIENT_IDS_ATTR = "maxCid";
     private static final String RELAUNCH_SOURCE_ID_ATTR = "rsid";
     private static final String LABELS_ATTR = "labels";
     private static final String WORKFLOW_ID_ATTR = "wid";
