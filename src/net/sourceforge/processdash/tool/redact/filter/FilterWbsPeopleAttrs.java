@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
 
 package net.sourceforge.processdash.tool.redact.filter;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.PersonMapper;
+import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 
 @EnabledFor(RedactFilterIDs.PEOPLE)
 public class FilterWbsPeopleAttrs extends AbstractWbsAttrFilter {
@@ -56,6 +56,13 @@ public class FilterWbsPeopleAttrs extends AbstractWbsAttrFilter {
         for (String suffix : INITIALS_ATTRS)
             if (attrName.endsWith(suffix))
                 return suffix;
+
+        if (attrName.endsWith(" Max Client ID")) {
+            int dashPos = attrName.indexOf('-');
+            if (dashPos != -1)
+                return attrName.substring(dashPos);
+        }
+
         return null;
     }
 
@@ -66,6 +73,11 @@ public class FilterWbsPeopleAttrs extends AbstractWbsAttrFilter {
     @EnabledFor(" Author$")
     public String scrambleNoteAuthors(String author) {
         return PersonMapper.hashPersonName(author);
+    }
+
+    @EnabledFor("^Client Unique ID$")
+    public String scrambleClientIDs(String clientID) {
+        return PersonMapper.hashClientNodeID(clientID);
     }
 
 }

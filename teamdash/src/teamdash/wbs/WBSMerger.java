@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,9 @@ public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
         contentMerger.addHandler(new PatternList()
                 .addLiteralStartsWith(TeamTimeColumn.ROLE_ASSIGNMENT_PREFIX),
             TeamTimeColumn.ASSIGNED_ROLE_MERGER);
+        contentMerger.addHandler(new PatternList()
+                .addLiteralEndsWith(WBSSynchronizer.MAX_CLIENT_ID_ATTR_SUFFIX),
+            WBSSynchronizer.MAX_CLIENT_ID_MERGER);
         addNoteAttrHandler(NotesColumn.VALUE_ATTR);
         addNoteAttrHandler(ErrorNotesColumn.VALUE_ATTR);
     }

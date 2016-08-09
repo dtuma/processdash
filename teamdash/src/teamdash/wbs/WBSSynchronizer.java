@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -51,6 +53,8 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 import teamdash.XMLUtils;
+import teamdash.merge.AttributeMerger;
+import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.team.WeeklySchedule;
@@ -75,11 +79,15 @@ public class WBSSynchronizer {
 
     private Map<String, Integer> clientIdMap;
 
+    private Map<String, Integer> maxPastClientIDs;
+
     private Date effectiveDate;
 
     private boolean createMissingTeamMembers = false;
 
     private boolean needsWbsEvent = false;
+
+    private boolean createdNewTasks = false;
 
     private boolean foundActualData = false;
 
@@ -113,6 +121,8 @@ public class WBSSynchronizer {
 
     public static final String CLIENT_ID_ATTR = "Client Unique ID";
 
+    public static final String MAX_CLIENT_ID_ATTR_SUFFIX = " Max Client ID";
+
 
     public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel) {
         this(teamProject, dataModel, null);
@@ -137,7 +147,7 @@ public class WBSSynchronizer {
 
     public void run() {
         effectiveDate = new Date(0);
-        foundActualData = needsWbsEvent = false;
+        createdNewTasks = foundActualData = needsWbsEvent = false;
         foundActualSizeData = sizeDataIncomplete = false;
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
@@ -145,6 +155,7 @@ public class WBSSynchronizer {
         clientIdMap = buildClientIdMap(teamProject.getWBS());
         WBSNode wbsRoot = teamProject.getWBS().getRoot();
         wbsRoot.setAttribute(SYNC_IN_PROGRESS_ATTR, Boolean.TRUE);
+        maxPastClientIDs = buildMaxClientIdMap(wbsRoot);
 
         for (Iterator i = teamProject.getTeamMemberList().getTeamMembers()
                 .iterator(); i.hasNext();) {
@@ -169,6 +180,7 @@ public class WBSSynchronizer {
 
         nodeMap = null;
         clientIdMap = null;
+        maxPastClientIDs = null;
     }
 
 
@@ -191,6 +203,13 @@ public class WBSSynchronizer {
         return !reloadedMemberNames.isEmpty();
     }
 
+
+    /**
+     * Return true if any new tasks were created during the reverse-sync.
+     */
+    public boolean getCreatedNewTasks() {
+        return createdNewTasks;
+    }
 
     /**
      * Return true if any actual data was found during the reverse-sync, false
@@ -356,6 +375,68 @@ public class WBSSynchronizer {
         }
         return result;
     }
+
+
+    private static Map<String, Integer> buildMaxClientIdMap(WBSNode root) {
+        Map<String, Integer> result = new TreeMap<String, Integer>();
+        for (String attrName : root.getAttributeMap(true, true).keySet()) {
+            if (attrName.endsWith(MAX_CLIENT_ID_ATTR_SUFFIX)) {
+                int prefixLen = attrName.length()
+                        - MAX_CLIENT_ID_ATTR_SUFFIX.length();
+                String clientPrefix = attrName.substring(0, prefixLen);
+                int value = root.getIntegerAttribute(attrName);
+                result.put(clientPrefix, value);
+            }
+        }
+        return result;
+    }
+
+    private boolean clientIdWasHandledInThePast(ClientID clientID) {
+        Integer pastMax = maxPastClientIDs.get(clientID.prefix);
+        return (pastMax != null && clientID.number <= pastMax);
+    }
+
+    private void recordNewlyAddedClientId(ClientID clientID) {
+        String attr = clientID.prefix + MAX_CLIENT_ID_ATTR_SUFFIX;
+        WBSNode root = teamProject.getWBS().getRoot();
+        Integer currMax = root.getIntegerAttribute(attr);
+        if (currMax == null || currMax < clientID.number)
+            root.setAttribute(attr, clientID.number);
+    }
+
+    private static class ClientID {
+        String prefix;
+        int number;
+        ClientID(String clientID) throws Exception {
+            int colonPos = clientID.indexOf(':');
+            this.prefix = clientID.substring(0, colonPos);
+            this.number = Integer.parseInt(clientID.substring(colonPos + 1));
+        }
+    }
+
+    private static class MaxClientIDMerger implements
+            AttributeMerger<Integer, String> {
+
+        public String mergeAttribute(Integer nodeID, String attrName,
+                String base, String main, String incoming,
+                ErrorReporter<Integer> err) {
+            int mainVal = parse(main);
+            int incomingVal = parse(incoming);
+            int maxVal = Math.max(mainVal, incomingVal);
+            return Integer.toString(maxVal);
+        }
+
+        private int parse(String val) {
+            try {
+                return Integer.parseInt(val);
+            } catch (Exception e) {
+                return -1;
+            }
+        }
+    }
+
+    public static final AttributeMerger<Integer, String> MAX_CLIENT_ID_MERGER = new MaxClientIDMerger();
+
 
     private void addMissingTeamMembers(Map<String, File> unclaimedExportFiles) {
         Date timestamp = getLastTeamListReverseSyncDate();
@@ -755,8 +836,6 @@ public class WBSSynchronizer {
         private String estTimeAttrName;
         private String estTimeSyncAttrName;
         private String assignedZeroAttrName;
-        private String actualTimeAttrName;
-        private String completionDateAttrName;
         private String teamTimeAttrName = TeamTimeColumn.getNodeDataAttrName();
 
         private void setTeamMember(TeamMember m) {
@@ -769,143 +848,121 @@ public class WBSSynchronizer {
                         .getColumnID(m));
                 assignedZeroAttrName = TeamTimeColumn
                         .getMemberAssignedZeroAttrName(m);
-                actualTimeAttrName = TeamMemberActualTimeColumn
-                        .getNodeDataAttrName(m);
-                completionDateAttrName = TeamCompletionDateColumn
-                        .getMemberNodeDataAttrName(m);
             }
         }
 
         public void sync(TeamProject teamProject, TeamMember individual,
                 Element newTaskTag) {
             setTeamMember(individual);
+            WBSNode node = findOrCreateNewNode(teamProject, newTaskTag);
+            if (node != null) {
+                saveTaskType(teamProject, newTaskTag);
+                saveTimeEstimate(teamProject, newTaskTag);
+            }
+        }
 
+        private WBSNode findOrCreateNewNode(TeamProject teamProject,
+                Element newTaskTag) {
+
+            // Ignore <newTask> tags written by the old, obsolete user dump
+            // logic. (Those tags will not include a wbsId attribute.)
+            String clientID = newTaskTag.getAttribute(WBS_ID_ATTR);
+            if (!XMLUtils.hasValue(clientID))
+                return null;
+
+            // See if the WBS already contains a node with the given client ID.
+            // If so, it was already created by a past reverse sync operation,
+            // so there is no need to recreate it.
+            Integer nodeID = clientIdMap.get(clientID);
+            if (nodeID != null)
+                return nodeMap.get(nodeID);
+
+            // parse the client ID, and see if it was already added by a past
+            // reverse sync operation. If so, it has apparently been deleted
+            // since then, and it should not be recreated.
+            ClientID cid;
+            try {
+                cid = new ClientID(clientID);
+                if (clientIdWasHandledInThePast(cid))
+                    return null;
+            } catch (Exception e) {
+                // if we couldn't parse the client ID value, abort
+                return null;
+            }
+
+            // find the location in the WBS where the new node should appear.
             WBSNode parentNode = getWbsNode(newTaskTag, PARENT_ID_ATTR);
             if (parentNode == null)
-                return;
-
-            int insertionPos = getInsertionPos(teamProject.getWBS(),
-                parentNode, newTaskTag);
-            if (insertionPos == -1)
-                return;
+                return null;
+            WBSNode prevSibling = getWbsNode(newTaskTag, PREV_SIBLING_ID_ATTR);
 
             // we are either (a) subdividing an existing leaf, or (b) adding
             // new tasks underneath an existing parent.  In either case, any
             // previous top-down time estimate on the parent node is now
             // out-of-date.  Delete it so the bottom-up estimates from the
             // new children will prevail.
-            parentNode.setAttribute(estTimeAttrName, null);
-            parentNode.setAttribute(estTimeSyncAttrName, null);
-            parentNode.setAttribute(teamTimeAttrName, null);
-            // create and insert the new children
-            List newTasks = createNewTasks(teamProject.getWBS(), parentNode,
-                newTaskTag);
-            teamProject.getWBS().insertNodesAt(newTasks, insertionPos, true);
-            needsWbsEvent = false;
-        }
-
-        private int getInsertionPos(WBSModel wbsModel, WBSNode parentNode,
-                Element tag) {
-            WBSNode[] children = wbsModel.getChildren(parentNode);
-
-            String name = tag.getAttribute(TASK_NAME_ATTR);
-            if (name == null)
-                return -1;
-
-            WBSNode prevSibling = null;
-            WBSNode nextSibling = null;
-            String prevSiblingName = tag.getAttribute(PREV_SIBLING_NAME_ATTR);
-            int prevSiblingID = XMLUtils.getXMLInt(tag, PREV_SIBLING_ID_ATTR);
-            int nextSiblingID = XMLUtils.getXMLInt(tag, NEXT_SIBLING_ID_ATTR);
-            for (WBSNode node : children) {
-                if (name.equals(node.getName()))
-                    // it appears that a previous reverse sync operation has
-                    // already added this node to the WBS.  Do nothing.
-                    return -1;
-
-                if (prevSiblingID != -1) {
-                    if (prevSiblingID == node.getUniqueID())
-                        prevSibling = node;
-                } else if (nextSiblingID != -1) {
-                    if (nextSiblingID == node.getUniqueID())
-                        nextSibling = node;
-                } else if (prevSiblingName != null) {
-                    if (prevSiblingName.equals(node.getName()))
-                        prevSibling = node;
-                }
+            if (XMLUtils.getXMLNum(newTaskTag, TIME_ATTR) > 0) {
+                parentNode.setAttribute(estTimeAttrName, null);
+                parentNode.setAttribute(estTimeSyncAttrName, null);
+                parentNode.setAttribute(teamTimeAttrName, null);
             }
 
-            if (nextSibling != null) {
-                return wbsModel.getIndexOfNode(nextSibling);
+            // if the parent was just created during this reverse sync run as
+            // an "unknown task", change it to a generic component.
+            if (WBSNode.UNKNOWN_TYPE.equals(parentNode.getType()))
+                parentNode.setType(TeamProcess.COMPONENT_TYPE);
+
+            // compute attributes for the new node we will create
+            WBSModel wbs = teamProject.getWBS();
+            String name = newTaskTag.getAttribute(TASK_NAME_ATTR);
+            String type = getTaskType(newTaskTag);
+            int indentLevel;
+            WBSNode insertAfterNode;
+            if (prevSibling == null) {
+                indentLevel = parentNode.getIndentLevel() + 1;
+                insertAfterNode = parentNode;
             } else {
-                WBSNode afterNode = prevSibling;
-                if (afterNode == null)
-                    afterNode = parentNode;
-                WBSNode[] descendants = wbsModel.getDescendants(afterNode);
-                if (descendants != null && descendants.length > 0)
-                    afterNode = descendants[descendants.length-1];
-                return wbsModel.getIndexOfNode(afterNode) + 1;
+                indentLevel = prevSibling.getIndentLevel();
+                WBSNode[] descendants = wbs.getDescendants(prevSibling);
+                if (descendants == null || descendants.length == 0)
+                    insertAfterNode = prevSibling;
+                else
+                    insertAfterNode = descendants[descendants.length - 1];
             }
+            int pos = wbs.getIndexOfNode(insertAfterNode) + 1;
+
+            // create and insert a node for the new task
+            WBSNode newNode = new WBSNode(wbs, name, type, indentLevel, false);
+            newNode.setAttribute(CLIENT_ID_ATTR, clientID);
+            newNode.setAttribute(assignedZeroAttrName, "t");
+            wbs.insertNodesAt(Collections.singletonList(newNode), pos, false);
+            clientIdMap.put(clientID, newNode.getUniqueID());
+            nodeMap.put(newNode.getUniqueID(), newNode);
+            recordNewlyAddedClientId(cid);
+            createdNewTasks = needsWbsEvent = true;
+
+            return newNode;
         }
 
-        private List<WBSNode> createNewTasks(WBSModel wbsModel,
-                WBSNode parentNode, Element newTaskTag) {
-            List<WBSNode> result = new ArrayList<WBSNode>();
-            int indentLevel = parentNode.getIndentLevel() + 1;
-            createNewTasks(result, wbsModel, newTaskTag, indentLevel,
-                WBSNode.UNKNOWN_TYPE);
-            return result;
-        }
-
-        private void createNewTasks(List<WBSNode> result, WBSModel wbsModel,
-                Element task, int level, String defaultType) {
-            // retrieve the name of the new item
-            String name = task.getAttribute(TASK_NAME_ATTR);
-
-            // calculate the node type of the new item
-            String type = task.getAttribute(NODE_TYPE_ATTR);
-            if (type == null || type.length() == 0)
-                type = defaultType;
-            else if ("/PSP/".equals(type))
-                type = TeamProcess.PSP_TASK_TYPE;
+        private String getTaskType(Element newTaskTag) {
+            String type = newTaskTag.getAttribute(NODE_TYPE_ATTR);
+            if (XMLUtils.hasValue(type))
+                return type + " Task";
             else
-                type = type + " Task";
-
-            // create the new node
-            WBSNode node = new WBSNode(wbsModel, name, type, level, false);
-
-            // set node attributes for est/actual time, completion date
-            double estTime = XMLUtils.getXMLNum(task, EST_TIME_ATTR);
-            setNodeAttr(node, estTimeAttrName, estTime);
-            setNodeAttr(node, estTimeSyncAttrName, estTime);
-            double actualTime = XMLUtils.getXMLNum(task, TIME_ATTR);
-            setNodeAttr(node, actualTimeAttrName, actualTime);
-            Date actualDate = XMLUtils.getXMLDate(task, COMPLETION_DATE_ATTR);
-            node.setAttribute(completionDateAttrName, actualDate);
-
-            // add the new node to the result list.
-            result.add(node);
-
-            // recurse over children and create nodes for them, too.
-            boolean isLeaf = true;
-            NodeList subtasks = task.getChildNodes();
-            for (int i = 0;  i < subtasks.getLength();  i++) {
-                Node subtask = subtasks.item(i);
-                if (subtask instanceof Element) {
-                    createNewTasks(result, wbsModel, (Element) subtask,
-                        level + 1, type);
-                    isLeaf = false;
-                }
-            }
-
-            // set the "assigned with zero hours" flag if needed.
-            if (isLeaf && estTime == 0)
-                node.setAttribute(assignedZeroAttrName, "t");
+                return WBSNode.UNKNOWN_TYPE;
         }
 
-        private void setNodeAttr(WBSNode node, String attrName, double value) {
-            if (value > 0)
-                node.setNumericAttribute(attrName, value);
+        private void saveTaskType(TeamProject teamProject, Element newTaskTag) {
+            SyncHandler nodeTypeHandler = handlers.get(NODE_TYPE_CHANGE_TAG);
+            if (nodeTypeHandler != null)
+                nodeTypeHandler.sync(teamProject, m, newTaskTag);
+        }
+
+        private void saveTimeEstimate(TeamProject teamProject,
+                Element newTaskTag) {
+            SyncHandler planTimeHandler = handlers.get(PLAN_TIME_CHANGE_TAG);
+            if (planTimeHandler != null)
+                planTimeHandler.sync(teamProject, m, newTaskTag);
         }
 
     }
@@ -988,10 +1045,6 @@ public class WBSSynchronizer {
     private static final String PARENT_ID_ATTR = "parentWbsId";
 
     private static final String PREV_SIBLING_ID_ATTR = "prevSiblingId";
-
-    private static final String PREV_SIBLING_NAME_ATTR = "prevSiblingName";
-
-    private static final String NEXT_SIBLING_ID_ATTR = "nextSiblingId";
 
     private static final String EST_TIME_ATTR = "estTime";
 

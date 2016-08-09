@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -255,6 +255,9 @@ public class WBSNode implements Cloneable {
         if (attrValue instanceof Integer)
             return (Integer) attrValue;
 
+        if (attrValue instanceof Number)
+            return ((Number) attrValue).intValue();
+
         if (attrValue instanceof String) {
             Integer i = null;
             try {
@@ -463,9 +466,9 @@ public class WBSNode implements Cloneable {
      * @return a copy of the node attributes, possibly excluding the attributes
      *         in question
      */
-    public Map getAttributeMap(boolean discardTransientData,
+    public Map<String, Object> getAttributeMap(boolean discardTransientData,
             boolean discardActualData) {
-        Map result = new HashMap(attributes.size());
+        Map<String, Object> result = new HashMap(attributes.size());
         for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String attrName = (String) e.getKey();
