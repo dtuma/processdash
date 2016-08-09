@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,11 @@ public class FilterDataContainingPersonNames extends AbstractDataStringFilter {
     @EnabledFor("^Indiv_Initials$")
     public String scrambleTeamProjectInitials(String initials) {
         return PersonMapper.hashInitials(initials);
+    }
+
+    @EnabledFor("^Client_Unique_ID$")
+    public String scrambleTeamProjectClientIDs(String clientID) {
+        return PersonMapper.hashClientNodeID(clientID);
     }
 
 }

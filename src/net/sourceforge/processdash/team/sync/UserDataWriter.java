@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -114,89 +114,63 @@ public class UserDataWriter extends TinyCGIBase {
             PropertyKey parent, String parentID, String phaseDataName)
             throws IOException {
 
-        String prevSiblingName = null;
         String prevSiblingID = null;
         for (int i = 0;  i < hier.getNumChildren(parent);  i++) {
             PropertyKey child = hier.getChildKey(parent, i);
-            String childID = getWbsIdForPath(child.path());
+            String path = child.path();
+            String childID = getWbsIdForPath(path);
 
-            if (hasValue(childID)) {
-                // this task has a WBS ID, so it must have come from the WBS
-                // originally.  It isn't a new task.  So just recurse and
-                // look for new tasks underneath it.
-                if (!isPSPTask(child.path()))
-                    writeNewTasks(ser, hier, child, childID, phaseDataName);
-
-            } else {
+            if (!hasValue(childID)) {
                 // this task does not have a WBS ID, so it is new.  Write a
                 // "new task" entry for it.
-                String nextSiblingID = null;
-                if (prevSiblingName == null && prevSiblingID == null)
-                    nextSiblingID = getFirstTaskID(hier, parent);
-                writeNewTask(ser, hier, parentID, child, prevSiblingName,
-                    prevSiblingID, nextSiblingID, phaseDataName);
+                childID = getClientIdForPath(path);
+                if (hasValue(childID))
+                    writeNewTaskTag(ser, hier, parentID, prevSiblingID, child,
+                        childID, phaseDataName);
+                else
+                    continue;
             }
 
-            prevSiblingName = child.name();
+            // Recurse and look for new tasks underneath this task.
+            if (!isPSPTask(path))
+                writeNewTasks(ser, hier, child, childID, phaseDataName);
+
             prevSiblingID = childID;
         }
     }
 
-    private String getFirstTaskID(DashHierarchy hier, PropertyKey parent) {
-        for (int i = 0;  i < hier.getNumChildren(parent);  i++) {
-            PropertyKey child = hier.getChildKey(parent, i);
-            String childID = getWbsIdForPath(child.path());
-            if (hasValue(childID))
-                return childID;
-        }
-        return null;
-    }
+    private void writeNewTaskTag(XmlSerializer ser, DashHierarchy hier,
+            String parentID, String previousSiblingID, PropertyKey node,
+            String nodeClientID, String phaseDataName) throws IOException {
 
-    private void writeNewTask(XmlSerializer ser, DashHierarchy hier,
-            String parentID, PropertyKey node, String previousSiblingName,
-            String previousSiblingID, String subsequentSiblingID,
-            String phaseDataName) throws IOException {
-
+        // start a tag for the new task.
         ser.startTag(null, NEW_TASK_TAG);
 
-        // write the name of the task
+        // write the name and ID of the task
+        ser.attribute(null, WBS_ID_ATTR, nodeClientID);
         ser.attribute(null, TASK_NAME_ATTR, node.name());
 
         // write information about where the task is located in the WBS
         writeAttr(ser, PARENT_ID_ATTR, parentID);
-        writeAttr(ser, PREV_SIBLING_NAME_ATTR, previousSiblingName);
         writeAttr(ser, PREV_SIBLING_ID_ATTR, previousSiblingID);
-        writeAttr(ser, NEXT_SIBLING_ID_ATTR, subsequentSiblingID);
 
-        // write estimated and actual data for the task
+        // write the estimated time for the task
         String path = node.path();
         SimpleData estimatedTime = getData(path, "Estimated Time");
-        SimpleData actualTime = getData(path, "Time");
-        SimpleData startDate = getData(path, "Started");
-        SimpleData completionDate = getData(path, "Completed");
-        writeTimeDataAttr(ser, EST_TIME_ATTR, estimatedTime);
-        writeTimeDataAttr(ser, TIME_ATTR, actualTime);
-        writeActualDataAttr(ser, START_DATE_ATTR, startDate);
-        writeActualDataAttr(ser, COMPLETION_DATE_ATTR, completionDate);
+        writeTimeDataAttr(ser, TIME_ATTR, estimatedTime);
 
         if (isPSPTask(path)) {
-            // if this is a PSP project, write the node type "/PSP/"
-            writeAttr(ser, NODE_TYPE_ATTR, "/PSP/");
+            // if this is a PSP project, write the node type "PSP"
+            writeAttr(ser, NODE_TYPE_ATTR, "PSP");
 
         } else {
             // otherwise, write the node type if there is one
             String phaseType = getStringData(getData(path, phaseDataName));
             if (phaseType != null && !phaseType.startsWith("?"))
                 writeAttr(ser, NODE_TYPE_ATTR, phaseType);
-
-            // recurse over subtasks
-            for (int i = 0;  i < hier.getNumChildren(node);  i++) {
-                PropertyKey subtask = hier.getChildKey(node, i);
-                writeNewTask(ser, hier, null, subtask, null, null, null,
-                    phaseDataName);
-            }
         }
 
+        // end the new task tag
         ser.endTag(null, NEW_TASK_TAG);
     }
 
@@ -228,7 +202,7 @@ public class UserDataWriter extends TinyCGIBase {
     private void writeActualDataForNode(XmlSerializer ser, DashHierarchy hier,
             PropertyKey node) throws IOException {
         String path = node.path();
-        String wbsID = getWbsIdForPath(path);
+        String wbsID = getWbsOrClientIdForPath(path);
         if (!hasValue(wbsID))
             return;
 
@@ -452,7 +426,22 @@ public class UserDataWriter extends TinyCGIBase {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
     }
 
+    private String getClientIdForPath(String path) {
+        return getStringData(getData(path, TeamDataConstants.CLIENT_ID_DATA_NAME));
+    }
+
+    private String getWbsOrClientIdForPath(String path) {
+        String result = getWbsIdForPath(path);
+        if (!hasValue(result))
+            result = getClientIdForPath(path);
+        return result;
+    }
+
     private String getInheritedWbsIdForPath(String path) {
+        String result = getWbsOrClientIdForPath(path);
+        if (hasValue(result))
+            return result;
+
         SaveableData sd = getDataRepository().getInheritableValue(path,
             TeamDataConstants.WBS_ID_DATA_NAME);
         return (sd == null ? null : getStringData(sd.getSimpleValue()));
@@ -586,10 +575,6 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String PARENT_ID_ATTR = "parentWbsId";
 
     private static final String PREV_SIBLING_ID_ATTR = "prevSiblingId";
-
-    private static final String PREV_SIBLING_NAME_ATTR = "prevSiblingName";
-
-    private static final String NEXT_SIBLING_ID_ATTR = "nextSiblingId";
 
     private static final String EST_TIME_ATTR = "estTime";
 

@@ -53,6 +53,7 @@ public interface TeamDataConstants {
     public static final String TEAM_PROJECT_URL = "Team_URL";
     public static final String INDIV_INITIALS = "Indiv_Initials";
     public static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
+    public static final String CLIENT_ID_DATA_NAME = "Client_Unique_ID";
     public static final String WORKFLOW_ID_DATA_NAME = "Workflow_Source_ID";
     public static final String PROJECT_WORKFLOW_URLS_DATA_NAME =
         "Project_Workflow_URL_List";

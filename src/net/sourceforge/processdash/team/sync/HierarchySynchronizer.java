@@ -555,6 +555,7 @@ public class HierarchySynchronizer {
         if (isTeam())
             return Collections.EMPTY_SET;
 
+        assignClientIDs();
         getDeletableIndivNodes();
 
         Set results = new HashSet();
@@ -595,9 +596,15 @@ public class HierarchySynchronizer {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
     }
 
+    private String getClientIdForPath(String path) {
+        return getStringData(getData(path, TeamDataConstants.CLIENT_ID_DATA_NAME));
+    }
+
     private Set<String> allKnownWbsIds;
+    private Map<String, String> clientIdMap;
     private void getAllKnownWbsIds() {
         allKnownWbsIds = new HashSet<String>();
+        clientIdMap = new HashMap<String, String>();
         getAllKnownWbsIds(projectXML);
     }
     private void getAllKnownWbsIds(Element wbsNode) {
@@ -607,6 +614,9 @@ public class HierarchySynchronizer {
                 String childID = child.getAttribute(ID_ATTR);
                 if (XMLUtils.hasValue(childID))
                     allKnownWbsIds.add(childID);
+                String clientID = child.getAttribute(CLIENT_ID_ATTR);
+                if (XMLUtils.hasValue(clientID))
+                    clientIdMap.put(clientID, childID);
                 getAllKnownWbsIds(child);
             }
         }
@@ -637,6 +647,61 @@ public class HierarchySynchronizer {
             return id;
 
         return getPseudoWbsIdForKey(key.getParent()) + "/" + key.name();
+    }
+
+    private String clientIdPrefix;
+    private void assignClientIDs() {
+        clientIdPrefix = initials + "-"
+                + DashController.getDatasetID().substring(0, 4);
+
+        assignClientIDsToChildrenOf(projectKey);
+    }
+
+    private void assignClientIDsToChildrenOf(PropertyKey parent) {
+        for (int i = hierarchy.getNumChildren(parent); i-- > 0;) {
+            PropertyKey node = hierarchy.getChildKey(parent, i);
+            String path = node.path();
+
+            // see if this node has a WBS ID, or if it is user-created.
+            String wbsID = getWbsIdForPath(path);
+            if (wbsID == null) {
+                // This is a user-created node. See if it has a client ID.
+                String clientID = getClientIdForPath(path);
+                if (clientID == null) {
+                    // this user-created node does not have a client ID yet.
+                    // assign a new, unique client ID to this node.
+                    String newClientID = getNextClientId();
+                    forceData(path, TeamDataConstants.CLIENT_ID_DATA_NAME,
+                        StringData.create(newClientID));
+
+                } else {
+                    // this user-created node was assigned a client ID in the
+                    // past. Check the WBS to see if the node has been assigned
+                    // a real ID yet. If so, store it and discard the client ID.
+                    String newWbsID = clientIdMap.get(clientID);
+                    if (XMLUtils.hasValue(newWbsID)) {
+                        forceData(path, TeamDataConstants.WBS_ID_DATA_NAME,
+                            StringData.create(newWbsID));
+                        forceData(path, TeamDataConstants.CLIENT_ID_DATA_NAME,
+                            null);
+                    }
+                }
+            }
+
+            // recurse over children
+            if (!isPSPTask(node))
+                assignClientIDsToChildrenOf(node);
+        }
+    }
+
+    private static final String MAX_CLIENT_ID_DATA_NAME = "Max_Assigned_Client_ID";
+    private String getNextClientId() {
+        int maxNum = (int) getDoubleData(getData(projectPath,
+            MAX_CLIENT_ID_DATA_NAME));
+        int nextNum = maxNum + 1;
+        forceData(projectPath, MAX_CLIENT_ID_DATA_NAME, new DoubleData(nextNum));
+
+        return clientIdPrefix + ":" + nextNum;
     }
 
     private Set deletableIndividualNodes;
@@ -1737,6 +1802,7 @@ public class HierarchySynchronizer {
 
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
+    private static final String CLIENT_ID_ATTR = "cid";
     private static final String TASK_ID_ATTR = "tid";
     private static final String WORKFLOW_ID_ATTR = "wid";
     private static final String MILESTONE_ID_ATTR = "mid";
