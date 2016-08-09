@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -71,6 +71,10 @@ public class WBSSynchronizer {
 
     private Element explicitDumpData;
 
+    private Map<Integer, WBSNode> nodeMap;
+
+    private Map<String, Integer> clientIdMap;
+
     private Date effectiveDate;
 
     private boolean createMissingTeamMembers = false;
@@ -107,6 +111,8 @@ public class WBSSynchronizer {
     public static final String SYNC_NODE_TYPE_ATTR =
         getSyncAttrName("Node Type");
 
+    public static final String CLIENT_ID_ATTR = "Client Unique ID";
+
 
     public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel) {
         this(teamProject, dataModel, null);
@@ -135,7 +141,8 @@ public class WBSSynchronizer {
         foundActualSizeData = sizeDataIncomplete = false;
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
-        Map<Integer, WBSNode> nodeMap = teamProject.getWBS().getNodeMap();
+        nodeMap = teamProject.getWBS().getNodeMap();
+        clientIdMap = buildClientIdMap(teamProject.getWBS());
         WBSNode wbsRoot = teamProject.getWBS().getRoot();
         wbsRoot.setAttribute(SYNC_IN_PROGRESS_ATTR, Boolean.TRUE);
 
@@ -143,7 +150,7 @@ public class WBSSynchronizer {
                 .iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
-            syncTeamMember(m, dump, nodeMap);
+            syncTeamMember(m, dump);
             if (dump == directDumpData)
                 reloadedMemberNames.remove(m.getName());
         }
@@ -159,6 +166,9 @@ public class WBSSynchronizer {
 
         if (needsWbsEvent)
             teamProject.getWBS().fireTableRowsUpdated(0, 0);
+
+        nodeMap = null;
+        clientIdMap = null;
     }
 
 
@@ -337,6 +347,16 @@ public class WBSSynchronizer {
         return null;
     }
 
+    private Map<String, Integer> buildClientIdMap(WBSModel wbs) {
+        Map<String, Integer> result = new HashMap<String, Integer>();
+        for (WBSNode node : wbs.getWbsNodes()) {
+            String clientID = (String) node.getAttribute(CLIENT_ID_ATTR);
+            if (XMLUtils.hasValue(clientID))
+                result.put(clientID, node.getUniqueID());
+        }
+        return result;
+    }
+
     private void addMissingTeamMembers(Map<String, File> unclaimedExportFiles) {
         Date timestamp = getLastTeamListReverseSyncDate();
         TeamMemberList team = new TeamMemberList(teamProject.getTeamMemberList());
@@ -440,8 +460,7 @@ public class WBSSynchronizer {
      * @param m a team member
      * @param dumpData the reverse sync data for that team member
      */
-    private void syncTeamMember(TeamMember m, Element dumpData,
-            Map<Integer, WBSNode> nodeMap) {
+    private void syncTeamMember(TeamMember m, Element dumpData) {
         if (dumpData == null)
             return;
 
@@ -476,7 +495,7 @@ public class WBSSynchronizer {
                 Element e = (Element) child;
                 SyncHandler handler = handlers.get(e.getTagName());
                 if (handler != null)
-                    handler.sync(teamProject, m, nodeMap, e);
+                    handler.sync(teamProject, m, e);
             }
         }
 
@@ -510,7 +529,7 @@ public class WBSSynchronizer {
 
     private interface SyncHandler {
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element dumpData);
+                Element dumpData);
     }
 
     /**
@@ -520,7 +539,7 @@ public class WBSSynchronizer {
     private class ScheduleSynchronizer implements SyncHandler {
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element scheduleChangeTag) {
+                Element scheduleChangeTag) {
             WeeklySchedule schedule = individual.getSchedule();
             NodeList exceptions = scheduleChangeTag
                     .getElementsByTagName(SCHEDULE_EXCEPTION_TAG);
@@ -562,11 +581,10 @@ public class WBSSynchronizer {
         }
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element planTimeTag) {
+                Element planTimeTag) {
             setTeamMember(individual);
 
-            int wbsId = XMLUtils.getXMLInt(planTimeTag, WBS_ID_ATTR);
-            WBSNode node = nodeMap.get(wbsId);
+            WBSNode node = getWbsNode(planTimeTag);
             if (node == null)
                 return;
 
@@ -589,9 +607,8 @@ public class WBSSynchronizer {
     private class NodeTypeSynchronizer implements SyncHandler {
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element nodeTypeTag) {
-            int wbsId = XMLUtils.getXMLInt(nodeTypeTag, WBS_ID_ATTR);
-            WBSNode node = nodeMap.get(wbsId);
+                Element nodeTypeTag) {
+            WBSNode node = getWbsNode(nodeTypeTag);
             if (node == null)
                 return;
 
@@ -623,9 +640,8 @@ public class WBSSynchronizer {
     private class NoteSynchronizer implements SyncHandler {
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element noteTag) {
-            Object wbsId = getNodeMapKey(noteTag, WBS_ID_ATTR);
-            WBSNode node = nodeMap.get(wbsId);
+                Element noteTag) {
+            WBSNode node = getWbsNode(noteTag);
             if (node == null)
                 return;
 
@@ -669,11 +685,10 @@ public class WBSSynchronizer {
         }
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element actualDataTag) {
+                Element actualDataTag) {
             setTeamMember(individual);
 
-            int wbsId = XMLUtils.getXMLInt(actualDataTag, WBS_ID_ATTR);
-            WBSNode node = nodeMap.get(wbsId);
+            WBSNode node = getWbsNode(actualDataTag);
             if (node == null)
                 return;
 
@@ -716,10 +731,9 @@ public class WBSSynchronizer {
     private class SizeDataLoader implements SyncHandler {
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element sizeDataTag) {
+                Element sizeDataTag) {
 
-            int wbsId = XMLUtils.getXMLInt(sizeDataTag, WBS_ID_ATTR);
-            WBSNode node = nodeMap.get(wbsId);
+            WBSNode node = getWbsNode(sizeDataTag);
             if (node == null)
                 // no node with that WBS ID found? log the data to the root.
                 node = nodeMap.get(null);
@@ -763,10 +777,10 @@ public class WBSSynchronizer {
         }
 
         public void sync(TeamProject teamProject, TeamMember individual,
-                Map<Integer, WBSNode> nodeMap, Element newTaskTag) {
+                Element newTaskTag) {
             setTeamMember(individual);
 
-            WBSNode parentNode = getParentNode(nodeMap, newTaskTag);
+            WBSNode parentNode = getWbsNode(newTaskTag, PARENT_ID_ATTR);
             if (parentNode == null)
                 return;
 
@@ -788,16 +802,6 @@ public class WBSSynchronizer {
                 newTaskTag);
             teamProject.getWBS().insertNodesAt(newTasks, insertionPos, true);
             needsWbsEvent = false;
-        }
-
-        private WBSNode getParentNode(Map<Integer, WBSNode> nodeMap,
-                Element newTaskTag) {
-            if ("root".equals(newTaskTag.getAttribute(PARENT_ID_ATTR))) {
-                return nodeMap.get(null);
-            } else {
-                int parentID = XMLUtils.getXMLInt(newTaskTag, PARENT_ID_ATTR);
-                return nodeMap.get(parentID);
-            }
         }
 
         private int getInsertionPos(WBSModel wbsModel, WBSNode parentNode,
@@ -906,12 +910,22 @@ public class WBSSynchronizer {
 
     }
 
-    private static Object getNodeMapKey(Element e, String tagName) {
-        int wbsId = XMLUtils.getXMLInt(e, tagName);
-        if (wbsId == -1 && "root".equals(e.getAttribute(tagName)))
+    private WBSNode getWbsNode(Element tag) {
+        return getWbsNode(tag, WBS_ID_ATTR);
+    }
+
+    private WBSNode getWbsNode(Element tag, String attrName) {
+        String idStr = tag.getAttribute(attrName);
+        if (!XMLUtils.hasValue(idStr))
             return null;
-        else
-            return wbsId;
+
+        if ("root".equals(idStr))
+            return nodeMap.get(null);
+
+        Integer nodeID = clientIdMap.get(idStr);
+        if (nodeID == null)
+            nodeID = XMLUtils.getXMLInt(tag, attrName);
+        return nodeMap.get(nodeID);
     }
 
     private static boolean eq(double a, double b) {
