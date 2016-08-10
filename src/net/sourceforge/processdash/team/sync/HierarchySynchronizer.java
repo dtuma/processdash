@@ -650,11 +650,29 @@ public class HierarchySynchronizer {
     }
 
     private String clientIdPrefix;
+    private int maxHandledClientIdNum;
     private void assignClientIDs() {
-        clientIdPrefix = initials + "-"
-                + DashController.getDatasetID().substring(0, 4);
+        clientIdPrefix = (initials + "-" + DashController.getDatasetID()
+                .substring(0, 4)).toLowerCase();
+        maxHandledClientIdNum = getMaxHandledClientIdNum();
 
         assignClientIDsToChildrenOf(projectKey);
+    }
+
+    private int getMaxHandledClientIdNum() {
+        String maxIdList = projectXML.getAttribute("maxCid");
+        if (XMLUtils.hasValue(maxIdList)) {
+            String token = "," + clientIdPrefix + "=";
+            int beg = maxIdList.indexOf(token);
+            if (beg != -1) {
+                try {
+                    beg += token.length();
+                    int end = maxIdList.indexOf(',', beg);
+                    return Integer.parseInt(maxIdList.substring(beg, end));
+                } catch (Exception e) {}
+            }
+        }
+        return -1;
     }
 
     private void assignClientIDsToChildrenOf(PropertyKey parent) {
@@ -684,6 +702,18 @@ public class HierarchySynchronizer {
                             StringData.create(newWbsID));
                         forceData(path, TeamDataConstants.CLIENT_ID_DATA_NAME,
                             null);
+                    } else {
+                        try {
+                            // if this user-created node was added to the WBS in
+                            // the past, but has already been deleted, give it a
+                            // bogus WBS ID to flag it for deletion.
+                            int pos = clientID.lastIndexOf(':') + 1;
+                            int num = Integer.parseInt(clientID.substring(pos));
+                            if (num <= maxHandledClientIdNum)
+                                forceData(path,
+                                    TeamDataConstants.WBS_ID_DATA_NAME,
+                                    StringData.create("-" + num));
+                        } catch (Exception e) {}
                     }
                 }
             }
