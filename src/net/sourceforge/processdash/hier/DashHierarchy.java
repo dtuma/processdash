@@ -115,7 +115,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         }
     }
 
-    public void copy (DashHierarchy src) {
+    public synchronized void copy (DashHierarchy src) {
         PropertyKey key;
         Prop        value;
         if (src == null)
@@ -182,7 +182,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
     // This routine will replace the given child (or add/append it if not there)
-    public void setChildKey (PropertyKey parent,
+    public synchronized void setChildKey (PropertyKey parent,
                              String childName,
                              int childIndex) {
         Prop val = pget (parent);
@@ -198,7 +198,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
     // This routine will add the given child
-    public void addChildKey (PropertyKey parent,
+    public synchronized void addChildKey (PropertyKey parent,
                              String childName,
                              int childIndex) {
         Prop val = pget (parent);
@@ -210,7 +210,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
     // This routine will remove the given child
-    public void removeChildKey (PropertyKey parent,
+    public synchronized void removeChildKey (PropertyKey parent,
                                 int childIndex) {
         Prop val = pget (parent);
         PropertyKey oldChild = val.getChild (childIndex);
@@ -307,7 +307,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         move(fromKey, toKey, true);
     }
 
-    public void move (PropertyKey fromKey,
+    public synchronized void move (PropertyKey fromKey,
                       PropertyKey toKey,
                       boolean explicit) {
         Prop aProp = pget (fromKey);
@@ -327,7 +327,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         //fireHierarchyChanged();
     }
 
-    public void remove (PropertyKey key) {
+    public synchronized void remove (PropertyKey key) {
         Prop val = pget(key);
         if (val != null) {
             if (responsibleForData(key))
@@ -842,7 +842,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         return StringUtils.hasValue(pget(PropertyKey.ROOT).getNodeID());
     }
 
-    public boolean assignMissingNodeIDs() {
+    public synchronized boolean assignMissingNodeIDs() {
         // first, find the largest node ID currently in use
         int maxIdNum = 0;
         boolean sawMissingID = false;
@@ -873,7 +873,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
 
-    public void copyFrom (DashHierarchy fromProps,
+    public synchronized void copyFrom (DashHierarchy fromProps,
                           PropertyKey   fromKey,
                           PropertyKey   toKey) {
         Prop fromProp = fromProps.pget (fromKey);
@@ -913,7 +913,8 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         mergeChangesFrom(src, PropertyKey.ROOT);
     }
 
-    private void mergeChangesFrom(DashHierarchy src, PropertyKey node) {
+    private synchronized void mergeChangesFrom(DashHierarchy src,
+            PropertyKey node) {
         DashHierarchy dest = this;
         Prop srcProp = src.pget(node);
         Prop destProp = dest.pget(node);

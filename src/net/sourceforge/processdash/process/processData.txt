@@ -122,4 +122,6 @@
 
 [Project_WBS_ID]    = inherit("Project_WBS_ID");
 
+[Add_Task_Handler] = "none";
+
 [FILES_XML] = "/TEMPLATE_ID/files.xml";

@@ -167,6 +167,14 @@ public class DashboardIconFactory {
         return projectIcon;
     }
 
+    public static Icon getTaskIcon() {
+        return getTaskIcon(new Color(204, 204, 255));
+    }
+
+    public static Icon getTaskIcon(Color c) {
+        return new TaskIcon(c);
+    }
+
     public static Icon getCompactTimingIcon() {
         return new BufferedIcon(new ConcatenatedIcon(getPauseBlackIcon(),
                 new PaddedIcon(getPlayGlowingIcon(), 0, 1, 0, 0)));
@@ -261,6 +269,14 @@ public class DashboardIconFactory {
     public static Icon getCommentErrorIcon() {
         return commentErrorIcon = loadNamedIcon("commentError",
             commentErrorIcon);
+    }
+
+    public static Icon getAddIcon() {
+        return loadNamedIcon("add", null);
+    }
+
+    public static Icon getAddRolloverIcon() {
+        return loadNamedIcon("add-glow", null);
     }
 
     private static Icon restartRequiredIcon = null;
@@ -662,7 +678,70 @@ public class DashboardIconFactory {
     @SuppressWarnings("unused")
     private static final Color blue = new Color(102, 102, 153);
 
-    @SuppressWarnings("unused")
+
+    /** Generic icon to draw a polygon with 3D edge highlighting.
+     */
+    private static class PolygonIcon extends BufferedIcon {
+        int[] xPoints;
+        int[] yPoints;
+        Color fillColor;
+
+        protected void doPaint(Graphics g) {
+            // fill shape
+            g.setColor(fillColor);
+            g.fillPolygon(xPoints, yPoints, yPoints.length);
+
+            // draw custom highlights
+            doHighlights(g);
+
+            // draw black outline
+            g.setColor(Color.black);
+            g.drawPolygon(xPoints, yPoints, yPoints.length);
+        }
+
+        protected void doHighlights(Graphics g) { }
+        protected void drawHighlight(Graphics g, int segment,
+                                     int xDelta, int yDelta) {
+            int segStart = segment;
+            int segEnd = (segment + 1) % xPoints.length;
+
+            g.drawLine(xPoints[segStart] + xDelta,
+                       yPoints[segStart] + yDelta,
+                       xPoints[segEnd]   + xDelta,
+                       yPoints[segEnd]   + yDelta);
+        }
+    }
+
+    /** Icon image representing a work breakdown structure task.
+     *
+     * This draws a parallelogram.
+     */
+    private static class TaskIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public TaskIcon(Color fill) {
+            this.xPoints = new int[] { 0, 5, 15, 10 };
+            this.yPoints = new int[] { 14, 1, 1, 14 };
+            this.fillColor = fill;
+            this.highlight = PaintUtils.mixColors(fill, Color.white, 0.3f);
+            this.shadow = PaintUtils.mixColors(fill, Color.black, 0.7f);
+            renderIcon(16, 16);
+        }
+
+        protected void doHighlights(Graphics g) {
+            g.setColor(shadow);
+            drawHighlight(g, 2, -1, 0);
+            drawHighlight(g, 3, 0, -1);
+
+            g.setColor(highlight);
+            drawHighlight(g, 0, 1, 0);
+            drawHighlight(g, 1, 0, 1);
+        }
+    }
+
+
+   @SuppressWarnings("unused")
     private static class BlockArrowIcon implements Icon {
 
         Color bg, fg;

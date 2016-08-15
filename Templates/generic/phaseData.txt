@@ -40,3 +40,5 @@
 [Defects Removed per Hour]  = 60 * [Defects Removed] / [Time];
 
 undefine([Process_ID]);
+
+[Add_Task_Handler] = "pdash.addGenericTask";

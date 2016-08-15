@@ -97,6 +97,7 @@ import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.DefaultActiveTaskModel;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.AddTaskButton;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.hier.ui.TaskCommenterButton;
 import net.sourceforge.processdash.i18n.LocaleResetSupport;
@@ -984,11 +985,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         CompletionButton completion_button = new CompletionButton(this,
                 activeTaskModel);
-        addToMainWindow(completion_button, 0, 0,
-            Settings.getInt("mainWindow.paddingRight", 2));
+        addToMainWindow(completion_button, 0, 0, 1);
         new TaskTimeLoggingErrorWatcher(this, activeTaskModel,
                 timeLog.getTimeLoggingModel(), data);
         pt.click("Created completion button");
+
+        if (Settings.isReadWrite()) {
+            AddTaskButton addTaskButton = new AddTaskButton(this);
+            addToMainWindow(addTaskButton, 0, 0,
+                Settings.getInt("mainWindow.paddingRight", 5));
+        }
 
         taskNav = new TaskNavigationSelector
                 (this, hierarchy_menubar, activeTaskModel);

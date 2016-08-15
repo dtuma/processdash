@@ -93,3 +93,11 @@
 
 [FreezeFlag/.*Estimated.*] = [Planning/Completed] or [Completed];
 [FreezeFlag/Size]          = [Completed];
+
+
+/*
+ * Allow individuals to easily create a phase within this project
+ */
+
+[Add_Task_Handler] = "none";
+[Planning/Add_Task_Handler] = "pdash.addGenericTask";

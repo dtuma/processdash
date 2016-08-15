@@ -29,6 +29,12 @@
 [Show_Percent_Spent_Indicator] = 0;
 
 
+==
+== Don't allow students to create tasks within the PSP course sequence.
+==
+
+[Add_Task_Handler] = "none";
+
 
 ==
 == When the user begins logging time to a project that uses PSP0.1 or higher,

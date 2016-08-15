@@ -60,6 +60,11 @@ The author(s) may be contacted at:
             defineRollup="no" href="none"
             dataFile="generic/phaseData.txt" constraints="{}Generic" />
 
+  <addTaskHandler id="pdash.addGenericTask"
+            class="net.sourceforge.processdash.hier.ui.AddTaskDefaultHandler"
+            templateID="Generic Phase"/>
+
+
 
   <!-- definitions for background tasks that are provided by the dashboard -->
 
