@@ -55,6 +55,7 @@
   <mapID target="PercentSpentIndicator" url="Topics/Execution/PercentSpent.html" />
   <mapID target="NoteIndicator" url="Topics/Execution/NoteIndicator.html" />
   <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
+  <mapID target="AddTaskButton" url="Topics/Execution/AddTaskButton.html" />
   <mapID target="UsingTimeLogEditor" url="Topics/Execution/UsingTimeLogEditor.html" />
   <mapID target="UsingTimeLogEditor.TimeCardView" url="Topics/Execution/UsingTimeLogEditor.html#TimeCardView" />
   <mapID target="EnteringDefects" url="Topics/Execution/EnteringDefects.html" />
