@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -108,7 +108,7 @@ public class BlameDataFactory extends ProjectDiff {
         for (TreeNodeChange<Integer, WBSNodeContent> tnc : diff.getChanges()) {
             switch (tnc.getType()) {
             case Add:
-                recordNodeAdded(blameModelData, tnc);
+                recordNodeAdded(blameModelData, tnc, modelB);
                 break;
             case Delete:
                 recordNodeDeleted(blameModelData, tnc, diff, modelA);
@@ -126,9 +126,15 @@ public class BlameDataFactory extends ProjectDiff {
     }
 
     private void recordNodeAdded(BlameModelData blameModelData,
-            TreeNodeChange<Integer, WBSNodeContent> tnc) {
-        BlameNodeData nodeData = blameModelData.getNodeData(tnc.getNodeID());
-        nodeData.setAddedBy(blamePoint);
+            TreeNodeChange<Integer, WBSNodeContent> tnc, WBSModel wbs) {
+        Integer nodeID = tnc.getNodeID();
+        WBSNode node = wbs.getNodeMap().get(nodeID);
+        String effAuthor = getAuthorOfNodeChange(node, Type.Add, author);
+        BlamePoint effBlame = (effAuthor.equals(author) ? blamePoint
+                : new BlamePoint(timestamp, effAuthor));
+
+        BlameNodeData nodeData = blameModelData.getNodeData(nodeID);
+        nodeData.setAddedBy(effBlame);
     }
 
     private void recordNodeDeleted(BlameModelData blameModelData,

@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,15 +46,18 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.merge.TreeDiff;
 import teamdash.merge.TreeNode;
+import teamdash.merge.TreeNodeChange.Type;
 import teamdash.team.TeamMember;
 import teamdash.wbs.AbstractWBSModelMerger.WBSNodeContent;
 import teamdash.wbs.WBSMerger;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer;
 
 public class ProjectDiff {
 
@@ -212,6 +215,48 @@ public class ProjectDiff {
         nodeOrdinals.put(node.getID(), nodeOrdinals.size());
         for (TreeNode<Integer, WBSNodeContent> child : node.getChildren())
             collectNodeOrdinals(child);
+    }
+
+    protected String getAuthorOfNodeChange(WBSNode node, Object changeType,
+            String currentAuthor) {
+        // if this was not a node addition, return the current author.
+        if (changeType != Type.Add)
+            return currentAuthor;
+
+        // See if this node was created as the result of a reverse-sync. If not,
+        // the current author is responsible for creating it.
+        String clientID = (String) node
+                .getAttribute(WBSSynchronizer.CLIENT_ID_ATTR);
+        if (!StringUtils.hasValue(clientID))
+            return currentAuthor;
+
+        // this node was created by a reverse-sync operation. Extract the
+        // initials from the node's client ID, and use them to determine
+        // the name of the individual who created the node.
+        int dashPos = clientID.indexOf('-');
+        if (dashPos == -1)
+            return currentAuthor;
+        String clientInitials = clientID.substring(0, dashPos);
+        String clientOwnerName = teamMemberNames.get(clientInitials);
+        if (clientOwnerName != null)
+            return clientOwnerName;
+
+        // if we couldn't identify the node creator by looking at the client
+        // ID, try seeing who the task is assigned to. If it's only assigned
+        // to one person, that's probably the person who created it.
+        Set<String> assignedTo = new HashSet<String>();
+        for (String attr : indivTimeAttrs) {
+            if (node.getAttribute(attr) != null
+                    || node.getAttribute(memberZeroAttrs.get(attr)) != null)
+                assignedTo.add(teamMemberNames.get(attr));
+        }
+        if (assignedTo.size() == 1)
+            return assignedTo.iterator().next();
+
+        // if we reach this point, the task is assigned to multiple people who
+        // might or might not be the original creator of the node. Fall back and
+        // attribute the entire change on the active author.
+        return currentAuthor;
     }
 
 

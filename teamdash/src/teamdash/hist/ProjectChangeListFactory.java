@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -161,14 +161,22 @@ public class ProjectChangeListFactory extends ProjectDiff {
         if (node == null || parent == null)
             return; // shouldn't happen
 
-        ProjectWbsNodeChange result = nodeChanges.get(parentID);
+        // determine the effective author of this change. If it's different
+        // than the current author, use a different ID to store the change in
+        // the result map (so changes by different people don't get merged)
+        String effAuthor = getAuthorOfNodeChange(node, changeType, author);
+        int targetID = parentID;
+        if (!effAuthor.equals(author))
+            targetID |= effAuthor.hashCode() << 16;
+
+        ProjectWbsNodeChange result = nodeChanges.get(targetID);
         if (result != null) {
             result.addChild(node, changeType);
         } else {
             result = new ProjectWbsNodeChange(parent, node, changeType,
-                    indivTimeAttrs, memberZeroAttrs, teamMemberNames, author,
-                    timestamp, wbsNodeComparator);
-            nodeChanges.put(parentID, result);
+                    indivTimeAttrs, memberZeroAttrs, teamMemberNames,
+                    effAuthor, timestamp, wbsNodeComparator);
+            nodeChanges.put(targetID, result);
         }
     }
 
