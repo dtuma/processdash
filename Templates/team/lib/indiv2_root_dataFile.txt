@@ -27,6 +27,13 @@ undefine([Simple Project Tag]);
 
 
 /*
+ * Allow people to quickly create tasks in a team project
+ */
+
+[Add_Task_Handler] = "pdash.addTeamTask";
+
+
+/*
  * Redefine the rollup filter to include items from this project, and
  * respect the label-based filter if it is in effect.
  */

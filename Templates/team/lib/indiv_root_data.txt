@@ -41,6 +41,8 @@
 
 [Size_Metric_API_Handler] = "mcfSizeMetricApiHandler";
 
+[Add_Task_Handler] = "none";
+
 [Team_Project_Conversion_Needed] =
     iff([Team_Project_Target_PID] != [Team_Process_PID],
         [Team_Project_Target_PID], null);

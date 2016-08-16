@@ -25,16 +25,25 @@ package net.sourceforge.processdash.hier.ui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -44,6 +53,7 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
@@ -202,9 +212,43 @@ public class AddTaskDialog {
         if (taskTypes.size() == 1) {
             setSelectedTaskType(taskTypes.get(0));
             return null;
+
+        } else {
+            JMenu typeMenu = makeTaskTypeMenu(taskTypes);
+            new MouseHandler(typeMenu, taskTypeIcon);
+
+            JMenuBar menuBar = new JMenuBar();
+            menuBar.setMinimumSize(new Dimension(0, 0));
+            menuBar.setPreferredSize(new Dimension(0, 1));
+            menuBar.setMaximumSize(new Dimension(0, 100));
+            menuBar.add(typeMenu);
+
+            if (this.taskType == null)
+                setSelectedTaskType(taskTypes.get(0));
+
+            return menuBar;
+        }
+    }
+
+    private JMenu makeTaskTypeMenu(List<AddTaskTypeOption> taskTypes) {
+        JMenu typeMenu = new JMenu();
+
+        int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
+        JMenu destMenu = typeMenu;
+
+        for (AddTaskTypeOption type : taskTypes) {
+            if (destMenu.getItemCount() + 1 >= maxItemsPerMenu) {
+                JMenu moreMenu = new JMenu(Resources.getGlobalBundle()
+                        .getDlgString("More"));
+                destMenu.insert(moreMenu, 0);
+                destMenu.insertSeparator(1);
+                destMenu = moreMenu;
+            }
+
+            destMenu.add(new TypeMenuOption(type));
         }
 
-        return null;
+        return typeMenu;
     }
 
     private void setSelectedTaskType(AddTaskTypeOption type) {
@@ -353,5 +397,41 @@ public class AddTaskDialog {
         "-\u2013\u2014", // Em-dash and En-dash
         " \u00A0\u2002\u2003" // nonbreaking space, em-space, en-space
     };
+
+    private class TypeMenuOption extends AbstractAction {
+        AddTaskTypeOption type;
+
+        public TypeMenuOption(AddTaskTypeOption type) {
+            super(type.displayName, type.icon);
+            this.type = type;
+            if (type.isDefault)
+                actionPerformed(null);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            setSelectedTaskType(type);
+        }
+    }
+
+    private class MouseHandler extends MouseAdapter implements Runnable {
+        
+        private JMenu menu;
+        
+        MouseHandler(JMenu menu, JComponent trigger) {
+            this.menu = menu;
+            trigger.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            trigger.addMouseListener(this);
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            SwingUtilities.invokeLater(this);
+        }
+
+        public void run() {
+            menu.doClick();
+        }
+
+    }
 
 }

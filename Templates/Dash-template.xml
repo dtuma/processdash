@@ -374,6 +374,9 @@ The author(s) may be contacted at:
 
   <!-- Other miscellaneous items provided by the dashboard -->
 
+  <addTaskHandler id="pdash.addTeamTask"
+     class="net.sourceforge.processdash.team.ui.AddTeamProjectTask"/>
+
   <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>
 
   <defect-importer id="clipboard"
