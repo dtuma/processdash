@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -121,7 +121,7 @@ public class ProbeDatabaseUtil {
         if (onlyInclude != null) {
             for (Iterator i = result.iterator(); i.hasNext();) {
                 Object[] row = (Object[]) i.next();
-                Object identifier = row[2];
+                Object identifier = row[1];
                 if (!onlyInclude.contains(identifier))
                     i.remove();
             }
@@ -132,20 +132,21 @@ public class ProbeDatabaseUtil {
     private ProbeDatabaseResultSet buildResultSet(String[] columnHeaders,
             List enactmentList) {
         // retrieve time and completion date info for each enactment.
-        List<Integer> enactmentKeys = QueryUtils.pluckColumn(enactmentList, 0);
-        List taskStatus = query.queryHql(TASK_STATUS_QUERY, enactmentKeys,
-            workflowKey);
+        List<Integer> enactmentRootKeys = QueryUtils.pluckColumn(enactmentList, 0);
+        List taskStatus = query.queryHql(TASK_STATUS_QUERY, enactmentRootKeys,
+            includedWorkflowKeys, workflowKey);
 
         // the task status query will only return results for enactments
         // that were 100% complete. We only need data for those enactments.
-        enactmentKeys = QueryUtils.pluckColumn(taskStatus, 0);
-        int numRows = enactmentKeys.size();
+        enactmentRootKeys = QueryUtils.pluckColumn(taskStatus, 0);
+        int numRows = enactmentRootKeys.size();
 
         // retrieve the time-in-phase data for this workflow
         Map timeInPhase = null;
         if (numRows > 0)
-            timeInPhase = QueryUtils.mapColumns(query.queryHql( //
-                TIME_IN_PHASE_QUERY, enactmentKeys, workflowKey), 0, 1);
+            timeInPhase = QueryUtils.mapColumns(query.queryHql(
+                TIME_IN_PHASE_QUERY, enactmentRootKeys, includedWorkflowKeys,
+                workflowKey), 0, 1);
 
         // Create an empty result set to hold the data.
         ProbeDatabaseResultSet result = new ProbeDatabaseResultSet(numRows,
@@ -154,24 +155,22 @@ public class ProbeDatabaseUtil {
             return result;
 
         // build maps to look up data more conveniently
-        Map rootKeys = QueryUtils.mapColumns(enactmentList, 0, 1);
-        Map rootIDs = QueryUtils.mapColumns(enactmentList, 0, 2);
+        Map rootIDs = QueryUtils.mapColumns(enactmentList, 0, 1);
         Map<Integer, String> rootPaths = DatabasePluginUtils
-                .getDashPathsForPlanItems(query, rootKeys.values());
+                .getDashPathsForPlanItems(query, rootIDs.keySet());
 
         // iterate over task status info and store it into the result set.
         for (int i = numRows; i-- > 0;) {
             Object[] taskStatusRow = (Object[]) taskStatus.get(i);
-            Integer enactmentKey = (Integer) taskStatusRow[0];
+            Integer rootKey = (Integer) taskStatusRow[0];
             int row = i + 1;
 
             // retrieve the dashboard path for this row and store in result
-            Integer rootKey = (Integer) rootKeys.get(enactmentKey);
             String enactmentPath = rootPaths.get(rootKey);
             result.setRowName(row, enactmentPath);
 
             // retrieve the plan item ID for this row and store in result
-            String rootID = (String) rootIDs.get(enactmentKey);
+            String rootID = (String) rootIDs.get(rootKey);
             result.setData(row, ProbeData.IDENTIFIER, str(rootID));
 
             // store time and completion date data in the result.
@@ -183,11 +182,12 @@ public class ProbeDatabaseUtil {
 
         // retrieve size data and store it into the result set
         String sizeUnits = require(getString("Size Units", false));
-        List sizeData = query.queryHql(SIZE_QUERY, enactmentKeys, sizeUnits);
+        List sizeData = query.queryHql(SIZE_QUERY, enactmentRootKeys,
+            includedWorkflowKeys, sizeUnits);
         for (int i = sizeData.size(); i-- > 0;) {
             Object[] sizeRow = (Object[]) sizeData.get(i);
-            Integer enactmentKey = (Integer) sizeRow[0];
-            int row = enactmentKeys.indexOf(enactmentKey) + 1;
+            Integer rootKey = (Integer) sizeRow[0];
+            int row = enactmentRootKeys.indexOf(rootKey) + 1;
             if (row == 0)
                 continue;
 
@@ -499,7 +499,7 @@ public class ProbeDatabaseUtil {
      * identify the PROBE tasks within those enactments.
      */
     private static final String ENACTMENT_QUERY = //
-    "select distinct pe.key, pe.rootItem.key, pe.rootItem.identifier "
+    "select distinct pe.rootItem.key, pe.rootItem.identifier "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join task.planItem.phase.mapsToPhase probePhase "
             + "where pe.includesItem.key = task.planItem.key "
@@ -509,11 +509,7 @@ public class ProbeDatabaseUtil {
 
     /**
      * Query to find the completion date and planned/actual time for a set of
-     * process enactments.
-     * 
-     * The process enactment keys passed in refer to the PROBE tasks; this must
-     * be rejoined to the ProcessEnactment table to retrieve data for all of the
-     * other tasks associated with the enactment.
+     * process enactments, identified by their enactment roots.
      * 
      * Within each enactment, we only consider the subset of tasks that map to
      * the target workflow. This is to guard against the scenario where some
@@ -523,17 +519,16 @@ public class ProbeDatabaseUtil {
      * from the phase subset, to produce comparable productivity rates.
      */
     private static final String TASK_STATUS_QUERY = //
-    "select pe.key, sum(task.planTimeMin), sum(task.actualTimeMin), "
+    "select pe.rootItem.key, sum(task.planTimeMin), sum(task.actualTimeMin), "
             + "max(task.actualCompletionDate) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
-            + "join pi.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) "
+            + "and pe.process.key in (?) "
             + "and mapsTo.process.key = ? "
-            + "and pi.includesItem.key = task.planItem.key "
+            + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
-            + "group by pe.key "
+            + "group by pe.rootItem.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000 "
             + "order by max(task.actualCompletionDate)";
 
@@ -543,13 +538,12 @@ public class ProbeDatabaseUtil {
      */
     private static final String TIME_IN_PHASE_QUERY = //
     "select mapsTo.shortName, sum(task.actualTimeMin) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
-            + "join pi.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) "
+            + "and pe.process.key in (?) "
             + "and mapsTo.process.key = ? "
-            + "and pi.includesItem.key = task.planItem.key "
+            + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
             + "group by mapsTo.shortName";
 
@@ -557,16 +551,15 @@ public class ProbeDatabaseUtil {
      * Query to find the size data for a set of process enactments.
      */
     private static final String SIZE_QUERY = //
-    "select pe.key, size.measurementType.name, " //
+    "select pe.rootItem.key, size.measurementType.name, " //
             + "sum(size.addedAndModifiedSize) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, SizeFact size "
-            + "where pe.key in (?) "
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
-            + "and pi.includesItem.key = size.planItem.key "
+            + "from ProcessEnactment pe, SizeFact size "
+            + "where pe.rootItem.key in (?) "
+            + "and pe.process.key in (?) "
+            + "and pe.includesItem.key = size.planItem.key "
             + "and size.sizeMetric.shortName = ? "
             + "and size.versionInfo.current = 1 "
-            + "group by pe.key, size.measurementType.name";
+            + "group by pe.rootItem.key, size.measurementType.name";
 
 
     private static final String USES_DATABASE_TAG = "PROBE_USE_DATABASE_FOR_HIST_DATA";
