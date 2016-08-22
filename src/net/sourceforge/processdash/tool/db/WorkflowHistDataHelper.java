@@ -148,30 +148,31 @@ public class WorkflowHistDataHelper {
         return enactments;
     }
 
-    private List<Integer> getEnactmentKeys() {
+    private List<Integer> getEnactmentRootKeys() {
         if (enactments == null)
             getEnactments();
-        return QueryUtils.pluckColumn(enactments, ENACTMENT_KEY);
+        return QueryUtils.pluckColumn(enactments, ENACTMENT_ROOT_KEY);
     }
 
     /**
      * Query to find all the enactments of a given process for an entire team.
-     * The enactment keys returned will identify the root nodes of those
-     * enactments.
+     * The rows returned will identify the key and identifier for the root nodes
+     * of those enactments.
      */
     private static final String TEAM_ENACTMENT_QUERY = //
-    "select distinct pe.key, pe.rootItem.identifier "
+    "select distinct pe.rootItem.key, pe.rootItem.identifier "
             + "from ProcessEnactment pe "
             + "where pe.rootItem.key = pe.includesItem.key "
             + "and pe.process.key in (?)";
 
     /**
      * Query to find all the times when this individual user has performed a
-     * PROBE task during the enactment of a given process. The enactment keys
-     * returned will identify the PROBE tasks within those enactments.
+     * PROBE task during the enactment of a given process. The rows returned
+     * will identify the key and identifier for the root nodes of those
+     * enactments.
      */
     private static final String PERSONAL_ENACTMENT_QUERY = //
-    "select distinct pe.key, pe.rootItem.identifier "
+    "select distinct pe.rootItem.key, pe.rootItem.identifier "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join task.planItem.phase.mapsToPhase probePhase "
             + "where pe.includesItem.key = task.planItem.key "
@@ -179,7 +180,7 @@ public class WorkflowHistDataHelper {
             + "and probePhase.identifier = '*PROBE*/PROBE' "
             + "and pe.process.key in (?)";
 
-    private static final int ENACTMENT_KEY = 0;
+    private static final int ENACTMENT_ROOT_KEY = 0;
 
     private static final int ENACTMENT_ROOT_WBS_ID = 1;
 
@@ -224,13 +225,14 @@ public class WorkflowHistDataHelper {
         if (enactments.isEmpty())
             return;
 
-        Set completedEnactmentKeys = new HashSet(query(
-            ENACTMENT_COMPLETION_QUERY, getEnactmentKeys(), getWorkflowKey()));
+        Set completedEnactmentRootKeys = new HashSet(query(
+            ENACTMENT_COMPLETION_QUERY, getEnactmentRootKeys(),
+            getIncludedWorkflowKeys(), getWorkflowKey()));
 
         for (Iterator i = enactments.iterator(); i.hasNext();) {
             Object[] enactment = (Object[]) i.next();
-            Object oneEnactmentKey = enactment[ENACTMENT_KEY];
-            if (!completedEnactmentKeys.contains(oneEnactmentKey))
+            Object oneEnactmentRootKey = enactment[ENACTMENT_ROOT_KEY];
+            if (!completedEnactmentRootKeys.contains(oneEnactmentRootKey))
                 i.remove();
         }
     }
@@ -239,16 +241,15 @@ public class WorkflowHistDataHelper {
      * Query to determine which workflows are 100% complete
      */
     private static final String ENACTMENT_COMPLETION_QUERY = //
-    "select pe.key " //
-            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
-            + "join pi.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
+    "select pe.rootItem.key " //
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) "
+            + "and pe.process.key in (?) "
             + "and mapsTo.process.key = ? "
-            + "and pi.includesItem.key = task.planItem.key "
+            + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
-            + "group by pe.key "
+            + "group by pe.rootItem.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
 
     /**
@@ -258,7 +259,7 @@ public class WorkflowHistDataHelper {
     public void debugPrintEnactments() {
         System.out.println("Process enactment steps for " + workflowName + ":");
         List<Object[]> enactmentSteps = query.queryHql(ENACTMENT_DEBUG_QUERY,
-            getEnactmentKeys(), getWorkflowKey());
+            getEnactmentRootKeys(), getIncludedWorkflowKeys(), getWorkflowKey());
         while (!enactmentSteps.isEmpty()) {
             Object[] oneRow = enactmentSteps.get(0);
             Integer rootKey = (Integer) oneRow[0];
@@ -286,13 +287,12 @@ public class WorkflowHistDataHelper {
     }
 
     private static final String ENACTMENT_DEBUG_QUERY = //
-    "select pe.rootItem.key, pe.rootItem, pi.includesItem "
-            + "from ProcessEnactment pe, ProcessEnactment pi "
-            + "join pi.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
-            + "and pi.includesItem.key <> pi.rootItem.key "
+    "select pe.rootItem.key, pe.rootItem, pe.includesItem "
+            + "from ProcessEnactment pe "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) "
+            + "and pe.includesItem.key <> pe.rootItem.key "
             + "and mapsTo.process.key = ? " //
             + "order by pe.rootItem.key";
 
@@ -356,8 +356,8 @@ public class WorkflowHistDataHelper {
             result.put(step, new DataPair());
         DataPair total = new DataPair();
 
-        List<Object[]> rawData = query(TIME_IN_PHASE_QUERY, getEnactmentKeys(),
-            getWorkflowKey());
+        List<Object[]> rawData = query(TIME_IN_PHASE_QUERY,
+            getEnactmentRootKeys(), getIncludedWorkflowKeys(), getWorkflowKey());
         for (Object[] row : rawData) {
             String stepName = (String) row[0];
             DataPair dataPair = result.get(stepName);
@@ -384,13 +384,12 @@ public class WorkflowHistDataHelper {
     private static final String TIME_IN_PHASE_QUERY = //
     "select mapsTo.shortName, mapsTo.typeName, "
             + "sum(task.planTimeMin), sum(task.actualTimeMin) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
-            + "join pi.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) "
             + "and mapsTo.process.key = ? "
-            + "and pi.includesItem.key = task.planItem.key "
+            + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
             + "group by mapsTo.shortName, mapsTo.typeName " //
             + "order by mapsTo.shortName";
@@ -400,7 +399,8 @@ public class WorkflowHistDataHelper {
     public Map<String, DataPair> getAddedAndModifiedSizes() {
         Map<String, DataPair> result = new TreeMap();
 
-        List<Object[]> rawData = query(SIZE_QUERY, getEnactmentKeys());
+        List<Object[]> rawData = query(SIZE_QUERY, getEnactmentRootKeys(),
+            getIncludedWorkflowKeys());
         for (Object[] row : rawData) {
             String sizeUnits = (String) row[0];
             String measurementType = (String) row[1];
@@ -425,11 +425,10 @@ public class WorkflowHistDataHelper {
     private static final String SIZE_QUERY = //
     "select size.sizeMetric.shortName, size.measurementType.name, " //
             + "sum(size.addedAndModifiedSize) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, SizeFact size "
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key "
-            + "and pi.includesItem.key = size.planItem.key "
+            + "from ProcessEnactment pe, SizeFact size "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) "
+            + "and pe.includesItem.key = size.planItem.key "
             + "and size.versionInfo.current = 1 "
             + "group by size.sizeMetric.shortName, size.measurementType.name";
 
@@ -466,9 +465,10 @@ public class WorkflowHistDataHelper {
         result[INJ].put(TOTAL_PHASE_KEY, total);
         result[REM].put(TOTAL_PHASE_KEY, total);
 
-        Integer workflow = getWorkflowKey();
-        List<Object[]> rawData1 = query(DEFECT_QUERY_1, getEnactmentKeys());
-        List<Object[]> rawData2 = query(DEFECT_QUERY_2, workflow, workflow);
+        List<Object[]> rawData1 = query(DEFECT_QUERY_1, getEnactmentRootKeys(),
+            getIncludedWorkflowKeys());
+        List<Object[]> rawData2 = query(DEFECT_QUERY_2, getWorkflowKey(),
+            getIncludedWorkflowKeys());
         mapMissingPhases(stepMap, rawData1, rawData2);
         addDefectData(result, unrecognized, total, rawData1, stepMap);
         addDefectData(result, unrecognized, total, rawData2, stepMap);
@@ -531,11 +531,10 @@ public class WorkflowHistDataHelper {
     private static final String DEFECT_QUERY_1 = "select " //
             + "defect.injectedPhase.key, " //
             + "defect.removedPhase.key " //
-            + "from ProcessEnactment pe, ProcessEnactment pi, DefectLogFact defect " //
-            + "where pe.key in (?) " //
-            + "and pe.rootItem.key = pi.rootItem.key " //
-            + "and pe.process.key = pi.process.key " //
-            + "and pi.includesItem.key = defect.planItem.key " //
+            + "from ProcessEnactment pe, DefectLogFact defect " //
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) " //
+            + "and pe.includesItem.key = defect.planItem.key " //
             + "and defect.versionInfo.current = 1";
 
     /*
@@ -551,7 +550,7 @@ public class WorkflowHistDataHelper {
             + "and not exists ( " //
             + "    from ProcessEnactment pi " //
             + "    where defect.planItem.key = pi.includesItem.key " //
-            + "    and pi.process.key = ?) "
+            + "    and pi.process.key in (?)) "
             + "and defect.versionInfo.current = 1";
 
     /*
