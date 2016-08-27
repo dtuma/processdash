@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -118,11 +118,9 @@ public class SaveBackupAction extends AbstractAction {
         }
 
         private void doBackup() {
-            // Perform a "save all data" operation. This is slightly redundant
-            // because the "save backup" operation will perform one too.  But
-            // performing it here will cause dirty GUIs to prompt for save
-            // BEFORE we display our "Save As" dialog.
-            DashController.saveAllData();
+            // request dirty GUIs to prompt for save BEFORE we display our
+            // "Save As" dialog.
+            DashController.saveDirtyGuiData();
 
             // get a backup operation started and running.
             BackupTask backupTask = new BackupTask();

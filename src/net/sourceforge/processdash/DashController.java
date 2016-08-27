@@ -223,6 +223,27 @@ public class DashController {
         return dash.fileBackupManager.run();
     }
 
+    /** @since 2.2.6 */
+    public static void saveDirtyGuiData() {
+        PERMISSION.checkPermission();
+        if (SwingUtilities.isEventDispatchThread()) {
+            saveDirtyGuiDataImpl();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        saveDirtyGuiDataImpl();
+                    }
+                });
+            } catch (Exception e) {}
+        }
+    }
+
+    private static void saveDirtyGuiDataImpl() {
+        dash.fireApplicationEvent(ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
+    }
+
+
     public static void saveAllData() {
         PERMISSION.checkPermission();
         try {
