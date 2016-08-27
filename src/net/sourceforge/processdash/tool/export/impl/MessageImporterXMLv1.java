@@ -35,6 +35,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.util.FileUtils;
@@ -58,6 +59,7 @@ public class MessageImporterXMLv1 implements
         try {
             in = new FileInputStream(f);
             doImport(null, in, true);
+            DashController.flushDirtyData();
         } catch (IOException ioe) {
             throw ioe;
         } catch (Exception e) {
