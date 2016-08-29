@@ -36,7 +36,8 @@
     <div class="importedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneImport.project}"/>&nbsp;&raquo;</div>
-      <c:out value="${oneImport.process}"/>
+      <a href="workflowMap?edit=${oneImport.id}&amp;target=${workflow.id}&amp;focus=target"><c:out
+              value="${oneImport.process}"/></a>
     </div></div>
   </div>
 </c:forEach>
@@ -68,7 +69,8 @@
     <div class="exportedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneExport.project}"/>&nbsp;&raquo;</div>
-      <c:out value="${oneExport.process}"/>
+      <a href="workflowMap?edit=${workflow.id}&amp;target=${oneExport.id}&amp;focus=edit"><c:out
+              value="${oneExport.process}"/></a>
     </div></div>
   </div>
 </c:forEach>

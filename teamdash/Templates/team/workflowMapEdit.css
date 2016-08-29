@@ -1,0 +1,147 @@
+
+td {
+    vertical-align: middle;
+}
+
+body.hist td.edit {
+    background-color: #dcb;
+}
+
+body.fwd td.edit {
+    background-color: #dfd;
+}
+
+body.hist td.target {
+    background-color: #dfd;
+}
+
+body.fwd td.target {
+    background-color: #ddf;
+}
+
+td.workflow {
+    border: 1px solid black;
+    font-size: x-large;
+    text-align: center;
+}
+
+div.workflow {
+    border-left: 1px solid black;
+    border-right:  1px solid black;
+    margin: 0 10px;
+    padding: 5px 10px;
+}
+
+div.projectName {
+    font-size: small;
+}
+
+td.spacer {
+    width: 100px;
+}
+
+div.horizontalLine {
+    border-bottom: 1px solid black;
+    min-width: 20px;
+    position: relative;
+    width: 100%;
+}
+
+div.horizontalLine div.arrow {
+    border-bottom: 5px solid transparent;
+    border-left: 14px solid black;
+    border-right: 1px solid transparent;
+    border-top: 5px solid transparent;
+    bottom: -6px;
+    height: 1;
+    position: absolute;
+    right: 0px;
+    width: 0;
+}
+
+td.description div {
+    font-style: italic;
+    margin: 15px 30px;
+    text-align: center;
+    width: 15em;
+}
+
+tr.spacerRow {
+    height: 0.5em;
+}
+
+td.hierIndent {
+    border-right: 1px solid silver;
+    min-width: 10px;
+    width: 20px;
+}
+
+td.hierLine {
+    min-width: 10px;
+    width: 40px;
+}
+
+td.hierLine div.hierLine {
+    border-bottom: 1px solid silver;
+    position: relative;
+    width: 100%;
+}
+
+td.hierLine div.hierLine div.hierLastLine {
+    border-left: 1px solid white;
+    height: 20px;
+    left: -1px;
+    position: absolute;
+    top: 1px;
+    z-index: 2;
+}
+
+td.phase {
+    border: 1px solid black;
+    padding: 5px 10px;
+}
+
+td.mapLine {
+    width: 40px;
+}
+
+td.target.phase select {
+    background-color: transparent;
+    border: 0px;
+    outline: none;
+    width: 100%;
+}
+
+tr.excluded div.horizontalLine {
+    display: none;
+}
+
+tr.excluded td.target.phase {
+    background-color: #fff;
+    border-color: silver;
+}
+
+div.modWrapper {
+    display: none;
+    position: absolute;
+}
+
+tr.modified div.modWrapper {
+    display: block;
+}
+
+div.modFlag {
+    border-bottom: 8px solid transparent;
+    border-left: 8px solid blue;
+    left: -11px;
+    position: relative;
+    top: -6px;
+}
+
+tr.buttons td {
+    text-align: center;
+}
+
+tr.buttons td input {
+    margin: 2em 2em;
+}

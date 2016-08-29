@@ -107,14 +107,40 @@ public class WorkflowMappingManager {
                             + "where p.attribute.identifier "
                             + "   = 'project.pdash.team_project_id'"));
         }
-        System.out.println(projectNameMap);
         return projectNameMap;
+    }
+
+    public void loadPhases(Workflow workflow) {
+        List<Object[]> rawData = query.query("select "
+                + "phase.identifier, phase.name " //
+                + "from Phase as phase " //
+                + "where phase.process.identifier = ? " //
+                + "and phase.ordinal is not null " //
+                + "order by phase.ordinal", workflow.id);
+        List<Phase> phases = new ArrayList(rawData.size());
+        for (Object[] row : rawData)
+            phases.add(new Phase((String) row[0], (String) row[1]));
+        workflow.phases = phases;
+    }
+
+    public void loadPhaseMappings(Workflow workflow, Workflow target) {
+        Map<String, String> phaseMap = QueryUtils.mapColumns(query.query(
+            "select phase.identifier, mapsTo.identifier "
+                    + "from Phase as phase " //
+                    + "join phase.mapsToPhase mapsTo " //
+                    + "where phase.process.identifier = ? "
+                    + "and mapsTo.process.identifier = ?", //
+            workflow.id, target.id));
+        for (Phase p : workflow.phases)
+            p.mapsTo = phaseMap.get(p.id);
     }
 
 
 
     public class Workflow implements Comparable<Workflow> {
         private String id, process, project;
+
+        private List<Phase> phases;
 
         Workflow(String id, String process) {
             this.id = id;
@@ -134,6 +160,10 @@ public class WorkflowMappingManager {
             return project;
         }
 
+        public List<Phase> getPhases() {
+            return phases;
+        }
+
         @Override
         public int compareTo(Workflow that) {
             int result = this.process.compareTo(that.process);
@@ -144,6 +174,29 @@ public class WorkflowMappingManager {
         }
 
     }
+
+
+    public class Phase {
+        private String id, name, mapsTo;
+
+        Phase(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getMapsTo() {
+            return mapsTo;
+        }
+    }
+
 
     public static class NotFound extends RuntimeException {
         private NotFound(String message) {

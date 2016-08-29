@@ -35,9 +35,15 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.wbs.WorkflowMappingManager.Workflow;
+
 public class WorkflowMappingEditor extends HttpServlet {
 
     private static final String LIST_PARAM = "list";
+
+    private static final String EDIT_PARAM = "edit";
+
+    private static final String TARGET_PARAM = "target";
 
     static final Resources resources = Resources
             .getDashBundle("WBSEditor.WorkflowMap");
@@ -47,7 +53,10 @@ public class WorkflowMappingEditor extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            showWorkflowMapListingPage(req, resp);
+            if (hasParam(req, EDIT_PARAM))
+                showWorkflowPhaseEditPage(req, resp);
+            else
+                showWorkflowMapListingPage(req, resp);
 
         } catch (WorkflowMappingManager.NotFound nf) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, nf.getMessage());
@@ -60,15 +69,12 @@ public class WorkflowMappingEditor extends HttpServlet {
     private void showWorkflowMapListingPage(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
 
-        // get the query object
+        // get the workflow mapping business object
         WorkflowMappingManager mgr = new WorkflowMappingManager(
                 PDashServletUtils.getContext(req));
 
         // retrieve the workflow ID from the request
-        String workflowID = requireParam(req, LIST_PARAM);
-        if (!workflowID.startsWith("WF:"))
-            throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
-                    "Invalid '" + LIST_PARAM + "' identifier");
+        String workflowID = requireWorkflowIdParam(req, LIST_PARAM);
 
         // look up information about the given workflow
         req.setAttribute("workflow", mgr.getWorkflow(workflowID));
@@ -79,6 +85,42 @@ public class WorkflowMappingEditor extends HttpServlet {
         showView(req, resp, "workflowMapList.jsp");
     }
 
+    private void showWorkflowPhaseEditPage(HttpServletRequest req,
+            HttpServletResponse resp) throws ServletException, IOException {
+
+        // get the workflow mapping business object
+        WorkflowMappingManager mgr = new WorkflowMappingManager(
+                PDashServletUtils.getContext(req));
+
+        // retrieve the IDs of the workflows to map
+        String editId = requireWorkflowIdParam(req, EDIT_PARAM);
+        String targetId = requireWorkflowIdParam(req, TARGET_PARAM);
+
+        // look up information about the given workflows
+        Workflow editWorkflow = mgr.getWorkflow(editId);
+        Workflow targetWorkflow = mgr.getWorkflow(targetId);
+        mgr.loadPhases(editWorkflow);
+        mgr.loadPhases(targetWorkflow);
+        mgr.loadPhaseMappings(editWorkflow, targetWorkflow);
+
+        // save the workflows into the request
+        req.setAttribute("editWorkflow", editWorkflow);
+        req.setAttribute("targetWorkflow", targetWorkflow);
+
+        // display a page to edit mappings for the given workflow
+        showView(req, resp, "workflowMapEdit.jsp");
+    }
+
+
+    private String requireWorkflowIdParam(HttpServletRequest req,
+            String paramName) {
+        String workflowID = requireParam(req, paramName);
+        if (!workflowID.startsWith("WF:"))
+            throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid '" + paramName + "' identifier");
+        else
+            return workflowID;
+    }
 
     private String requireParam(HttpServletRequest req, String paramName) {
         String paramValue = req.getParameter(paramName);
@@ -86,6 +128,10 @@ public class WorkflowMappingEditor extends HttpServlet {
             throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
                     "Missing '" + paramName + "' parameter");
         return paramValue;
+    }
+
+    private boolean hasParam(HttpServletRequest req, String paramName) {
+        return StringUtils.hasValue(req.getParameter(paramName));
     }
 
 
