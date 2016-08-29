@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2015 Tuma Solutions, LLC
+// Copyright (C) 2003-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,8 +26,10 @@ import java.io.InputStreamReader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -35,6 +37,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.MockMap;
 import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -402,6 +405,47 @@ public class Resources extends ResourceBundle implements StringMapper {
             result[i] = -1;
         }
         return result;
+    }
+
+    public Map asJSTLMap() {
+        return new MapImpl();
+    }
+
+    private class MapImpl extends MockMap<String, Object> {
+
+        @Override
+        public Object get(Object key) {
+            String resKey = (String) key;
+            if (resKey.endsWith("_FMT")) {
+                return new DeferredFormatImpl(resKey);
+            } else {
+                return getString(resKey);
+            }
+        }
+
+    }
+
+    private class DeferredFormatImpl extends MockMap<String, Object> {
+
+        private String resKey;
+        private List args;
+
+        public DeferredFormatImpl(String resKey) {
+            this.resKey = resKey;
+            this.args = new ArrayList();
+        }
+
+        @Override
+        public Object get(Object key) {
+            args.add(key);
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return format(resKey, args.toArray());
+        }
+
     }
 
 }
