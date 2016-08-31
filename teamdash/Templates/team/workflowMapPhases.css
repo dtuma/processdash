@@ -3,11 +3,11 @@ td {
     vertical-align: middle;
 }
 
-body.hist td.edit {
+body.hist td.source {
     background-color: #dcb;
 }
 
-body.fwd td.edit {
+body.fwd td.source {
     background-color: #dfd;
 }
 
@@ -144,4 +144,8 @@ tr.buttons td {
 
 tr.buttons td input {
     margin: 2em 2em;
+}
+
+a {
+    text-decoration: none;
 }

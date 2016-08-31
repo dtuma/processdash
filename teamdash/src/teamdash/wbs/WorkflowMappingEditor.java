@@ -41,7 +41,7 @@ public class WorkflowMappingEditor extends HttpServlet {
 
     private static final String LIST_PARAM = "list";
 
-    private static final String EDIT_PARAM = "edit";
+    private static final String SOURCE_PARAM = "source";
 
     private static final String TARGET_PARAM = "target";
 
@@ -53,8 +53,8 @@ public class WorkflowMappingEditor extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         try {
-            if (hasParam(req, EDIT_PARAM))
-                showWorkflowPhaseEditPage(req, resp);
+            if (hasParam(req, SOURCE_PARAM))
+                showWorkflowPhasesPage(req, resp);
             else
                 showWorkflowMapListingPage(req, resp);
 
@@ -64,6 +64,12 @@ public class WorkflowMappingEditor extends HttpServlet {
             resp.sendError(he.statusCode, he.message);
         }
 
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        showWorkflowPhasesPage(req, resp);
     }
 
     private void showWorkflowMapListingPage(HttpServletRequest req,
@@ -85,7 +91,7 @@ public class WorkflowMappingEditor extends HttpServlet {
         showView(req, resp, "workflowMapList.jsp");
     }
 
-    private void showWorkflowPhaseEditPage(HttpServletRequest req,
+    private void showWorkflowPhasesPage(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
 
         // get the workflow mapping business object
@@ -93,22 +99,22 @@ public class WorkflowMappingEditor extends HttpServlet {
                 PDashServletUtils.getContext(req));
 
         // retrieve the IDs of the workflows to map
-        String editId = requireWorkflowIdParam(req, EDIT_PARAM);
+        String sourceId = requireWorkflowIdParam(req, SOURCE_PARAM);
         String targetId = requireWorkflowIdParam(req, TARGET_PARAM);
 
         // look up information about the given workflows
-        Workflow editWorkflow = mgr.getWorkflow(editId);
+        Workflow sourceWorkflow = mgr.getWorkflow(sourceId);
         Workflow targetWorkflow = mgr.getWorkflow(targetId);
-        mgr.loadPhases(editWorkflow);
+        mgr.loadPhases(sourceWorkflow);
         mgr.loadPhases(targetWorkflow);
-        mgr.loadPhaseMappings(editWorkflow, targetWorkflow);
+        mgr.loadPhaseMappings(sourceWorkflow, targetWorkflow);
 
         // save the workflows into the request
-        req.setAttribute("editWorkflow", editWorkflow);
+        req.setAttribute("sourceWorkflow", sourceWorkflow);
         req.setAttribute("targetWorkflow", targetWorkflow);
 
         // display a page to edit mappings for the given workflow
-        showView(req, resp, "workflowMapEdit.jsp");
+        showView(req, resp, "workflowMapPhases.jsp");
     }
 
 
