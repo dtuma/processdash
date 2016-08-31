@@ -49,7 +49,7 @@
 		<display-name>Workflow Mapping Editor</display-name>
 		<servlet-name>workflowMappingEditor</servlet-name>
 		<servlet-class>
-			teamdash.wbs.WorkflowMappingEditor
+			teamdash.templates.tools.WorkflowMappingEditor
 		</servlet-class>
 	</servlet>
 
