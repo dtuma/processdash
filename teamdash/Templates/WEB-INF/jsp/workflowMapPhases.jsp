@@ -3,7 +3,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <html>
 <head>
-<c:set var="editing" value="${!empty param.edit}" />
 <title><c:out value="${resources[editing ? 'Edit.Title' : 'View.Title']}"/>
      - <c:out value="${sourceWorkflow.process}"/></title>
 <link rel="stylesheet" type="text/css" href="workflowMapPhases.css">
@@ -138,17 +137,31 @@ function revertAllPhases() {
 
 <tr class="buttons">
 <td colspan="2"></td>
-<td><c:if test="${editing}">
+<td>
+<c:choose>
+  <c:when test="${editing}">
   <input type="button" value="${resources['Edit.Clear']}" onclick="clearAllPhases()">
   <input type="button" value="${resources['Edit.Revert']}" onclick="revertAllPhases()">
-</c:if></td>
-<td colspan="2"><c:if test="${!editing}">
+  </c:when>
+
+  <c:when test="${editingAllowed}">
   <input type="submit" name="edit" value="${resources['View.Edit_Mappings']}">
-</c:if></td>
-<td><c:if test="${editing}">
+  </c:when>
+</c:choose>
+</td>
+<td colspan="2"></td>
+<td>
+<c:choose>
+  <c:when test="${editing}">
   <input type="submit" name="save" value="${resources['Save']}">
   <input type="submit" name="cancel" value="${resources['Cancel']}">
-</c:if></td>
+  </c:when>
+
+  <c:otherwise>
+  <input type="submit" name="reverse" value="${resources['View.Reverse']}">
+  </c:otherwise>
+</c:choose>
+</td>
 </tr>
 
 </table>

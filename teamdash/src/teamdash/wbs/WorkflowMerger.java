@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
         super(base, main, incoming);
 
         // register handlers for attributes as needed.
+        ignoreAttributeConflicts("^Phase Mapping ");
         ignoreAttributeConflicts(TeamTimeColumn.RATE_ATTR);
         addNoteAttrHandler(WorkflowNotesColumn.VALUE_ATTR);
     }

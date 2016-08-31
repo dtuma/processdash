@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -557,7 +557,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return false;
     }
 
-    private static String getOtherLockHolder(Exception e) {
+    public static String getOtherLockHolder(Exception e) {
         String otherOwner = null;
         if (e instanceof AlreadyLockedException)
             otherOwner = ((AlreadyLockedException) e).getExtraInfo();
@@ -1838,7 +1838,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (forceReadOnly)
             proj.setReadOnly(true);
         else
-            owner = getOwnerName(owner);
+            owner = getOwnerName(owner, true);
 
         if (!indivMode)
             initials = null;
@@ -2001,7 +2001,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     }
 
-    private static String getOwnerName(String defaultValue) {
+    public static String getKnownOwnerName() {
+        return getOwnerName(null, false);
+    }
+
+    private static String getOwnerName(String defaultValue, boolean showPrompt) {
         // if we have an authenticated PDES session, try looking up the full
         // name of the authenticated user
         String authUser = HttpAuthenticator.getLastUsername();

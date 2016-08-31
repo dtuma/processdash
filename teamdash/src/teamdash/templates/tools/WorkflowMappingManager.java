@@ -21,18 +21,26 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs;
+package teamdash.templates.tools;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.api.PDashContext;
 import net.sourceforge.processdash.api.PDashQuery;
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.net.http.TinyCGI;
+import net.sourceforge.processdash.tool.db.DataReloader;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.tool.export.DataImporter;
 
 public class WorkflowMappingManager {
+
+    public static final String DELETE_MAPPINGS = "Delete Mappings";
 
     private PDashQuery query;
 
@@ -133,6 +141,45 @@ public class WorkflowMappingManager {
             workflow.id, target.id));
         for (Phase p : workflow.phases)
             p.mapsTo = phaseMap.get(p.id);
+    }
+
+    public boolean canEditMappings(String sourceId, String targetId) {
+        String sourceScopeId = getProjectIDForWorkflowID(sourceId);
+        String targetScopeId = getProjectIDForWorkflowID(targetId);
+        if (sourceScopeId == null || targetScopeId == null)
+            // if the scope ID is null, this is an MCF. Don't allow editing.
+            return false;
+        else if (sourceScopeId.startsWith("lib"))
+            // if the source is an org standard workflow, don't allow editing.
+            return false;
+        else
+            return true;
+    }
+
+    public void saveChangedMappings(Workflow workflow, Workflow target,
+            Map<String, String> changes, Map env)
+            throws WorkflowMappingException {
+        // find the project this workflow is associated with, and get a
+        // workflow alterer for that project
+        String projectId = getProjectIDForWorkflowID(workflow.getId());
+        WorkflowMappingAlterer alterer = WorkflowMappingAltererFactory.get(
+            (DashboardContext) env.get(TinyCGI.DASHBOARD_CONTEXT), projectId);
+        if (alterer == null)
+            throw new NotFound("Could not find project for workflow "
+                    + workflow.getId());
+
+        // save the requested changes
+        alterer.applyChanges(workflow, target, changes);
+
+        // tell the data importer to reload data from this project. (In bridged
+        // mode, this will cause it to refresh the project directory.)
+        DataImporter.refreshLocation(projectId);
+
+        // ask the warehouse to reload all data, and wait for it to finish
+        DatabasePlugin databasePlugin = QueryUtils.getDatabasePlugin( //
+                (DataContext) env.get(TinyCGI.DATA_REPOSITORY));
+        DataReloader reloader = databasePlugin.getObject(DataReloader.class);
+        reloader.reloadAllData();
     }
 
 
