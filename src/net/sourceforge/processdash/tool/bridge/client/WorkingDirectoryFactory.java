@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,12 +33,15 @@ import java.util.logging.Logger;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
+import net.sourceforge.processdash.util.TempFileFactory;
 
 public class WorkingDirectoryFactory {
 
     public static final int PURPOSE_DASHBOARD = 1;
 
     public static final int PURPOSE_WBS = 2;
+
+    public static final int PURPOSE_TEMP = 64;
 
     static final Logger logger = Logger.getLogger(WorkingDirectory.class
             .getName());
@@ -149,13 +152,13 @@ public class WorkingDirectoryFactory {
         if (remoteURL != null) {
             logger.info("Using bridged working directory via URL " + remoteURL);
             return new BridgedWorkingDirectory(targetDirectory, remoteURL,
-                    strategy, DirectoryPreferences.getMasterWorkingDirectory());
+                    strategy, getWorkingDirParent(purpose));
 
         } else if (targetDirectory != null) {
             logger.info("Using local working directory "
                     + targetDirectory.getPath());
             return new LocalWorkingDirectory(targetDirectory, strategy,
-                    DirectoryPreferences.getMasterWorkingDirectory());
+                    getWorkingDirParent(purpose));
 
         } else {
             throw new NullPointerException();
@@ -168,7 +171,21 @@ public class WorkingDirectoryFactory {
                 DirectoryPreferences.getMasterWorkingDirectory());
     }
 
+    private File getWorkingDirParent(int purpose) {
+        if ((purpose & PURPOSE_TEMP) > 0) {
+            try {
+                return TempFileFactory.get().createTempDirectory("working", "",
+                    false, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return DirectoryPreferences.getMasterWorkingDirectory();
+    }
+
     private FileResourceCollectionStrategy getStrategy(int purpose) {
+        purpose = purpose - (purpose & PURPOSE_TEMP);
         if (purpose == PURPOSE_DASHBOARD)
             return DashboardInstanceStrategy.INSTANCE;
         else if (purpose == PURPOSE_WBS)
