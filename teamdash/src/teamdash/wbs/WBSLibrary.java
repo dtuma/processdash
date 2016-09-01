@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,12 +37,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 
-import net.sourceforge.processdash.util.RobustFileWriter;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.util.RobustFileWriter;
+
 import teamdash.XMLUtils;
+import teamdash.templates.tools.WorkflowMappingManager;
 
 
 public abstract class WBSLibrary {
@@ -262,8 +263,8 @@ public abstract class WBSLibrary {
             String mappingAttr = null;
             for (WBSNode node : getWbs().getWbsNodes()) {
                 if (node.getIndentLevel() == 1) {
-                    mappingAttr = "Phase Mapping WF:" + libraryID + ":"
-                            + node.getUniqueID();
+                    mappingAttr = WorkflowMappingManager.PHASE_MAPPING_PREFIX
+                            + "WF:" + libraryID + ":" + node.getUniqueID();
                 } else if (mappingAttr != null && node.getIndentLevel() > 1) {
                     String mappingVal = "WF:" + libraryID + ":"
                             + node.getUniqueID();

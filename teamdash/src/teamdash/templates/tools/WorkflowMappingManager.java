@@ -40,6 +40,8 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 
 public class WorkflowMappingManager {
 
+    public static final String PHASE_MAPPING_PREFIX = "Phase Mapping ";
+
     public static final String DELETE_MAPPINGS = "Delete Mappings";
 
     private PDashQuery query;

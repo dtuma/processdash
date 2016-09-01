@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ import javax.swing.table.AbstractTableModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.ModelType;
 import teamdash.wbs.WBSFilter.WithoutDescendants;
@@ -1386,6 +1388,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     public String filterNodeType(WBSNode node) {
         return node.getType();
+    }
+
+    public void removeAttributes(PatternList matchingPattern) {
+        for (WBSNode node : wbsNodes)
+            node.removeAttributes(matchingPattern);
     }
 
     public int[] mergeWBSModel(WBSModel srcModel, WBSNodeMerger merger,

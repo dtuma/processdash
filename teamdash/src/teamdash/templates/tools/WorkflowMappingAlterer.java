@@ -23,6 +23,8 @@
 
 package teamdash.templates.tools;
 
+import static teamdash.templates.tools.WorkflowMappingManager.PHASE_MAPPING_PREFIX;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
@@ -218,8 +220,6 @@ public abstract class WorkflowMappingAlterer {
         int colonPos = fullId.lastIndexOf(':');
         return PROJECT_RELATIVE_PREFIX + fullId.substring(colonPos + 1);
     }
-
-    private static final String PHASE_MAPPING_PREFIX = "Phase Mapping ";
 
     private static final String PROJECT_RELATIVE_PREFIX = "WF:~:";
 

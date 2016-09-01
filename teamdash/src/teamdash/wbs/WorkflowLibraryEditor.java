@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,9 @@ import java.io.IOException;
 import javax.swing.JFrame;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.PatternList;
 
+import teamdash.templates.tools.WorkflowMappingManager;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
 import teamdash.wbs.columns.WorkflowResourcesColumn;
 
@@ -57,6 +59,10 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
 
         projectWbs = new WorkflowWBSModel();
         projectWbs.copyFrom(teamProject.getWorkflows());
+        if (export) {
+            projectWbs.removeAttributes(new PatternList().addLiteralStartsWith( //
+                    WorkflowMappingManager.PHASE_MAPPING_PREFIX));
+        }
         projectModel = new WorkflowModel(this.projectWbs, process, null);
     }
 
