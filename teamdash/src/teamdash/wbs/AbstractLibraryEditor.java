@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.PatternList;
 
 
 public abstract class AbstractLibraryEditor {
@@ -121,6 +122,8 @@ public abstract class AbstractLibraryEditor {
         else
             openLibrary(parent, export);
         openModels();
+        if (export)
+            setExportSourceIDs();
         libraryModel.setEditingEnabled(false);
         projectModel.setEditingEnabled(false);
 
@@ -136,6 +139,15 @@ public abstract class AbstractLibraryEditor {
 
     protected abstract void openModels();
 
+
+    private void setExportSourceIDs() {
+        String projectID = teamProject.getProjectID();
+        for (WBSNode node : projectWbs.getWbsNodes()) {
+            String sourceID = projectID + ":" + node.getUniqueID();
+            node.setAttribute("exportSourceID", sourceID);
+            node.removeAttribute("importSourceID");
+        }
+    }
 
     private void buildContents() {
         GridBagLayout layout = new GridBagLayout();
@@ -341,11 +353,11 @@ public abstract class AbstractLibraryEditor {
             if (result != null)
                 break;
         }
-        if (export == false)
-            result.setImportSourceIDs();
         libraryFile = result;
         library = result.getWbs();
         library.getRoot().setName(resources.getString("Library_Root_Name"));
+        if (export == false)
+            library.removeAttributes(new PatternList("^exportSourceID$"));
     }
 
     private WBSLibrary openLibrary(Component parent, boolean export,
