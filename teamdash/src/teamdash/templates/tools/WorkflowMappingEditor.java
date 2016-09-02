@@ -50,6 +50,12 @@ public class WorkflowMappingEditor extends HttpServlet {
 
     private static final String FOCUS_PARAM = "focus";
 
+    private static final String ADD_PARAM = "add";
+
+    private static final String ADDING_PARAM = "adding";
+
+    private static final String EDIT_PARAM = "edit";
+
     static final Resources resources = Resources
             .getDashBundle("WBSEditor.WorkflowMap");
 
@@ -60,6 +66,8 @@ public class WorkflowMappingEditor extends HttpServlet {
         try {
             if (hasParam(req, SOURCE_PARAM))
                 showWorkflowPhasesPage(req, resp);
+            else if (hasParam(req, ADD_PARAM))
+                showAddWorkflowMapPage(req, resp);
             else
                 showWorkflowMapListingPage(req, resp);
 
@@ -96,6 +104,28 @@ public class WorkflowMappingEditor extends HttpServlet {
         showView(req, resp, "workflowMapList.jsp");
     }
 
+    private void showAddWorkflowMapPage(HttpServletRequest req,
+            HttpServletResponse resp) throws ServletException, IOException {
+
+        // get the workflow mapping business object
+        WorkflowMappingManager mgr = new WorkflowMappingManager(
+                PDashServletUtils.getContext(req));
+
+        // retrieve parameters from the request
+        String workflowID = requireWorkflowIdParam(req, ADD_PARAM);
+        String focus = requireParam(req, FOCUS_PARAM);
+        boolean importing = TARGET_PARAM.equals(focus);
+
+        // look up information we need to display the page
+        req.setAttribute("workflow", mgr.getWorkflow(workflowID));
+        req.setAttribute("allWorkflows",
+            mgr.getAllWorkflowsExcept(workflowID, importing));
+        req.setAttribute("importing", importing);
+
+        // display a page allowing the user to select a workflow to add
+        showView(req, resp, "workflowMapAdd.jsp");
+    }
+
     private void showWorkflowPhasesPage(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
 
@@ -120,7 +150,7 @@ public class WorkflowMappingEditor extends HttpServlet {
 
         // determine whether editing should be allowed/in effect
         if (mgr.canEditMappings(sourceId, targetId)) {
-            if (hasParam(req, "edit"))
+            if (hasParam(req, EDIT_PARAM))
                 req.setAttribute("editing", Boolean.TRUE);
             else
                 req.setAttribute("editingAllowed", Boolean.TRUE);
@@ -170,6 +200,13 @@ public class WorkflowMappingEditor extends HttpServlet {
                     return;
                 }
             }
+        } else if (hasParam(req, ADDING_PARAM)) {
+            StringBuffer url = req.getRequestURL();
+            String focus = req.getParameter(FOCUS_PARAM);
+            String workflowId = req.getParameter(focus);
+            HTMLUtils.appendQuery(url, LIST_PARAM, workflowId);
+            resp.sendRedirect(url.toString());
+            return;
         }
 
         // redirect to the phase mapping view page for the two workflows
@@ -230,8 +267,11 @@ public class WorkflowMappingEditor extends HttpServlet {
         HTMLUtils.appendQuery(url, SOURCE_PARAM, source);
         HTMLUtils.appendQuery(url, TARGET_PARAM, target);
         HTMLUtils.appendQuery(url, FOCUS_PARAM, focus);
-        if (hasParam(req, "edit"))
-            HTMLUtils.appendQuery(url, "edit", "t");
+        if (hasParam(req, EDIT_PARAM)) {
+            HTMLUtils.appendQuery(url, EDIT_PARAM, "t");
+            if (hasParam(req, ADDING_PARAM))
+                HTMLUtils.appendQuery(url, ADDING_PARAM, "t");
+        }
         resp.sendRedirect(url.toString());
     }
 

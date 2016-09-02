@@ -38,7 +38,8 @@ function revertAllPhases() {
 <form action="workflowMap" method="post">
 <input type="hidden" name="source" value="${param.source}" />
 <input type="hidden" name="target" value="${param.target}" />
-<input type="hidden" name="focus" value="${param.focus}" />
+<input type="hidden" name="focus"  value="${param.focus}" />
+<input type="hidden" name="adding" value="${param.adding}" />
 
 <table border="0" cellpadding="0" cellspacing="0">
 
@@ -46,8 +47,12 @@ function revertAllPhases() {
 <td colspan="3" class="source workflow"><div class="workflow">
   <div class="projectName">&laquo;&nbsp;<c:out
           value="${sourceWorkflow.project}"/>&nbsp;&raquo;</div>
-  <c:set var="sHref"><c:if test="${!editing}">href="workflowMap?list=${sourceWorkflow.id}"</c:if></c:set>
-  <a ${sHref} id="srcName"><c:out value="${sourceWorkflow.process}"/></a>
+  <c:choose>
+  <c:when test="${editing}"><c:out value="${sourceWorkflow.process}"/></c:when>
+  <c:otherwise>
+  <a href="workflowMap?list=${sourceWorkflow.id}"><c:out value="${sourceWorkflow.process}"/></a>
+  </c:otherwise>
+  </c:choose>
 </div>
 </td>
 
@@ -58,8 +63,12 @@ function revertAllPhases() {
 <td colspan="2" class="target workflow"><div class="workflow">
   <div class="projectName">&laquo;&nbsp;<c:out
           value="${targetWorkflow.project}"/>&nbsp;&raquo;</div>
-  <c:set var="tHref"><c:if test="${!editing}">href="workflowMap?list=${targetWorkflow.id}"</c:if></c:set>
-  <a ${tHref} id="tgtName"><c:out value="${targetWorkflow.process}"/></a>
+  <c:choose>
+  <c:when test="${editing}"><c:out value="${targetWorkflow.process}"/></c:when>
+  <c:otherwise>
+  <a href="workflowMap?list=${targetWorkflow.id}"><c:out value="${targetWorkflow.process}"/></a>
+  </c:otherwise>
+  </c:choose>
 </div>
 </td>
 </tr>

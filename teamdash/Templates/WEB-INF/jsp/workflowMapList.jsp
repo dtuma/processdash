@@ -46,7 +46,8 @@
 
 <div class="importRow addNew">
   <div class="horizontalLine"></div>
-  <div class="importAddNew"><c:out value="${resources['List.Import_New']}"/></div>
+  <div class="importAddNew"><a href="workflowMap?add=${workflow.id}&amp;focus=target"><c:out
+          value="${resources['List.Import_New']}"/></a></div>
 </div>
 
 </div><!-- imported -->
@@ -79,7 +80,8 @@
 
 <div class="exportRow addNew">
   <div class="horizontalLine"><div class="arrow"></div></div>
-  <div class="exportAddNew"><c:out value="${resources['List.Export_New']}"/></div>
+  <div class="exportAddNew"><a href="workflowMap?add=${workflow.id}&amp;focus=source"><c:out
+          value="${resources['List.Export_New']}"/></a></div>
 </div>
 
 </div><!-- exported -->

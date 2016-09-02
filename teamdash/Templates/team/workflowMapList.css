@@ -167,5 +167,14 @@ div.exportRow.addNew div.horizontalLine {
 }
 
 a {
+    color: #00e;
     text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #00e;
 }

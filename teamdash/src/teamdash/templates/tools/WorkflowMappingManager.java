@@ -25,8 +25,12 @@ package teamdash.templates.tools;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.api.PDashContext;
@@ -91,6 +95,74 @@ public class WorkflowMappingManager {
         Collections.sort(result);
         return result;
     }
+
+    public Map<String, Set<Workflow>> getAllWorkflowsExcept(String workflowID,
+            boolean forImport) {
+        // get information about all of the other known workflows
+        List<Object[]> rawData = query.query("select p.identifier, p.name "
+                + "from Process as p " //
+                + "where p.identifier <> ? " //
+                + "and p.identifier like 'WF:%' " //
+                + "order by p.identifier", workflowID);
+
+        // discard mappings that cannot be edited
+        for (Iterator i = rawData.iterator(); i.hasNext();) {
+            Object[] row = (Object[]) i.next();
+            String sourceId = (forImport ? (String) row[0] : workflowID);
+            String targetId = (forImport ? workflowID : (String) row[0]);
+            if (!canEditMappings(sourceId, targetId))
+                i.remove();
+        }
+
+        // find workflows from various projects
+        String projectID = getProjectIDForWorkflowID(workflowID);
+        List<Workflow> sameProjectWorkflows = extractWorkflowsRelativeToProject(
+            rawData, projectID, 0);
+        List<Workflow> newerProjectWorkflows = extractWorkflowsRelativeToProject(
+            rawData, projectID, 1);
+        List<Workflow> olderProjectWorkflows = extractWorkflowsRelativeToProject(
+            rawData, projectID, -1);
+        Collections.reverse(olderProjectWorkflows);
+
+        // add these to a result map, putting the most relevant ones first
+        Map<String, Set<Workflow>> result = new LinkedHashMap();
+        storeWorkflowsInProjectMap(result, sameProjectWorkflows);
+        if (forImport) {
+            storeWorkflowsInProjectMap(result, olderProjectWorkflows);
+            storeWorkflowsInProjectMap(result, newerProjectWorkflows);
+        } else {
+            storeWorkflowsInProjectMap(result, newerProjectWorkflows);
+            storeWorkflowsInProjectMap(result, olderProjectWorkflows);
+        }
+        return result;
+    }
+
+    private List<Workflow> extractWorkflowsRelativeToProject(
+            List<Object[]> rawData, String projectID, int dir) {
+        List<Workflow> result = new ArrayList<Workflow>();
+        for (Object[] row : rawData) {
+            String id = (String) row[0];
+            String rowProject = getProjectIDForWorkflowID(id);
+            if (rowProject != null
+                    && Math.signum(rowProject.compareTo(projectID)) == dir)
+                result.add(new Workflow(id, (String) row[1]));
+        }
+        return result;
+    }
+
+    private void storeWorkflowsInProjectMap(Map<String, Set<Workflow>> dest,
+            List<Workflow> workflows) {
+        for (Workflow oneWorkflow : workflows) {
+            String projectName = oneWorkflow.getProject();
+            Set<Workflow> projectWorkflowSet = dest.get(projectName);
+            if (projectWorkflowSet == null) {
+                projectWorkflowSet = new TreeSet<Workflow>();
+                dest.put(projectName, projectWorkflowSet);
+            }
+            projectWorkflowSet.add(oneWorkflow);
+        }
+    }
+
 
     public String getProjectNameForWorkflowID(String workflowID) {
         String projectID = getProjectIDForWorkflowID(workflowID);

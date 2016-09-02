@@ -1,0 +1,119 @@
+
+td {
+    vertical-align: middle;
+}
+
+body.hist td.source {
+    background-color: #dcb;
+}
+
+body.fwd td.source {
+    background-color: #dfd;
+}
+
+body.hist td.target {
+    background-color: #dfd;
+}
+
+body.fwd td.target {
+    background-color: #ddf;
+}
+
+body.hist td.add {
+    background-color: #dcb;
+}
+
+body.fwd td.add {
+    background-color: #ddf;
+}
+
+td.edge {
+    border: 1px solid black;
+    width: 10px;
+}
+
+td.workflow.top {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    font-size: x-large;
+    padding: 5px 10px;
+    text-align: center;
+}
+
+div.question {
+    min-width: 200px;
+}
+
+div.projectName {
+    font-size: small;
+}
+
+td.spacer {
+    width: 100px;
+}
+
+div.horizontalLine {
+    border-bottom: 1px solid black;
+    min-width: 20px;
+    position: relative;
+    width: 100%;
+}
+
+div.horizontalLine div.arrow {
+    border-bottom: 5px solid transparent;
+    border-left: 14px solid black;
+    border-right: 1px solid transparent;
+    border-top: 5px solid transparent;
+    bottom: -6px;
+    height: 1;
+    position: absolute;
+    right: 0px;
+    width: 0;
+}
+
+div.prompt {
+    font-style: italic;
+    margin-top: 1.5em;
+}
+
+td.projectName {
+    font-size: large;
+    padding: 15px 0px 5px 1.5em;
+}
+
+td.indent {
+    width: 4em;
+}
+
+td.workflow.add {
+    border: 1px solid black;
+    text-align: center;
+}
+
+td.workflow.add div.workflow {
+    border-left: 1px solid black;
+    border-right:  1px solid black;
+    margin: 0 10px;
+    padding: 4px 10px;
+}
+
+tr.buttons td {
+    text-align: center;
+}
+
+tr.buttons td input {
+    margin: 2em 2em;
+}
+
+a {
+    color: #00e;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #00e;
+}
