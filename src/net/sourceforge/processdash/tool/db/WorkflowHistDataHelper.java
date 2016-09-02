@@ -60,6 +60,8 @@ public class WorkflowHistDataHelper {
 
     private boolean onlyCompleted = true;
 
+    private String workflowID;
+
     private Integer workflowKey;
 
     private Set<Integer> includedWorkflowKeys;
@@ -82,6 +84,12 @@ public class WorkflowHistDataHelper {
 
     public String getWorkflowName() {
         return workflowName;
+    }
+
+    public String getWorkflowID() {
+        if (workflowID == null)
+            initWorkflowData();
+        return workflowID;
     }
 
     public boolean isOnlyCompleted() {
@@ -312,8 +320,10 @@ public class WorkflowHistDataHelper {
         // find the key for the current workflow
         String workflowProcessIDPattern = DatabasePluginUtils
                 .getWorkflowPhaseIdentifier(contextProjectID, "%");
-        workflowKey = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
+        Object[] row = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
             workflowName, workflowProcessIDPattern));
+        workflowKey = (Integer) row[0];
+        workflowID = (String) row[1];
 
         if (workflowKey == null) {
             workflowKey = -1;
@@ -326,7 +336,8 @@ public class WorkflowHistDataHelper {
     }
 
     private static final String WORKFLOW_KEY_QUERY = //
-    "select p.key from Process p where p.name = ? and p.identifier like ?";
+    "select p.key, p.identifier from Process p "
+            + "where p.name = ? and p.identifier like ?";
 
     private static final String WORKFLOW_MAPPING_QUERY = //
     "select distinct p.process.key from Phase p " //

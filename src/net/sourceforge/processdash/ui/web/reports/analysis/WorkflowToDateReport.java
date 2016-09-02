@@ -218,6 +218,10 @@ public class WorkflowToDateReport extends TinyCGIBase {
         out.print("<li><a href='" + selfUri + "&project=this'>"
                 + resources.getHTML("Workflow.To_Date.Filter.This_Project")
                 + "</a></li>");
+        out.print("<li><a href='/team/workflowMap?list="
+                + HTMLUtils.urlEncode(hist.getWorkflowID()) + "'>"
+                + resources.getHTML("Workflow.To_Date.Filter.Map_Workflows")
+                + "</a></li>");
         out.print("</ul></div>\n");
     }
 
