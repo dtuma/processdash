@@ -36,7 +36,8 @@
     <div class="importedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneImport.project}"/>&nbsp;&raquo;</div>
-      <a href="workflowMap?source=${oneImport.id}&amp;target=${workflow.id}&amp;focus=target"><c:out
+      <a title="${resources.html['List.Name_Link_Tooltip_FMT'][oneImport.process]}"
+         href="workflowMap?source=${oneImport.id}&amp;target=${workflow.id}&amp;focus=target"><c:out
               value="${oneImport.process}"/></a>
     </div></div>
   </div>
@@ -70,7 +71,8 @@
     <div class="exportedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneExport.project}"/>&nbsp;&raquo;</div>
-      <a href="workflowMap?source=${workflow.id}&amp;target=${oneExport.id}&amp;focus=source"><c:out
+      <a title="${resources.html['List.Name_Link_Tooltip_FMT'][oneExport.process]}"
+         href="workflowMap?source=${workflow.id}&amp;target=${oneExport.id}&amp;focus=source"><c:out
               value="${oneExport.process}"/></a>
     </div></div>
   </div>

@@ -93,7 +93,7 @@
 <input type="hidden" name="source" value="${workflow.id}" />
 <input type="hidden" name="focus" value="source" />
 <input type="hidden" name="adding" value="t" />
-<input type="submit" name="cancel" value="${resources.Cancel}"/>
+<input type="submit" name="cancel" value="${resources.html.Cancel}"/>
 </form>
 </td>
 </tr>

@@ -25,6 +25,7 @@ package teamdash.templates.tools;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -205,7 +206,8 @@ public class WorkflowMappingManager {
         workflow.phases = phases;
     }
 
-    public void loadPhaseMappings(Workflow workflow, Workflow target) {
+    public boolean loadPhaseMappings(Workflow workflow, Workflow target) {
+        // load the mappings from this workflow to the target workflow
         Map<String, String> phaseMap = QueryUtils.mapColumns(query.query(
             "select phase.identifier, mapsTo.identifier "
                     + "from Phase as phase " //
@@ -213,8 +215,18 @@ public class WorkflowMappingManager {
                     + "where phase.process.identifier = ? "
                     + "and mapsTo.process.identifier = ?", //
             workflow.id, target.id));
-        for (Phase p : workflow.phases)
+        // make a map of phases in the target workflow, from name to ID
+        Map<String, String> targetPhaseIDs = new HashMap<String, String>();
+        for (Phase t : target.phases)
+            targetPhaseIDs.put(t.name, t.id);
+        // record mapping data in the source workflow
+        for (Phase p : workflow.phases) {
             p.mapsTo = phaseMap.get(p.id);
+            p.nameMatch = targetPhaseIDs.get(p.name);
+            if (p.nameMatch != null)
+                workflow.hasNameMatch = true;
+        }
+        return !phaseMap.isEmpty();
     }
 
     public boolean canEditMappings(String sourceId, String targetId) {
@@ -263,6 +275,8 @@ public class WorkflowMappingManager {
 
         private List<Phase> phases;
 
+        private boolean hasNameMatch;
+
         Workflow(String id, String process) {
             this.id = id;
             this.process = process;
@@ -285,6 +299,10 @@ public class WorkflowMappingManager {
             return phases;
         }
 
+        public boolean isHasNameMatch() {
+            return hasNameMatch;
+        }
+
         @Override
         public int compareTo(Workflow that) {
             int result = this.process.compareTo(that.process);
@@ -298,7 +316,7 @@ public class WorkflowMappingManager {
 
 
     public class Phase {
-        private String id, name, mapsTo;
+        private String id, name, mapsTo, nameMatch;
 
         Phase(String id, String name) {
             this.id = id;
@@ -315,6 +333,10 @@ public class WorkflowMappingManager {
 
         public String getMapsTo() {
             return mapsTo;
+        }
+
+        public String getNameMatch() {
+            return nameMatch;
         }
     }
 

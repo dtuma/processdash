@@ -59,6 +59,14 @@ div.horizontalLine div.arrow {
     width: 0;
 }
 
+tr#header.empty div.horizontalLine {
+    border-bottom-color: silver;
+}
+
+tr#header.empty div.horizontalLine div.arrow {
+    border-left-color: silver;
+}
+
 td.description div {
     font-style: italic;
     margin: 15px 30px;
@@ -143,7 +151,7 @@ tr.buttons td {
 }
 
 tr.buttons td input {
-    margin: 2em 2em;
+    margin: 2em 1em;
 }
 
 a {

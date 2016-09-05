@@ -6,29 +6,7 @@
 <title><c:out value="${resources[editing ? 'Edit.Title' : 'View.Title']}"/>
      - <c:out value="${sourceWorkflow.process}"/></title>
 <link rel="stylesheet" type="text/css" href="workflowMapPhases.css">
-
-<c:if test="${editing}"><script type="text/javascript">
-function phaseChange(elem) {
-    var excludeFlag = (elem.value == "" ? "excluded" : "");
-    var origVal = elem.parentNode.getElementsByTagName("input")[2].value;
-    var modFlag = (elem.value == origVal ? "" : " modified");
-    elem.parentNode.parentNode.className =  excludeFlag + modFlag;
-}
-function clearAllPhases() {
-    var phases = document.getElementsByTagName("select");
-    for (var j = 0; j < phases.length; j++) {
-    	phases[j].value = "";
-    	phaseChange(phases[j]);
-    }
-}
-function revertAllPhases() {
-    document.getElementsByTagName("form")[0].reset();
-    var phases = document.getElementsByTagName("select");
-    for (var j = 0; j < phases.length; j++) {
-        phaseChange(phases[j]);
-    }
-}
-</script></c:if>
+<script type="text/javascript" src="workflowMapPhases.js"></script>
 </head>
 <c:set var="bodyClass" value="${param.focus == 'source' ? 'fwd' : 'hist'}"/>
 <body class="${bodyClass}">
@@ -43,14 +21,15 @@ function revertAllPhases() {
 
 <table border="0" cellpadding="0" cellspacing="0">
 
-<tr>
+<tr id="header" class="${emptyMapping ? 'empty' : ''}">
 <td colspan="3" class="source workflow"><div class="workflow">
   <div class="projectName">&laquo;&nbsp;<c:out
           value="${sourceWorkflow.project}"/>&nbsp;&raquo;</div>
   <c:choose>
   <c:when test="${editing}"><c:out value="${sourceWorkflow.process}"/></c:when>
   <c:otherwise>
-  <a href="workflowMap?list=${sourceWorkflow.id}"><c:out value="${sourceWorkflow.process}"/></a>
+  <a title="${resources.html['View.Name_Link_Tooltip_FMT'][sourceWorkflow.process]}"
+     href="workflowMap?list=${sourceWorkflow.id}"><c:out value="${sourceWorkflow.process}"/></a>
   </c:otherwise>
   </c:choose>
 </div>
@@ -66,7 +45,8 @@ function revertAllPhases() {
   <c:choose>
   <c:when test="${editing}"><c:out value="${targetWorkflow.process}"/></c:when>
   <c:otherwise>
-  <a href="workflowMap?list=${targetWorkflow.id}"><c:out value="${targetWorkflow.process}"/></a>
+  <a title="${resources.html['View.Name_Link_Tooltip_FMT'][targetWorkflow.process]}"
+     href="workflowMap?list=${targetWorkflow.id}"><c:out value="${targetWorkflow.process}"/></a>
   </c:otherwise>
   </c:choose>
 </div>
@@ -82,8 +62,9 @@ function revertAllPhases() {
 <td class="spacer"></td>
 <td class="mapLine"></td>
 <td class="description">
-   <div title="${resources['View.Export_Tooltip']}"><c:out
-        value="${resources['View.Export_Description']}"/></div>
+   <c:set var="expResKey">${editing ? 'Edit' : 'View'}.Export_Description</c:set>
+   <div title="${resources.html['View.Export_Tooltip']}"><c:out
+        value="${resources[expResKey]}"/></div>
 </td>
 </tr>
 
@@ -112,7 +93,7 @@ function revertAllPhases() {
 
 <c:when test="${editing}">
   <div class="modWrapper"><div class="modFlag"
-       title="${resources['Edit.Modified_Tooltip']}"></div></div>
+       title="${resources.html['Edit.Modified_Tooltip']}"></div></div>
   <input type="hidden" name="phase" value="${stat.index}" />
   <input type="hidden" name="phase${stat.index}id" value="${sourcePhase.id}" />
   <select name="phase${stat.index}mapsTo" onchange="phaseChange(this)">
@@ -120,7 +101,9 @@ function revertAllPhases() {
     <c:forEach var="targetPhase" items="${targetWorkflow.phases}">
     <c:set var="sel"><c:if test="${targetPhase.id == sourcePhase.mapsTo}"
             >selected="selected"</c:if></c:set>
-    <option value="${targetPhase.id}" ${sel}><c:out
+    <c:set var="def"><c:if test="${targetPhase.id == sourcePhase.nameMatch}"
+            >class="nameMatch"</c:if></c:set>
+    <option value="${targetPhase.id}" ${sel} ${def}><c:out
             value="${targetPhase.name}"/></option>
     </c:forEach>
   </select>
@@ -146,28 +129,34 @@ function revertAllPhases() {
 
 <tr class="buttons">
 <td colspan="2"></td>
-<td>
 <c:choose>
   <c:when test="${editing}">
-  <input type="button" value="${resources['Edit.Clear']}" onclick="clearAllPhases()">
-  <input type="button" value="${resources['Edit.Revert']}" onclick="revertAllPhases()">
+  <td colspan="${sourceWorkflow.hasNameMatch ? 2 : 1}">
+  <c:if test="${sourceWorkflow.hasNameMatch}">
+    <input type="button" value="${resources.html['Edit.Match']}" onclick="matchAllPhases()">
+  </c:if>
+  <input type="button" value="${resources.html['Edit.Clear']}" onclick="clearAllPhases()">
+  <input type="button" value="${resources.html['Edit.Revert']}" onclick="revertAllPhases()">
+  </td>
+  <c:if test="${!sourceWorkflow.hasNameMatch}"><td></td></c:if>
   </c:when>
 
   <c:when test="${editingAllowed}">
-  <input type="submit" name="edit" value="${resources['View.Edit_Mappings']}">
+  <td>
+  <input type="submit" name="edit" value="${resources.html['View.Edit_Mappings']}">
+  </td><td></td>
   </c:when>
 </c:choose>
-</td>
-<td colspan="2"></td>
+<td></td>
 <td>
 <c:choose>
   <c:when test="${editing}">
-  <input type="submit" name="save" value="${resources['Save']}">
-  <input type="submit" name="cancel" value="${resources['Cancel']}">
+  <input type="submit" name="save" value="${resources.html['Save']}">
+  <input type="submit" name="cancel" value="${resources.html['Cancel']}">
   </c:when>
 
   <c:otherwise>
-  <input type="submit" name="reverse" value="${resources['View.Reverse']}">
+  <input type="submit" name="reverse" value="${resources.html['View.Reverse']}">
   </c:otherwise>
 </c:choose>
 </td>

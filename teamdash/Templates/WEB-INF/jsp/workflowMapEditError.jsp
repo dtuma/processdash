@@ -35,7 +35,7 @@ p {
 <p><c:out value="${resources['Edit.Error_Footer']}"/></p>
 
 <p><input type="button"
-    value="${resources['Edit.Error_Retry']}"
+    value="${resources.html['Edit.Error_Retry']}"
     onclick="location.reload(true)"></p>
 
 </body>

@@ -142,11 +142,12 @@ public class WorkflowMappingEditor extends HttpServlet {
         Workflow targetWorkflow = mgr.getWorkflow(targetId);
         mgr.loadPhases(sourceWorkflow);
         mgr.loadPhases(targetWorkflow);
-        mgr.loadPhaseMappings(sourceWorkflow, targetWorkflow);
+        boolean empty = !mgr.loadPhaseMappings(sourceWorkflow, targetWorkflow);
 
         // save the workflows into the request
         req.setAttribute("sourceWorkflow", sourceWorkflow);
         req.setAttribute("targetWorkflow", targetWorkflow);
+        req.setAttribute("emptyMapping", empty);
 
         // determine whether editing should be allowed/in effect
         if (mgr.canEditMappings(sourceId, targetId)) {
