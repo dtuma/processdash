@@ -416,13 +416,34 @@ public class Resources extends ResourceBundle implements StringMapper {
         @Override
         public Object get(Object key) {
             String resKey = (String) key;
-            if (resKey.endsWith("_FMT")) {
+            if (resKey.equalsIgnoreCase("html")) {
+                return new HtmlFormatImpl(this);
+            } else if (resKey.endsWith("_FMT")) {
                 return new DeferredFormatImpl(resKey);
             } else {
                 return getString(resKey);
             }
         }
 
+    }
+
+    private class HtmlFormatImpl extends MockMap<String, Object> {
+
+        private Object delegate;
+        
+        public HtmlFormatImpl(MockMap delegate) {
+            this.delegate = delegate;
+        }
+
+        public Object get(Object key) {
+            delegate = ((Map) delegate).get(key);
+            return this;
+        }
+        
+        @Override
+        public String toString() {
+            return HTMLUtils.escapeEntities(delegate.toString());
+        }
     }
 
     private class DeferredFormatImpl extends MockMap<String, Object> {
