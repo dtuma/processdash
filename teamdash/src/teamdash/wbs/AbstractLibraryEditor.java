@@ -146,6 +146,7 @@ public abstract class AbstractLibraryEditor {
             String sourceID = projectID + ":" + node.getUniqueID();
             node.setAttribute("exportSourceID", sourceID);
             node.removeAttribute("importSourceID");
+            node.removeAttribute("relaunchSourceID");
         }
     }
 
@@ -357,7 +358,8 @@ public abstract class AbstractLibraryEditor {
         library = result.getWbs();
         library.getRoot().setName(resources.getString("Library_Root_Name"));
         if (export == false)
-            library.removeAttributes(new PatternList("^exportSourceID$"));
+            library.removeAttributes(new PatternList("^exportSourceID$",
+                    "^relaunchSourceID$"));
     }
 
     private WBSLibrary openLibrary(Component parent, boolean export,

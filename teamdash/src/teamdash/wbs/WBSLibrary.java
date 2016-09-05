@@ -145,6 +145,7 @@ public abstract class WBSLibrary {
             String sourceID = libraryID + ":" + node.getUniqueID();
             node.setAttribute("importSourceID", sourceID);
             node.removeAttribute("exportSourceID");
+            node.removeAttribute("relaunchSourceID");
         }
     }
 
