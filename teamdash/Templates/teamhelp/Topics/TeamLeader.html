@@ -185,6 +185,97 @@ process.</li>
 end-of-cycle postmortem analysis.</p>
 
 
+<h3><a name="workflowMapping"></a>Configuring Workflow Mappings</h3>
+
+<p>Historical data is extremely valuable for planning, tracking, and analysis.
+So when you view the Workflow Process Analysis report for a given project, the
+dashboard will pull in data from other projects if they include a workflow
+with the same name and steps.  For example, if several of your project cycles
+all have a workflow named "SW Development," and those workflows contain steps
+with the same names as the current workflow, then data from all of these
+matching steps will be included in the calculations for the Workflow Process
+Analysis report.</p>
+
+<p>But at times, this simple name-based matching is insufficient.  For
+example, if your team changes the name of a workflow or alters the steps
+inside, the names will no longer match, and the historical data will not map
+forward anymore.  Fortunately, you can resolve these issues by telling the
+dashboard how workflows map to each other.</p>
+
+<p>To view or edit workflow mappings, open the Workflow Process Analysis
+report for the workflow you are interested in.  Then expand the "Filter"
+section, and click the link to "Configure the workflows that should be
+included" in the analysis.  This will open a page that shows mappings for the
+workflow in question.</p>
+
+<p>The workflow of interest is shown at the top of the page.  The brown boxes
+on the left below show other other workflows whose data is currently being
+included in the analysis.  For symmetry, the blue boxes on the right show
+other workflows that include data from the current workflow.  Click on any of
+these boxes, and you will see how the steps map from one workflow to another.
+To change these, click the "Edit Mappings" button at the bottom.  If you wish
+to map data in the opposite direction as well, click the "Reverse Mappings"
+button and make changes as needed.</p>
+
+<p>Workflow mappings are transitive: so if Workflow A maps to Workflow B, and
+Workflow B maps to Workflow C, then Worklow A data will automatically be
+included in analyses for Workflow C.  When you add a new mapping between two
+previously unrelated workflows, the top-level mapping graph will automatically
+display any new transitive relationships.</p>
+
+<p>Here are some practical examples of how your team might use workflow
+mappings:</p>
+
+<p><b>Process Evolution:</b><ul>
+
+    <li>If a team starts a new project cycle and changes the name of a
+    workflow, they can map data forward and backward to indicate that these
+    two workflows represent the same process, even though the name has
+    changed.</li>
+
+    <li>If the team starts a new project cycle and changes the name of a
+    workflow step, they can map the data forward and backward to let the
+    dashboard know that the step plays the same underlying role in the
+    process.</li>
+
+    <li>If a team starts a new project cycle and combines two workflow steps
+    into one (because the old steps were too granular), they can declare those
+    mappings and still use their historical data for planning in the new
+    workflow.</li>
+
+    <li>If a team starts a new project cycle and breaks a workflow step into
+    more granular parts, they can state that the new steps all map back to the
+    same step in the old workflow; and they can choose the primary step in the
+    new workflow that historical data should map into.</li>
+
+    </ul></p>
+
+<p><b>Similar Workflows:</b><ul>
+
+    <li>Often, a team will have several workflows that are tailored versions
+    of a common process.  One example might be a comprehensive workflow for
+    use on large/complex deliverables, along with a simplified version of the
+    same workflow for use on smaller items.  The team can declare
+    equivalencies between these two workflows, allowing them to see a report
+    that rolls up data from the various tailorings of the process.</li>
+
+    </ul></p>
+
+<p><b>Cross-cutting Analysis:</b><ul>
+
+    <li>For process improvement, analysis, or reporting purposes, you may wish
+    to see a report that groups various types of work into large categories.
+    For example, your organization might be interested in measuring the
+    percentage of time spent on construction versus rework.  Or your team may
+    develop different kinds of products, but still be interested in
+    understanding how much overall time is spent in analysis, construction,
+    and testing.  You can produce these reports by creating a workflow that
+    lists the category names, then mapping your other workflows to those
+    categories.</li>
+
+    </ul></p>
+
+
 <h2><a name="backups"></a>Backing Up Project Data</h2>
 
 <p>Over the course of the project, you should periodically save a backup of
