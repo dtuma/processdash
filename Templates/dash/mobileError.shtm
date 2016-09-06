@@ -31,6 +31,40 @@
 <body>
 <h1>Process Dashboard Mobile Companion App</h1>
 
+<!--#if quickLaunch -->
+
+<p>To prepare for use with the mobile app, the Process Dashboard needs to
+modify your data.  Unfortunately, you are currently viewing a ZIP data backup,
+not your "live" data.  Please open your personal dashboard normally, then try
+choosing the "C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+
+<!--#elif readOnly -->
+
+<p>To prepare for use with the mobile app, the Process Dashboard needs to
+modify your data.  Unfortunately, you are currently running the dashboard in
+read-only mode.  Please restart the dashboard in read-write mode, then try
+choosing the "C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+
+<!--#elif hierEditor -->
+
+<p>To prepare for use with the mobile app, the Process Dashboard needs to
+modify your data.  Unfortunately, it cannot do this while the Hierarchy Editor
+window is open.  Please close the Hierarchy Editor, then try choosing the 
+"C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+
+<!--#elif noNetwork -->
+
+<p>To prepare for use with the mobile app, the Process Dashboard needs to
+communicate with the server:</p>
+
+<pre style="margin-left:1cm"><!--#echo [mobile//Server_URL] --></pre>
+
+<p>Unfortunately, the server could not be reached.  Please check your network
+connection, then try choosing the "C &rarr; Tools &rarr; Mobile App" menu
+option again.</p>
+
+<!--#else-->
+
 <p>The Process Dashboard Companion app is designed to let you view and edit
 Process Dashboard data from a mobile device.  Your edits in the mobile app
 stay synchronized with the data you enter in the Process Dashboard app on your
@@ -59,9 +93,35 @@ server can provide your organization.</p>
 
 <p>If your organization <b>does</b> have a copy of Enterprise Server version
 3.6.0 or higher, ask for help migrating your personal dashboard into the
-server.  Once your data is stored in the server, you will be able to use the
-mobile application to access your data from your smartphone.</p>
+server.  Once your data is stored in the server, you will be able to connect
+to the mobile application by choosing the "C &rarr; Tools &rarr; Mobile App"
+menu option again.</p>
 
+<h2>Why is the Enterprise Server needed?</h2>
+
+<p>The Process Dashboard maintains a database of your personal data.  In most
+cases, this data is saved in files on your computer's hard drive.  But of
+course, your smartphone can't easily access your computer's hard drive.
+Instead, the smartphone needs to be able to access your data through the
+"cloud."</p>
+
+<p>However, the data in your personal dashboard is extremely sensitive.  It
+contains information about projects your company is working on, including
+delivery timelines, cost, productivity, defects, and quality measures.  The
+organizations we surveyed guard this data very closely, and most said they
+would not allow it to be stored on a server in the Internet.  Instead, a
+"cloud" service running inside the corporate network is needed.</p>
+
+<p>The <a href="http://www.processdash.com/pdes">Process Dashboard Enterprise
+Server</a> provides these "cloud" services.  It keeps the data you collect in
+sync between your computer and your smartphone, and it provides a number of
+other features that help you and your team to be more efficient.  If your
+organization is not using the Process Dashboard Enterprise Server, ask your
+team leader or process coach to look into the 
+<a href="http://www.processdash.com/pdes">many benefits</a> the server can
+provide your organization.</p>
+
+<!--#endif-->
 <!--#endif-->
 
 

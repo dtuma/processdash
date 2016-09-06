@@ -30,12 +30,15 @@ import java.net.URL;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
 
 public class MobileSetupWizard extends TinyCGIBase {
@@ -51,12 +54,35 @@ public class MobileSetupWizard extends TinyCGIBase {
         // make certain the request is coming from the local computer
         DashController.checkIP(env.get("REMOTE_ADDR"));
 
+        // check for improper operating modes
+        if (Settings.isReadOnly()) {
+            printRedirect("mobileError.shtm?readOnly");
+            return;
+        } else if (CompressedInstanceLauncher.isRunningFromCompressedData()) {
+            printRedirect("mobileError.shtm?quickLaunch");
+            return;
+        }
+
         // get the URL of our bridged working directory
         ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
         WorkingDirectory workingDirectory = dash.getWorkingDirectory();
         String location = workingDirectory.getDescription();
         if (!location.startsWith("http")) {
             printRedirect("mobileError.shtm?notBridged");
+            return;
+        }
+
+        // check for connectivity to the PDES
+        try {
+            URL u = new URL(location);
+            FileUtils.slurpContents(u.openStream(), true);
+        } catch (IOException ioe) {
+            int pos = location.indexOf("DataBridge/");
+            if (pos != -1)
+                location = location.substring(0, pos);
+            getDataRepository().putValue("/mobile//Server_URL",
+                StringData.create(location));
+            printRedirect("mobileError.shtm?noNetwork");
             return;
         }
 
@@ -73,7 +99,12 @@ public class MobileSetupWizard extends TinyCGIBase {
         String username = HttpAuthenticator.getLastUsername();
 
         // prepare the dashboard for use with the mobile REST APIs
-        DashController.assignHierarchyNodeIDs();
+        try {
+            DashController.assignHierarchyNodeIDs();
+        } catch (IllegalStateException ise) {
+            printRedirect("mobileError.shtm?hierEditor");
+            return;
+        }
         dash.flushWorkingData();
 
         // write information to the repository, and print a success page

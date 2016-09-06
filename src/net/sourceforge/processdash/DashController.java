@@ -568,8 +568,11 @@ public class DashController {
     private static String datasetID = null;
 
     /** @since 2.2.3.2 */
-    public static boolean assignHierarchyNodeIDs() {
+    public static boolean assignHierarchyNodeIDs() throws IllegalStateException {
         PERMISSION.checkPermission();
+        if (dash.isHierarchyEditorOpen())
+            throw new IllegalStateException(
+                    "The hierarchy editor is currently open.");
         boolean madeChange = false;
         if (TeamProjectSetupWizard.copyNodeIDsToHierarchy(dash.getData(),
             dash.getHierarchy()))

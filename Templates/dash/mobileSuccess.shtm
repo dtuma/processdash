@@ -36,12 +36,19 @@
 <p>If you haven't already done so, please download and install the "Process
 Dashboard Companion" application from the app store on your device.</p>
 
+<table style="text-align:center; width:600px">
+<tr>
+<td><a target='_blank' href='http://www.processdash.com/mobileAppStoreIOS'><img alt='Download on the App Store' src='mobileBadgeIOS.svg' /></a></td>
+<td><a target='_blank' href='http://www.processdash.com/mobileAppStoreAndroid'><img height='60' alt='Get it on Google Play' src='mobileBadgeAndroid.png' /></a></td>
+</tr>
+</table>
+
 <p>When you first open the app, you will be prompted to log in.  Provide the
 following information on the login screen:</p>
 
 <table style="margin-left:1cm">
 <tr>
-<td><b>Data Token:</b></td>
+<td><b>Data Token:</b>&nbsp;&nbsp;</td>
 <td><tt><!--#echo [mobile//Data_Token] --></tt></td>
 </tr>
 <tr>
