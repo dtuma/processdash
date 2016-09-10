@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.util.DataPair;
 
@@ -44,23 +43,19 @@ public class WorkflowHistDataHelper {
 
     public static final String TOTAL_PHASE_KEY = "Total ";
 
-    private DataContext data;
+    private QueryRunner query;
+
+    private String workflowID;
 
     private String contextProjectID;
 
     private String workflowName;
-
-    private DatabasePlugin plugin;
-
-    private QueryRunner query;
 
     private String onlyForProject;
 
     private String onlyForProjectsThrough;
 
     private boolean onlyCompleted = true;
-
-    private String workflowID;
 
     private Integer workflowKey;
 
@@ -70,12 +65,10 @@ public class WorkflowHistDataHelper {
 
     private Map<String, String> phaseTypes;
 
-
-    public WorkflowHistDataHelper(DataContext data, String contextProjectID,
-            String workflowName) {
-        this.data = data;
-        this.contextProjectID = contextProjectID;
-        this.workflowName = workflowName;
+    public WorkflowHistDataHelper(QueryRunner query, String workflowID) {
+        this.query = query;
+        this.workflowID = workflowID;
+        this.contextProjectID = workflowID.split(":")[1];
     }
 
     public String getContextProjectID() {
@@ -83,12 +76,12 @@ public class WorkflowHistDataHelper {
     }
 
     public String getWorkflowName() {
+        if (workflowName == null)
+            initWorkflowData();
         return workflowName;
     }
 
     public String getWorkflowID() {
-        if (workflowID == null)
-            initWorkflowData();
         return workflowID;
     }
 
@@ -108,13 +101,6 @@ public class WorkflowHistDataHelper {
         this.onlyForProject = onlyForProject;
     }
 
-    private void initQueryRunner() {
-        if (query == null) {
-            plugin = QueryUtils.getDatabasePlugin(data, true);
-            query = plugin.getObject(QueryRunner.class);
-        }
-    }
-
     private List query(String hql, Object... args) {
         for (Object oneArg : args) {
             if (oneArg instanceof Collection) {
@@ -127,22 +113,8 @@ public class WorkflowHistDataHelper {
                     return Collections.EMPTY_LIST;
             }
         }
-        initQueryRunner();
         return query.queryHql(hql, args);
     }
-
-    public List<String> getWorkflowNamesForProject() {
-        String workflowProcessIDPattern = DatabasePluginUtils
-                .getWorkflowPhaseIdentifier(contextProjectID, "%");
-        List result = query(WORKFLOW_LIST_QUERY, workflowProcessIDPattern);
-        if (result.size() > 1)
-            Collections.sort(result);
-        return result;
-    }
-
-    private static final String WORKFLOW_LIST_QUERY = //
-    "select p.name from Process p where p.identifier like ?";
-
 
     private List getEnactments() {
         if (enactments == null) {
@@ -318,12 +290,10 @@ public class WorkflowHistDataHelper {
 
     private void initWorkflowData() {
         // find the key for the current workflow
-        String workflowProcessIDPattern = DatabasePluginUtils
-                .getWorkflowPhaseIdentifier(contextProjectID, "%");
         Object[] row = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
-            workflowName, workflowProcessIDPattern));
+            workflowID));
         workflowKey = (Integer) row[0];
-        workflowID = (String) row[1];
+        workflowName = (String) row[1];
 
         if (workflowKey == null) {
             workflowKey = -1;
@@ -336,8 +306,7 @@ public class WorkflowHistDataHelper {
     }
 
     private static final String WORKFLOW_KEY_QUERY = //
-    "select p.key, p.identifier from Process p "
-            + "where p.name = ? and p.identifier like ?";
+    "select p.key, p.name from Process p where p.identifier = ?";
 
     private static final String WORKFLOW_MAPPING_QUERY = //
     "select distinct p.process.key from Phase p " //
