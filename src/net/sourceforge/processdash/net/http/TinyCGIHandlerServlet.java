@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -187,6 +187,8 @@ public class TinyCGIHandlerServlet extends HttpServlet {
         // Run the cgi script, and capture the results.
         CGIOutputStream cgiOut = null;
         try {
+            env.put(HttpServletRequest.class, req);
+            env.put(HttpServletResponse.class, resp);
             cgiOut = new CGIOutputStream(resp, getOutputMode(script));
             script.service(req.getInputStream(), cgiOut, env);
             cgiOut.finish();

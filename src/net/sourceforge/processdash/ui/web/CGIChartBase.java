@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
 
     /** create the data upon which this chart is based. */
     protected void buildData() {
+        retrieveParamsFromServlet("dqf");
         massageParameters();
         String prefix = getPrefix();
         data = ResultSet.get(getDataRepository(), parameters, prefix,

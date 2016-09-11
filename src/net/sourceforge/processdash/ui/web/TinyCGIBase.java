@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,10 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -84,6 +88,9 @@ public class TinyCGIBase implements TinyCGI {
         this.out = new PrintWriter(new OutputStreamWriter(outStream, charset));
         this.env = env;
         parameters.clear();
+        Object reqParams = env.get("REQUEST_PARAMS");
+        if (reqParams instanceof Map)
+            parameters.putAll((Map) reqParams);
         parseInput((String) env.get("SCRIPT_PATH"),
                    (String) env.get("QUERY_STRING"));
         if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
@@ -148,6 +155,31 @@ public class TinyCGIBase implements TinyCGI {
     }
     public static final String QUERY_FILE_PARAM = "qf";
     public static final String RESOURCE_FILE_PARAM = "rf";
+
+    protected void retrieveParamsFromServlet(String servletUriParamName) {
+        String servletUri = getParameter(servletUriParamName);
+        if (StringUtils.hasValue(servletUri)) {
+            try {
+                HttpServletRequest req = (HttpServletRequest) env
+                        .get(HttpServletRequest.class);
+                HttpServletResponse resp = (HttpServletResponse) env
+                        .get(HttpServletResponse.class);
+
+                if (!servletUri.startsWith("/"))
+                    servletUri = resolveRelativeURI(servletUri);
+                RequestDispatcher disp = req.getRequestDispatcher(servletUri);
+                disp.include(req, resp);
+
+                Object params = req.getAttribute("REQUEST_PARAMS");
+                if (params instanceof Map)
+                    parameters.putAll((Map) params);
+                req.removeAttribute("REQUEST_PARAMS");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void putParam(String name, String val) {
         parameters.put(name, val);
