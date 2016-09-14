@@ -24,9 +24,11 @@
 package net.sourceforge.processdash.tool.db;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -40,6 +42,32 @@ import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.util.DataPair;
 
 public class WorkflowHistDataHelper {
+
+    public class Enactment {
+        public int rootKey;
+        public String rootWbsID;
+        public String projectName;
+        public String rootName;
+        public Date completed;
+
+        public double actualTime() {
+            if (_actualTime == null)
+                _actualTime = getTime(this, null, true);
+            return _actualTime;
+        }
+        private Double _actualTime;
+
+        public boolean equals(Object obj) {
+            return obj == this || (obj instanceof Enactment //
+                    && this.rootKey == ((Enactment) obj).rootKey);
+        }
+        public int hashCode() {
+            return rootKey;
+        }
+        public String toString() {
+            return projectName + "/" + rootName;
+        }
+    }
 
     public static final String TOTAL_PHASE_KEY = "Total ";
 
@@ -61,9 +89,9 @@ public class WorkflowHistDataHelper {
 
     private Set<Integer> includedWorkflowKeys;
 
-    private List enactments;
+    private List<Object[]> enactments;
 
-    private Map<String, String> phaseTypes;
+    private List<Enactment> enactmentInfo;
 
     public WorkflowHistDataHelper(QueryRunner query, String workflowID) {
         this.query = query;
@@ -116,7 +144,7 @@ public class WorkflowHistDataHelper {
         return query.queryHql(hql, args);
     }
 
-    private List getEnactments() {
+    private List<Object[]> getEnactmentKeyList() {
         if (enactments == null) {
             Set<Integer> workflowKeys = getIncludedWorkflowKeys();
             if (Settings.isTeamMode())
@@ -129,9 +157,7 @@ public class WorkflowHistDataHelper {
     }
 
     private List<Integer> getEnactmentRootKeys() {
-        if (enactments == null)
-            getEnactments();
-        return QueryUtils.pluckColumn(enactments, ENACTMENT_ROOT_KEY);
+        return QueryUtils.pluckColumn(getEnactmentKeyList(), EnactmentCol.RootKey);
     }
 
     /**
@@ -140,7 +166,7 @@ public class WorkflowHistDataHelper {
      * of those enactments.
      */
     private static final String TEAM_ENACTMENT_QUERY = //
-    "select distinct pe.rootItem.key, pe.rootItem.identifier "
+    "select distinct pe.rootItem.key, pe.rootItem.identifier, 0 "
             + "from ProcessEnactment pe "
             + "where pe.rootItem.key = pe.includesItem.key "
             + "and pe.process.key in (?)";
@@ -152,7 +178,7 @@ public class WorkflowHistDataHelper {
      * enactments.
      */
     private static final String PERSONAL_ENACTMENT_QUERY = //
-    "select distinct pe.rootItem.key, pe.rootItem.identifier "
+    "select distinct pe.rootItem.key, pe.rootItem.identifier, 0 "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join task.planItem.phase.mapsToPhase probePhase "
             + "where pe.includesItem.key = task.planItem.key "
@@ -160,9 +186,7 @@ public class WorkflowHistDataHelper {
             + "and probePhase.identifier = '*PROBE*/PROBE' "
             + "and pe.process.key in (?)";
 
-    private static final int ENACTMENT_ROOT_KEY = 0;
-
-    private static final int ENACTMENT_ROOT_WBS_ID = 1;
+    private enum EnactmentCol { RootKey, RootWbsID, Completed }; 
 
 
     private void filterEnactments() {
@@ -175,7 +199,7 @@ public class WorkflowHistDataHelper {
     private void applyProjectSpecificFilter() {
         for (Iterator i = enactments.iterator(); i.hasNext();) {
             Object[] enactment = (Object[]) i.next();
-            String rootItemID = (String) enactment[ENACTMENT_ROOT_WBS_ID];
+            String rootItemID = get(enactment, EnactmentCol.RootWbsID);
             if (shouldExcludeProject(rootItemID))
                 i.remove();
         }
@@ -202,26 +226,42 @@ public class WorkflowHistDataHelper {
     }
 
     private void discardIncompleteEnactments() {
-        if (enactments.isEmpty())
-            return;
-
-        Set completedEnactmentRootKeys = new HashSet(query(
-            ENACTMENT_COMPLETION_QUERY, getEnactmentRootKeys(),
-            getIncludedWorkflowKeys(), getWorkflowKey()));
+        loadEnactmentCompletionDates();
 
         for (Iterator i = enactments.iterator(); i.hasNext();) {
-            Object[] enactment = (Object[]) i.next();
-            Object oneEnactmentRootKey = enactment[ENACTMENT_ROOT_KEY];
-            if (!completedEnactmentRootKeys.contains(oneEnactmentRootKey))
+            Object[] oneEnactment = (Object[]) i.next();
+            if (get(oneEnactment, EnactmentCol.Completed) == null)
                 i.remove();
         }
     }
 
+    private void loadEnactmentCompletionDates() {
+        // no enactments? nothing to do
+        if (getEnactmentKeyList().isEmpty())
+            return;
+        // if enactment dates have already been loaded, abort
+        Object oneDate = get(enactments.get(0), EnactmentCol.Completed);
+        if (oneDate == null || oneDate instanceof Date)
+            return;
+
+        // read enactment completion dates from the database
+        Map<Object, Date> enactmentCompletionDates = QueryUtils.mapColumns( //
+                query(ENACTMENT_COMPLETION_QUERY, getEnactmentRootKeys(),
+                    getIncludedWorkflowKeys(), getWorkflowKey()));
+
+        // save these dates into the list of enactments
+        for (Object[] oneEnactment : enactments) {
+            Object oneEnactmentRootKey = get(oneEnactment, EnactmentCol.RootKey);
+            oneDate = enactmentCompletionDates.get(oneEnactmentRootKey);
+            oneEnactment[EnactmentCol.Completed.ordinal()] = oneDate;
+        }
+    }
+
     /**
-     * Query to determine which workflows are 100% complete
+     * Query to determine finish dates of workflows that are 100% complete
      */
     private static final String ENACTMENT_COMPLETION_QUERY = //
-    "select pe.rootItem.key " //
+    "select pe.rootItem.key, max(task.actualCompletionDate) "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join pe.includesItem.phase.mapsToPhase mapsTo "
             + "where pe.rootItem.key in (?) "
@@ -231,6 +271,66 @@ public class WorkflowHistDataHelper {
             + "and task.versionInfo.current = 1 " //
             + "group by pe.rootItem.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
+
+
+    public List<Enactment> getEnactments() {
+        if (enactmentInfo == null)
+            enactmentInfo = loadEnactmentInfo();
+        return enactmentInfo;
+    }
+
+    private List<Enactment> loadEnactmentInfo() {
+        // retrieve information about each of the enactments
+        loadEnactmentCompletionDates();
+        List<Object[]> rawInfo = query(ENACTMENT_INFO_QUERY,
+            getEnactmentRootKeys());
+
+        // use this data to create enactment info objects
+        List<Enactment> result = new ArrayList(enactments.size());
+        for (Object[] oneEnactment : enactments) {
+            Enactment e = new Enactment();
+            e.rootKey = (Integer) get(oneEnactment, EnactmentCol.RootKey);
+            e.rootWbsID = get(oneEnactment, EnactmentCol.RootWbsID);
+            e.completed = get(oneEnactment, EnactmentCol.Completed);
+            for (Object[] row : rawInfo) {
+                int rowKey = (Integer) row[0];
+                if (rowKey == e.rootKey) {
+                    e.projectName = (String) row[1];
+                    e.rootName = (String) row[2];
+                    if (row[3] != null)
+                        e.rootName = e.rootName + "/" + row[3];
+                    result.add(e);
+                    break;
+                }
+            }
+        }
+
+        // sort the enactments in chronological order of completion
+        Collections.sort(result, new Comparator<Enactment>() {
+            public int compare(Enactment e1, Enactment e2) {
+                Date d1 = e1.completed;
+                Date d2 = e2.completed;
+                if (d1 == d2)
+                    return 0;
+                else if (d1 == null)
+                    return 1;
+                else if (d2 == null)
+                    return -1;
+                else
+                    return d1.compareTo(d2);
+            }
+        });
+
+        // return the results
+        return result;
+    }
+
+    private static final String ENACTMENT_INFO_QUERY = //
+    "select pi.key, pi.project.name, pi.wbsElement.name, task.name "
+            + "from PlanItem as pi " //
+            + "left join pi.task as task " //
+            + "where pi.key in (?)";
+
 
     /**
      * Print a list of the plan items whose data has contributed to this
@@ -314,55 +414,94 @@ public class WorkflowHistDataHelper {
             + "where mapsTo.process.key = ?";
 
 
-    private List<String> getWorkflowSteps() {
-        return query(WORKFLOW_PHASE_QUERY, getWorkflowKey());
+
+    public Map<String, String> getPhaseTypes() {
+        return QueryUtils.mapColumns(getPhaseData(), PhaseCol.PhaseName,
+            PhaseCol.PhaseType);
+    }
+
+    public List<String> getPhasesOfType(PhaseType... types) {
+        Object type = (types.length == 0 ? null : Arrays.asList(types));
+        List<String> result = new ArrayList<String>();
+        for (Object[] row : getPhaseData()) {
+            if (match(row, PhaseCol.PhaseType, type))
+                result.add((String) get(row, PhaseCol.PhaseName));
+        }
+        return result;
     }
 
     private Map<Integer, String> getWorkflowStepsByKey() {
-        String query = "select phase.key," + WORKFLOW_PHASE_QUERY.substring(6);
-        return QueryUtils.mapColumns(query(query, getWorkflowKey()));
+        return QueryUtils.mapColumns(getPhaseData(), PhaseCol.PhaseKey,
+            PhaseCol.PhaseName);
+    }
+
+    private List<Object[]> _phaseData;
+
+    private List<Object[]> getPhaseData() {
+        if (_phaseData == null)
+            _phaseData = query(WORKFLOW_PHASE_QUERY, getWorkflowKey());
+        return _phaseData;
     }
 
     private static final String WORKFLOW_PHASE_QUERY = //
-    "select phase.shortName from Phase phase " //
+    "select phase.key, phase.shortName, phase.typeName from Phase phase " //
             + "where phase.process.key = ? " //
             + "and phase.ordinal is not null " //
             + "order by phase.ordinal";
 
-    public Map<String, DataPair> getTimeInPhase() {
-        Map<String, DataPair> result = new LinkedHashMap();
-        phaseTypes = new HashMap<String, String>();
-        for (String step : getWorkflowSteps())
-            result.put(step, new DataPair());
-        DataPair total = new DataPair();
+    private enum PhaseCol { PhaseKey, PhaseName, PhaseType };
 
-        List<Object[]> rawData = query(TIME_IN_PHASE_QUERY,
-            getEnactmentRootKeys(), getIncludedWorkflowKeys(), getWorkflowKey());
-        for (Object[] row : rawData) {
-            String stepName = (String) row[0];
+    public enum PhaseType {
+        Overhead, Construction, Appraisal, Failure
+    }
+
+
+
+    public Map<String, DataPair> getTotalTimeInPhase() {
+        Map<String, DataPair> result = new LinkedHashMap();
+        List<String> stepNames = QueryUtils.pluckColumn(getPhaseData(),
+            PhaseCol.PhaseName);
+        for (String step : stepNames)
+            result.put(step, new DataPair());
+
+        for (Object[] row : getTimeInPhaseData()) {
+            String stepName = get(row, TimeCol.PhaseName);
             DataPair dataPair = result.get(stepName);
             if (dataPair == null) {
                 stepName = "(" + stepName + ")";
                 dataPair = new DataPair();
                 result.put(stepName, dataPair);
             }
-            phaseTypes.put(stepName, (String) row[1]);
-            dataPair.plan = ((Number) row[2]).doubleValue();
-            dataPair.actual = ((Number) row[3]).doubleValue();
-            total.add(dataPair);
+            dataPair.plan += ((Number) get(row, TimeCol.PlanTime)).doubleValue();
+            dataPair.actual += ((Number) get(row, TimeCol.ActTime)).doubleValue();
         }
 
+        DataPair total = new DataPair();
+        for (DataPair phasePair : result.values())
+            total.add(phasePair);
         result.put(TOTAL_PHASE_KEY, total);
 
         return result;
     }
 
-    public Map<String, String> getPhaseTypes() {
-        return phaseTypes;
+    public double getTime(Enactment e, Object phaseFilter, boolean actual) {
+        TimeCol targetCol = (actual ? TimeCol.ActTime : TimeCol.PlanTime);
+        return sum(getTimeInPhaseData(), targetCol, //
+            TimeCol.RootKey, e, TimeCol.PhaseName, phaseFilter);
+    }
+
+
+    private List<Object[]> _timeInPhase;
+
+    private List<Object[]> getTimeInPhaseData() {
+        if (_timeInPhase == null)
+            _timeInPhase = query(TIME_IN_PHASE_QUERY, getEnactmentRootKeys(),
+                getIncludedWorkflowKeys(), getWorkflowKey());
+        return _timeInPhase;
     }
 
     private static final String TIME_IN_PHASE_QUERY = //
-    "select mapsTo.shortName, mapsTo.typeName, "
+    "select pe.rootItem.key, mapsTo.shortName, "
             + "sum(task.planTimeMin), sum(task.actualTimeMin) "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join pe.includesItem.phase.mapsToPhase mapsTo "
@@ -371,8 +510,9 @@ public class WorkflowHistDataHelper {
             + "and mapsTo.process.key = ? "
             + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
-            + "group by mapsTo.shortName, mapsTo.typeName " //
-            + "order by mapsTo.shortName";
+            + "group by pe.rootItem.key, mapsTo.shortName";
+
+    private enum TimeCol { RootKey, PhaseName, PlanTime, ActTime }
 
 
 
@@ -543,5 +683,47 @@ public class WorkflowHistDataHelper {
             + "join missingPhase.mapsToPhase targetPhase " //
             + "where missingPhase.key in (?) " //
             + "and targetPhase.process.key = ?";
+
+    private <T> T get(Object[] row, Enum column) {
+        return (T) row[column.ordinal()];
+    }
+
+    private boolean match(Object[] row, Enum column, Object criteria) {
+        if (criteria == null) {
+            return true;
+
+        } else if (criteria instanceof Collection) {
+            for (Object oneCriteria : (Collection) criteria)
+                if (match(row, column, oneCriteria))
+                    return true;
+            return false;
+
+        } else if (criteria instanceof Enactment) {
+            int value = ((Number) get(row, column)).intValue();
+            return ((Enactment) criteria).rootKey == value;
+
+        } else if (criteria instanceof Enum || criteria instanceof String) {
+            return criteria.toString().equals(get(row, column));
+
+        } else
+            throw new IllegalArgumentException("Unrecognized criteria "
+                    + criteria);
+    }
+
+    private double sum(List<Object[]> rows, Enum targetCol, Object... filters) {
+        double result = 0;
+        ROW: for (Object[] row : rows) {
+            for (int i = 0; i < filters.length; i += 2) {
+                Enum filterColumn = (Enum) filters[i];
+                Object filterCriteria = filters[i + 1];
+                if (!match(row, filterColumn, filterCriteria))
+                    continue ROW;
+            }
+            Object targetVal = get(row, targetCol);
+            if (targetVal instanceof Number)
+                result += ((Number) targetVal).doubleValue();
+        }
+        return result;
+    }
 
 }

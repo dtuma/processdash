@@ -173,7 +173,7 @@ public class WorkflowToDateReport extends TinyCGIBase {
         writeFilterDiv(hist);
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
-        Map<String, DataPair> timeInPhase = hist.getTimeInPhase();
+        Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
         Map<String, DataPair>[] defectsByPhase = hist.getDefectsByPhase();
 
         writeOverallMetrics(sizes, timeInPhase, hist.getPhaseTypes());

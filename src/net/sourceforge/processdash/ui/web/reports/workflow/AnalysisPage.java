@@ -25,11 +25,14 @@ package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -43,7 +46,9 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
+import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -91,8 +96,9 @@ public abstract class AnalysisPage extends HttpServlet {
 
         DashboardContext ctx = (DashboardContext) PDashServletUtils
                 .buildEnvironment(req).get(TinyCGI.DASHBOARD_CONTEXT);
-        QueryRunner query = ctx.getDatabasePlugin()
-                .getObject(QueryRunner.class);
+        DatabasePlugin databasePlugin = ctx.getDatabasePlugin();
+        QueryUtils.waitForAllProjects(databasePlugin);
+        QueryRunner query = databasePlugin.getObject(QueryRunner.class);
 
         result.histData = new WorkflowHistDataHelper(query, workflowID);
 
@@ -244,6 +250,20 @@ public abstract class AnalysisPage extends HttpServlet {
 
         Chart metadata = chart.getKey();
         result.put("title", chartData.getRes(metadata.titleKey()));
+
+        String formatArgs = metadata.format();
+        if (formatArgs.length() > 0) {
+            String formatArgValue = resources.interpolate(formatArgs);
+            if (formatArgValue.indexOf('{') != -1)
+                formatArgValue = MessageFormat.format(formatArgValue,
+                    (Object[]) chartData.chartArgs);
+            Properties p = new Properties();
+            try {
+                p.load(new StringReader(formatArgValue));
+            } catch (IOException e) {
+            }
+            result.putAll(p);
+        }
 
         return result;
     }

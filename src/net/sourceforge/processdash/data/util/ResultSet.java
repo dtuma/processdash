@@ -131,7 +131,7 @@ public class ResultSet {
     public int numRows() { return data.length - 1; }
     /** Change the header name of a given row.
      * Data row numbering starts at 1 and ends at numRows(). */
-    public void setRowName(int row, String name) { data[row][0] = name; }
+    public void setRowName(int row, Object name) { data[row][0] = name; }
     /** Get the header name of a given row.
      * Data row numbering starts at 1 and ends at numRows(). */
     public String getRowName(int row) {
@@ -142,6 +142,7 @@ public class ResultSet {
         if (translateRowHeaders) result = Translator.translate(result);
         return result;
     }
+    public Object getRowObj(int row) { return data[row][0]; }
 
     /** Return the number of columns of data, not counting the header col. */
     public int numCols() { return data[0].length - 1; }

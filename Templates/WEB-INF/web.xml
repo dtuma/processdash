@@ -59,4 +59,14 @@
 		<url-pattern>/dash/snippets/recentReviews</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>workflowQuality</servlet-name>
+		<servlet-class>net.sourceforge.processdash.ui.web.reports.workflow.QualityAnalysisPage</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>workflowQuality</servlet-name>
+		<url-pattern>/reports/workflowQuality</url-pattern>
+	</servlet-mapping>
+
 </web-app>

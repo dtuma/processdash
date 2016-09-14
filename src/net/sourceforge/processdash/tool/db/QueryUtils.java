@@ -77,6 +77,10 @@ public class QueryUtils {
             "wait-for-all-projects", null);
     }
 
+    public static <T> List<T> pluckColumn(List data, Enum column) {
+        return pluckColumn(data, column.ordinal());
+    }
+
     public static <T> List<T> pluckColumn(List data, int column) {
         List result = new ArrayList(data.size());
         for (Iterator i = data.iterator(); i.hasNext();) {
@@ -86,17 +90,26 @@ public class QueryUtils {
         return result;
     }
 
-    public static <K, V> Map<K, V> mapColumns(List data, int... columns) {
+    public static <K, V> Map<K, V> mapColumns(List data, Object... columns) {
         Map result = new LinkedHashMap();
         mapColumns(result, data, columns);
         return result;
     }
 
-    public static void mapColumns(Map dest, List<Object[]> data, int... columns) {
-        int keyCol = (columns.length == 2 ? columns[0] : 0);
-        int valCol = (columns.length == 2 ? columns[1] : 1);
+    public static void mapColumns(Map dest, List<Object[]> data, Object... columns) {
+        int keyCol = (columns.length == 2 ? getOrd(columns[0]) : 0);
+        int valCol = (columns.length == 2 ? getOrd(columns[1]) : 1);
         for (Object[] row : data)
             dest.put(row[keyCol], row[valCol]);
+    }
+
+    private static int getOrd(Object o) {
+        if (o instanceof Number)
+            return ((Number) o).intValue();
+        else if (o instanceof Enum)
+            return ((Enum) o).ordinal();
+        else
+            throw new IllegalArgumentException("Invalid column position " + o);
     }
 
     public static <T> T singleValue(List l) {

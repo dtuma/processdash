@@ -35,6 +35,8 @@ public @interface Chart {
 
     public String titleKey();
 
+    public String format() default "";
+
     public String[] params() default {};
 
 }
