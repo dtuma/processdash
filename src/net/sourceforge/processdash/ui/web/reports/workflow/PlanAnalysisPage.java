@@ -44,21 +44,22 @@ public class PlanAnalysisPage extends AnalysisPage {
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
 
-        for (String units : chartData.histData.getSizeUnits()) {
-            if (isLegitSize(units)) {
-                writeChart(req, resp, chartData, "size", units);
-                writeChart(req, resp, chartData, "sizeEstErr", units);
-                writeChart(req, resp, chartData, "planVsActualSize", units);
-            }
-        }
+        if (isLegitSize(chartData.primarySizeUnits))
+            writeChart(req, resp, chartData, "estErrScatter",
+                chartData.primarySizeUnits);
 
         writeChart(req, resp, chartData, "totalTime");
         writeChart(req, resp, chartData, "timeEstErr");
         writeChart(req, resp, chartData, "planVsActualTime");
 
-        if (isLegitSize(chartData.primarySizeUnits))
-            writeChart(req, resp, chartData, "estErrScatter",
-                chartData.primarySizeUnits);
+        for (String units : chartData.histData.getSizeUnits()) {
+            if (isLegitSize(units)) {
+                writeChart(req, resp, chartData, "size", units);
+                writeChart(req, resp, chartData, "sizeEstErr", units);
+                writeChart(req, resp, chartData, "planVsActualSize", units);
+                writeChart(req, resp, chartData, "sizeVsTime", units);
+            }
+        }
     }
 
     private boolean isLegitSize(String units) {
@@ -109,6 +110,21 @@ public class PlanAnalysisPage extends AnalysisPage {
             double actual = e.actualSize(units);
             data.setData(row, 1, num(plan));
             data.setData(row, 2, num(actual));
+        }
+        return data;
+    }
+
+
+    @Chart(id = "sizeVsTime", type = "xy", params = "units", //
+    titleKey = "Plan.Size_Vs_Time_FMT", format = "autoZero=none")
+    public ResultSet getSizeVsTime(ChartData chartData) {
+        String units = chartData.chartArgs[0];
+        ResultSet data = chartData.getEnactmentResultSet(
+            "Plan.Size_Scatter_Actual_FMT", "Plan.Time_Scatter_Actual");
+        for (int row = data.numRows(); row > 0; row--) {
+            Enactment e = (Enactment) data.getRowObj(row);
+            data.setData(row, 1, num(e.actualSize(units)));
+            data.setData(row, 2, num(e.actualTime() / 60));
         }
         return data;
     }
