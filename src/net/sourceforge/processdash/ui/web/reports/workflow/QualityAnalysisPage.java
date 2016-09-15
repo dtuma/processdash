@@ -24,7 +24,6 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -63,19 +62,10 @@ public class QualityAnalysisPage extends AnalysisPage {
         ResultSet data = chartData.getEnactmentResultSet("Total",
             "Quality.Appraisal_COQ_Label", "Quality.Failure_COQ_Label");
 
-        // write % appraisal time
-        List<String> apprPhases = chartData.histData
-                .getPhasesOfType(PhaseType.Appraisal);
-        chartData.writePhaseTimePct(data, 2, apprPhases);
-
-        // write % failure time
-        List<String> failPhases = chartData.histData
-                .getPhasesOfType(PhaseType.Failure);
-        chartData.writePhaseTimePct(data, 3, failPhases);
-
-        // write total % COQ
-        chartData.writePhaseTimePct(data, 1,
-            Arrays.asList(apprPhases, failPhases));
+        List<String> allQualityPhases = chartData.histData.getPhasesOfType(
+            PhaseType.Appraisal, PhaseType.Failure);
+        chartData.writePhaseTimePct(data, 1, allQualityPhases,
+            PhaseType.Appraisal, PhaseType.Failure);
 
         return data;
     }
@@ -86,25 +76,19 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalCostOfQuality(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.Appraisal_COQ_Label");
-        List<String> appr = chartData.histData
-                .getPhasesOfType(PhaseType.Appraisal);
-        chartData.writePhaseTimePct(data, 1, appr);
+        chartData.writePhaseTimePct(data, 1, PhaseType.Appraisal);
         return data;
     }
 
 
     @Chart(id = "appraisalPhases", type = "line", //
     titleKey = "Quality.Appraisal_Phase_Title", //
-    format = "units=${Quality.Appraisal_Phase_Label}")
+    format = "units=${Percent_Time}")
     public ResultSet getAppraisalCostByPhase(ChartData chartData) {
         List<String> apprPhases = chartData.histData
                 .getPhasesOfType(PhaseType.Appraisal);
         ResultSet data = chartData.getEnactmentResultSet(apprPhases.size());
-        for (int i = apprPhases.size(); i-- > 0;) {
-            String onePhase = apprPhases.get(i);
-            chartData.writePhaseTimePct(data, i + 1, onePhase);
-            data.setColName(i + 1, onePhase);
-        }
+        chartData.writePhaseTimePct(data, 1, apprPhases.toArray());
         return data;
     }
 
@@ -114,25 +98,19 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getFailureCostOfQuality(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.Failure_COQ_Label");
-        List<String> fail = chartData.histData
-                .getPhasesOfType(PhaseType.Failure);
-        chartData.writePhaseTimePct(data, 1, fail);
+        chartData.writePhaseTimePct(data, 1, PhaseType.Failure);
         return data;
     }
 
 
     @Chart(id = "failurePhases", type = "line", //
     titleKey = "Quality.Failure_Phase_Title", //
-    format = "units=${Quality.Failure_Phase_Label}")
+    format = "units=${Percent_Time}")
     public ResultSet getFailureCostByPhase(ChartData chartData) {
         List<String> failurePhases = chartData.histData
                 .getPhasesOfType(PhaseType.Failure);
         ResultSet data = chartData.getEnactmentResultSet(failurePhases.size());
-        for (int i = failurePhases.size(); i-- > 0;) {
-            String onePhase = failurePhases.get(i);
-            chartData.writePhaseTimePct(data, i + 1, onePhase);
-            data.setColName(i + 1, onePhase);
-        }
+        chartData.writePhaseTimePct(data, 1, failurePhases.toArray());
         return data;
     }
 
@@ -150,16 +128,12 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     @Chart(id = "qualityPhases", type = "line", //
     titleKey = "Quality.COQ_Phase_Title", //
-    format = "units=${Quality.COQ_Phase_Label}")
+    format = "units=${Percent_Time}")
     public ResultSet getQualityCostByPhase(ChartData chartData) {
         List<String> qualityPhases = chartData.histData.getPhasesOfType(
             PhaseType.Appraisal, PhaseType.Failure);
         ResultSet data = chartData.getEnactmentResultSet(qualityPhases.size());
-        for (int i = qualityPhases.size(); i-- > 0;) {
-            String onePhase = qualityPhases.get(i);
-            chartData.writePhaseTimePct(data, i + 1, onePhase);
-            data.setColName(i + 1, onePhase);
-        }
+        chartData.writePhaseTimePct(data, 1, qualityPhases.toArray());
         return data;
     }
 
@@ -169,10 +143,8 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalVsFailureCost(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(
             "Quality.Appraisal_COQ_Label", "Quality.Failure_COQ_Label");
-        chartData.writePhaseTimePct(data, 1,
-            chartData.histData.getPhasesOfType(PhaseType.Appraisal));
-        chartData.writePhaseTimePct(data, 2,
-            chartData.histData.getPhasesOfType(PhaseType.Failure));
+        chartData.writePhaseTimePct(data, 1, PhaseType.Appraisal,
+            PhaseType.Failure);
         return data;
     }
 
@@ -181,13 +153,11 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalToFailureRatio(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.AFR_Label");
-        Object appr = chartData.histData.getPhasesOfType(PhaseType.Appraisal);
-        Object fail = chartData.histData.getPhasesOfType(PhaseType.Failure);
         for (int row = data.numRows(); row > 0; row--) {
             Enactment e = (Enactment) data.getRowObj(row);
-            double apprTime = chartData.histData.getTime(e, appr, true);
-            double failTime = chartData.histData.getTime(e, fail, true);
-            data.setData(row, 1, num(apprTime / failTime));
+            double appraisalTime = e.actualTime(PhaseType.Appraisal);
+            double failureTime = e.actualTime(PhaseType.Failure);
+            data.setData(row, 1, num(appraisalTime / failureTime));
         }
         return data;
     }

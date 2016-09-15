@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -51,11 +52,21 @@ public class WorkflowHistDataHelper {
         public Date completed;
 
         public double actualTime() {
-            if (_actualTime == null)
-                _actualTime = getTime(this, null, true);
-            return _actualTime;
+            return actualTime(null);
         }
-        private Double _actualTime;
+
+        public double actualTime(Object phaseFilter) {
+            if (_actualTime == null)
+                _actualTime = new HashMap<Object, Double>();
+            Double result = _actualTime.get(phaseFilter);
+            if (result == null) {
+                result = getTime(this, phaseFilter, true);
+                if (!(phaseFilter instanceof Collection))
+                    _actualTime.put(phaseFilter, result);
+            }
+            return result;
+        }
+        private Map<Object, Double> _actualTime;
 
         public boolean equals(Object obj) {
             return obj == this || (obj instanceof Enactment //
@@ -485,6 +496,8 @@ public class WorkflowHistDataHelper {
     }
 
     public double getTime(Enactment e, Object phaseFilter, boolean actual) {
+        if (phaseFilter instanceof PhaseType)
+            phaseFilter = getPhasesOfType((PhaseType) phaseFilter);
         TimeCol targetCol = (actual ? TimeCol.ActTime : TimeCol.PlanTime);
         return sum(getTimeInPhaseData(), targetCol, //
             TimeCol.RootKey, e, TimeCol.PhaseName, phaseFilter);

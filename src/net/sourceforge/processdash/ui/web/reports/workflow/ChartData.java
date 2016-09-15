@@ -63,14 +63,22 @@ public class ChartData {
         return result;
     }
 
-    public void writePhaseTimePct(ResultSet resultSet, int col, Object phases) {
-        for (int row = resultSet.numRows(); row > 0; row--) {
-            Enactment e = (Enactment) resultSet.getRowObj(row);
-            double phaseTime = histData.getTime(e, phases, true);
-            double pctTime = phaseTime / e.actualTime();
-            resultSet.setData(row, col, new DoubleData(pctTime));
+    public void writePhaseTimePct(ResultSet resultSet, int firstCol,
+            Object... phases) {
+        for (int i = phases.length; i-- > 0; ) {
+            int col = firstCol + i;
+            Object onePhase = phases[i];
+            if (onePhase instanceof String)
+                resultSet.setColName(col, (String) onePhase);
+            resultSet.setFormat(col, "100%");
+
+            for (int row = resultSet.numRows(); row > 0; row--) {
+                Enactment e = (Enactment) resultSet.getRowObj(row);
+                double phaseTime = e.actualTime(onePhase);
+                double pctTime = phaseTime / e.actualTime();
+                resultSet.setData(row, col, new DoubleData(pctTime));
+            }
         }
-        resultSet.setFormat(col, "100%");
     }
 
 }
