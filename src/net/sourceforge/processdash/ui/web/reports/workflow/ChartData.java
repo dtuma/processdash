@@ -65,18 +65,25 @@ public class ChartData {
 
     public void writePhaseTimePct(ResultSet resultSet, int firstCol,
             Object... phases) {
-        for (int i = phases.length; i-- > 0; ) {
+        writePhaseTime(resultSet, true, firstCol, phases);
+    }
+
+    public void writePhaseTime(ResultSet resultSet, boolean pct, int firstCol,
+            Object... phases) {
+
+        for (int i = phases.length; i-- > 0;) {
             int col = firstCol + i;
             Object onePhase = phases[i];
             if (onePhase instanceof String)
                 resultSet.setColName(col, (String) onePhase);
-            resultSet.setFormat(col, "100%");
+            if (pct)
+                resultSet.setFormat(col, "100%");
 
             for (int row = resultSet.numRows(); row > 0; row--) {
                 Enactment e = (Enactment) resultSet.getRowObj(row);
                 double phaseTime = e.actualTime(onePhase);
-                double pctTime = phaseTime / e.actualTime();
-                resultSet.setData(row, col, new DoubleData(pctTime));
+                double finalTime = phaseTime / (pct ? e.actualTime() : 60);
+                resultSet.setData(row, col, new DoubleData(finalTime));
             }
         }
     }

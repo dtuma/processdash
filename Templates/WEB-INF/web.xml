@@ -60,6 +60,16 @@
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>workflowProcess</servlet-name>
+		<servlet-class>net.sourceforge.processdash.ui.web.reports.workflow.ProcessAnalysisPage</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>workflowProcess</servlet-name>
+		<url-pattern>/reports/workflowProcess</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>workflowQuality</servlet-name>
 		<servlet-class>net.sourceforge.processdash.ui.web.reports.workflow.QualityAnalysisPage</servlet-class>
 	</servlet>

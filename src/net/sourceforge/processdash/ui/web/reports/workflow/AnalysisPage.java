@@ -201,6 +201,8 @@ public abstract class AnalysisPage extends HttpServlet {
         String href = fullURL + "?" + chartDataArgs.substring(2);
         chartParams.put("href", href);
 
+        chartParams.putAll(parseFormatParams(chartData, metadata.smallFmt()));
+
         // make an internal request to the CGI script for the given chart,
         // and write the resulting HTML fragment to the response
         String chartHtmlUri = "/reports/" + metadata.type() + ".class"
@@ -251,23 +253,26 @@ public abstract class AnalysisPage extends HttpServlet {
         Chart metadata = chart.getKey();
         result.put("title", chartData.getRes(metadata.titleKey()));
 
-        String formatArgs = metadata.format();
-        if (formatArgs.length() > 0) {
-            String formatArgValue = resources.interpolate(formatArgs);
-            if (formatArgValue.indexOf('{') != -1)
-                formatArgValue = MessageFormat.format(formatArgValue,
-                    (Object[]) chartData.chartArgs);
-            Properties p = new Properties();
-            try {
-                p.load(new StringReader(formatArgValue));
-            } catch (IOException e) {
-            }
-            result.putAll(p);
-        }
+        result.putAll(parseFormatParams(chartData, metadata.format()));
 
         return result;
     }
 
+    private Map parseFormatParams(ChartData chartData, String fmt) {
+        if (fmt == null || fmt.length() == 0)
+            return Collections.EMPTY_MAP;
+
+        String formatValue = resources.interpolate(fmt);
+        if (formatValue.indexOf('{') != -1)
+            formatValue = MessageFormat.format(formatValue,
+                (Object[]) chartData.chartArgs);
+        Properties p = new Properties();
+        try {
+            p.load(new StringReader(formatValue));
+        } catch (IOException e) {
+        }
+        return p;
+    }
 
 
     private final Map<Chart, Method> charts = reflectivelyLoadCharts();

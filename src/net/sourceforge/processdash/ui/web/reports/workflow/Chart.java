@@ -37,6 +37,8 @@ public @interface Chart {
 
     public String format() default "";
 
+    public String smallFmt() default "";
+
     public String[] params() default {};
 
 }
