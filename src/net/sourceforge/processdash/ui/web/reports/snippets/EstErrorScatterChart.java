@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,7 +47,10 @@ public class EstErrorScatterChart extends XYChart {
     protected void buildData() {
         // retrieve the result set, and extract the % error columns
         super.buildData();
-        data = data.pluckColumns(4, 7);
+        if (parameters.containsKey("skipUnitsCol"))
+            data = data.pluckColumns(3, 6);
+        else
+            data = data.pluckColumns(4, 7);
     }
 
     @Override

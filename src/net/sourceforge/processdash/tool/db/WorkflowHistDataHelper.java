@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.Defect;
@@ -67,6 +68,18 @@ public class WorkflowHistDataHelper {
             return result;
         }
         private Map<Object, Double> _actualTime;
+
+        public double actualSize(String units) {
+            if (_actualSize == null)
+                _actualSize = new HashMap<String, Double>();
+            Double result = _actualSize.get(units);
+            if (result == null) {
+                result = getSize(this, units, true);
+                _actualSize.put(units, result);
+            }
+            return result;
+        }
+        private Map<String, Double> _actualSize;
 
         public boolean equals(Object obj) {
             return obj == this || (obj instanceof Enactment //
@@ -532,12 +545,10 @@ public class WorkflowHistDataHelper {
     public Map<String, DataPair> getAddedAndModifiedSizes() {
         Map<String, DataPair> result = new TreeMap();
 
-        List<Object[]> rawData = query(SIZE_QUERY, getEnactmentRootKeys(),
-            getIncludedWorkflowKeys());
-        for (Object[] row : rawData) {
-            String sizeUnits = (String) row[0];
-            String measurementType = (String) row[1];
-            double sizeValue = ((Number) row[2]).doubleValue();
+        for (Object[] row : getSizeData()) {
+            String sizeUnits = get(row, SizeCol.Units);
+            String measurementType = get(row, SizeCol.MType);
+            double sizeValue = ((Number) get(row, SizeCol.Size)).doubleValue();
 
             DataPair dataPair = result.get(sizeUnits);
             if (dataPair == null)
@@ -552,18 +563,40 @@ public class WorkflowHistDataHelper {
         return result;
     }
 
+    public Set<String> getSizeUnits() {
+        return new TreeSet(QueryUtils.pluckColumn(getSizeData(), SizeCol.Units));
+    }
+
+    public double getSize(Enactment e, String units, boolean actual) {
+        String measurementType = (actual ? "Actual" : "Plan");
+        return sum(getSizeData(), SizeCol.Size, //
+            SizeCol.RootKey, e, SizeCol.MType, measurementType);
+    }
+
+    private List<Object[]> _sizeData;
+
+    private List<Object[]> getSizeData() {
+        if (_sizeData == null)
+            _sizeData = query(SIZE_QUERY, getEnactmentRootKeys(),
+                getIncludedWorkflowKeys());
+        return _sizeData;
+    }
+
     /**
      * Query to find the size data for a set of process enactments.
      */
     private static final String SIZE_QUERY = //
-    "select size.sizeMetric.shortName, size.measurementType.name, " //
-            + "sum(size.addedAndModifiedSize) "
+    "select pe.rootItem.key, size.sizeMetric.shortName, " //
+            + "size.measurementType.name, sum(size.addedAndModifiedSize) "
             + "from ProcessEnactment pe, SizeFact size "
             + "where pe.rootItem.key in (?) " //
             + "and pe.process.key in (?) "
             + "and pe.includesItem.key = size.planItem.key "
             + "and size.versionInfo.current = 1 "
-            + "group by size.sizeMetric.shortName, size.measurementType.name";
+            + "group by pe.rootItem.key, size.sizeMetric.shortName, "
+            + "  size.measurementType.name";
+
+    private enum SizeCol { RootKey, Units, MType, Size }
 
 
 
