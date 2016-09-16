@@ -218,6 +218,7 @@ public class WorkflowHistDataHelper {
             applyProjectSpecificFilter();
         if (onlyCompleted)
             discardIncompleteEnactments();
+        discardNestedEnactments();
     }
 
     private void applyProjectSpecificFilter() {
@@ -295,6 +296,38 @@ public class WorkflowHistDataHelper {
             + "and task.versionInfo.current = 1 " //
             + "group by pe.rootItem.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
+
+
+    private void discardNestedEnactments() {
+        // within a project, enactments of different workflows can be nested
+        // underneath each other. If two nested enactments both map to our
+        // target workflow and both match our active filters, we must remove the
+        // child workflow from our enactment set to avoid double-counting. The
+        // data in the child will still be included in our analyses as a result
+        // of its inclusion in the parent enactment.
+        List<Integer> rootKeys = getEnactmentRootKeys();
+        Set<Integer> nestedRoots = new HashSet(query(NESTED_ENACTMENT_QUERY,
+            rootKeys, rootKeys));
+        if (!nestedRoots.isEmpty()) {
+            for (Iterator i = enactments.iterator(); i.hasNext();) {
+                Object[] oneEnactment = (Object[]) i.next();
+                Integer oneRootKey = get(oneEnactment, EnactmentCol.RootKey);
+                if (nestedRoots.contains(oneRootKey))
+                    i.remove();
+            }
+        }
+    }
+
+    /**
+     * Query to find enactments in our target set that are nested underneath
+     * another enactment in our target set
+     */
+    private static final String NESTED_ENACTMENT_QUERY = //
+    "select distinct pe.includesItem.key " //
+            + "from ProcessEnactment pe "
+            + "where pe.rootItem.key in (?) "
+            + "and pe.includesItem.key in (?) "
+            + "and pe.rootItem.key <> pe.includesItem.key";
 
 
     public List<Enactment> getEnactments() {
@@ -647,12 +680,11 @@ public class WorkflowHistDataHelper {
         Set<Integer> missingKeys = new HashSet<Integer>();
         for (List<Object[]> oneDefectList : defectPhaseLists) {
             for (Object[] oneDefect : oneDefectList) {
-                for (Object onePhaseKey : oneDefect) {
-                    if (!stepMap.containsKey(onePhaseKey))
-                        missingKeys.add((Integer) onePhaseKey);
-                }
+                missingKeys.add((Integer) get(oneDefect, DefectCol.Inj));
+                missingKeys.add((Integer) get(oneDefect, DefectCol.Rem));
             }
         }
+        missingKeys.removeAll(stepMap.keySet());
         if (!missingKeys.isEmpty()) {
             QueryUtils.mapColumns(stepMap,
                 query(PHASE_MAP_QUERY, missingKeys, getWorkflowKey()));
@@ -663,29 +695,28 @@ public class WorkflowHistDataHelper {
             DataPair unrecognized, DataPair total, List<Object[]> rawData,
             Map<Integer, String> stepMap) {
         for (Object[] row : rawData) {
-            Integer injPhaseKey = (Integer) row[INJ];
-            String injPhaseName = stepMap.get(injPhaseKey);
-            Integer remPhaseKey = (Integer) row[REM];
-            String remPhaseName = stepMap.get(remPhaseKey);
+            String injPhaseName = stepMap.get(get(row, DefectCol.Inj));
+            String remPhaseName = stepMap.get(get(row, DefectCol.Rem));
+            int fixCount = ((Number) get(row, DefectCol.FixCount)).intValue();
 
             // if neither phase was recognized, this is most likely a legacy
             // defect that was recorded against MCF buckets. But even if it
             // wasn't, it is a defect that spanned this workflow process and
             // isn't relevant to our calculations. Disregard it.
             if (injPhaseName == null && remPhaseName == null) {
-                unrecognized.actual++;
+                unrecognized.actual += fixCount;
                 continue;
             }
 
             if (injPhaseName == null)
                 injPhaseName = Defect.BEFORE_DEVELOPMENT;
-            result[INJ].get(injPhaseName).actual++;
+            result[INJ].get(injPhaseName).actual += fixCount;
 
             if (remPhaseName == null)
                 remPhaseName = Defect.AFTER_DEVELOPMENT;
-            result[REM].get(remPhaseName).actual++;
+            result[REM].get(remPhaseName).actual += fixCount;
 
-            total.actual++;
+            total.actual += fixCount;
         }
     }
 
@@ -695,8 +726,10 @@ public class WorkflowHistDataHelper {
      * Query to find defects logged against one of our included enactments
      */
     private static final String DEFECT_QUERY_1 = "select " //
+            + "pe.rootItem.key, " //
             + "defect.injectedPhase.key, " //
-            + "defect.removedPhase.key " //
+            + "defect.removedPhase.key, " //
+            + "defect.fixCount " //
             + "from ProcessEnactment pe, DefectLogFact defect " //
             + "where pe.rootItem.key in (?) " //
             + "and pe.process.key in (?) " //
@@ -707,9 +740,10 @@ public class WorkflowHistDataHelper {
      * Query to find defects that were injected in one of our workflow phases,
      * but were not logged against an enactment of this workflow
      */
-    private static final String DEFECT_QUERY_2 = "select " //
+    private static final String DEFECT_QUERY_2 = "select 0, " //
             + "injected.key, " //
-            + "defect.removedPhase.key " //
+            + "defect.removedPhase.key, " //
+            + "defect.fixCount " //
             + "from DefectLogFact as defect " //
             + "join defect.injectedPhase.mapsToPhase injected " //
             + "where injected.process.key = ? " //
@@ -718,6 +752,8 @@ public class WorkflowHistDataHelper {
             + "    where defect.planItem.key = pi.includesItem.key " //
             + "    and pi.process.key in (?)) "
             + "and defect.versionInfo.current = 1";
+
+    private enum DefectCol { RootKey, Inj, Rem, FixCount }
 
     /*
      * Query to find the workflow phases that a set of other phases map to
