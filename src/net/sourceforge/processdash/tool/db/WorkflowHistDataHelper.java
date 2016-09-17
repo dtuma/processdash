@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.Defect;
@@ -95,6 +96,18 @@ public class WorkflowHistDataHelper {
             return (int) _actualDefects[idx].get(phase).actual;
         }
         private Map<String, DataPair>[] _actualDefects;
+
+        public double actualYield(String phase, boolean process) {
+            if (_yields == null)
+                _yields = getYields(this);
+
+            if (phase == null) {
+                List<String> failure = getPhasesOfType(PhaseType.Failure);
+                phase = (failure.isEmpty() ? TOTAL_PHASE_KEY : failure.get(0));
+            }
+            return _yields[process ? 0 : 1].get(phase).actual;
+        }
+        private Map<String, DataPair>[] _yields;
 
         public boolean equals(Object obj) {
             return obj == this || (obj instanceof Enactment //
@@ -806,6 +819,78 @@ public class WorkflowHistDataHelper {
             + "join missingPhase.mapsToPhase targetPhase " //
             + "where missingPhase.key in (?) " //
             + "and targetPhase.process.key = ?";
+
+
+    /**
+     * @return an array with two elements: the first entry gives the process
+     *         yields for each workflow step, and the second gives the phase
+     *         yields.
+     */
+    public Map<String, DataPair>[] getYields() {
+        return getYields(null);
+    }
+
+    private Map<String, DataPair>[] getYields(Enactment e) {
+        Map<String, DataPair>[] result = new Map[2];
+        result[0] = new LinkedHashMap<String, DataPair>();
+        result[1] = new LinkedHashMap<String, DataPair>();
+        
+        Map<String, DataPair>[] defectsByPhase = getDefectsByPhase(e);
+        calculateYields(defectsByPhase[INJ], defectsByPhase[REM],
+            result[0], result[1]);
+        
+        return result;
+    }
+
+    private void calculateYields(Map<String, DataPair> inj,
+            Map<String, DataPair> rem, Map<String, DataPair> processYields,
+            Map<String, DataPair> phaseYields) {
+
+        // calculate cumulative defects injected and removed so far by phase
+        Map<String, DataPair> cumInj = cum(inj);
+        Map<String, DataPair> cumRem = cum(rem);
+        cumRem.remove(Defect.AFTER_DEVELOPMENT);
+
+        // special handling for the first phase
+        Iterator<String> phaseNames = cumRem.keySet().iterator();
+        String firstPhase = phaseNames.next();
+        DataPair firstPhaseYield = new DataPair(rem.get(firstPhase))
+                .divide(cumInj.get(firstPhase));
+        phaseYields.put(firstPhase, firstPhaseYield);
+        String prevPhase = firstPhase;
+
+        // iterate over remaining phases and calculate yields
+        while (phaseNames.hasNext()) {
+            String phase = phaseNames.next();
+            DataPair processYield = new DataPair(cumRem.get(prevPhase))
+                    .divide(cumInj.get(prevPhase));
+            processYields.put(phase, processYield);
+
+            DataPair phaseYield = new DataPair(rem.get(phase))
+                    .divide(new DataPair(cumInj.get(phase)).subtract(cumRem
+                            .get(prevPhase)));
+            phaseYields.put(phase, phaseYield);
+            prevPhase = phase;
+        }
+
+        // write an entry for total process yield
+        DataPair totalProcessYield = new DataPair(cumRem.get(prevPhase))
+                .divide(cumInj.get(prevPhase));
+        processYields.put(TOTAL_PHASE_KEY, totalProcessYield);
+    }
+
+    private Map<String, DataPair> cum(Map<String, DataPair> phaseData) {
+        Map<String, DataPair> result = new LinkedHashMap<String, DataPair>();
+        DataPair cum = new DataPair();
+        for (Entry<String, DataPair> e : phaseData.entrySet()) {
+            cum.add(e.getValue());
+            result.put(e.getKey(), new DataPair(cum));
+        }
+        result.remove(TOTAL_PHASE_KEY);
+        return result;
+    }
+
+
 
     private <T> T get(Object[] row, Enum column) {
         return (T) row[column.ordinal()];

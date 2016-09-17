@@ -187,7 +187,7 @@ public class WorkflowToDateReport extends TinyCGIBase {
             printTable("Defects_Injected", null, defectsByPhase[0], Format.Number, true);
             printTable("Defects_Removed", null, defectsByPhase[1], Format.Number, true);
             printDefectsByPhaseCharts(defectsByPhase);
-            writeAdvancedDefectMetrics(defectsByPhase, timeInPhase);
+            writeAdvancedDefectMetrics(hist, defectsByPhase, timeInPhase);
             out.print("</div>\n");
         }
 
@@ -295,14 +295,23 @@ public class WorkflowToDateReport extends TinyCGIBase {
         out.print("</table>\n");
     }
 
-    private void writeAdvancedDefectMetrics(
+    private void writeAdvancedDefectMetrics(WorkflowHistDataHelper hist,
             Map<String, DataPair>[] defectsByPhase,
             Map<String, DataPair> timeInPhase) {
 
-        Map<String, DataPair> processYields = new LinkedHashMap<String, DataPair>();
-        Map<String, DataPair> phaseYields = new LinkedHashMap<String, DataPair>();
-        calculateYields(defectsByPhase[0], defectsByPhase[1], processYields,
-            phaseYields);
+        // get the yields for the process
+        Map<String, DataPair>[] yields = hist.getYields();
+        Map<String, DataPair> processYields = yields[0];
+        Map<String, DataPair> phaseYields = yields[1];
+
+        // change the display name for the "total" row
+        DataPair totalProcessYield = processYields.remove(TOTAL_KEY);
+        processYields.put(res("Workflow.Analysis.Workflow_Completion"),
+            totalProcessYield);
+
+        // to clean up the report, replace 0/0 yields with #DIV/0!
+        replaceNaNs(Double.POSITIVE_INFINITY, processYields, phaseYields);
+
         printTable("Workflow.Analysis.Phase_Yields", null, phaseYields,
             Format.Percent, false);
         printTable("Workflow.Analysis.Process_Yields",
@@ -318,58 +327,6 @@ public class WorkflowToDateReport extends TinyCGIBase {
             "Defects_Injected_per_Hour", injRates, Format.Number, false);
         printTable("Workflow.Analysis.Defect_Removal_Rates",
             "Defects_Removed_per_Hour", remRates, Format.Number, false);
-    }
-
-    private void calculateYields(Map<String, DataPair> inj,
-            Map<String, DataPair> rem, Map<String, DataPair> processYields,
-            Map<String, DataPair> phaseYields) {
-
-        // calculate cumulative defects injected and removed so far by phase
-        Map<String, DataPair> cumInj = cum(inj);
-        Map<String, DataPair> cumRem = cum(rem);
-        cumRem.remove(Defect.AFTER_DEVELOPMENT);
-
-        // special handling for the first phase
-        Iterator<String> phaseNames = cumRem.keySet().iterator();
-        String firstPhase = phaseNames.next();
-        DataPair firstPhaseYield = new DataPair(rem.get(firstPhase))
-                .divide(cumInj.get(firstPhase));
-        phaseYields.put(firstPhase, firstPhaseYield);
-        String prevPhase = firstPhase;
-
-        // iterate over remaining phases and calculate yields
-        while (phaseNames.hasNext()) {
-            String phase = phaseNames.next();
-            DataPair processYield = new DataPair(cumRem.get(prevPhase))
-                    .divide(cumInj.get(prevPhase));
-            processYields.put(phase, processYield);
-
-            DataPair phaseYield = new DataPair(rem.get(phase))
-                    .divide(new DataPair(cumInj.get(phase)).subtract(cumRem
-                            .get(prevPhase)));
-            phaseYields.put(phase, phaseYield);
-            prevPhase = phase;
-        }
-
-        // write an entry for total process yield
-        DataPair totalProcessYield = new DataPair(cumRem.get(prevPhase))
-                .divide(cumInj.get(prevPhase));
-        processYields.put(res("Workflow.Analysis.Workflow_Completion"),
-            totalProcessYield);
-
-        // to clean up the report, replace 0/0 yields with #DIV/0!
-        replaceNaNs(Double.POSITIVE_INFINITY, processYields, phaseYields);
-    }
-
-    private Map<String, DataPair> cum(Map<String, DataPair> phaseData) {
-        Map<String, DataPair> result = new LinkedHashMap<String, DataPair>();
-        DataPair cum = new DataPair();
-        for (Entry<String, DataPair> e : phaseData.entrySet()) {
-            cum.add(e.getValue());
-            result.put(e.getKey(), new DataPair(cum));
-        }
-        result.remove(TOTAL_KEY);
-        return result;
     }
 
     private Map<String, DataPair> divide(Map<String, DataPair> numerators,
