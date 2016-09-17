@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -114,6 +114,12 @@ public class PieChart extends CGIChartBase {
     private void configureConsistentColors(final PiePlot plot,
             PieDataset pieData) {
         DefaultDrawingSupplier s = new DefaultDrawingSupplier();
+
+        String skip = getParameter("consistentSkip");
+        if (skip != null)
+            for (int i = Integer.parseInt(skip); i-- > 0;)
+                s.getNextPaint();
+
         for (Object key : pieData.getKeys()) {
             Paint paint = s.getNextPaint();
             plot.setSectionPaint((Comparable) key, paint);

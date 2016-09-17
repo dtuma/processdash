@@ -103,7 +103,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "typeTime", type = "area", //
     titleKey = "Process.Time_By_Type_Title", //
-    format = "stacked=pct")
+    format = "stacked=pct\ncolorScheme=consistent")
     public ResultSet getTimeByPhaseType(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(4);
         for (PhaseType type : PhaseType.values()) {
@@ -116,7 +116,8 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
 
     @Chart(id = "typeToDate", type = "pie", //
-    titleKey = "Process.Time_By_Type_To_Date_Title")
+    titleKey = "Process.Time_By_Type_To_Date_Title", //
+    format = "colorScheme=consistent")
     public ResultSet getTimeByPhaseTypeToDate(ChartData chartData) {
         ResultSet data = new ResultSet(4, 2);
         data.setColName(0, getRes("Process.Type_Header"));
@@ -139,7 +140,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "phaseTime", type = "area", //
     titleKey = "Plan.Phase_Time_Title", smallFmt = "hideLegend=t", //
-    format = "stacked=pct\nheaderComment=(${Hours})")
+    format = "stacked=pct\ncolorScheme=consistent\nheaderComment=(${Hours})")
     public ResultSet getTimeByPhase(ChartData chartData) {
         List<String> phases = chartData.histData.getPhasesOfType();
         ResultSet data = chartData.getEnactmentResultSet(phases.size());
@@ -149,7 +150,8 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
 
     @Chart(id = "phaseToDate", type = "pie", //
-    titleKey = "Plan.Time_In_Phase_Title", smallFmt = "hideLegend=t")
+    titleKey = "Plan.Time_In_Phase_Title", smallFmt = "hideLegend=t", //
+    format = "colorScheme=consistent")
     public ResultSet getTimeInPhaseToDate(ChartData chartData) {
         Map<String, DataPair> time = chartData.histData.getTotalTimeInPhase();
         double totalTime = time.remove(WorkflowHistDataHelper.TOTAL_PHASE_KEY).actual;

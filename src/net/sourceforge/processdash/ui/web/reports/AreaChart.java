@@ -23,13 +23,18 @@
 
 package net.sourceforge.processdash.ui.web.reports;
 
+import java.awt.Paint;
 import java.text.DecimalFormat;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.StackedAreaRenderer;
+import org.jfree.data.category.CategoryDataset;
 
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 
@@ -38,12 +43,12 @@ public class AreaChart extends CGIChartBase {
     /** Create a line chart. */
     public JFreeChart createChart() {
         JFreeChart chart;
+        CategoryDataset catData = data.catDataSource();
 
         Object stacked = parameters.get("stacked");
         if (stacked != null) {
             chart = ChartFactory.createStackedAreaChart(null, null, null,
-                data.catDataSource(), PlotOrientation.VERTICAL, true, true,
-                false);
+                catData, PlotOrientation.VERTICAL, true, true, false);
             if ("pct".equals(stacked)) {
                 ((StackedAreaRenderer) chart.getCategoryPlot().getRenderer())
                         .setRenderAsPercentages(true);
@@ -56,14 +61,33 @@ public class AreaChart extends CGIChartBase {
             }
 
         } else {
-            chart = ChartFactory.createAreaChart(null, null, null,
-                data.catDataSource(), PlotOrientation.VERTICAL, true, true,
-                false);
+            chart = ChartFactory.createAreaChart(null, null, null, catData,
+                PlotOrientation.VERTICAL, true, true, false);
         }
 
         setupCategoryChart(chart);
 
+        Object colorScheme = parameters.get("colorScheme");
+        if ("consistent".equals(colorScheme))
+            configureConsistentColors(chart.getCategoryPlot(), catData);
+
         return chart;
+    }
+
+    private void configureConsistentColors(CategoryPlot plot,
+            CategoryDataset catData) {
+        DefaultDrawingSupplier s = new DefaultDrawingSupplier();
+
+        String skip = getParameter("consistentSkip");
+        if (skip != null)
+            for (int i = Integer.parseInt(skip); i-- > 0;)
+                s.getNextPaint();
+
+        CategoryItemRenderer rend = plot.getRenderer();
+        for (int i = 0; i < catData.getRowCount(); i++) {
+            Paint paint = s.getNextPaint();
+            rend.setSeriesPaint(i, paint);
+        }
     }
 
 }
