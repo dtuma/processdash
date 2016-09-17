@@ -50,6 +50,10 @@ public class ProcessAnalysisPage extends AnalysisPage {
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
+        boolean showProductivity = isLegitSize(chartData.primarySizeUnits);
+
+        if (showProductivity)
+            writeChart(req, resp, chartData, "productivity");
         writeChart(req, resp, chartData, "overheadTime");
         writeChart(req, resp, chartData, "overheadPhases");
         writeChart(req, resp, chartData, "constrTime");
@@ -58,6 +62,19 @@ public class ProcessAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "typeToDate");
         writeChart(req, resp, chartData, "phaseTime");
         writeChart(req, resp, chartData, "phaseToDate");
+        if (showProductivity) {
+            writeChart(req, resp, chartData, "prodVsYield");
+            writeChart(req, resp, chartData, "prodVsAfr");
+        }
+    }
+
+
+    @Chart(id = "productivity", type = "line", //
+    titleKey = "Process.Productivity_Title")
+    public ResultSet getProductivity(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(1);
+        writeProductivity(chartData, data, 1);
+        return data;
     }
 
 
@@ -174,6 +191,26 @@ public class ProcessAnalysisPage extends AnalysisPage {
     }
 
 
+    @Chart(id = "prodVsYield", type = "xy", //
+    titleKey = "Process.Productivity_Vs_Yield_Title")
+    public ResultSet getProductivityVsYield(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        QualityAnalysisPage.writeYield(data, 1);
+        writeProductivity(chartData, data, 2);
+        return data;
+    }
+
+
+    @Chart(id = "prodVsAfr", type = "xy", //
+    titleKey = "Process.Productivity_Vs_AFR_Title")
+    public ResultSet getProductivityVsAFR(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        QualityAnalysisPage.writeAFR(data, 1);
+        writeProductivity(chartData, data, 2);
+        return data;
+    }
+
+
 
     public static void writePhaseTimePct(ResultSet resultSet, int firstCol,
             Object... phases) {
@@ -197,6 +234,17 @@ public class ProcessAnalysisPage extends AnalysisPage {
                 double finalTime = phaseTime / (pct ? e.actualTime() : 60);
                 resultSet.setData(row, col, new DoubleData(finalTime));
             }
+        }
+    }
+
+    private void writeProductivity(ChartData chartData, ResultSet data, int col) {
+        data.setColName(col, resources.format("Process.Productivity_Label_FMT",
+            chartData.primarySizeUnits));
+        for (int row = data.numRows(); row > 0; row--) {
+            Enactment e = (Enactment) data.getRowObj(row);
+            double size = e.actualSize(chartData.primarySizeUnits);
+            double time = e.actualTime() / 60;
+            data.setData(row, col, num(size / time));
         }
     }
 

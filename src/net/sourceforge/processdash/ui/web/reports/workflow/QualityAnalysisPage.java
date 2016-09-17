@@ -44,6 +44,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
+        writeChart(req, resp, chartData, "yield");
         writeChart(req, resp, chartData, "COQ");
         writeChart(req, resp, chartData, "appraisalCOQ");
         writeChart(req, resp, chartData, "appraisalPhases");
@@ -53,6 +54,22 @@ public class QualityAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "qualityPhases");
         writeChart(req, resp, chartData, "appraisalVsFailure");
         writeChart(req, resp, chartData, "AFR");
+        writeChart(req, resp, chartData, "yieldVsAfr");
+
+        List<String> failure = chartData.getPhases(PhaseType.Failure);
+        if (!failure.isEmpty()) {
+            String lastFailurePhase = failure.get(failure.size() - 1);
+            writeChart(req, resp, chartData, "defectsVsAfr", lastFailurePhase);
+            writeChart(req, resp, chartData, "defectsVsYield", lastFailurePhase);
+        }
+    }
+
+
+    @Chart(id = "yield", type = "line", titleKey = "Quality.Yield_Title")
+    public ResultSet getYield(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(1);
+        writeYield(data, 1);
+        return data;
     }
 
 
@@ -64,8 +81,8 @@ public class QualityAnalysisPage extends AnalysisPage {
 
         List<String> allQualityPhases = chartData.histData.getPhasesOfType(
             PhaseType.Appraisal, PhaseType.Failure);
-        writePhaseTimePct(data, 1, allQualityPhases,
-            PhaseType.Appraisal, PhaseType.Failure);
+        writePhaseTimePct(data, 1, allQualityPhases, PhaseType.Appraisal,
+            PhaseType.Failure);
 
         return data;
     }
@@ -152,15 +169,69 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalToFailureRatio(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.AFR_Label");
+        writeAFR(data, 1);
+        return data;
+    }
+
+
+    @Chart(id = "yieldVsAfr", type = "xy", //
+    titleKey = "Process.Yield_Vs_AFR_Title")
+    public ResultSet getYieldVsAFR(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        writeAFR(data, 1);
+        writeYield(data, 2);
+        return data;
+    }
+
+
+    @Chart(id = "defectsVsAfr", type = "xy", params = "phase", //
+    titleKey = "Process.Defects_Vs_AFR_Title_FMT")
+    public ResultSet getDefectsVsAFR(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        writeAFR(data, 1);
+        writePhaseDefectDensity(chartData, data, 2, chartData.chartArgs[0]);
+        return data;
+    }
+
+
+    @Chart(id = "defectsVsYield", type = "xy", params = "phase", //
+    titleKey = "Process.Defects_Vs_Yield_Title_FMT")
+    public ResultSet getDefectsVsYield(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        writeYield(data, 1);
+        writePhaseDefectDensity(chartData, data, 2, chartData.chartArgs[0]);
+        return data;
+    }
+
+
+
+    public static void writeAFR(ResultSet data, int col) {
+        if (data.getColName(col) == null)
+            data.setColName(col, getRes("Process.AFR_Label"));
         for (int row = data.numRows(); row > 0; row--) {
             Enactment e = (Enactment) data.getRowObj(row);
             double appraisalTime = e.actualTime(PhaseType.Appraisal);
             double failureTime = e.actualTime(PhaseType.Failure);
-            data.setData(row, 1, num(appraisalTime / failureTime));
+            data.setData(row, col, num(appraisalTime / failureTime));
         }
-        return data;
     }
 
+    public static void writeYield(ResultSet data, int col) {
+        data.setColName(col, getRes("Process.Yield_Label"));
+        data.setFormat(col, "100%");
+        for (int row = data.numRows(); row > 0; row--) {
+            Enactment e = (Enactment) data.getRowObj(row);
+            data.setData(row, col, num(e.actualYield(null, true)));
+        }
+    }
+
+    private static void writePhaseDefectDensity(ChartData chartData,
+            ResultSet data, int col, String phase) {
+        DefectAnalysisPage.writePhaseDefectDensity(chartData, data, col, phase);
+        data.setColName(col, resources.format(
+            "Defects.Density_Scatter.Axis_FMT", phase,
+            chartData.getDensityStr()));
+    }
 
     private static void writePhaseTimePct(ResultSet resultSet, int firstCol,
             Object... phases) {

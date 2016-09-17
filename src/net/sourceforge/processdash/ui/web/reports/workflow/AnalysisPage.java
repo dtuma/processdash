@@ -301,11 +301,13 @@ public abstract class AnalysisPage extends HttpServlet {
                 && !units.equalsIgnoreCase(getRes("Hours"));
     }
 
-    protected String getRes(String resKey) {
+    protected static String getRes(String resKey) {
         return resources.getString(resKey);
     }
 
     protected static DoubleData num(double number) {
+        if (Double.isNaN(number))
+            number = Double.POSITIVE_INFINITY;
         return new DoubleData(number);
     }
 

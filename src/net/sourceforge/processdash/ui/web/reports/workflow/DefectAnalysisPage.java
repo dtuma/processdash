@@ -305,21 +305,33 @@ public class DefectAnalysisPage extends AnalysisPage {
     private ResultSet getDefectsByPhase(ChartData chartData,
             List<String> phases, boolean removed, Denom denomType) {
         ResultSet data = chartData.getEnactmentResultSet(phases.size());
-        for (int col = phases.size(); col > 0; col--) {
-            String phase = phases.get(col - 1);
-            data.setColName(col, phase);
+        writeDefectsByPhase(chartData, phases, removed, denomType, data, 1);
+        return data;
+    }
+
+    public static void writePhaseDefectDensity(ChartData chartData,
+            ResultSet data, int col, String... phases) {
+        writeDefectsByPhase(chartData, Arrays.asList(phases), true,
+            Denom.Density, data, col);
+    }
+
+    private static void writeDefectsByPhase(ChartData chartData,
+            List<String> phases, boolean removed, Denom denomType,
+            ResultSet data, int firstCol) {
+        for (int col = phases.size(); col-- > 0; ) {
+            String phase = phases.get(col);
+            data.setColName(col + firstCol, phase);
             for (int row = data.numRows(); row > 0; row--) {
                 Enactment e = (Enactment) data.getRowObj(row);
                 int count = e.actualDefects(phase, removed);
                 double denom = getDenom(chartData, e, denomType, phase);
-                data.setData(row, col, num(count / denom));
+                data.setData(row, col + firstCol, num(count / denom));
             }
         }
-        return data;
     }
 
-    private double getDenom(ChartData chartData, Enactment e, Denom type,
-            String phase) {
+    private static double getDenom(ChartData chartData, Enactment e,
+            Denom type, String phase) {
         switch (type) {
         case Density:
             return e.actualSize(chartData.primarySizeUnits)
