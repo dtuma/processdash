@@ -62,11 +62,6 @@ public class PlanAnalysisPage extends AnalysisPage {
         }
     }
 
-    private boolean isLegitSize(String units) {
-        return units != null && !units.equalsIgnoreCase("hours")
-                && !units.equalsIgnoreCase(getRes("Hours"));
-    }
-
 
     @Chart(id = "size", type = "line", params = "units", //
     titleKey = "Plan.Size_Title_FMT")

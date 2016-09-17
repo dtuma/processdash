@@ -81,6 +81,21 @@ public class WorkflowHistDataHelper {
         }
         private Map<String, Double> _actualSize;
 
+        public int actualDefects(String phase, boolean removed) {
+            if (_actualDefects == null)
+                _actualDefects = getDefectsByPhase(this);
+
+            int idx;
+            if (UNKNOWN_PHASE_KEY.equals(phase)) {
+                idx = UNK;
+                phase = TOTAL_PHASE_KEY;
+            } else {
+                idx = removed ? REM : INJ;
+            }
+            return (int) _actualDefects[idx].get(phase).actual;
+        }
+        private Map<String, DataPair>[] _actualDefects;
+
         public boolean equals(Object obj) {
             return obj == this || (obj instanceof Enactment //
                     && this.rootKey == ((Enactment) obj).rootKey);
@@ -94,6 +109,8 @@ public class WorkflowHistDataHelper {
     }
 
     public static final String TOTAL_PHASE_KEY = "Total ";
+
+    public static final String UNKNOWN_PHASE_KEY = "Unknown ";
 
     private QueryRunner query;
 
@@ -648,12 +665,17 @@ public class WorkflowHistDataHelper {
      *         injection and removed phases are both not part of this workflow).
      */
     public Map<String, DataPair>[] getDefectsByPhase() {
-        Map<Integer, String> stepMap = getWorkflowStepsByKey();
+        return getDefectsByPhase(null);
+    }
+
+    private Map<String, DataPair>[] getDefectsByPhase(Enactment e) {
+        List<String> stepNames = QueryUtils.pluckColumn(getPhaseData(),
+            PhaseCol.PhaseName);
         Map<String, DataPair>[] result = new Map[3];
         result[INJ] = new LinkedHashMap<String, DataPair>();
         result[REM] = new LinkedHashMap<String, DataPair>();
         result[INJ].put(Defect.BEFORE_DEVELOPMENT, new DataPair());
-        for (String step : stepMap.values()) {
+        for (String step : stepNames) {
             result[INJ].put(step, new DataPair());
             result[REM].put(step, new DataPair());
         }
@@ -664,39 +686,20 @@ public class WorkflowHistDataHelper {
         result[INJ].put(TOTAL_PHASE_KEY, total);
         result[REM].put(TOTAL_PHASE_KEY, total);
 
-        List<Object[]> rawData1 = query(DEFECT_QUERY_1, getEnactmentRootKeys(),
-            getIncludedWorkflowKeys());
-        List<Object[]> rawData2 = query(DEFECT_QUERY_2, getWorkflowKey(),
-            getIncludedWorkflowKeys());
-        mapMissingPhases(stepMap, rawData1, rawData2);
-        addDefectData(result, unrecognized, total, rawData1, stepMap);
-        addDefectData(result, unrecognized, total, rawData2, stepMap);
+        addDefectData(result, unrecognized, total, e);
 
         return result;
     }
 
-    private void mapMissingPhases(Map<Integer, String> stepMap,
-            List<Object[]>... defectPhaseLists) {
-        Set<Integer> missingKeys = new HashSet<Integer>();
-        for (List<Object[]> oneDefectList : defectPhaseLists) {
-            for (Object[] oneDefect : oneDefectList) {
-                missingKeys.add((Integer) get(oneDefect, DefectCol.Inj));
-                missingKeys.add((Integer) get(oneDefect, DefectCol.Rem));
-            }
-        }
-        missingKeys.removeAll(stepMap.keySet());
-        if (!missingKeys.isEmpty()) {
-            QueryUtils.mapColumns(stepMap,
-                query(PHASE_MAP_QUERY, missingKeys, getWorkflowKey()));
-        }
-    }
-
     private void addDefectData(Map<String, DataPair>[] result,
-            DataPair unrecognized, DataPair total, List<Object[]> rawData,
-            Map<Integer, String> stepMap) {
-        for (Object[] row : rawData) {
-            String injPhaseName = stepMap.get(get(row, DefectCol.Inj));
-            String remPhaseName = stepMap.get(get(row, DefectCol.Rem));
+            DataPair unrecognized, DataPair total, Enactment e) {
+
+        for (Object[] row : getDefectData()) {
+            if (!match(row, DefectCol.RootKey, e))
+                continue;
+
+            String injPhaseName = get(row, DefectCol.Inj);
+            String remPhaseName = get(row, DefectCol.Rem);
             int fixCount = ((Number) get(row, DefectCol.FixCount)).intValue();
 
             // if neither phase was recognized, this is most likely a legacy
@@ -720,7 +723,45 @@ public class WorkflowHistDataHelper {
         }
     }
 
-    private static final int INJ = 0, REM = 1, UNK = 2;
+    public static final int INJ = 0, REM = 1, UNK = 2;
+
+    private List<Object[]> _defectData;
+
+    private List<Object[]> getDefectData() {
+        if (_defectData == null) {
+            _defectData = query(DEFECT_QUERY_1, getEnactmentRootKeys(),
+                getIncludedWorkflowKeys());
+            _defectData.addAll(query(DEFECT_QUERY_2, getWorkflowKey(),
+                getIncludedWorkflowKeys()));
+            mapDefectPhases(_defectData);
+        }
+        return _defectData;
+    }
+
+    private void mapDefectPhases(List<Object[]> defects) {
+        Map<Integer, String> stepMap = getWorkflowStepsByKey();
+        Set<Integer> missingKeys = new HashSet<Integer>();
+        for (Object[] oneDefect : defects) {
+            missingKeys.add((Integer) get(oneDefect, DefectCol.Inj));
+            missingKeys.add((Integer) get(oneDefect, DefectCol.Rem));
+        }
+        missingKeys.removeAll(stepMap.keySet());
+        if (!missingKeys.isEmpty()) {
+            QueryUtils.mapColumns(stepMap,
+                query(PHASE_MAP_QUERY, missingKeys, getWorkflowKey()));
+        }
+        for (Object[] oneDefect : defects) {
+            mapPhase(oneDefect, DefectCol.Inj, stepMap);
+            mapPhase(oneDefect, DefectCol.Rem, stepMap);
+        }
+    }
+
+    private void mapPhase(Object[] defect, DefectCol col,
+            Map<Integer, String> stepMap) {
+        Integer phaseKey = get(defect, col);
+        String phaseName = stepMap.get(phaseKey);
+        defect[col.ordinal()] = phaseName;
+    }
 
     /*
      * Query to find defects logged against one of our included enactments

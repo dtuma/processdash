@@ -103,6 +103,7 @@ public abstract class AnalysisPage extends HttpServlet {
         result.histData = new WorkflowHistDataHelper(query, workflowID);
 
         result.primarySizeUnits = "LOC";
+        result.sizeDensityMultiplier = 1000;
 
         return result;
     }
@@ -293,6 +294,11 @@ public abstract class AnalysisPage extends HttpServlet {
                 return e;
         }
         throw new IllegalArgumentException("Unrecognized ID: " + id);
+    }
+
+    protected boolean isLegitSize(String units) {
+        return units != null && !units.equalsIgnoreCase("hours")
+                && !units.equalsIgnoreCase(getRes("Hours"));
     }
 
     protected String getRes(String resKey) {

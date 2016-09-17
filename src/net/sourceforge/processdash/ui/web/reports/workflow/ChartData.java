@@ -29,12 +29,15 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
+import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.PhaseType;
 
 public class ChartData {
 
     public WorkflowHistDataHelper histData;
 
     public String primarySizeUnits;
+
+    public int sizeDensityMultiplier = 1;
 
     public String[] chartArgs;
 
@@ -43,6 +46,10 @@ public class ChartData {
             return AnalysisPage.resources.format(resourceKey, chartArgs);
         else
             return AnalysisPage.resources.getString(resourceKey);
+    }
+
+    public List<String> getPhases(PhaseType... types) {
+        return histData.getPhasesOfType(types);
     }
 
     public ResultSet getEnactmentResultSet(String... columnKeys) {
@@ -86,6 +93,15 @@ public class ChartData {
                 resultSet.setData(row, col, new DoubleData(finalTime));
             }
         }
+    }
+
+    public String getDensityStr() {
+        if (sizeDensityMultiplier == 1)
+            return primarySizeUnits;
+        else if (sizeDensityMultiplier == 1000)
+            return "K" + primarySizeUnits;
+        else
+            return sizeDensityMultiplier + " " + primarySizeUnits;
     }
 
 }
