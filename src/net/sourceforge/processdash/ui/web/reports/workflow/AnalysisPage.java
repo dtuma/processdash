@@ -305,7 +305,7 @@ public abstract class AnalysisPage extends HttpServlet {
         return resources.getString(resKey);
     }
 
-    protected DoubleData num(double number) {
+    protected static DoubleData num(double number) {
         return new DoubleData(number);
     }
 

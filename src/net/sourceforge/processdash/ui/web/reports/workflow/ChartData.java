@@ -25,7 +25,6 @@ package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.util.List;
 
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
@@ -68,31 +67,6 @@ public class ChartData {
             result.setRowName(i + 1, enactments.get(i));
 
         return result;
-    }
-
-    public void writePhaseTimePct(ResultSet resultSet, int firstCol,
-            Object... phases) {
-        writePhaseTime(resultSet, true, firstCol, phases);
-    }
-
-    public void writePhaseTime(ResultSet resultSet, boolean pct, int firstCol,
-            Object... phases) {
-
-        for (int i = phases.length; i-- > 0;) {
-            int col = firstCol + i;
-            Object onePhase = phases[i];
-            if (onePhase instanceof String)
-                resultSet.setColName(col, (String) onePhase);
-            if (pct)
-                resultSet.setFormat(col, "100%");
-
-            for (int row = resultSet.numRows(); row > 0; row--) {
-                Enactment e = (Enactment) resultSet.getRowObj(row);
-                double phaseTime = e.actualTime(onePhase);
-                double finalTime = phaseTime / (pct ? e.actualTime() : 60);
-                resultSet.setData(row, col, new DoubleData(finalTime));
-            }
-        }
     }
 
     public String getDensityStr() {

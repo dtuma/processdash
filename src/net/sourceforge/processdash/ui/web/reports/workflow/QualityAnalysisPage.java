@@ -64,7 +64,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
         List<String> allQualityPhases = chartData.histData.getPhasesOfType(
             PhaseType.Appraisal, PhaseType.Failure);
-        chartData.writePhaseTimePct(data, 1, allQualityPhases,
+        writePhaseTimePct(data, 1, allQualityPhases,
             PhaseType.Appraisal, PhaseType.Failure);
 
         return data;
@@ -76,7 +76,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalCostOfQuality(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.Appraisal_COQ_Label");
-        chartData.writePhaseTimePct(data, 1, PhaseType.Appraisal);
+        writePhaseTimePct(data, 1, PhaseType.Appraisal);
         return data;
     }
 
@@ -88,7 +88,7 @@ public class QualityAnalysisPage extends AnalysisPage {
         List<String> apprPhases = chartData.histData
                 .getPhasesOfType(PhaseType.Appraisal);
         ResultSet data = chartData.getEnactmentResultSet(apprPhases.size());
-        chartData.writePhaseTimePct(data, 1, apprPhases.toArray());
+        writePhaseTimePct(data, 1, apprPhases.toArray());
         return data;
     }
 
@@ -98,7 +98,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getFailureCostOfQuality(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet( //
                 "Quality.Failure_COQ_Label");
-        chartData.writePhaseTimePct(data, 1, PhaseType.Failure);
+        writePhaseTimePct(data, 1, PhaseType.Failure);
         return data;
     }
 
@@ -110,7 +110,7 @@ public class QualityAnalysisPage extends AnalysisPage {
         List<String> failurePhases = chartData.histData
                 .getPhasesOfType(PhaseType.Failure);
         ResultSet data = chartData.getEnactmentResultSet(failurePhases.size());
-        chartData.writePhaseTimePct(data, 1, failurePhases.toArray());
+        writePhaseTimePct(data, 1, failurePhases.toArray());
         return data;
     }
 
@@ -121,7 +121,7 @@ public class QualityAnalysisPage extends AnalysisPage {
                 "Quality.Total_COQ_Label");
         Object phases = chartData.histData.getPhasesOfType(PhaseType.Appraisal,
             PhaseType.Failure);
-        chartData.writePhaseTimePct(data, 1, phases);
+        writePhaseTimePct(data, 1, phases);
         return data;
     }
 
@@ -133,7 +133,7 @@ public class QualityAnalysisPage extends AnalysisPage {
         List<String> qualityPhases = chartData.histData.getPhasesOfType(
             PhaseType.Appraisal, PhaseType.Failure);
         ResultSet data = chartData.getEnactmentResultSet(qualityPhases.size());
-        chartData.writePhaseTimePct(data, 1, qualityPhases.toArray());
+        writePhaseTimePct(data, 1, qualityPhases.toArray());
         return data;
     }
 
@@ -143,8 +143,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     public ResultSet getAppraisalVsFailureCost(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(
             "Quality.Appraisal_COQ_Label", "Quality.Failure_COQ_Label");
-        chartData.writePhaseTimePct(data, 1, PhaseType.Appraisal,
-            PhaseType.Failure);
+        writePhaseTimePct(data, 1, PhaseType.Appraisal, PhaseType.Failure);
         return data;
     }
 
@@ -162,5 +161,10 @@ public class QualityAnalysisPage extends AnalysisPage {
         return data;
     }
 
+
+    private static void writePhaseTimePct(ResultSet resultSet, int firstCol,
+            Object... phases) {
+        ProcessAnalysisPage.writePhaseTimePct(resultSet, firstCol, phases);
+    }
 
 }
