@@ -1,1 +1,1 @@
-class:net.sourceforge.processdash.ui.web.reports.analysis.WorkflowToDateReport
+class:net.sourceforge.processdash.ui.web.reports.workflow.WorkflowPlanSummary
