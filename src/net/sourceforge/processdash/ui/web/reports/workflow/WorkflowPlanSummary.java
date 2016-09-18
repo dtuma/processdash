@@ -21,35 +21,29 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.reports.analysis;
+package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.SaveableData;
-import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
-import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.QueryRunner;
-import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.DataPair;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.StringUtils;
 
-public class WorkflowToDateReport extends TinyCGIBase {
+public class WorkflowPlanSummary extends TinyCGIBase {
 
-    private static final String SELF_URI = "workflowToDate";
+    private static final String SELF_URI = "workflowSummary";
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis");
@@ -57,79 +51,6 @@ public class WorkflowToDateReport extends TinyCGIBase {
     @Override
     protected void writeContents() throws IOException {
         String workflowID = getParameter("workflow");
-        if (StringUtils.hasValue(workflowID))
-            writeReportForWorkflow(workflowID);
-        else
-            writeWorkflowSelectionScreen();
-    }
-
-    private void writeWorkflowSelectionScreen() {
-        String title = esc(res("Workflow.Analysis.Title"));
-
-        out.print("<html><head>\n<title>");
-        out.print(title);
-        out.print("</title>\n");
-        out.print(cssLinkHTML());
-        out.print("</head>\n");
-        out.print("<body><h1>");
-        out.print(title);
-        out.print("</h1>\n");
-
-        if (parameters.containsKey("wait")) {
-            out.print("<p>");
-            out.print(esc(res("Workflow.Analysis.Wait_Message")));
-            out.print("</p>\n");
-            out.print(HTMLUtils.redirectScriptHtml(SELF_URI, 0));
-
-        } else {
-            writeWorkflowSelections();
-        }
-
-        out.print("</body></html>\n");
-    }
-
-    private void writeWorkflowSelections() {
-        // get the list of workflows in this team project.
-        Map<String, String> workflows = getWorkflowsForCurrentProject();
-        if (workflows.isEmpty()) {
-            out.write("<p>");
-            out.write(esc(res("Workflow.Analysis.No_Workflows_Message")));
-            out.write("</p>\n");
-            return;
-        }
-
-        // display a prompt inviting the user to choose a workflow
-        out.write("<p>");
-        out.write(esc(res("Workflow.Analysis.Choose_Workflow_Prompt")));
-        out.write("</p><ul>");
-
-        // display hyperlinks for each of the workflows
-        for (Entry<String, String> e : workflows.entrySet()) {
-            out.write("<li><a href=\"/reports/");
-            out.write(HTMLUtils.appendQuery(SELF_URI, "workflow", e.getValue()));
-            out.write("\">");
-            out.write(esc(e.getKey()));
-            out.write("</a></li>\n");
-        }
-
-        out.write("</ul>\n");
-    }
-
-    private Map<String, String> getWorkflowsForCurrentProject() {
-        String projectID = getProjectID();
-        String workflowProcessIDPattern = DatabasePluginUtils
-                .getWorkflowPhaseIdentifier(projectID, "%");
-        Map<String, String> result = new TreeMap<String, String>();
-        QueryUtils.mapColumns(result, getQuery().queryHql(WORKFLOW_LIST_QUERY, //
-            workflowProcessIDPattern));
-        return result;
-    }
-
-    private static final String WORKFLOW_LIST_QUERY = //
-    "select p.name, p.identifier from Process p where p.identifier like ?";
-
-
-    private void writeReportForWorkflow(String workflowID) throws IOException {
         WorkflowHistDataHelper hist = new WorkflowHistDataHelper(getQuery(),
                 workflowID);
 
@@ -161,6 +82,10 @@ public class WorkflowToDateReport extends TinyCGIBase {
         out.print("</h1>\n");
 
         out.print("<h2>");
+        out.print(esc(res("Summary.Title")));
+        out.print("</h2>\n");
+
+        out.print("<h3>");
         if ("this".equals(parameters.get("project"))) {
             hist.setOnlyForProject(hist.getContextProjectID());
             out.print(esc(resources.format("Workflow.To_Date.One_Project_FMT",
@@ -168,9 +93,10 @@ public class WorkflowToDateReport extends TinyCGIBase {
         } else {
             out.print(resources.getHTML("Workflow.To_Date.All_Projects"));
         }
-        out.print("</h2>\n");
+        out.print("</h3>\n");
 
-        writeFilterDiv(hist);
+        if (!isExporting())
+            writeFilterDiv(hist);
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
         Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
@@ -202,20 +128,6 @@ public class WorkflowToDateReport extends TinyCGIBase {
 
         if (parameters.containsKey("debug"))
             hist.debugPrintEnactments();
-    }
-
-    private String getProjectID() {
-        String prefix = getPrefix();
-        if (prefix == null)
-            return null;
-
-        SaveableData projectIDVal = getDataRepository().getInheritableValue(
-            prefix, "Project_ID");
-        if (projectIDVal == null)
-            return null;
-
-        SimpleData sd = projectIDVal.getSimpleValue();
-        return (sd == null ? null : sd.format());
     }
 
     protected void writeFilterDiv(WorkflowHistDataHelper hist) {
@@ -523,9 +435,9 @@ public class WorkflowToDateReport extends TinyCGIBase {
         // at the end. This makes the phase colors consistent across pie charts.
         Map<String, DataPair> injected = new LinkedHashMap(defectsByPhase[0]);
         DataPair before = injected.remove(Defect.BEFORE_DEVELOPMENT);
-        DataPair total = injected.remove(WorkflowToDateReport.TOTAL_KEY);
+        DataPair total = injected.remove(TOTAL_KEY);
         injected.put(Defect.BEFORE_DEVELOPMENT, before);
-        injected.put(WorkflowToDateReport.TOTAL_KEY, total);
+        injected.put(TOTAL_KEY, total);
         Map removed = defectsByPhase[1];
 
         out.print("<p>\n");
@@ -560,7 +472,8 @@ public class WorkflowToDateReport extends TinyCGIBase {
         l.add(chartData);
         getDataContext().putValue(dataName, l);
 
-        StringBuffer fullUri = new StringBuffer("full.htm");
+        StringBuffer fullUri = new StringBuffer(isExporting() ? "table.class"
+                : "full.htm");
         HTMLUtils.appendQuery(fullUri, "chart", "pie");
         HTMLUtils.appendQuery(fullUri, "useData", dataName);
         HTMLUtils.appendQuery(fullUri, "title", title);

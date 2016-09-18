@@ -1,0 +1,211 @@
+// Copyright (C) 2016 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+
+package net.sourceforge.processdash.ui.web.reports.workflow;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sourceforge.processdash.api.PDashContext;
+import net.sourceforge.processdash.net.http.PDashServletUtils;
+import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
+import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
+public class WorkflowReport extends HttpServlet {
+
+    private static final String SELF_URI = "workflowToDate";
+
+    private static final String WORKFLOW_PARAM = "workflow";
+
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        String workflowID = req.getParameter(WORKFLOW_PARAM);
+
+        if (StringUtils.hasValue(workflowID) == false)
+            writeWorkflowSelectionScreen(req, resp);
+
+        else if (req.getParameter("toc") != null)
+            writeWorkflowTocPage(req, resp, workflowID);
+
+        else
+            writeFrameForWorkflow(req, resp, workflowID);
+    }
+
+
+
+    private void writeWorkflowSelectionScreen(HttpServletRequest req,
+            HttpServletResponse resp) throws IOException {
+        String title = esc(res("Workflow.Analysis.Title"));
+
+        PrintWriter out = resp.getWriter();
+        out.print("<html><head>\n<title>");
+        out.print(title);
+        out.print("</title>\n");
+        out.print("<link rel='stylesheet' type='text/css' href='/style.css'>");
+        out.print("</head>\n");
+        out.print("<body><h1>");
+        out.print(title);
+        out.print("</h1>\n");
+
+        if (req.getParameter("wait") != null) {
+            out.print("<p>");
+            out.print(esc(res("Workflow.Analysis.Wait_Message")));
+            out.print("</p>\n");
+            out.print(HTMLUtils.redirectScriptHtml(SELF_URI, 0));
+
+        } else {
+            writeWorkflowSelections(req, out);
+        }
+
+        out.print("</body></html>\n");
+    }
+
+    private void writeWorkflowSelections(HttpServletRequest req, PrintWriter out) {
+        // get the list of workflows in this team project.
+        Map<String, String> workflows = getWorkflowsForCurrentProject(req);
+        if (workflows.isEmpty()) {
+            out.write("<p>");
+            out.write(esc(res("Workflow.Analysis.No_Workflows_Message")));
+            out.write("</p>\n");
+            return;
+        }
+
+        // display a prompt inviting the user to choose a workflow
+        out.write("<p>");
+        out.write(esc(res("Workflow.Analysis.Choose_Workflow_Prompt")));
+        out.write("</p><ul>");
+
+        // display hyperlinks for each of the workflows
+        for (Entry<String, String> e : workflows.entrySet()) {
+            out.write("<li><a href=\"/reports/");
+            out.write(HTMLUtils.appendQuery(SELF_URI, WORKFLOW_PARAM,
+                e.getValue()));
+            out.write("\">");
+            out.write(esc(e.getKey()));
+            out.write("</a></li>\n");
+        }
+
+        out.write("</ul>\n");
+    }
+
+    private Map<String, String> getWorkflowsForCurrentProject(
+            HttpServletRequest req) {
+        PDashContext ctx = PDashServletUtils.getContext(req);
+        String projectID = ctx.getData().getString("Project_ID");
+        String workflowProcessIDPattern = DatabasePluginUtils
+                .getWorkflowPhaseIdentifier(projectID, "%");
+        Map<String, String> result = new TreeMap<String, String>();
+        QueryUtils.mapColumns(result, ctx.getQuery().query(WORKFLOW_LIST_QUERY, //
+            workflowProcessIDPattern));
+        return result;
+    }
+
+    private static final String WORKFLOW_LIST_QUERY = //
+    "select p.name, p.identifier from Process p where p.identifier like ?";
+
+
+
+    private void writeFrameForWorkflow(HttpServletRequest req,
+            HttpServletResponse resp, String workflowID) throws IOException {
+
+        PDashContext ctx = PDashServletUtils.getContext(req);
+        String workflowName = QueryUtils.singleValue(QueryUtils.pluckColumn( //
+            ctx.getQuery().query(WORKFLOW_LIST_QUERY, workflowID), 0));
+
+        PrintWriter out = resp.getWriter();
+        out.write("<html>\n<head><title>");
+        out.write(esc(res("Workflow.Analysis.Title")));
+        out.write(" - ");
+        out.write(esc(workflowName));
+        out.write("</title></head>\n");
+
+        String tocUri = HTMLUtils.appendQuery(SELF_URI, WORKFLOW_PARAM,
+            workflowID);
+        String ppsUri = HTMLUtils.appendQuery("workflowSummary",
+            WORKFLOW_PARAM, workflowID);
+
+        out.write("<frameset cols='140,*'>\n");
+        out.write("    <frame name='toc' src='" + tocUri + "&amp;toc'>\n");
+        out.write("    <frame name='contents' src='" + ppsUri + "'>\n");
+        out.write("</frameset></html>\n");
+    }
+
+    private void writeWorkflowTocPage(HttpServletRequest req,
+            HttpServletResponse resp, String workflowID) throws IOException {
+        String title = esc(res("Workflow.Analysis.Title"));
+        PrintWriter out = resp.getWriter();
+        out.write("<html>\n<head><title>");
+        out.write(title);
+        out.write("</title></head>\n<body>\n");
+        out.write("<h2>");
+        out.write(title);
+        out.write("</h2>\n");
+
+        String query = HTMLUtils.appendQuery("x", WORKFLOW_PARAM, workflowID)
+                .substring(1);
+        writeTocLink(out, "workflowSummary", query, "Summary.Title");
+        writeTocLink(out, "workflowDefects", query, "Defects.Title");
+        writeTocLink(out, "workflowPlan", query, "Plan.Title");
+        writeTocLink(out, "workflowProcess", query, "Process.Title");
+        writeTocLink(out, "workflowQuality", query, "Quality.Title");
+
+        if (req.getParameter("EXPORT") == null) {
+            out.write("<hr/>\n");
+            out.write("<p><a href='../dash/archive.class?uri=/reports/"
+                    + SELF_URI + query + "' target='_top'>");
+            out.write(esc(res("Archive.Title")));
+            out.write("</a></p>\n");
+        }
+
+        out.write("</body></html>\n");
+    }
+
+    private void writeTocLink(PrintWriter out, String uri, String query,
+            String resKey) {
+        out.write("<p><a target='contents' href='" + uri + query + "'>");
+        out.write(esc(res(resKey)));
+        out.write("</a></p>\n");
+    }
+
+    private String esc(String s) {
+        return HTMLUtils.escapeEntities(s);
+    }
+
+    private String res(String key) {
+        return AnalysisPage.getRes(key);
+    }
+
+}
