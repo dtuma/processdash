@@ -42,7 +42,7 @@ import net.sourceforge.processdash.util.DataPair;
 public class ProcessAnalysisPage extends AnalysisPage {
 
     public ProcessAnalysisPage() {
-        super("workflowProcess", "Process.Title");
+        super("Process", "Process.Title");
     }
 
 

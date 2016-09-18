@@ -45,7 +45,7 @@ import net.sourceforge.processdash.util.DataPair;
 public class DefectAnalysisPage extends AnalysisPage {
 
     public DefectAnalysisPage() {
-        super("workflowDefects", "Defects.Title");
+        super("Defects", "Defects.Title");
     }
 
 

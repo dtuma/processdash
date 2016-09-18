@@ -35,7 +35,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -53,7 +52,7 @@ import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-public abstract class AnalysisPage extends HttpServlet {
+public abstract class AnalysisPage {
 
     protected static Resources resources = Resources.getDashBundle("Analysis");
 
@@ -61,18 +60,17 @@ public abstract class AnalysisPage extends HttpServlet {
 
     private String titleKey;
 
-    public AnalysisPage(String selfUri, String titleKey) {
-        this.selfUri = selfUri;
+    public AnalysisPage(String page, String titleKey) {
+        this.selfUri = HTMLUtils.appendQuery(WorkflowReport.SELF_URI, 
+            WorkflowReport.PAGE_PARAM, page);
         this.titleKey = titleKey;
     }
 
-    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         doGet(req, resp);
     }
 
-    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 

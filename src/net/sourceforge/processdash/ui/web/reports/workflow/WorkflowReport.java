@@ -43,18 +43,30 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class WorkflowReport extends HttpServlet {
 
-    private static final String SELF_URI = "workflowToDate";
+    protected static final String SELF_URI = "workflowToDate";
+
+    protected static final String PAGE_PARAM = "page";
 
     private static final String WORKFLOW_PARAM = "workflow";
 
 
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        doGet(req, resp);
+    }
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        String page = req.getParameter(PAGE_PARAM);
         String workflowID = req.getParameter(WORKFLOW_PARAM);
 
-        if (StringUtils.hasValue(workflowID) == false)
+        if (StringUtils.hasValue(page))
+            showAnalysisPage(req, resp, page);
+
+        else if (StringUtils.hasValue(workflowID) == false)
             writeWorkflowSelectionScreen(req, resp);
 
         else if (req.getParameter("toc") != null)
@@ -177,10 +189,10 @@ public class WorkflowReport extends HttpServlet {
         String query = HTMLUtils.appendQuery("x", WORKFLOW_PARAM, workflowID)
                 .substring(1);
         writeTocLink(out, "workflowSummary", query, "Summary.Title");
-        writeTocLink(out, "workflowDefects", query, "Defects.Title");
-        writeTocLink(out, "workflowPlan", query, "Plan.Title");
-        writeTocLink(out, "workflowProcess", query, "Process.Title");
-        writeTocLink(out, "workflowQuality", query, "Quality.Title");
+        writeTocLink(out, Page.Defects, query, "Defects.Title");
+        writeTocLink(out, Page.Plan, query, "Plan.Title");
+        writeTocLink(out, Page.Process, query, "Process.Title");
+        writeTocLink(out, Page.Quality, query, "Quality.Title");
 
         if (req.getParameter("EXPORT") == null) {
             out.write("<hr/>\n");
@@ -193,12 +205,42 @@ public class WorkflowReport extends HttpServlet {
         out.write("</body></html>\n");
     }
 
-    private void writeTocLink(PrintWriter out, String uri, String query,
+    private void writeTocLink(PrintWriter out, Object page, String query,
             String resKey) {
-        out.write("<p><a target='contents' href='" + uri + query + "'>");
+        out.write("<p><a target='contents' href='");
+        if (page instanceof Page)
+            out.write(SELF_URI + query + "&amp;" + PAGE_PARAM + "=" + page);
+        else
+            out.write(page + query);
+        out.write("'>");
         out.write(esc(res(resKey)));
         out.write("</a></p>\n");
     }
+
+
+
+    private void showAnalysisPage(HttpServletRequest req,
+            HttpServletResponse resp, String page) throws ServletException,
+            IOException {
+        if (analysisPages == null) {
+            analysisPages = new AnalysisPage[Page.values().length];
+            analysisPages[Page.Defects.ordinal()] = new DefectAnalysisPage();
+            analysisPages[Page.Plan.ordinal()] = new PlanAnalysisPage();
+            analysisPages[Page.Process.ordinal()] = new ProcessAnalysisPage();
+            analysisPages[Page.Quality.ordinal()] = new QualityAnalysisPage();
+        }
+
+        Page p = Page.valueOf(page);
+        analysisPages[p.ordinal()].doGet(req, resp);
+    }
+
+    private enum Page {
+        Defects, Plan, Process, Quality
+    }
+
+    private AnalysisPage[] analysisPages;
+
+
 
     private String esc(String s) {
         return HTMLUtils.escapeEntities(s);

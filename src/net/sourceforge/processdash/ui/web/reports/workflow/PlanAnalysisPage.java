@@ -35,7 +35,7 @@ import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
 public class PlanAnalysisPage extends AnalysisPage {
 
     public PlanAnalysisPage() {
-        super("workflowPlan", "Plan.Title");
+        super("Plan", "Plan.Title");
     }
 
 

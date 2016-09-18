@@ -37,7 +37,7 @@ import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.PhaseType;
 public class QualityAnalysisPage extends AnalysisPage {
 
     public QualityAnalysisPage() {
-        super("workflowQuality", "Quality.Title");
+        super("Quality", "Quality.Title");
     }
 
     @Override
