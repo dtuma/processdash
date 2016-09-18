@@ -125,6 +125,9 @@ public class WorkflowHistDataHelper {
 
     public static final String UNKNOWN_PHASE_KEY = "Unknown ";
 
+    public enum LegacyPhaseMapStrategy { Disabled, Enabled, Strict }
+
+
     private QueryRunner query;
 
     private String workflowID;
@@ -139,6 +142,8 @@ public class WorkflowHistDataHelper {
 
     private boolean onlyCompleted = true;
 
+    private LegacyPhaseMapStrategy legacyPhaseMapStrategy;
+
     private Integer workflowKey;
 
     private Set<Integer> includedWorkflowKeys;
@@ -151,6 +156,7 @@ public class WorkflowHistDataHelper {
         this.query = query;
         this.workflowID = workflowID;
         this.contextProjectID = workflowID.split(":")[1];
+        this.legacyPhaseMapStrategy = LegacyPhaseMapStrategy.Strict;
     }
 
     public String getContextProjectID() {
@@ -181,6 +187,15 @@ public class WorkflowHistDataHelper {
 
     public void setOnlyForProject(String onlyForProject) {
         this.onlyForProject = onlyForProject;
+    }
+
+    public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
+        return legacyPhaseMapStrategy;
+    }
+
+    public void setLegacyPhaseMapStrategy(
+            LegacyPhaseMapStrategy legacyPhaseMapStrategy) {
+        this.legacyPhaseMapStrategy = legacyPhaseMapStrategy;
     }
 
     private List query(String hql, Object... args) {
@@ -752,21 +767,68 @@ public class WorkflowHistDataHelper {
     }
 
     private void mapDefectPhases(List<Object[]> defects) {
+        // get the direct list of phases that belong to the workflow.
         Map<Integer, String> stepMap = getWorkflowStepsByKey();
+
+        // now, look for any inj/rem phases whose keys we don't recognize.
         Set<Integer> missingKeys = new HashSet<Integer>();
         for (Object[] oneDefect : defects) {
             missingKeys.add((Integer) get(oneDefect, DefectCol.Inj));
             missingKeys.add((Integer) get(oneDefect, DefectCol.Rem));
         }
         missingKeys.removeAll(stepMap.keySet());
+
+        // if we find missing phases, see if those phases have an explicit
+        // mapping to one of the phases in our workflow. Add all such mappings.
         if (!missingKeys.isEmpty()) {
-            QueryUtils.mapColumns(stepMap,
-                query(PHASE_MAP_QUERY, missingKeys, getWorkflowKey()));
+            Map forwardMappings = QueryUtils.mapColumns(query(PHASE_MAP_QUERY,
+                missingKeys, getWorkflowKey()));
+            stepMap.putAll(forwardMappings);
+            missingKeys.removeAll(forwardMappings.keySet());
         }
+
+        // legacy defects were collected against MCF buckets, and those buckets
+        // will not have mappings into our workflow. But the workflow is likely
+        // to have mappings into the MCF. If only one workflow phase maps to a
+        // given MCF phase, we can infer a correspondence between those phases.
+        if (!missingKeys.isEmpty()) {
+            stepMap.putAll(getBackwardPhaseMappings(missingKeys));
+        }
+
+        // use the mappings above to map inj/rem phases into this workflow.
         for (Object[] oneDefect : defects) {
             mapPhase(oneDefect, DefectCol.Inj, stepMap);
             mapPhase(oneDefect, DefectCol.Rem, stepMap);
         }
+    }
+
+    private Map getBackwardPhaseMappings(Set<Integer> missingKeys) {
+        if (legacyPhaseMapStrategy == LegacyPhaseMapStrategy.Disabled)
+            return Collections.EMPTY_MAP;
+
+        // do a search to find backward/inferred phase mappings
+        List<Object[]> rows = query(PHASE_MAP_QUERY_2, missingKeys,
+            getWorkflowKey());
+
+        // search the rows for items in position 0 that appear more than once.
+        Set seen = new HashSet();
+        Set dups = new HashSet();
+        for (Object[] row : rows) {
+            Object oneKey = row[0];
+            if (seen.add(oneKey) == false)
+                dups.add(oneKey);
+        }
+
+        // if we found duplicates, and the phase mapping strategy is "strict,"
+        // don't use any of the backward mappings at all.
+        if (legacyPhaseMapStrategy == LegacyPhaseMapStrategy.Strict
+                && !dups.isEmpty())
+            return Collections.EMPTY_MAP;
+
+        // create a map of the phases we found, discarding any duplicates.
+        Map result = QueryUtils.mapColumns(rows);
+        result.keySet().removeAll(dups);
+        return result;
     }
 
     private void mapPhase(Object[] defect, DefectCol col,
@@ -817,6 +879,17 @@ public class WorkflowHistDataHelper {
             + "targetPhase.shortName " //
             + "from Phase missingPhase " //
             + "join missingPhase.mapsToPhase targetPhase " //
+            + "where missingPhase.key in (?) " //
+            + "and targetPhase.process.key = ?";
+
+    /*
+     * Query to find inferred workflow phase mappings
+     */
+    private static final String PHASE_MAP_QUERY_2 = "select " //
+            + "missingPhase.key, " //
+            + "targetPhase.shortName " //
+            + "from Phase targetPhase " //
+            + "join targetPhase.mapsToPhase missingPhase " //
             + "where missingPhase.key in (?) " //
             + "and targetPhase.process.key = ?";
 
