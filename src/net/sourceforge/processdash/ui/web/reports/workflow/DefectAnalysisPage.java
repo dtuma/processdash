@@ -24,11 +24,13 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -83,8 +85,23 @@ public class DefectAnalysisPage extends AnalysisPage {
     }
 
 
+    @Override
+    protected Map invokeChart(Entry<Chart, Method> chart, ChartData chartData)
+            throws ServletException {
+        Map result = super.invokeChart(chart, chartData);
+
+        if (result != null && result.remove("isDensity") != null
+                && chartData.isTimeUnits())
+            result.put("headerComment", resources.format(
+                "Hours_Units_Density_Comment_FMT",
+                chartData.sizeDensityMultiplier));
+
+        return result;
+    }
+
+
     @Chart(id = "totalDefects", type = "line", //
-    titleKey = "Defects.Total_Title")
+    titleKey = "Defects.Total_Title", format = "isDensity=t")
     public ResultSet getTotalDefectDensity(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(1);
         setDensityColumnHeader(data, chartData);
@@ -101,14 +118,14 @@ public class DefectAnalysisPage extends AnalysisPage {
 
 
     @Chart(id = "injDefects", type = "line", params = "phase", //
-    titleKey = "Defects.Injected_Title_FMT")
+    titleKey = "Defects.Injected_Title_FMT", format = "isDensity=t")
     public ResultSet getInjectedDefectDensity(ChartData chartData) {
         return getSinglePhaseDefectDensity(chartData, false);
     }
 
 
     @Chart(id = "remDefects", type = "line", params = "phase", //
-    titleKey = "Defects.Removed_Title_FMT")
+    titleKey = "Defects.Removed_Title_FMT", format = "isDensity=t")
     public ResultSet getRemovedDefectDensity(ChartData chartData) {
         return getSinglePhaseDefectDensity(chartData, true);
     }
@@ -163,7 +180,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
 
     @Chart(id = "remScatter", type = "xy", params = { "phaseX", "phaseY" }, //
-    titleKey = "Defects.Density_Scatter.Title_FMT")
+    titleKey = "Defects.Density_Scatter.Title_FMT", format = "isDensity=t")
     public ResultSet getDensityScatter(ChartData chartData) {
         List<String> phases = Arrays.asList(chartData.chartArgs);
         ResultSet data = getDefectsByPhase(chartData, phases, true,
@@ -177,7 +194,7 @@ public class DefectAnalysisPage extends AnalysisPage {
     }
 
     @Chart(id = "escapeScatter", type = "xy", params = "phase", //
-    titleKey = "Defects.Escape_Scatter.Title_FMT")
+    titleKey = "Defects.Escape_Scatter.Title_FMT", format = "isDensity=t")
     public ResultSet getEscapedDefectsScatter(ChartData chartData) {
         String lastFailurePhase = chartData.chartArgs[0];
         chartData.chartArgs = new String[] { lastFailurePhase,
@@ -318,7 +335,7 @@ public class DefectAnalysisPage extends AnalysisPage {
     private static void writeDefectsByPhase(ChartData chartData,
             List<String> phases, boolean removed, Denom denomType,
             ResultSet data, int firstCol) {
-        for (int col = phases.size(); col-- > 0; ) {
+        for (int col = phases.size(); col-- > 0;) {
             String phase = phases.get(col);
             data.setColName(col + firstCol, phase);
             for (int row = data.numRows(); row > 0; row--) {
@@ -334,8 +351,12 @@ public class DefectAnalysisPage extends AnalysisPage {
             Denom type, String phase) {
         switch (type) {
         case Density:
-            return e.actualSize(chartData.primarySizeUnits)
-                    / chartData.sizeDensityMultiplier;
+            double size;
+            if (chartData.isTimeUnits())
+                size = e.actualTime() / 60;
+            else
+                size = e.actualSize(chartData.primarySizeUnits);
+            return size / chartData.sizeDensityMultiplier;
 
         case Rate:
             return e.actualTime(phase) / 60;

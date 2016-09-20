@@ -28,11 +28,14 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +43,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
@@ -49,6 +55,7 @@ import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
+import net.sourceforge.processdash.util.DataPair;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -61,7 +68,7 @@ public abstract class AnalysisPage {
     private String titleKey;
 
     public AnalysisPage(String page, String titleKey) {
-        this.selfUri = HTMLUtils.appendQuery(WorkflowReport.SELF_URI, 
+        this.selfUri = HTMLUtils.appendQuery(WorkflowReport.SELF_URI,
             WorkflowReport.PAGE_PARAM, page);
         this.titleKey = titleKey;
     }
@@ -99,11 +106,62 @@ public abstract class AnalysisPage {
         QueryRunner query = databasePlugin.getObject(QueryRunner.class);
 
         result.histData = new WorkflowHistDataHelper(query, workflowID);
-
-        result.primarySizeUnits = "LOC";
-        result.sizeDensityMultiplier = 1000;
+        configureSizeUnits(result, ctx);
 
         return result;
+    }
+
+    private void configureSizeUnits(ChartData chartData, DashboardContext ctx) {
+        String workflowID = chartData.histData.getWorkflowID();
+        String workflowName = chartData.histData.getWorkflowName();
+        DataRepository data = ctx.getData();
+
+        // check for an explicit setting for this workflow
+        if (setSizeUnits(chartData, data, workflowID + "/Size_Units"))
+            return;
+
+        // check for a setting stored for another workflow with this name
+        if (setSizeUnits(chartData, data, workflowName + "/Size_Units"))
+            return;
+
+        // check for the size unit we guessed during the current session
+        if (setSizeUnits(chartData, data, workflowID + "//Size_Units_Guess"))
+            return;
+
+        // no luck so far; examine the historical data and make a best guess
+        double bestSize = 0;
+        String bestUnits = null;
+        for (Entry<String, DataPair> e : chartData.histData
+                .getAddedAndModifiedSizes().entrySet()) {
+            double oneSize = Math.max(e.getValue().plan, e.getValue().actual);
+            if (oneSize > bestSize) {
+                bestSize = oneSize;
+                bestUnits = e.getKey();
+            }
+        }
+        if (bestUnits != null) {
+            // if we find a good metric, use it and save our decision for the
+            // rest of this session. This ensures that the charts won't silently
+            // switch size units (for example, when different filters are in
+            // effect), as that erratic behavior could confuse/mislead users.
+            String dataName = "/Workflow_Prefs/" + workflowID
+                    + "//Size_Units_Guess";
+            data.putValue(dataName, StringData.create(bestUnits));
+            chartData.setPrimarySizeUnits(bestUnits);
+            return;
+        }
+
+        // no actual size data is present. Use "Hours" as our guess.
+        chartData.setPrimarySizeUnits("Hours");
+    }
+
+    private boolean setSizeUnits(ChartData chartData, DataRepository data,
+            String dataName) {
+        SimpleData sd = data.getSimpleValue("/Workflow_Prefs/" + dataName);
+        if (sd == null || !sd.test())
+            return false;
+        chartData.setPrimarySizeUnits(sd.format());
+        return true;
     }
 
 
@@ -235,7 +293,7 @@ public abstract class AnalysisPage {
     }
 
 
-    private Map invokeChart(Entry<Chart, Method> chart, ChartData chartData)
+    protected Map invokeChart(Entry<Chart, Method> chart, ChartData chartData)
             throws ServletException {
         ResultSet resultSet;
         try {
@@ -294,10 +352,24 @@ public abstract class AnalysisPage {
         throw new IllegalArgumentException("Unrecognized ID: " + id);
     }
 
-    protected boolean isLegitSize(String units) {
-        return units != null && !units.equalsIgnoreCase("hours")
-                && !units.equalsIgnoreCase(getRes("Hours"));
+    public static boolean isTimeUnits(String sizeUnits) {
+        // "Hours" are not a standard size metric in the TSP process; but they
+        // are a common proxy used by teams when they create custom MCFs. This
+        // method tests to see if a team has followed that pattern, even if the
+        // authors of the MCF did not use English words.
+        return sizeUnits != null
+                && HOURS_UNITS.contains(sizeUnits.toLowerCase());
     }
+
+    private static final Set<String> HOURS_UNITS = Collections
+            .unmodifiableSet(new HashSet(Arrays.asList("hours", // en
+                "stunden", // de
+                "horas", // es, pt
+                "valandos", // lt
+                "\u0447\u0430\u0441\u044B", // ru
+                "\u6642\u9593", // ja
+                "\u5C0F\u65F6\u6570" // zh
+            )));
 
     protected static String getRes(String resKey) {
         return resources.getString(resKey);

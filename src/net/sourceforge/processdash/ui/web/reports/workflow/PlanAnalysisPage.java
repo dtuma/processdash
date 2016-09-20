@@ -44,7 +44,7 @@ public class PlanAnalysisPage extends AnalysisPage {
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
 
-        if (isLegitSize(chartData.primarySizeUnits))
+        if (chartData.isLegitSize())
             writeChart(req, resp, chartData, "estErrScatter",
                 chartData.primarySizeUnits);
 
@@ -53,7 +53,7 @@ public class PlanAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "planVsActualTime");
 
         for (String units : chartData.histData.getSizeUnits()) {
-            if (isLegitSize(units)) {
+            if (!AnalysisPage.isTimeUnits(units)) {
                 writeChart(req, resp, chartData, "size", units);
                 writeChart(req, resp, chartData, "sizeEstErr", units);
                 writeChart(req, resp, chartData, "planVsActualSize", units);

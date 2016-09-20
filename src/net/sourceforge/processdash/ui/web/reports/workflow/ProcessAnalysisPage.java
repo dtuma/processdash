@@ -50,7 +50,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
-        boolean showProductivity = isLegitSize(chartData.primarySizeUnits);
+        boolean showProductivity = chartData.isLegitSize();
 
         if (showProductivity)
             writeChart(req, resp, chartData, "productivity");

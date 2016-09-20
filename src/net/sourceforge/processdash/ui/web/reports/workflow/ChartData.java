@@ -25,6 +25,7 @@ package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
@@ -69,13 +70,45 @@ public class ChartData {
         return result;
     }
 
+    public void setPrimarySizeUnits(String units) {
+        primarySizeUnits = units;
+
+        if ("LOC".equalsIgnoreCase(units))
+            sizeDensityMultiplier = 1000; // KLOC
+
+        else if (AnalysisPage.isTimeUnits(units))
+            sizeDensityMultiplier = Settings.getInt(
+                SIZE_MULT_SETTING + "hours", 10); // 10-Hours
+
+        else if (units != null)
+            sizeDensityMultiplier = Settings.getInt(SIZE_MULT_SETTING
+                    + units.toLowerCase().replace(' ', '_'), 1);
+    }
+
+    public boolean isLegitSize() {
+        return primarySizeUnits != null && !isTimeUnits();
+    }
+
+    public boolean isTimeUnits() {
+        return AnalysisPage.isTimeUnits(primarySizeUnits);
+    }
+
     public String getDensityStr() {
-        if (sizeDensityMultiplier == 1)
+        if (isTimeUnits())
+            return AnalysisPage.resources.format("Hours_Units_FMT",
+                sizeDensityMultiplier);
+
+        else if (sizeDensityMultiplier == 1)
             return primarySizeUnits;
-        else if (sizeDensityMultiplier == 1000)
-            return "K" + primarySizeUnits;
+
+        else if (sizeDensityMultiplier == 1000
+                && "LOC".equalsIgnoreCase(primarySizeUnits))
+            return "KLOC";
+
         else
             return sizeDensityMultiplier + " " + primarySizeUnits;
     }
+
+    private static final String SIZE_MULT_SETTING = "workflow.sizeDensityFactor.";
 
 }
