@@ -45,9 +45,11 @@ public class WorkflowReport extends HttpServlet {
 
     protected static final String SELF_URI = "workflowToDate";
 
+    protected static final String SUMMARY_URI = "workflowSummary";
+
     protected static final String PAGE_PARAM = "page";
 
-    private static final String WORKFLOW_PARAM = "workflow";
+    protected static final String WORKFLOW_PARAM = "workflow";
 
 
     @Override
@@ -166,8 +168,8 @@ public class WorkflowReport extends HttpServlet {
 
         String tocUri = HTMLUtils.appendQuery(SELF_URI, WORKFLOW_PARAM,
             workflowID);
-        String ppsUri = HTMLUtils.appendQuery("workflowSummary",
-            WORKFLOW_PARAM, workflowID);
+        String ppsUri = HTMLUtils.appendQuery(SUMMARY_URI, WORKFLOW_PARAM,
+            workflowID);
 
         out.write("<frameset cols='140,*'>\n");
         out.write("    <frame name='toc' src='" + tocUri + "&amp;toc'>\n");
@@ -188,7 +190,7 @@ public class WorkflowReport extends HttpServlet {
 
         String query = HTMLUtils.appendQuery("x", WORKFLOW_PARAM, workflowID)
                 .substring(1);
-        writeTocLink(out, "workflowSummary", query, "Summary.Title");
+        writeTocLink(out, SUMMARY_URI, query, "Summary.Title");
         writeTocLink(out, Page.Defects, query, "Defects.Title");
         writeTocLink(out, Page.Plan, query, "Plan.Title");
         writeTocLink(out, Page.Process, query, "Process.Title");
@@ -228,14 +230,18 @@ public class WorkflowReport extends HttpServlet {
             analysisPages[Page.Plan.ordinal()] = new PlanAnalysisPage();
             analysisPages[Page.Process.ordinal()] = new ProcessAnalysisPage();
             analysisPages[Page.Quality.ordinal()] = new QualityAnalysisPage();
+            analysisPages[Page.Config.ordinal()] = new ConfigureAnalysisPage();
         }
 
-        Page p = Page.valueOf(page);
-        analysisPages[p.ordinal()].doGet(req, resp);
+        AnalysisPage p = analysisPages[Page.valueOf(page).ordinal()];
+        if ("POST".equalsIgnoreCase(req.getMethod()))
+            p.doPost(req, resp);
+        else
+            p.doGet(req, resp);
     }
 
     private enum Page {
-        Defects, Plan, Process, Quality
+        Defects, Plan, Process, Quality, Config
     }
 
     private AnalysisPage[] analysisPages;

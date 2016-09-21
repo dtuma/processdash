@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
+import static net.sourceforge.processdash.ui.web.reports.workflow.WorkflowReport.PAGE_PARAM;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -61,6 +63,8 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public abstract class AnalysisPage {
 
+    protected static final String LAST_PAGE_PARAM = "last" + PAGE_PARAM;
+
     protected static Resources resources = Resources.getDashBundle("Analysis");
 
     private String selfUri;
@@ -69,7 +73,7 @@ public abstract class AnalysisPage {
 
     public AnalysisPage(String page, String titleKey) {
         this.selfUri = HTMLUtils.appendQuery(WorkflowReport.SELF_URI,
-            WorkflowReport.PAGE_PARAM, page);
+            PAGE_PARAM, page);
         this.titleKey = titleKey;
     }
 
@@ -164,6 +168,17 @@ public abstract class AnalysisPage {
         return true;
     }
 
+    protected void saveSizeUnits(HttpServletRequest req, String units) {
+        WorkflowHistDataHelper histData = getChartData(req).histData;
+        DataRepository data = (DataRepository) PDashServletUtils
+                .buildEnvironment(req).get(TinyCGI.DATA_REPOSITORY);
+        StringData sd = StringData.create(units);
+        data.putValue("/Workflow_Prefs/" + histData.getWorkflowID()
+                + "/Size_Units", sd);
+        data.putValue("/Workflow_Prefs/" + histData.getWorkflowName()
+                + "/Size_Units", sd);
+    }
+
 
 
     private void writeHtmlPage(HttpServletRequest req,
@@ -193,11 +208,26 @@ public abstract class AnalysisPage {
         out.write(HTMLUtils.escapeEntities(title));
         out.write("</h1>\n");
 
-        out.write("<table><tr><td style='vertical-align:baseline'><h2>");
+        out.write("<table><tr>\n<td style='vertical-align:baseline'><h2>");
         out.write(HTMLUtils.escapeEntities(getRes(titleKey)));
-        out.write("&nbsp;</td><td style='vertical-align:baseline'><i>");
+        out.write("&nbsp;</td>\n");
+        writePageSubtitle(req, out, chartData);
+        out.write("</tr></table>\n");
+    }
+
+    protected void writePageSubtitle(HttpServletRequest req, PrintWriter out,
+            ChartData chartData) {
+        out.write("<td class='doNotPrint' style='vertical-align:baseline'><i>");
         out.write(HTMLUtils.escapeEntities(getRes("More_Detail_Instruction")));
-        out.write("</i></td></tr></table>\n");
+
+        if (!isExporting(req) && chartData.isSizeConfigurable()) {
+            out.write("&nbsp;&nbsp;<a href='" + getSideUri(chartData, "Config")
+                    + "'>");
+            out.write(resources.getHTML("Workflow.Config.Link_Text"));
+            out.write("</a>");
+        }
+
+        out.write("</i></td>\n");
     }
 
 
@@ -249,7 +279,7 @@ public abstract class AnalysisPage {
 
         // use the query parameters to build a URL for the chart details view
         String fullURL;
-        if (req.getParameter("EXPORT") != null)
+        if (isExporting(req))
             fullURL = "table.class";
         else {
             fullURL = "full.htm";
@@ -370,6 +400,20 @@ public abstract class AnalysisPage {
                 "\u6642\u9593", // ja
                 "\u5C0F\u65F6\u6570" // zh
             )));
+
+
+    protected String getSideUri(ChartData chartData, String sidePage) {
+        String uri = selfUri;
+        uri = StringUtils.findAndReplace(uri, PAGE_PARAM, LAST_PAGE_PARAM);
+        uri = HTMLUtils.appendQuery(uri, PAGE_PARAM, sidePage);
+        uri = HTMLUtils.appendQuery(uri, WorkflowReport.WORKFLOW_PARAM,
+            chartData.histData.getWorkflowID());
+        return uri;
+    }
+
+    protected boolean isExporting(HttpServletRequest req) {
+        return req.getParameter("EXPORT") != null;
+    }
 
     protected static String getRes(String resKey) {
         return resources.getString(resKey);

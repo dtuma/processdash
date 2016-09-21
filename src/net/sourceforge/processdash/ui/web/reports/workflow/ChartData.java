@@ -93,6 +93,10 @@ public class ChartData {
         return AnalysisPage.isTimeUnits(primarySizeUnits);
     }
 
+    public boolean isSizeConfigurable() {
+        return !histData.getSizeUnits().isEmpty();
+    }
+
     public String getDensityStr() {
         if (isTimeUnits())
             return AnalysisPage.resources.format("Hours_Units_FMT",
