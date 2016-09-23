@@ -83,6 +83,8 @@ public class PieChart extends CGIChartBase {
         else if ("consistent".equals(colorScheme))
             // since 2.0.9
             configureConsistentColors(plot, pieData);
+        else if (parameters.containsKey("c1"))
+            configureIndividualColors(plot, pieData);
 
         String interiorGap = (String) parameters.get("interiorGap");
         if (interiorGap != null) try {
@@ -123,6 +125,18 @@ public class PieChart extends CGIChartBase {
         for (Object key : pieData.getKeys()) {
             Paint paint = s.getNextPaint();
             plot.setSectionPaint((Comparable) key, paint);
+        }
+    }
+
+    private void configureIndividualColors(PiePlot plot, PieDataset pieData) {
+        int num = 1;
+        for (Object key : pieData.getKeys()) {
+            String colorKey = "c" + num;
+            String color = getParameter(colorKey);
+            if (color != null)
+                plot.setSectionPaint((Comparable) key,
+                    Color.decode("#" + color));
+            num++;
         }
     }
 

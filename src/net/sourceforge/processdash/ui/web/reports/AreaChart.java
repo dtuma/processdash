@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.ui.web.reports;
 
+import java.awt.Color;
 import java.awt.Paint;
 import java.text.DecimalFormat;
 
@@ -70,6 +71,8 @@ public class AreaChart extends CGIChartBase {
         Object colorScheme = parameters.get("colorScheme");
         if ("consistent".equals(colorScheme))
             configureConsistentColors(chart.getCategoryPlot(), catData);
+        else if (parameters.containsKey("c1"))
+            configureIndividualColors(chart.getCategoryPlot(), catData);
 
         return chart;
     }
@@ -87,6 +90,17 @@ public class AreaChart extends CGIChartBase {
         for (int i = 0; i < catData.getRowCount(); i++) {
             Paint paint = s.getNextPaint();
             rend.setSeriesPaint(i, paint);
+        }
+    }
+
+    private void configureIndividualColors(CategoryPlot plot,
+            CategoryDataset catData) {
+        CategoryItemRenderer rend = plot.getRenderer();
+        for (int i = 0; i < catData.getRowCount(); i++) {
+            String colorKey = "c" + (i + 1);
+            String color = getParameter(colorKey);
+            if (color != null)
+                rend.setSeriesPaint(i, Color.decode("#" + color));
         }
     }
 
