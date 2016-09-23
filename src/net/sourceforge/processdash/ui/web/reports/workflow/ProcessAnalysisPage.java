@@ -58,6 +58,10 @@ public class ProcessAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "overheadPhases");
         writeChart(req, resp, chartData, "constrTime");
         writeChart(req, resp, chartData, "constrPhases");
+        writeChart(req, resp, chartData, "appraisalTime");
+        writeChart(req, resp, chartData, "appraisalPhases");
+        writeChart(req, resp, chartData, "failureTime");
+        writeChart(req, resp, chartData, "failurePhases");
         writeChart(req, resp, chartData, "typeTime");
         writeChart(req, resp, chartData, "typeToDate");
         writeChart(req, resp, chartData, "phaseTime");
@@ -65,6 +69,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
         if (showProductivity) {
             writeChart(req, resp, chartData, "prodVsYield");
             writeChart(req, resp, chartData, "prodVsAfr");
+            writeChart(req, resp, chartData, "prodVsFailure");
         }
     }
 
@@ -81,9 +86,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
     @Chart(id = "overheadTime", type = "line", //
     titleKey = "Plan.Percent_Overhead_Time")
     public ResultSet getOverheadTime(ChartData chartData) {
-        ResultSet data = chartData.getEnactmentResultSet("Percent_Units");
-        writePhaseTimePct(data, 1, PhaseType.Overhead);
-        return data;
+        return getTypeTimePctSet(chartData, PhaseType.Overhead);
     }
 
 
@@ -91,20 +94,14 @@ public class ProcessAnalysisPage extends AnalysisPage {
     titleKey = "Plan.Overhead_Phase_Time", //
     format = "units=${Percent_Time}")
     public ResultSet getOverheadTimeByPhase(ChartData chartData) {
-        List<String> overheadPhases = chartData.histData
-                .getPhasesOfType(PhaseType.Overhead);
-        ResultSet data = chartData.getEnactmentResultSet(overheadPhases.size());
-        writePhaseTimePct(data, 1, overheadPhases.toArray());
-        return data;
+        return getPhaseTimePctSet(chartData, PhaseType.Overhead);
     }
 
 
     @Chart(id = "constrTime", type = "line", //
     titleKey = "Plan.Percent_Construction_Time")
     public ResultSet getConstructionTime(ChartData chartData) {
-        ResultSet data = chartData.getEnactmentResultSet("Percent_Units");
-        writePhaseTimePct(data, 1, PhaseType.Construction);
-        return data;
+        return getTypeTimePctSet(chartData, PhaseType.Construction);
     }
 
 
@@ -112,11 +109,37 @@ public class ProcessAnalysisPage extends AnalysisPage {
     titleKey = "Plan.Construction_Phase_Time", //
     format = "units=${Percent_Time}")
     public ResultSet getConstructionTimeByPhase(ChartData chartData) {
-        List<String> constrPhases = chartData.histData
-                .getPhasesOfType(PhaseType.Construction);
-        ResultSet data = chartData.getEnactmentResultSet(constrPhases.size());
-        writePhaseTimePct(data, 1, constrPhases.toArray());
-        return data;
+        return getPhaseTimePctSet(chartData, PhaseType.Construction);
+    }
+
+
+    @Chart(id = "appraisalTime", type = "line", //
+    titleKey = "Plan.Percent_Appraisal_Time")
+    public ResultSet getAppraisalTime(ChartData chartData) {
+        return getTypeTimePctSet(chartData, PhaseType.Appraisal);
+    }
+
+
+    @Chart(id = "appraisalPhases", type = "line", //
+    titleKey = "Plan.Appraisal_Phase_Time", //
+    format = "units=${Percent_Time}")
+    public ResultSet getAppraisalTimeByPhase(ChartData chartData) {
+        return getPhaseTimePctSet(chartData, PhaseType.Appraisal);
+    }
+
+
+    @Chart(id = "failureTime", type = "line", //
+    titleKey = "Plan.Percent_Failure_Time")
+    public ResultSet getFailureTime(ChartData chartData) {
+        return getTypeTimePctSet(chartData, PhaseType.Failure);
+    }
+
+
+    @Chart(id = "failurePhases", type = "line", //
+    titleKey = "Plan.Failure_Phase_Time", //
+    format = "units=${Percent_Time}")
+    public ResultSet getFailureTimeByPhase(ChartData chartData) {
+        return getPhaseTimePctSet(chartData, PhaseType.Failure);
     }
 
 
@@ -211,6 +234,33 @@ public class ProcessAnalysisPage extends AnalysisPage {
     }
 
 
+    @Chart(id = "prodVsFailure", type = "xy", //
+    titleKey = "Process.Productivity_Vs_Failure_Title")
+    public ResultSet getProductivityVsFailure(ChartData chartData) {
+        ResultSet data = chartData.getEnactmentResultSet(2);
+        data.setColName(1, getRes("Plan.Percent_Failure_Time"));
+        writePhaseTimePct(data, 1, PhaseType.Failure);
+        writeProductivity(chartData, data, 2);
+        return data;
+    }
+
+
+
+    private ResultSet getTypeTimePctSet(ChartData chartData, PhaseType type) {
+        ResultSet data = chartData.getEnactmentResultSet("Percent_Units");
+        writePhaseTimePct(data, 1, type);
+        return data;
+    }
+
+    public static ResultSet getPhaseTimePctSet(ChartData chartData,
+            PhaseType type) {
+        List<String> phases = chartData.getPhases(type);
+        if (phases.isEmpty())
+            return null;
+        ResultSet data = chartData.getEnactmentResultSet(phases.size());
+        writePhaseTimePct(data, 1, phases.toArray());
+        return data;
+    }
 
     public static void writePhaseTimePct(ResultSet resultSet, int firstCol,
             Object... phases) {

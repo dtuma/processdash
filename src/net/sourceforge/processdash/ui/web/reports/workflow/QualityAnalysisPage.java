@@ -44,6 +44,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {
+
         writeChart(req, resp, chartData, "yield");
         writeChart(req, resp, chartData, "COQ");
         writeChart(req, resp, chartData, "appraisalCOQ");
@@ -51,16 +52,22 @@ public class QualityAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "failureCOQ");
         writeChart(req, resp, chartData, "failurePhases");
         writeChart(req, resp, chartData, "totalCOQ");
-        writeChart(req, resp, chartData, "qualityPhases");
-        writeChart(req, resp, chartData, "appraisalVsFailure");
-        writeChart(req, resp, chartData, "AFR");
-        writeChart(req, resp, chartData, "yieldVsAfr");
 
+        List<String> appraisal = chartData.getPhases(PhaseType.Appraisal);
         List<String> failure = chartData.getPhases(PhaseType.Failure);
+        boolean hasAFR = !appraisal.isEmpty() && !failure.isEmpty();
+        if (hasAFR) {
+            writeChart(req, resp, chartData, "qualityPhases");
+            writeChart(req, resp, chartData, "appraisalVsFailure");
+            writeChart(req, resp, chartData, "AFR");
+            writeChart(req, resp, chartData, "yieldVsAfr");
+        }
+
         if (!failure.isEmpty()) {
-            String lastFailurePhase = failure.get(failure.size() - 1);
-            writeChart(req, resp, chartData, "defectsVsAfr", lastFailurePhase);
-            writeChart(req, resp, chartData, "defectsVsYield", lastFailurePhase);
+            String lastFailPhase = failure.get(failure.size() - 1);
+            if (hasAFR)
+                writeChart(req, resp, chartData, "defectsVsAfr", lastFailPhase);
+            writeChart(req, resp, chartData, "defectsVsYield", lastFailPhase);
         }
     }
 
@@ -102,11 +109,8 @@ public class QualityAnalysisPage extends AnalysisPage {
     titleKey = "Quality.Appraisal_Phase_Title", //
     format = "units=${Percent_Time}")
     public ResultSet getAppraisalCostByPhase(ChartData chartData) {
-        List<String> apprPhases = chartData.histData
-                .getPhasesOfType(PhaseType.Appraisal);
-        ResultSet data = chartData.getEnactmentResultSet(apprPhases.size());
-        writePhaseTimePct(data, 1, apprPhases.toArray());
-        return data;
+        return ProcessAnalysisPage.getPhaseTimePctSet(chartData,
+            PhaseType.Appraisal);
     }
 
 
@@ -124,11 +128,8 @@ public class QualityAnalysisPage extends AnalysisPage {
     titleKey = "Quality.Failure_Phase_Title", //
     format = "units=${Percent_Time}")
     public ResultSet getFailureCostByPhase(ChartData chartData) {
-        List<String> failurePhases = chartData.histData
-                .getPhasesOfType(PhaseType.Failure);
-        ResultSet data = chartData.getEnactmentResultSet(failurePhases.size());
-        writePhaseTimePct(data, 1, failurePhases.toArray());
-        return data;
+        return ProcessAnalysisPage.getPhaseTimePctSet(chartData,
+            PhaseType.Failure);
     }
 
 

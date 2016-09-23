@@ -66,13 +66,15 @@ public class DefectAnalysisPage extends AnalysisPage {
         for (String phase : chartData.getPhases(PhaseType.Appraisal,
             PhaseType.Failure))
             writeChart(req, resp, chartData, "remDefects", phase);
-        writeChart(req, resp, chartData, "escapes");
+        if (SHOW_ESCAPE_CHARTS)
+            writeChart(req, resp, chartData, "escapes");
 
         List<String> fail = chartData.getPhases(PhaseType.Failure);
         for (int i = 1; i < fail.size(); i++)
             writeChart(req, resp, chartData, "remScatter", fail.get(i - 1),
                 fail.get(i));
-        if (!fail.isEmpty())
+
+        if (SHOW_ESCAPE_CHARTS && !fail.isEmpty())
             writeChart(req, resp, chartData, "escapeScatter",
                 fail.get(fail.size() - 1));
 
@@ -211,6 +213,8 @@ public class DefectAnalysisPage extends AnalysisPage {
     format = "units=${Defects.Injection_Rate.Units}\nheaderComment=${Defects.Injection_Rate.Units}")
     public ResultSet getPhaseInjectionRates(ChartData chartData) {
         List<String> phases = chartData.getPhases(PhaseType.Construction);
+        if (phases.isEmpty())
+            return null;
         Collections.reverse(phases);
         ResultSet data = getDefectsByPhase(chartData, phases, false, Denom.Rate);
         return data;
@@ -223,6 +227,8 @@ public class DefectAnalysisPage extends AnalysisPage {
     public ResultSet getPhaseRemovalRates(ChartData chartData) {
         List<String> phases = chartData.getPhases(PhaseType.Appraisal,
             PhaseType.Failure);
+        if (phases.isEmpty())
+            return null;
         Collections.reverse(phases);
         ResultSet data = getDefectsByPhase(chartData, phases, true, Denom.Rate);
         return data;
@@ -233,7 +239,7 @@ public class DefectAnalysisPage extends AnalysisPage {
     format = "headerComment=${Defects.Leverage.Comment_FMT}")
     public ResultSet getDefectRemovalLeverage(ChartData chartData) {
         ResultSet data = getPhaseRemovalRates(chartData);
-        if (data.numCols() < 2)
+        if (data == null || data.numCols() < 2)
             return null;
 
         for (int row = data.numRows(); row > 0; row--) {
@@ -374,5 +380,7 @@ public class DefectAnalysisPage extends AnalysisPage {
     private static final String TOTAL = WorkflowHistDataHelper.TOTAL_PHASE_KEY;
 
     private static final String UNKNOWN = WorkflowHistDataHelper.UNKNOWN_PHASE_KEY;
+
+    private static final boolean SHOW_ESCAPE_CHARTS = false;
 
 }
