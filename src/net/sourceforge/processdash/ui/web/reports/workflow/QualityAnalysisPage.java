@@ -107,7 +107,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     @Chart(id = "appraisalPhases", type = "line", //
     titleKey = "Quality.Appraisal_Phase_Title", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getAppraisalCostByPhase(ChartData chartData) {
         return ProcessAnalysisPage.getPhaseTimePctSet(chartData,
             PhaseType.Appraisal);
@@ -126,7 +126,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     @Chart(id = "failurePhases", type = "line", //
     titleKey = "Quality.Failure_Phase_Title", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getFailureCostByPhase(ChartData chartData) {
         return ProcessAnalysisPage.getPhaseTimePctSet(chartData,
             PhaseType.Failure);
@@ -146,7 +146,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     @Chart(id = "qualityPhases", type = "line", //
     titleKey = "Quality.COQ_Phase_Title", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getQualityCostByPhase(ChartData chartData) {
         List<String> qualityPhases = chartData.histData.getPhasesOfType(
             PhaseType.Appraisal, PhaseType.Failure);

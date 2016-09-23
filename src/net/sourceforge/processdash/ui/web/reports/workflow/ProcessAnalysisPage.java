@@ -92,7 +92,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "overheadPhases", type = "line", //
     titleKey = "Plan.Overhead_Phase_Time", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getOverheadTimeByPhase(ChartData chartData) {
         return getPhaseTimePctSet(chartData, PhaseType.Overhead);
     }
@@ -107,7 +107,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "constrPhases", type = "line", //
     titleKey = "Plan.Construction_Phase_Time", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getConstructionTimeByPhase(ChartData chartData) {
         return getPhaseTimePctSet(chartData, PhaseType.Construction);
     }
@@ -122,7 +122,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "appraisalPhases", type = "line", //
     titleKey = "Plan.Appraisal_Phase_Time", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getAppraisalTimeByPhase(ChartData chartData) {
         return getPhaseTimePctSet(chartData, PhaseType.Appraisal);
     }
@@ -137,7 +137,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "failurePhases", type = "line", //
     titleKey = "Plan.Failure_Phase_Time", //
-    format = "units=${Percent_Time}")
+    format = "units=${Percent_Time}\nnoSkipLegend=t")
     public ResultSet getFailureTimeByPhase(ChartData chartData) {
         return getPhaseTimePctSet(chartData, PhaseType.Failure);
     }

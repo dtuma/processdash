@@ -452,7 +452,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
                 catAxis.setTickLabelsVisible(false);
         }
 
-        if (data.numCols() == 1) {
+        if (data.numCols() == 1 && getParameter("noSkipLegend") == null) {
             chart.removeLegend();
             chart.getPlot().setInsets(new RectangleInsets(5,2,2,5));
         }

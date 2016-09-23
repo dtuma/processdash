@@ -210,7 +210,8 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "injRates", type = "line", //
     titleKey = "Defects.Injection_Rate.Title", //
-    format = "units=${Defects.Injection_Rate.Units}\nheaderComment=${Defects.Injection_Rate.Units}")
+    format = "noSkipLegend=t\nunits=${Defects.Injection_Rate.Units}\n"
+            + "headerComment=${Defects.Injection_Rate.Units}")
     public ResultSet getPhaseInjectionRates(ChartData chartData) {
         List<String> phases = chartData.getPhases(PhaseType.Construction);
         if (phases.isEmpty())
@@ -223,7 +224,8 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "remRates", type = "line", //
     titleKey = "Defects.Removal_Rate.Title", //
-    format = "units=${Defects.Removal_Rate.Units}\nheaderComment=${Defects.Removal_Rate.Comment}")
+    format = "noSkipLegend=t\nunits=${Defects.Removal_Rate.Units}\n"
+            + "headerComment=${Defects.Removal_Rate.Comment}")
     public ResultSet getPhaseRemovalRates(ChartData chartData) {
         List<String> phases = chartData.getPhases(PhaseType.Appraisal,
             PhaseType.Failure);
