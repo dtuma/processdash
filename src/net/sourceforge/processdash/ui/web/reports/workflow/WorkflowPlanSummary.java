@@ -421,8 +421,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             return;
 
         out.print("<p>\n");
-        writePhaseChart(true, "Estimated_Time", timeInPhase);
-        writePhaseChart(false, "Time", timeInPhase);
+        writePhaseChart(true, "Estimated_Time", "Hours", 60, timeInPhase);
+        writePhaseChart(false, "Time", "Hours", 60, timeInPhase);
         out.print("</p>\n");
     }
 
@@ -441,13 +441,14 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         Map removed = defectsByPhase[1];
 
         out.print("<p>\n");
-        writePhaseChart(false, "Defects_Injected", injected);
-        writePhaseChart(false, "Defects_Removed", removed);
+        writePhaseChart(false, "Defects_Injected", "Defects", 1, injected);
+        writePhaseChart(false, "Defects_Removed", "Defects", 1, removed);
         out.print("</p>\n");
     }
 
     private void writePhaseChart(boolean plan, String titleRes,
-            Map<String, DataPair> phaseData) throws IOException {
+            String columnRes, double factor, Map<String, DataPair> phaseData)
+            throws IOException {
         int numRows = phaseData.size() - 1;
         ResultSet data = new ResultSet(numRows, 1);
         int row = 0;
@@ -456,15 +457,15 @@ public class WorkflowPlanSummary extends TinyCGIBase {
                 break;
             data.setRowName(row, e.getKey());
             double value = plan ? e.getValue().plan : e.getValue().actual;
-            data.setData(row, 1, new DoubleData(value));
+            data.setData(row, 1, new DoubleData(value / factor));
         }
-        writeChart((plan ? "Plan" : "Actual"), titleRes, data);
+        writeChart((plan ? "Plan" : "Actual"), titleRes, columnRes, data);
     }
 
-    private void writeChart(String type, String titleRes, ResultSet chartData)
-            throws IOException {
+    private void writeChart(String type, String titleRes, String columnRes,
+            ResultSet chartData) throws IOException {
         chartData.setColName(0, "Phase");
-        chartData.setColName(1, "Time");
+        chartData.setColName(1, resources.getString(columnRes));
         String title = resources.getString(titleRes);
 
         String dataName = "Workflow_Chart///" + type + "_" + titleRes;
