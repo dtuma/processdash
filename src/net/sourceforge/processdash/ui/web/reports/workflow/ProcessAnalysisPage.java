@@ -145,11 +145,11 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "typeTime", type = "area", //
     titleKey = "Process.Time_By_Type_Title", //
-    format = "stacked=pct\ncolorScheme=consistent")
+    format = "stacked=pct\n" + TYPE_COLORS)
     public ResultSet getTimeByPhaseType(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(4);
         for (PhaseType type : PhaseType.values()) {
-            int col = 4 - type.ordinal();
+            int col = type.ordinal() + 1;
             data.setColName(col, getRes("Process.Type_" + type));
             writePhaseTimePct(data, col, type);
         }
@@ -158,8 +158,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
 
     @Chart(id = "typeToDate", type = "pie", //
-    titleKey = "Process.Time_By_Type_To_Date_Title", //
-    format = "colorScheme=consistent")
+    titleKey = "Process.Time_By_Type_To_Date_Title", format = TYPE_COLORS)
     public ResultSet getTimeByPhaseTypeToDate(ChartData chartData) {
         ResultSet data = new ResultSet(4, 2);
         data.setColName(0, getRes("Process.Type_Header"));
@@ -169,7 +168,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
         double totalTime = chartData.histData.getTime(null, null, true);
         for (PhaseType type : PhaseType.values()) {
-            int row = 4 - type.ordinal();
+            int row = type.ordinal() + 1;
             double time = chartData.histData.getTime(null, type, true);
             data.setRowName(row, getRes("Process.Type_" + type));
             data.setData(row, 1, num(time / 60));
@@ -179,10 +178,13 @@ public class ProcessAnalysisPage extends AnalysisPage {
         return data;
     }
 
+    private static final String TYPE_COLORS = "c1=bf9f75\nc2=4444ff\nc3=00c000\nc4=ff0000";
+
 
     @Chart(id = "phaseTime", type = "area", //
     titleKey = "Plan.Phase_Time_Title", smallFmt = "hideLegend=t", //
-    format = "stacked=pct\ncolorScheme=consistent\nheaderComment=(${Hours})")
+    format = "colorScheme=consistent\nconsistentSkip=2\n"
+            + "stacked=pct\nheaderComment=(${Hours})")
     public ResultSet getTimeByPhase(ChartData chartData) {
         List<String> phases = chartData.histData.getPhasesOfType();
         ResultSet data = chartData.getEnactmentResultSet(phases.size());
@@ -193,7 +195,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
 
     @Chart(id = "phaseToDate", type = "pie", //
     titleKey = "Plan.Time_In_Phase_Title", smallFmt = "hideLegend=t", //
-    format = "colorScheme=consistent")
+    format = "colorScheme=consistent\nconsistentSkip=2")
     public ResultSet getTimeInPhaseToDate(ChartData chartData) {
         Map<String, DataPair> time = chartData.histData.getTotalTimeInPhase();
         double totalTime = time.remove(WorkflowHistDataHelper.TOTAL_PHASE_KEY).actual;

@@ -155,7 +155,8 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "injByPhase", type = "area", //
     titleKey = "Defects.Phase_Injected_Title", //
-    format = "stacked=pct\ncolorScheme=consistent", smallFmt = "hideLegend=t")
+    format = "stacked=pct\ncolorScheme=consistent\nconsistentSkip=1", //
+    smallFmt = "hideLegend=t")
     public ResultSet getInjectedDefectsByPhase(ChartData chartData) {
         List<String> phases = chartData.getPhases();
         phases.add(0, Defect.BEFORE_DEVELOPMENT);
@@ -168,7 +169,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "remByPhase", type = "area", //
     titleKey = "Defects.Phase_Removed_Title", //
-    format = "stacked=pct\ncolorScheme=consistent\nconsistentSkip=1", //
+    format = "stacked=pct\ncolorScheme=consistent\nconsistentSkip=2", //
     smallFmt = "hideLegend=t")
     public ResultSet getRemovedDefectsByPhase(ChartData chartData) {
         List<String> phases = chartData.getPhases();
@@ -264,7 +265,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "injToDate", type = "pie", //
     titleKey = "Defects.Injected_By_Phase_Title", //
-    format = "colorScheme=consistent", smallFmt = "hideLegend=t")
+    format = "colorScheme=consistent\nconsistentSkip=1", smallFmt = "hideLegend=t")
     public ResultSet getDefectsInjectedToDate(ChartData chartData) {
         ResultSet data = getTotalDefectsByPhaseToDate(chartData, false);
         data.setColName(1, getRes("Defects_Injected"));
@@ -277,7 +278,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     @Chart(id = "remToDate", type = "pie", //
     titleKey = "Defects.Removed_By_Phase_Title", //
-    format = "colorScheme=consistent\nconsistentSkip=1", //
+    format = "colorScheme=consistent\nconsistentSkip=2", //
     smallFmt = "hideLegend=t")
     public ResultSet getDefectsRemovedToDate(ChartData chartData) {
         ResultSet data = getTotalDefectsByPhaseToDate(chartData, true);
