@@ -34,6 +34,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -53,6 +54,9 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         String workflowID = getParameter("workflow");
         WorkflowHistDataHelper hist = new WorkflowHistDataHelper(getQuery(),
                 workflowID);
+        if (hist.getWorkflowName() == null)
+            throw new TinyCGIException(404,
+                    "The requested workflow was not found.");
 
         String title = resources.getString("Workflow.Analysis.Title") + " - "
                 + hist.getWorkflowName();

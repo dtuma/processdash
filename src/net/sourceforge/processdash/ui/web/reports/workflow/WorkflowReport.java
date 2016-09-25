@@ -158,6 +158,11 @@ public class WorkflowReport extends HttpServlet {
         PDashContext ctx = PDashServletUtils.getContext(req);
         String workflowName = QueryUtils.singleValue(QueryUtils.pluckColumn( //
             ctx.getQuery().query(WORKFLOW_LIST_QUERY, workflowID), 0));
+        if (workflowName == null) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                "The requested workflow was not found.");
+            return;
+        }
 
         PrintWriter out = resp.getWriter();
         out.write("<html>\n<head><title>");

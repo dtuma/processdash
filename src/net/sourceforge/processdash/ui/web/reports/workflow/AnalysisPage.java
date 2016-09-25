@@ -86,6 +86,11 @@ public abstract class AnalysisPage {
             throws ServletException, IOException {
 
         ChartData chartData = getChartData(req);
+        if (chartData == null) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                "The requested workflow was not found.");
+            return;
+        }
 
         if (req.getParameter("type") == null) {
             writeHtmlPage(req, resp, chartData);
@@ -101,7 +106,7 @@ public abstract class AnalysisPage {
 
         String workflowID = req.getParameter("workflow");
         if (!StringUtils.hasValue(workflowID))
-            throw new IllegalArgumentException("Missing workflow parameter");
+            return null;
 
         DashboardContext ctx = (DashboardContext) PDashServletUtils
                 .buildEnvironment(req).get(TinyCGI.DASHBOARD_CONTEXT);
@@ -110,6 +115,9 @@ public abstract class AnalysisPage {
         QueryRunner query = databasePlugin.getObject(QueryRunner.class);
 
         result.histData = new WorkflowHistDataHelper(query, workflowID);
+        if (result.histData.getWorkflowName() == null)
+            return null;
+
         configureSizeUnits(result, ctx);
 
         return result;

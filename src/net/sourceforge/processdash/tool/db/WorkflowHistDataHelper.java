@@ -494,13 +494,13 @@ public class WorkflowHistDataHelper {
         // find the key for the current workflow
         Object[] row = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
             workflowID));
-        workflowKey = (Integer) row[0];
-        workflowName = (String) row[1];
 
-        if (workflowKey == null) {
+        if (row == null || row[0] == null) {
             workflowKey = -1;
             includedWorkflowKeys = Collections.EMPTY_SET;
         } else {
+            workflowKey = (Integer) row[0];
+            workflowName = (String) row[1];
             // find all the workflows that map to the given workflow
             includedWorkflowKeys = new HashSet<Integer>(query.queryHql(
                 WORKFLOW_MAPPING_QUERY, workflowKey));
