@@ -101,7 +101,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
     }
 
     /** create the data upon which this chart is based. */
-    protected void buildData() {
+    protected void buildData() throws IOException {
         retrieveParamsFromServlet("dqf");
         massageParameters();
         String prefix = getPrefix();

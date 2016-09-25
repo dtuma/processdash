@@ -25,6 +25,7 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYBoxAnnotation;
@@ -44,7 +45,7 @@ import net.sourceforge.processdash.ui.web.reports.XYChart;
 public class EstErrorScatterChart extends XYChart {
 
     @Override
-    protected void buildData() {
+    protected void buildData() throws IOException {
         // retrieve the result set, and extract the % error columns
         super.buildData();
         if (parameters.containsKey("skipUnitsCol"))

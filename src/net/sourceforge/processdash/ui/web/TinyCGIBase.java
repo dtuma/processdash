@@ -57,6 +57,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.TinyCGI;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.DateUtils;
@@ -156,7 +157,8 @@ public class TinyCGIBase implements TinyCGI {
     public static final String QUERY_FILE_PARAM = "qf";
     public static final String RESOURCE_FILE_PARAM = "rf";
 
-    protected void retrieveParamsFromServlet(String servletUriParamName) {
+    protected void retrieveParamsFromServlet(String servletUriParamName)
+            throws IOException {
         String servletUri = getParameter(servletUriParamName);
         if (StringUtils.hasValue(servletUri)) {
             try {
@@ -173,8 +175,13 @@ public class TinyCGIBase implements TinyCGI {
                 Object params = req.getAttribute("REQUEST_PARAMS");
                 if (params instanceof Map)
                     parameters.putAll((Map) params);
+                else
+                    throw new TinyCGIException(404, "Could not retrieve "
+                            + servletUri);
                 req.removeAttribute("REQUEST_PARAMS");
 
+            } catch (IOException e) {
+                throw e;
             } catch (Exception e) {
                 e.printStackTrace();
             }

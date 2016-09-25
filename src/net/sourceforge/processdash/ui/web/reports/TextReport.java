@@ -56,7 +56,7 @@ public class TextReport extends TinyCGIBase {
             writeHtml(resultSet); // default
     }
 
-    private ResultSet getResultSet() {
+    private ResultSet getResultSet() throws IOException {
         // get the data
         retrieveParamsFromServlet("dqf");
         if (parameters.get("h0") == null)
