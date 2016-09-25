@@ -53,6 +53,17 @@ public class WorkflowHistDataHelper {
         public String rootName;
         public Date completed;
 
+        public String getProjectName() { return projectName; }
+        public String getRootName() { return rootName; }
+        public Date getCompleted() { return completed; }
+        public double getHours() { return actualTime() / 60; }
+        public Map<String, Double> getSizes() {
+            Map<String, Double> result = new HashMap<String, Double>();
+            for (String units : getSizeUnits())
+                result.put(units, actualSize(units));
+            return result;
+        }
+
         public double actualTime() {
             return actualTime(null);
         }

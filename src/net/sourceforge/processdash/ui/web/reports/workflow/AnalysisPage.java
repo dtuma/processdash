@@ -101,7 +101,7 @@ public abstract class AnalysisPage {
 
 
 
-    private ChartData getChartData(HttpServletRequest req) {
+    protected ChartData getChartData(HttpServletRequest req) {
         ChartData result = new ChartData();
 
         String workflowID = req.getParameter("workflow");
@@ -227,6 +227,13 @@ public abstract class AnalysisPage {
             ChartData chartData) {
         out.write("<td class='doNotPrint' style='vertical-align:baseline'><i>");
         out.write(HTMLUtils.escapeEntities(getRes("More_Detail_Instruction")));
+
+        if (!isExporting(req)) {
+            out.write("&nbsp;&nbsp;<a href='" + getSideUri(chartData, "Filter")
+                    + "'>");
+            out.write(resources.getHTML("Workflow.To_Date.Filter.Label"));
+            out.write("...</a>");
+        }
 
         if (!isExporting(req) && chartData.isSizeConfigurable()) {
             out.write("&nbsp;&nbsp;<a href='" + getSideUri(chartData, "Config")

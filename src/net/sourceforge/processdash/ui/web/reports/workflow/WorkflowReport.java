@@ -235,6 +235,7 @@ public class WorkflowReport extends HttpServlet {
             analysisPages[Page.Plan.ordinal()] = new PlanAnalysisPage();
             analysisPages[Page.Process.ordinal()] = new ProcessAnalysisPage();
             analysisPages[Page.Quality.ordinal()] = new QualityAnalysisPage();
+            analysisPages[Page.Filter.ordinal()] = new FilterAnalysisPage();
             analysisPages[Page.Config.ordinal()] = new ConfigureAnalysisPage();
         }
 
@@ -246,7 +247,7 @@ public class WorkflowReport extends HttpServlet {
     }
 
     private enum Page {
-        Defects, Plan, Process, Quality, Config
+        Defects, Plan, Process, Quality, Filter, Config
     }
 
     private AnalysisPage[] analysisPages;
