@@ -1,0 +1,115 @@
+
+table#data {
+    border-collapse: collapse;
+    border-right: 2px solid gray;
+}
+
+table#data td {
+    border: 2px solid gray;
+    border-right: none;
+    padding: 3px;
+}
+ 
+tr#filterRow td {
+    padding: 4px 0px;
+    text-align: center;
+}
+
+tr#filterRow td.filterActive {
+    border-color: blue;
+    border-right: 2px solid blue;
+}
+
+tr#filterRow td a {
+    background: url("/Images/filter-off.png") no-repeat right center;
+    color: black;
+    font-weight: bold;
+    margin: 16px 15px;
+    padding-right: 24px;
+    text-decoration: none;
+}
+
+tr#filterRow td a:hover {
+    text-decoration: underline;
+}
+
+tr#filterRow td.filterEnabled a {
+    background-image: url("/Images/filter-on.png");
+}
+
+div.filter {
+    display: none;
+    position: relative;
+}
+
+div.filterSpacer {
+    border-top: 6px solid white;
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+}
+
+div.filterContentWrapper {
+    border: 6px solid white;
+    border-top: 0px;
+    min-width: 105%;
+    position: absolute;
+}
+
+div.filterContentWrapper.left {
+    left: -8px;
+}
+
+div.filterContentWrapper.right {
+    right: -8px;
+}
+
+div.filterContent {
+    background-color: white;
+    border: 2px solid blue;
+    padding: 1em;
+    text-align: left;
+    white-space: nowrap;
+}
+
+tr#filterRow td.filterActive div.filter {
+    display: block;
+}
+
+div.indent {
+    margin-left: 1em;
+}
+
+div.filterButtons {
+    margin-top: 1em;
+    text-align: right;
+}
+
+div.filterButtons input {
+    margin-left: 1em;
+}
+
+div.filterButtons input.off {
+    display: none;
+}
+
+td.filterEnabled div.filterButtons input.off {
+    display: inline;
+}
+
+div.filterButtons input.cancel {
+    display: inline;
+}
+
+td.filterEnabled div.filterButtons input.cancel {
+    display: none;
+}
+
+tr.filterExcluded {
+    background-color: #f2ddaa;
+    text-decoration: line-through;
+}
+
+td.filterExcluded {
+    background-color: #d5b159;
+}

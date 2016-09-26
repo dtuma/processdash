@@ -25,7 +25,9 @@ package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
+import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
 
 public class FilterAnalysisPage extends AnalysisPage {
 
@@ -56,17 +59,28 @@ public class FilterAnalysisPage extends AnalysisPage {
 
         WorkflowHistDataHelper histData = chartData.histData;
         req.setAttribute("hist", histData);
+        req.setAttribute("projects", getProjects(histData));
+        req.setAttribute("sizeUnits", getSizeUnits(histData));
+        req.setAttribute("resources", filtRes.asJSTLMap());
 
+        req.getRequestDispatcher("/WEB-INF/jsp/workflowAnalysisFilter.jsp")
+                .forward(req, resp);
+    }
+
+    private Map<String, String> getProjects(WorkflowHistDataHelper histData) {
+        Map<String, String> result = new TreeMap<String, String>();
+        for (Enactment e : histData.getEnactments())
+            result.put(e.getProjectID(), e.getProjectName());
+        return result;
+    }
+
+    private Set<String> getSizeUnits(WorkflowHistDataHelper histData) {
         Set<String> sizeUnits = histData.getSizeUnits();
         for (Iterator i = sizeUnits.iterator(); i.hasNext();) {
             if (isTimeUnits((String) i.next()))
                 i.remove();
         }
-        req.setAttribute("sizeUnits", sizeUnits);
-
-        req.setAttribute("resources", filtRes.asJSTLMap());
-        req.getRequestDispatcher("/WEB-INF/jsp/workflowAnalysisFilter.jsp")
-                .forward(req, resp);
+        return sizeUnits;
     }
 
     @Override

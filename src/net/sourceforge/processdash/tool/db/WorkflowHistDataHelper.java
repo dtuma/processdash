@@ -63,6 +63,9 @@ public class WorkflowHistDataHelper {
                 result.put(units, actualSize(units));
             return result;
         }
+        public String getProjectID() {
+            return rootWbsID.substring(0, rootWbsID.indexOf(':'));
+        }
 
         public double actualTime() {
             return actualTime(null);
