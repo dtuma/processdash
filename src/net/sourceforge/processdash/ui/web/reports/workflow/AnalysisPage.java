@@ -31,8 +31,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -59,6 +61,7 @@ import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.util.DataPair;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -211,6 +214,12 @@ public abstract class AnalysisPage {
             else
                 histData.setExcludedProjects(projIDs);
         }
+
+        // configure before/after dates
+        if ("true".equals(p.getProperty("dateEnabled"))) {
+            histData.setOnlyCompletedBefore(getDate(p, "dateBefore", 0));
+            histData.setOnlyCompletedAfter(getDate(p, "dateAfter", 1));
+        }
     }
 
     private static Set<String> getList(Properties p, String key) {
@@ -220,6 +229,23 @@ public abstract class AnalysisPage {
         else
             return new HashSet<String>(Arrays.asList(list.split(",")));
     }
+
+    private static Date getDate(Properties p, String key, int adjust) {
+        try {
+            String val = p.getProperty(key);
+            if (val == null)
+                return null;
+            Date result = (Date) DATE_FMT.parseObject(val);
+            if (adjust != 0)
+                result = new Date(result.getTime() + adjust * DateUtils.DAYS);
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat(
+            "yyyy-MM-dd");
 
 
 

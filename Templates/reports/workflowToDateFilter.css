@@ -1,4 +1,8 @@
 
+h1 {
+    margin-top: 0px 
+}
+
 p.submitFilter input {
     margin-bottom: 1em;
     margin-left: 5em;
@@ -25,7 +29,11 @@ tr#filterRow td.filterActive {
     border-right: 2px solid blue;
 }
 
-tr#filterRow td a {
+a {
+    outline: 0;
+}
+
+a.showFilter {
     background: url("/Images/filter-off.png") no-repeat right center;
     color: black;
     font-weight: bold;
@@ -34,11 +42,11 @@ tr#filterRow td a {
     text-decoration: none;
 }
 
-tr#filterRow td a:hover {
+a.showFilter:hover {
     text-decoration: underline;
 }
 
-tr#filterRow td.filterEnabled a {
+td.filterEnabled a.showFilter {
     background-image: url("/Images/filter-on.png");
 }
 
@@ -106,8 +114,22 @@ div.filterButtons input.cancel {
     display: inline;
 }
 
+td#dateFilter table td {
+    border: 0px;
+    padding: 2px;
+}
+
 td.filterEnabled div.filterButtons input.cancel {
     display: none;
+}
+
+a.clearButton {
+    color: gray;
+    text-decoration: none;
+}
+
+td.right {
+    text-align: right;
 }
 
 tr.filterExcluded {

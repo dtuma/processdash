@@ -25,12 +25,20 @@ var WFilt = {
 
     init : function() {
         var filterClickEvent = WFilt.filterClick.bindAsEventListener(this);
+        var clearFieldEvent = WFilt.clearField.bindAsEventListener(this);
         var filterOnEvent = WFilt.filterOn.bindAsEventListener(this);
         var filterOffEvent = WFilt.filterOff.bindAsEventListener(this);
         this.filterIDs = new Array();
 
         $A($("filterRow").getElementsByTagName("td")).each(function(td) {
-            td.getElementsByTagName("a")[0].onclick = filterClickEvent;
+            if (td.parentNode.id != "filterRow")
+                return;
+            var links = td.getElementsByTagName("a");
+            links[0].onclick = filterClickEvent;
+            for (var i = 1; i < links.length; i++) {
+                if (links[i].className == "clearButton")
+                    links[i].onclick = clearFieldEvent;
+            }
             var inputs = td.getElementsByTagName("input");
             WFilt.filterIDs.push(inputs[0].value);
             if (inputs[1].value)
@@ -44,6 +52,7 @@ var WFilt = {
         this.rows.shift();
 
         this.cols["proj"] = this.matchSelectedValues.bind(this);
+        this.cols["date"] = this.matchDates.bind(this);
 
         this.applyFilters();
     },
@@ -59,6 +68,12 @@ var WFilt = {
         return false;
     },
 
+    clearField : function(event) {
+        var tr = Event.findElement(event, "tr");
+        Form.getInputs(tr, "text")[0].value = "";
+        return false;
+    },
+
     filterOn : function(event) {
         var td = Event.findElement(event, "td");
         Element.removeClassName(td, "filterActive");
@@ -69,10 +84,14 @@ var WFilt = {
 
     filterOff : function(event) {
         var td = Event.findElement(event, "td");
+        this.filterOffTd(td);
+        this.applyFilters();
+    },
+
+    filterOffTd : function(td) {
         Element.removeClassName(td, "filterActive");
         Element.removeClassName(td, "filterEnabled");
         td.getElementsByTagName("input")[1].value = "";
-        this.applyFilters();
     },
 
     applyFilters : function() {
@@ -138,6 +157,27 @@ var WFilt = {
                 return values.indexOf(e.value) != -1;
             });
             return !match == exclude;
+        };
+    },
+
+    matchDates : function(filter, id) {
+        // get the completion date boundaries
+        var before = Form.getInputs(filter, "text", "dateBefore")[0].value;
+        var after = Form.getInputs(filter, "text", "dateAfter")[0].value;
+
+        // possibly disable the filter if no dates are selected
+        if (!before && !after)
+            this.filterOffTd(filter);
+
+        // build a function which can test to see if a given table cell
+        // is included/excluded as appropriate
+        return function(td) {
+            var val = Form.getInputs(td, "hidden", "val")[0].value;
+            if (before && before <= val)
+                return false;
+            if (after && after >= val)
+                return false;
+            return true;
         };
     },
 

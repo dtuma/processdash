@@ -154,6 +154,10 @@ public class WorkflowHistDataHelper {
 
     private Set<String> excludedProjects;
 
+    private Date onlyCompletedAfter;
+
+    private Date onlyCompletedBefore;
+
     private boolean onlyCompleted = true;
 
     private LegacyPhaseMapStrategy legacyPhaseMapStrategy;
@@ -209,6 +213,26 @@ public class WorkflowHistDataHelper {
 
     public void setExcludedProjects(Set<String> excludedProjects) {
         this.excludedProjects = excludedProjects;
+    }
+
+    public Date getOnlyCompletedAfter() {
+        return onlyCompletedAfter;
+    }
+
+    public void setOnlyCompletedAfter(Date completedAfter) {
+        this.onlyCompletedAfter = completedAfter;
+        if (completedAfter != null)
+            this.onlyCompleted = true;
+    }
+
+    public Date getOnlyCompletedBefore() {
+        return onlyCompletedBefore;
+    }
+
+    public void setOnlyCompletedBefore(Date completedBefore) {
+        this.onlyCompletedBefore = completedBefore;
+        if (completedBefore != null)
+            this.onlyCompleted = true;
     }
 
     public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
@@ -323,9 +347,18 @@ public class WorkflowHistDataHelper {
 
         for (Iterator i = enactments.iterator(); i.hasNext();) {
             Object[] oneEnactment = (Object[]) i.next();
-            if (get(oneEnactment, EnactmentCol.Completed) == null)
+            Date completed = get(oneEnactment, EnactmentCol.Completed);
+            if (completed == null)
+                i.remove();
+            else if (cmp(onlyCompletedBefore, completed) < 0)
+                i.remove();
+            else if (cmp(onlyCompletedAfter, completed) > 0)
                 i.remove();
         }
+    }
+
+    private int cmp(Date a, Date b) {
+        return (a == null || b == null) ? 0 : a.compareTo(b);
     }
 
     private void loadEnactmentCompletionDates() {
