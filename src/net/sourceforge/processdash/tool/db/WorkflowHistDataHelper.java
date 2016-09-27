@@ -150,9 +150,9 @@ public class WorkflowHistDataHelper {
 
     private String workflowName;
 
-    private String onlyForProject;
+    private Set<String> includedProjects;
 
-    private String onlyForProjectsThrough;
+    private Set<String> excludedProjects;
 
     private boolean onlyCompleted = true;
 
@@ -195,12 +195,20 @@ public class WorkflowHistDataHelper {
         this.onlyCompleted = onlyCompleted;
     }
 
-    public String getOnlyForProject() {
-        return onlyForProject;
+    public Set<String> getIncludedProjects() {
+        return includedProjects;
     }
 
-    public void setOnlyForProject(String onlyForProject) {
-        this.onlyForProject = onlyForProject;
+    public void setIncludedProjects(Set<String> includedProjects) {
+        this.includedProjects = includedProjects;
+    }
+
+    public Set<String> getExcludedProjects() {
+        return excludedProjects;
+    }
+
+    public void setExcludedProjects(Set<String> excludedProjects) {
+        this.excludedProjects = excludedProjects;
     }
 
     public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
@@ -273,7 +281,7 @@ public class WorkflowHistDataHelper {
 
 
     private void filterEnactments() {
-        if (onlyForProject != null || onlyForProjectsThrough != null)
+        if (includedProjects != null || excludedProjects != null)
             applyProjectSpecificFilter();
         if (onlyCompleted)
             discardIncompleteEnactments();
@@ -293,12 +301,13 @@ public class WorkflowHistDataHelper {
         String projectID = getProjectID(planItemID);
         if (projectID == null)
             return true;
-        else if (onlyForProject != null)
-            return !onlyForProject.equals(projectID);
-        else if (onlyForProjectsThrough != null)
-            return projectID.compareTo(onlyForProjectsThrough) > 0;
-        else
+
+        if (excludedProjects != null && excludedProjects.contains(projectID))
+            return true;
+        else if (includedProjects == null)
             return false;
+        else
+            return !includedProjects.contains(projectID);
     }
 
     private String getProjectID(String planItemID) {

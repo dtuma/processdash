@@ -119,6 +119,7 @@ public abstract class AnalysisPage {
         if (result.histData.getWorkflowName() == null)
             return null;
 
+        configureFilter(result.histData, req);
         configureSizeUnits(result, ctx);
 
         return result;
@@ -186,6 +187,38 @@ public abstract class AnalysisPage {
                 + "/Size_Units", sd);
         data.putValue("/Workflow_Prefs/" + histData.getWorkflowName()
                 + "/Size_Units", sd);
+    }
+
+
+
+    protected void configureFilter(WorkflowHistDataHelper histData,
+            HttpServletRequest req) {
+        doConfigureFilter(histData, req);
+    }
+
+    public static void doConfigureFilter(WorkflowHistDataHelper histData,
+            HttpServletRequest req) {
+        Properties p = loadFilter(req);
+        if (p.isEmpty())
+            return;
+
+        // configure the list of included/excluded projects
+        if ("true".equals(p.getProperty("projEnabled"))) {
+            Set<String> projIDs = getList(p, "projVal");
+            String logic = p.getProperty("projLogic");
+            if ("include".equals(logic))
+                histData.setIncludedProjects(projIDs);
+            else
+                histData.setExcludedProjects(projIDs);
+        }
+    }
+
+    private static Set<String> getList(Properties p, String key) {
+        String list = p.getProperty(key);
+        if (list == null)
+            return Collections.EMPTY_SET;
+        else
+            return new HashSet<String>(Arrays.asList(list.split(",")));
     }
 
 

@@ -125,6 +125,13 @@ public class FilterAnalysisPage extends AnalysisPage {
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {}
 
+    @Override
+    protected void configureFilter(WorkflowHistDataHelper histData,
+            HttpServletRequest req) {
+        // do not apply the filter; we want to see all of the enactments so
+        // they can be displayed in the filtering table.
+    }
+
 
 
     @Override
@@ -152,9 +159,14 @@ public class FilterAnalysisPage extends AnalysisPage {
 
         // redirect to the previous page the user was viewing
         String lastPage = req.getParameter(LAST_PAGE_PARAM);
+        StringBuffer uri = new StringBuffer();
+        if (StringUtils.hasValue(lastPage)) {
+            uri.append(WorkflowReport.SELF_URI);
+            HTMLUtils.appendQuery(uri, WorkflowReport.PAGE_PARAM, lastPage);
+        } else {
+            uri.append(WorkflowReport.SUMMARY_URI);
+        }
         String workflowID = req.getParameter(WorkflowReport.WORKFLOW_PARAM);
-        StringBuffer uri = new StringBuffer(WorkflowReport.SELF_URI);
-        HTMLUtils.appendQuery(uri, WorkflowReport.PAGE_PARAM, lastPage);
         HTMLUtils.appendQuery(uri, WorkflowReport.WORKFLOW_PARAM, workflowID);
         resp.sendRedirect(uri.toString());
     }

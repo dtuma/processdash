@@ -29,6 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.http.HttpServletRequest;
+
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.util.ResultSet;
@@ -44,8 +46,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 public class WorkflowPlanSummary extends TinyCGIBase {
 
-    private static final String SELF_URI = "workflowSummary";
-
     private static final Resources resources = Resources
             .getDashBundle("Analysis");
 
@@ -57,6 +57,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         if (hist.getWorkflowName() == null)
             throw new TinyCGIException(404,
                     "The requested workflow was not found.");
+        AnalysisPage.doConfigureFilter(hist,
+            (HttpServletRequest) env.get(HttpServletRequest.class));
 
         String title = resources.getString("Workflow.Analysis.Title") + " - "
                 + hist.getWorkflowName();
@@ -88,16 +90,6 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         out.print("<h2>");
         out.print(esc(res("Summary.Title")));
         out.print("</h2>\n");
-
-        out.print("<h3>");
-        if ("this".equals(parameters.get("project"))) {
-            hist.setOnlyForProject(hist.getContextProjectID());
-            out.print(esc(resources.format("Workflow.To_Date.One_Project_FMT",
-                getPrefix())));
-        } else {
-            out.print(resources.getHTML("Workflow.To_Date.All_Projects"));
-        }
-        out.print("</h3>\n");
 
         if (!isExporting())
             writeFilterDiv(hist);
@@ -135,25 +127,10 @@ public class WorkflowPlanSummary extends TinyCGIBase {
     }
 
     protected void writeFilterDiv(WorkflowHistDataHelper hist) {
-        out.print("<div id='filter' class='doNotPrint collapsed'>\n");
-        String filterLabel = resources.getHTML("Workflow.To_Date.Filter.Label");
-        out.print("<a href='#' onclick='showFilter(); return false;' "
-                + "class='filterLink'>" + filterLabel + "...</a>");
-        out.print("<span class='filterItem'>" + filterLabel + ":</span>");
-        out.print("<ul class='filterItem'>\n");
-        String selfUri = HTMLUtils.appendQuery(SELF_URI, "workflow",
-            hist.getWorkflowID());
-        out.print("<li><a href='" + selfUri + "'>"
-                + resources.getHTML("Workflow.To_Date.Filter.All_Projects")
-                + "</a></li>");
-        out.print("<li><a href='" + selfUri + "&project=this'>"
-                + resources.getHTML("Workflow.To_Date.Filter.This_Project")
-                + "</a></li>");
-        out.print("<li><a href='/team/workflowMap?list="
-                + HTMLUtils.urlEncode(hist.getWorkflowID()) + "'>"
-                + resources.getHTML("Workflow.To_Date.Filter.Map_Workflows")
-                + "</a></li>");
-        out.print("</ul></div>\n");
+        out.write("<p><i><a href='workflowToDate?page=Filter&amp;workflow=");
+        out.write(HTMLUtils.urlEncode(hist.getWorkflowID()));
+        out.write("'>" + resources.getHTML("Workflow.To_Date.Filter.Label"));
+        out.write("...</a></i></p>");
     }
 
     private void writeOverallMetrics(Map<String, DataPair> sizes,
