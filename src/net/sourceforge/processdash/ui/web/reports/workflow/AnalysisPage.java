@@ -28,6 +28,7 @@ import static net.sourceforge.processdash.ui.web.reports.workflow.WorkflowReport
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -185,6 +186,43 @@ public abstract class AnalysisPage {
                 + "/Size_Units", sd);
         data.putValue("/Workflow_Prefs/" + histData.getWorkflowName()
                 + "/Size_Units", sd);
+    }
+
+
+
+    protected static Properties loadFilter(HttpServletRequest req) {
+        DataRepository data = (DataRepository) PDashServletUtils
+                .buildEnvironment(req).get(TinyCGI.DATA_REPOSITORY);
+        SimpleData sd = data.getSimpleValue(getFilterDataName(req));
+
+        Properties p = new Properties();
+        if (sd != null && sd.test()) {
+            try {
+                p.load(new StringReader(sd.format()));
+            } catch (IOException e) {
+                // can't happen
+            }
+        }
+        return p;
+    }
+
+    protected void saveFilter(HttpServletRequest req, Properties filter) {
+        StringWriter save = new StringWriter();
+        try {
+            filter.store(save, null);
+        } catch (IOException ioe) {
+            // can't happen
+        }
+
+        DataRepository data = (DataRepository) PDashServletUtils
+                .buildEnvironment(req).get(TinyCGI.DATA_REPOSITORY);
+        String dataName = getFilterDataName(req);
+        data.putValue(dataName, StringData.create(save.toString()));
+    }
+
+    private static String getFilterDataName(HttpServletRequest req) {
+        String workflowID = req.getParameter(WorkflowReport.WORKFLOW_PARAM);
+        return "/Workflow_Prefs/" + workflowID + "//Filter";
     }
 
 

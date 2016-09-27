@@ -24,8 +24,11 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -33,9 +36,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class FilterAnalysisPage extends AnalysisPage {
 
@@ -59,12 +65,30 @@ public class FilterAnalysisPage extends AnalysisPage {
 
         WorkflowHistDataHelper histData = chartData.histData;
         req.setAttribute("hist", histData);
+        req.setAttribute("filt", getFilter(req));
         req.setAttribute("projects", getProjects(histData));
         req.setAttribute("sizeUnits", getSizeUnits(histData));
+        req.setAttribute("mappingPromptHtml", getMappingPrompt(histData));
         req.setAttribute("resources", filtRes.asJSTLMap());
 
         req.getRequestDispatcher("/WEB-INF/jsp/workflowAnalysisFilter.jsp")
                 .forward(req, resp);
+    }
+
+    private Object getFilter(HttpServletRequest req) {
+        Properties p = loadFilter(req);
+        expandMulti(p, "projVal");
+        return p;
+    }
+
+    private void expandMulti(Properties p, String key) {
+        String value = p.getProperty(key);
+        if (value == null)
+            return;
+
+        String[] values = value.split(",");
+        for (String oneVal : values)
+            p.setProperty(key + oneVal, "checked=\"checked\"");
     }
 
     private Map<String, String> getProjects(WorkflowHistDataHelper histData) {
@@ -83,9 +107,56 @@ public class FilterAnalysisPage extends AnalysisPage {
         return sizeUnits;
     }
 
+    private String getMappingPrompt(WorkflowHistDataHelper histData) {
+        if (!Settings.isTeamMode())
+            return null;
+
+        String uri = HTMLUtils.appendQuery("/team/workflowMap", "list",
+            histData.getWorkflowID());
+        String link = "<a href='" + uri + "' target='_blank'>";
+        String result = filtRes.getHTML("Map_Prompt");
+        result = StringUtils.findAndReplace(result, "[[", link);
+        result = StringUtils.findAndReplace(result, "]]", "</a>");
+        return result;
+    }
+
     @Override
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {}
+
+
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        // see if the user is applying or removing the filter
+        boolean isRemoving = req.getParameter("remove") != null;
+
+        // calculate the properties we should save for this filter
+        Properties p = new Properties();
+        for (String filterID : req.getParameterValues("filterID")) {
+            for (Entry<String, String[]> e : req.getParameterMap().entrySet()) {
+                if (e.getKey().startsWith(filterID)) {
+                    p.setProperty(e.getKey(),
+                        StringUtils.join(Arrays.asList(e.getValue()), ","));
+                }
+            }
+            if (isRemoving)
+                p.remove(filterID + "Enabled");
+        }
+
+        // save these properties into the respository
+        saveFilter(req, p);
+
+        // redirect to the previous page the user was viewing
+        String lastPage = req.getParameter(LAST_PAGE_PARAM);
+        String workflowID = req.getParameter(WorkflowReport.WORKFLOW_PARAM);
+        StringBuffer uri = new StringBuffer(WorkflowReport.SELF_URI);
+        HTMLUtils.appendQuery(uri, WorkflowReport.PAGE_PARAM, lastPage);
+        HTMLUtils.appendQuery(uri, WorkflowReport.WORKFLOW_PARAM, workflowID);
+        resp.sendRedirect(uri.toString());
+    }
 
 }

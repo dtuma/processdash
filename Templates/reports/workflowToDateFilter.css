@@ -1,4 +1,9 @@
 
+p.submitFilter input {
+    margin-bottom: 1em;
+    margin-left: 5em;
+}
+
 table#data {
     border-collapse: collapse;
     border-right: 2px solid gray;

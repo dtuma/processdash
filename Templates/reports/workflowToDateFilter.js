@@ -33,6 +33,8 @@ var WFilt = {
             td.getElementsByTagName("a")[0].onclick = filterClickEvent;
             var inputs = td.getElementsByTagName("input");
             WFilt.filterIDs.push(inputs[0].value);
+            if (inputs[1].value)
+                Element.addClassName(td, "filterEnabled");
             inputs[inputs.length - 3].onclick = filterOnEvent;
             inputs[inputs.length - 2].onclick = filterOffEvent;
             inputs[inputs.length - 1].onclick = filterClickEvent;
@@ -42,6 +44,8 @@ var WFilt = {
         this.rows.shift();
 
         this.cols["proj"] = this.matchSelectedValues.bind(this);
+
+        this.applyFilters();
     },
 
     filterClick : function(event) {

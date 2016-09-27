@@ -15,7 +15,17 @@
 
 <h2>${resources.html['Title']}</h2>
 
-<form>
+<form method="post" action="workflowToDate">
+<input type="hidden" name="page" value="Filter" />
+<input type="hidden" name="lastpage"  value="${param.lastpage}" />
+<input type="hidden" name="workflow"  value="${param.workflow}" />
+
+<p>${resources.html['Prompt']} ${mappingPromptHtml}</p>
+
+<p class="submitFilter">
+<input type="submit" name="apply" value="${resources.html['Apply']}"/>
+<input type="submit" name="remove" value="${resources.html['Remove']}"/>
+</p>
 
 <table id="data">
 <tr id="filterRow">
@@ -24,16 +34,20 @@
 <div class="filter"><div class="filterSpacer"></div>
 <div class="filterContentWrapper left"><div class="filterContent">
 <input type="hidden" name="filterID" value="proj"/>
-<input type="hidden" name="projEnabled"/>
+<input type="hidden" name="projEnabled" value="${filt.projEnabled}"/>
 ${resources.html['Project.Prompt']}
 <div class="indent"><div class="indent">
-<input type="radio" name="projLogic" value="include"/>&nbsp;${resources.html['Included']}
-<input type="radio" name="projLogic" value="exclude" checked="checked"/>&nbsp;${resources.html['Excluded']}
+<input type="radio" name="projLogic" value="include" ${
+    filt.projLogic == 'include' ? 'checked="checked"' : ''
+    }/>&nbsp;${resources.html['Included']}
+<input type="radio" name="projLogic" value="exclude" ${
+    filt.projLogic == 'include' ? '' : 'checked="checked"'
+    }/>&nbsp;${resources.html['Excluded']}
 </div></div>
 <c:forEach var="proj" items="${projects}">
 <div class="indent">
-<input type="checkbox" name="projVal" value="${proj.key}"/>&nbsp;<c:out
-       value="${proj.value}" />
+<input type="checkbox" name="projVal" value="${proj.key}" ${
+    filt['projVal'.concat(proj.key)]}/>&nbsp;<c:out value="${proj.value}" />
 </div>
 </c:forEach>
 <div class="filterButtons">
