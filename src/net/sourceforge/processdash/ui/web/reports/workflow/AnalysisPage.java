@@ -226,6 +226,18 @@ public abstract class AnalysisPage {
             histData.setMinTime(getNum(p, "timeMin", 60));
             histData.setMaxTime(getNum(p, "timeMax", 60));
         }
+
+        // configure min/max sizes
+        for (Entry<Object, Object> e : p.entrySet()) {
+            String key = (String) e.getKey();
+            if (key.startsWith("size") && key.endsWith("Enabled")
+                    && "true".equals(e.getValue())) {
+                String sizeID = key.substring(0, key.length() - 7);
+                String dbUnit = p.getProperty(sizeID + "Units");
+                histData.setMinSize(dbUnit, getNum(p, sizeID + "Min", 1));
+                histData.setMaxSize(dbUnit, getNum(p, sizeID + "Max", 1));
+            }
+        }
     }
 
     private static Double getNum(Properties p, String key, int mult) {

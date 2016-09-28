@@ -213,6 +213,8 @@ var WFilt = {
         // is included/excluded as appropriate
         return function(td) {
             var val = WFilt.parseNum(td.innerHTML);
+            if (!val)
+                val = 0;
             if (min && val < min_)
                 return false;
             if (max && max_ <= val)

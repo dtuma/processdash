@@ -131,13 +131,33 @@ ${resources.html['Time.Prompt']}
 </div></div></div></div></td>
 
 <c:forEach var="units" items="${sizeUnits}">
-<td>
-<a class="showFilter" href="#"><c:out value="${units}" /></a>
+<c:set var="sizeID" value="size${units.key}" />
+<td id="${sizeID}Filter">
+<a class="showFilter" href="#"><c:out value="${units.value}" /></a>
 <div class="filter"><div class="filterSpacer"></div>
 <div class="filterContentWrapper right"><div class="filterContent">
-<input type="hidden" name="filterID" value="size"/>
-<input type="hidden" name="sizeEnabled"/>
-Fixme: add real content for editing this filter
+<input type="hidden" name="filterID" value="${sizeID}"/>
+<input type="hidden" name="${sizeID}Enabled" value="${filt[sizeID.concat('Enabled')]}"/>
+<input type="hidden" name="${sizeID}Units" value="<c:out value='${units.value}'/>"/>
+${resources.html['Size.Prompt']}
+<div class="indent"><table>
+<tr>
+<td style="text-align:right">${resources.html['At_Least']}</td>
+<td><div class="unitsField">
+  <div class="unitsLabel"><c:out value="${units.value}" /></div>
+  <input type="text" name="${sizeID}Min" value="${filt[sizeID.concat('Min')]}" width="7"/>
+</div></td>
+<td><a href="#" class="clearButton">&times;</a></td>
+</tr>
+<tr>
+<td style="text-align:right">${resources.html['Less_Than']}</td>
+<td><div class="unitsField">
+  <div class="unitsLabel"><c:out value="${units.value}" /></div>
+  <input type="text" name="${sizeID}Max" value="${filt[sizeID.concat('Max')]}" width="7"/>
+</div></td>
+<td><a href="#" class="clearButton">&times;</a></td>
+</tr>
+</table></div>
 <div class="filterButtons">
 <input type="button" name="ok" value="${resources.html['OK']}"/>
 <input type="button" name="off" class="off" value="${resources.html['Off']}"/>
@@ -164,9 +184,9 @@ Fixme: add real content for editing this filter
     maxFractionDigits="1"/></td>
 
 <c:forEach var="units" items="${sizeUnits}">
-  <td class="right"><c:if test="${e.sizes[units] > 0}">
-    <fmt:formatNumber value="${e.sizes[units]}" maxFractionDigits="1"/></c:if>
-    </td>
+  <td id="${eid}.size${units.key}" class="right"><c:if test="${e.sizes[units.value] > 0}">
+    <fmt:formatNumber value="${e.sizes[units.value]}" maxFractionDigits="1"/></c:if>
+  </td>
 </c:forEach>
 
 </tr>

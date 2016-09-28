@@ -27,11 +27,10 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.ServletException;
@@ -42,6 +41,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -112,13 +112,15 @@ public class FilterAnalysisPage extends AnalysisPage {
         return result;
     }
 
-    private Set<String> getSizeUnits(WorkflowHistDataHelper histData) {
-        Set<String> sizeUnits = histData.getSizeUnits();
-        for (Iterator i = sizeUnits.iterator(); i.hasNext();) {
-            if (isTimeUnits((String) i.next()))
-                i.remove();
+    private Map<String, String> getSizeUnits(WorkflowHistDataHelper histData) {
+        Map<String, String> result = new LinkedHashMap<String, String>();
+        for (String unit : histData.getSizeUnits()) {
+            if (!isTimeUnits(unit)) {
+                String unitID = FileUtils.makeSafe(unit);
+                result.put(unitID, unit);
+            }
         }
-        return sizeUnits;
+        return result;
     }
 
     private String getMappingPrompt(WorkflowHistDataHelper histData) {

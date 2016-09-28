@@ -35,10 +35,10 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.Defect;
@@ -164,6 +164,10 @@ public class WorkflowHistDataHelper {
 
     private Double maxTime;
 
+    private Map<String, Double> minSize = new HashMap();
+
+    private Map<String, Double> maxSize = new HashMap();
+
     private LegacyPhaseMapStrategy legacyPhaseMapStrategy;
 
     private Integer workflowKey;
@@ -255,6 +259,28 @@ public class WorkflowHistDataHelper {
         this.maxTime = maxTime;
     }
 
+    public void setMinSize(String units, Double size) {
+        if (size == null)
+            minSize.remove(units);
+        else
+            minSize.put(units, size);
+    }
+
+    public Double getMinSize(String units) {
+        return minSize.get(units);
+    }
+
+    public void setMaxSize(String units, Double size) {
+        if (size == null)
+            maxSize.remove(units);
+        else
+            maxSize.put(units, size);
+    }
+
+    public Double getMaxSize(String units) {
+        return maxSize.get(units);
+    }
+
     public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
         return legacyPhaseMapStrategy;
     }
@@ -331,6 +357,8 @@ public class WorkflowHistDataHelper {
             discardIncompleteEnactments();
         if (minTime != null || maxTime != null)
             applyTimeSpecificFilter();
+        if (!minSize.isEmpty() || !maxSize.isEmpty())
+            applySizeSpecificFilter();
         discardNestedEnactments();
     }
 
@@ -437,6 +465,34 @@ public class WorkflowHistDataHelper {
             + "and mapsTo.process.key = ? "
             + "and pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
+            + "group by pe.rootItem.key";
+
+
+    private void applySizeSpecificFilter() {
+        // get the list of units we are filtering by
+        Set<String> units = new HashSet<String>();
+        units.addAll(minSize.keySet());
+        units.addAll(maxSize.keySet());
+
+        // apply each size filter
+        for (String oneUnit : units) {
+            Map<Integer, Number> rawData = QueryUtils.mapColumns(query(
+                SIZE_FILTER_QUERY, getEnactmentRootKeys(),
+                getIncludedWorkflowKeys(), oneUnit));
+            applyNumericRangeFilter(rawData, minSize.get(oneUnit),
+                maxSize.get(oneUnit));
+        }
+    }
+
+    private static final String SIZE_FILTER_QUERY = //
+    "select pe.rootItem.key, sum(size.addedAndModifiedSize) "
+            + "from ProcessEnactment pe, SizeFact size "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) "
+            + "and pe.includesItem.key = size.planItem.key "
+            + "and size.sizeMetric.shortName = ? "
+            + "and size.measurementType.name = 'Actual' "
+            + "and size.versionInfo.current = 1 "
             + "group by pe.rootItem.key";
 
 
