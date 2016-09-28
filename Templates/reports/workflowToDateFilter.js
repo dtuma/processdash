@@ -26,23 +26,35 @@ var WFilt = {
     init : function() {
         var filterClickEvent = WFilt.filterClick.bindAsEventListener(this);
         var clearFieldEvent = WFilt.clearField.bindAsEventListener(this);
+        var matchNumbersFunc = WFilt.matchNumbers.bind(this);
         var filterOnEvent = WFilt.filterOn.bindAsEventListener(this);
         var filterOffEvent = WFilt.filterOff.bindAsEventListener(this);
         this.filterIDs = new Array();
 
         $A($("filterRow").getElementsByTagName("td")).each(function(td) {
+            // only examine top-level TD elements (not TDs in nested tables)
             if (td.parentNode.id != "filterRow")
                 return;
+
+            // set click handlers for hyperlinks
             var links = td.getElementsByTagName("a");
             links[0].onclick = filterClickEvent;
             for (var i = 1; i < links.length; i++) {
                 if (links[i].className == "clearButton")
                     links[i].onclick = clearFieldEvent;
             }
+
+            // read and record the ID of this filter
             var inputs = td.getElementsByTagName("input");
-            WFilt.filterIDs.push(inputs[0].value);
+            var filterID = inputs[0].value;
+            WFilt.filterIDs.push(filterID);
+            WFilt.cols[filterID] = matchNumbersFunc; // default match handler
+
+            // pre-enable this filter if indicated by the HTML
             if (inputs[1].value)
                 Element.addClassName(td, "filterEnabled");
+
+            // add handlers for the filter enablement buttons
             inputs[inputs.length - 3].onclick = filterOnEvent;
             inputs[inputs.length - 2].onclick = filterOffEvent;
             inputs[inputs.length - 1].onclick = filterClickEvent;
@@ -162,12 +174,15 @@ var WFilt = {
 
     matchDates : function(filter, id) {
         // get the completion date boundaries
-        var before = Form.getInputs(filter, "text", "dateBefore")[0].value;
-        var after = Form.getInputs(filter, "text", "dateAfter")[0].value;
+        var before = Form.getInputs(filter, "text", "dateBefore")[0].value
+                .trim();
+        var after = Form.getInputs(filter, "text", "dateAfter")[0].value.trim();
 
         // possibly disable the filter if no dates are selected
-        if (!before && !after)
+        if (!before && !after) {
             this.filterOffTd(filter);
+            return Prototype.K;
+        }
 
         // build a function which can test to see if a given table cell
         // is included/excluded as appropriate
@@ -181,6 +196,31 @@ var WFilt = {
         };
     },
 
+    matchNumbers : function(filter, id) {
+        // get the numeric boundaries
+        var min = Form.getInputs(filter, "text", id + "Min")[0].value.trim();
+        var max = Form.getInputs(filter, "text", id + "Max")[0].value.trim();
+
+        // possibly disable the filter if no values are selected
+        if (!min && !max) {
+            this.filterOffTd(filter);
+            return Prototype.K;
+        }
+        var min_ = this.parseNum(min);
+        var max_ = this.parseNum(max);
+
+        // build a function which can test to see if a given table cell
+        // is included/excluded as appropriate
+        return function(td) {
+            var val = WFilt.parseNum(td.innerHTML);
+            if (min && val < min_)
+                return false;
+            if (max && max_ <= val)
+                return false;
+            return true;
+        };
+    },
+
     getRadioVal : function(form, name) {
         var radioElements = Form.getInputs(form, "radio", name);
         for (var i = 0; i < radioElements.length; i++) {
@@ -188,6 +228,19 @@ var WFilt = {
                 return radioElements[i].value;
         }
     },
+
+    parseNum : function(str) {
+        if (this.commaNum) {
+            str = str.replace(/\./g, "");
+            str = str.replace(",", ".");
+        } else {
+            str = str.replace(/,/g, "");
+        }
+        str = str.replace(/\s/g, "");
+        return parseFloat(str);
+    },
+
+    commaNum : false,
 
     rows : [],
 

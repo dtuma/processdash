@@ -24,7 +24,9 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,6 +80,7 @@ public class FilterAnalysisPage extends AnalysisPage {
     private Object getFilter(HttpServletRequest req) {
         Properties p = loadFilter(req);
         expandMulti(p, "projVal");
+        localizeNumbers(req, p);
         return p;
     }
 
@@ -89,6 +92,17 @@ public class FilterAnalysisPage extends AnalysisPage {
         String[] values = value.split(",");
         for (String oneVal : values)
             p.setProperty(key + oneVal, "checked=\"checked\"");
+    }
+
+    private void localizeNumbers(HttpServletRequest req, Properties p) {
+        NumberFormat fmt = NumberFormat.getNumberInstance(req.getLocale());
+        Map<String, String> localized = new HashMap();
+        for (Entry<Object, Object> e : p.entrySet()) {
+            String key = (String) e.getKey();
+            if (isNumberKey(key))
+                localized.put(key, localizeNum(fmt, (String) e.getValue()));
+        }
+        p.putAll(localized);
     }
 
     private Map<String, String> getProjects(WorkflowHistDataHelper histData) {
@@ -143,11 +157,16 @@ public class FilterAnalysisPage extends AnalysisPage {
 
         // calculate the properties we should save for this filter
         Properties p = new Properties();
+        NumberFormat fmt = NumberFormat.getNumberInstance(req.getLocale());
         for (String filterID : req.getParameterValues("filterID")) {
             for (Entry<String, String[]> e : req.getParameterMap().entrySet()) {
-                if (e.getKey().startsWith(filterID)) {
-                    p.setProperty(e.getKey(),
-                        StringUtils.join(Arrays.asList(e.getValue()), ","));
+                String key = e.getKey();
+                if (key.startsWith(filterID)) {
+                    String val = StringUtils.join(Arrays.asList(e.getValue()),
+                        ",").trim();
+                    if (isNumberKey(key))
+                        val = deLocalizeNum(fmt, val);
+                    p.setProperty(key, val);
                 }
             }
             if (isRemoving)
@@ -169,6 +188,30 @@ public class FilterAnalysisPage extends AnalysisPage {
         String workflowID = req.getParameter(WorkflowReport.WORKFLOW_PARAM);
         HTMLUtils.appendQuery(uri, WorkflowReport.WORKFLOW_PARAM, workflowID);
         resp.sendRedirect(uri.toString());
+    }
+
+
+
+    private boolean isNumberKey(String key) {
+        return key.endsWith("Min") || key.endsWith("Max");
+    }
+
+    private String localizeNum(NumberFormat fmt, String val) {
+        try {
+            if (StringUtils.hasValue(val))
+                return fmt.format(Double.parseDouble(val));
+        } catch (Exception e) {
+        }
+        return val;
+    }
+
+    private String deLocalizeNum(NumberFormat fmt, String val) {
+        try {
+            if (StringUtils.hasValue(val))
+                return Double.toString(fmt.parse(val).doubleValue());
+        } catch (Exception e) {
+        }
+        return val;
     }
 
 }

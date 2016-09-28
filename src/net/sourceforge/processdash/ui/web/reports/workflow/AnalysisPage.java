@@ -220,6 +220,26 @@ public abstract class AnalysisPage {
             histData.setOnlyCompletedBefore(getDate(p, "dateBefore", 0));
             histData.setOnlyCompletedAfter(getDate(p, "dateAfter", 1));
         }
+
+        // configure min/max times
+        if ("true".equals(p.getProperty("timeEnabled"))) {
+            histData.setMinTime(getNum(p, "timeMin", 60));
+            histData.setMaxTime(getNum(p, "timeMax", 60));
+        }
+    }
+
+    private static Double getNum(Properties p, String key, int mult) {
+        try {
+            String val = p.getProperty(key);
+            if (val == null)
+                return null;
+            else if (mult == 1)
+                return Double.valueOf(val);
+            else
+                return Double.parseDouble(val) * mult;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static Set<String> getList(Properties p, String key) {

@@ -114,13 +114,25 @@ div.filterButtons input.cancel {
     display: inline;
 }
 
-td#dateFilter table td {
+tr#filterRow td div.filter table td {
     border: 0px;
     padding: 2px;
 }
 
 td.filterEnabled div.filterButtons input.cancel {
     display: none;
+}
+
+div.unitsField {
+    position: relative;
+}
+
+div.unitsLabel {
+    color: gray; 
+    position: absolute;
+    right: 5px;
+    top: 2px;
+    z-index: 1;
 }
 
 a.clearButton {

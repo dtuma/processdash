@@ -160,6 +160,10 @@ public class WorkflowHistDataHelper {
 
     private boolean onlyCompleted = true;
 
+    private Double minTime;
+
+    private Double maxTime;
+
     private LegacyPhaseMapStrategy legacyPhaseMapStrategy;
 
     private Integer workflowKey;
@@ -233,6 +237,22 @@ public class WorkflowHistDataHelper {
         this.onlyCompletedBefore = completedBefore;
         if (completedBefore != null)
             this.onlyCompleted = true;
+    }
+
+    public Double getMinTime() {
+        return minTime;
+    }
+
+    public void setMinTime(Double minTime) {
+        this.minTime = minTime;
+    }
+
+    public Double getMaxTime() {
+        return maxTime;
+    }
+
+    public void setMaxTime(Double maxTime) {
+        this.maxTime = maxTime;
     }
 
     public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
@@ -309,6 +329,8 @@ public class WorkflowHistDataHelper {
             applyProjectSpecificFilter();
         if (onlyCompleted)
             discardIncompleteEnactments();
+        if (minTime != null || maxTime != null)
+            applyTimeSpecificFilter();
         discardNestedEnactments();
     }
 
@@ -397,6 +419,40 @@ public class WorkflowHistDataHelper {
             + "and task.versionInfo.current = 1 " //
             + "group by pe.rootItem.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
+
+
+    private void applyTimeSpecificFilter() {
+        Map<Integer, Number> rawData = QueryUtils.mapColumns(query(
+            TIME_FILTER_QUERY, getEnactmentRootKeys(),
+            getIncludedWorkflowKeys(), getWorkflowKey()));
+        applyNumericRangeFilter(rawData, minTime, maxTime);
+    }
+
+    private static final String TIME_FILTER_QUERY = //
+    "select pe.rootItem.key, sum(task.actualTimeMin) "
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join pe.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) " //
+            + "and mapsTo.process.key = ? "
+            + "and pe.includesItem.key = task.planItem.key "
+            + "and task.versionInfo.current = 1 " //
+            + "group by pe.rootItem.key";
+
+
+    private void applyNumericRangeFilter(Map<Integer, Number> numericData,
+            Double min, Double max) {
+        for (Iterator i = enactments.iterator(); i.hasNext();) {
+            Object[] oneEnactment = (Object[]) i.next();
+            Integer oneRootKey = get(oneEnactment, EnactmentCol.RootKey);
+            Number oneValue = numericData.get(oneRootKey);
+            double val = (oneValue == null ? 0 : oneValue.doubleValue());
+            if (min != null && val < min)
+                i.remove();
+            else if (max != null && max <= val)
+                i.remove();
+        }
+    }
 
 
     private void discardNestedEnactments() {
