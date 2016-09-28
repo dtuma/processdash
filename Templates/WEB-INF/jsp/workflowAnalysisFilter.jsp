@@ -60,12 +60,28 @@ ${resources.html['Project.Prompt']}
 </div></div></div></div></td>
 
 <td id="taskFilter">
-<a class="showFilter" href="#">${resources.html['Task']}</a>
+<a class="showFilter" href="#">${resources.html['Task.Header']}</a>
 <div class="filter"><div class="filterSpacer"></div>
 <div class="filterContentWrapper left"><div class="filterContent">
 <input type="hidden" name="filterID" value="task"/>
-<input type="hidden" name="taskEnabled"/>
-Fixme: add real content for editing this filter
+<input type="hidden" name="taskEnabled" value="${filt.taskEnabled}"/>
+${resources.html['Task.Prompt']}
+<div class="indent"><table>
+<tr>
+<td style="text-align:right">${resources.html['Task.Include']}</td>
+<td><input type="text" name="taskInclude" size="40"
+    value="<c:out value='${filt.taskInclude}'/>"
+    title="${resources.html['Task.Tooltip']}"/></td>
+<td><a href="#" class="clearButton">&times;</a></td>
+</tr>
+<tr>
+<td style="text-align:right">${resources.html['Task.Exclude']}</td>
+<td><input type="text" name="taskExclude" size="40" 
+    value="<c:out value='${filt.taskExclude}'/>"
+    title="${resources.html['Task.Tooltip']}"/></td>
+<td><a href="#" class="clearButton">&times;</a></td>
+</tr>
+</table></div>
 <div class="filterButtons">
 <input type="button" name="ok" value="${resources.html['OK']}"/>
 <input type="button" name="off" class="off" value="${resources.html['Off']}"/>
@@ -82,13 +98,13 @@ ${resources.html['Date.Prompt']}
 <div class="indent"><table>
 <tr>
 <td style="text-align:right">${resources.html['Date.After']}</td>
-<td><input type="text" name="dateAfter" value="${filt.dateAfter}" width="7"
+<td><input type="text" name="dateAfter" value="${filt.dateAfter}" size="20"
      onfocus="JACS.show(this,event);"/></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
 <tr>
 <td style="text-align:right">${resources.html['Date.Before']}</td>
-<td><input type="text" name="dateBefore" value="${filt.dateBefore}" width="7"
+<td><input type="text" name="dateBefore" value="${filt.dateBefore}" size="20"
      onfocus="JACS.show(this,event);"/></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
@@ -111,7 +127,7 @@ ${resources.html['Time.Prompt']}
 <td style="text-align:right">${resources.html['At_Least']}</td>
 <td><div class="unitsField">
   <div class="unitsLabel">${resources.html['Hours']}</div>
-  <input type="text" name="timeMin" value="${filt.timeMin}" width="7"/>
+  <input type="text" name="timeMin" value="${filt.timeMin}" size="20"/>
 </div></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
@@ -119,7 +135,7 @@ ${resources.html['Time.Prompt']}
 <td style="text-align:right">${resources.html['Less_Than']}</td>
 <td><div class="unitsField">
   <div class="unitsLabel">${resources.html['Hours']}</div>
-  <input type="text" name="timeMax" value="${filt.timeMax}" width="7"/>
+  <input type="text" name="timeMax" value="${filt.timeMax}" size="20"/>
 </div></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
@@ -145,7 +161,7 @@ ${resources.html['Size.Prompt']}
 <td style="text-align:right">${resources.html['At_Least']}</td>
 <td><div class="unitsField">
   <div class="unitsLabel"><c:out value="${units.value}" /></div>
-  <input type="text" name="${sizeID}Min" value="${filt[sizeID.concat('Min')]}" width="7"/>
+  <input type="text" name="${sizeID}Min" value="${filt[sizeID.concat('Min')]}" size="20"/>
 </div></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
@@ -153,7 +169,7 @@ ${resources.html['Size.Prompt']}
 <td style="text-align:right">${resources.html['Less_Than']}</td>
 <td><div class="unitsField">
   <div class="unitsLabel"><c:out value="${units.value}" /></div>
-  <input type="text" name="${sizeID}Max" value="${filt[sizeID.concat('Max')]}" width="7"/>
+  <input type="text" name="${sizeID}Max" value="${filt[sizeID.concat('Max')]}" size="20"/>
 </div></td>
 <td><a href="#" class="clearButton">&times;</a></td>
 </tr>
@@ -201,7 +217,7 @@ ${resources.html['Labels.Prompt']}
 <td id="${eid}.proj"><c:out value="${e.projectName}"/>
     <input type="hidden" name="val" value="${e.projectID}"/></td>
 
-<td><c:out value="${e.rootName}"/></td>
+<td id="${eid}.task"><c:out value="${e.rootName}"/></td>
 
 <td id="${eid}.date" class="right"><fmt:formatDate value="${e.completed}"
     type="DATE" dateStyle="SHORT" /><c:set var="dateKey"><fmt:formatDate

@@ -207,12 +207,18 @@ public abstract class AnalysisPage {
 
         // configure the list of included/excluded projects
         if ("true".equals(p.getProperty("projEnabled"))) {
-            Set<String> projIDs = getList(p, "projVal");
+            Set<String> projIDs = getList(p, "projVal", false);
             String logic = p.getProperty("projLogic");
             if ("include".equals(logic))
                 histData.setIncludedProjects(projIDs);
             else
                 histData.setExcludedProjects(projIDs);
+        }
+
+        // configure included/excluded task names
+        if ("true".equals(p.getProperty("taskEnabled"))) {
+            histData.setIncludedNames(getList(p, "taskInclude", true));
+            histData.setExcludedNames(getList(p, "taskExclude", true));
         }
 
         // configure before/after dates
@@ -241,7 +247,7 @@ public abstract class AnalysisPage {
 
         // configure included/excluded labels
         if ("true".equals(p.getProperty("labelEnabled"))) {
-            Set<String> labels = getList(p, "labelVal");
+            Set<String> labels = getList(p, "labelVal", false);
             String logic = p.getProperty("labelLogic");
             if ("include".equals(logic))
                 histData.setIncludedLabels(labels);
@@ -264,12 +270,13 @@ public abstract class AnalysisPage {
         }
     }
 
-    private static Set<String> getList(Properties p, String key) {
+    private static Set<String> getList(Properties p, String key,
+            boolean nullIfMissing) {
         String list = p.getProperty(key);
-        if (list == null)
-            return Collections.EMPTY_SET;
+        if (list == null || list.trim().length() == 0)
+            return nullIfMissing ? null : Collections.EMPTY_SET;
         else
-            return new HashSet<String>(Arrays.asList(list.split(",")));
+            return new HashSet<String>(Arrays.asList(list.split("\\s*,\\s*")));
     }
 
     private static Date getDate(Properties p, String key, int adjust) {

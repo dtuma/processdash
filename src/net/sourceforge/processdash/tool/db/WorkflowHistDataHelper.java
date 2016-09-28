@@ -157,6 +157,10 @@ public class WorkflowHistDataHelper {
 
     private Set<String> excludedProjects;
 
+    private Set<String> includedNames;
+
+    private Set<String> excludedNames;
+
     private Date onlyCompletedAfter;
 
     private Date onlyCompletedBefore;
@@ -228,6 +232,31 @@ public class WorkflowHistDataHelper {
 
     public void setExcludedProjects(Set<String> excludedProjects) {
         this.excludedProjects = excludedProjects;
+    }
+
+    public Set<String> getIncludedNames() {
+        return includedNames;
+    }
+
+    public void setIncludedNames(Set<String> includedNames) {
+        this.includedNames = toLowerCaseSet(includedNames);
+    }
+
+    public Set<String> getExcludedNames() {
+        return excludedNames;
+    }
+
+    public void setExcludedNames(Set<String> excludedNames) {
+        this.excludedNames = toLowerCaseSet(excludedNames);
+    }
+
+    private Set<String> toLowerCaseSet(Set<String> set) {
+        if (set == null || set.isEmpty())
+            return set;
+        Set<String> result = new HashSet();
+        for (String s : set)
+            result.add(s.toLowerCase());
+        return result;
     }
 
     public Date getOnlyCompletedAfter() {
@@ -376,6 +405,8 @@ public class WorkflowHistDataHelper {
     private void filterEnactments() {
         if (includedProjects != null || excludedProjects != null)
             applyProjectSpecificFilter();
+        if (includedNames != null || excludedNames != null)
+            applyNameSpecificFilter();
         if (onlyCompleted)
             discardIncompleteEnactments();
         if (minTime != null || maxTime != null)
@@ -416,6 +447,43 @@ public class WorkflowHistDataHelper {
         else
             return planItemID.substring(0, colonPos);
     }
+
+
+    private void applyNameSpecificFilter() {
+        // get the names for the items in our enactment set
+        Map<Integer, String> itemNames = new HashMap<Integer, String>();
+        for (Object[] row : (List<Object[]>) query(ENACTMENT_INFO_QUERY,
+            getEnactmentRootKeys())) {
+            Integer rootKey = get(row, InfoCol.RootKey);
+            String itemName = get(row, InfoCol.Element);
+            String taskName = get(row, InfoCol.Task);
+            if (taskName != null)
+                itemName = itemName + "/" + taskName;
+            itemNames.put(rootKey, itemName.toLowerCase());
+        }
+
+        // check whether the items match the inclusion/exclusion criteria
+        for (Iterator i = enactments.iterator(); i.hasNext();) {
+            Object[] oneEnactment = (Object[]) i.next();
+            Integer rootKey = get(oneEnactment, EnactmentCol.RootKey);
+            String name = itemNames.get(rootKey);
+            if (name == null)
+                i.remove();
+            else if (excludedNames != null && matchName(name, excludedNames))
+                i.remove();
+            else if (includedNames != null && !matchName(name, includedNames))
+                i.remove();
+        }
+    }
+
+    private boolean matchName(String name, Set<String> tokens) {
+        for (String token : tokens) {
+            if (name.contains(token))
+                return true;
+        }
+        return false;
+    }
+
 
     private void discardIncompleteEnactments() {
         loadEnactmentCompletionDates();
@@ -613,12 +681,13 @@ public class WorkflowHistDataHelper {
             e.rootWbsID = get(oneEnactment, EnactmentCol.RootWbsID);
             e.completed = get(oneEnactment, EnactmentCol.Completed);
             for (Object[] row : rawInfo) {
-                int rowKey = (Integer) row[0];
+                int rowKey = get(row, InfoCol.RootKey);
                 if (rowKey == e.rootKey) {
-                    e.projectName = (String) row[1];
-                    e.rootName = (String) row[2];
-                    if (row[3] != null)
-                        e.rootName = e.rootName + "/" + row[3];
+                    e.projectName = get(row, InfoCol.Project);
+                    e.rootName = get(row, InfoCol.Element);
+                    String task = get(row, InfoCol.Task);
+                    if (task != null)
+                        e.rootName = e.rootName + "/" + task;
                     result.add(e);
                     break;
                 }
@@ -650,6 +719,8 @@ public class WorkflowHistDataHelper {
             + "from PlanItem as pi " //
             + "left join pi.task as task " //
             + "where pi.key in (?)";
+
+    private enum InfoCol { RootKey, Project, Element, Task }
 
 
     /**

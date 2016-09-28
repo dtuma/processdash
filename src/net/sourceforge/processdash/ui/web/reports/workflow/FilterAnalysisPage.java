@@ -170,7 +170,8 @@ public class FilterAnalysisPage extends AnalysisPage {
                         ",").trim();
                     if (isNumberKey(key))
                         val = deLocalizeNum(fmt, val);
-                    p.setProperty(key, val);
+                    if (val.length() > 0)
+                        p.setProperty(key, val);
                 }
             }
             if (isRemoving)

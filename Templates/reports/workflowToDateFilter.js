@@ -64,6 +64,7 @@ var WFilt = {
         this.rows.shift();
 
         this.cols["proj"] = this.matchSelectedValues.bind(this);
+        this.cols["task"] = this.matchNames.bind(this);
         this.cols["date"] = this.matchDates.bind(this);
         this.cols["label"] = this.matchSelectedValues.bind(this);
 
@@ -171,6 +172,41 @@ var WFilt = {
             });
             return !match == exclude;
         };
+    },
+
+    matchNames : function(filter, id) {
+        // get the words that should be included/excluded
+        var include = Form.getInputs(filter, "text", "taskInclude")[0].value
+                .trim();
+        var exclude = Form.getInputs(filter, "text", "taskExclude")[0].value
+                .trim();
+
+        // possibly disable the filter if no values were entered
+        if (!include && !exclude) {
+            this.filterOffTd(filter);
+            return Prototype.K;
+        }
+        var include_ = include.toLowerCase().split(/\s*,\s*/);
+        var exclude_ = exclude.toLowerCase().split(/\s*,\s*/);
+
+        // build a function which can test to see if a given table cell
+        // is included/excluded as appropriate
+        return function(td) {
+            var text = (td.textContent || text.innerText).toLowerCase();
+            if (exclude) {
+                for (var i = 0; i < exclude_.length; i++) {
+                    if (exclude_[i] && text.indexOf(exclude_[i]) != -1)
+                        return false;
+                }
+            }
+            if (!include)
+                return true;
+            for (var i = 0; i < include_.length; i++) {
+                if (include_[i] && text.indexOf(include_[i]) != -1)
+                    return true;
+            }
+            return false;
+        }
     },
 
     matchDates : function(filter, id) {
