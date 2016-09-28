@@ -70,6 +70,7 @@ public class FilterAnalysisPage extends AnalysisPage {
         req.setAttribute("filt", getFilter(req));
         req.setAttribute("projects", getProjects(histData));
         req.setAttribute("sizeUnits", getSizeUnits(histData));
+        req.setAttribute("labels", histData.getLabels());
         req.setAttribute("mappingPromptHtml", getMappingPrompt(histData));
         req.setAttribute("resources", filtRes.asJSTLMap());
 
@@ -80,6 +81,7 @@ public class FilterAnalysisPage extends AnalysisPage {
     private Object getFilter(HttpServletRequest req) {
         Properties p = loadFilter(req);
         expandMulti(p, "projVal");
+        expandMulti(p, "labelVal");
         localizeNumbers(req, p);
         return p;
     }

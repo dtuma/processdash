@@ -65,6 +65,7 @@ var WFilt = {
 
         this.cols["proj"] = this.matchSelectedValues.bind(this);
         this.cols["date"] = this.matchDates.bind(this);
+        this.cols["label"] = this.matchSelectedValues.bind(this);
 
         this.applyFilters();
     },

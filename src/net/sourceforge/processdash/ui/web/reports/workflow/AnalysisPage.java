@@ -238,6 +238,16 @@ public abstract class AnalysisPage {
                 histData.setMaxSize(dbUnit, getNum(p, sizeID + "Max", 1));
             }
         }
+
+        // configure included/excluded labels
+        if ("true".equals(p.getProperty("labelEnabled"))) {
+            Set<String> labels = getList(p, "labelVal");
+            String logic = p.getProperty("labelLogic");
+            if ("include".equals(logic))
+                histData.setIncludedLabels(labels);
+            else
+                histData.setExcludedLabels(labels);
+        }
     }
 
     private static Double getNum(Properties p, String key, int mult) {

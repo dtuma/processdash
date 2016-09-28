@@ -73,7 +73,7 @@ Fixme: add real content for editing this filter
 </div></div></div></div></td>
 
 <td id="dateFilter">
-<a class="showFilter" href="#">${resources.html['Date.Title']}</a>
+<a class="showFilter" href="#">${resources.html['Date.Header']}</a>
 <div class="filter"><div class="filterSpacer"></div>
 <div class="filterContentWrapper right"><div class="filterContent">
 <input type="hidden" name="filterID" value="date"/>
@@ -164,6 +164,34 @@ ${resources.html['Size.Prompt']}
 <input type="button" name="cancel" class="cancel" value="${resources.html['Cancel']}"/>
 </div></div></div></div></td>
 </c:forEach>
+
+<td id="labelFilter">
+<a class="showFilter" href="#">${resources.html['Labels.Header']}</a>
+<div class="filter"><div class="filterSpacer"></div>
+<div class="filterContentWrapper right"><div class="filterContent">
+<input type="hidden" name="filterID" value="label"/>
+<input type="hidden" name="labelEnabled" value="${filt.labelEnabled}"/>
+${resources.html['Labels.Prompt']}
+<div class="indent"><div class="indent">
+<input type="radio" name="labelLogic" value="include" ${
+    filt.labelLogic == 'include' ? 'checked="checked"' : ''
+    }/>&nbsp;${resources.html['Included']}
+<input type="radio" name="labelLogic" value="exclude" ${
+    filt.labelLogic == 'include' ? '' : 'checked="checked"'
+    }/>&nbsp;${resources.html['Excluded']}
+</div></div>
+<c:forEach var="label" items="${labels}">
+<div class="indent">
+<input type="checkbox" name="labelVal" value="<c:out value='${label}'/>" ${
+    filt['labelVal'.concat(label)]}/>&nbsp;<c:out value="${label}" />
+</div>
+</c:forEach>
+<div class="filterButtons">
+<input type="button" name="ok" value="${resources.html['OK']}"/>
+<input type="button" name="off" class="off" value="${resources.html['Off']}"/>
+<input type="button" name="cancel" class="cancel" value="${resources.html['Cancel']}"/>
+</div></div></div></div></td>
+
 </tr>
 
 <c:forEach var="e" varStatus="s" items="${hist.enactments}">
@@ -188,6 +216,13 @@ ${resources.html['Size.Prompt']}
     <fmt:formatNumber value="${e.sizes[units.value]}" maxFractionDigits="1"/></c:if>
   </td>
 </c:forEach>
+
+<td id="${eid}.label">
+<c:forEach var="label" varStatus="stat" items="${e.labels}">
+  <c:out value="${label}" /><c:if test="${!stat.last}">, </c:if>
+  <input type="hidden" name="val" value="<c:out value='${label}'/>"/>
+</c:forEach>
+</td>
 
 </tr>
 </c:forEach>

@@ -63,6 +63,9 @@ public class WorkflowHistDataHelper {
                 result.put(units, actualSize(units));
             return result;
         }
+        public Set<String> getLabels() {
+            return WorkflowHistDataHelper.this.getLabels(this);
+        }
         public String getProjectID() {
             return rootWbsID.substring(0, rootWbsID.indexOf(':'));
         }
@@ -167,6 +170,10 @@ public class WorkflowHistDataHelper {
     private Map<String, Double> minSize = new HashMap();
 
     private Map<String, Double> maxSize = new HashMap();
+
+    private Set<String> includedLabels;
+
+    private Set<String> excludedLabels;
 
     private LegacyPhaseMapStrategy legacyPhaseMapStrategy;
 
@@ -281,6 +288,22 @@ public class WorkflowHistDataHelper {
         return maxSize.get(units);
     }
 
+    public Set<String> getIncludedLabels() {
+        return includedLabels;
+    }
+
+    public void setIncludedLabels(Set<String> includedLabels) {
+        this.includedLabels = includedLabels;
+    }
+
+    public Set<String> getExcludedLabels() {
+        return excludedLabels;
+    }
+
+    public void setExcludedLabels(Set<String> excludedLabels) {
+        this.excludedLabels = excludedLabels;
+    }
+
     public LegacyPhaseMapStrategy getLegacyPhaseMapStrategy() {
         return legacyPhaseMapStrategy;
     }
@@ -359,6 +382,8 @@ public class WorkflowHistDataHelper {
             applyTimeSpecificFilter();
         if (!minSize.isEmpty() || !maxSize.isEmpty())
             applySizeSpecificFilter();
+        if (includedLabels != null || excludedLabels != null)
+            applyLabelSpecificFilter();
         discardNestedEnactments();
     }
 
@@ -506,6 +531,31 @@ public class WorkflowHistDataHelper {
             if (min != null && val < min)
                 i.remove();
             else if (max != null && max <= val)
+                i.remove();
+        }
+    }
+
+
+    private void applyLabelSpecificFilter() {
+        // scan label data, and make a note of enactments to include/exclude
+        Set<Integer> toInclude = new HashSet();
+        Set<Integer> toExclude = new HashSet();
+        for (Object[] row : getLabelData()) {
+            Integer oneRootKey = get(row, LabelCol.RootKey);
+            String oneLabel = get(row, LabelCol.Label);
+            if (excludedLabels != null && excludedLabels.contains(oneLabel))
+                toExclude.add(oneRootKey);
+            else if (includedLabels != null && includedLabels.contains(oneLabel))
+                toInclude.add(oneRootKey);
+        }
+
+        // apply these decisions to the enactment list
+        for (Iterator i = enactments.iterator(); i.hasNext();) {
+            Object[] oneEnactment = (Object[]) i.next();
+            Integer oneRootKey = get(oneEnactment, EnactmentCol.RootKey);
+            if (toExclude.contains(oneRootKey))
+                i.remove();
+            else if (includedLabels != null && !toInclude.contains(oneRootKey))
                 i.remove();
         }
     }
@@ -1130,6 +1180,40 @@ public class WorkflowHistDataHelper {
         result.remove(TOTAL_PHASE_KEY);
         return result;
     }
+
+
+    public Set<String> getLabels() {
+        return getLabels(null);
+    }
+
+    private Set<String> getLabels(Enactment e) {
+        Set<String> result = new TreeSet<String>();
+        for (Object[] row : getLabelData()) {
+            if (match(row, LabelCol.RootKey, e))
+                result.add((String) get(row, LabelCol.Label));
+        }
+        return result;
+    }
+
+    private List<Object[]> labelData;
+
+    private List<Object[]> getLabelData() {
+        if (labelData == null)
+            labelData = query(LABEL_QUERY, getEnactmentRootKeys(),
+                getIncludedWorkflowKeys());
+        return labelData;
+    }
+
+    private static final String LABEL_QUERY = //
+    "select distinct pe.rootItem.key, attr.value.text "
+            + "from ProcessEnactment pe, PlanItemAttrFact attr "
+            + "where pe.rootItem.key in (?) " //
+            + "and pe.process.key in (?) " //
+            + "and pe.includesItem.key = attr.planItem.key "
+            + "and attr.attribute.identifier = 'plan_item.label' "
+            + "and attr.versionInfo.current = 1";
+
+    private enum LabelCol { RootKey, Label }
 
 
 
