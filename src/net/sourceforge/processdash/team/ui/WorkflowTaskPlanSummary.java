@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         String rootPath = workflow.getRootItemPath();
         tasks.remove(rootPath);
         String workflowName = workflow.getWorkflowProcessName();
+        String workflowID = workflow.getWorkflowProcessID();
 
         // Gather up information about the tasks in this workflow enactment.
         StringBuffer uri = new StringBuffer().append(env.get("SCRIPT_PATH"))
@@ -102,6 +103,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         // Write data into the repository for use by the plan summary form
         data.putValue("Workflow_Root_Path", StringData.create(rootPath));
         data.putValue("Workflow_Name", StringData.create(workflowName));
+        data.putValue("Workflow_ID", StringData.create(workflowID));
         data.putValue("Workflow_Task_Paths", fullPaths);
         data.putValue("Workflow_Orphaned_Time_Paths", orphanedTimePaths);
         for (String coqType : COQ_TYPES)

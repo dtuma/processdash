@@ -19,8 +19,8 @@
 
 <h2><!--#echo [Workflow_Name] --> - Project Plan Summary
 <!--#if !EXPORT -->
-<a class="doNotPrint" href="../../reports/workflowToDate?workflowName=<!--#echo
-     var=[Workflow_Name] encoding=url -->">(Show To Date Metrics)</a>
+<a class="doNotPrint" href="/reports/workflowToDate?workflow=<!--#echo
+     var=[Workflow_ID] encoding=url -->">(Show To Date Metrics)</a>
 <!--#endif-->
 </h2>
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,6 +63,8 @@ public class WorkflowEnactmentHelper {
 
     private String workflowProcessName;
 
+    private String workflowProcessID;
+
     private Map<String, String> workflowPhaseNames;
 
     private Map<String, String> workflowPhaseTypes;
@@ -88,6 +90,12 @@ public class WorkflowEnactmentHelper {
         if (workflowProcessName == null)
             tryLoadWorkflowInfo();
         return workflowProcessName;
+    }
+
+    public String getWorkflowProcessID() {
+        if (workflowProcessID == null)
+            tryLoadWorkflowInfo();
+        return workflowProcessID;
     }
 
     public Map<String, String> getWorkflowPhaseNames() {
@@ -161,13 +169,14 @@ public class WorkflowEnactmentHelper {
         if (query == null)
             lookupObjects();
         // identify the workflow process that generated this task
-        String workflowID = getPrimaryWorkflowID(onePath);
-        String fullWorkflowID = DatabasePluginUtils.getWorkflowPhaseIdentifier(
-            projectID, workflowID);
-        List rawData = query.queryHql(WORKFLOW_PROCESS_QUERY, fullWorkflowID);
+        String phaseNumericID = getPrimaryWorkflowID(onePath);
+        String fullPhaseID = DatabasePluginUtils.getWorkflowPhaseIdentifier(
+            projectID, phaseNumericID);
+        List rawData = query.queryHql(WORKFLOW_PROCESS_QUERY, fullPhaseID);
         Object[] row = (Object[]) rawData.get(0);
         workflowProcessKey = (Integer) row[0];
         workflowProcessName = (String) row[1];
+        workflowProcessID = (String) row[2];
 
         // retrieve the phases in this workflow.
         rawData = query.queryHql(WORKFLOW_PHASE_QUERY, workflowProcessKey);
@@ -176,7 +185,7 @@ public class WorkflowEnactmentHelper {
     }
 
     private static final String WORKFLOW_PROCESS_QUERY = //
-    "select phase.process.key, phase.process.name "
+    "select phase.process.key, phase.process.name, phase.process.identifier "
             + "from Phase phase where phase.identifier = ?";
 
     private static final String WORKFLOW_PHASE_QUERY = //
