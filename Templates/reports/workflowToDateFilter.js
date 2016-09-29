@@ -66,6 +66,14 @@ var WFilt = {
             e.onchange = checkOutliersEvent;
         });
 
+        // register a key handler to save/close filters
+        Event.observe($("filterRow"), "keyup", this.filterKey
+                .bindAsEventListener(this));
+
+        // register a handler on the document to close filter popups
+        Event.observe(document.body, "click", this.documentClick
+                .bindAsEventListener(this));
+
         this.rows = $A($("data").getElementsByTagName("tr"));
         this.rows.shift();
 
@@ -78,15 +86,24 @@ var WFilt = {
         this.checkOutliers();
     },
 
+    documentClick : function(event) {
+        if (!Element.childOf(Event.element(event), $("filterRow")))
+            this.closeFilters();
+    },
+
     filterClick : function(event) {
-        var td = Event.findElement(event, "td");
+        var td = this.findFilterTd(event);
         var wasActive = Element.hasClassName(td, "filterActive");
-        $A($("filterRow").getElementsByTagName("td")).each(function(e) {
-            Element.removeClassName(e, "filterActive");
-        });
+        this.closeFilters();
         if (wasActive == false)
             Element.addClassName(td, "filterActive");
         return false;
+    },
+
+    closeFilters : function() {
+        $A($("filterRow").getElementsByTagName("td")).each(function(e) {
+            Element.removeClassName(e, "filterActive");
+        });
     },
 
     clearField : function(event) {
@@ -96,7 +113,7 @@ var WFilt = {
     },
 
     filterOn : function(event) {
-        var td = Event.findElement(event, "td");
+        var td = this.findFilterTd(event);
         this.filterOnTd(td);
         this.applyFilters();
     },
@@ -108,7 +125,7 @@ var WFilt = {
     },
 
     filterOff : function(event) {
-        var td = Event.findElement(event, "td");
+        var td = this.findFilterTd(event);
         this.filterOffTd(td);
         this.applyFilters();
     },
@@ -117,6 +134,35 @@ var WFilt = {
         Element.removeClassName(td, "filterActive");
         Element.removeClassName(td, "filterEnabled");
         td.getElementsByTagName("input")[1].value = "";
+    },
+
+    findFilterTd : function(event) {
+        var element = Event.element(event);
+        while (element.parentNode) {
+            element = element.parentNode;
+            if (element.tagName && element.tagName.toUpperCase() == "TD"
+                    && element.id && element.id.indexOf("Filter") != -1)
+                return element;
+        }
+        return element;
+    },
+
+    filterKey : function(event) {
+        if (event.keyCode == 13) {
+            this.filterOn(event);
+        } else if (event.keyCode == 27) {
+            this.closeFilters();
+        } else {
+            return;
+        }
+
+        Event.element(event).blur();
+        var e = $("jacs");
+        if (e)
+            e.style.visibility = "hidden";
+        e = $("jacsIframe");
+        if (e)
+            e.style.visibility = "hidden";
     },
 
     checkOutliers : function() {
