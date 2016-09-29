@@ -221,6 +221,21 @@ public class WorkflowHistDataHelper {
         this.onlyCompleted = onlyCompleted;
     }
 
+    public boolean isFiltering() {
+        return oneNotNull(excludedEnactments, minTime, maxTime,
+            includedProjects, excludedProjects, includedNames, excludedNames,
+            onlyCompletedBefore, onlyCompletedAfter, includedLabels,
+            excludedLabels) || !minSize.isEmpty() || !maxSize.isEmpty();
+    }
+
+    private boolean oneNotNull(Object... objects) {
+        for (Object o : objects) {
+            if (o != null)
+                return true;
+        }
+        return false;
+    }
+
     public Set<String> getExcludedEnactments() {
         return excludedEnactments;
     }

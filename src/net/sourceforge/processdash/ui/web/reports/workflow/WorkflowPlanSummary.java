@@ -67,6 +67,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         out.print(esc(title));
         out.print("</title>\n");
         out.print(cssLinkHTML());
+        if (hist.isFiltering())
+            out.write("<link rel='stylesheet' type='text/css' href='filter-style.css'>\n");
         out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
         out.print("<style>\n");
         out.print(" .rowLabel { padding-right: 10px }\n");
@@ -87,12 +89,12 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         out.print(esc(title));
         out.print("</h1>\n");
 
-        out.print("<h2>");
+        out.write("<table><tr>\n<td style='vertical-align:baseline'><h2>");
         out.print(esc(res("Summary.Title")));
-        out.print("</h2>\n");
-
+        out.write("&nbsp;</td>\n");
         if (!isExporting())
-            writeFilterDiv(hist);
+            writeFilterTd(hist);
+        out.write("</tr></table>\n");
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
         Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
@@ -126,18 +128,19 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             hist.debugPrintEnactments();
     }
 
-    protected void writeFilterDiv(WorkflowHistDataHelper hist) {
-        out.write("<p><i><a href='workflowToDate?page=Filter&amp;workflow=");
+    protected void writeFilterTd(WorkflowHistDataHelper hist) {
+        out.write("<td class='doNotPrint' style='vertical-align:baseline'>");
+        out.write("<i><a href='workflowToDate?page=Filter&amp;workflow=");
         out.write(HTMLUtils.urlEncode(hist.getWorkflowID()));
         out.write("'>" + resources.getHTML("Workflow.To_Date.Filter.Label"));
-        out.write("...</a></i></p>");
+        out.write("...</a></i></td>\n");
     }
 
     private void writeOverallMetrics(Map<String, DataPair> sizes,
             Map<String, DataPair> timeInPhase, Map<String, String> phaseTypes) {
         DataPair totalTime = timeInPhase.get(TOTAL_KEY);
 
-        out.print("<h2>");
+        out.print("<h2 style='margin-top:0px'>");
         out.print(res("Overall_Metrics"));
         out.print("</h2>\n<table>\n");
         printTableHeader(null, false);

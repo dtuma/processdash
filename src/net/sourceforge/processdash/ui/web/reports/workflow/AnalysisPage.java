@@ -210,12 +210,10 @@ public abstract class AnalysisPage {
 
         // configure the list of included/excluded projects
         if ("true".equals(p.getProperty("projEnabled"))) {
-            Set<String> projIDs = getList(p, "projVal", false);
-            String logic = p.getProperty("projLogic");
-            if ("include".equals(logic))
-                histData.setIncludedProjects(projIDs);
+            if ("include".equals(p.getProperty("projLogic")))
+                histData.setIncludedProjects(getList(p, "projVal", false));
             else
-                histData.setExcludedProjects(projIDs);
+                histData.setExcludedProjects(getList(p, "projVal", true));
         }
 
         // configure included/excluded task names
@@ -250,12 +248,10 @@ public abstract class AnalysisPage {
 
         // configure included/excluded labels
         if ("true".equals(p.getProperty("labelEnabled"))) {
-            Set<String> labels = getList(p, "labelVal", false);
-            String logic = p.getProperty("labelLogic");
-            if ("include".equals(logic))
-                histData.setIncludedLabels(labels);
+            if ("include".equals(p.getProperty("labelLogic")))
+                histData.setIncludedLabels(getList(p, "labelVal", false));
             else
-                histData.setExcludedLabels(labels);
+                histData.setExcludedLabels(getList(p, "labelVal", true));
         }
     }
 
@@ -361,6 +357,8 @@ public abstract class AnalysisPage {
         out.write("</title>\n");
         out.write("<link rel='stylesheet' type='text/css' href='/style.css'>\n");
         out.write("<script type='text/javascript' src='/lib/overlib.js'></script>\n");
+        if (chartData.histData.isFiltering())
+            out.write("<link rel='stylesheet' type='text/css' href='filter-style.css'>\n");
         out.write("</head>\n<body>\n<h1>");
         out.write(HTMLUtils.escapeEntities(title));
         out.write("</h1>\n");
