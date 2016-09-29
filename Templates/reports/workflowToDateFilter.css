@@ -144,6 +144,10 @@ td.right {
     text-align: right;
 }
 
+td.center {
+    text-align: center;
+}
+
 tr.filterExcluded {
     background-color: #f2ddaa;
     text-decoration: line-through;

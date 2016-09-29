@@ -205,6 +205,9 @@ public abstract class AnalysisPage {
         if (p.isEmpty())
             return;
 
+        // configure the list of explicitly excluded outliers
+        histData.setExcludedEnactments(getList(p, "outlierVal", true));
+
         // configure the list of included/excluded projects
         if ("true".equals(p.getProperty("projEnabled"))) {
             Set<String> projIDs = getList(p, "projVal", false);

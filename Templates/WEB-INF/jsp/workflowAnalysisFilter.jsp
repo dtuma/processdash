@@ -208,6 +208,19 @@ ${resources.html['Labels.Prompt']}
 <input type="button" name="cancel" class="cancel" value="${resources.html['Cancel']}"/>
 </div></div></div></div></td>
 
+<td id="outlierFilter">
+<a class="showFilter" href="#">${resources.html['Outlier.Header']}</a>
+<div class="filter"><div class="filterSpacer"></div>
+<div class="filterContentWrapper right"><div class="filterContent">
+<input type="hidden" name="filterID" value="outlier"/>
+<input type="hidden" name="outlierEnabled"/>
+${resources.html['Outlier.Prompt']}
+<div class="filterButtons">
+<input type="button" name="hidden" value="-" style="display:none"/>
+<input type="button" name="hidden" value="-" style="display:none"/>
+<input type="button" name="ok" value="${resources.html['OK']}"/>
+</div></div></div></div></td>
+
 </tr>
 
 <c:forEach var="e" varStatus="s" items="${hist.enactments}">
@@ -238,6 +251,11 @@ ${resources.html['Labels.Prompt']}
   <c:out value="${label}" /><c:if test="${!stat.last}">, </c:if>
   <input type="hidden" name="val" value="<c:out value='${label}'/>"/>
 </c:forEach>
+</td>
+
+<td id="${eid}.outlier" class="center">
+<input type="checkbox" name="outlierVal" value="${e.rootID}" ${
+    empty filt['outlierVal'.concat(e.rootID)] ? '' : 'checked="checked"'}/>
 </td>
 
 </tr>

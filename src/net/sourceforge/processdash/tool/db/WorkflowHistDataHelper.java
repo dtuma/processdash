@@ -55,6 +55,7 @@ public class WorkflowHistDataHelper {
 
         public String getProjectName() { return projectName; }
         public String getRootName() { return rootName; }
+        public String getRootID() { return rootWbsID; }
         public Date getCompleted() { return completed; }
         public double getHours() { return actualTime() / 60; }
         public Map<String, Double> getSizes() {
@@ -153,6 +154,8 @@ public class WorkflowHistDataHelper {
 
     private String workflowName;
 
+    private Set<String> excludedEnactments;
+
     private Set<String> includedProjects;
 
     private Set<String> excludedProjects;
@@ -216,6 +219,14 @@ public class WorkflowHistDataHelper {
 
     public void setOnlyCompleted(boolean onlyCompleted) {
         this.onlyCompleted = onlyCompleted;
+    }
+
+    public Set<String> getExcludedEnactments() {
+        return excludedEnactments;
+    }
+
+    public void setExcludedEnactments(Set<String> excludedEnactments) {
+        this.excludedEnactments = excludedEnactments;
     }
 
     public Set<String> getIncludedProjects() {
@@ -403,6 +414,8 @@ public class WorkflowHistDataHelper {
 
 
     private void filterEnactments() {
+        if (excludedEnactments != null)
+            applyExcludedEnactments();
         if (includedProjects != null || excludedProjects != null)
             applyProjectSpecificFilter();
         if (includedNames != null || excludedNames != null)
@@ -416,6 +429,15 @@ public class WorkflowHistDataHelper {
         if (includedLabels != null || excludedLabels != null)
             applyLabelSpecificFilter();
         discardNestedEnactments();
+    }
+
+    private void applyExcludedEnactments() {
+        for (Iterator i = enactments.iterator(); i.hasNext();) {
+            Object[] enactment = (Object[]) i.next();
+            String rootItemID = get(enactment, EnactmentCol.RootWbsID);
+            if (excludedEnactments.contains(rootItemID))
+                i.remove();
+        }
     }
 
     private void applyProjectSpecificFilter() {

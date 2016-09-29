@@ -82,6 +82,7 @@ public class FilterAnalysisPage extends AnalysisPage {
         Properties p = loadFilter(req);
         expandMulti(p, "projVal");
         expandMulti(p, "labelVal");
+        expandMulti(p, "outlierVal");
         localizeNumbers(req, p);
         return p;
     }
@@ -177,6 +178,8 @@ public class FilterAnalysisPage extends AnalysisPage {
             if (isRemoving)
                 p.remove(filterID + "Enabled");
         }
+        if (isRemoving)
+            p.remove("outlierVal");
 
         // save these properties into the respository
         saveFilter(req, p);

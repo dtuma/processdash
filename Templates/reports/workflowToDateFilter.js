@@ -60,6 +60,12 @@ var WFilt = {
             inputs[inputs.length - 1].onclick = filterClickEvent;
         });
 
+        // register event handlers for outlier checkboxes
+        var checkOutliersEvent = this.checkOutliers.bindAsEventListener(this);
+        Form.getInputs($("data"), "checkbox", "outlierVal").each(function(e) {
+            e.onchange = checkOutliersEvent;
+        });
+
         this.rows = $A($("data").getElementsByTagName("tr"));
         this.rows.shift();
 
@@ -67,8 +73,9 @@ var WFilt = {
         this.cols["task"] = this.matchNames.bind(this);
         this.cols["date"] = this.matchDates.bind(this);
         this.cols["label"] = this.matchSelectedValues.bind(this);
+        this.cols["outlier"] = this.matchOutliers.bind(this);
 
-        this.applyFilters();
+        this.checkOutliers();
     },
 
     filterClick : function(event) {
@@ -90,10 +97,14 @@ var WFilt = {
 
     filterOn : function(event) {
         var td = Event.findElement(event, "td");
+        this.filterOnTd(td);
+        this.applyFilters();
+    },
+
+    filterOnTd : function(td) {
         Element.removeClassName(td, "filterActive");
         Element.addClassName(td, "filterEnabled");
         td.getElementsByTagName("input")[1].value = "true";
-        this.applyFilters();
     },
 
     filterOff : function(event) {
@@ -106,6 +117,16 @@ var WFilt = {
         Element.removeClassName(td, "filterActive");
         Element.removeClassName(td, "filterEnabled");
         td.getElementsByTagName("input")[1].value = "";
+    },
+
+    checkOutliers : function() {
+        var outliersPresent = Form.getInputs($("data"), "checkbox",
+                "outlierVal").find(function(e) {
+            return e.checked;
+        });
+        var func = outliersPresent ? this.filterOnTd : this.filterOffTd;
+        func($("outlierFilter"));
+        this.applyFilters();
     },
 
     applyFilters : function() {
@@ -258,6 +279,14 @@ var WFilt = {
                 return false;
             return true;
         };
+    },
+
+    matchOutliers : function(filter, id) {
+        return this.isNotOutlier;
+    },
+
+    isNotOutlier : function(td) {
+        return !Form.getInputs(td, "checkbox")[0].checked;
     },
 
     getRadioVal : function(form, name) {
