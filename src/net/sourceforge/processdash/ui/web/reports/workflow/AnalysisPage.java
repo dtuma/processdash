@@ -47,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -378,11 +379,11 @@ public abstract class AnalysisPage {
         if (!isExporting(req)) {
             out.write("&nbsp;&nbsp;<a href='" + getSideUri(chartData, "Filter")
                     + "'>");
-            out.write(resources.getHTML("Workflow.To_Date.Filter.Label"));
-            out.write("...</a>");
+            out.write(resources.getHTML("Workflow.Filter.Link_Text"));
+            out.write("</a>");
         }
 
-        if (!isExporting(req) && chartData.isSizeConfigurable()) {
+        if (!isExporting(req) && Settings.isTeamMode()) {
             out.write("&nbsp;&nbsp;<a href='" + getSideUri(chartData, "Config")
                     + "'>");
             out.write(resources.getHTML("Workflow.Config.Link_Text"));

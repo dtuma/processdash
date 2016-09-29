@@ -55,32 +55,53 @@ public class ConfigureAnalysisPage extends AnalysisPage {
         writeHidden(out, WorkflowReport.WORKFLOW_PARAM,
             chartData.histData.getWorkflowID());
 
-        out.write("<p style='margin-top:0px'>");
-        out.write(resources.getHTML("Workflow.Config.Size_Header"));
-        out.write("</p>\n");
+        if (chartData.isSizeConfigurable()) {
+            out.write("<p style='margin-top:0px'>");
+            out.write(resources.getHTML("Workflow.Config.Size_Header"));
+            out.write("</p>\n");
 
-        for (String units : chartData.histData.getSizeUnits()) {
-            if (!isTimeUnits(units))
-                writeUnitsOption(chartData, out, units);
+            for (String units : chartData.histData.getSizeUnits()) {
+                if (!isTimeUnits(units))
+                    writeUnitsOption(chartData, out, units);
+            }
+            writeUnitsOption(chartData, out, "Hours");
+            out.write("<br/><br/>");
         }
-        writeUnitsOption(chartData, out, "Hours");
 
-        out.write("<br/><p>");
-        out.write("<input type='submit' name='save' value='"
-                + resources.getHTML("Save") + "'/>&nbsp;&nbsp;&nbsp;");
-        out.write("<input type='submit' name='cancel' value='"
-                + resources.getHTML("Cancel") + "'/>");
+        out.write("<p style='margin-top: 0px'>");
+        out.write(resources.getHTML("Workflow.Config.Mapping_Header"));
+        out.write("</p> \n");
+
+        String uri = HTMLUtils.appendQuery("/team/workflowMap", "list",
+            chartData.histData.getWorkflowID());
+        out.write("<div style='margin-left:1cm'><a href='" + uri
+                + "' target='_blank'>");
+        out.write(resources.getHTML("Workflow.Config.Mapping_Link"));
+        out.write("</a></div><br/><br/>\n");
+
+        out.write("<p>");
+        if (chartData.isSizeConfigurable()) {
+            out.write("<input type='submit' name='save' value='"
+                    + resources.getHTML("Save") + "'/>&nbsp;&nbsp;&nbsp;");
+            out.write("<input type='submit' name='cancel' value='"
+                    + resources.getHTML("Cancel") + "'/>");
+        } else {
+            out.write("<input type='submit' name='cancel' value='"
+                    + resources.getHTML("OK") + "'/>");
+        }
         out.write("</p>\n");
 
         out.write("</form>\n");
     }
 
     private void writeHidden(PrintWriter out, String name, String value) {
-        out.write("<input type='hidden' name='");
-        out.write(name);
-        out.write("' value='");
-        out.write(HTMLUtils.escapeEntities(value));
-        out.write("'/>\n");
+        if (value != null) {
+            out.write("<input type='hidden' name='");
+            out.write(name);
+            out.write("' value='");
+            out.write(HTMLUtils.escapeEntities(value));
+            out.write("'/>\n");
+        }
     }
 
     public void writeUnitsOption(ChartData chartData, PrintWriter out,

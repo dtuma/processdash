@@ -22,7 +22,7 @@
 <input type="hidden" name="lastpage"  value="${param.lastpage}" />
 <input type="hidden" name="workflow"  value="${param.workflow}" />
 
-<p>${resources.html['Prompt']} ${mappingPromptHtml}</p>
+<p>${resources.html['Prompt']}</p>
 
 <p class="submitFilter">
 <input type="submit" name="apply" value="${resources.html['Apply']}"/>

@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.util.ResultSet;
@@ -93,7 +94,7 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         out.print(esc(res("Summary.Title")));
         out.write("&nbsp;</td>\n");
         if (!isExporting())
-            writeFilterTd(hist);
+            writePageSubtitle(hist);
         out.write("</tr></table>\n");
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
@@ -128,12 +129,23 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             hist.debugPrintEnactments();
     }
 
-    protected void writeFilterTd(WorkflowHistDataHelper hist) {
-        out.write("<td class='doNotPrint' style='vertical-align:baseline'>");
-        out.write("<i><a href='workflowToDate?page=Filter&amp;workflow=");
-        out.write(HTMLUtils.urlEncode(hist.getWorkflowID()));
-        out.write("'>" + resources.getHTML("Workflow.To_Date.Filter.Label"));
-        out.write("...</a></i></td>\n");
+    protected void writePageSubtitle(WorkflowHistDataHelper hist) {
+        out.write("<td class='doNotPrint' style='vertical-align:baseline'><i>");
+        String workflowID = HTMLUtils.urlEncode(hist.getWorkflowID());
+
+        out.write("<a href='workflowToDate?page=Filter&amp;workflow=");
+        out.write(workflowID);
+        out.write("'>" + resources.getHTML("Workflow.Filter.Link_Text"));
+        out.write("</a>&nbsp;&nbsp;");
+
+        if (Settings.isTeamMode()) {
+            out.write("<a href='workflowToDate?page=Config&amp;workflow=");
+            out.write(workflowID);
+            out.write("'>" + resources.getHTML("Workflow.Config.Link_Text"));
+            out.write("</a>");
+        }
+
+        out.write("</i></td>\n");
     }
 
     private void writeOverallMetrics(Map<String, DataPair> sizes,

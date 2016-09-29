@@ -37,7 +37,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
@@ -71,7 +70,6 @@ public class FilterAnalysisPage extends AnalysisPage {
         req.setAttribute("projects", getProjects(histData));
         req.setAttribute("sizeUnits", getSizeUnits(histData));
         req.setAttribute("labels", histData.getLabels());
-        req.setAttribute("mappingPromptHtml", getMappingPrompt(histData));
         req.setAttribute("resources", filtRes.asJSTLMap());
 
         req.getRequestDispatcher("/WEB-INF/jsp/workflowAnalysisFilter.jsp")
@@ -123,19 +121,6 @@ public class FilterAnalysisPage extends AnalysisPage {
                 result.put(unitID, unit);
             }
         }
-        return result;
-    }
-
-    private String getMappingPrompt(WorkflowHistDataHelper histData) {
-        if (!Settings.isTeamMode())
-            return null;
-
-        String uri = HTMLUtils.appendQuery("/team/workflowMap", "list",
-            histData.getWorkflowID());
-        String link = "<a href='" + uri + "' target='_blank'>";
-        String result = filtRes.getHTML("Map_Prompt");
-        result = StringUtils.findAndReplace(result, "[[", link);
-        result = StringUtils.findAndReplace(result, "]]", "</a>");
         return result;
     }
 
