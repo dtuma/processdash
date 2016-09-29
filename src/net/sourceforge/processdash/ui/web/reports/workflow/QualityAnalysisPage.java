@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -46,6 +47,8 @@ public class QualityAnalysisPage extends AnalysisPage {
             throws ServletException, IOException {
 
         writeChart(req, resp, chartData, "yield");
+        writeChart(req, resp, chartData, "phaseYields");
+        writeChart(req, resp, chartData, "processYields");
         writeChart(req, resp, chartData, "COQ");
         writeChart(req, resp, chartData, "appraisalCOQ");
         writeChart(req, resp, chartData, "appraisalPhases");
@@ -72,11 +75,30 @@ public class QualityAnalysisPage extends AnalysisPage {
     }
 
 
-    @Chart(id = "yield", type = "line", titleKey = "Quality.Yield_Title")
+    @Chart(id = "yield", type = "line", titleKey = "Quality.Yield_Title", //
+    format = "headerComment=${Quality.Yield_Header}")
     public ResultSet getYield(ChartData chartData) {
         ResultSet data = chartData.getEnactmentResultSet(1);
         writeYield(data, 1);
         return data;
+    }
+
+
+    @Chart(id = "phaseYields", type = "line", //
+    titleKey = "Quality.Phase_Yield_Title", //
+    format = "units=${Quality.Phase_Yield_Label}\n"
+            + "headerComment=${Quality.Phase_Yield_Header}")
+    public ResultSet getPhaseYields(ChartData chartData) {
+        return writeYieldsByPhase(chartData, false);
+    }
+
+
+    @Chart(id = "processYields", type = "line", //
+    titleKey = "Quality.Process_Yield_Title", //
+    format = "units=${Quality.Process_Yield_Label}\n"
+            + "headerComment=${Quality.Process_Yield_Header}")
+    public ResultSet getProcessYields(ChartData chartData) {
+        return writeYieldsByPhase(chartData, true);
     }
 
 
@@ -224,6 +246,24 @@ public class QualityAnalysisPage extends AnalysisPage {
             Enactment e = (Enactment) data.getRowObj(row);
             data.setData(row, col, num(e.actualYield(null, true)));
         }
+    }
+
+    private ResultSet writeYieldsByPhase(ChartData chartData, boolean process) {
+        List<String> phases = chartData.getPhases();
+        if (process)
+            phases.remove(0);
+        Collections.reverse(phases);
+        ResultSet data = chartData.getEnactmentResultSet(phases.size());
+        for (int col = phases.size(); col > 0; col--) {
+            String phase = phases.get(col - 1);
+            data.setColName(col, phase);
+            data.setFormat(col, "100%");
+            for (int row = data.numRows(); row > 0; row--) {
+                Enactment e = (Enactment) data.getRowObj(row);
+                data.setData(row, col, num(e.actualYield(phase, process)));
+            }
+        }
+        return data;
     }
 
     private static void writePhaseDefectDensity(ChartData chartData,
