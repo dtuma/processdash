@@ -718,7 +718,7 @@ public class WorkflowHistDataHelper {
             e.rootWbsID = get(oneEnactment, EnactmentCol.RootWbsID);
             e.completed = get(oneEnactment, EnactmentCol.Completed);
             for (Object[] row : rawInfo) {
-                int rowKey = get(row, InfoCol.RootKey);
+                int rowKey = (Integer) get(row, InfoCol.RootKey);
                 if (rowKey == e.rootKey) {
                     e.projectName = get(row, InfoCol.Project);
                     e.rootName = get(row, InfoCol.Element);
