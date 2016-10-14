@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -116,6 +116,13 @@ public interface ResourceBridgeConstants {
      * value of action parameter asking to store data to the collection
      */
     String UPLOAD_ACTION = "upload";
+
+    /**
+     * when uploading files, a parameter name for a ZIP file containing all of
+     * the files that should be uploaded
+     * @since PDES 3.6.1
+     */
+    String UPLOAD_ZIP_PARAM = "uploadedFilesZip";
 
     /**
      * when uploading files, a prefix to append to filenames to produce a

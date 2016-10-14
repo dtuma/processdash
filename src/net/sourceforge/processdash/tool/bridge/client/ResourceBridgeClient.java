@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2015 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,16 +33,21 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.tool.bridge.OfflineLockStatus;
 import net.sourceforge.processdash.tool.bridge.OfflineLockStatusListener;
@@ -60,10 +65,11 @@ import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.util.ClientHttpRequest;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.HTTPUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
@@ -78,6 +84,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     FilenameFilter syncDownOnlyFiles;
 
     String remoteUrl;
+
+    String serverVersion;
 
     String userName;
 
@@ -255,6 +263,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                 }
             }
             if (!params.isEmpty()) {
+                startZipUploadThread(params);
                 doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
                 pt.click("Uploaded new/modified resources");
                 madeChange = true;
@@ -283,6 +292,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             addFileUploadParams(params, name);
         }
         if (!params.isEmpty()) {
+            startZipUploadThread(params);
             doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
             logger.fine("Uploaded default excluded files");
         }
@@ -521,6 +531,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             localCollection, ResourceFilterFactory.DEFAULT_FILTER);
         // finally, retrieve the value from the server and compare the two.
         HttpException.checkValid(conn);
+        serverVersion = conn.getHeaderField(VERSION_HEADER);
         String hashResult = HTTPUtils.getResponseAsString(conn);
         long remoteHash = Long.valueOf(hashResult);
         return (localHash == remoteHash);
@@ -545,6 +556,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ResourceCollectionInfo localList = new ResourceListing(localCollection,
                 ResourceFilterFactory.DEFAULT_FILTER);
         // finally, retrieve the list from the server and compare the two.
+        serverVersion = conn.getHeaderField(VERSION_HEADER);
         ResourceCollectionInfo remoteList = XmlCollectionListing
                 .parseListing(new BufferedInputStream(conn.getInputStream()));
         return new ResourceCollectionDiff(localList, remoteList);
@@ -629,6 +641,9 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void addFileUploadParams(List params, String resourceName)
             throws IOException {
+        if (addFileToZipUploadStream(params, resourceName))
+            return;
+
         InputStream in = localCollection.getInputStream(resourceName);
         if (in == null)
             return;
@@ -641,6 +656,40 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             params.add(UPLOAD_TIMESTAMP_PARAM_PREFIX + resourceName);
             params.add(Long.toString(modTime));
         }
+    }
+
+    private boolean addFileToZipUploadStream(List params, String resourceName)
+            throws IOException {
+        if (userName == null || isFileUploadZipSupported() == false)
+            return false;
+
+        ZipUploadStream zipStream;
+        if (params.size() > 1 && params.get(1) instanceof ZipUploadStream) {
+            zipStream = (ZipUploadStream) params.get(1);
+        } else {
+            zipStream = new ZipUploadStream();
+            params.add(0, zipStream);
+            params.add(0, UPLOAD_ZIP_PARAM);
+        }
+        zipStream.addFilename(resourceName);
+
+        return true;
+    }
+
+    private boolean isFileUploadZipSupported() {
+        if (fileUploadZipSupported == null) {
+            fileUploadZipSupported = serverVersion != null
+                    && VersionUtils.compareVersions(serverVersion,
+                        ZIP_UPLOAD_MIN_SERVER_VERSION) >= 0;
+        }
+        return fileUploadZipSupported;
+    }
+
+    private Boolean fileUploadZipSupported;
+
+    private static void startZipUploadThread(List params) {
+        if (params.size() > 1 && params.get(1) instanceof ZipUploadStream)
+            ((ZipUploadStream) params.get(1)).start();
     }
 
     private HttpURLConnection makeGetRequest(String action, List parameters)
@@ -859,5 +908,68 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     // is more than this many characters, it will be converted into a POST
     // request instead.
     private static final int MAX_URL_LENGTH = 512;
+
+    /**
+     * The version number of the protocol when the server first began supporting
+     * ZIP upload content
+     */
+    private static final String ZIP_UPLOAD_MIN_SERVER_VERSION = "3.6.1";
+
+    private class ZipUploadStream extends PipedInputStream implements Runnable {
+
+        private PipedOutputStream out;
+
+        private Set<String> filenames;
+
+        private ZipUploadStream() throws IOException {
+            super(8096);
+            out = new PipedOutputStream(this);
+            filenames = new HashSet<String>();
+        }
+
+        public void addFilename(String filename) {
+            filenames.add(filename);
+        }
+
+        public void start() {
+            Thread t = new Thread(this);
+            t.setDaemon(true);
+            t.start();
+        }
+
+        public void run() {
+            try {
+                writeFilesToZip();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                FileUtils.safelyClose(this);
+            }
+        }
+
+        private void writeFilesToZip() throws IOException {
+            ZipOutputStream zipOut = new ZipOutputStream(out);
+
+            for (String oneName : filenames) {
+                InputStream file = localCollection.getInputStream(oneName);
+                if (file == null)
+                    continue;
+
+                try {
+                    ZipEntry e = new ZipEntry(oneName);
+                    long modTime = localCollection.getLastModified(oneName);
+                    if (modTime > 0)
+                        e.setTime(modTime);
+                    zipOut.putNextEntry(e);
+                    FileUtils.copyFile(file, zipOut);
+                    zipOut.closeEntry();
+                } finally {
+                    FileUtils.safelyClose(file);
+                }
+            }
+
+            zipOut.finish();
+            zipOut.close();
+        }
+    }
 
 }
