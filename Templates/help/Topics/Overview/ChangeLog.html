@@ -8,6 +8,158 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.3</h2>
+
+<ul>
+
+<li>The main dashboard toolbar now includes an "Add Task" button.  This makes
+it easy to quickly add a task to your plan without opening the WBS Editor
+first.</li>
+
+<li>Powerful new features have been added for workflows:
+
+    <ul>
+
+    <li>The Workflow Process Analysis report now displays an extensive
+        collection of charts that show various process metrics, and
+        demonstrate how those metrics have changed over time.</li>
+
+    <li>The Workflow Process Analysis report now displays information about
+        the number of defects that were injected and removed in each phase of
+        a workflow, along with advanced quality metrics such as phase yield
+        and defect injection/removal rates.</li>
+
+    <li>A powerful filtering feature has been added to the Workflow Process
+        Analysis report, to adjust the list of components and tasks that
+        should be included in the various charts and tables.</li>
+
+    <li>A new editor makes it possible to configure process mappings between
+        workflows.  These mappings can be used to:
+
+        <ul>
+
+        <li>Document the evolution of a process when a team modifies the steps
+            in their workflow</li>
+
+        <li>Combine data from several related workflows to produce
+            consolidated process reports</li>
+
+        <li>Leverage historical data from old workflows for PROBE planning of
+            new work<br/></li>
+
+        </ul></li>
+
+    <li>It is now possible to specify fixed times and minimum times for
+        selected steps in a team workflow. To use this feature, click the icon
+        that appears in the top-right corner of the Workflow Editor (just
+        above the vertical scroll bar), and enable the "Min Time" column.
+        Then enter minimum times as needed.  (To specify a fixed time, enter a
+        minimum for a task that was otherwise assigned zero percent of the
+        overall workflow.)</li>
+
+    </ul></li>
+
+<li>Significant enhancements have been made to defect logging functionality:
+
+    <ul>
+
+    <li>When individuals log a defect within a team project, the "injected"
+        and "removed" selectors will now allow them to choose phases from the
+        team's defined workflows. (Previously, individuals were required to
+        select a phase from the underlying metrics framework, such as
+        TSP.)</li>
+
+    <li>The defect timer and the main timer now work more closely together to
+        help you collect accurate data:
+
+        <ul>
+
+        <li>If you start timing a defect, the dashboard will start the main
+            timer automatically.  If the main timer is pointing at a different
+            task, the dashboard will ask you if you'd like to switch to the
+            task where this defect was logged.</li>
+
+         <li>If you are timing a defect and you change the main timer to log
+             time to an unrelated task, the defect timer will pause
+             automatically.</li>
+
+         </ul></li>
+
+     <li>When you create or edit a defect, you can enter URLs to external
+         websites in the defect description. These URLs can be used to link
+         the defect to supporting references in a corporate defect tracker, a
+         requirements management system, or any other web-based system.  When
+         such URLs are present, a hyperlink icon will appear over the
+         "Description" pane, making it easy to quickly jump to the given
+         URLs.</li>
+
+    <li>If a defect is logged to the wrong component/task, you can now use
+        drag-and-drop in the Defect Log to move the defect to the correct
+        location.</li>
+
+    <li>When defects are imported from ReviewBoard, the description will now
+        include the filename and line number that each defect was logged
+        against, as well as a hyperlink to the issue in ReviewBoard.</li>
+
+    </ul></li>
+
+<li>Several improvements have been made to dashboard charts and reports:
+
+    <ul>
+
+    <li>The Team Dashboard contains a new "Project Data Scanner" report, which
+        analyzes team project data to look for common problems and highlight
+        opportunties for improvement.</li>
+
+    <li>A monthly earned value status report is now available.  This shows
+        data in a format similar to the weekly report, but for an entire
+        calendar month instead.  It can be useful for tracking and
+        communicating progress on a larger, longer term project.</li>
+
+    <li>The Tasks In Progress chart now offers a customization setting to
+        color discs by assigned individual. Enabling this option makes it
+        easier to see if a particular individual has a large number of problem
+        tasks.</li>
+
+    <li>Since version 2.0.2, the Team Dashboard has provided automatic labels
+        called "Completed_Tasks" and "Completed_Components". These labels make
+        it simple to filter the team reports so they only show data for
+        completed work.  Now, these labels are available in the personal
+        dashboard as well.</li>
+
+    </ul></li>
+
+<li>A mobile/smartphone application is available for use with the Process
+Dashboard.  The mobile app works alongside the Process Dashboard, making it
+possible to perform a number of common tasks from an iPhone<sup>&reg;</sup>,
+iPad<sup>&reg;</sup>, or Android<sup>TM</sup> device. (Note: the mobile app
+requires the use of the Process Dashboard Enterprise Server, version 3.6.0 or
+higher.)</li>
+
+<li>The WBS Editor now includes a "Collapse All" button on the toolbar.</li>
+
+<li>The filter dialog in the WBS Editor now includes an option to show tasks
+that have not been assigned to any milestone.</li>
+
+<li>The Relaunch Wizard now provides better handling for PSP tasks that are
+in-progress when a project is relaunched.</li>
+
+<li>The embedded data warehouse now includes baseline dates and costs, project
+milestones, and task dependencies.</li>
+
+<li>If the user starts the timer and then marks a task complete before a full
+minute has passed, the dashboard will now round the time log entry up to one
+minute if no time has ever been logged to that task in the past.  This
+captures an individual's intent more accurately when a given project task
+requires a very short period of time.</li>
+
+<li>The dashboard now provides improved support for individuals who work
+offline, or who experience intermittent connectivity to the team network data
+directory.</li>
+
+</ul>
+
+
 <h2>Features new in version 2.2</h2>
 
 <ul>

@@ -52,7 +52,8 @@ team.</p>
 display a chronological cross section of the project schedule that
 summarizes the accomplishments of the previous week and lists the
 tasks scheduled to be completed in the coming week. This is very
-useful in the weekly team meeting.</p>
+useful in the weekly team meeting. For monitoring and status reporting
+on longer projects, a monthly view is also available.</p>
 
 <p>Once the team has collected a minimum amount of earned value data,
 these earned value reports will include forecasts for overall project
@@ -163,7 +164,7 @@ workflow and that are 100% complete.  By default it will roll up all component
 data from all of the projects in the Team Dashboard, but you can click the
 Filter link at the top to customize this behavior.</p>
 
-<p>The resulting report displays a number of metrics, such as:</p>
+<p>The resulting report displays a number of charts and metrics, such as:</p>
 
 <ul>
 
@@ -172,6 +173,9 @@ use in the Common Team Workflows window.</li>
 
 <li>The average percentage of time spent in each workflow step, which you can
 use to update the "%" column in the Common Team Workflows window.</li>
+
+<li>Information on the number of defects that were added and removed in
+various workflow steps.</li>
 
 <li>Information on the average estimating error, which your team can use to
 make better estimates in the future.</li>
@@ -203,10 +207,10 @@ forward anymore.  Fortunately, you can resolve these issues by telling the
 dashboard how workflows map to each other.</p>
 
 <p>To view or edit workflow mappings, open the Workflow Process Analysis
-report for the workflow you are interested in.  Then expand the "Filter"
-section, and click the link to "Configure the workflows that should be
-included" in the analysis.  This will open a page that shows mappings for the
-workflow in question.</p>
+report for the workflow you are interested in, then click the
+"Configuration..." link at the top of the page.  On the configuration page,
+click the link to configure workflow mappings.  This will open a page that
+shows mappings for the workflow in question.</p>
 
 <p>The workflow of interest is shown at the top of the page.  The brown boxes
 on the left below show other other workflows whose data is currently being
@@ -274,6 +278,30 @@ mappings:</p>
     categories.</li>
 
     </ul></p>
+
+
+<h2><a name="scanner"></a>Project Data Scanner</h2>
+
+<p>High-maturity project teams collect a lot of data.  This data can be very
+valuable for project tracking, analysis, and process improvement; but at
+times, the sheer volume of data can be difficult to sift through.  The Project
+Data Scanner report aims to help with this task.</p>
+
+<p>The Project Data Scanner report analyzes team project data to look for
+common problems and highlight opportunties for improvement.  Coaches, team
+leaders, and quality coordinators can use this report to gain insight into the
+project and to identify data problems.</p>
+
+<p>When the Project Data Scanner report identifies potential data problems, it
+displays them in a list for review.  The coach, team leader or quality manager
+can look over these lists periodically.  When a particular finding has been
+reviewed and handled, the responsible individual can mark the checkbox on that
+line to clear the item from the report.</p>
+
+<p>In the current release of the dashboard, the Project Data Scanner report
+includes several useful analyses; but many more are possible.  If you have an
+idea for a new process data check, send a suggestion to the Process Dashboard
+development team so it can be added in a future release.</p>
 
 
 <h2><a name="backups"></a>Backing Up Project Data</h2>
