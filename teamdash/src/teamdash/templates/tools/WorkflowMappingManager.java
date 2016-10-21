@@ -75,9 +75,10 @@ public class WorkflowMappingManager {
                 + "and p.process.identifier <> ? "
                 + "and p.process.identifier like 'WF:%'", //
             workflowID, workflowID);
+        List<String> explicit = getExplicitMappings("%=>" + workflowID + "]");
         List<Workflow> result = new ArrayList();
         for (Object[] row : rawData)
-            result.add(new Workflow((String) row[0], (String) row[1]));
+            result.add(new Workflow((String) row[0], (String) row[1], explicit));
         Collections.sort(result);
         return result;
     }
@@ -90,11 +91,18 @@ public class WorkflowMappingManager {
                 + "and mapsTo.process.identifier <> ? "
                 + "and mapsTo.process.identifier like 'WF:%'", //
             workflowID, workflowID);
+        List<String> explicit = getExplicitMappings("[" + workflowID + "=>%");
         List<Workflow> result = new ArrayList();
         for (Object[] row : rawData)
-            result.add(new Workflow((String) row[0], (String) row[1]));
+            result.add(new Workflow((String) row[0], (String) row[1], explicit));
         Collections.sort(result);
         return result;
+    }
+
+    private List<String> getExplicitMappings(String pattern) {
+        return query.query("select t.value.text from TeamAttrFact as t where "
+                + "t.attribute.identifier = 'team.pdash.workflow_mapping' "
+                + "and t.value.text like ?", pattern);
     }
 
     public Map<String, Set<Workflow>> getAllWorkflowsExcept(String workflowID,
@@ -275,12 +283,22 @@ public class WorkflowMappingManager {
 
         private List<Phase> phases;
 
+        private boolean explicit;
+
         private boolean hasNameMatch;
 
         Workflow(String id, String process) {
             this.id = id;
             this.process = process;
             this.project = getProjectNameForWorkflowID(id);
+        }
+
+        Workflow(String id, String process, List<String> explicitMappings) {
+            this(id, process);
+            for (String oneMapping : explicitMappings) {
+                if (oneMapping.contains(id))
+                    explicit = true;
+            }
         }
 
         public String getId() {
@@ -299,12 +317,18 @@ public class WorkflowMappingManager {
             return phases;
         }
 
+        public boolean isExplicit() {
+            return explicit;
+        }
+
         public boolean isHasNameMatch() {
             return hasNameMatch;
         }
 
         @Override
         public int compareTo(Workflow that) {
+            if (this.explicit != that.explicit)
+                return (this.explicit ? -1 : 1);
             int result = this.process.compareTo(that.process);
             if (result != 0)
                 return result;

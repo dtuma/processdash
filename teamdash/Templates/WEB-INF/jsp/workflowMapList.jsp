@@ -31,8 +31,9 @@
 
 <c:otherwise>
 <c:forEach var="oneImport" items="${imported}">
-  <div class="importRow">
-    <div class="horizontalLine"></div>
+  <div class="importRow${oneImport.explicit ? ' explicit' : ''}">
+    <div class="horizontalLine" title="${oneImport.explicit ?
+         resources.html['List.Explicit_Tooltip'] : ''}"></div>
     <div class="importedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneImport.project}"/>&nbsp;&raquo;</div>
@@ -66,8 +67,9 @@
 
 <c:otherwise>
 <c:forEach var="oneExport" items="${exported}">
-  <div class="exportRow">
-    <div class="horizontalLine"><div class="arrow"></div></div>
+  <div class="exportRow${oneExport.explicit ? ' explicit' : ''}">
+    <div class="horizontalLine" title="${oneExport.explicit ?
+         resources.html['List.Explicit_Tooltip'] : ''}"><div class="arrow"></div></div>
     <div class="exportedWorkflow"><div class="workflow">
       <div class="projectName">&laquo;&nbsp;<c:out
               value="${oneExport.project}"/>&nbsp;&raquo;</div>

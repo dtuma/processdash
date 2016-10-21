@@ -132,6 +132,16 @@ div.exportRow div.horizontalLine div.arrow {
     width: 0;
 }
 
+div.explicit div.horizontalLine {
+    border-bottom-width: 3px;
+}
+
+div.exportRow.explicit div.horizontalLine div.arrow {
+    border-left-width: 17px;
+    bottom: -7px;
+    right: -4px;
+}
+
 
 div.importRow, div.exportRow {
     margin-bottom: 10px;
