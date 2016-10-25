@@ -67,7 +67,8 @@ public class PlanAnalysisPage extends AnalysisPage {
     titleKey = "Plan.Size_Title_FMT")
     public ResultSet getActualSize(ChartData chartData) {
         String units = chartData.chartArgs[0];
-        ResultSet data = chartData.getEnactmentResultSet(units);
+        ResultSet data = chartData.getEnactmentResultSet(1);
+        data.setColName(1, units);
         for (int row = data.numRows(); row > 0; row--) {
             Enactment e = (Enactment) data.getRowObj(row);
             data.setData(row, 1, num(e.actualSize(units)));

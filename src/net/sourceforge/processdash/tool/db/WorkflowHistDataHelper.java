@@ -973,8 +973,8 @@ public class WorkflowHistDataHelper {
 
     public double getSize(Enactment e, String units, boolean actual) {
         String measurementType = (actual ? "Actual" : "Plan");
-        return sum(getSizeData(), SizeCol.Size, //
-            SizeCol.RootKey, e, SizeCol.MType, measurementType);
+        return sum(getSizeData(), SizeCol.Size, SizeCol.RootKey, e,
+            SizeCol.Units, units, SizeCol.MType, measurementType);
     }
 
     private List<Object[]> _sizeData;
