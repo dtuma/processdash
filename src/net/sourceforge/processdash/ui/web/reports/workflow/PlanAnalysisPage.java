@@ -24,11 +24,15 @@
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
 
@@ -51,6 +55,7 @@ public class PlanAnalysisPage extends AnalysisPage {
         writeChart(req, resp, chartData, "totalTime");
         writeChart(req, resp, chartData, "timeEstErr");
         writeChart(req, resp, chartData, "planVsActualTime");
+        writeChart(req, resp, chartData, "timeDist");
 
         for (String units : chartData.histData.getSizeUnits()) {
             if (!AnalysisPage.isTimeUnits(units)) {
@@ -58,6 +63,7 @@ public class PlanAnalysisPage extends AnalysisPage {
                 writeChart(req, resp, chartData, "sizeEstErr", units);
                 writeChart(req, resp, chartData, "planVsActualSize", units);
                 writeChart(req, resp, chartData, "sizeVsTime", units);
+                writeChart(req, resp, chartData, "sizeDist", units);
             }
         }
     }
@@ -201,4 +207,110 @@ public class PlanAnalysisPage extends AnalysisPage {
 
         return data;
     }
+
+
+    @Chart(id = "timeDist", type = "bar", //
+    titleKey = "Plan.Distribution.Time.Title", //
+    format = "chartCols=4\nheaderComment=${Plan.Distribution.Time.Header}")
+    public ResultSet getTimeDistribution(ChartData chartData) {
+        List<Double> times = new ArrayList<Double>();
+        for (Enactment e : chartData.histData.getEnactments())
+            times.add(e.actualTime() / 60);
+        return createLogNormalHistogram(times, "Plan.Distribution.Time.Range",
+            resources.getString("Plan.Distribution.Time.Label"));
+    }
+
+
+    @Chart(id = "sizeDist", type = "bar", params = "units", //
+    titleKey = "Plan.Distribution.Size.Title_FMT", //
+    format = "chartCols=4\nheaderComment=${Plan.Distribution.Size.Header}")
+    public ResultSet getSizeDistribution(ChartData chartData) {
+        String units = chartData.chartArgs[0];
+        List<Double> sizes = new ArrayList<Double>();
+        for (Enactment e : chartData.histData.getEnactments())
+            sizes.add(e.actualSize(units));
+        return createLogNormalHistogram(sizes, "Plan.Distribution.Size.Range",
+            resources.format("Plan.Distribution.Size.Label_FMT", units));
+    }
+
+
+    private ResultSet createLogNormalHistogram(List<Double> values,
+            String rangeKey, String colName) {
+        // discard negative/zero values from the dataset, since these cannot
+        // be analyzed with a lognormal distribution
+        for (Iterator<Double> i = values.iterator(); i.hasNext();)
+            if (!(i.next() > 0))
+                i.remove();
+
+        // mean and std dev cannot be calculated with insufficient data points
+        int n = values.size();
+        if (n < 2)
+            return null;
+
+        // calculate the lognormal mean of the values
+        double[] logValues = new double[n];
+        double logSum = 0;
+        for (int i = 0; i < n; i++) {
+            logValues[i] = Math.log(values.get(i));
+            logSum += logValues[i];
+        }
+        double logMean = logSum / n;
+        if (badDouble(logMean))
+            return null;
+
+        // calculate the lognormal standard deviation
+        double stdSum = 0;
+        for (int i = 0; i < n; i++) {
+            double diff = logValues[i] - logMean;
+            stdSum += diff * diff;
+        }
+        double logStdDev = Math.sqrt(stdSum / (n - 1));
+        if (badDouble(logStdDev))
+            return null;
+        double logStdDevHalf = logStdDev / 2;
+
+        // build a result set showing a histogram of the log bins
+        int numBins = LOG_NORMAL_BUCKET_KEYS.length;
+        ResultSet result = new ResultSet(numBins, 4);
+        for (int bin = 0; bin < numBins; bin++) {
+            int row = bin + 1;
+            result.setRowName(row, resources.getString("Plan.Distribution." //
+                    + LOG_NORMAL_BUCKET_KEYS[bin]));
+
+            // store the center point of this log normal bin in the result set
+            double binCenter = logMean + logStdDev * (bin - 2);
+            result.setData(row, 1, num(Math.exp(binCenter)));
+
+            // determine the ranges of this log normal bin
+            double binLow = binCenter - logStdDevHalf;
+            double binHigh = binCenter + logStdDevHalf;
+            result.setData(row, 2, num(Math.exp(binLow)));
+            result.setData(row, 3, num(Math.exp(binHigh)));
+
+            // count the number of items that fall into this bin
+            int count = 0;
+            for (int i = 0; i < n; i++) {
+                if ((bin == 0 || binLow < logValues[i])
+                        && (bin == numBins - 1 || logValues[i] <= binHigh))
+                    count++;
+            }
+            result.setData(row, 4, num(count));
+        }
+
+        // store column headers
+        result.setColName(0, resources.getString(rangeKey));
+        result.setColName(1, colName);
+        result.setColName(2, resources.getString("Plan.Distribution.Range_Min"));
+        result.setColName(3, resources.getString("Plan.Distribution.Range_Max"));
+        result.setColName(4, resources.getString("Plan.Distribution.Count"));
+        // store labels for extreme range boundaries
+        result.setData(1, 2, StringData.create("> 0"));
+        result.setData(numBins, 3, StringData.create("\u221E"));
+
+        return result;
+    }
+
+    private static final String[] LOG_NORMAL_BUCKET_KEYS = { "Very_Small",
+            "Small", "Medium", "Large", "Very_Large" };
+
 }

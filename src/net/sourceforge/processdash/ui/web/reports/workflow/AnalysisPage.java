@@ -588,4 +588,8 @@ public abstract class AnalysisPage {
         return new DoubleData(number);
     }
 
+    protected static boolean badDouble(double d) {
+        return Double.isInfinite(d) || Double.isNaN(d);
+    }
+
 }

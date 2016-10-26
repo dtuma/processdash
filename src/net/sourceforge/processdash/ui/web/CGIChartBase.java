@@ -107,8 +107,17 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         String prefix = getPrefix();
         data = ResultSet.get(getDataRepository(), parameters, prefix,
                              getPSPProperties());
+
         if (parameters.get("transpose") != null)
             data = data.transpose();
+
+        if (parameters.containsKey("chartCols")) {
+            String[] param = getParameter("chartCols").split(",");
+            int[] cols = new int[param.length];
+            for (int i = cols.length; i-- > 0;)
+                cols[i] = Integer.parseInt(param[i]);
+            data = data.pluckColumns(cols);
+        }
     }
 
     /** Generate CGI chart output. */
