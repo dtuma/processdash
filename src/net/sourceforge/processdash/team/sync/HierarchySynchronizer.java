@@ -655,6 +655,7 @@ public class HierarchySynchronizer {
         clientIdPrefix = (initials + "-" + DashController.getDatasetID()
                 .substring(0, 4)).toLowerCase();
         maxHandledClientIdNum = getMaxHandledClientIdNum();
+        ensureMinClientId(maxHandledClientIdNum);
 
         assignClientIDsToChildrenOf(projectKey);
     }
@@ -725,6 +726,15 @@ public class HierarchySynchronizer {
     }
 
     private static final String MAX_CLIENT_ID_DATA_NAME = "Max_Assigned_Client_ID";
+
+    private void ensureMinClientId(int minClientId) {
+        int currentMaxNum = (int) getDoubleData(getData(projectPath,
+            MAX_CLIENT_ID_DATA_NAME));
+        if (currentMaxNum < minClientId)
+            forceData(projectPath, MAX_CLIENT_ID_DATA_NAME, new DoubleData(
+                    minClientId));
+    }
+
     private String getNextClientId() {
         int maxNum = (int) getDoubleData(getData(projectPath,
             MAX_CLIENT_ID_DATA_NAME));
