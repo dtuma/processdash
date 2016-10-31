@@ -97,8 +97,12 @@ public class WorkflowUtil {
         List<WBSNode> currentDestNodes = Arrays.asList(destWbs
                 .getDescendants(destNode));
         Set<Integer> srcWorkflowIDs = new HashSet();
-        for (WBSNode n : workflows.getDescendants(srcNode))
+        boolean workflowHasRate = false;
+        for (WBSNode n : workflows.getDescendants(srcNode)) {
             srcWorkflowIDs.add(n.getUniqueID());
+            if (n.getNumericAttribute(RATE_ATTR) > 0)
+                workflowHasRate = true;
+        }
         int destPos = getWorkflowInsertionPos(destWbs, destNode,
             currentDestNodes, srcWorkflowIDs);
         AtomicBoolean sawProbe = new AtomicBoolean();
@@ -106,7 +110,7 @@ public class WorkflowUtil {
         // perform the workflow apply operation
         applyWorkflow(destWbs, destNode, destPos, currentDestNodes, destLabels,
             workflows, srcNode, srcWorkflowIDs, attrsToKeep, extraDefaultAttrs,
-            sawProbe);
+            workflowHasRate, sawProbe);
 
         // update the workflow source ID of the destination node.
         addWorkflowSourceID(destNode, srcNode.getUniqueID());
@@ -167,7 +171,7 @@ public class WorkflowUtil {
             int destPos, List<WBSNode> currentDestNodes, String destLabels,
             WBSModel workflows, WBSNode srcNode, Set<Integer> srcWorkflowIDs,
             PatternList attrsToKeep, Map extraDefaultAttrs,
-            AtomicBoolean sawProbe) {
+            boolean setFixedTimes, AtomicBoolean sawProbe) {
 
         Map<WBSNode, WBSNode> nodesWithSrcChildren = new LinkedHashMap();
         if (destPos == -1)
@@ -218,7 +222,7 @@ public class WorkflowUtil {
                 // if we don't find a node to move, create a new one and
                 // insert it.
                 WBSNode newNode = createNewWorkflowNodeToInsert(srcChild,
-                    destLabels, attrsToKeep, extraDefaultAttrs);
+                    destLabels, attrsToKeep, extraDefaultAttrs, setFixedTimes);
                 newNode.setIndentLevel(targetIndent);
                 destWbs.insertNodesAtImpl(Collections.singletonList(newNode),
                     destPos);
@@ -240,7 +244,7 @@ public class WorkflowUtil {
             WBSNode destChild = e.getValue();
             applyWorkflow(destWbs, destChild, -1, currentDestNodes, destLabels,
                 workflows, srcChild, srcWorkflowIDs, attrsToKeep,
-                extraDefaultAttrs, sawProbe);
+                extraDefaultAttrs, setFixedTimes, sawProbe);
         }
     }
 
@@ -397,7 +401,8 @@ public class WorkflowUtil {
     }
 
     private static WBSNode createNewWorkflowNodeToInsert(WBSNode srcNode,
-            String destLabels, PatternList attrsToKeep, Map extraDefaultAttrs) {
+            String destLabels, PatternList attrsToKeep, Map extraDefaultAttrs,
+            boolean setFixedTime) {
 
         // make a copy of the workflow source node.
         WBSNode node = (WBSNode) srcNode.clone();
@@ -432,6 +437,15 @@ public class WorkflowUtil {
             mergedLabels = TaskLabelColumn.mergeLabels(srcLabels, destLabels);
         }
         node.setAttribute(TaskLabelColumn.VALUE_ATTR, mergedLabels);
+
+        // possibly record a fixed time on the node.
+        if (setFixedTime) {
+            double minTime = WorkflowMinTimeColumn.getMinTimeAt(srcNode);
+            double rate = srcNode.getNumericAttribute(RATE_ATTR);
+            if (minTime > 0 && !(rate > 0))
+                node.setNumericAttribute(TeamTimeColumn.RATE_ATTR,
+                    Double.POSITIVE_INFINITY);
+        }
 
         // possibly clear extraneous attributes that are undesirable to keep.
         if (attrsToKeep != null)
@@ -584,6 +598,9 @@ public class WorkflowUtil {
 
             Object units = workflowNode.getAttribute(UNITS_ATTR);
             double rate = workflowNode.getNumericAttribute(RATE_ATTR);
+            if (minTime > 0 && !(rate > 0))
+                rate = Double.POSITIVE_INFINITY;
+
             if (rate > 0) {
                 for (WBSNode destNode : e.getValue()) {
                     dataModel.setValueAt(units, destNode, unitsCol);
@@ -619,6 +636,7 @@ public class WorkflowUtil {
         // check for minimum times on workflow steps, and make a note of the
         // steps whose times need to be bumped up.
         Map<WBSNode, Double> minTimes = new HashMap();
+        Map<WBSNode, Double> fixedTimePctOverrides = new HashMap();
         double timeToSpread = totalTime;
         double pctToSpread = totalPct;
         while (true) {
@@ -633,6 +651,10 @@ public class WorkflowUtil {
 
                 double stepPercent = WorkflowPercentageColumn
                         .getExplicitValueForNode(workflowNode);
+                if (stepPercent == 0)
+                    // track which nodes have a fixed time (e.g. zero %)
+                    fixedTimePctOverrides.put(workflowNode, null);
+
                 double stepTime = timeToSpread * stepPercent / pctToSpread;
                 if (stepTime < minStepTime) {
                     minTimes.put(workflowNode, minStepTime);
@@ -646,10 +668,20 @@ public class WorkflowUtil {
         }
 
         // if the minimum times exceeded the top-down time we were spreading,
-        // ignore them and fall back to straight percentages.
+        // ignore them and fall back to straight percentages. Assign a nonzero
+        // pseudo-percentage to steps with a fixed time, so they don't suddenly
+        // (and unexpectedly) flip down to zero.
         if (timeToSpread <= 0 || pctToSpread <= 0) {
             timeToSpread = totalTime;
             pctToSpread = totalPct;
+            for (Entry<WBSNode, Double> e : fixedTimePctOverrides.entrySet()) {
+                Double fixedTime = minTimes.remove(e.getKey());
+                if (fixedTime == null)
+                    fixedTime = 1.0;
+                double fixedPct = fixedTime * totalPct;
+                pctToSpread += fixedPct;
+                e.setValue(fixedPct);
+            }
             minTimes.clear();
         }
 
@@ -658,8 +690,9 @@ public class WorkflowUtil {
         for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
             WBSNode workflowStep = e.getKey();
             Set<WBSNode> leafTasksForStep = e.getValue();
-            double thisStepPct = WorkflowPercentageColumn
-                    .getExplicitValueForNode(workflowStep);
+            Double pctOverride = fixedTimePctOverrides.get(workflowStep);
+            double thisStepPct =  pctOverride != null ? pctOverride
+                    : WorkflowPercentageColumn.getExplicitValueForNode(workflowStep);
             double thisStepTime = timeToSpread * thisStepPct / pctToSpread;
             double minStepTime = WorkflowMinTimeColumn.getMinTimeAt(workflowStep);
             double replacedTime = Double.NaN;
@@ -667,6 +700,8 @@ public class WorkflowUtil {
             if (activatedMinTime != null) {
                 replacedTime = thisStepTime;
                 thisStepTime = activatedMinTime;
+            } else if (pctOverride != null) {
+                replacedTime = 0;
             }
             distributeTimeOverTasks(dataModel, timeCol, thisStepTime,
                 minStepTime, replacedTime, new ArrayList(leafTasksForStep));
@@ -752,9 +787,9 @@ public class WorkflowUtil {
     private static void allocateTimeToTask(DataTableModel dataModel,
             int timeCol, double timeToSpread, double minStepTime,
             double replacedTime, WBSNode task, double percent) {
-        dataModel.setValueAt(timeToSpread * percent, task, timeCol);
         WorkflowMinTimeColumn.storeMinTimeAt(task, minStepTime * percent);
         WorkflowMinTimeColumn.storeReplacedTimeAt(task, replacedTime * percent);
+        dataModel.setValueAt(timeToSpread * percent, task, timeCol);
     }
 
     private static double parse(Object num) {

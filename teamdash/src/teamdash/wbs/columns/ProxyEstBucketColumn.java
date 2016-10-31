@@ -119,7 +119,6 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
     private void maybeStoreTimeEstimate(WBSNode node, WBSNode bucket) {
         NumericDataValue time = ProxyTimeColumn.getTimeValueAt(bucket);
         if (time != null) {
-            WorkflowMinTimeColumn.clearMinTimeAttrs(node);
             dataModel.setValueAt(time.value, node, timeColumnPos);
         }
     }

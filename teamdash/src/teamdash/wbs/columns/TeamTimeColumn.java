@@ -155,7 +155,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     public void setValueAt(Object aValue, WBSNode node) {
         // if the user directly edits the team time for a particular node,
         // clear the min time attrs for the node in question.
-        if (aValue instanceof String && !isNoOpEdit(aValue, node))
+        if (aValue instanceof String)
             WorkflowMinTimeColumn.clearMinTimeAttrs(node);
 
         // now, follow through with remaining logic to handle this edit.
@@ -182,6 +182,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData instanceof LeafTaskData) { // a leaf task
+            LeafTaskData leafTaskData = (LeafTaskData) leafData;
+            if (leafTaskData.isMinTimeViolated()) {
+                result.errorColor = MIN_TIME_VIOLATION_COLOR;
+                return resources.format("Team_Time.Min_Time_Violated_FMT",
+                    leafTaskData.minTime);
+            }
             if (!leafData.isFullyAssigned())
                 return NEED_ASSIGNMENT_TOOLTIP;
 
@@ -209,6 +215,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             .getString("Team_Time.Need_Estimate_Tooltip");
     private static final String NEED_ASSIGNMENT_TOOLTIP = resources
             .getString("Team_Time.Need_Assignment_Tooltip");
+    private static final Color MIN_TIME_VIOLATION_COLOR = new Color(255, 110, 0);
 
 
 
@@ -305,6 +312,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         // scenario. Next, check for minimum times on workflow steps, and make
         // a note of the steps whose times need to be bumped up.
         Map<WBSNode, Double> minTimes = new HashMap();
+        Map<WBSNode, Double> fixedTimePctOverrides = new HashMap();
         double timeToSpread = topDownValue;
         double pctToSpread = totalPercent;
         while (true) {
@@ -318,6 +326,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
                 double leafPercent = WorkflowPercentageColumn
                         .getExplicitValueForNode(leaf);
+                if (leafPercent == 0)
+                    // track which leaves have a fixed time (e.g. zero %)
+                    fixedTimePctOverrides.put(leaf, null);
+
                 double leafTime = timeToSpread * leafPercent / pctToSpread;
                 if (leafTime < leafMinTime) {
                     minTimes.put(leaf, leafMinTime);
@@ -331,22 +343,35 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         // if the minimum times exceeded the top-down time we were spreading,
-        // ignore them and fall back to straight percentages.
+        // ignore them and fall back to straight percentages. Assign a nonzero
+        // pseudo-percentage to tasks with a fixed time, so they don't suddenly
+        // (and unexpectedly) flip down to zero.
         if (timeToSpread <= 0 || pctToSpread <= 0) {
             timeToSpread = topDownValue;
             pctToSpread = totalPercent;
+            for (Entry<WBSNode, Double> e : fixedTimePctOverrides.entrySet()) {
+                Double fixedTime = minTimes.remove(e.getKey());
+                if (fixedTime == null)
+                    fixedTime = 1.0;
+                double fixedPct = fixedTime * totalPercent;
+                pctToSpread += fixedPct;
+                e.setValue(fixedPct);
+            }
             minTimes.clear();
         }
 
         // Subdivide the time over the leaf tasks, based on what we've found.
         for (WBSNode leaf : leaves) {
-            double leafPercent = WorkflowPercentageColumn
-                    .getExplicitValueForNode(leaf);
+            Double pctOverride = fixedTimePctOverrides.get(leaf);
+            double leafPercent = pctOverride != null ? pctOverride
+                    : WorkflowPercentageColumn.getExplicitValueForNode(leaf);
             double leafTime = timeToSpread * leafPercent / pctToSpread;
             Double leafMinTime = minTimes.get(leaf);
             if (leafMinTime != null) {
                 WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, leafTime);
                 leafTime = leafMinTime;
+            } else if (pctOverride != null) {
+                WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, 0);
             }
             userChangingValue(leaf, leafTime);
             leaf.setNumericAttribute(topDownAttrName, leafTime);
@@ -366,10 +391,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         Map<WBSNode, Double> minTimes = new HashMap();
         double totalWeight = 0;
         for (WBSNode child : wbsModel.getDescendants(topNode)) {
-            // only scale nodes that have non-null, nonzero top-down values.
+            // get the top-down time estimate for this node.
             double val = child.getNumericAttribute(topDownAttrName);
-            if (!(val > 0))
-                continue;
 
             // look for a minimum time setting on this node.
             double minTime = WorkflowMinTimeColumn.getMinTimeAt(child);
@@ -384,6 +407,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 if (!Double.isNaN(replacedTime))
                     val = replacedTime;
             }
+
+            // only scale nodes that have top-down values or minimum times
+            if (!(val > 0 || minTime > 0))
+                continue;
 
             // store the weight of this node in our map.
             weights.put(child, val);
@@ -409,6 +436,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         // weight-based time allocation for each node, and see if any of the
         // nodes will need a min time adjustment.
         Map<WBSNode, Double> minTimesToUse = new HashMap();
+        Map<WBSNode, Double> fixedTimeWgtOverrides = new HashMap();
         double timeToSpread = newTopDownValue;
         double weightToSpread = totalWeight;
         while (true) {
@@ -422,6 +450,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                     continue;
 
                 double leafWeight = e.getValue();
+                if (leafWeight == 0)
+                    // track which leaves have a fixed time (e.g. zero %)
+                    fixedTimeWgtOverrides.put(leaf, null);
+
                 double leafTime = timeToSpread * leafWeight / weightToSpread;
                 if (leafTime < leafMinTime) {
                     minTimesToUse.put(leaf, leafMinTime);
@@ -435,22 +467,36 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         // if the minimum times exceeded the top-down time we were spreading,
-        // ignore them and fall back to straight weights.
+        // ignore them and fall back to straight weights. Assign a nonzero
+        // pseudo-weight to tasks with a fixed time, so they don't suddenly
+        // (and unexpectedly) flip down to zero.
         if (timeToSpread <= 0 || weightToSpread <= 0) {
             timeToSpread = newTopDownValue;
             weightToSpread = totalWeight;
+            for (Entry<WBSNode, Double> e : fixedTimeWgtOverrides.entrySet()) {
+                Double fixedTime = minTimes.remove(e.getKey());
+                if (fixedTime == null)
+                    fixedTime = 1.0;
+                double fixedWeight = fixedTime * totalWeight;
+                weightToSpread += fixedWeight;
+                e.setValue(fixedWeight);
+            }
             minTimesToUse.clear();
         }
 
         // Subdivide the time over the leaf tasks, based on what we've found.
         for (Entry<WBSNode, Double> e : weights.entrySet()) {
             WBSNode leaf = e.getKey();
-            double leafWeight = e.getValue();
+            Double weightOverride = fixedTimeWgtOverrides.get(leaf);
+            double leafWeight = weightOverride != null ? weightOverride 
+                    : e.getValue();
             double leafTime = timeToSpread * leafWeight / weightToSpread;
             Double leafMinTime = minTimesToUse.get(leaf);
             if (leafMinTime != null) {
                 WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, leafTime);
                 leafTime = leafMinTime;
+            } else if (weightOverride != null) {
+                WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, 0);
             } else {
                 WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, Double.NaN);
             }
@@ -884,7 +930,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     private class LeafTaskData extends LeafNodeData {
 
-        double size, rate;
+        double size, rate, minTime;
         int numPeople;
         String units;
 
@@ -1020,7 +1066,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             // size.
             if (timePerPerson == 0) {
                 rate = node.getNumericAttribute(RATE_ATTR);
-                timePerPerson = adjustRateDrivenTimeForMin(safe(size / rate));
+                timePerPerson = adjustRateDrivenTimeForMin(size, rate);
             }
 
             // if that didn't work, revert to the last known good time
@@ -1035,8 +1081,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             recalculateRate();
         }
 
-        private double adjustRateDrivenTimeForMin(double rateDrivenTimePerPerson) {
-            if (rateDrivenTimePerPerson > 0) {
+        private double adjustRateDrivenTimeForMin(double size, double rate) {
+            double rateDrivenTimePerPerson = safe(size / rate);
+            if (size > 0 && rate > 0) {
                 double minTime = WorkflowMinTimeColumn.getMinTimeAt(node);
                 if (minTime > 0) {
                     figureNumPeople();
@@ -1072,6 +1119,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         void figureTeamTime() {
+            minTime = WorkflowMinTimeColumn.getMinTimeAt(node);
             unassignedTime = (numPeople - actualNumPeople) * timePerPerson;
             unassignedTimeColumn.setUnassignedTime(node, unassignedTime);
             teamTime = sumIndivTimes() + unassignedTime;
@@ -1080,6 +1128,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         @Override
         public boolean isFullyAssigned() {
             return (numPeople == actualNumPeople);
+        }
+
+        public boolean isUsingMinTime() {
+            return (minTime > 0 && equal(minTime, timePerPerson * numPeople));
+        }
+
+        public boolean isMinTimeViolated() {
+            return (minTime > teamTime + fuzzFactor);
         }
 
         public double sumIndivTimes() {
@@ -1117,11 +1173,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             size = value;
 
             double savedRate = node.getNumericAttribute(RATE_ATTR);
-            if (safe(savedRate) != 0 && safe(size) != 0)
+            if (savedRate > 0 && safe(size) != 0)
                 // if there is a saved value for the rate, and the size value
                 // entered is meaningful, we should recalculate the time per
                 // person based upon that rate.
-                userSetTimePerPerson(adjustRateDrivenTimeForMin(size / savedRate));
+                userSetTimePerPerson(adjustRateDrivenTimeForMin(size, savedRate));
             else
                 // if there is no saved value for the rate, recalculate the
                 // effective rate based upon the new size.
@@ -1146,30 +1202,33 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 if (safe(rate) == 0) rate = Double.NaN;
 
                 // if the current effective rate and the saved rate are not
-                // equal, it implies that someone has edited the time value to
-                // disagree with the saved rate.  In response, we'll erase the
-                // saved value, to prevent it from being used to recalculate
-                // time if the user edits size in the future.
+                // equal (for any reason other than a min time adjustment), it
+                // implies that someone has edited the time value to disagree
+                // with the saved rate. In response, we'll erase the saved
+                // value, to prevent it from being used to recalculate time
+                // if the user edits size in the future.
                 if (!equal(rate, oldRate)) {
-                    node.setAttribute(RATE_ATTR, null);
+                    if (!isUsingMinTime())
+                        node.setAttribute(RATE_ATTR, null);
                     dataModel.columnChanged(rateColumn);
                 }
             }
         }
 
         public boolean isRateCalculated() {
-            return (safe(rate) != 0 && node.getAttribute(RATE_ATTR) == null);
+            return safe(rate) != 0 //
+                    && (node.getAttribute(RATE_ATTR) == null || isUsingMinTime());
         }
 
         public void userSetRate(double value) {
-            if (safe(value) == 0) {
+            if (!(value > 0)) {
                 // the user is zeroing or blanking out the rate field.
                 node.setAttribute(RATE_ATTR, null);
                 recalculateRate();
             } else {
                 rate = value;
                 node.setNumericAttribute(RATE_ATTR, rate);
-                userSetTimePerPerson(adjustRateDrivenTimeForMin(size / rate));
+                userSetTimePerPerson(adjustRateDrivenTimeForMin(size, rate));
             }
         }
 
@@ -1216,6 +1275,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         /** Messaged when the user edits the team time for a leaf node. */
         public void userSetTeamTime(double value) {
+            if (teamTime == value)
+                return;
+
+            node.setAttribute(RATE_ATTR, null);
             double oldTeamTime = teamTime;
             teamTime = value;
             if (oldTeamTime == 0)
