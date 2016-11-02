@@ -75,6 +75,7 @@ import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
@@ -1339,8 +1340,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         public void replanInProgressTime() {
-            for (int i = individualTimes.length;   i-- > 0; )
-                individualTimes[i].replanInProgressTime();
+            if (!TeamProcess.isPSPTask(node.getType())) {
+                for (int i = individualTimes.length; i-- > 0;)
+                    individualTimes[i].replanInProgressTime();
+            }
         }
 
         void maybeAddMembers(AssignedToEditList edits, Map times) {
@@ -1585,6 +1588,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 double actual = safe(node.getNumericAttribute(actualTimeAttr));
                 if (actual > 0) {
                     double plannedTimeRemaining = Math.max(0, time - actual);
+                    if (plannedTimeRemaining == 0)
+                        node.removeAttribute(TPP_ATTR);
                     setTime(Collections.singletonMap(initials.toLowerCase(),
                         plannedTimeRemaining));
                 }
