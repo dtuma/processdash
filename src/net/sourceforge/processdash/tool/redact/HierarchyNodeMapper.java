@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,8 @@ public class HierarchyNodeMapper {
 
     private HierarchyNameMapper nameMapper;
 
+    private DefectWorkflowPhaseMapper defectWorkflowPhaseMapper;
+
     private HierarchyPathMapper pathMapper;
 
     public HierarchyNodeMapper() {
@@ -49,6 +51,12 @@ public class HierarchyNodeMapper {
         nameMapper = new HierarchyNameMapper() {
             public String getString(String str) {
                 return mapName(str);
+            }
+        };
+
+        defectWorkflowPhaseMapper = new DefectWorkflowPhaseMapper() {
+            public String getString(String str) {
+                return mapDefectWorkflowPhase(str);
             }
         };
 
@@ -78,6 +86,20 @@ public class HierarchyNodeMapper {
             return name;
         else
             return RedactFilterUtils.hash(name);
+    }
+
+
+    public DefectWorkflowPhaseMapper getDefectWorkflowPhaseMapper() {
+        return defectWorkflowPhaseMapper;
+    }
+
+    public String mapDefectWorkflowPhase(String phase) {
+        if (phase.endsWith(" ")) {
+            phase = phase.substring(0, phase.length() - 1);
+            return mapPath(phase) + " ";
+        } else {
+            return mapPath(phase);
+        }
     }
 
 

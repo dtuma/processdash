@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.redact.filter;
 
 import java.util.Arrays;
 
+import net.sourceforge.processdash.tool.redact.DefectWorkflowPhaseMapper;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.HierarchyInfo;
@@ -34,7 +35,7 @@ import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
 @EnabledFor({ RedactFilterIDs.TASK_NAMES, RedactFilterIDs.NOTES,
-        RedactFilterIDs.DEFECT_TYPES })
+        RedactFilterIDs.DEFECT_TYPES, RedactFilterIDs.WORKFLOWS })
 public class FilterLocalDefectLogs extends AbstractLineBasedFilter {
 
     @EnabledFor(RedactFilterIDs.DEFECT_TYPES)
@@ -49,6 +50,8 @@ public class FilterLocalDefectLogs extends AbstractLineBasedFilter {
 
     private DefectPhaseFilter phaseFilter;
 
+    private DefectWorkflowPhaseMapper workflowPhaseFilter;
+
     public FilterLocalDefectLogs() {
         setFilenamePatterns(".def$");
     }
@@ -56,6 +59,8 @@ public class FilterLocalDefectLogs extends AbstractLineBasedFilter {
     public void afterPropertiesSet() {
         if (data.isFiltering(RedactFilterIDs.TASK_NAMES))
             phaseFilter = new DefectPhaseFilter();
+        if (data.isFiltering(RedactFilterIDs.WORKFLOWS))
+            workflowPhaseFilter = nameMapper.getDefectWorkflowPhaseMapper();
     }
 
     @Override
@@ -85,6 +90,11 @@ public class FilterLocalDefectLogs extends AbstractLineBasedFilter {
         if (phaseFilter != null) {
             line = replaceXmlAttr(line, "inj", phaseFilter);
             line = replaceXmlAttr(line, "rem", phaseFilter);
+        }
+
+        if (workflowPhaseFilter != null) {
+            line = replaceXmlAttr(line, "injName", workflowPhaseFilter);
+            line = replaceXmlAttr(line, "remName", workflowPhaseFilter);
         }
 
         return line;

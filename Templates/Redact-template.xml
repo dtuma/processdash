@@ -6,7 +6,7 @@
 <!--
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2012-2015 Tuma Solutions, LLC
+Copyright (C) 2012-2016 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -76,6 +76,7 @@ The author(s) may be contacted at:
   <redact-datafile-filter class="&pkg;FilterEvXml$InGlobalDat"/>
   <redact-datafile-filter class="&pkg;FilterTaskListMetadata"/>
   <redact-datafile-filter class="&pkg;RenameDataContainingTaskNames"/>
+  <redact-datafile-filter class="&pkg;RenameDataContainingWorkflowNames"/>
 
   <redact-filter-censored-data>
       ^Current_Exported_Filenames$

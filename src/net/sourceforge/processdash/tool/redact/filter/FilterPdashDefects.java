@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,12 +23,13 @@
 
 package net.sourceforge.processdash.tool.redact.filter;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.DefectWorkflowPhaseMapper;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.HierarchyPathMapper;
+import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 
 @EnabledFor({ RedactFilterIDs.TASK_NAMES, RedactFilterIDs.NOTES,
-        RedactFilterIDs.DEFECT_TYPES })
+        RedactFilterIDs.DEFECT_TYPES, RedactFilterIDs.WORKFLOWS })
 public class FilterPdashDefects extends AbstractLineBasedFilter {
 
     @EnabledFor(RedactFilterIDs.DEFECT_TYPES)
@@ -40,7 +41,12 @@ public class FilterPdashDefects extends AbstractLineBasedFilter {
     @EnabledFor(RedactFilterIDs.TASK_NAMES)
     private boolean hashPaths;
 
+    @EnabledFor(RedactFilterIDs.WORKFLOWS)
+    private boolean hashWorkflows;
+
     private HierarchyPathMapper pathMapper;
+
+    private DefectWorkflowPhaseMapper workflowPhaseMapper;
 
     public FilterPdashDefects() {
         setFilenamePatterns("!defects.xml$");
@@ -53,6 +59,10 @@ public class FilterPdashDefects extends AbstractLineBasedFilter {
             line = replaceXmlAttr(line, "type", FilterDefectTypes.TYPE_MAPPER);
         if (stripDescriptions)
             line = discardXmlAttr(line, "desc");
+        if (hashWorkflows) {
+            line = replaceXmlAttr(line, "injName", workflowPhaseMapper);
+            line = replaceXmlAttr(line, "remName", workflowPhaseMapper);
+        }
         return line;
     }
 

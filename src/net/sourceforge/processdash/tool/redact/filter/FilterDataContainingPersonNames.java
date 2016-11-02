@@ -52,4 +52,25 @@ public class FilterDataContainingPersonNames extends AbstractDataStringFilter {
         return PersonMapper.hashClientNodeID(clientID);
     }
 
+    @EnabledFor("^Task-Schedule/.*/Task Lists$")
+    public String filterNamesInEvRollupSpec(String rollupSpec) {
+        StringBuilder result = new StringBuilder();
+        int pos = 0;
+        while (true) {
+            int beg = rollupSpec.indexOf('(', pos);
+            if (beg == -1)
+                break;
+            int end = rollupSpec.indexOf(')', beg);
+            if (end == -1)
+                break;
+
+            result.append(rollupSpec.substring(pos, ++beg));
+            result.append(PersonMapper.hashPersonName( //
+                    rollupSpec.substring(beg, end)));
+            pos = end;
+        }
+        result.append(rollupSpec.substring(pos));
+        return result.toString();
+    }
+
 }
