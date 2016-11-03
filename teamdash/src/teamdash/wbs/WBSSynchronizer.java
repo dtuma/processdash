@@ -930,6 +930,7 @@ public class WBSSynchronizer {
             WBSModel wbs = teamProject.getWBS();
             String name = newTaskTag.getAttribute(TASK_NAME_ATTR);
             String type = getTaskType(newTaskTag);
+            String workflowID = getWorkflowID(newTaskTag);
             int indentLevel;
             WBSNode insertAfterNode;
             if (prevSibling == null) {
@@ -947,6 +948,7 @@ public class WBSSynchronizer {
 
             // create and insert a node for the new task
             WBSNode newNode = new WBSNode(wbs, name, type, indentLevel, false);
+            newNode.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, workflowID);
             newNode.setAttribute(CLIENT_ID_ATTR, clientID);
             newNode.setAttribute(assignedZeroAttrName, "t");
             wbs.insertNodesAt(Collections.singletonList(newNode), pos, false);
@@ -964,6 +966,11 @@ public class WBSSynchronizer {
                 return type + " Task";
             else
                 return WBSNode.UNKNOWN_TYPE;
+        }
+
+        private String getWorkflowID(Element newTaskTag) {
+            String id = newTaskTag.getAttribute(WORKFLOW_ID_ATTR);
+            return (XMLUtils.hasValue(id) ? id : null);
         }
 
         private void saveTaskType(TeamProject teamProject, Element newTaskTag) {
@@ -1063,6 +1070,8 @@ public class WBSSynchronizer {
     private static final String EST_TIME_ATTR = "estTime";
 
     private static final String NODE_TYPE_ATTR = "nodeType";
+
+    private static final String WORKFLOW_ID_ATTR = "workflowID";
 
     private static final String NODE_TYPE_CHANGE_TAG = "nodeTypeChange";
 

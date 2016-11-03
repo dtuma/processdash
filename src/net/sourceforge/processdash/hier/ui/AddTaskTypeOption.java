@@ -25,9 +25,9 @@ package net.sourceforge.processdash.hier.ui;
 
 import javax.swing.Icon;
 
-public class AddTaskTypeOption {
+public class AddTaskTypeOption <T> {
 
-    public String typeID;
+    public T typeID;
 
     public String templateID;
 

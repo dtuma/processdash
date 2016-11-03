@@ -170,6 +170,11 @@ public class UserDataWriter extends TinyCGIBase {
                 writeAttr(ser, NODE_TYPE_ATTR, phaseType);
         }
 
+        // if this node has a workflow ID, write it as well
+        String workflowID = getStringData(getData(path,
+            TeamDataConstants.WORKFLOW_ID_DATA_NAME));
+        writeAttr(ser, WORKFLOW_ID_ATTR, workflowID);
+
         // end the new task tag
         ser.endTag(null, NEW_TASK_TAG);
     }
@@ -579,6 +584,8 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String EST_TIME_ATTR = "estTime";
 
     private static final String NODE_TYPE_ATTR = "nodeType";
+
+    private static final String WORKFLOW_ID_ATTR = "workflowID";
 
     private static final String ACTUAL_DATA_TAG = "actualData";
 

@@ -25,12 +25,12 @@ package net.sourceforge.processdash.hier.ui;
 
 import java.util.List;
 
-public interface AddTaskHandler {
+public interface AddTaskHandler <T> {
 
-    public List<AddTaskTypeOption> getTaskTypes(String targetParent,
+    public List<AddTaskTypeOption<T>> getTaskTypes(String targetParent,
             String activeTask);
 
     public void finalizeAddedTask(String newTaskPath,
-            AddTaskTypeOption newTaskType);
+            AddTaskTypeOption<T> newTaskType);
 
 }
