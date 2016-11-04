@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class Main {
      */
     private static void ensureJRE() {
         Version jre = new Version(System.getProperty("java.version"));
-        Version req = new Version("1.5");
+        Version req = new Version("1.6");
         if (jre.compareTo(req) < 0) {
             ResourceBundle res = ResourceBundle
                     .getBundle("Templates.resources.ProcessDashboard");
@@ -128,8 +128,6 @@ public class Main {
         private int major = 0, minor = 0;
 
         private String version = "";
-
-        private Version() {}
 
         /**
          * @param version,

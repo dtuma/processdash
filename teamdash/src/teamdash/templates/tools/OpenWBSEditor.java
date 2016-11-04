@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -525,7 +525,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         int pos = path.lastIndexOf('/');
         String jarPath = path.substring(1, pos+1) + "TeamTools.jar";
         out.print("<resources>\n");
-        out.print("<j2se version='1.5+' initial-heap-size='2M' max-heap-size='800M'/>\n");
+        out.print("<j2se version='1.6+' initial-heap-size='2M' max-heap-size='800M'/>\n");
         out.print("<jar href='");
         out.print(jarPath);
         out.print("'/>\n");
