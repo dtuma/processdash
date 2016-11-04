@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,10 +38,12 @@ import org.w3c.dom.Element;
 abstract class DashboardInstance {
 
     public static final int NONE = -1;
-    public static final int LAUNCHING = 0;
-    public static final int RUNNING = 1;
+    public static final int EXTRACTING = 0;
+    public static final int LAUNCHING = 1;
+    public static final int RUNNING = 2;
 
-    private static final String[] STATUS_KEYS = { "Launching", "Running" };
+    private static final String[] STATUS_KEYS = { "Extracting", "Launching",
+            "Running" };
 
     private static final String[] STATUS_NAMES = QuickLauncher.resources
             .getStrings("Status.", STATUS_KEYS);
