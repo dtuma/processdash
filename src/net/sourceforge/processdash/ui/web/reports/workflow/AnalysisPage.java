@@ -90,7 +90,7 @@ public abstract class AnalysisPage {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        ChartData chartData = getChartData(req);
+        ChartData chartData = getChartData(req, true);
         if (chartData == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND,
                 "The requested workflow was not found.");
@@ -106,7 +106,8 @@ public abstract class AnalysisPage {
 
 
 
-    protected ChartData getChartData(HttpServletRequest req) {
+    protected static ChartData getChartData(HttpServletRequest req,
+            boolean applyFilter) {
         ChartData result = new ChartData();
 
         String workflowID = req.getParameter("workflow");
@@ -123,13 +124,15 @@ public abstract class AnalysisPage {
         if (result.histData.getWorkflowName() == null)
             return null;
 
-        configureFilter(result.histData, req);
+        if (applyFilter)
+            configureFilter(result.histData, req);
         configureSizeUnits(result, ctx);
 
         return result;
     }
 
-    private void configureSizeUnits(ChartData chartData, DashboardContext ctx) {
+    private static void configureSizeUnits(ChartData chartData,
+            DashboardContext ctx) {
         String workflowID = chartData.histData.getWorkflowID();
         String workflowName = chartData.histData.getWorkflowName();
         DataRepository data = ctx.getData();
@@ -152,7 +155,7 @@ public abstract class AnalysisPage {
         for (Entry<String, DataPair> e : chartData.histData
                 .getAddedAndModifiedSizes().entrySet()) {
             double oneSize = Math.max(e.getValue().plan, e.getValue().actual);
-            if (oneSize > bestSize) {
+            if (oneSize > bestSize && !isTimeUnits(e.getKey())) {
                 bestSize = oneSize;
                 bestUnits = e.getKey();
             }
@@ -173,8 +176,8 @@ public abstract class AnalysisPage {
         chartData.setPrimarySizeUnits("Hours");
     }
 
-    private boolean setSizeUnits(ChartData chartData, DataRepository data,
-            String dataName) {
+    private static boolean setSizeUnits(ChartData chartData,
+            DataRepository data, String dataName) {
         SimpleData sd = data.getSimpleValue("/Workflow_Prefs/" + dataName);
         if (sd == null || !sd.test())
             return false;
@@ -183,7 +186,7 @@ public abstract class AnalysisPage {
     }
 
     protected void saveSizeUnits(HttpServletRequest req, String units) {
-        WorkflowHistDataHelper histData = getChartData(req).histData;
+        WorkflowHistDataHelper histData = getChartData(req, false).histData;
         DataRepository data = (DataRepository) PDashServletUtils
                 .buildEnvironment(req).get(TinyCGI.DATA_REPOSITORY);
         StringData sd = StringData.create(units);
@@ -195,12 +198,7 @@ public abstract class AnalysisPage {
 
 
 
-    protected void configureFilter(WorkflowHistDataHelper histData,
-            HttpServletRequest req) {
-        doConfigureFilter(histData, req);
-    }
-
-    public static void doConfigureFilter(WorkflowHistDataHelper histData,
+    private static void configureFilter(WorkflowHistDataHelper histData,
             HttpServletRequest req) {
         Properties p = loadFilter(req);
         if (p.isEmpty())

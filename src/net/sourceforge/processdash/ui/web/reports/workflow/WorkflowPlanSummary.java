@@ -38,7 +38,6 @@ import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.net.http.TinyCGIException;
-import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.DataPair;
@@ -52,14 +51,12 @@ public class WorkflowPlanSummary extends TinyCGIBase {
 
     @Override
     protected void writeContents() throws IOException {
-        String workflowID = getParameter("workflow");
-        WorkflowHistDataHelper hist = new WorkflowHistDataHelper(getQuery(),
-                workflowID);
+        ChartData chartData = AnalysisPage.getChartData(
+            (HttpServletRequest) env.get(HttpServletRequest.class), true);
+        WorkflowHistDataHelper hist = chartData.histData;
         if (hist.getWorkflowName() == null)
             throw new TinyCGIException(404,
                     "The requested workflow was not found.");
-        AnalysisPage.doConfigureFilter(hist,
-            (HttpServletRequest) env.get(HttpServletRequest.class));
 
         String title = resources.getString("Workflow.Analysis.Title") + " - "
                 + hist.getWorkflowName();
@@ -100,6 +97,11 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
         Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
         Map<String, DataPair>[] defectsByPhase = hist.getDefectsByPhase();
+
+        for (Iterator<String> i = sizes.keySet().iterator(); i.hasNext();) {
+            if (AnalysisPage.isTimeUnits(i.next()))
+                i.remove();
+        }
 
         writeOverallMetrics(sizes, timeInPhase, hist.getPhaseTypes());
         printTable("Size", "Added_&_Modified", sizes, Format.Number, false);
@@ -487,11 +489,6 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         HTMLUtils.appendQuery(uri, "href", fullUri.toString());
 
         out.print(getRequestAsString(uri.toString()));
-    }
-
-    private QueryRunner getQuery() {
-        return getDashboardContext().getDatabasePlugin().getObject(
-            QueryRunner.class);
     }
 
     private String esc(String s) {

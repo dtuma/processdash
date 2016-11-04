@@ -57,7 +57,7 @@ public class FilterAnalysisPage extends AnalysisPage {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        ChartData chartData = getChartData(req);
+        ChartData chartData = getChartData(req, false);
         if (chartData == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND,
                 "The requested workflow was not found.");
@@ -128,13 +128,6 @@ public class FilterAnalysisPage extends AnalysisPage {
     protected void writeHtmlContent(HttpServletRequest req,
             HttpServletResponse resp, ChartData chartData)
             throws ServletException, IOException {}
-
-    @Override
-    protected void configureFilter(WorkflowHistDataHelper histData,
-            HttpServletRequest req) {
-        // do not apply the filter; we want to see all of the enactments so
-        // they can be displayed in the filtering table.
-    }
 
 
 
