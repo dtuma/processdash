@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import org.netbeans.api.keyring.Keyring;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -125,6 +126,7 @@ public class DefectImportForm extends BoundForm {
         createValueMappers();
         addFormHeader();
         addFormElements(spec.getDocumentElement());
+        loadSavedPassword();
         buildAndShowWindow(spec.getDocumentElement(), displayName);
     }
 
@@ -349,6 +351,7 @@ public class DefectImportForm extends BoundForm {
                 InternalSettings.set(fullSettingName, settingValue);
             }
         }
+        savePassword();
     }
 
 
@@ -377,6 +380,33 @@ public class DefectImportForm extends BoundForm {
         Font font = headerLabel.getFont();
         headerLabel.setFont(font.deriveFont(font.getSize2D() * 1.3f));
         addFormComponent(headerLabel, (String) null);
+    }
+
+
+    private void loadSavedPassword() {
+        String passwordKey = getPasswordKey();
+        if (passwordKey != null) {
+            char[] password = Keyring.read(passwordKey);
+            if (password != null) {
+                put("password", hashValue(new String(password)));
+            }
+        }
+    }
+
+    private void savePassword() {
+        String passwordKey = getPasswordKey();
+        String password = unhashValue((String) get("password"));
+        if (passwordKey != null && StringUtils.hasValue(password))
+            Keyring.save(passwordKey, password.toCharArray(), null);
+    }
+
+    private String getPasswordKey() {
+        String url = StringUtils.asString(get("url"));
+        String username = StringUtils.asString(get("username"));
+        if (StringUtils.hasValue(url) && StringUtils.hasValue(username))
+            return username + "@" + url;
+        else
+            return null;
     }
 
 

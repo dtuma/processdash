@@ -12,8 +12,7 @@
     <textfield id="username"
         setting="user.name" />
 
-    <password id="password"
-        setting="user.password" />
+    <password id="password" />
 
     <code-collaborator-reviews id="reviews"
 	usernameId="username" />

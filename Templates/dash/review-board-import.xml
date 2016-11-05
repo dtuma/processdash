@@ -12,8 +12,7 @@
     <textfield id="username"
         setting="user.name" />
 
-    <password id="password"
-        setting="user.password" />
+    <password id="password" />
 
     <review-board-review-requests id="review_requests"
 	usernameId="username" />
