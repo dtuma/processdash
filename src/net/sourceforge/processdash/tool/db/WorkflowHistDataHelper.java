@@ -388,8 +388,11 @@ public class WorkflowHistDataHelper {
             Set<Integer> workflowKeys = getIncludedWorkflowKeys();
             if (Settings.isTeamMode())
                 enactments = query(TEAM_ENACTMENT_QUERY, workflowKeys);
+            else if (workflowHasProbePhase())
+                enactments = query(PERSONAL_ENACTMENT_QUERY_PROBE, workflowKeys);
             else
-                enactments = query(PERSONAL_ENACTMENT_QUERY, workflowKeys);
+                enactments = query(PERSONAL_ENACTMENT_QUERY_NONPROBE,
+                    workflowKey, workflowKeys);
             filterEnactments();
         }
         return enactments;
@@ -416,13 +419,30 @@ public class WorkflowHistDataHelper {
      * will identify the key and identifier for the root nodes of those
      * enactments.
      */
-    private static final String PERSONAL_ENACTMENT_QUERY = //
+    private static final String PERSONAL_ENACTMENT_QUERY_PROBE = //
     "select distinct pe.rootItem.key, pe.rootItem.identifier, 0 "
             + "from ProcessEnactment pe, TaskStatusFact task "
             + "join task.planItem.phase.mapsToPhase probePhase "
             + "where pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 "
             + "and probePhase.identifier = '*PROBE*/PROBE' "
+            + "and pe.process.key in (?)";
+
+    /**
+     * Query to find all the times when this individual user has logged time to
+     * a construction task during the enactment of a given process. The rows
+     * returned will identify the key and identifier for the root nodes of those
+     * enactments.
+     */
+    private static final String PERSONAL_ENACTMENT_QUERY_NONPROBE = //
+    "select distinct pe.rootItem.key, pe.rootItem.identifier, 0 "
+            + "from ProcessEnactment pe, TaskStatusFact task "
+            + "join task.planItem.phase.mapsToPhase constrPhase "
+            + "where pe.includesItem.key = task.planItem.key "
+            + "and task.actualTimeMin > 0 "
+            + "and task.versionInfo.current = 1 "
+            + "and constrPhase.process.key = ? "
+            + "and constrPhase.typeName = 'Construction' "
             + "and pe.process.key in (?)";
 
     private enum EnactmentCol { RootKey, RootWbsID, Completed }; 
@@ -840,6 +860,19 @@ public class WorkflowHistDataHelper {
     "select distinct p.process.key from Phase p " //
             + "join p.mapsToPhase mapsTo " //
             + "where mapsTo.process.key = ?";
+
+
+    private boolean workflowHasProbePhase() {
+        Object test = QueryUtils.singleValue(query(WORKFLOW_PROBE_TEST,
+            workflowKey));
+        return test != null;
+    }
+
+    private static final String WORKFLOW_PROBE_TEST = //
+    "select distinct 1 from Phase p " //
+            + "join p.mapsToPhase probePhase " //
+            + "where p.process.key = ? " //
+            + "and probePhase.identifier = '*PROBE*/PROBE'";
 
 
 

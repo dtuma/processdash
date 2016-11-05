@@ -34,9 +34,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.api.PDashContext;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
+import net.sourceforge.processdash.net.http.TinyCGI;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
+import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -112,7 +117,9 @@ public class WorkflowReport extends HttpServlet {
         Map<String, String> workflows = getWorkflowsForCurrentProject(req);
         if (workflows.isEmpty()) {
             out.write("<p>");
-            out.write(esc(res("Workflow.Analysis.No_Workflows_Message")));
+            String resKey = "Workflow.Analysis.No_Workflows_Message"
+                    + (Settings.isTeamMode() ? "" : "_Personal");
+            out.write(esc(res(resKey)));
             out.write("</p>\n");
             return;
         }
@@ -137,18 +144,35 @@ public class WorkflowReport extends HttpServlet {
 
     private Map<String, String> getWorkflowsForCurrentProject(
             HttpServletRequest req) {
+        DashboardContext dash = (DashboardContext) PDashServletUtils
+                .buildEnvironment(req).get(TinyCGI.DASHBOARD_CONTEXT);
+        DatabasePlugin databasePlugin = dash.getDatabasePlugin();
+        QueryUtils.waitForAllProjects(databasePlugin);
+        QueryRunner queryRunner = databasePlugin.getObject(QueryRunner.class);
+
         PDashContext ctx = PDashServletUtils.getContext(req);
         String projectID = ctx.getData().getString("Project_ID");
         String workflowProcessIDPattern = DatabasePluginUtils
                 .getWorkflowPhaseIdentifier(projectID, "%");
         Map<String, String> result = new TreeMap<String, String>();
-        QueryUtils.mapColumns(result, ctx.getQuery().query(WORKFLOW_LIST_QUERY, //
+        String query = Settings.isTeamMode() ? WORKFLOW_LIST_QUERY
+                : WORKFLOW_LIST_QUERY_PERSONAL;
+        QueryUtils.mapColumns(result, queryRunner.queryHql(query, //
             workflowProcessIDPattern));
         return result;
     }
 
     private static final String WORKFLOW_LIST_QUERY = //
     "select p.name, p.identifier from Process p where p.identifier like ?";
+
+    private static final String WORKFLOW_LIST_QUERY_PERSONAL = //
+    "select distinct phase.process.name, phase.process.identifier "
+            + "from TaskStatusFact as task "
+            + "join task.planItem.phase.mapsToPhase phase "
+            + "where task.versionInfo.current = 1 "
+            + "and task.actualCompletionDate is not null "
+            + "and phase.typeName in ('Overhead', 'Construction') "
+            + "and phase.process.identifier like ?";
 
 
 

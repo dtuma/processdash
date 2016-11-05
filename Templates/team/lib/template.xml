@@ -283,6 +283,8 @@
         title="<!--#echo Full_Name --> Size Inventory"/>
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"/>
+    <html ID="workflow" href="reports/workflowToDate?wait"
+        inPackage="tpidw-embedded version 1.5.3"/>
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
