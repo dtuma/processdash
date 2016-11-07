@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,9 +44,16 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
@@ -56,6 +64,8 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
+import teamdash.wbs.columns.WorkflowRateColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 /** A graphical user interface for editing common workflows.
  */
@@ -85,8 +95,11 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
+
+        UnitsColumnVisibilityMgr unitsColMgr = new UnitsColumnVisibilityMgr();
         table = createWorkflowJTable
-            (workflowModel, teamProject.getTeamProcess());
+            (workflowModel, teamProject.getTeamProcess(), unitsColMgr);
+        unitsColMgr.init();
         JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
 
         undoList = new UndoList(workflowModel.getWBSModel());
@@ -127,11 +140,12 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     }
 
 
-    public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel, TeamProcess process) {
+    public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel,
+            TeamProcess process, ActionListener probeListener) {
         // create the WBSJTable for the workflow data model.
         WBSJTable table = new WBSJTable(workflowModel,
                 getWorkflowIcons(process.getIconMap()),
-                tweakIconMenu(process.getNodeTypeMenu()));
+                tweakIconMenu(process.getNodeTypeMenu(), probeListener));
 
         // install the default editor for table data.
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());
@@ -162,10 +176,13 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         return result;
     }
 
-    private static JMenu tweakIconMenu(JMenu iconMenu) {
+    private static JMenu tweakIconMenu(JMenu iconMenu,
+            ActionListener probeListener) {
         // create a new menu item for the PROBE task type.
         JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
         probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
+        if (probeListener != null)
+            probeItem.addActionListener(probeListener);
 
         // insert the PROBE item after the PSP task item. The PSP item is first
         // in the list unless a "More..." submenu precedes it.
@@ -369,16 +386,95 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     }
 
-    /*
-    private Set saveListeners = null;
-    public void addSaveListener(SaveListener l) {
-        if (saveListeners == null)
-            saveListeners = new HashSet();
-        saveListeners.add(l);
+    private class UnitsColumnVisibilityMgr implements
+            TableColumnModelListener, ActionListener, Runnable {
+
+        private int rateModelPos, unitsModelPos;
+        private TableColumn unitsColumn;
+        private boolean hasProbe;
+        private boolean currentlyMakingChange;
+
+        public void init() {
+            rateModelPos = workflowModel
+                    .findColumn(WorkflowRateColumn.COLUMN_ID);
+            unitsModelPos = workflowModel
+                    .findColumn(WorkflowSizeUnitsColumn.COLUMN_ID);
+            int unitsViewPos = table.convertColumnIndexToView(unitsModelPos);
+            unitsColumn = table.getColumnModel().getColumn(unitsViewPos);
+
+            WBSModel wbsModel = workflowModel.getWBSModel();
+            for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot())) {
+                if (node.getIndentLevel() > 1
+                        && TeamProcess.isProbeTask(node.getType()))
+                    hasProbe = true;
+            }
+
+            table.getColumnModel().addColumnModelListener(this);
+        }
+
+        @Override public void columnMoved(TableColumnModelEvent e) {}
+        @Override public void columnMarginChanged(ChangeEvent e) {}
+        @Override public void columnSelectionChanged(ListSelectionEvent e) {}
+
+        @Override
+        public void columnAdded(TableColumnModelEvent e) {
+            if (!currentlyMakingChange)
+                SwingUtilities.invokeLater(this);
+        }
+
+        @Override
+        public void columnRemoved(TableColumnModelEvent e) {
+            if (!currentlyMakingChange)
+                adjustVisibility();
+        }
+
+        @Override
+        public void run() {
+            adjustVisibility();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            hasProbe = true;
+            adjustVisibility();
+        }
+
+        private void adjustVisibility() {
+            int rateViewPos = table.convertColumnIndexToView(rateModelPos);
+            int unitsViewPos = table.convertColumnIndexToView(unitsModelPos);
+            boolean rateIsVisible = (rateViewPos != -1);
+            boolean unitsIsVisible = (unitsViewPos != -1);
+
+            boolean unitsShouldBeVisible = (rateIsVisible || hasProbe);
+            if (unitsIsVisible == unitsShouldBeVisible)
+                return;
+
+            try {
+                currentlyMakingChange = true;
+                if (unitsShouldBeVisible)
+                    showUnitsColumn();
+                else
+                    hideUnitsColumn();
+            } finally {
+                currentlyMakingChange = false;
+            }
+        }
+
+        private void showUnitsColumn() {
+            TableColumnModel columnModel = table.getColumnModel();
+            columnModel.addColumn(unitsColumn);
+
+            int rateViewPos = table.convertColumnIndexToView(rateModelPos);
+            int srcPos = table.convertColumnIndexToView(unitsModelPos);
+            int destPos = (rateViewPos == -1 ? 2 : 3);
+            if (srcPos != destPos)
+                columnModel.moveColumn(srcPos, destPos);
+        }
+
+        private void hideUnitsColumn() {
+            table.getColumnModel().removeColumn(unitsColumn);
+        }
+
     }
-    public void removeSaveListener(SaveListener l) {
-        if (saveListeners != null)
-            saveListeners.remove(l);
-    }
-    */
+
 }

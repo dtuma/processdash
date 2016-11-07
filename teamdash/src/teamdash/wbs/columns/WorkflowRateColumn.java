@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,9 +33,10 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowModel;
 
-public class WorkflowRateColumn extends AbstractNumericColumn
-        implements CalculatedDataColumn, CustomRenderedColumn {
+public class WorkflowRateColumn extends AbstractNumericColumn implements
+        CalculatedDataColumn, CustomRenderedColumn, WorkflowOptionalColumn {
 
     private DataTableModel dataModel;
     private WBSModel wbsModel;
@@ -123,6 +124,16 @@ public class WorkflowRateColumn extends AbstractNumericColumn
     public void storeDependentColumn(String ID, int columnNumber) {
     }
 
+    public boolean shouldHideColumn(WorkflowModel model) {
+        WBSModel wbsModel = model.getWBSModel();
+        for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot())) {
+            if (node.getIndentLevel() > 1
+                    && node.getNumericAttribute(ATTR_NAME) > 0)
+                return false;
+        }
+        return true;
+    }
+
     public TableCellRenderer getCellRenderer() {
         return new CellRenderer();
     }
@@ -144,6 +155,6 @@ public class WorkflowRateColumn extends AbstractNumericColumn
 
 
     private static final String ATTR_NAME = "Workflow Rate";
-    static final String COLUMN_ID = ATTR_NAME;
+    public static final String COLUMN_ID = ATTR_NAME;
 
 }

@@ -69,7 +69,7 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     @Override
     protected WBSJTable buildJTable(DataTableModel model) {
         WBSJTable table = WorkflowEditor.createWorkflowJTable(
-            (WorkflowModel) model, teamProject.getTeamProcess());
+            (WorkflowModel) model, teamProject.getTeamProcess(), null);
         for (int i = table.getColumnCount(); i-- > 0; ) {
             DataColumn column = model.getColumn(i);
             if (column instanceof WorkflowOptionalColumn
