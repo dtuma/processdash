@@ -128,7 +128,7 @@ public class HistDataPage extends WizardPage {
 
         for (int r = 1;   r <= resultSet.numRows();   r++) {
             out.print("<tr>");
-            out.print("<td nowrap>");
+            out.print("<td>");
             out.print(esc(resultSet.getRowName(r)));
             for (int c = 1;   c < ProbeData.EXCLUDE;   c++) {
                 out.print("</td><td align=center>");
