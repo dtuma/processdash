@@ -220,12 +220,25 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                         List<ActualSubtaskData> subtaskData = (List) node
                                 .getAttribute(subtaskDataAttrs[i]);
                         if (subtaskData != null && !subtaskData.isEmpty()) {
-                            // if subtask data is present, record each subtask
-                            // as an independent task
+                            // if subtask data is present, handle it.
+
+                            // if the time estimate in the personal dashboard is
+                            // out of sync with the WBS, the subtask times will
+                            // add up to a different value than memberPlanTime.
+                            // calculate this ratio so we can adjust EV.
+                            double subtaskPlanTotal = 0;
+                            for (ActualSubtaskData subtask : subtaskData)
+                                subtaskPlanTotal += subtask.getPlanTime();
+                            double ratio = memberPlanTime / subtaskPlanTotal;
+                            if (Double.isInfinite(ratio) || Double.isNaN(ratio))
+                                ratio = 0;
+
+                            // record each subtask as an independent task.
                             for (ActualSubtaskData subtask : subtaskData) {
                                 if (subtask.getCompletionDate() != null) {
                                     // this subtask was completed
-                                    earnedValue[0] += subtask.getPlanTime();
+                                    earnedValue[0] += subtask.getPlanTime()
+                                            * ratio;
                                     timeCalc[i].addCompletedTask(
                                         subtask.getPlanTime(),
                                         subtask.getActualTime(), milestone);
