@@ -386,6 +386,10 @@ public class IconFactory {
     }
     private static Icon COLUMNS_ICON = null;
 
+    public static Icon getAddColumnIcon() {
+        return loadIconResource("column-add.png");
+    }
+
     public static Icon getSortDatesIcon() {
         if (SORT_DATES_ICON == null) SORT_DATES_ICON = loadIconResource("sortdates.png");
         return SORT_DATES_ICON;

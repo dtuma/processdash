@@ -48,6 +48,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.util.StringUtils;
@@ -242,6 +243,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         button.setFocusPainted(false);
         button.setToolTipText((String) a.getValue(Action.NAME));
         button.setText(null);
+        if (a instanceof JTableColumnVisibilityAction)
+            button.setIcon(IconFactory.getAddColumnIcon());
         tweakIconsForToolbarButton(button);
 
         toolBar.add(button);
