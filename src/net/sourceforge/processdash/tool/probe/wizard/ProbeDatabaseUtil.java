@@ -49,6 +49,9 @@ import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskMapType;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskNodeType;
+import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
+import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
+import net.sourceforge.processdash.util.DataPair;
 
 public class ProbeDatabaseUtil {
 
@@ -62,11 +65,9 @@ public class ProbeDatabaseUtil {
 
     private QueryRunner query;
 
-    private int workflowKey;
+    private WorkflowHistDataHelper histData;
 
     private String workflowName;
-
-    private Set<Integer> includedWorkflowKeys;
 
 
     protected ProbeDatabaseUtil(DataRepository data, String prefix) {
@@ -85,7 +86,7 @@ public class ProbeDatabaseUtil {
         try {
             getQueryRunner();
             getWorkflowData();
-            List enactmentList = getEnactments();
+            List<Enactment> enactmentList = histData.getEnactments();
             if (!enactmentList.isEmpty())
                 return buildResultSet(columnHeaders, enactmentList);
         } catch (QueryError qe) {
@@ -101,114 +102,65 @@ public class ProbeDatabaseUtil {
     private void getWorkflowData() {
         // retrieve the workflow phase ID of the current task
         String projectID = require(getString(PROJECT_ID, true));
-        String workflowID = require(getString(WORKFLOW_SOURCE_ID, false));
+        String phaseNumericID = require(getString(WORKFLOW_SOURCE_ID, false));
         String workflowPhaseID = DatabasePluginUtils
-                .getWorkflowPhaseIdentifier(projectID, workflowID);
+                .getWorkflowPhaseIdentifier(projectID, phaseNumericID);
 
         // retrieve the name and key of the process that owns this phase
         Object[] workflowData = (Object[]) require(QueryUtils.singleValue(query
                 .queryHql(WORKFLOW_PROCESS_QUERY, workflowPhaseID)));
-        workflowKey = (Integer) workflowData[0];
+        String workflowID = (String) workflowData[0];
         workflowName = (String) workflowData[1];
 
-        // find all the workflows that map to the given workflow
-        includedWorkflowKeys = new HashSet<Integer>(query.queryHql(
-            WORKFLOW_MAPPING_QUERY, workflowKey));
-    }
-
-    private List getEnactments() {
-        List result = query.queryHql(ENACTMENT_QUERY, includedWorkflowKeys);
-        if (onlyInclude != null) {
-            for (Iterator i = result.iterator(); i.hasNext();) {
-                Object[] row = (Object[]) i.next();
-                Object identifier = row[1];
-                if (!onlyInclude.contains(identifier))
-                    i.remove();
-            }
-        }
-        return result;
+        // retrieve an object for querying historical workflow data
+        histData = new WorkflowHistDataHelper(query, workflowID);
+        histData.setIncludedEnactments(onlyInclude);
     }
 
     private ProbeDatabaseResultSet buildResultSet(String[] columnHeaders,
-            List enactmentList) {
-        // retrieve time and completion date info for each enactment.
-        List<Integer> enactmentRootKeys = QueryUtils.pluckColumn(enactmentList, 0);
-        List taskStatus = query.queryHql(TASK_STATUS_QUERY, enactmentRootKeys,
-            includedWorkflowKeys, workflowKey);
-
-        // the task status query will only return results for enactments
-        // that were 100% complete. We only need data for those enactments.
-        enactmentRootKeys = QueryUtils.pluckColumn(taskStatus, 0);
-        int numRows = enactmentRootKeys.size();
-
+            List<Enactment> enactmentList) {
         // retrieve the time-in-phase data for this workflow
-        Map timeInPhase = null;
-        if (numRows > 0)
-            timeInPhase = QueryUtils.mapColumns(query.queryHql(
-                TIME_IN_PHASE_QUERY, enactmentRootKeys, includedWorkflowKeys,
-                workflowKey), 0, 1);
+        Map timeInPhase = histData.getTotalTimeInPhase();
+        timeInPhase.remove(WorkflowHistDataHelper.TOTAL_PHASE_KEY);
+        for (Map.Entry e : ((Map<String, Object>) timeInPhase).entrySet()) {
+            DataPair d = (DataPair) e.getValue();
+            e.setValue(d.actual);
+        }
 
         // Create an empty result set to hold the data.
+        int numRows = enactmentList.size();
         ProbeDatabaseResultSet result = new ProbeDatabaseResultSet(numRows,
                 columnHeaders, workflowName, timeInPhase);
-        if (numRows == 0)
-            return result;
 
-        // build maps to look up data more conveniently
-        Map rootIDs = QueryUtils.mapColumns(enactmentList, 0, 1);
-        Map<Integer, String> rootPaths = DatabasePluginUtils
-                .getDashPathsForPlanItems(query, rootIDs.keySet());
-
-        // iterate over task status info and store it into the result set.
+        // iterate over enactment info and store it into the result set.
         for (int i = numRows; i-- > 0;) {
-            Object[] taskStatusRow = (Object[]) taskStatus.get(i);
-            Integer rootKey = (Integer) taskStatusRow[0];
+            Enactment e = enactmentList.get(i);
             int row = i + 1;
 
             // retrieve the dashboard path for this row and store in result
-            String enactmentPath = rootPaths.get(rootKey);
-            result.setRowName(row, enactmentPath);
+            result.setRowName(row, e.getProjectName() + "/" + e.getRootName());
 
             // retrieve the plan item ID for this row and store in result
-            String rootID = (String) rootIDs.get(rootKey);
-            result.setData(row, ProbeData.IDENTIFIER, str(rootID));
+            result.setData(row, ProbeData.IDENTIFIER, str(e.getRootID()));
 
             // store time and completion date data in the result.
-            result.setData(row, ProbeData.EST_TIME, num(taskStatusRow[1], 60));
-            result.setData(row, ProbeData.ACT_TIME, num(taskStatusRow[2], 60));
+            result.setData(row, ProbeData.EST_TIME,
+                num(histData.getTime(e, null, false), 60));
+            result.setData(row, ProbeData.ACT_TIME, num(e.actualTime(), 60));
             result.setData(row, ProbeData.COMPLETED_DATE,
-                date(taskStatusRow[3]));
-        }
+                date(e.completed));
 
-        // retrieve size data and store it into the result set
-        String sizeUnits = require(getString("Size Units", false));
-        List sizeData = query.queryHql(SIZE_QUERY, enactmentRootKeys,
-            includedWorkflowKeys, sizeUnits);
-        for (int i = sizeData.size(); i-- > 0;) {
-            Object[] sizeRow = (Object[]) sizeData.get(i);
-            Integer rootKey = (Integer) sizeRow[0];
-            int row = enactmentRootKeys.indexOf(rootKey) + 1;
-            if (row == 0)
-                continue;
-
-            String measurementType = (String) sizeRow[1];
-            int col = getSizeTargetColumn(measurementType);
-            if (col != -1)
-                result.setData(row, col, num(sizeRow[2], 1));
+            // retrieve size data and store it into the result set
+            String sizeUnits = require(getString("Size Units", false));
+            result.setData(row, ProbeData.EST_OBJ_LOC,
+                num(histData.getSize(e, sizeUnits, "Estimated Proxy"), 1));
+            result.setData(row, ProbeData.EST_NC_LOC,
+                num(histData.getSize(e, sizeUnits, false), 1));
+            result.setData(row, ProbeData.ACT_NC_LOC,
+                num(histData.getSize(e, sizeUnits, true), 1));
         }
 
         return result;
-    }
-
-    private int getSizeTargetColumn(String measurementType) {
-        if ("Estimated Proxy".equals(measurementType))
-            return ProbeData.EST_OBJ_LOC;
-        else if ("Plan".equals(measurementType))
-            return ProbeData.EST_NC_LOC;
-        else if ("Actual".equals(measurementType))
-            return ProbeData.ACT_NC_LOC;
-        else
-            return -1;
     }
 
 
@@ -483,83 +435,8 @@ public class ProbeDatabaseUtil {
      * task.
      */
     private static final String WORKFLOW_PROCESS_QUERY = //
-    "select p.process.key, p.process.name from Phase p where p.identifier = ?";
-
-    /**
-     * Query to find workflows that map to a given workflow
-     */
-    private static final String WORKFLOW_MAPPING_QUERY = //
-    "select distinct p.process.key from Phase p " //
-            + "join p.mapsToPhase mapsTo " //
-            + "where mapsTo.process.key = ?";
-
-    /**
-     * Query to find all the times when this user has performed a PROBE task
-     * during the enactment of a given process. The enactment keys returned will
-     * identify the PROBE tasks within those enactments.
-     */
-    private static final String ENACTMENT_QUERY = //
-    "select distinct pe.rootItem.key, pe.rootItem.identifier "
-            + "from ProcessEnactment pe, TaskStatusFact task "
-            + "join task.planItem.phase.mapsToPhase probePhase "
-            + "where pe.includesItem.key = task.planItem.key "
-            + "and task.versionInfo.current = 1 "
-            + "and probePhase.identifier = '*PROBE*/PROBE' "
-            + "and pe.process.key in (?)";
-
-    /**
-     * Query to find the completion date and planned/actual time for a set of
-     * process enactments, identified by their enactment roots.
-     * 
-     * Within each enactment, we only consider the subset of tasks that map to
-     * the target workflow. This is to guard against the scenario where some
-     * other (much larger) workflow maps a subset of its phases to this
-     * workflow. In that case, we will consider the other enactment to be 100%
-     * complete if the phase subset is complete. And we will only add up time
-     * from the phase subset, to produce comparable productivity rates.
-     */
-    private static final String TASK_STATUS_QUERY = //
-    "select pe.rootItem.key, sum(task.planTimeMin), sum(task.actualTimeMin), "
-            + "max(task.actualCompletionDate) "
-            + "from ProcessEnactment pe, TaskStatusFact task "
-            + "join pe.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.rootItem.key in (?) "
-            + "and pe.process.key in (?) "
-            + "and mapsTo.process.key = ? "
-            + "and pe.includesItem.key = task.planItem.key "
-            + "and task.versionInfo.current = 1 " //
-            + "group by pe.rootItem.key "
-            + "having max(task.actualCompletionDateDim.key) < 99990000 "
-            + "order by max(task.actualCompletionDate)";
-
-    /**
-     * Query to retrieve the amount of time historically spent in each phase of
-     * the active workflow
-     */
-    private static final String TIME_IN_PHASE_QUERY = //
-    "select mapsTo.shortName, sum(task.actualTimeMin) "
-            + "from ProcessEnactment pe, TaskStatusFact task "
-            + "join pe.includesItem.phase.mapsToPhase mapsTo "
-            + "where pe.rootItem.key in (?) "
-            + "and pe.process.key in (?) "
-            + "and mapsTo.process.key = ? "
-            + "and pe.includesItem.key = task.planItem.key "
-            + "and task.versionInfo.current = 1 " //
-            + "group by mapsTo.shortName";
-
-    /**
-     * Query to find the size data for a set of process enactments.
-     */
-    private static final String SIZE_QUERY = //
-    "select pe.rootItem.key, size.measurementType.name, " //
-            + "sum(size.addedAndModifiedSize) "
-            + "from ProcessEnactment pe, SizeFact size "
-            + "where pe.rootItem.key in (?) "
-            + "and pe.process.key in (?) "
-            + "and pe.includesItem.key = size.planItem.key "
-            + "and size.sizeMetric.shortName = ? "
-            + "and size.versionInfo.current = 1 "
-            + "group by pe.rootItem.key, size.measurementType.name";
+    "select p.process.identifier, p.process.name "
+            + "from Phase p where p.identifier = ?";
 
 
     private static final String USES_DATABASE_TAG = "PROBE_USE_DATABASE_FOR_HIST_DATA";

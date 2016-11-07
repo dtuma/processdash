@@ -154,6 +154,8 @@ public class WorkflowHistDataHelper {
 
     private String workflowName;
 
+    private Set<String> includedEnactments;
+
     private Set<String> excludedEnactments;
 
     private Set<String> includedProjects;
@@ -222,10 +224,11 @@ public class WorkflowHistDataHelper {
     }
 
     public boolean isFiltering() {
-        return oneNotNull(excludedEnactments, minTime, maxTime,
-            includedProjects, excludedProjects, includedNames, excludedNames,
-            onlyCompletedBefore, onlyCompletedAfter, includedLabels,
-            excludedLabels) || !minSize.isEmpty() || !maxSize.isEmpty();
+        return oneNotNull(includedEnactments, excludedEnactments, minTime,
+            maxTime, includedProjects, excludedProjects, includedNames,
+            excludedNames, onlyCompletedBefore, onlyCompletedAfter,
+            includedLabels, excludedLabels)
+                || !minSize.isEmpty() || !maxSize.isEmpty();
     }
 
     private boolean oneNotNull(Object... objects) {
@@ -234,6 +237,14 @@ public class WorkflowHistDataHelper {
                 return true;
         }
         return false;
+    }
+
+    public Set<String> getIncludedEnactments() {
+        return includedEnactments;
+    }
+
+    public void setIncludedEnactments(Set<String> includedEnactments) {
+        this.includedEnactments = includedEnactments;
     }
 
     public Set<String> getExcludedEnactments() {
@@ -449,8 +460,8 @@ public class WorkflowHistDataHelper {
 
 
     private void filterEnactments() {
-        if (excludedEnactments != null)
-            applyExcludedEnactments();
+        if (includedEnactments != null || excludedEnactments != null)
+            applyEnactmentWbsIDFilter();
         if (includedProjects != null || excludedProjects != null)
             applyProjectSpecificFilter();
         if (includedNames != null || excludedNames != null)
@@ -466,11 +477,15 @@ public class WorkflowHistDataHelper {
         discardNestedEnactments();
     }
 
-    private void applyExcludedEnactments() {
+    private void applyEnactmentWbsIDFilter() {
         for (Iterator i = enactments.iterator(); i.hasNext();) {
             Object[] enactment = (Object[]) i.next();
             String rootItemID = get(enactment, EnactmentCol.RootWbsID);
-            if (excludedEnactments.contains(rootItemID))
+            if (includedEnactments != null
+                    && !includedEnactments.contains(rootItemID))
+                i.remove();
+            else if (excludedEnactments != null
+                    && excludedEnactments.contains(rootItemID))
                 i.remove();
         }
     }
@@ -1006,6 +1021,10 @@ public class WorkflowHistDataHelper {
 
     public double getSize(Enactment e, String units, boolean actual) {
         String measurementType = (actual ? "Actual" : "Plan");
+        return getSize(e, units, measurementType);
+    }
+
+    public double getSize(Enactment e, String units, String measurementType) {
         return sum(getSizeData(), SizeCol.Size, SizeCol.RootKey, e,
             SizeCol.Units, units, SizeCol.MType, measurementType);
     }
