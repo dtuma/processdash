@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -78,6 +78,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     private String[] completionDateAttrs;
     private String[] subtaskDataAttrs;
     private String[] planTimeAttrs;
+    private String[] assignedWithZeroAttrs;
 
     public TeamActualTimeColumn(DataTableModel dataModel,
             TeamMemberList teamMembers) {
@@ -112,6 +113,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         completionDateAttrs = new String[teamSize];
         subtaskDataAttrs = new String[teamSize];
         planTimeAttrs = new String[teamSize];
+        assignedWithZeroAttrs = new String[teamSize];
 
         for (int i = 0; i < initials.length; i++) {
             TeamMember m = (TeamMember) people.get(i);
@@ -126,6 +128,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     .getSubtaskDataAttrName(m);
             planTimeAttrs[i] = TopDownBottomUpColumn
                     .getTopDownAttrName(TeamMemberTimeColumn.getColumnID(m));
+            assignedWithZeroAttrs[i] = TeamTimeColumn
+                    .getMemberAssignedZeroAttrName(m);
         }
     }
 
@@ -195,7 +199,9 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                 // retrieve the planned time for one team member.
                 double memberPlanTime = nanToZero(node
                         .getNumericAttribute(planTimeAttrs[i]));
-                if (memberPlanTime > 0) {
+                boolean assignedWithZero = (node
+                        .getAttribute(assignedWithZeroAttrs[i]) != null);
+                if (memberPlanTime > 0 || assignedWithZero) {
                     // if this team member is assigned to this leaf task, get
                     // their actual completion date for the task.
                     Date memberCompletionDate = (Date) node
@@ -276,17 +282,17 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         double percentSpent = totalActualTime / totalPlanTime;
         node.setNumericAttribute(PercentSpentColumn.RESULT_ATTR, percentSpent);
 
-        // calculate and store the percent complete
+        // calculate and store the completion date and percent complete
+        Date cd = null;
         double percentComplete = earnedValue[0] / totalPlanTime;
+        if (completionDate[0] != COMPL_DATE_NA
+                && completionDate[0] != INCOMPLETE) {
+            cd = new Date(completionDate[0]);
+            percentComplete = 1.0;
+        }
+        node.setAttribute(TeamCompletionDateColumn.ATTR_NAME, cd);
         node.setNumericAttribute(PercentCompleteColumn.RESULT_ATTR,
             percentComplete);
-
-        // store the calculated completion date
-        Date cd = null;
-        if (completionDate[0] != COMPL_DATE_NA
-                && completionDate[0] != INCOMPLETE)
-            cd = new Date(completionDate[0]);
-        node.setAttribute(TeamCompletionDateColumn.ATTR_NAME, cd);
     }
 
     private static double nanToZero(double d) {
