@@ -128,6 +128,7 @@ import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -536,6 +537,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         EVTaskDependencyResolver.init(this);
         WBSTaskOrderComparator.init(this);
+        UserGroupManager.init(this);
 
         configure_button = new ConfigureButton(this);
         PCSH.enableHelpKey(this, "QuickOverview");

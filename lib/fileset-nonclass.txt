@@ -44,7 +44,9 @@ net/sourceforge/processdash/ui/comment.png
 net/sourceforge/processdash/ui/commentError.png
 net/sourceforge/processdash/ui/commentNone.png
 net/sourceforge/processdash/ui/externalLink.png
+net/sourceforge/processdash/ui/group.png
 net/sourceforge/processdash/ui/hourglass.png
+net/sourceforge/processdash/ui/individual.png
 net/sourceforge/processdash/ui/script.png
 net/sourceforge/processdash/ui/script19.png
 net/sourceforge/processdash/ui/dashicon.ico

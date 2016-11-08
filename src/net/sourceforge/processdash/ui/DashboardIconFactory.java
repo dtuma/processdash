@@ -218,6 +218,14 @@ public class DashboardIconFactory {
         return loadAndScaleIcon("hourglass", true);
     }
 
+    public static Icon getGroupIcon() {
+        return loadAndScaleIcon("group", true);
+    }
+
+    public static Icon getIndividualIcon() {
+        return loadAndScaleIcon("individual", true);
+    }
+
     public static Icon getCheckIcon() {
         Icon result = loadNamedIcon("check", null);
         if (result == null) result = new CheckIcon(true);
