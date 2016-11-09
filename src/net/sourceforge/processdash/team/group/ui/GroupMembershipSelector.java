@@ -82,16 +82,34 @@ public class GroupMembershipSelector extends CheckboxList {
             UserGroupMember m = fullList.get(i);
             setChecked(i, selected.getMembers().contains(m));
         }
-        this.dirty = false;
+        clearDirty();
+    }
+
+
+    /**
+     * Empty the list, so it contains no items.
+     */
+    public void clearList() {
+        setItems(new Object[0]);
+        clearDirty();
     }
 
 
     /**
      * @return true if any changes have been made to the selected individuals,
-     *         since the last call to {@link #setData(UserGroup, UserGroup)}
+     *         since the last call to {@link #setData(UserGroup, UserGroup)} or
+     *         {@link #clearDirty()}
      */
     public boolean isDirty() {
         return dirty;
+    }
+
+
+    /**
+     * Clear the dirty flag on this list.
+     */
+    public void clearDirty() {
+        dirty = false;
     }
 
 

@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,7 +84,7 @@ public class UserGroupManager {
 
     private Map<String, UserGroup> groups;
 
-    private static final Resources resources = Resources
+    static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
 
 
@@ -259,8 +260,9 @@ public class UserGroupManager {
         xml.startTag(null, GROUPS_TAG);
 
         // write XML for each group
-        for (Iterator i = groups.values().iterator(); i.hasNext();) {
-            UserGroup oneGroup = (UserGroup) i.next();
+        List<UserGroup> groups = new ArrayList<UserGroup>(this.groups.values());
+        Collections.sort(groups);
+        for (UserGroup oneGroup : groups) {
             if (oneGroup.isCustom() == custom)
                 oneGroup.getAsXml(xml);
         }

@@ -115,7 +115,11 @@ public class UserGroup implements Comparable<UserGroup> {
 
     @Override
     public String toString() {
-        return getDisplayName();
+        if (isCustom())
+            return UserGroupManager.resources.getString("Custom_Prefix") + " "
+                    + getDisplayName();
+        else
+            return getDisplayName();
     }
 
 
