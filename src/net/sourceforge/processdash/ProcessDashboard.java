@@ -537,7 +537,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         EVTaskDependencyResolver.init(this);
         WBSTaskOrderComparator.init(this);
-        UserGroupManager.init(this);
 
         configure_button = new ConfigureButton(this);
         PCSH.enableHelpKey(this, "QuickOverview");
@@ -570,6 +569,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
+        UserGroupManager.init(this);
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
@@ -1753,6 +1753,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (saveSettingsData() == false)
             recordUnsavedItem(unsavedData, "Settings_Data");
 
+        if (saveUserGroupData() == false)
+            recordUnsavedItem(unsavedData, "Group_Data");
+
         String flushResult = flushWorkingData();
         if (flushResult != null)
             unsavedData.add(flushResult);
@@ -1794,6 +1797,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (InternalSettings.isDirty())
             InternalSettings.saveSettings();
         return InternalSettings.isDirty() == false;
+    }
+
+    public boolean saveUserGroupData() {
+        return UserGroupManager.getInstance().saveAll();
     }
 
     public static final String FLUSH_SUCCESSFUL = null;

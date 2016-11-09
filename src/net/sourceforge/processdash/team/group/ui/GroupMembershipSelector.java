@@ -96,15 +96,10 @@ public class GroupMembershipSelector extends CheckboxList {
 
 
     /**
-     * Update the given group so it contains the individuals currently selected
-     * in this GUI.
-     * 
-     * @param group
-     *            the group to update with current selections
+     * @return the people whose names are selected in the UI
      */
-    public void saveToGroup(UserGroup group) {
-        group.getMembers().clear();
-        group.getMembers().addAll((List) Arrays.asList(getCheckedItems()));
+    public Set<UserGroupMember> getSelectedMembers() {
+        return new HashSet(Arrays.asList(getCheckedItems()));
     }
 
 

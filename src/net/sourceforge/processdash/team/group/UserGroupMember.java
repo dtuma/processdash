@@ -23,6 +23,11 @@
 
 package net.sourceforge.processdash.team.group;
 
+import java.io.IOException;
+
+import org.w3c.dom.Element;
+import org.xmlpull.v1.XmlSerializer;
+
 public class UserGroupMember implements Comparable<UserGroupMember> {
 
     private String displayName;
@@ -34,6 +39,19 @@ public class UserGroupMember implements Comparable<UserGroupMember> {
         this.datasetID = datasetID;
     }
 
+    public UserGroupMember(Element xml) {
+        this.displayName = xml.getAttribute(NAME_ATTR);
+        this.datasetID = xml.getAttribute(DATASET_ID_ATTR);
+    }
+
+    public void getAsXml(XmlSerializer xml) throws IOException {
+        xml.startTag(null, PERSON_TAG);
+        xml.attribute(null, NAME_ATTR, displayName);
+        xml.attribute(null, DATASET_ID_ATTR, datasetID);
+        xml.endTag(null, PERSON_TAG);
+    }
+
+
     public String getDisplayName() {
         return displayName;
     }
@@ -41,6 +59,7 @@ public class UserGroupMember implements Comparable<UserGroupMember> {
     public String getDatasetID() {
         return datasetID;
     }
+
 
     @Override
     public int compareTo(UserGroupMember that) {
@@ -68,5 +87,12 @@ public class UserGroupMember implements Comparable<UserGroupMember> {
     public String toString() {
         return getDisplayName();
     }
+
+
+    static final String PERSON_TAG = "person";
+
+    private static final String NAME_ATTR = "name";
+
+    private static final String DATASET_ID_ATTR = "datasetID";
 
 }
