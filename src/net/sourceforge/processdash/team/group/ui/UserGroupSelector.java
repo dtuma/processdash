@@ -67,10 +67,10 @@ import net.sourceforge.processdash.ui.lib.TreeTableModel;
 
 public class UserGroupSelector {
 
-    private Component parent;
-
     private String everyoneOption, groupHeader, indivHeader, loadingLabel,
             noneFoundLabel;
+
+    private FilterChoices filterChoices;
 
     private JFilterableTreeComponent selector;
 
@@ -81,7 +81,6 @@ public class UserGroupSelector {
 
 
     public UserGroupSelector(Component parent, String resKey) {
-        this.parent = parent;
         everyoneOption = resources.getString("Everyone");
         groupHeader = resources.getString("Groups");
         indivHeader = resources.getString("Individuals");
@@ -89,7 +88,8 @@ public class UserGroupSelector {
         noneFoundLabel = resources.getString("None_Found");
 
         // create a component for selecting a group filter
-        selector = new JFilterableTreeComponent(new FilterChoices(),
+        filterChoices = new FilterChoices();
+        selector = new JFilterableTreeComponent(filterChoices,
                 resources.getString("Find") + " ", false);
         selector.getTreeTable().setTableHeader(null);
         new ChoiceRenderer(selector);
@@ -148,9 +148,7 @@ public class UserGroupSelector {
             super(ROOT_OBJECT);
 
             // retrieve the list of groups from the user group manager
-            groups = new ArrayList<UserGroup>(UserGroupManager.getInstance()
-                    .getGroups().values());
-            Collections.sort(groups);
+            groups = loadGroups();
 
             // the list of people cannot be loaded until all projects have
             // been loaded. On a large team dashboard with many projects, this
@@ -218,6 +216,19 @@ public class UserGroupSelector {
                 return people == null ? 1 : Math.max(1, people.size());
             else
                 return 0;
+        }
+
+        private List<UserGroup> loadGroups() {
+            List<UserGroup> groups = new ArrayList<UserGroup>(UserGroupManager
+                    .getInstance().getGroups().values());
+            Collections.sort(groups);
+            return groups;
+        }
+
+        private void setGroups(List<UserGroup> groups) {
+            this.groups = groups;
+            fireTreeStructureChanged(this, new Object[] { ROOT_OBJECT,
+                    groupHeader }, null, null);
         }
 
         private List<UserGroupMember> loadPeople() {
@@ -428,23 +439,18 @@ public class UserGroupSelector {
         @Override
         public void mouseClicked(MouseEvent e) {
             if (armed) {
+                // display a "wait" icon, in case it takes a while for the
+                // UserGroupEditor window to appear.
                 table.setCursor(null);
                 selector.setCursor(Cursor
                         .getPredefinedCursor(Cursor.WAIT_CURSOR));
-                new UserGroupEditor(parent);
-                hideSelectionDialog();
-            }
-        }
 
-        private void hideSelectionDialog() {
-            Component c = table;
-            while (c != null) {
-                if (c instanceof JOptionPane) {
-                    ((JOptionPane) c).setValue(JOptionPane.CANCEL_OPTION);
-                    return;
-                } else {
-                    c = c.getParent();
-                }
+                // open the user group editor.
+                new UserGroupEditor(selector);
+
+                // reload the newly edited groups.
+                selector.setCursor(null);
+                filterChoices.setGroups(filterChoices.loadGroups());
             }
         }
 
