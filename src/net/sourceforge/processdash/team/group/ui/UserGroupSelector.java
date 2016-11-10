@@ -45,6 +45,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -67,7 +69,9 @@ public class UserGroupSelector {
 
     private Component parent;
 
-    private String everyoneOption, groupHeader, indivHeader;
+    private String everyoneOption, groupHeader, indivHeader, loadingLabel;
+
+    private JFilterableTreeComponent selector;
 
     private Object selectedItem;
 
@@ -80,10 +84,11 @@ public class UserGroupSelector {
         everyoneOption = resources.getString("Everyone");
         groupHeader = resources.getString("Groups");
         indivHeader = resources.getString("Individuals");
+        loadingLabel = resources.getString("Loading");
 
         // create a component for selecting a group filter
-        JFilterableTreeComponent selector = new JFilterableTreeComponent(
-                new FilterChoices(), resources.getString("Find") + " ", false);
+        selector = new JFilterableTreeComponent(new FilterChoices(),
+                resources.getString("Find") + " ", false);
         selector.getTreeTable().setTableHeader(null);
         new ChoiceRenderer(selector);
         new JOptionPaneActionHandler().install(selector);
@@ -140,12 +145,19 @@ public class UserGroupSelector {
         public FilterChoices() {
             super(ROOT_OBJECT);
 
+            // retrieve the list of groups from the user group manager
             groups = new ArrayList<UserGroup>(UserGroupManager.getInstance()
                     .getGroups().values());
             Collections.sort(groups);
-            people = new ArrayList<UserGroupMember>(UserGroupManager
-                    .getInstance().getEveryone().getMembers());
-            Collections.sort(people);
+
+            // the list of people cannot be loaded until all projects have
+            // been loaded. On a large team dashboard with many projects, this
+            // could take time. If this is the first time this window has
+            // opened, run the task on a background thread.
+            if (peopleHaveBeenLoadedBefore)
+                people = loadPeople();
+            else
+                new PeopleLoader(this).execute();
         }
 
         public int getColumnCount() {
@@ -186,7 +198,7 @@ public class UserGroupSelector {
                 return groups.get(index);
 
             } else if (parent == indivHeader) {
-                return people.get(index);
+                return people == null ? loadingLabel : people.get(index);
 
             } else
                 return null;
@@ -199,9 +211,61 @@ public class UserGroupSelector {
             else if (parent == groupHeader)
                 return groups.size();
             else if (parent == indivHeader)
-                return people.size();
+                return people == null ? 1 : people.size();
             else
                 return 0;
+        }
+
+        private List<UserGroupMember> loadPeople() {
+            List<UserGroupMember> people = new ArrayList<UserGroupMember>(
+                    UserGroupManager.getInstance().getEveryone().getMembers());
+            Collections.sort(people);
+            return people;
+        }
+
+        private void setPeople(List<UserGroupMember> people) {
+            peopleHaveBeenLoadedBefore = true;
+            this.people = people;
+            fireTreeStructureChanged(this, new Object[] { ROOT_OBJECT,
+                    indivHeader }, null, null);
+        }
+
+    }
+
+
+    /**
+     * Class to load the list of people asynchronously
+     */
+    private class PeopleLoader extends
+            SwingWorker<List<UserGroupMember>, Object> {
+        private FilterChoices filterChoices;
+
+        PeopleLoader(FilterChoices filterChoices) {
+            this.filterChoices = filterChoices;
+        }
+
+        @Override
+        protected List<UserGroupMember> doInBackground() throws Exception {
+            return filterChoices.loadPeople();
+        }
+
+        @Override
+        protected void done() {
+            final Object currentSelection = selector.getSelectedLeaf();
+
+            try {
+                filterChoices.setPeople(get());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (currentSelection != null)
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        selector.setSelectedNode(currentSelection);
+                    }
+                });
         }
 
     }
@@ -214,7 +278,7 @@ public class UserGroupSelector {
     private class ChoiceRenderer extends DefaultTreeCellRenderer implements
             TableCellRenderer {
 
-        private Icon groupIcon, personIcon;
+        private Icon groupIcon, personIcon, loadingIcon;
 
         private Border plain, line;
 
@@ -229,6 +293,7 @@ public class UserGroupSelector {
         public ChoiceRenderer(JFilterableTreeComponent selector) {
             groupIcon = DashboardIconFactory.getGroupIcon();
             personIcon = DashboardIconFactory.getIndividualIcon();
+            loadingIcon = DashboardIconFactory.getHourglassIcon();
             plain = BorderFactory.createEmptyBorder(1, 0, 0, 0);
             line = BorderFactory.createMatteBorder(1, 0, 0, 0, Color.lightGray);
 
@@ -270,6 +335,8 @@ public class UserGroupSelector {
                 setIcon(groupIcon);
             else if (value instanceof UserGroupMember)
                 setIcon(personIcon);
+            else if (value == loadingLabel)
+                setIcon(loadingIcon);
 
             // draw a thin line above group headings
             setBorder(leaf ? plain : line);
@@ -350,8 +417,11 @@ public class UserGroupSelector {
         @Override
         public void mouseClicked(MouseEvent e) {
             if (armed) {
-                hideSelectionDialog();
+                table.setCursor(null);
+                selector.setCursor(Cursor
+                        .getPredefinedCursor(Cursor.WAIT_CURSOR));
                 new UserGroupEditor(parent);
+                hideSelectionDialog();
             }
         }
 
@@ -380,6 +450,7 @@ public class UserGroupSelector {
         public void mouseExited(MouseEvent e) {}
     }
 
+    private static boolean peopleHaveBeenLoadedBefore = false;
 
     private static final String SIZE_PREF = "userPref.userGroupSelector.dimensions";
 
