@@ -83,7 +83,7 @@ public class UserGroupEditor {
             .getDashBundle("ProcessDashboard.Groups");
 
 
-    public UserGroupEditor() {
+    public UserGroupEditor(Component parent) {
         // keep track of editing state
         currentlyEditing = null;
         groupsToSave = new HashSet<UserGroup>();
@@ -91,7 +91,7 @@ public class UserGroupEditor {
         everyone = UserGroupManager.getInstance().getEveryone();
 
         // build a user interface and display it to the user
-        int userChoice = JOptionPane.showConfirmDialog(null, createUI(),
+        int userChoice = JOptionPane.showConfirmDialog(parent, createUI(),
             resources.getString("Edit_Window_Title"),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
