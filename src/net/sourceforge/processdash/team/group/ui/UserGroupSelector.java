@@ -69,7 +69,8 @@ public class UserGroupSelector {
 
     private Component parent;
 
-    private String everyoneOption, groupHeader, indivHeader, loadingLabel;
+    private String everyoneOption, groupHeader, indivHeader, loadingLabel,
+            noneFoundLabel;
 
     private JFilterableTreeComponent selector;
 
@@ -85,6 +86,7 @@ public class UserGroupSelector {
         groupHeader = resources.getString("Groups");
         indivHeader = resources.getString("Individuals");
         loadingLabel = resources.getString("Loading");
+        noneFoundLabel = resources.getString("None_Found");
 
         // create a component for selecting a group filter
         selector = new JFilterableTreeComponent(new FilterChoices(),
@@ -195,10 +197,12 @@ public class UserGroupSelector {
                 }
 
             } else if (parent == groupHeader) {
-                return groups.get(index);
+                return groups.isEmpty() ? noneFoundLabel : groups.get(index);
 
             } else if (parent == indivHeader) {
-                return people == null ? loadingLabel : people.get(index);
+                return people == null ? loadingLabel
+                        : (people.isEmpty() ? noneFoundLabel //
+                                : people.get(index));
 
             } else
                 return null;
@@ -209,9 +213,9 @@ public class UserGroupSelector {
             if (parent == ROOT_OBJECT)
                 return 3;
             else if (parent == groupHeader)
-                return groups.size();
+                return Math.max(1, groups.size());
             else if (parent == indivHeader)
-                return people == null ? 1 : people.size();
+                return people == null ? 1 : Math.max(1, people.size());
             else
                 return 0;
         }
@@ -282,7 +286,7 @@ public class UserGroupSelector {
 
         private Border plain, line;
 
-        private Font bold, regular;
+        private Font bold, regular, italic;
 
         private TableCellRenderer tableCellRenderer;
 
@@ -304,12 +308,14 @@ public class UserGroupSelector {
             treeTable.getColumnModel().getColumn(0).setCellRenderer(this);
             treeTable.getTree().setCellRenderer(this);
 
+            regular = treeTable.getFont();
+            bold = regular.deriveFont(Font.BOLD);
+            italic = regular.deriveFont(Font.ITALIC);
+
             editLabel = new JLabel("<html><a href='#'>"
                     + resources.getHTML("Create_Edit_Link")
                     + "</a>&nbsp;&nbsp;&nbsp;</html>");
-            regular = treeTable.getFont();
-            bold = regular.deriveFont(Font.BOLD);
-            editLabel.setFont(regular.deriveFont(Font.ITALIC));
+            editLabel.setFont(italic);
 
             panel = new JPanel(new BorderLayout());
             panel.add(Box.createHorizontalGlue(), BorderLayout.CENTER);
@@ -337,12 +343,17 @@ public class UserGroupSelector {
                 setIcon(personIcon);
             else if (value == loadingLabel)
                 setIcon(loadingIcon);
+            else if (value == noneFoundLabel)
+                setIcon(null);
 
             // draw a thin line above group headings
             setBorder(leaf ? plain : line);
 
             // highlight the selected leaf with a bold font
-            setFont((leaf && sel) ? bold : regular);
+            if (value == noneFoundLabel)
+                setFont(italic);
+            else
+                setFont((leaf && sel) ? bold : regular);
 
             return this;
         }
