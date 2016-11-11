@@ -63,15 +63,15 @@ public class GroupMembershipSelector extends CheckboxList {
     /**
      * Update this object to begin a new editing session.
      * 
-     * @param everyone
+     * @param allPeople
      *            a list of all known individuals
      * @param selected
      *            a list of the individuals who should initially be selected
      */
-    public void setData(UserGroup everyone, UserGroup selected) {
+    public void setData(Set<UserGroupMember> allPeople, UserGroup selected) {
         // make a list of the people to display, and store it in the data model
         Set<UserGroupMember> fullSet = new HashSet();
-        fullSet.addAll(everyone.getMembers());
+        fullSet.addAll(allPeople);
         fullSet.addAll(selected.getMembers());
         List<UserGroupMember> fullList = new ArrayList<UserGroupMember>(fullSet);
         Collections.sort(fullList);

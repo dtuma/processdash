@@ -67,8 +67,9 @@ import net.sourceforge.processdash.ui.lib.TreeTableModel;
 
 public class UserGroupSelector {
 
-    private String everyoneOption, groupHeader, indivHeader, loadingLabel,
-            noneFoundLabel;
+    private UserGroup everyoneOption;
+
+    private String groupHeader, indivHeader, loadingLabel, noneFoundLabel;
 
     private FilterChoices filterChoices;
 
@@ -81,7 +82,7 @@ public class UserGroupSelector {
 
 
     public UserGroupSelector(Component parent, String resKey) {
-        everyoneOption = resources.getString("Everyone");
+        everyoneOption = UserGroupManager.getEveryonePseudoGroup();
         groupHeader = resources.getString("Groups");
         indivHeader = resources.getString("Individuals");
         loadingLabel = resources.getString("Loading");
@@ -233,7 +234,7 @@ public class UserGroupSelector {
 
         private List<UserGroupMember> loadPeople() {
             List<UserGroupMember> people = new ArrayList<UserGroupMember>(
-                    UserGroupManager.getInstance().getEveryone().getMembers());
+                    UserGroupManager.getInstance().getAllKnownPeople());
             Collections.sort(people);
             return people;
         }
@@ -348,7 +349,7 @@ public class UserGroupSelector {
                 leaf, row, hasFocus);
 
             // configure special icons for individuals and groups
-            if (value == everyoneOption || value instanceof UserGroup)
+            if (value instanceof UserGroup)
                 setIcon(groupIcon);
             else if (value instanceof UserGroupMember)
                 setIcon(personIcon);

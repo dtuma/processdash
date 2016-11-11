@@ -60,6 +60,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -71,13 +72,15 @@ public class UserGroupEditor {
 
     private JList groupList;
 
-    private UserGroup everyone, currentlyEditing;
+    private UserGroup currentlyEditing;
+
+    private Set<UserGroup> groupsToSave, groupsToDelete;
+
+    private Set<UserGroupMember> allKnownPeople;
 
     private GroupMembershipSelector memberList;
 
     private JPanel userInterface;
-
-    private Set<UserGroup> groupsToSave, groupsToDelete;
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
@@ -88,7 +91,7 @@ public class UserGroupEditor {
         currentlyEditing = null;
         groupsToSave = new HashSet<UserGroup>();
         groupsToDelete = new HashSet<UserGroup>();
-        everyone = UserGroupManager.getInstance().getEveryone();
+        allKnownPeople = UserGroupManager.getInstance().getAllKnownPeople();
 
         // build a user interface and display it to the user
         int userChoice = JOptionPane.showConfirmDialog(parent, createUI(),
@@ -441,7 +444,7 @@ public class UserGroupEditor {
                 if (selected == null)
                     memberList.clearList();
                 else
-                    memberList.setData(everyone, selected);
+                    memberList.setData(allKnownPeople, selected);
             }
         }
 

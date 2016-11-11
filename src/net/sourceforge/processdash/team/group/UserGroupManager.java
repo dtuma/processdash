@@ -277,7 +277,29 @@ public class UserGroupManager {
     }
 
 
-    public UserGroup getEveryone() {
+    /**
+     * At times, there is a need to capture the concept of "everyone." This
+     * method returns a group object to serve that purpose. Its meaning is
+     * symbolic, because its set of members will be empty; but its name will be
+     * a language-appropriate version of "Everyone," and its ID will be
+     * {@link #EVERYONE_GROUP_ID}.
+     */
+    public static UserGroup getEveryonePseudoGroup() {
+        // create a group object to hold the information, and return it
+        String groupName = resources.getString("Everyone");
+        UserGroup result = new UserGroup(groupName, EVERYONE_GROUP_ID, false,
+                Collections.EMPTY_SET);
+        return result;
+    }
+
+
+    /**
+     * @return the list of all people known to this Team Dashboard. <b>Note:</b>
+     *         this list cannot be generated until all project data has been
+     *         loaded; so if this method is called shortly after startup in a
+     *         large Team Dashboard, it may take a long time to return.
+     */
+    public Set<UserGroupMember> getAllKnownPeople() {
         // query the database for all known people, and add them to the group
         QueryUtils.waitForAllProjects(databasePlugin);
         List<Object[]> rawData = query.queryHql(EVERYONE_QUERY);
@@ -288,12 +310,7 @@ public class UserGroupManager {
             UserGroupMember m = new UserGroupMember(userName, datasetID);
             members.add(m);
         }
-
-        // create a group object to hold the information, and return it
-        String groupName = resources.getString("Everyone");
-        UserGroup result = new UserGroup(groupName, EVERYONE_GROUP_ID, false,
-                members);
-        return result;
+        return members;
     }
 
     private static final String EVERYONE_QUERY = //
