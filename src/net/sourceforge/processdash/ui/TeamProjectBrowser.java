@@ -38,9 +38,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -77,6 +79,8 @@ import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -347,11 +351,19 @@ public class TeamProjectBrowser extends JSplitPane {
      * Add team-project-related items to the File menu.
      */
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
+        JMenuBar menuBar = dash.getConfigurationMenus();
+
         if (Settings.isReadWrite()) {
-            JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
+            JMenu fileMenu = menuBar.getMenu(0);
             fileMenu.insert(new NewProjectAction(), 0);
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
         }
+
+        GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
+                UserGroupManager.getEveryonePseudoGroup());
+
+        menuBar.add(Box.createHorizontalGlue());
+        menuBar.add(groupFilterMenu);
     }
 
 
