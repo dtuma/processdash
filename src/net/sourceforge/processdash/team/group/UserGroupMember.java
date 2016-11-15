@@ -24,11 +24,13 @@
 package net.sourceforge.processdash.team.group;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlSerializer;
 
-public class UserGroupMember implements Comparable<UserGroupMember> {
+public class UserGroupMember implements UserFilter, Comparable<UserGroupMember> {
 
     private String displayName;
 
@@ -58,6 +60,11 @@ public class UserGroupMember implements Comparable<UserGroupMember> {
 
     public String getDatasetID() {
         return datasetID;
+    }
+
+    @Override
+    public Set<String> getDatasetIDs() {
+        return Collections.singleton(datasetID);
     }
 
 

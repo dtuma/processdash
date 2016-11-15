@@ -34,7 +34,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
-public class UserGroup implements Comparable<UserGroup> {
+public class UserGroup implements UserFilter, Comparable<UserGroup> {
+
+    public static final String EVERYONE_ID = "0";
+
 
     private String displayName;
 
@@ -102,6 +105,17 @@ public class UserGroup implements Comparable<UserGroup> {
 
     public Set<UserGroupMember> getMembers() {
         return members;
+    }
+
+    @Override
+    public Set<String> getDatasetIDs() {
+        if (EVERYONE_ID.equals(id))
+            return null;
+
+        Set<String> result = new HashSet<String>(members.size());
+        for (UserGroupMember m : members)
+            result.add(m.getDatasetID());
+        return result;
     }
 
 

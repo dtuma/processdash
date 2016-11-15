@@ -27,9 +27,13 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -38,15 +42,32 @@ public class GroupFilterMenu extends JMenu {
 
     private Icon groupIcon, personIcon;
 
-    public GroupFilterMenu(Object initialSelection) {
+    private EventListenerList listeners;
+
+    private UserFilter selectedItem;
+
+    public GroupFilterMenu(UserFilter initialSelection) {
         groupIcon = DashboardIconFactory.getGroupIcon();
         personIcon = DashboardIconFactory.getIndividualIcon();
+        listeners = new EventListenerList();
         setSelectedItem(initialSelection);
 
         getPopupMenu().addPopupMenuListener(new Handler());
     }
 
-    public void setSelectedItem(Object selection) {
+    public void addChangeListener(ChangeListener l) {
+        listeners.add(ChangeListener.class, l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        listeners.remove(ChangeListener.class, l);
+    }
+
+    public UserFilter getSelectedItem() {
+        return selectedItem;
+    }
+
+    public void setSelectedItem(UserFilter selection) {
         if (selection instanceof UserGroup) {
             UserGroup g = (UserGroup) selection;
             setIcon(groupIcon);
@@ -57,6 +78,10 @@ public class GroupFilterMenu extends JMenu {
             setIcon(personIcon);
             setText(m.toString());
         }
+
+        this.selectedItem = selection;
+        for (ChangeListener l : listeners.getListeners(ChangeListener.class))
+            l.stateChanged(new ChangeEvent(this));
     }
 
 
@@ -70,7 +95,7 @@ public class GroupFilterMenu extends JMenu {
         @Override
         public void run() {
             getPopupMenu().setVisible(false);
-            Object selectedItem = new UserGroupSelector(
+            UserFilter selectedItem = new UserGroupSelector(
                     SwingUtilities.getWindowAncestor(GroupFilterMenu.this),
                     "Filter_Prompt").getSelectedItem();
             setSelectedItem(selectedItem);

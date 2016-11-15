@@ -54,6 +54,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
@@ -75,7 +76,7 @@ public class UserGroupSelector {
 
     private JFilterableTreeComponent selector;
 
-    private Object selectedItem;
+    private UserFilter selectedItem;
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
@@ -115,8 +116,11 @@ public class UserGroupSelector {
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         // if the user made a selection, save it
-        if (userChoice == JOptionPane.OK_OPTION)
-            selectedItem = selector.getSelectedLeaf();
+        if (userChoice == JOptionPane.OK_OPTION) {
+            Object selection = selector.getSelectedLeaf();
+            if (selection instanceof UserFilter)
+                selectedItem = (UserFilter) selection;
+        }
 
         // store the preferred size of the window for next use
         InternalSettings.set(SIZE_PREF,
@@ -126,8 +130,7 @@ public class UserGroupSelector {
     /**
      * @return the object the user selected with this component
      */
-
-    public Object getSelectedItem() {
+    public UserFilter getSelectedItem() {
         return selectedItem;
     }
 

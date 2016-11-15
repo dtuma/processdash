@@ -60,8 +60,6 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class UserGroupManager {
 
-    public static final String EVERYONE_GROUP_ID = "0";
-
     private static UserGroupManager INSTANCE;
 
     public static void init(DashboardContext ctx) {
@@ -191,7 +189,7 @@ public class UserGroupManager {
         // validate that the ID of this group is appropriate
         String id = g.getId();
         if ((id != null && (id.startsWith(CUSTOM_ID_PREFIX) != g.isCustom()))
-                || EVERYONE_GROUP_ID.equals(id))
+                || UserGroup.EVERYONE_ID.equals(id))
             throw new IllegalArgumentException("Invalid group ID");
 
         // custom groups could be altered simultaneously by different processes.
@@ -282,13 +280,13 @@ public class UserGroupManager {
      * method returns a group object to serve that purpose. Its meaning is
      * symbolic, because its set of members will be empty; but its name will be
      * a language-appropriate version of "Everyone," and its ID will be
-     * {@link #EVERYONE_GROUP_ID}.
+     * {@link UserGroup#EVERYONE_ID}.
      */
     public static UserGroup getEveryonePseudoGroup() {
         // create a group object to hold the information, and return it
         String groupName = resources.getString("Everyone");
-        UserGroup result = new UserGroup(groupName, EVERYONE_GROUP_ID, false,
-                Collections.EMPTY_SET);
+        UserGroup result = new UserGroup(groupName, UserGroup.EVERYONE_ID,
+                false, Collections.EMPTY_SET);
         return result;
     }
 
