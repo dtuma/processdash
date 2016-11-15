@@ -39,14 +39,22 @@ import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.CheckboxList;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 
 public class GroupMembershipSelector extends CheckboxList {
+
+    private String readOnlyCode;
 
     private boolean dirty;
 
 
-    public GroupMembershipSelector() {
+    public GroupMembershipSelector(String readOnlyCode) {
         super(new Object[0]);
+
+        // store the read-only flag
+        this.readOnlyCode = readOnlyCode;
+        if (readOnlyCode != null)
+            new ToolTipTimingCustomizer(1500, 60000).install(this);
 
         // install a cell renderer that will display a "person" icon
         Icon icon = DashboardIconFactory.getIndividualIcon();
@@ -69,6 +77,9 @@ public class GroupMembershipSelector extends CheckboxList {
      *            a list of the individuals who should initially be selected
      */
     public void setData(Set<UserGroupMember> allPeople, UserGroup selected) {
+        // configure the checkboxes to be read-only, if needed
+        setReadOnly(readOnlyCode != null && !selected.isCustom());
+
         // make a list of the people to display, and store it in the data model
         Set<UserGroupMember> fullSet = new HashSet();
         fullSet.addAll(allPeople);
@@ -83,6 +94,20 @@ public class GroupMembershipSelector extends CheckboxList {
             setChecked(i, selected.getMembers().contains(m));
         }
         clearDirty();
+    }
+
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        if (readOnly) {
+            setToolTipText("<html><div style='width:250px'>"
+                    + UserGroupEditor.resources.getHTML("Edit_Error."
+                            + readOnlyCode) + "</div></html>");
+        } else {
+            setToolTipText(null);
+        }
+
+        super.setReadOnly(readOnly);
     }
 
 

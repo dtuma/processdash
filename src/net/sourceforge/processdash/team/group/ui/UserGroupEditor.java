@@ -62,6 +62,7 @@ import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class UserGroupEditor {
@@ -74,6 +75,8 @@ public class UserGroupEditor {
 
     private UserGroup currentlyEditing;
 
+    private String readOnlyCode;
+
     private Set<UserGroup> groupsToSave, groupsToDelete;
 
     private Set<UserGroupMember> allKnownPeople;
@@ -82,13 +85,14 @@ public class UserGroupEditor {
 
     private JPanel userInterface;
 
-    private static final Resources resources = Resources
+    static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
 
 
     public UserGroupEditor(Component parent) {
         // keep track of editing state
         currentlyEditing = null;
+        readOnlyCode = UserGroupManager.getInstance().getReadOnlyCode();
         groupsToSave = new HashSet<UserGroup>();
         groupsToDelete = new HashSet<UserGroup>();
         allKnownPeople = UserGroupManager.getInstance().getAllKnownPeople();
@@ -140,7 +144,7 @@ public class UserGroupEditor {
         gsp.setPreferredSize(new Dimension(200, 300));
 
         // create an object for editing the members in the selected group
-        memberList = new GroupMembershipSelector();
+        memberList = new GroupMembershipSelector(readOnlyCode);
         JScrollPane msp = new JScrollPane(memberList);
         msp.setPreferredSize(new Dimension(200, 300));
 
@@ -243,6 +247,15 @@ public class UserGroupEditor {
             sharedOption.setBorder(indent);
             customOption = new JRadioButton(resources.getString("Type_Custom"));
             customOption.setBorder(indent);
+
+            if (readOnlyCode != null) {
+                sharedOption.setEnabled(false);
+                sharedOption.setToolTipText("<html><div style='width:250px'>"
+                        + resources.getHTML(resKey + "_Error." + readOnlyCode)
+                        + "</div></html>");
+                new ToolTipTimingCustomizer().install(sharedOption);
+                isCustom = true;
+            }
 
             ButtonGroup bg = new ButtonGroup();
             bg.add(sharedOption);
@@ -377,6 +390,16 @@ public class UserGroupEditor {
             if (currentlyEditing == null)
                 return;
 
+            if (readOnlyCode != null && !currentlyEditing.isCustom()) {
+                String title = resources.getString("Rename_Error.Title");
+                String[] message = resources.formatStrings("Rename_Error."
+                        + readOnlyCode + "_FMT",
+                    currentlyEditing.getDisplayName());
+                JOptionPane.showMessageDialog(userInterface, message, title,
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             saveMembershipChanges();
             Object[] userEntry = promptForName("Rename",
                 currentlyEditing.getDisplayName(),
@@ -407,6 +430,16 @@ public class UserGroupEditor {
         public void actionPerformed(ActionEvent e) {
             if (currentlyEditing == null)
                 return;
+
+            if (readOnlyCode != null && !currentlyEditing.isCustom()) {
+                String title = resources.getString("Delete_Error.Title");
+                String[] message = resources.formatStrings("Delete_Error."
+                        + readOnlyCode + "_FMT",
+                    currentlyEditing.getDisplayName());
+                JOptionPane.showMessageDialog(userInterface, message, title,
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             String title = resources.getString("Delete_Title");
             String prompt = resources.format("Delete_Prompt_FMT",

@@ -72,6 +72,8 @@ public class UserGroupManager {
 
     private EventListenerList listeners;
 
+    private String readOnlyCode;
+
     private DatabasePlugin databasePlugin;
 
     private QueryRunner query;
@@ -87,6 +89,8 @@ public class UserGroupManager {
 
     private UserGroupManager() {
         listeners = new EventListenerList();
+        if (Settings.isReadOnly())
+            readOnlyCode = "Read_Only";
     }
 
     public void init(DashboardContext ctx) {
@@ -120,6 +124,18 @@ public class UserGroupManager {
         reloadGroups(false);
         reloadGroups(true);
         needsSave = new HashSet<Boolean>();
+    }
+
+    /**
+     * Shared groups should not be editable in certain circumstances (for
+     * example, when the team dashboard is in read-only mode). This method
+     * indicates whether shared groups are read only.
+     * 
+     * @return null if shared groups can be edited; otherwise, a reason code
+     *         explaining why they cannot
+     */
+    public String getReadOnlyCode() {
+        return readOnlyCode;
     }
 
     public void addUserGroupEditListener(UserGroupEditListener l) {
@@ -223,6 +239,11 @@ public class UserGroupManager {
         if ((id != null && (id.startsWith(CUSTOM_ID_PREFIX) != g.isCustom()))
                 || UserGroup.EVERYONE_ID.equals(id))
             throw new IllegalArgumentException("Invalid group ID");
+
+        // don't allow modification of non-custom groups in read-only mode
+        if (!g.isCustom() && readOnlyCode != null)
+            throw new IllegalStateException("Shared groups are read-only: "
+                    + readOnlyCode);
 
         // custom groups could be altered simultaneously by different processes.
         // to be on the safe side, try reloading the custom groups file before

@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2015 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,10 +27,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -38,15 +37,14 @@ import javax.swing.table.TableCellRenderer;
 
 public class CheckboxList extends JTable {
 
-    private Map<TableCellRenderer, TableCellRenderer> rendererMap;
+    private boolean readOnly;
 
     public CheckboxList(Object[] listData) {
-        super(new CheckmarkTableModel(listData));
+        setModel(new CheckmarkTableModel(listData));
         setTableHeader(null);
         setShowGrid(false);
         setIntercellSpacing(new Dimension(0, 1));
         getColumnModel().getColumn(0).setMaxWidth(30);
-        rendererMap = new HashMap<TableCellRenderer, TableCellRenderer>();
     }
 
     /** @since 2.1.6 */
@@ -105,20 +103,28 @@ public class CheckboxList extends JTable {
         return result;
     }
 
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
     @Override
-    public TableCellRenderer getCellRenderer(int row, int column) {
-        TableCellRenderer baseRenderer = super.getCellRenderer(row, column);
-        TableCellRenderer result = rendererMap.get(baseRenderer);
-        if (result == null) {
-            result = new NoBorderCellRenderer(baseRenderer);
-            rendererMap.put(baseRenderer, result);
-        }
+    public Component prepareRenderer(TableCellRenderer renderer, int row,
+            int column) {
+        Component result = super.prepareRenderer(renderer, row, column);
+        if (result instanceof JComponent)
+            ((JComponent) result).setBorder(null);
+        if (result instanceof JCheckBox)
+            ((JCheckBox) result).setEnabled(!readOnly);
         return result;
     }
 
 
 
-    private static class CheckmarkTableModel extends AbstractTableModel {
+    private class CheckmarkTableModel extends AbstractTableModel {
 
         private Object[] data;
 
@@ -171,7 +177,7 @@ public class CheckboxList extends JTable {
 
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return (columnIndex == 0);
+            return (!readOnly && columnIndex == 0);
         }
 
         public void setAllChecked(boolean check) {
@@ -187,25 +193,6 @@ public class CheckboxList extends JTable {
                     return;
                 }
             }
-        }
-
-    }
-
-    private static class NoBorderCellRenderer implements TableCellRenderer {
-        TableCellRenderer delegate;
-
-        private NoBorderCellRenderer(TableCellRenderer delegate) {
-            this.delegate = delegate;
-        }
-
-        public Component getTableCellRendererComponent(JTable table,
-                Object value, boolean isSelected, boolean hasFocus, int row,
-                int column) {
-            Component result = delegate.getTableCellRendererComponent(table,
-                value, isSelected, hasFocus, row, column);
-            if (result instanceof JComponent)
-                ((JComponent) result).setBorder(null);
-            return result;
         }
 
     }
