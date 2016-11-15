@@ -569,7 +569,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
-        UserGroupManager.init(this);
+        UserGroupManager.getInstance().init(this);
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);

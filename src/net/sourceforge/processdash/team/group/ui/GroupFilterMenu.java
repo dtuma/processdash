@@ -35,10 +35,14 @@ import javax.swing.event.PopupMenuListener;
 
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupEditEvent;
+import net.sourceforge.processdash.team.group.UserGroupEditListener;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
-public class GroupFilterMenu extends JMenu {
+public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
 
     private Icon groupIcon, personIcon;
 
@@ -52,6 +56,7 @@ public class GroupFilterMenu extends JMenu {
         listeners = new EventListenerList();
         setSelectedItem(initialSelection);
 
+        UserGroupManager.getInstance().addUserGroupEditListener(this);
         getPopupMenu().addPopupMenuListener(new Handler());
     }
 
@@ -79,9 +84,31 @@ public class GroupFilterMenu extends JMenu {
             setText(m.toString());
         }
 
+        boolean isChange = !NullSafeObjectUtils.EQ(selectedItem, selection);
         this.selectedItem = selection;
-        for (ChangeListener l : listeners.getListeners(ChangeListener.class))
-            l.stateChanged(new ChangeEvent(this));
+        if (isChange) {
+            for (ChangeListener l : listeners
+                    .getListeners(ChangeListener.class))
+                l.stateChanged(new ChangeEvent(this));
+        }
+    }
+
+    @Override
+    public void userGroupEdited(UserGroupEditEvent e) {
+        if (selectedItem instanceof UserGroup) {
+            UserGroup selectedGroup = (UserGroup) selectedItem;
+            UserGroup changedGroup = e.getGroup();
+            if (selectedGroup.getId().equals(changedGroup.getId())) {
+                final UserGroup newGroup = (e.isDelete() ? UserGroupManager
+                        .getEveryonePseudoGroup() : changedGroup);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        setSelectedItem(newGroup);
+                    }
+                });
+            }
+        }
     }
 
 

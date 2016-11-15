@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.swing.event.EventListenerList;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -60,17 +62,15 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class UserGroupManager {
 
-    private static UserGroupManager INSTANCE;
-
-    public static void init(DashboardContext ctx) {
-        INSTANCE = new UserGroupManager(ctx);
-    }
+    private static UserGroupManager INSTANCE = new UserGroupManager();
 
     public static UserGroupManager getInstance() {
         return INSTANCE;
     }
 
 
+
+    private EventListenerList listeners;
 
     private DatabasePlugin databasePlugin;
 
@@ -85,8 +85,14 @@ public class UserGroupManager {
     static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
 
+    private UserGroupManager() {
+        listeners = new EventListenerList();
+    }
 
-    private UserGroupManager(DashboardContext ctx) {
+    public void init(DashboardContext ctx) {
+        // ensure calling code has permission to perform initialization
+        PERMISSION.checkPermission();
+
         // user groups are only relevant for team dashboards, so only perform
         // minimal setup if we are running in a personal dashboard.
         if (!Settings.isTeamMode()) {
@@ -116,6 +122,26 @@ public class UserGroupManager {
         needsSave = new HashSet<Boolean>();
     }
 
+    public void addUserGroupEditListener(UserGroupEditListener l) {
+        listeners.add(UserGroupEditListener.class, l);
+    }
+
+    public void removeUserGroupEditListener(UserGroupEditListener l) {
+        listeners.remove(UserGroupEditListener.class, l);
+    }
+
+    private void fireUserGroupEditEvent(UserGroupEditEvent event) {
+        for (UserGroupEditListener l : listeners
+                .getListeners(UserGroupEditListener.class)) {
+            try {
+                l.userGroupEdited(event);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     public Map<String, UserGroup> getGroups() {
         return Collections.unmodifiableMap(groups);
     }
@@ -134,6 +160,9 @@ public class UserGroupManager {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+
+        // notify listeners about the change
+        fireUserGroupEditEvent(new UserGroupEditEvent(this, g, false));
     }
 
     private String generateUniqueID(boolean custom) {
@@ -159,6 +188,9 @@ public class UserGroupManager {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
+
+            // notify listeners about the change
+            fireUserGroupEditEvent(new UserGroupEditEvent(this, g, true));
         }
     }
 

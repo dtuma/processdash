@@ -34,6 +34,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
+
 public class UserGroup implements UserFilter, Comparable<UserGroup> {
 
     public static final String EVERYONE_ID = "0";
@@ -125,6 +127,26 @@ public class UserGroup implements UserFilter, Comparable<UserGroup> {
             return this.custom ? 1 : -1;
         else
             return this.displayName.compareToIgnoreCase(that.displayName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof UserGroup) {
+            UserGroup that = (UserGroup) obj;
+            return NullSafeObjectUtils.EQ(this.id, that.id)
+                    && this.displayName.equals(that.displayName)
+                    && (this.custom == that.custom)
+                    && this.members.equals(that.members);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return id == null ? super.hashCode() : id.hashCode();
     }
 
     @Override
