@@ -49,6 +49,7 @@ The author(s) may be contacted at:
 
   <redact-line-filter class="&pkg;FilterDataFiles"/>
   <redact-line-filter class="&pkg;FilterExtResManifestFile"/>
+  <redact-line-filter class="&pkg;FilterGroupDefinitionsFile"/>
   <redact-line-filter class="&pkg;FilterLocalDefectLogs"/>
   <redact-line-filter class="&pkg;FilterLocalTimeLog"/>
   <redact-line-filter class="&pkg;FilterPdashDefects"/>
