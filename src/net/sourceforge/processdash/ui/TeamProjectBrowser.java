@@ -409,6 +409,8 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         ScriptID id = (ScriptID) scripts.elementAt(selectedIndex);
+        UserFilter f = UserGroupManager.getInstance().getGlobalFilter();
+        UserGroupManager.getInstance().setLocalFilter(id.getDataPath(), f);
         id.display();
 
         if (clearSelection)
@@ -757,8 +759,10 @@ public class TeamProjectBrowser extends JSplitPane {
         public void stateChanged(ChangeEvent e) {
             GroupFilterMenu menu = (GroupFilterMenu) e.getSource();
             UserFilter selection = menu.getSelectedItem();
-            if (selection != null)
+            if (selection != null) {
+                UserGroupManager.getInstance().setGlobalFilter(selection);
                 new GroupFilterLoader(selection).execute();
+            }
         }
 
     }

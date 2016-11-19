@@ -66,6 +66,9 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class UserGroupManager {
 
+    static final Resources resources = Resources
+            .getDashBundle("ProcessDashboard.Groups");
+
     private static UserGroupManager INSTANCE = new UserGroupManager();
 
     public static UserGroupManager getInstance() {
@@ -75,6 +78,8 @@ public class UserGroupManager {
 
 
     private EventListenerList listeners;
+
+    private UserFilter globalFilter;
 
     private String readOnlyCode;
 
@@ -90,11 +95,10 @@ public class UserGroupManager {
 
     private Map<String, UserGroup> groups;
 
-    static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
 
     private UserGroupManager() {
         listeners = new EventListenerList();
+        globalFilter = getEveryonePseudoGroup();
         if (Settings.isReadOnly())
             readOnlyCode = "Read_Only";
     }
@@ -172,8 +176,62 @@ public class UserGroupManager {
     }
 
 
-    public void storeIndivFilter(UserGroupMember m) {
-        saveDataElements(m);
+    public void setGlobalFilter(UserFilter f) {
+        if (f == null)
+            throw new NullPointerException();
+        this.globalFilter = f;
+        if (f instanceof UserGroupMember)
+            saveDataElements(f);
+        saveDataElement(FILTER_DATANAME, StringData.create(f.getId()));
+    }
+
+    public UserFilter getGlobalFilter() {
+        return globalFilter;
+    }
+
+
+    public void setLocalFilter(String path, UserFilter f) {
+        if (f instanceof UserGroupMember)
+            saveDataElements(f);
+        String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
+        saveDataElement(dataName,
+            f == null ? null : StringData.create(f.getId()));
+    }
+
+    public UserFilter getLocalFilter(String path) {
+        String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
+        String filterId = getString(dataName);
+        UserFilter result = getFilterById(filterId);
+        return (result == null ? globalFilter : result);
+    }
+
+
+    public UserFilter getFilterById(String filterId) {
+        if (filterId == null || filterId.length() == 0) {
+            return null;
+
+        } else if (filterId.startsWith(UserGroupMember.ID_PREFIX)) {
+            // if this is an individual, try looking up their details from the
+            // data elements saved in the repository
+            String dataName = DATA_PREFIX + filterId + NAME_SUFFIX;
+            String displayName = getString(dataName);
+            dataName = DATA_PREFIX + filterId + DATASET_IDS_SUFFIX;
+            ListData l = ListData.asListData(dataRepository.getValue(dataName));
+            if (displayName != null && l != null && l.test())
+                return new UserGroupMember(displayName, (String) l.get(0));
+
+            // if that failed, look for the person in the database
+            for (UserGroupMember m : getAllKnownPeople()) {
+                if (m.getId().equals(filterId))
+                    return m;
+            }
+
+            // no luck, no such individual
+            return null;
+
+        } else {
+            return groups.get(filterId);
+        }
     }
 
 
@@ -271,6 +329,14 @@ public class UserGroupManager {
             return false;
         else
             return a.equals(b);
+    }
+
+    private String getString(String dataName) {
+        SimpleData sd = dataRepository.getSimpleValue(dataName);
+        if (sd != null && sd.test())
+            return sd.format();
+        else
+            return null;
     }
 
 
@@ -450,6 +516,8 @@ public class UserGroupManager {
     private static final String GROUPS_TAG = "groups";
 
     private static final String DATA_PREFIX = "User_Group/";
+
+    public static final String FILTER_DATANAME = DATA_PREFIX + "/Filter";
 
     private static final String NAME_SUFFIX = "//Name";
 
