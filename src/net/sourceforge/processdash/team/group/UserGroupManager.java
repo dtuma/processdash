@@ -280,7 +280,7 @@ public class UserGroupManager {
         for (String oneID : f.getDatasetIDs())
             datasetIDs.add(oneID);
         if (datasetIDs.test() == false)
-            datasetIDs.add("*empty*");
+            datasetIDs.add(EMPTY_GROUP_TOKEN);
         saveDataElement(f.getId(), DATASET_IDS_SUFFIX, datasetIDs);
     }
 
@@ -522,6 +522,8 @@ public class UserGroupManager {
     private static final String NAME_SUFFIX = "//Name";
 
     private static final String DATASET_IDS_SUFFIX = "//Dataset_IDs";
+
+    public static final String EMPTY_GROUP_TOKEN = "*empty*";
 
     private static DashboardPermission PERMISSION = new DashboardPermission(
             "userGroupManager");
