@@ -431,12 +431,14 @@ public class TeamProjectBrowser extends JSplitPane {
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
         }
 
-        GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
-                UserGroupManager.getEveryonePseudoGroup());
-        groupFilterMenu.addChangeListener(handler);
+        if (UserGroupManager.getInstance().isEnabled()) {
+            GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
+                    UserGroupManager.getEveryonePseudoGroup());
+            groupFilterMenu.addChangeListener(handler);
 
-        menuBar.add(Box.createHorizontalGlue());
-        menuBar.add(groupFilterMenu);
+            menuBar.add(Box.createHorizontalGlue());
+            menuBar.add(groupFilterMenu);
+        }
     }
 
 

@@ -57,6 +57,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
@@ -83,6 +84,8 @@ public class UserGroupManager {
 
     private String readOnlyCode;
 
+    private boolean enabled;
+
     private DataRepository dataRepository;
 
     private DatabasePlugin databasePlugin;
@@ -101,15 +104,21 @@ public class UserGroupManager {
         globalFilter = getEveryonePseudoGroup();
         if (Settings.isReadOnly())
             readOnlyCode = "Read_Only";
+
+        // user groups are only relevant for team dashboards, and they require
+        // a recent version of the database plugin. If these conditions are not
+        // met, disable the user group manager.
+        enabled = Settings.isTeamMode()
+                && TemplateLoader.meetsPackageRequirement("tpidw-embedded",
+                    "1.5.4.1");
     }
 
     public void init(DashboardContext ctx) {
         // ensure calling code has permission to perform initialization
         PERMISSION.checkPermission();
 
-        // user groups are only relevant for team dashboards, so only perform
-        // minimal setup if we are running in a personal dashboard.
-        if (!Settings.isTeamMode()) {
+        // if the user group manager is disabled, perform minimal setup.
+        if (!enabled) {
             groups = Collections.EMPTY_MAP;
             return;
         }
@@ -137,6 +146,14 @@ public class UserGroupManager {
         reloadGroups(false);
         reloadGroups(true);
         needsSave = new HashSet<Boolean>();
+    }
+
+    /**
+     * @return true if user group support is active and enabled in this
+     *         dashboard.
+     */
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
@@ -177,6 +194,8 @@ public class UserGroupManager {
 
 
     public void setGlobalFilter(UserFilter f) {
+        if (!enabled)
+            return;
         if (f == null)
             throw new NullPointerException();
         this.globalFilter = f;
@@ -191,6 +210,8 @@ public class UserGroupManager {
 
 
     public void setLocalFilter(String path, UserFilter f) {
+        if (!enabled)
+            return;
         if (f instanceof UserGroupMember)
             saveDataElements(f);
         String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
@@ -361,7 +382,7 @@ public class UserGroupManager {
 
         // Groups are only used in the Team Dashboard. If a caller tries to make
         // changes within a personal dashboard, throw an exception.
-        if (needsSave == null)
+        if (!enabled || needsSave == null)
             throw new IllegalStateException("Group modification not allowed");
 
         // validate that the ID of this group is appropriate
