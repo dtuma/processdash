@@ -32,6 +32,8 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class UserGroupMember implements UserFilter, Comparable<UserGroupMember> {
 
+    public static final String ID_PREFIX = "p.";
+
     private String displayName;
 
     private String datasetID;
@@ -60,6 +62,11 @@ public class UserGroupMember implements UserFilter, Comparable<UserGroupMember> 
 
     public String getDatasetID() {
         return datasetID;
+    }
+
+    @Override
+    public String getId() {
+        return ID_PREFIX + Math.abs(datasetID.hashCode());
     }
 
     @Override

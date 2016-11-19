@@ -51,6 +51,10 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -73,6 +77,8 @@ public class UserGroupManager {
     private EventListenerList listeners;
 
     private String readOnlyCode;
+
+    private DataRepository dataRepository;
 
     private DatabasePlugin databasePlugin;
 
@@ -103,6 +109,9 @@ public class UserGroupManager {
             groups = Collections.EMPTY_MAP;
             return;
         }
+
+        // save the data repository for future use
+        dataRepository = ctx.getData();
 
         // retrieve an object for querying the database
         databasePlugin = QueryUtils.getDatabasePlugin(ctx.getData());
@@ -162,6 +171,12 @@ public class UserGroupManager {
         return Collections.unmodifiableMap(groups);
     }
 
+
+    public void storeIndivFilter(UserGroupMember m) {
+        saveDataElements(m);
+    }
+
+
     public void saveGroup(UserGroup g) {
         prepareForModification(g);
 
@@ -176,9 +191,7 @@ public class UserGroupManager {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
-        // notify listeners about the change
-        fireUserGroupEditEvent(new UserGroupEditEvent(this, g, false));
+        groupWasSaved(g);
     }
 
     private String generateUniqueID(boolean custom) {
@@ -194,6 +207,26 @@ public class UserGroupManager {
         return result.toString();
     }
 
+    private void groupWasSaved(UserGroup g) {
+        // save data elements for this group
+        saveDataElements(g);
+
+        // notify listeners about the change
+        fireUserGroupEditEvent(new UserGroupEditEvent(this, g, false));
+    }
+
+    private void saveDataElements(UserFilter f) {
+        saveDataElement(f.getId(), NAME_SUFFIX, StringData.create(f.toString()));
+
+        ListData datasetIDs = new ListData();
+        for (String oneID : f.getDatasetIDs())
+            datasetIDs.add(oneID);
+        if (datasetIDs.test() == false)
+            datasetIDs.add("*empty*");
+        saveDataElement(f.getId(), DATASET_IDS_SUFFIX, datasetIDs);
+    }
+
+
     public void deleteGroup(UserGroup g) {
         prepareForModification(g);
 
@@ -204,11 +237,42 @@ public class UserGroupManager {
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
-
-            // notify listeners about the change
-            fireUserGroupEditEvent(new UserGroupEditEvent(this, g, true));
+            groupWasDeleted(g);
         }
     }
+
+    private void groupWasDeleted(UserGroup g) {
+        // discard data elements for this group
+        saveDataElement(g.getId(), NAME_SUFFIX, null);
+        saveDataElement(g.getId(), DATASET_IDS_SUFFIX, null);
+
+        // notify listeners about the change
+        fireUserGroupEditEvent(new UserGroupEditEvent(this, g, true));
+    }
+
+    private void saveDataElement(String id, String suffix, SimpleData value) {
+        String dataName = DATA_PREFIX + id + suffix;
+        saveDataElement(dataName, value);
+    }
+
+    private void saveDataElement(String name, SimpleData value) {
+        SimpleData oldValue = dataRepository.getSimpleValue(name);
+        if (!simpleDataIsEqual(oldValue, value)) {
+            dataRepository.putValue(name, value);
+            if (oldValue == null)
+                dataRepository.pinElement(name);
+        }
+    }
+
+    private boolean simpleDataIsEqual(SimpleData a, SimpleData b) {
+        if (a == b)
+            return true;
+        else if (a == null || b == null)
+            return false;
+        else
+            return a.equals(b);
+    }
+
 
     public boolean saveAll() {
         if (needsSave == null || needsSave.isEmpty())
@@ -261,13 +325,24 @@ public class UserGroupManager {
             // read the groups from the file
             Map<String, UserGroup> groupsRead = readFile(targetFile, custom);
 
-            // replace in-memory groups of the given type with those just read
-            for (Iterator i = groups.values().iterator(); i.hasNext();) {
+            // delete in-memory groups that are no longer in the file
+            for (Iterator i = new HashSet(groups.values()).iterator(); i
+                    .hasNext();) {
                 UserGroup oneGroup = (UserGroup) i.next();
-                if (oneGroup.isCustom() == custom)
-                    i.remove();
+                String oneID = oneGroup.getId();
+                if (oneGroup.isCustom() == custom
+                        && !groupsRead.containsKey(oneID)) {
+                    groups.remove(oneID);
+                    groupWasDeleted(oneGroup);
+                }
             }
-            groups.putAll(groupsRead);
+
+            // replace in-memory groups with those just read
+            for (UserGroup oneGroup : groupsRead.values()) {
+                UserGroup oldGroup = groups.put(oneGroup.getId(), oneGroup);
+                if (!oneGroup.equals(oldGroup))
+                    groupWasSaved(oneGroup);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -373,6 +448,12 @@ public class UserGroupManager {
     private static final String CUSTOM_ID_PREFIX = "c.";
 
     private static final String GROUPS_TAG = "groups";
+
+    private static final String DATA_PREFIX = "User_Group/";
+
+    private static final String NAME_SUFFIX = "//Name";
+
+    private static final String DATASET_IDS_SUFFIX = "//Dataset_IDs";
 
     private static DashboardPermission PERMISSION = new DashboardPermission(
             "userGroupManager");

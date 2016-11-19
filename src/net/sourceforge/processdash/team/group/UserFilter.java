@@ -28,6 +28,8 @@ import java.util.Set;
 
 public interface UserFilter {
     
+    public String getId();
+
     public Set<String> getDatasetIDs();
 
 }
