@@ -1076,10 +1076,28 @@ public class TeamProjectBrowser extends JSplitPane {
 
         @Override
         public boolean shouldShow(String projectRootPath) {
+            // return true if this project's ID is in the list
             String dataName = DataRepository.createDataName(projectRootPath,
                 TeamDataConstants.PROJECT_ID);
             SimpleData sd = ctx.getData().getSimpleValue(dataName);
-            return (sd != null && projectIDs.contains(sd.format()));
+            if (sd != null && projectIDs.contains(sd.format()))
+                return true;
+
+            // if this is a master project, return true if any of its
+            // subprojects are in the list
+            dataName = DataRepository.createDataName(projectRootPath,
+                "Subproject_WBS_ID_List");
+            ListData l = ListData.asListData(ctx.getData().getValue(dataName));
+            if (l != null) {
+                for (int i = l.size(); i-- > 0;) {
+                    String oneID = l.get(i).toString();
+                    if (projectIDs.contains(oneID))
+                        return true;
+                }
+            }
+
+            // this project does not appear to be in the list.
+            return false;
         }
 
     }
