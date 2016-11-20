@@ -201,7 +201,7 @@ public class UserGroupManager {
         this.globalFilter = f;
         if (f instanceof UserGroupMember)
             saveDataElements(f);
-        saveDataElement(FILTER_DATANAME, StringData.create(f.getId()));
+        saveDataElement("/" + FILTER_DATANAME, StringData.create(f.getId()));
     }
 
     public UserFilter getGlobalFilter() {
@@ -230,6 +230,9 @@ public class UserGroupManager {
     public UserFilter getFilterById(String filterId) {
         if (filterId == null || filterId.length() == 0) {
             return null;
+
+        } else if (UserGroup.EVERYONE_ID.equals(filterId)) {
+            return getEveryonePseudoGroup();
 
         } else if (filterId.startsWith(UserGroupMember.ID_PREFIX)) {
             // if this is an individual, try looking up their details from the
@@ -330,7 +333,7 @@ public class UserGroupManager {
     }
 
     private void saveDataElement(String id, String suffix, SimpleData value) {
-        String dataName = DATA_PREFIX + id + suffix;
+        String dataName = "/" + DATA_PREFIX + id + suffix;
         saveDataElement(dataName, value);
     }
 

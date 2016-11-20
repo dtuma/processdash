@@ -29,6 +29,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
@@ -193,13 +194,23 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
         if (!UserGroupManager.getInstance().isEnabled())
             return;
 
+        boolean exporting = isExporting();
+        if (!exporting)
+            writeHyperlink("selectGroupFilter", getSnippetParams(false, false));
+
         UserFilter f = UserGroupManager.getInstance().getLocalFilter(
             projectRoot);
         out.print("<img border='0' src='/Images/userGroup");
         if (f instanceof UserGroupMember)
             out.print("Member");
-        out.print(".png' title='Filter to group' "
-                + "style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:22px; height:22px'>");
+        out.print(".png' ");
+        if (!exporting)
+            out.print("title='Filter to group' ");
+        else if (!UserGroup.EVERYONE_ID.equals(f.getId()))
+            out.print("title='Group filter is in effect' ");
+        out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:22px; height:22px'>");
+        if (!exporting)
+            out.print("</a>");
         out.print(HTMLUtils.escapeEntities(f.toString()));
         out.print("<input type='hidden' name='[DB_User_Group/Name]!'>");
     }
