@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -90,10 +90,14 @@ public class ImportedEVManager {
      *            method.
      * @param xml
      *            the parsed XML Element corresponding to this EV schedule.
+     * @param srcDatasetID
+     *            the ID of the dataset that this schedule originated from
      */
-    public void importTaskList(String uniqueKey, Element xml) {
+    public void importTaskList(String uniqueKey, Element xml,
+            String srcDatasetID) {
         if (EVTaskList.EV_TASK_LIST_ELEMENT_NAME.equals(xml.getTagName())) {
-            ImportedTaskList taskList = new ImportedTaskList(uniqueKey, xml);
+            ImportedTaskList taskList = new ImportedTaskList(uniqueKey, xml,
+                    srcDatasetID);
             importedTaskLists.put(uniqueKey, taskList);
         } else {
             logger.warning("Attempt to import invalid EV XML "
@@ -169,6 +173,21 @@ public class ImportedEVManager {
     public String getTaskListNameForID(String taskListID) {
         ImportedTaskList tl = getImportedTaskListByID(taskListID);
         return (tl == null ? null : tl.taskListName);
+    }
+
+
+    /**
+     * Find an imported task list with the given ID, and return the ID of the
+     * dataset from which it originated.
+     * 
+     * @param taskListID
+     *            a task list ID
+     * @return the ID of the dataset that owns the given task list, or null if
+     *         no such task list could be found.
+     */
+    public String getSrcDatasetID(String taskListID) {
+        ImportedTaskList tl = getImportedTaskListByID(taskListID);
+        return (tl == null ? null : tl.srcDatasetID);
     }
 
 
@@ -310,6 +329,8 @@ public class ImportedEVManager {
 
     private class ImportedTaskList implements Comparable<ImportedTaskList> {
 
+        private String srcDatasetID;
+
         private Element xml;
 
         private String taskListID;
@@ -322,8 +343,10 @@ public class ImportedEVManager {
 
         private Map cachedData;
 
-        protected ImportedTaskList(String uniqueKey, Element xml) {
+        protected ImportedTaskList(String uniqueKey, Element xml,
+                String srcDatasetID) {
             this.xml = xml;
+            this.srcDatasetID = srcDatasetID;
             this.taskListID = xml.getAttribute(EVTaskListXML.XMLID_ATTR);
             if (XMLUtils.hasValue(taskListID)) {
                 this.taskListName = taskListID + EVTaskListXML.XMLID_FLAG

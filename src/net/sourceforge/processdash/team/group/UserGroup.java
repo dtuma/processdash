@@ -158,6 +158,10 @@ public class UserGroup implements UserFilter, Comparable<UserGroup> {
             return getDisplayName();
     }
 
+    public static boolean isEveryone(UserFilter f) {
+        return (f != null && EVERYONE_ID.equals(f.getId()));
+    }
+
 
     static final String GROUP_TAG = "group";
 

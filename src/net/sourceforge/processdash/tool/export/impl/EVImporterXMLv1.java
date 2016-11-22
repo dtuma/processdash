@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2013 Tuma Solutions, LLC
+// Copyright (C) 2005-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,7 +63,8 @@ public class EVImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
 
         Element xmlElement = (Element) element.getElementsByTagName(
                 EVTaskList.EV_TASK_LIST_ELEMENT_NAME).item(0);
-        ImportedEVManager.getInstance().importTaskList(uniqueKey, xmlElement);
+        ImportedEVManager.getInstance().importTaskList(uniqueKey, xmlElement,
+            caller.getSrcDatasetID());
     }
 
     private boolean isPlainSchedule(Element element) {

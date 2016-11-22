@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,8 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -50,6 +52,8 @@ public class EVReportSettings {
     static final String PATH_FILTER_PARAM = "pathFilter";
     static final String MERGED_PATH_FILTER_PARAM = "mergedPathFilter";
     static final String PATH_FILTER_AUTO_PARAM = "pathFilterAuto";
+    static final String GROUP_FILTER_PARAM = "groupFilter";
+    static final String GROUP_FILTER_AUTO_PARAM = "groupFilterAuto";
     static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
     public static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
 
@@ -166,6 +170,15 @@ public class EVReportSettings {
                     getParameter(MERGED_PATH_FILTER_PARAM));
         }
 
+        if (parameters.containsKey(GROUP_FILTER_AUTO_PARAM)
+                && purpose != PURPOSE_IMAGE) {
+            if (purpose == PURPOSE_WEEK)
+                HTMLUtils.appendQuery(query, GROUP_FILTER_AUTO_PARAM, "t");
+        } else if (StringUtils.hasValue(getParameter(GROUP_FILTER_PARAM))) {
+            HTMLUtils.appendQuery(query, GROUP_FILTER_PARAM,
+                    getParameter(GROUP_FILTER_PARAM));
+        }
+
         return query.toString();
     }
     public static final int PURPOSE_WEEK = 0;
@@ -184,6 +197,20 @@ public class EVReportSettings {
             return "/" + HTMLUtils.urlEncode(taskListName) + "//reports/";
         else
             return "";
+    }
+
+    /**
+     * Get the user group filter that should be used to display the report.
+     */
+    public UserFilter getUserGroupFilter() {
+        if (!UserGroupManager.getInstance().isEnabled())
+            return null;
+
+        String filterID = getParameter(GROUP_FILTER_PARAM);
+        UserFilter f = UserGroupManager.getInstance().getFilterById(filterID);
+        if (f == null)
+            f = UserGroupManager.getEveryonePseudoGroup();
+        return f;
     }
 
     /** Build a task filter object that should be used to display the report.
@@ -295,6 +322,8 @@ public class EVReportSettings {
             lookupLabelFilter();
         if (parameters.containsKey(PATH_FILTER_AUTO_PARAM))
             lookupPathFilter();
+        if (parameters.containsKey(GROUP_FILTER_AUTO_PARAM))
+            lookupGroupFilter();
 
         usingCustomizationSettings = isTimestampRecent();
     }
@@ -357,6 +386,12 @@ public class EVReportSettings {
         if (sval == null) sval = data.getInheritableValue(prefix, "Earned_Value_Merged_Path_Filter");
         val = (sval == null ? null : sval.getSimpleValue());
         parameters.put(MERGED_PATH_FILTER_PARAM, val == null ? "" : val.format());
+    }
+
+    private void lookupGroupFilter() {
+        SaveableData sval = data.getInheritableValue(prefix, UserGroupManager.FILTER_DATANAME);
+        SimpleData val = (sval == null ? null : sval.getSimpleValue());
+        parameters.put(GROUP_FILTER_PARAM, val == null ? "" : val.format());
     }
 
     private SimpleData getValue(String name) {

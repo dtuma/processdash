@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -276,6 +276,33 @@ public class EVTaskListRollup extends EVTaskList {
     protected void finishMovingTaskUp(int pos) {
         Object taskList = evTaskLists.remove(pos);
         evTaskLists.insertElementAt(taskList, pos-1);
+    }
+
+    public void applyTaskListFilter(EVTaskListFilter f) {
+        if (f == null)
+            return;
+
+        for (int i = getSubScheduleCount(); i-- > 0;) {
+            EVTaskList subList = getSubSchedule(i);
+            boolean needsRemove = false;
+
+            if (subList instanceof EVTaskListRollup) {
+                EVTaskListRollup r = (EVTaskListRollup) subList;
+                r.applyTaskListFilter(f);
+                if (r.getSubScheduleCount() == 0)
+                    needsRemove = true;
+            } else {
+                String subTaskListID = subList.getID();
+                if (!f.include(subTaskListID))
+                    needsRemove = true;
+            }
+
+            if (needsRemove) {
+                EVTask[] path = ((EVTask) subList.getRoot()).getPath();
+                removeTask(new TreePath(path));
+            }
+        }
+        setBaselineDataSource(null); // TODO: apply filter to baseline as well
     }
 
     public void recalcLeavesOnly() {

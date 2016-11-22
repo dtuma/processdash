@@ -52,10 +52,13 @@ import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.ProjectLocator;
@@ -110,6 +113,12 @@ public class EVWeekReport extends TinyCGIBase {
         if (evModel == null)
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
+
+        UserFilter f = settings.getUserGroupFilter();
+        if (f != null && !UserGroup.isEveryone(f)
+                && evModel instanceof EVTaskListRollup)
+            ((EVTaskListRollup) evModel)
+                    .applyTaskListFilter(new EVTaskListGroupFilter(f));
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
 
@@ -428,7 +437,8 @@ public class EVWeekReport extends TinyCGIBase {
             }
             out.print("</h2>\n");
 
-            EVReport.printFilterInfo(out, taskFilter, isExportingToExcel());
+            EVReport.printFilterInfo(out, taskFilter, settings,
+                isExportingToExcel());
 
             EVReport.printScheduleErrors(out, filteredSchedule.getMetrics().getErrors());
 
