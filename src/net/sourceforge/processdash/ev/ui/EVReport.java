@@ -838,7 +838,8 @@ public class EVReport extends CGIChartBase {
         out.print(isSnippet ? "</h2>" : "</h1>");
 
         if (!isSnippet)
-            printFilterInfo(out, taskFilter, settings, exportingToExcel());
+            printFilterInfo(out, taskFilter, settings, isExporting(),
+                exportingToExcel());
 
         if (!exportingToExcel()) {
             writeImageHtml(taskFilter != null);
@@ -1058,7 +1059,7 @@ public class EVReport extends CGIChartBase {
 
 
     public static void printFilterInfo(PrintWriter out, EVTaskFilter filter,
-            EVReportSettings settings, boolean textOnly) {
+            EVReportSettings settings, boolean exporting, boolean textOnly) {
 
         String labelFilter = (filter == null ? null : filter
                 .getAttribute(EVLabelFilter.LABEL_FILTER_ATTR));
@@ -1069,12 +1070,12 @@ public class EVReport extends CGIChartBase {
         if (labelFilter == null && pathFilter == null && groupFilter == null)
             return;
 
-        out.print("<h2>");
+        out.print("<h2 style='position:relative; left:-10px'>");
 
         if (labelFilter != null) {
             if (!textOnly)
                 out.print("<img border=0 src='/Images/filter.png' "
-                        + "style='margin-right:2px; position:relative; top:3px' "
+                        + "style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
                         + "width='16' height='23' title=\"");
             out.print(resources.getHTML("Report.Filter_Tooltip"));
             out.print(textOnly ? " - " : "\">");
@@ -1093,12 +1094,19 @@ public class EVReport extends CGIChartBase {
 
         if (groupFilter != null) {
             if (!textOnly) {
+                boolean showGroupHyperlink = !exporting
+                        && settings.getParameters().containsKey(
+                            EVReportSettings.GROUP_FILTER_AUTO_PARAM);
+                if (showGroupHyperlink)
+                    out.print("<a href='../team/setup/selectGroupFilter'>");
                 out.print("<img border=0 src='/Images/userGroup");
                 if (groupFilter instanceof UserGroupMember)
                     out.print("Member");
                 out.print(".png' "
                         + "style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
                         + "width='23' height='23'>");
+                if (showGroupHyperlink)
+                    out.print("</a>");
             }
             out.print(HTMLUtils.escapeEntities(groupFilter.toString()));
         }
@@ -1536,7 +1544,7 @@ public class EVReport extends CGIChartBase {
         out.print("<h1>");
         out.print(title);
         out.print("</h1>");
-        printFilterInfo(out, taskFilter, settings, false);
+        printFilterInfo(out, taskFilter, settings, false, false);
 
         EVSchedule s = getEvSchedule(taskFilter);
 

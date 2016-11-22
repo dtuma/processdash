@@ -52,12 +52,14 @@ public class SelectGroupFilter extends SelectWBSNode {
         String projectRoot = projectRootKey.path();
 
         String selectedFilter = getParameter("filter");
-        String snippetDestUri = getParameter("destUri");
+        String destUri = getParameter("destUri");
+        if (!StringUtils.hasValue(destUri))
+            destUri = (String) env.get("HTTP_REFERER");
 
         if (StringUtils.hasValue(selectedFilter)) {
-            applyFilter(projectRoot, selectedFilter, snippetDestUri);
+            applyFilter(projectRoot, selectedFilter, destUri);
         } else {
-            String args = "&amp;destUri=" + HTMLUtils.urlEncode(snippetDestUri)
+            String args = "&amp;destUri=" + HTMLUtils.urlEncode(destUri)
                     + "&amp;rl=" + (System.currentTimeMillis() % 100000);
             displayFilterSelections(projectRoot, args);
         }

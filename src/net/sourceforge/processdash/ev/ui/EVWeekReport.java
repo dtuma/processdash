@@ -437,7 +437,7 @@ public class EVWeekReport extends TinyCGIBase {
             }
             out.print("</h2>\n");
 
-            EVReport.printFilterInfo(out, taskFilter, settings,
+            EVReport.printFilterInfo(out, taskFilter, settings, isExporting(),
                 isExportingToExcel());
 
             EVReport.printScheduleErrors(out, filteredSchedule.getMetrics().getErrors());
