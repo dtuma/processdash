@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,6 +64,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.MultiWindowCheckboxIcon;
@@ -387,7 +388,8 @@ public class TaskScheduleChooser
         if (taskListName == null && e != null)
             taskListName = getItemAtPoint(list, e.getPoint());
         if (taskListName != null) {
-            TaskScheduleDialog.showReport(taskListName);
+            TaskScheduleDialog.showReport(taskListName, UserGroupManager
+                    .getInstance().getGlobalFilter());
             if (dialog != null && !keepDialogOpen) dialog.dispose();
         }
     }

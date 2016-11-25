@@ -863,6 +863,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     }
 
+    private UserFilter getUserFilter() {
+        if (groupFilterMenu == null)
+            return null;
+        else
+            return groupFilterMenu.getSelectedItem();
+    }
+
     private Box newHBox(Component a, Component b) {
         Box result = Box.createHorizontalBox();
         result.add(a); result.add(b);
@@ -1080,7 +1087,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
 
         public void actionPerformed(ActionEvent e) {
-            showReport(taskListName, null, uri);
+            showReport(taskListName, null, getUserFilter(), uri);
         }
     }
 
@@ -3594,14 +3601,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
     public static final String WEEK_URL = "//reports/week.class";
     public void showWeekReport() {
         if (saveOrCancel(true))
-            showReport(taskListName, null, WEEK_URL);
+            showReport(taskListName, null, getUserFilter(), WEEK_URL);
     }
 
 
     public static final String REPORT_URL = "//reports/ev.class";
     public void showHTML() {
         if (saveOrCancel(true))
-            showReport(taskListName);
+            showReport(taskListName, getUserFilter());
     }
 
     public void showFilteredHTML() {
@@ -3623,7 +3630,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // The "filtered" node selected was really a sole descendant of the
         // main task list.  We can just display the regular, unfiltered chart.
         if (parent == null) {
-            showReport(taskListName);
+            showReport(taskListName, getUserFilter());
             return;
         }
 
@@ -3632,7 +3639,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         if (isMergedView()) {
             String option = EVReportSettings.MERGED_PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(getMergedPathFilterParam(task));
-            showReport(taskListName, option, REPORT_URL);
+            showReport(taskListName, option, getUserFilter(), REPORT_URL);
             return;
         }
 
@@ -3657,7 +3664,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             option = EVReportSettings.PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(subPath);
         }
-        showReport(subSchedule.getTaskListName(), option, REPORT_URL);
+        showReport(subSchedule.getTaskListName(), option, null, REPORT_URL);
     }
 
     /** Calculate a merged path string to pass to the report logic.
@@ -3693,15 +3700,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
 
-    public static void showReport(String taskListName) {
-        showReport(taskListName, null, REPORT_URL);
+    public static void showReport(String taskListName, UserFilter f) {
+        showReport(taskListName, null, f, REPORT_URL);
     }
 
     public static void showReport(String taskListName, String options,
-            String reportUri) {
+            UserFilter f, String reportUri) {
         String uri = "/" + HTMLUtils.urlEncode(taskListName) + reportUri;
         if (StringUtils.hasValue(options))
             uri = uri + "?" + options;
+        if (f != null)
+            uri = HTMLUtils.appendQuery(uri,
+                EVReportSettings.GROUP_FILTER_PARAM, f.getId());
         Browser.launch(uri);
     }
 

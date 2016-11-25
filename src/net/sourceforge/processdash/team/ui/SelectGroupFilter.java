@@ -29,29 +29,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class SelectGroupFilter extends SelectWBSNode {
+public class SelectGroupFilter extends TinyCGIBase {
+
+    public static final String FILTER_PARAM = "groupFilter";
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Groups");
 
     @Override
     protected void doGet() throws IOException {
-        PropertyKey projectRootKey = getStartingKey();
-        if (projectRootKey == null) {
-            error();
-            return;
-        }
-        String projectRoot = projectRootKey.path();
-
+        String projectRoot = getPrefix();
         String selectedFilter = getParameter("filter");
         String destUri = getParameter("destUri");
         if (!StringUtils.hasValue(destUri))
@@ -132,9 +128,19 @@ public class SelectGroupFilter extends SelectWBSNode {
             selectedFilter);
         if (f == null)
             f = UserGroup.EVERYONE;
-        UserGroupManager.getInstance().setLocalFilter(projectRoot, f);
 
-        getDataRepository().waitForCalculations();
+        int pos = destUri.indexOf(FILTER_PARAM + '=');
+        if (pos > 0) {
+            int beg = pos + FILTER_PARAM.length() + 1;
+            int end = destUri.indexOf('&', beg);
+            destUri = destUri.substring(0, beg)
+                    + HTMLUtils.urlEncode(f.getId())
+                    + (end == -1 ? "" : destUri.substring(end));
+
+        } else {
+            UserGroupManager.getInstance().setLocalFilter(projectRoot, f);
+            getDataRepository().waitForCalculations();
+        }
 
         out.write("Location: " + destUri + "\r\n\r\n");
     }

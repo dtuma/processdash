@@ -1095,8 +1095,10 @@ public class EVReport extends CGIChartBase {
         if (groupFilter != null) {
             if (!textOnly) {
                 boolean showGroupHyperlink = !exporting
-                        && settings.getParameters().containsKey(
-                            EVReportSettings.GROUP_FILTER_AUTO_PARAM);
+                        && (settings.getParameters().containsKey(
+                            EVReportSettings.GROUP_FILTER_PARAM) //
+                        || settings.getParameters().containsKey(
+                            EVReportSettings.GROUP_FILTER_AUTO_PARAM));
                 if (showGroupHyperlink)
                     out.print("<a href='../team/setup/selectGroupFilter'>");
                 out.print("<img border=0 src='/Images/userGroup");

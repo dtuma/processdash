@@ -38,9 +38,11 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.ui.SelectGroupFilter;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -53,8 +55,8 @@ public class EVReportSettings {
     static final String PATH_FILTER_PARAM = "pathFilter";
     static final String MERGED_PATH_FILTER_PARAM = "mergedPathFilter";
     static final String PATH_FILTER_AUTO_PARAM = "pathFilterAuto";
-    static final String GROUP_FILTER_PARAM = "groupFilter";
-    static final String GROUP_FILTER_AUTO_PARAM = "groupFilterAuto";
+    static final String GROUP_FILTER_PARAM = SelectGroupFilter.FILTER_PARAM;
+    static final String GROUP_FILTER_AUTO_PARAM = GROUP_FILTER_PARAM + "Auto";
     static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
     public static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
 
@@ -64,6 +66,7 @@ public class EVReportSettings {
 
     private String taskListName;
     private boolean usingCustomizationSettings;
+    private Boolean isRollup;
 
 
 
@@ -204,7 +207,8 @@ public class EVReportSettings {
      * Get the user group filter that should be used to display the report.
      */
     public UserFilter getUserGroupFilter() {
-        if (!UserGroupManager.getInstance().isEnabled())
+        if (!UserGroupManager.getInstance().isEnabled()
+                || Boolean.FALSE.equals(isRollup))
             return null;
 
         String filterID = getParameter(GROUP_FILTER_PARAM);
@@ -218,6 +222,7 @@ public class EVReportSettings {
      */
     public EVTaskFilter getEffectiveFilter(EVTaskList evModel) {
         EVTaskFilter result = null;
+        isRollup = evModel instanceof EVTaskListRollup;
 
         // first, look up any applicable label filter
         String labelFilter = null;
