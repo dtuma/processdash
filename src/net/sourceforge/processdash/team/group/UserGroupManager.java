@@ -55,7 +55,6 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -66,9 +65,6 @@ import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class UserGroupManager {
-
-    static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
 
     private static UserGroupManager INSTANCE = new UserGroupManager();
 
@@ -101,7 +97,7 @@ public class UserGroupManager {
 
     private UserGroupManager() {
         listeners = new EventListenerList();
-        globalFilter = getEveryonePseudoGroup();
+        globalFilter = UserGroup.EVERYONE;
         if (Settings.isReadOnly())
             readOnlyCode = "Read_Only";
 
@@ -232,7 +228,7 @@ public class UserGroupManager {
             return null;
 
         } else if (UserGroup.EVERYONE_ID.equals(filterId)) {
-            return getEveryonePseudoGroup();
+            return UserGroup.EVERYONE;
 
         } else if (filterId.startsWith(UserGroupMember.ID_PREFIX)) {
             // if this is an individual, try looking up their details from the
@@ -490,22 +486,6 @@ public class UserGroupManager {
 
         // if we saved the file successfully, clear its dirty flag
         needsSave.remove(custom);
-    }
-
-
-    /**
-     * At times, there is a need to capture the concept of "everyone." This
-     * method returns a group object to serve that purpose. Its meaning is
-     * symbolic, because its set of members will be empty; but its name will be
-     * a language-appropriate version of "Everyone," and its ID will be
-     * {@link UserGroup#EVERYONE_ID}.
-     */
-    public static UserGroup getEveryonePseudoGroup() {
-        // create a group object to hold the information, and return it
-        String groupName = resources.getString("Everyone");
-        UserGroup result = new UserGroup(groupName, UserGroup.EVERYONE_ID,
-                false, Collections.EMPTY_SET);
-        return result;
     }
 
 

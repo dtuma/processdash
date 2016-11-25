@@ -83,7 +83,7 @@ public class UserGroupSelector {
 
 
     public UserGroupSelector(Component parent, String resKey) {
-        everyoneOption = UserGroupManager.getEveryonePseudoGroup();
+        everyoneOption = UserGroup.EVERYONE;
         groupHeader = resources.getString("Groups");
         indivHeader = resources.getString("Individuals");
         loadingLabel = resources.getString("Loading");

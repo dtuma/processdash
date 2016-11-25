@@ -32,6 +32,7 @@ import java.util.List;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -83,8 +84,7 @@ public class SelectGroupFilter extends SelectWBSNode {
         out.print("</p>\n");
 
         out.print("<table style='margin-left:1em'>");
-        writeFilterOption(UserGroupManager.getEveryonePseudoGroup(),
-            extraLinkArgs, false);
+        writeFilterOption(UserGroup.EVERYONE, extraLinkArgs, false);
         writeFolder("Groups");
         writeFilterOptions(UserGroupManager.getInstance().getGroups().values(),
             extraLinkArgs);
@@ -131,7 +131,7 @@ public class SelectGroupFilter extends SelectWBSNode {
         UserFilter f = UserGroupManager.getInstance().getFilterById(
             selectedFilter);
         if (f == null)
-            f = UserGroupManager.getEveryonePseudoGroup();
+            f = UserGroup.EVERYONE;
         UserGroupManager.getInstance().setLocalFilter(projectRoot, f);
 
         getDataRepository().waitForCalculations();

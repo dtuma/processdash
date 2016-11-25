@@ -3428,8 +3428,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     public void saveBaseline() {
         if (groupFilterMenu != null)
-            groupFilterMenu.setSelectedItem(UserGroupManager
-                    .getEveryonePseudoGroup());
+            groupFilterMenu.setSelectedItem(UserGroup.EVERYONE);
 
         String snapshotName = resources.format(
             "Save_Baseline.Snapshot_Name_FMT", new Date());

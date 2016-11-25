@@ -99,8 +99,8 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
             UserGroup selectedGroup = (UserGroup) selectedItem;
             UserGroup changedGroup = e.getGroup();
             if (selectedGroup.getId().equals(changedGroup.getId())) {
-                final UserGroup newGroup = (e.isDelete() ? UserGroupManager
-                        .getEveryonePseudoGroup() : changedGroup);
+                final UserGroup newGroup = (e.isDelete() ? UserGroup.EVERYONE
+                        : changedGroup);
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {

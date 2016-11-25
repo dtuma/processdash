@@ -90,6 +90,7 @@ import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupUtil;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
@@ -433,7 +434,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
         if (UserGroupManager.getInstance().isEnabled()) {
             GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
-                    UserGroupManager.getEveryonePseudoGroup());
+                    UserGroup.EVERYONE);
             groupFilterMenu.addChangeListener(handler);
 
             menuBar.add(Box.createHorizontalGlue());

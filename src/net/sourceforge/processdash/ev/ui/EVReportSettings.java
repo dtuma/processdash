@@ -39,6 +39,7 @@ import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -209,7 +210,7 @@ public class EVReportSettings {
         String filterID = getParameter(GROUP_FILTER_PARAM);
         UserFilter f = UserGroupManager.getInstance().getFilterById(filterID);
         if (f == null)
-            f = UserGroupManager.getEveryonePseudoGroup();
+            f = UserGroup.EVERYONE;
         return f;
     }
 

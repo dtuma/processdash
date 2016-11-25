@@ -34,11 +34,26 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 public class UserGroup implements UserFilter, Comparable<UserGroup> {
 
+    static final Resources resources = Resources
+            .getDashBundle("ProcessDashboard.Groups");
+
     public static final String EVERYONE_ID = "0";
+
+    /**
+     * At times, there is a need to capture the concept of "everyone." This
+     * object serves that purpose. Its meaning is symbolic, because its set of
+     * members will be empty; but its name will be a language-appropriate
+     * version of "Everyone," and its ID will be {@link #EVERYONE_ID}.
+     */
+    public static final UserGroup EVERYONE = new UserGroup(
+            resources.getString("Everyone"), EVERYONE_ID, false,
+            Collections.EMPTY_SET);
+
 
 
     private String displayName;
@@ -152,7 +167,7 @@ public class UserGroup implements UserFilter, Comparable<UserGroup> {
     @Override
     public String toString() {
         if (isCustom())
-            return UserGroupManager.resources.getString("Custom_Prefix") + " "
+            return resources.getString("Custom_Prefix") + " "
                     + getDisplayName();
         else
             return getDisplayName();
