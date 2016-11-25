@@ -37,6 +37,10 @@ public class EVTaskListGroupFilter implements EVTaskListFilter {
 
     @Override
     public boolean include(String taskListID) {
+        if (datasetIDs == null)
+            // a null datasetIDs set is the indicator of the "everyone" group.
+            return true;
+
         String datasetID = ImportedEVManager.getInstance().getSrcDatasetID(
             taskListID);
         return datasetIDs.contains(datasetID);

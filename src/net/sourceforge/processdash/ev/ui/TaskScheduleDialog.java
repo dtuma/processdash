@@ -112,6 +112,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
@@ -155,6 +157,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.Milestone;
 import net.sourceforge.processdash.ev.MilestoneList;
@@ -165,6 +168,10 @@ import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -233,6 +240,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             weekReportAction, scheduleOptionsAction, expandAllAction,
             showTimeLogAction, showDefectLogAction, copyTaskInfoAction;
     private List<TSAction> altReportActions;
+    private GroupFilterMenu groupFilterMenu;
 
     protected boolean disableTaskPruning;
 
@@ -802,6 +810,17 @@ public class TaskScheduleDialog implements EVTask.Listener,
         helpMenu.add(usingTaskSchedule);
         result.add(helpMenu);
 
+        // add a group selector, if applicable
+        if (isRollup() && UserGroupManager.getInstance().isEnabled()) {
+            UserFilter filter = UserGroupManager.getInstance()
+                    .getGlobalFilter();
+            groupFilterMenu = new GroupFilterMenu(filter);
+            groupFilterMenu.addChangeListener(new GroupFilterHandler(filter));
+
+            result.add(Box.createHorizontalGlue());
+            result.add(groupFilterMenu);
+        }
+
         return result;
     }
 
@@ -817,6 +836,31 @@ public class TaskScheduleDialog implements EVTask.Listener,
         JMenu result = new JMenu(text);
         result.setMnemonic(text.charAt(0));
         return result;
+    }
+
+    private class GroupFilterHandler implements ChangeListener {
+
+        private GroupFilterHandler(UserFilter f) {
+            if (!UserGroup.isEveryone(f))
+                setGroupFilter(f);
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            GroupFilterMenu menu = (GroupFilterMenu) e.getSource();
+            setGroupFilter(menu.getSelectedItem());
+        }
+
+        private void setGroupFilter(UserFilter f) {
+            if (f != null) {
+                EVTaskListRollup rollup = (EVTaskListRollup) model;
+                rollup.applyTaskListFilter(new EVTaskListGroupFilter(f));
+                treeTable.getTree().expandRow(0);
+                recalcAll();
+                enableTaskButtons();
+            }
+        }
+
     }
 
     private Box newHBox(Component a, Component b) {
@@ -3383,6 +3427,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void saveBaseline() {
+        if (groupFilterMenu != null)
+            groupFilterMenu.setSelectedItem(UserGroupManager
+                    .getEveryonePseudoGroup());
+
         String snapshotName = resources.format(
             "Save_Baseline.Snapshot_Name_FMT", new Date());
         String[] userValues = TaskScheduleSnapshotManager.showSnapEditDialog(
