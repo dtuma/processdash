@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -633,7 +633,8 @@ public class EVTaskList extends AbstractTreeTableModel
         if (timezone != null)
             result.append("' tz='").append(XMLUtils.escapeAttribute(timezone));
         result.append("'>").append(newline);
-        ((EVTask) root).saveToXML(result, whitespace);
+        getTaskRoot().saveToXML(result, whitespace, //
+            (this instanceof EVTaskListRollup ? this : null));
         schedule.saveToXML(result, whitespace);
         result.append("</").append(EV_TASK_LIST_ELEMENT_NAME).append(">");
 

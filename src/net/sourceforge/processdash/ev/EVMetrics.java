@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ci.AbstractConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
@@ -49,8 +51,6 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.PatternList;
-
-import org.w3c.dom.Element;
 
 
 public class EVMetrics implements TableModel {
@@ -989,20 +989,19 @@ public class EVMetrics implements TableModel {
             .append("'");
     }
     public void saveIntervalsToXML(StringBuffer result) {
-        saveIntervalsToXML(result, false);
+        saveIntervalsToXML(result, "");
     }
-    public void saveIntervalsToXML(StringBuffer result, boolean whitespace) {
-        saveOneIntervalToXml(costInterval, "costInterval", result, whitespace);
-        saveOneIntervalToXml(timeErrInterval, "timeErrInterval", result, whitespace);
+    public void saveIntervalsToXML(StringBuffer result, String indent) {
+        saveOneIntervalToXml(costInterval, "costInterval", result, indent);
+        saveOneIntervalToXml(timeErrInterval, "timeErrInterval", result, indent);
     }
     private void saveOneIntervalToXml(ConfidenceInterval interval,
-            String intervalName, StringBuffer result, boolean whitespace) {
+            String intervalName, StringBuffer result, String indent) {
         if (interval instanceof XMLPersistableConfidenceInterval) {
-            if (whitespace)
-                result.append("    ");
+            result.append(indent);
             ((XMLPersistableConfidenceInterval) interval).saveToXML(
                 intervalName, result);
-            if (whitespace)
+            if (indent.length() > 0)
                 result.append("\n");
         }
     }
