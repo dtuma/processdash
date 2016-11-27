@@ -3477,6 +3477,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
             return;
         }
 
+        if (groupFilterMenu != null)
+            groupFilterMenu.setSelectedItem(UserGroup.EVERYONE);
+
         String activeSnapshotId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
         TaskScheduleSnapshotManager manager = new TaskScheduleSnapshotManager(
                 dash.getData(), model, snapshots, activeSnapshotId);

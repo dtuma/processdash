@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,10 +26,10 @@ package net.sourceforge.processdash.ev;
 
 import java.util.List;
 
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class EVTaskListXMLAbstract extends EVTaskList {
 
@@ -82,13 +82,39 @@ public class EVTaskListXMLAbstract extends EVTaskList {
 
     protected void openXML(Element docRoot, String displayName,
             String errorMessage) throws Exception {
-        // extract the task list and the schedule.
         List children = XMLUtils.getChildElements(docRoot);
-        if (children.size() != 2)
-            throw new Exception("Expected two children of EVModel, but " +
-                    "found " + children.size());
-        root = new EVTask((Element) children.get(0));
-        schedule = new EVSchedule((Element) children.get(1));
+        if (EV_TASK_LIST_ELEMENT_NAME.equals(docRoot.getTagName())) {
+            // standard case: our document is rooted at an <EVModel> tag.
+            // extract the task list and the schedule from the two child tags.
+            if (children.size() != 2)
+                throw new Exception("Expected two children of EVModel, but " +
+                        "found " + children.size());
+            root = new EVTask((Element) children.get(0));
+            schedule = new EVSchedule((Element) children.get(1));
+            taskListID = docRoot.getAttribute("tlid");
+
+        } else if ("task".equals(docRoot.getTagName())
+                && XMLUtils.hasValue(docRoot.getAttribute("flag"))) {
+            // special case: we have been asked to build a task list from a
+            // fragment within a larger XML document
+            Element scheduleTag = (Element) children.get(children.size() - 1);
+            if (!EVSchedule.SCHEDULE_TAG.equals(scheduleTag.getTagName()))
+                throw new Exception("Didn't find schedule in XML fragment");
+            root = new EVTask(docRoot);
+            schedule = new EVSchedule(scheduleTag);
+            taskListID = docRoot.getAttribute("tid").substring(3);
+            // find the EVModel parent tag, so logic below can use it
+            while (docRoot.getParentNode() instanceof Element) {
+                docRoot = (Element) docRoot.getParentNode();
+                if (EV_TASK_LIST_ELEMENT_NAME.equals(docRoot.getTagName()))
+                    break;
+            }
+
+        } else {
+            // the XML tag we were passed isn't one we can work with.
+            throw new Exception("Unexpected source XML tag for task list");
+        }
+
         setupTimeZone(docRoot);
         maybeRetargetTimezone();
 
@@ -113,7 +139,6 @@ public class EVTaskListXMLAbstract extends EVTaskList {
         // create a calculator to minimally recalculate the schedule.
         boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
         calculator = new EVCalculatorXML(this, reorder);
-        taskListID = docRoot.getAttribute("tlid");
         setPseudoTaskIdForRoot();
 
         this.errorMessage = errorMessage;

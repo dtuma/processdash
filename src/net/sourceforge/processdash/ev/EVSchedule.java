@@ -73,6 +73,7 @@ public class EVSchedule implements TableModel {
     public static final Date A_LONG_TIME_AGO = new Date(0);
     static Resources resources = Resources.getDashBundle("EV");
     static final String END_TOKEN = resources.getString("Schedule.End_Token");
+    static final String SCHEDULE_TAG = "schedule";
 
     public interface Listener {
         public void evScheduleChanged();

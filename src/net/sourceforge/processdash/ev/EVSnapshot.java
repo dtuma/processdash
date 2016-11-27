@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2014 Tuma Solutions, LLC
+// Copyright (C) 2008-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,15 +24,17 @@
 package net.sourceforge.processdash.ev;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
-
-import net.sourceforge.processdash.data.DataContext;
-import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.util.XMLUtils;
+import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class EVSnapshot implements Comparable<EVSnapshot> {
 
@@ -74,8 +76,30 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
             EVTaskListXML.EV_TASK_LIST_ELEMENT_NAME);
         if (taskListTags.getLength() > 0) {
             Element root = (Element) taskListTags.item(0);
-            this.taskList = new EVTaskListXML(name, root);
-            ((EVCalculatorXML) taskList.calculator).setCalcForSnapshot();
+
+            NodeList scheduleTags = root
+                    .getElementsByTagName(EVSchedule.SCHEDULE_TAG);
+            if (scheduleTags.getLength() == 1) {
+                // old-style snapshots only contain a single rolled up schedule
+                this.taskList = new EVTaskListXML(name, root);
+                ((EVCalculatorXML) taskList.calculator).setCalcForSnapshot();
+
+            } else {
+                // newer snapshots have schedules for each embedded task list
+                List taskLists = new ArrayList();
+                for (int i = scheduleTags.getLength() - 1; i-- > 0;) {
+                    Element oneScheduleTag = (Element) scheduleTags.item(i);
+                    Element taskTag = (Element) oneScheduleTag.getParentNode();
+                    EVTaskList tl = new EVTaskListXML(null, taskTag);
+                    ((EVCalculatorXML) tl.calculator).setCalcForSnapshot();
+                    taskLists.add(tl);
+                }
+                EVTaskListRollup r = new EVTaskListRollup(name, taskLists);
+                r.taskListID = root.getAttribute("tlid");
+                r.setPseudoTaskIdForRoot();
+                this.taskList = r;
+            }
+
             this.needsRecalc = true;
         }
     }
@@ -102,6 +126,25 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
             needsRecalc = false;
         }
         return taskList;
+    }
+
+    /**
+     * Apply a given task list filter to the data in this snapshot.
+     * 
+     * @param f
+     *            the filter to apply
+     * @return true if we were able to apply the filter; false if this is an
+     *         older snapshot that does not support filtering
+     */
+    public boolean applyTaskListFilter(EVTaskListFilter f) {
+        if (taskList instanceof EVTaskListRollup) {
+            EVTaskListRollup r = (EVTaskListRollup) taskList;
+            if (r.applyTaskListFilter(f))
+                needsRecalc = true;
+            return true;
+        } else {
+            return f == null || f.include("nonexistent task list");
+        }
     }
 
     public String getAsXML() {
@@ -173,6 +216,11 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
             return xml.lastIndexOf("</" + SNAPSHOT_TAG);
         }
 
+        @Override
+        public String getAsXML() {
+            return getAsXML(taskListXml);
+        }
+
         public void setName(String name) {
             this.name = name;
         }
@@ -182,7 +230,7 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
         }
 
         public void save(DataContext data) {
-            data.putValue(dataName, StringData.create(getAsXML(taskListXml)));
+            data.putValue(dataName, StringData.create(getAsXML()));
         }
 
         public void delete(DataContext data) {

@@ -98,7 +98,7 @@ public class EVTaskListRollup extends EVTaskList {
         ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 
-    /** For unit testing purposes only! */
+
     protected EVTaskListRollup(String taskListName, List taskLists) {
         super(taskListName, taskListName, false);
         evTaskLists = new Vector(taskLists);
@@ -112,6 +112,7 @@ public class EVTaskListRollup extends EVTaskList {
         schedule = new EVScheduleRollup(evTaskLists);
         calculator = new EVCalculatorRollup(this, (EVTask) root, evTaskLists,
                 (EVScheduleRollup) schedule, null);
+        ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 
     private void addTaskListsFromData(DataRepository data,
@@ -326,9 +327,31 @@ public class EVTaskListRollup extends EVTaskList {
         }
     }
 
-    public void applyTaskListFilter(EVTaskListFilter f) {
+    /**
+     * Apply a given filter to the task lists in this rollup.
+     * 
+     * @param f
+     *            the filter to apply
+     * @return true if the filtering operation caused our data to change; false
+     *         if the task list was unchanged by the filter
+     */
+    public boolean applyTaskListFilter(EVTaskListFilter f) {
         if (f == null)
             throw new NullPointerException();
+
+        // apply filters to the baseline, if applicable
+        if (schedule.baselineSnapshot != null) {
+            boolean baselineFilteredSuccessfully = schedule.baselineSnapshot
+                    .applyTaskListFilter(f);
+            if (!baselineFilteredSuccessfully)
+                setBaselineDataSource(null);
+        }
+
+        return applyTaskListFilterImpl(f);
+    }
+
+    private boolean applyTaskListFilterImpl(EVTaskListFilter f) {
+        boolean madeChange = false;
 
         // make a note of the original order of the task lists
         if (unfilteredOrder == null) {
@@ -345,7 +368,7 @@ public class EVTaskListRollup extends EVTaskList {
 
             if (subList instanceof EVTaskListRollup) {
                 EVTaskListRollup r = (EVTaskListRollup) subList;
-                r.applyTaskListFilter(f);
+                r.applyTaskListFilterImpl(f);
                 if (r.getSubScheduleCount() == 0)
                     needsRemove = true;
             } else {
@@ -355,6 +378,7 @@ public class EVTaskListRollup extends EVTaskList {
             }
 
             if (needsRemove) {
+                madeChange = true;
                 filtered.add(subList);
                 getTaskRoot().remove(subList.getTaskRoot());
                 finishRemovingTask(i);
@@ -371,7 +395,7 @@ public class EVTaskListRollup extends EVTaskList {
 
                 if (previouslyFiltered instanceof EVTaskListRollup) {
                     EVTaskListRollup r = (EVTaskListRollup) previouslyFiltered;
-                    r.applyTaskListFilter(f);
+                    r.applyTaskListFilterImpl(f);
                     if (r.getSubScheduleCount() > 0)
                         needsAdd = true;
                 } else {
@@ -381,6 +405,7 @@ public class EVTaskListRollup extends EVTaskList {
                 }
 
                 if (needsAdd) {
+                    madeChange = true;
                     filteredTaskLists.remove(previouslyFiltered);
                     EVTask newTask = previouslyFiltered.getTaskRoot();
                     if (getTaskRoot().getChildIndex(newTask) == -1) {
@@ -397,11 +422,12 @@ public class EVTaskListRollup extends EVTaskList {
 
         if (!filtered.isEmpty()) {
             filteredTaskLists = filtered;
-            setBaselineDataSource(null); // TODO: apply filter to baseline as well
         } else {
             filteredTaskLists = null;
             unfilteredOrder = null;
         }
+
+        return madeChange;
     }
 
     private int getInsertionPosFromUnfilteredOrder(List<EVTaskList> list,
