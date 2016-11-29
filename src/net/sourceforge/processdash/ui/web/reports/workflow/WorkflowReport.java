@@ -121,25 +121,31 @@ public class WorkflowReport extends HttpServlet {
                     + (Settings.isTeamMode() ? "" : "_Personal");
             out.write(esc(res(resKey)));
             out.write("</p>\n");
-            return;
+
+        } else {
+            // display a prompt inviting the user to choose a workflow
+            out.write("<p>");
+            out.write(esc(res("Workflow.Analysis.Choose_Workflow_Prompt")));
+            out.write("</p><ul>");
+
+            // display hyperlinks for each of the workflows
+            for (Entry<String, String> e : workflows.entrySet()) {
+                out.write("<li><a href=\"/reports/");
+                out.write(HTMLUtils.appendQuery(SELF_URI, WORKFLOW_PARAM,
+                    e.getValue()));
+                out.write("\">");
+                out.write(esc(e.getKey()));
+                out.write("</a></li>\n");
+            }
+
+            out.write("</ul>\n");
         }
 
-        // display a prompt inviting the user to choose a workflow
-        out.write("<p>");
-        out.write(esc(res("Workflow.Analysis.Choose_Workflow_Prompt")));
-        out.write("</p><ul>");
-
-        // display hyperlinks for each of the workflows
-        for (Entry<String, String> e : workflows.entrySet()) {
-            out.write("<li><a href=\"/reports/");
-            out.write(HTMLUtils.appendQuery(SELF_URI, WORKFLOW_PARAM,
-                e.getValue()));
-            out.write("\">");
-            out.write(esc(e.getKey()));
-            out.write("</a></li>\n");
+        if (Settings.isPersonalMode()) {
+            out.write("<p>");
+            out.write(esc(res("Workflow.Analysis.Export_Advice_Personal")));
+            out.write("</p>\n");
         }
-
-        out.write("</ul>\n");
     }
 
     private Map<String, String> getWorkflowsForCurrentProject(

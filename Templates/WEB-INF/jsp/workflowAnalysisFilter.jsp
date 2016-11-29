@@ -264,6 +264,10 @@ ${resources.html['Outlier.Prompt']}
 
 </form>
 
+<c:if test="${personalMode}">
+<p>${resources.html['Workflow.Analysis.Export_Advice_Personal']}</p>
+</c:if>
+
 <c:set var="commaTest"><fmt:formatNumber value="${1.5}"/></c:set>
 <c:if test="${commaTest == '1,5'}">
 <script type="text/javascript">WFilt.commaNum = true;</script>
