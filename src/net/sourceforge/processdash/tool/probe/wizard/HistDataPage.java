@@ -151,6 +151,15 @@ public class HistDataPage extends WizardPage {
         }
         out.print("</table>\n");
 
+        if (full && histData.isDatabaseMode()) {
+            String databaseNote = StringUtils.findAndReplace(
+                resources.getString("HistData.Database_Footer_HTML"), //
+                "<a>", "<a href='#' onclick='location.reload(true)'>");
+            out.print("<p style='margin-left:1cm'><font size=-1><i>");
+            out.print(databaseNote);
+            out.print("</i></font></p>");
+        }
+
         if (full) {
             out.print("<p style='margin-left:1cm'><font size=-1><i>");
             out.print(Tutorial.annotate(resources.getString
