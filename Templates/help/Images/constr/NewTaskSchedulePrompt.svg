@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="352"
-   height="191"
+   width="328"
+   height="181"
    id="svg10912"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -35,11 +35,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="352px"
-     height="191px"
+     height="181px"
      inkscape:window-width="870"
      inkscape:window-height="575"
-     inkscape:window-x="463"
-     inkscape:window-y="278" />
+     inkscape:window-x="681"
+     inkscape:window-y="243" />
   <metadata
      id="metadata10917">
     <rdf:RDF>
@@ -55,13 +55,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,10)">
+     transform="translate(-4,-1)">
     <image
-       y="-8"
+       y="1"
        x="4"
        id="image10960"
-       height="156"
-       width="351"
+       height="147"
+       width="328"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\NewTaskSchedulePrompt.png"
        xlink:href="NewTaskSchedulePrompt.png" />
     <text

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="945"
-   height="332.00266"
+   width="934"
+   height="326"
    id="svg20258"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -34,7 +34,7 @@
      inkscape:cy="157.31759"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="325px"
+     height="332px"
      width="917px"
      inkscape:window-width="1204"
      inkscape:window-height="858"
@@ -55,13 +55,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,9)">
+     transform="translate(-2,2.997345)">
     <image
-       y="-8.997345"
+       y="-2.997345"
        x="2"
        id="image20273"
-       height="303"
-       width="945"
+       height="297"
+       width="934"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\DefectLogEditor.png"
        xlink:href="DefectLogEditor.png" />
     <text

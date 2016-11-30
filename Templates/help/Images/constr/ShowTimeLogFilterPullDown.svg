@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
+   xmlns:ns="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:cc="http://web.resource.org/cc/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="245"
-   height="192"
+   width="242"
+   height="193"
    id="svg19235"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.44"
    sodipodi:docname="ShowTimeLogFilterPullDown.svg"
-   version="1.0">
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr">
   <defs
      id="defs19237">
     <inkscape:perspective
@@ -44,15 +45,21 @@
      inkscape:current-layer="layer1"
      inkscape:window-width="909"
      inkscape:window-height="709"
-     inkscape:window-x="304"
-     inkscape:window-y="120"
-     width="225px"
+     inkscape:window-x="768"
+     inkscape:window-y="171"
+     width="242px"
      height="158px"
      showgrid="false"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata19240">
     <rdf:RDF>
+      <ns:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </ns:Work>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
@@ -65,18 +72,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,34)">
+     transform="translate(-2,37)">
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\ShowTimeLogFilterPullDown.png"
        xlink:href="ShowTimeLogFilterPullDown.png"
        width="169"
-       height="188"
+       height="193"
        id="image19250"
-       x="2"
-       y="-32" />
+       x="3"
+       y="-37" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
        x="179.25926"
        y="26.111111"
        id="text19253"
@@ -94,8 +101,8 @@
          y="63.611111"
          id="tspan19259">tab</tspan></text>
     <path
-       style="fill:none;stroke:#000000;stroke-width:1.32548046px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 115.45904,7.3479252 L 177.8743,20.429852"
+       style="fill:none;stroke:black;stroke-width:1.32548058px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 128.45909,6.347923 L 177.87438,20.429845"
        id="path19267" />
   </g>
 </svg>

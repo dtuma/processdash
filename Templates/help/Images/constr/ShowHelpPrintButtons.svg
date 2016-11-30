@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="236"
-   height="242"
+   width="241"
+   height="235"
    id="svg1903"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="ShowHelpPrintButtons.svg">
   <defs
      id="defs1905" />
@@ -29,17 +29,17 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.8086124"
+     inkscape:zoom="1"
      inkscape:cx="125.7143"
      inkscape:cy="115.44912"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="242px"
+     height="235px"
      width="236px"
-     inkscape:window-width="1084"
-     inkscape:window-height="912"
-     inkscape:window-x="354"
-     inkscape:window-y="77" />
+     inkscape:window-width="870"
+     inkscape:window-height="632"
+     inkscape:window-x="463"
+     inkscape:window-y="208" />
   <metadata
      id="metadata1908">
     <rdf:RDF>
@@ -54,13 +54,14 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,-5.471439)">
     <image
-       y="31"
+       y="31.471439"
        x="2"
        id="image4742"
        height="209"
-       width="232"
+       width="241"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHelpTOC.png"
        xlink:href="ShowHelpTOC.png" />
     <text

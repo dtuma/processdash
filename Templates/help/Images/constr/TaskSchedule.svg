@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
+   xmlns:ns="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:cc="http://web.resource.org/cc/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
@@ -14,9 +14,10 @@
    height="780"
    id="svg11919"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docname="TaskSchedule.svg">
+   sodipodi:docname="TaskSchedule.svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr">
   <defs
      id="defs11921">
     <inkscape:perspective
@@ -39,20 +40,26 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="380.63261"
-     inkscape:cy="449.81068"
+     inkscape:cy="400.53259"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="780px"
      width="676px"
      inkscape:window-width="980"
      inkscape:window-height="1030"
-     inkscape:window-x="389"
-     inkscape:window-y="2"
+     inkscape:window-x="687"
+     inkscape:window-y="24"
      showgrid="false"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata11924">
     <rdf:RDF>
+      <ns:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </ns:Work>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
@@ -68,11 +75,11 @@
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\TaskSchedule.png"
        xlink:href="TaskSchedule.png"
-       height="702"
-       width="723"
+       height="707"
+       width="722"
        id="image11967"
        x="2"
-       y="39" />
+       y="34" />
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"

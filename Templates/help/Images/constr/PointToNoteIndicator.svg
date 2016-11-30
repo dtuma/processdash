@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="583"
-   height="92"
+   width="588"
+   height="91"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="92px"
+     height="91px"
      width="555px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,10)">
+     transform="translate(0,9)">
     <image
-       y="-10"
+       y="-9"
        x="0"
        id="image15501"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
-       width="583" />
+       width="588" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -80,7 +80,7 @@
          y="81.810814">Note Indicator</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 542.5785,41.807543 L 524.0376,68.58348"
+       d="M 532.5785,41.807543 L 514.0376,68.58348"
        id="path17393" />
   </g>
 </svg>

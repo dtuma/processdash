@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="325"
-   height="464"
+   width="304"
+   height="460"
    id="svg20288"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -38,8 +38,8 @@
      height="435px"
      inkscape:window-width="1244"
      inkscape:window-height="882"
-     inkscape:window-x="753"
-     inkscape:window-y="198" />
+     inkscape:window-x="507"
+     inkscape:window-y="142" />
   <metadata
      id="metadata20293">
     <rdf:RDF>
@@ -55,13 +55,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,31)">
+     transform="translate(-4,27)">
     <image
-       y="-31"
-       x="2"
+       y="-27"
+       x="4"
        id="image20336"
-       height="464"
-       width="325"
+       height="460"
+       width="304"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\HierarchyEditorShowDefaultTemplates.png"
        xlink:href="HierarchyEditorShowDefaultTemplates.png" />
     <text

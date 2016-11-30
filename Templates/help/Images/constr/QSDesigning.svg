@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="534"
-   height="97"
+   width="540"
+   height="96"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="97px"
+     height="96px"
      width="507px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,10)">
+     transform="translate(0,9)">
     <image
-       y="-10"
+       y="-9"
        x="0"
        id="image5875"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesigning.png"
        xlink:href="QSDesigning.png"
-       width="534" />
+       width="540" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -80,7 +80,7 @@
          y="83.197029">Click to complete</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 513.07534,42.357068 L 483.3499,72.082511"
+       d="M 505.07534,42.357068 L 475.3499,72.082511"
        id="path5833" />
     <text
        xml:space="preserve"

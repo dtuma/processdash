@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="585"
+   width="589"
    height="95"
    id="svg5776"
    sodipodi:version="0.32"
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,9)">
+     transform="translate(-2,8)">
     <image
        y="-9"
        x="2"
        id="image9856"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainDashboardWindow.png"
        xlink:href="MainDashboardWindow.png"
-       width="585" />
+       width="589" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -80,7 +80,7 @@
          y="82.810814">Task Completion Checkbox</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 565.59935,42.579974 L 537.36528,70.814044"
+       d="M 557.59935,42.579974 L 529.36528,70.814044"
        id="path18306" />
   </g>
 </svg>

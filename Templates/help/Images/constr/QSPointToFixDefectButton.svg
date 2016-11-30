@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
+   xmlns:ns="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:cc="http://web.resource.org/cc/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="430"
-   height="390"
+   width="426"
+   height="355"
    id="svg5972"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docname="QSPointToFixDefectButton.svg">
+   sodipodi:docname="QSPointToFixDefectButton.svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr">
   <defs
      id="defs5974">
     <inkscape:perspective
@@ -42,17 +43,23 @@
      inkscape:cy="200.55885"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="355px"
-     width="400px"
+     height="356px"
+     width="426px"
      inkscape:window-width="982"
      inkscape:window-height="755"
-     inkscape:window-x="170"
-     inkscape:window-y="115"
+     inkscape:window-x="553"
+     inkscape:window-y="119"
      showgrid="false"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata5977">
     <rdf:RDF>
+      <ns:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </ns:Work>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
@@ -65,78 +72,80 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,35)">
+     transform="translate(-1,1)">
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\QSPointToFixDefectButton.png"
        xlink:href="QSPointToFixDefectButton.png"
-       width="346"
-       height="388"
+       width="301"
+       height="355"
        id="image6020"
        x="1"
-       y="-34" />
+       y="-1" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
        x="344.64285"
-       y="88.502838"
+       y="122.50284"
        id="text6023"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan6025"
          x="344.64285"
-         y="88.502838">Click the</tspan><tspan
+         y="122.50284">Click the</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="107.25284"
+         y="141.25284"
          id="tspan6027">Fix Defect</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="126.00284"
+         y="160.00284"
          id="tspan6029">button to</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="144.75284"
+         y="178.75284"
          id="tspan6031">enter a</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="163.50284"
+         y="197.50284"
          id="tspan6033">defect that</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="182.25284"
+         y="216.25284"
          id="tspan6035">was injected</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="201.00284"
+         y="235.00284"
          id="tspan6039">as a result</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="219.75284"
+         y="253.75284"
          id="tspan6055">of fixing the</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="238.50284"
+         y="272.50284"
          id="tspan6049">current</tspan><tspan
          sodipodi:role="line"
          x="344.64285"
-         y="257.25284"
+         y="291.25284"
          id="tspan6059">defect</tspan></text>
     <path
        id="path3732"
-       d="M 299.42857,133.42857 L 343.07143,89.78571"
-       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+       d="M 299.42857,167.42857 L 343.07143,123.78571"
+       style="fill:none;stroke:white;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 299.42857,133.42857 L 343.07143,89.78571"
+       style="fill:none;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 299.42857,167.42857 L 343.07143,123.78571"
        id="path6063" />
     <text
        xml:space="preserve"
-       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
        x="517"
        y="152"
        id="text4244"
        transform="translate(0,-35)"><tspan
          sodipodi:role="line"
-         id="tspan4246"></tspan></text>
+         id="tspan4246"
+         x="517"
+         y="152" /></text>
   </g>
 </svg>

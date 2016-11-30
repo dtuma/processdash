@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="606"
+   width="607"
    height="279"
    id="svg2"
    sodipodi:version="0.32"
@@ -38,11 +38,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="279px"
-     width="555px"
+     width="607px"
      inkscape:window-width="1253"
      inkscape:window-height="688"
-     inkscape:window-x="238"
-     inkscape:window-y="258" />
+     inkscape:window-x="334"
+     inkscape:window-y="226" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -64,7 +64,7 @@
        x="2"
        id="image2042"
        height="59"
-       width="606"
+       width="607"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png" />
     <text

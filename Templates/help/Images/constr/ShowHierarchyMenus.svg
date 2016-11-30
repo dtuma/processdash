@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="583"
-   height="95"
+   width="588"
+   height="94"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,12 +37,12 @@
      inkscape:cy="89"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="95px"
+     height="94px"
      width="555px"
-     inkscape:window-width="1045"
+     inkscape:window-width="1208"
      inkscape:window-height="688"
-     inkscape:window-x="502"
-     inkscape:window-y="30" />
+     inkscape:window-x="410"
+     inkscape:window-y="338" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,10)">
+     transform="translate(0,9)">
     <image
-       y="-10"
+       y="-9"
        x="0"
        id="image15501"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
-       width="583" />
+       width="588" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -81,21 +81,21 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="303.31943"
+       x="297.31943"
        y="83.810814"
        id="text15251"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15253"
-         x="303.31943"
+         x="297.31943"
          y="83.810814">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 201.57299,38.432226 L 176.12271,71.882511"
+       d="M 193.57299,38.432226 L 168.12271,71.882511"
        id="path15257" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.10595393px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 212.5052,46.690427 C 218.01109,54.399975 222.63947,60.173366 231.56026,60.173366 C 256.59453,60.173366 307.93834,60.126405 360.91314,60.077404 C 363.47148,60.075039 369.57275,65.757217 369.97747,65.465137 C 372.33156,63.76619 376.29068,60.063184 379.32017,60.060391 C 431.02153,60.012739 481.55989,59.968087 508.05524,59.968087 C 517.34346,59.968087 518.23201,53.756752 523.22301,46.768188"
+       d="M 206.5052,46.690427 C 212.01109,54.399975 216.63947,60.173366 225.56026,60.173366 C 250.59453,60.173366 301.93834,60.126405 354.91314,60.077404 C 357.47148,60.075039 363.57275,65.757217 363.97747,65.465137 C 366.33156,63.76619 370.29068,60.063184 373.32017,60.060391 C 425.02153,60.012739 475.55989,59.968087 502.05524,59.968087 C 511.34346,59.968087 512.23201,53.756752 517.22301,46.768188"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
   </g>

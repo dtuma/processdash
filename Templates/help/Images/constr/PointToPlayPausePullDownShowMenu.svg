@@ -41,8 +41,8 @@
      width="394px"
      inkscape:window-width="870"
      inkscape:window-height="677"
-     inkscape:window-x="513"
-     inkscape:window-y="249" />
+     inkscape:window-x="515"
+     inkscape:window-y="188" />
   <metadata
      id="metadata17400">
     <rdf:RDF>
@@ -63,28 +63,28 @@
        y="-7.3994598"
        x="2"
        id="image17410"
-       height="144"
+       height="143"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToPlayPausePullDownShowMenu.png"
        xlink:href="PointToPlayPausePullDownShowMenu.png"
        width="392" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="26.721088"
+       x="18.721088"
        y="156.4438"
        id="text17413"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan17415"
-         x="26.721088"
+         x="18.721088"
          y="156.4438">Play/Pause button pull-down tab</tspan></text>
     <path
        id="path18304"
-       d="M 85.142857,42.838373 L 42.965986,142.83837"
+       d="M 77.142857,42.838373 L 34.965986,142.83837"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 85.142857,42.838373 L 42.965986,142.83837"
+       d="M 77.142857,42.838373 L 34.965986,142.83837"
        id="path17417" />
   </g>
 </svg>

@@ -72,13 +72,13 @@
          x="468.39532"
          y="79.810814">Add Task button</tspan></text>
     <image
-       y="-11.032448"
+       y="-11.03245"
        x="2"
        id="image13000"
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png"
-       width="606" />
+       width="607" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 590.57217,43.035111 L 575.83919,68.553381"

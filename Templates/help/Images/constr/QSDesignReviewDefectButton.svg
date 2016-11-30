@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="577"
-   height="94"
+   width="584"
+   height="91"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="94px"
+     height="91px"
      width="551px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -58,7 +58,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,10)">
+     transform="translate(0,7)">
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -71,13 +71,13 @@
          x="125.61248"
          y="83.197029">Defect button</tspan></text>
     <image
-       y="-10"
+       y="-7"
        x="0"
        id="image5924"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesignReviewDefectButton.png"
        xlink:href="QSDesignReviewDefectButton.png"
-       width="577" />
+       width="584" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 124.86086,47.035111 L 146.6502,68.824447"

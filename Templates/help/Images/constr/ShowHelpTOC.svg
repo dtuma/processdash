@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="236"
-   height="242"
+   width="241"
+   height="235"
    id="svg1903"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -34,12 +34,12 @@
      inkscape:cy="115.44912"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="242px"
+     height="235px"
      width="236px"
      inkscape:window-width="1084"
      inkscape:window-height="912"
-     inkscape:window-x="22"
-     inkscape:window-y="22" />
+     inkscape:window-x="612"
+     inkscape:window-y="120" />
   <metadata
      id="metadata1908">
     <rdf:RDF>
@@ -54,18 +54,19 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,-5.841244)">
     <image
-       y="31"
+       y="31.841244"
        x="2"
        id="image1969"
        height="209"
-       width="232"
+       width="241"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHelpTOC.png"
        xlink:href="ShowHelpTOC.png" />
     <text
        xml:space="preserve"
-       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="38.150791"
        y="16.761654"
        id="text1972"

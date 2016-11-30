@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="610"
-   height="175"
+   width="613"
+   height="147"
    id="svg20349"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -55,33 +55,33 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,8)">
+     transform="translate(-4,-20)">
     <image
-       y="-6"
+       y="20"
        x="4"
        id="image20364"
-       height="173"
+       height="147"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ChooseEditDataRollupFilter.png"
        xlink:href="ChooseEditDataRollupFilter.png"
-       width="608" />
+       width="613" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="475.20547"
-       y="96.814713"
+       y="104.81471"
        id="text20367"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20369"
          x="475.20547"
-         y="96.814713">Edit the rollup filter</tspan><tspan
+         y="104.81471">Edit the rollup filter</tspan><tspan
          sodipodi:role="line"
          x="475.20547"
-         y="115.56471"
+         y="123.56471"
          id="tspan1971">for the dataset</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.9999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 279.57727,130.18593 L 469.37437,96.630669"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999934px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 279.57727,130.18592 L 469.37437,101.63067"
        id="path20371" />
   </g>
 </svg>

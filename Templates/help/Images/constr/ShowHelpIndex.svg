@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="236"
-   height="232"
+   width="232"
+   height="237"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="ShowHelpIndex.svg">
   <defs
      id="defs4" />
@@ -29,17 +29,17 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.0308727"
-     inkscape:cx="92.592593"
-     inkscape:cy="225.00569"
+     inkscape:zoom="1"
+     inkscape:cx="118"
+     inkscape:cy="116"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="232px"
+     height="237px"
      width="236px"
-     inkscape:window-width="975"
-     inkscape:window-height="707"
-     inkscape:window-x="22"
-     inkscape:window-y="22" />
+     inkscape:window-width="1032"
+     inkscape:window-height="1026"
+     inkscape:window-x="483"
+     inkscape:window-y="24" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -54,19 +54,20 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,-4.20991)">
     <image
-       y="21"
+       y="22.209909"
        x="2"
        id="image1930"
-       height="209"
+       height="219"
        width="232"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHelpIndex.png"
        xlink:href="ShowHelpIndex.png"
        style="font-size:14px" />
     <text
        xml:space="preserve"
-       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="64.247925"
        y="14.947215"
        id="text1933"
@@ -75,11 +76,11 @@
          id="tspan1935"
          x="64.247925"
          y="14.947215"
-         style="font-size:15">Index tab</tspan></text>
+         style="font-size:15px">Index tab</tspan></text>
     <path
        id="path1941"
        d="M 82.199546,96.890401 L 103.66943,16.763719"
-       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none" />
+       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 82.2,96.890401 L 103.66988,16.763719"

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="543"
-   height="95"
+   width="551"
+   height="94"
    id="svg5636"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="146.75592"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="95px"
+     height="94px"
      width="517px"
      inkscape:window-width="952"
      inkscape:window-height="805"
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,9)">
+     transform="translate(0,8)">
     <image
-       y="-9"
+       y="-8"
        x="0"
        id="image5684"
-       height="66"
+       height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSChoosingPlanning.png"
        xlink:href="QSChoosingPlanning.png"
-       width="543" />
+       width="551" />
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -82,28 +82,28 @@
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="150.2887"
+       x="144.2887"
        y="82.536362"
        id="text5691"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5693"
-         x="150.2887"
+         x="144.2887"
          y="82.536362">Scripts button</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="291.45645"
+       x="285.45645"
        y="82.536362"
        id="text5695"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5697"
-         x="291.45645"
+         x="285.45645"
          y="82.536362">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.0377233px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 211.27368,50.084104 C 216.10363,57.821655 220.1638,63.616017 227.9894,63.616017 C 249.95026,63.616017 294.99071,63.568885 341.4619,63.519706 C 343.70616,63.517332 349.05839,69.220149 349.41342,68.927007 C 351.4785,67.221891 354.95157,63.505434 357.60915,63.502631 C 402.96322,63.454805 447.29711,63.409992 470.53967,63.409992 C 478.68761,63.409992 479.46708,57.176098 483.84534,50.162151"
+       d="M 205.27368,50.084104 C 210.10363,57.821655 214.1638,63.616017 221.9894,63.616017 C 243.95026,63.616017 288.99071,63.568885 335.4619,63.519706 C 337.70616,63.517332 343.05839,69.220149 343.41342,68.927007 C 345.4785,67.221891 348.95157,63.505434 351.60915,63.502631 C 396.96322,63.454805 441.29711,63.409992 464.53967,63.409992 C 472.68761,63.409992 473.46708,57.176098 477.84534,50.162151"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <path
@@ -112,7 +112,7 @@
        id="path5713" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 159.82575,47.781534 L 173.67917,71.776361"
+       d="M 153.82575,47.781534 L 167.67917,71.776361"
        id="path5715" />
   </g>
 </svg>
