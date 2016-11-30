@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2015 Tuma Solutions, LLC
+// Copyright (C) 2000-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,8 +131,9 @@ public class ScriptButton extends DropDownButton implements
         // populate the popup menu with items for each script.
         if (paths != null && paths.size() > 0) {
 
-            // add the current (default) menu.
-            destMenu.add(new ScriptMenuItem(paths.get(0)));
+            // possibly add the current (default) menu.
+            if (clickOpensDefault)
+                destMenu.add(new ScriptMenuItem(paths.get(0)));
 
             ScriptMenuBuilder b = new ScriptMenuBuilder(paths);
             addMenuItems(destMenu, b.isMultiLevel(), b.getMenuItems());
@@ -149,7 +150,7 @@ public class ScriptButton extends DropDownButton implements
                 String dataPath = (String) item;
                 if (showSeparatorLabels)
                     destMenu.add(new ScriptMenuSeparator(dataPath));
-                else
+                else if (destMenu.getMenuComponentCount() > 0)
                     destMenu.addSeparator();
 
             } else if (item instanceof ScriptID) {
