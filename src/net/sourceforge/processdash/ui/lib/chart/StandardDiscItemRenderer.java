@@ -32,11 +32,11 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collection;
+import java.util.TreeSet;
 
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-
-import net.sourceforge.processdash.ui.lib.PaintUtils;
 
 import org.jfree.chart.PaintMap;
 import org.jfree.chart.StrokeMap;
@@ -48,9 +48,12 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.data.general.PieDataset;
 
+import net.sourceforge.processdash.ui.lib.PaintUtils;
+
 public class StandardDiscItemRenderer implements DiscItemRenderer {
 
     public interface PaintKeyMapper {
+        public Collection<Comparable> getAllPaintKeys();
         public Comparable getPaintKey(Comparable dataKey);
     }
 
@@ -112,6 +115,26 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
      */
     public void setPaintKeyMapper(PaintKeyMapper paintKeyMapper) {
         this.paintKeyMapper = paintKeyMapper;
+
+        this.discPaintMap = new PaintMap();
+        DrawingSupplier ds = getDrawingSupplier();
+        if (paintKeyMapper != null && ds != null) {
+            try {
+                Collection<Comparable> keys = paintKeyMapper.getAllPaintKeys();
+                Paint bg = plot.getBackgroundPaint();
+                for (Comparable oneKey : new TreeSet<Comparable>(keys)) {
+                    Paint onePaint = ds.getNextPaint();
+                    if (onePaint instanceof Color && bg instanceof Color)
+                        onePaint = PaintUtils.adjustForContrast(
+                            (Color) onePaint, (Color) bg);
+                    this.discPaintMap.put(oneKey, onePaint);
+                }
+            } catch (Throwable t) {
+                // the "getAllPaintKeys" method was added in PD 2.3. If a
+                // particular implementor doesn't support it yet, catch the
+                // error and continue without preassigning colors.
+            }
+        }
     }
 
     /**
