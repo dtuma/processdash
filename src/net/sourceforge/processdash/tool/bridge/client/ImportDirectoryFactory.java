@@ -289,7 +289,7 @@ public class ImportDirectoryFactory {
         if (path.startsWith(userHome))
             return true;
 
-        if (baseDirectory.equals(dir.getParentFile()))
+        if (baseDirectory != null && baseDirectory.equals(dir.getParentFile()))
             return true;
 
         return false;
