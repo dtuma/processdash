@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2013 Tuma Solutions, LLC
+// Copyright (C) 2006-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,7 +27,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -318,7 +320,7 @@ public class AddTranslations extends MatchingTask {
 
         if (verbose) System.out.print("    ");
         System.out.println("Updating '" + filename + "'");
-        FileOutputStream out = new FileOutputStream(destFile);
+        OutputStream out = new StripCR(new FileOutputStream(destFile));
         merged.store(out, PROP_FILE_HEADER);
         out.close();
     }
@@ -400,4 +402,19 @@ public class AddTranslations extends MatchingTask {
         }
 
     }
+
+    private class StripCR extends FilterOutputStream {
+
+        public StripCR(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            if (b != '\r')
+                super.write(b);
+        }
+
+    }
+
 }
