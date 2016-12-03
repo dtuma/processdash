@@ -82,7 +82,7 @@ Authors:
   <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
 
 
-  <property name="applet.file" value="DataApplet${dashboardVersion}"/>
+  <property name="applet.file" value="DataApplet-${dashboard-version}"/>
 
   <property name="debug"      value="on"/>
 
