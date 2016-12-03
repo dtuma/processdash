@@ -1,2 +1,5 @@
-font_metrics.properties
+META-INF/
+meta-inf/
+org/openide/
 net/sourceforge/processdash/util/
+font_metrics.properties

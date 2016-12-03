@@ -1,2 +1,10 @@
+META-INF/
+meta-inf/
+com/sun/
+javax/
+org/apache/
+org/eclipse/
 org/jfree/base/
+org/jfree/xml/
+org/openide/
 net/sourceforge/processdash/util/
