@@ -45,6 +45,26 @@ public interface StudyGroupManager {
     public int getGenericGroup(Set<Integer> members, String groupIdentifier);
 
     /**
+     * Create a study group representing the keys for a particular group of data
+     * blocks.
+     * 
+     * @param projectKeys
+     *            the numeric keys of the projects whose plan items we care
+     *            about
+     * @param datasetIDs
+     *            a list of process dashboard dataset IDs that generated the
+     *            data blocks we're seeking
+     * @param onBehalfOfDataName
+     *            the name of the data element we are calculating that would
+     *            like to know this value
+     * @return the numeric key of a newly created study group which holds the
+     *         database keys of the desired data blocks
+     * @since TPDW 1.5.4.1
+     */
+    public int getDataBlockGroup(Collection<Integer> projectKeys,
+            Set<String> datasetIDs, String onBehalfOfDataName);
+
+    /**
      * Create a study group representing the keys for a particular group of plan
      * items.
      * 
