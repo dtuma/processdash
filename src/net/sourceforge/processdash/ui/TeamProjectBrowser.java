@@ -432,9 +432,10 @@ public class TeamProjectBrowser extends JSplitPane {
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
         }
 
-        if (UserGroupManager.getInstance().isEnabled()) {
+        UserGroupManager groupMgr = UserGroupManager.getInstance();
+        if (groupMgr.isEnabled()) {
             GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
-                    UserGroup.EVERYONE);
+                    UserGroup.EVERYONE, groupMgr.isIndivFilteringSupported());
             groupFilterMenu.addChangeListener(handler);
 
             menuBar.add(Box.createHorizontalGlue());

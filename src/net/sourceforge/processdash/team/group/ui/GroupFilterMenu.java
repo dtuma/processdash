@@ -50,11 +50,14 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
 
     private UserFilter selectedItem;
 
-    public GroupFilterMenu(UserFilter initialSelection) {
+    private boolean showIndividuals;
+
+    public GroupFilterMenu(UserFilter initialSelection, boolean showIndivs) {
         groupIcon = DashboardIconFactory.getGroupIcon();
         personIcon = DashboardIconFactory.getIndividualIcon();
         listeners = new EventListenerList();
         setSelectedItem(initialSelection);
+        showIndividuals = showIndivs;
 
         UserGroupManager.getInstance().addUserGroupEditListener(this);
         getPopupMenu().addPopupMenuListener(new Handler());
@@ -124,7 +127,7 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
             getPopupMenu().setVisible(false);
             UserFilter selectedItem = new UserGroupSelector(
                     SwingUtilities.getWindowAncestor(GroupFilterMenu.this),
-                    "Filter_Prompt").getSelectedItem();
+                    "Filter_Prompt", showIndividuals).getSelectedItem();
             setSelectedItem(selectedItem);
             MenuSelectionManager.defaultManager().clearSelectedPath();
         }

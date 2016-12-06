@@ -811,10 +811,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.add(helpMenu);
 
         // add a group selector, if applicable
-        if (isRollup() && UserGroupManager.getInstance().isEnabled()) {
-            UserFilter filter = UserGroupManager.getInstance()
-                    .getGlobalFilter();
-            groupFilterMenu = new GroupFilterMenu(filter);
+        UserGroupManager groupMgr = UserGroupManager.getInstance();
+        if (isRollup() && groupMgr.isEnabled()) {
+            UserFilter filter = groupMgr.getGlobalFilter();
+            groupFilterMenu = new GroupFilterMenu(filter,
+                    groupMgr.isIndivFilteringSupported());
             groupFilterMenu.addChangeListener(new GroupFilterHandler(filter));
 
             result.add(Box.createHorizontalGlue());

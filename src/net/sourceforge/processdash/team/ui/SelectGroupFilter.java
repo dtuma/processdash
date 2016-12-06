@@ -84,9 +84,11 @@ public class SelectGroupFilter extends TinyCGIBase {
         writeFolder("Groups");
         writeFilterOptions(UserGroupManager.getInstance().getGroups().values(),
             extraLinkArgs);
-        writeFolder("Individuals");
-        writeFilterOptions(UserGroupManager.getInstance().getAllKnownPeople(),
-            extraLinkArgs);
+        if (UserGroupManager.getInstance().isIndivFilteringSupported()) {
+            writeFolder("Individuals");
+            writeFilterOptions(UserGroupManager.getInstance()
+                    .getAllKnownPeople(), extraLinkArgs);
+        }
         out.print("</table>\n</body>\n</html>");
     }
 

@@ -82,10 +82,10 @@ public class UserGroupSelector {
             .getDashBundle("ProcessDashboard.Groups");
 
 
-    public UserGroupSelector(Component parent, String resKey) {
+    public UserGroupSelector(Component parent, String resKey, boolean showIndivs) {
         everyoneOption = UserGroup.EVERYONE;
         groupHeader = resources.getString("Groups");
-        indivHeader = resources.getString("Individuals");
+        indivHeader = showIndivs ? resources.getString("Individuals") : null;
         loadingLabel = resources.getString("Loading");
         noneFoundLabel = resources.getString("None_Found");
 
@@ -158,7 +158,9 @@ public class UserGroupSelector {
             // been loaded. On a large team dashboard with many projects, this
             // could take time. If this is the first time this window has
             // opened, run the task on a background thread.
-            if (peopleHaveBeenLoadedBefore)
+            if (indivHeader == null)
+                people = null;
+            else if (peopleHaveBeenLoadedBefore)
                 people = loadPeople();
             else
                 new PeopleLoader(this).execute();
@@ -213,7 +215,7 @@ public class UserGroupSelector {
         @Override
         public int getChildCount(Object parent) {
             if (parent == ROOT_OBJECT)
-                return 3;
+                return indivHeader == null ? 2 : 3;
             else if (parent == groupHeader)
                 return Math.max(1, groups.size());
             else if (parent == indivHeader)

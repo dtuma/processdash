@@ -82,6 +82,8 @@ public class UserGroupManager {
 
     private boolean enabled;
 
+    private boolean indivFilteringSupported;
+
     private DataRepository dataRepository;
 
     private DatabasePlugin databasePlugin;
@@ -107,6 +109,7 @@ public class UserGroupManager {
         enabled = Settings.isTeamMode()
                 && TemplateLoader.meetsPackageRequirement("tpidw-embedded",
                     "1.5.4.1");
+        indivFilteringSupported = false;
     }
 
     public void init(DashboardContext ctx) {
@@ -150,6 +153,21 @@ public class UserGroupManager {
      */
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * @return true if filtering by individual is supported
+     */
+    public boolean isIndivFilteringSupported() {
+        return indivFilteringSupported;
+    }
+
+    /**
+     * Toggle the flag indicating whether filtering by individual is supported
+     */
+    public void setIndivFilteringSupported(boolean indivFilteringSupported) {
+        PERMISSION.checkPermission();
+        this.indivFilteringSupported = indivFilteringSupported;
     }
 
     /**
