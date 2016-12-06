@@ -191,7 +191,7 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
     /** Print text and icon for choosing a user group
      */
     private void writeUserGroupIcon(String projectRoot) {
-        if (!UserGroupManager.getInstance().isEnabled())
+        if (!UserGroupManager.getInstance().isFilteringAvailable())
             return;
 
         boolean exporting = isExporting();

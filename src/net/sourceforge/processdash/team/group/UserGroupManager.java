@@ -171,6 +171,13 @@ public class UserGroupManager {
     }
 
     /**
+     * @return true if the user has any options for person-based filtering
+     */
+    public boolean isFilteringAvailable() {
+        return enabled && (indivFilteringSupported || !groups.isEmpty());
+    }
+
+    /**
      * Shared groups should not be editable in certain circumstances (for
      * example, when the team dashboard is in read-only mode). This method
      * indicates whether shared groups are read only.

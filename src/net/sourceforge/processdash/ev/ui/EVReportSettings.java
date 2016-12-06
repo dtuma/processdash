@@ -207,7 +207,7 @@ public class EVReportSettings {
      * Get the user group filter that should be used to display the report.
      */
     public UserFilter getUserGroupFilter() {
-        if (!UserGroupManager.getInstance().isEnabled()
+        if (!UserGroupManager.getInstance().isFilteringAvailable()
                 || Boolean.FALSE.equals(isRollup))
             return null;
 
