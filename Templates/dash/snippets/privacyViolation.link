@@ -1,0 +1,4 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+Expression==[User_Group/Privacy_Violation]
+TrueMessageType==Error
+TrueMessage==${PrivacyViolation.Error_Message}

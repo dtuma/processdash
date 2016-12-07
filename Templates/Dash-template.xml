@@ -363,6 +363,12 @@ The author(s) may be contacted at:
     <uri>/dash/snippets/recentReviews</uri>
   </snippet>
 
+  <snippet id="pdash.privacyViolation" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>Database-Driven Rollup Tag</context>
+    <uri>/dash/snippets/privacyViolation</uri>
+  </snippet>
+
 
   <!-- Snippets associated with the Process Advisor -->
 

@@ -25,6 +25,7 @@
     lookup("/User_Group/" & [User_Group//Filter] & "//Dataset_IDs");
 [DB_User_Group] =
     dbUserFilterGroup([DB_Project_Keys], [DB_User_Group/Dataset_IDs]);
+[User_Group/Privacy_Violation] = ([DB_User_Group] == -99);
 
 
 [DB_Filter_Criteria] = list(

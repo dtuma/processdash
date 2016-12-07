@@ -93,6 +93,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
@@ -1093,6 +1094,9 @@ public class EVReport extends CGIChartBase {
         }
 
         if (groupFilter != null) {
+            boolean isPrivacyViolation = groupFilter instanceof UserGroupPrivacyBlock;
+
+            // display an icon to represent this group filter
             if (!textOnly) {
                 boolean showGroupHyperlink = !exporting
                         && (settings.getParameters().containsKey(
@@ -1102,15 +1106,27 @@ public class EVReport extends CGIChartBase {
                 if (showGroupHyperlink)
                     out.print("<a href='../team/setup/selectGroupFilter'>");
                 out.print("<img border=0 src='/Images/userGroup");
-                if (groupFilter instanceof UserGroupMember)
+                if (isPrivacyViolation)
+                    out.print("Privacy");
+                else if (groupFilter instanceof UserGroupMember)
                     out.print("Member");
-                out.print(".png' "
-                        + "style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
+                out.print(".png' ");
+                if (isPrivacyViolation)
+                    out.print("title='Group filter blocked to protect data privacy' ");
+                else if (showGroupHyperlink)
+                    out.print("title='Filter to group' ");
+                out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
                         + "width='23' height='23'>");
                 if (showGroupHyperlink)
                     out.print("</a>");
             }
+
+            // display the name of the filter
+            if (isPrivacyViolation)
+                out.print("<span style='color:#888; font-weight:normal; text-decoration:line-through'>");
             out.print(HTMLUtils.escapeEntities(groupFilter.toString()));
+            if (isPrivacyViolation)
+                out.print("</span>");
         }
 
         out.println("</h2>");

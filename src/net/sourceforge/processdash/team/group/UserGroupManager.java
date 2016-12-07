@@ -244,7 +244,17 @@ public class UserGroupManager {
         String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
         String filterId = getString(dataName);
         UserFilter result = getFilterById(filterId);
-        return (result == null ? globalFilter : result);
+        if (result == null)
+            return globalFilter;
+        else if (isPrivacyViolation(path))
+            return new UserGroupPrivacyBlock(result);
+        else
+            return result;
+    }
+
+    public boolean isPrivacyViolation(String path) {
+        String dataName = DataRepository.createDataName(path, PRIVACY_DATANAME);
+        return (getString(dataName) != null);
     }
 
 
@@ -547,6 +557,8 @@ public class UserGroupManager {
     private static final String DATA_PREFIX = "User_Group/";
 
     public static final String FILTER_DATANAME = DATA_PREFIX + "/Filter";
+
+    public static final String PRIVACY_DATANAME = DATA_PREFIX + "Privacy_Violation";
 
     private static final String NAME_SUFFIX = "//Name";
 

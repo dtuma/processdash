@@ -42,6 +42,7 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.team.ui.SelectGroupFilter;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -215,6 +216,9 @@ public class EVReportSettings {
         UserFilter f = UserGroupManager.getInstance().getFilterById(filterID);
         if (f == null)
             f = UserGroup.EVERYONE;
+        else if (UserGroupManager.getInstance().isPrivacyViolation(prefix))
+            f = new UserGroupPrivacyBlock(f);
+
         return f;
     }
 
