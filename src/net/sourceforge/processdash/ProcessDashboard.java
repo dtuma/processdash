@@ -128,6 +128,7 @@ import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -568,6 +569,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
+        UserGroupManager.getInstance().init(this);
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
@@ -1751,6 +1753,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (saveSettingsData() == false)
             recordUnsavedItem(unsavedData, "Settings_Data");
 
+        if (saveUserGroupData() == false)
+            recordUnsavedItem(unsavedData, "Group_Data");
+
         String flushResult = flushWorkingData();
         if (flushResult != null)
             unsavedData.add(flushResult);
@@ -1792,6 +1797,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (InternalSettings.isDirty())
             InternalSettings.saveSettings();
         return InternalSettings.isDirty() == false;
+    }
+
+    public boolean saveUserGroupData() {
+        return UserGroupManager.getInstance().saveAll();
     }
 
     public static final String FLUSH_SUCCESSFUL = null;

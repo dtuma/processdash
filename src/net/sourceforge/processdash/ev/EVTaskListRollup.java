@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -58,7 +59,9 @@ public class EVTaskListRollup extends EVTaskList {
     public static final String TASK_LISTS_DATA_NAME = "Task Lists";
 
     protected DataRepository data;
-    protected Vector evTaskLists;
+    protected Vector<EVTaskList> evTaskLists;
+    protected List<EVTaskList> filteredTaskLists;
+    protected List<String> unfilteredOrder;
     private RecalcListener recalcRepeater;
 
     /** Create a rollup task list.
@@ -95,7 +98,7 @@ public class EVTaskListRollup extends EVTaskList {
         ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 
-    /** For unit testing purposes only! */
+
     protected EVTaskListRollup(String taskListName, List taskLists) {
         super(taskListName, taskListName, false);
         evTaskLists = new Vector(taskLists);
@@ -109,6 +112,7 @@ public class EVTaskListRollup extends EVTaskList {
         schedule = new EVScheduleRollup(evTaskLists);
         calculator = new EVCalculatorRollup(this, (EVTask) root, evTaskLists,
                 (EVScheduleRollup) schedule, null);
+        ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 
     private void addTaskListsFromData(DataRepository data,
@@ -179,12 +183,24 @@ public class EVTaskListRollup extends EVTaskList {
         ListData list = null;
         if (newName != null) {
             list = new ListData();
-            Iterator i = evTaskLists.iterator();
-            while (i.hasNext())
-                list.add(((EVTaskList) i.next()).taskListName);
+            for (EVTaskList tl : getTaskListsToSave())
+                list.add(tl.taskListName);
         }
 
         persistDataValue(newName, data, TASK_LISTS_DATA_NAME, list);
+    }
+
+    private List<EVTaskList> getTaskListsToSave() {
+        if (filteredTaskLists == null || filteredTaskLists.isEmpty())
+            return evTaskLists;
+
+        List<EVTaskList> result = new ArrayList(evTaskLists);
+        for (EVTaskList filtered : filteredTaskLists) {
+            int pos = getInsertionPosFromUnfilteredOrder(result,
+                filtered.getID());
+            result.add(pos, filtered);
+        }
+        return result;
     }
 
     public List<EVTaskList> getSubSchedules() {
@@ -225,6 +241,15 @@ public class EVTaskListRollup extends EVTaskList {
         }
         if (taskList == null) return null;
 
+        EVTask newTask = addSubTaskList(taskList, getSubScheduleCount());
+        if (newTask != null && unfilteredOrder != null) {
+            unfilteredOrder.remove(taskList.getID());
+            unfilteredOrder.add(taskList.getID());
+        }
+        return newTask;
+    }
+
+    private EVTask addSubTaskList(EVTaskList taskList, int pos) {
         // first, remove any existing child with the same name.  (This covers
         // the common scenario where a child task list has been deleted and
         // recreated, and we're attempting to replace the missing task list
@@ -237,9 +262,25 @@ public class EVTaskListRollup extends EVTaskList {
             removeTask(tp);
         }
 
-        // now, add the new task list to the end of our list.
-        if (((EVTask) root).add(newTask)) {
-            evTaskLists.add(taskList);
+        // if a task list with this name or ID is present in the filtered group,
+        // remove it from there too. (This covers the same scenario as the block
+        // above, but when a filter is hiding the task list to be replaced.)
+        if (filteredTaskLists != null) {
+            for (int i = filteredTaskLists.size(); i-- > 0;) {
+                EVTaskList filtered = filteredTaskLists.get(i);
+                String filteredID = filtered.getID();
+                if ((filteredID != null && filteredID.equals(taskList.getID()))
+                        || filtered.getTaskRoot().sameNode(newTask)) {
+                    filteredTaskLists.remove(i);
+                    filtered.getTaskRoot().destroy();
+                }
+            }
+        }
+
+        // now, add the new task list in the specified position
+        pos = Math.max(0, Math.min(pos, getSubScheduleCount()));
+        if (((EVTask) root).add(pos, newTask)) {
+            evTaskLists.add(pos, taskList);
             ((EVScheduleRollup) schedule).addSchedule(taskList);
             return newTask;
         } else
@@ -274,8 +315,138 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     protected void finishMovingTaskUp(int pos) {
-        Object taskList = evTaskLists.remove(pos);
+        EVTaskList taskList = (EVTaskList) evTaskLists.remove(pos);
         evTaskLists.insertElementAt(taskList, pos-1);
+
+        if (unfilteredOrder != null) {
+            unfilteredOrder.remove(taskList.getID());
+            String nextID = getSubSchedule(pos).getID();
+            int nextPos = unfilteredOrder.indexOf(nextID);
+            if (nextPos != -1)
+                unfilteredOrder.add(nextPos, taskList.getID());
+        }
+    }
+
+    /**
+     * Apply a given filter to the task lists in this rollup.
+     * 
+     * @param f
+     *            the filter to apply
+     * @return true if the filtering operation caused our data to change; false
+     *         if the task list was unchanged by the filter
+     */
+    public boolean applyTaskListFilter(EVTaskListFilter f) {
+        if (f == null)
+            throw new NullPointerException();
+
+        // apply filters to the baseline, if applicable
+        if (schedule.baselineSnapshot != null) {
+            boolean baselineFilteredSuccessfully = schedule.baselineSnapshot
+                    .applyTaskListFilter(f);
+            if (!baselineFilteredSuccessfully)
+                setBaselineDataSource(null);
+        }
+
+        return applyTaskListFilterImpl(f);
+    }
+
+    private boolean applyTaskListFilterImpl(EVTaskListFilter f) {
+        boolean madeChange = false;
+
+        // make a note of the original order of the task lists
+        if (unfilteredOrder == null) {
+            unfilteredOrder = new ArrayList<String>();
+            for (EVTaskList tl : evTaskLists)
+                unfilteredOrder.add(tl.getID());
+        }
+
+        // Look at our active sublists, and remove items as needed
+        List<EVTaskList> filtered = new ArrayList<EVTaskList>();
+        for (int i = getSubScheduleCount(); i-- > 0;) {
+            EVTaskList subList = getSubSchedule(i);
+            boolean needsRemove = false;
+
+            if (subList instanceof EVTaskListRollup) {
+                EVTaskListRollup r = (EVTaskListRollup) subList;
+                r.applyTaskListFilterImpl(f);
+                if (r.getSubScheduleCount() == 0)
+                    needsRemove = true;
+            } else {
+                String subTaskListID = subList.getID();
+                if (!f.include(subTaskListID))
+                    needsRemove = true;
+            }
+
+            if (needsRemove) {
+                madeChange = true;
+                filtered.add(subList);
+                getTaskRoot().remove(subList.getTaskRoot());
+                finishRemovingTask(i);
+                fireTreeNodesRemoved(this, getTaskRoot().getPath(),
+                    new int[] { i }, new Object[] { subList.getTaskRoot() });
+            }
+        }
+
+        // restore previously filtered items if they match the new filter
+        if (this.filteredTaskLists != null) {
+            for (EVTaskList previouslyFiltered : new ArrayList<EVTaskList>(
+                    filteredTaskLists)) {
+                boolean needsAdd = false;
+
+                if (previouslyFiltered instanceof EVTaskListRollup) {
+                    EVTaskListRollup r = (EVTaskListRollup) previouslyFiltered;
+                    r.applyTaskListFilterImpl(f);
+                    if (r.getSubScheduleCount() > 0)
+                        needsAdd = true;
+                } else {
+                    String subTaskListID = previouslyFiltered.getID();
+                    if (f.include(subTaskListID))
+                        needsAdd = true;
+                }
+
+                if (needsAdd) {
+                    madeChange = true;
+                    filteredTaskLists.remove(previouslyFiltered);
+                    EVTask newTask = previouslyFiltered.getTaskRoot();
+                    if (getTaskRoot().getChildIndex(newTask) == -1) {
+                        int pos = getInsertionPosFromUnfilteredOrder(
+                            evTaskLists, previouslyFiltered.getID());
+                        addSubTaskList(previouslyFiltered, pos);
+                        fireTreeNodesInserted(this, getTaskRoot().getPath(),
+                            new int[] { pos }, new Object[] { newTask });
+                    }
+                }
+            }
+            filtered.addAll(this.filteredTaskLists);
+        }
+
+        if (!filtered.isEmpty()) {
+            filteredTaskLists = filtered;
+        } else {
+            filteredTaskLists = null;
+            unfilteredOrder = null;
+        }
+
+        return madeChange;
+    }
+
+    private int getInsertionPosFromUnfilteredOrder(List<EVTaskList> list,
+            String taskListID) {
+        int listSize = list.size();
+        if (unfilteredOrder == null)
+            return listSize;
+
+        int orderPos = unfilteredOrder.indexOf(taskListID);
+        if (orderPos == -1)
+            return listSize;
+
+        for (int i = 0; i < listSize; i++) {
+            String oneID = list.get(i).getID();
+            int onePos = unfilteredOrder.indexOf(oneID);
+            if (onePos > orderPos)
+                return i;
+        }
+        return listSize;
     }
 
     public void recalcLeavesOnly() {

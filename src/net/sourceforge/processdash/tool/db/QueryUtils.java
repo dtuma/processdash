@@ -49,6 +49,8 @@ public class QueryUtils {
 
     public static final String IS_CURRENT_CRITERIA = "##Is Current";
 
+    public static final String GROUP_CRITERIA = "##User Group";
+
     public static final String IMPOSSIBLE_CONDITION = " 1 = 0 ";
 
 
@@ -180,6 +182,8 @@ public class QueryUtils {
                 addLabelCriteriaToHql(query, entityName, splitArgs, criteria);
             } else if (IS_CURRENT_CRITERIA.equals(key)) {
                 addIsCurrentCriteriaToHql(query, entityName);
+            } else if (GROUP_CRITERIA.equals(key)) {
+                addGroupCriteriaFilter(queryArgs, criteria);
             } else if (key != null) {
                 logger.warning("Unrecognized query criteria " + key);
             }
@@ -288,6 +292,29 @@ public class QueryUtils {
     private static void addIsCurrentCriteriaToHql(StringBuilder query,
             String entityName) {
         query.append(entityName).append(".versionInfo.current = 1 and ");
+    }
+
+    private static void addGroupCriteriaFilter(List queryArgs, List criteria) {
+        Integer groupKey = extractInteger(criteria);
+        if (groupKey == null)
+            // a null group key means that no filtering is needed
+            return;
+
+        for (Object arg : queryArgs) {
+            // if a group filter spec has already been added to the args, we
+            // don't need to add it again.
+            if (arg instanceof GroupFilterSpec)
+                return;
+        }
+
+        queryArgs.add(new GroupFilterSpec(groupKey));
+    }
+
+    private static class GroupFilterSpec extends FilterSpec {
+        GroupFilterSpec(Integer groupKey) {
+            super("dataBlock");
+            setParam("dataBlockGroupKey", groupKey);
+        }
     }
 
     private static String asString(Object o) {

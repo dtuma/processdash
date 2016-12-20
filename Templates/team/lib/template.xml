@@ -52,9 +52,10 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-master"
         title="Project Task &amp; Schedule"/>
-    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-master"
+    <html ID="evCharts"
+        href="reports/ev.class?tl=auto&amp;groupFilterAuto&amp;charts&amp;PID-master"
         title="    Earned Value Charts"/>
-    <html ID="week" href="reports/week.class?tl=auto&amp;PID-master"
+    <html ID="week" href="reports/week.class?tl=auto&amp;groupFilterAuto&amp;PID-master"
         title="    Weekly Earned Value Report"/>
 
     <html ID="wbsTD" href="PID/setup/openWBS.shtm?trigger&amp;master"
@@ -148,9 +149,10 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-team"
         title="Project Task &amp; Schedule"/>
-    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-team"
+    <html ID="evCharts"
+        href="reports/ev.class?tl=auto&amp;groupFilterAuto&amp;charts&amp;PID-team"
         title="    Earned Value Charts"/>
-    <html ID="week" href="reports/week.class?tl=auto&amp;PID-team"
+    <html ID="week" href="reports/week.class?tl=auto&amp;groupFilterAuto&amp;PID-team"
         title="    Weekly Earned Value Report"/>
 
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;forteam"

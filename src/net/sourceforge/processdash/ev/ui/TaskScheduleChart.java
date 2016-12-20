@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -79,6 +79,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.ApplicationEventSource;
@@ -94,6 +96,7 @@ import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceEx
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -120,6 +123,7 @@ public class TaskScheduleChart extends JFrame
     WidgetListModel widgetList;
     JPanel displayArea;
     CardLayout cardLayout;
+    GroupChangeListener groupChangeHandler;
     JComponent configurationButton;
     ConfigurationButtonToggler configurationButtonToggler;
     ConfigurationDialog configurationDialog;
@@ -130,7 +134,7 @@ public class TaskScheduleChart extends JFrame
     static Logger logger = Logger.getLogger(TaskScheduleChart.class.getName());
 
     public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter,
-            DashboardContext ctx) {
+            GroupFilterMenu groupMenu, DashboardContext ctx) {
         super(formatWindowTitle(tl, filter));
         DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -165,6 +169,9 @@ public class TaskScheduleChart extends JFrame
             createChooserComponent(widgets), displayArea);
         sp.setOneTouchExpandable(true);
         getContentPane().add(sp);
+
+        if (isRollup && groupMenu != null)
+            groupChangeHandler = new GroupChangeListener(groupMenu);
 
         createConfigurationButton();
 
@@ -268,6 +275,26 @@ public class TaskScheduleChart extends JFrame
                 fallbackItem = i;
         }
         return fallbackItem;
+    }
+
+    private class GroupChangeListener implements TableModelListener {
+
+        private GroupFilterMenu groupMenu;
+
+        private String windowBaseTitle;
+
+        GroupChangeListener(GroupFilterMenu groupMenu) {
+            this.groupMenu = groupMenu;
+            this.windowBaseTitle = getTitle();
+            schedule.addTableModelListener(this);
+            tableChanged(null);
+        }
+
+        @Override
+        public void tableChanged(TableModelEvent e) {
+            setTitle(windowBaseTitle + " - " + groupMenu.getSelectedItem());
+        }
+
     }
 
     private void createConfigurationButton() {
@@ -612,6 +639,8 @@ public class TaskScheduleChart extends JFrame
                 ((Disposable) c).dispose();
         }
         widgetList.dispose();
+        if (groupChangeHandler != null)
+            schedule.removeTableModelListener(groupChangeHandler);
         taskList.removeRecalcListener(this);
         if (ctx instanceof ApplicationEventSource)
             ((ApplicationEventSource) ctx).removeApplicationEventListener(this);

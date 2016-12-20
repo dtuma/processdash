@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,6 +76,8 @@ public class MenuHandler {
         JMenuBar configMenus = pdash.getConfigurationMenus();
         for (int i = 0; i < configMenus.getMenuCount();  i++) {
             JMenu menu = configMenus.getMenu(i);
+            if (menu == null)
+                continue;
             DuplicatedMenu duplicate;
             if (i == 0)
                 duplicate = new DuplicatedMenu(pdash.getTitle(), menu);

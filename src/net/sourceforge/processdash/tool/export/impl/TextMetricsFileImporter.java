@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2013 Tuma Solutions, LLC
+// Copyright (C) 2005-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -90,8 +90,10 @@ public class TextMetricsFileImporter implements Runnable {
                     break;
 
                 commaPos = line.indexOf(',');
-                if (commaPos == -1)
+                if (commaPos == -1) {
+                    in.close();
                     return; // this isn't a valid dump file.
+                }
 
                 name = line.substring(1, commaPos);
                 name = EscapeString.unescape(name, '\\', ",", "c");
@@ -206,7 +208,7 @@ public class TextMetricsFileImporter implements Runnable {
         try {
             String rawXml = StringData.unescapeString(value);
             Element xml = XMLUtils.parse(rawXml).getDocumentElement();
-            ImportedEVManager.getInstance().importTaskList(uniqueKey, xml);
+            ImportedEVManager.getInstance().importTaskList(uniqueKey, xml, null);
         } catch (Exception e) {
             System.err.println("Cannot parse imported XML schedule for key '"
                     + name + "' - discarding");

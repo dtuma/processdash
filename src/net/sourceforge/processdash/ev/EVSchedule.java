@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,6 +73,7 @@ public class EVSchedule implements TableModel {
     public static final Date A_LONG_TIME_AGO = new Date(0);
     static Resources resources = Resources.getDashBundle("EV");
     static final String END_TOKEN = resources.getString("Schedule.End_Token");
+    static final String SCHEDULE_TAG = "schedule";
 
     public interface Listener {
         public void evScheduleChanged();
@@ -915,7 +916,11 @@ public class EVSchedule implements TableModel {
     }
     public synchronized void saveToXML(StringBuffer result, boolean whitespace) {
         String indent = (whitespace ? "  " : "");
-        String newline = (whitespace ? "\n" : "");
+        saveToXML(result, indent);
+    }
+    public synchronized void saveToXML(StringBuffer result, String indent) {
+        String subIndent = (indent.length() > 0 ? "  " + indent : "");
+        String newline = (indent.length() > 0 ? "\n" : "");
         result.append(indent).append("<schedule");
         metrics.saveToXML(result);
         if (directPercentage != 1.0)
@@ -923,11 +928,11 @@ public class EVSchedule implements TableModel {
         result.append(">").append(newline);
         Iterator i = periods.iterator();
         while (i.hasNext()) {
-            result.append(indent).append(indent);
+            result.append(subIndent);
             ((Period) i.next()).saveToXML(result);
             result.append(newline);
         }
-        metrics.saveIntervalsToXML(result, whitespace);
+        metrics.saveIntervalsToXML(result, subIndent);
         result.append(indent).append("</schedule>").append(newline);
     }
 

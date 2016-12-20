@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1691,16 +1691,17 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     public void saveToXML(StringBuffer result) {
-        saveToXML(result, false);
+        saveToXML(result, false, null);
     }
 
-    public void saveToXML(StringBuffer result, boolean whitespace) {
+    public void saveToXML(StringBuffer result, boolean whitespace,
+            EVTaskList scheduleToEmbed) {
         String indent = (whitespace ? "  " : "");
-        saveToXML(result, whitespace, indent, false);
+        saveToXML(result, whitespace, indent, false, scheduleToEmbed);
     }
 
     protected void saveToXML(StringBuffer result, boolean whitespace,
-            String indent, boolean includeNotes) {
+            String indent, boolean includeNotes, EVTaskList scheduleToEmbed) {
         result.append(indent)
             .append("<task name='").append(XMLUtils.escapeAttribute(name))
             .append("' pt='").append(planValue)
@@ -1761,8 +1762,28 @@ public class EVTask implements Cloneable, DataListener {
             if (hasValue(dependencies))
                 for (EVTaskDependency dep : dependencies)
                     dep.getAsXML(result, subIndent, true);
-            for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).saveToXML(result, whitespace, subIndent, includeNotes);
+
+            // if this is a rollup task list, and we have been asked to embed
+            // subschedule information, get the subschedules our children need
+            List<EVTaskList> subschedules = null;
+            if (scheduleToEmbed instanceof EVTaskListRollup) {
+                subschedules = ((EVTaskListRollup) scheduleToEmbed)
+                        .getSubSchedules();
+            }
+
+            // write <task> tags for each of our child nodes.
+            for (int i = 0;   i < getNumChildren();   i++) {
+                EVTaskList childSubschedule = (subschedules == null ? null //
+                        : subschedules.get(i));
+                getChild(i).saveToXML(result, whitespace, subIndent,
+                    includeNotes, childSubschedule);
+            }
+
+            // if this is NOT a rollup task list, but we've been asked to embed
+            // schedule information, write that data now.
+            if (scheduleToEmbed != null && subschedules == null)
+                scheduleToEmbed.getSchedule().saveToXML(result, subIndent);
+
             result.append(indent).append("</task>").append(newline);
         }
     }

@@ -19,11 +19,20 @@
 [DB_Label_Group] = iff(!defined([Filtered_Task_Labels]), null,
     dbLabelFilterGroup([DB_Project_Keys], [Filtered_Task_Labels]));
 
+[DB_User_Group/Name] =
+    lookup("/User_Group/" & [User_Group//Filter] & "//Name");
+[DB_User_Group/Dataset_IDs] =
+    lookup("/User_Group/" & [User_Group//Filter] & "//Dataset_IDs");
+[DB_User_Group] =
+    dbUserFilterGroup([DB_Project_Keys], [DB_User_Group/Dataset_IDs]);
+[User_Group/Privacy_Violation] = ([DB_User_Group] == -99);
+
 
 [DB_Filter_Criteria] = list(
     "##Project in", [DB_Project_Keys],
     "##WBS Element", [DB_WBS_Key],
-    "##Label Group", [DB_Label_Group]
+    "##Label Group", [DB_Label_Group],
+    "##User Group", [DB_User_Group]
     );
 
 

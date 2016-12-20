@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2016 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,11 @@ import java.io.IOException;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -67,9 +72,10 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
         writeFilterIcon(projectRoot, currentFilter);
         if (isIndiv)
             writeHierarchyIconIndiv(projectRoot);
-        else if (useData)
+        else if (useData) {
             writeHierarchyIconData(projectRoot);
-        else
+            writeUserGroupIcon(projectRoot);
+        } else
             writeHierarchyIconFrame(prefix, projectRoot);
 
         out.println("</h2>");
@@ -96,17 +102,14 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
             writeHyperlink("selectLabelFilter", getSnippetParams(false, false));
 
         out.print("<img border=0 src='/Images/filter.png' "
-                + "style='margin-right:2px' width='16' height='23' ");
+                + "style='margin-right:2px; position:relative; top:3px; width:16px; height:23px' ");
         if (!exporting)
             out.print("title='Choose label filter'></a>");
         else
             out.print("title='Filter is in effect'>");
 
         out.print(HTMLUtils.escapeEntities(currentFilter));
-        if (currentFilter.length() > 0)
-            out.print("&nbsp;&nbsp;&nbsp;");
-        else
-            out.print(" ");
+        out.print(" ");
     }
 
     /** Print the icon and text for navigating the hierarchy for an individual
@@ -143,7 +146,7 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
         }
 
         out.print("<img border=0 src='/Images/hier.png' "
-                + "style='margin-right:2px' width='16' height='23' ");
+                + "style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:16px; height:23px' ");
         if (!exporting)
             out.print("title='Drill-down in Hierarchy'></a>");
         else if ("/".equals(pathDisplay))
@@ -178,12 +181,57 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
 
         out.print("<img border=0 src='/Images/hier.png' "
                 + "title='Drill-down in Hierarchy' "
-                + "style='margin-right:2px' width=16 height=23></a>");
+                + "style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:16px; height:23px'></a>");
         if (prefix.equals(projectRoot))
             out.print("/");
         else
             out.print(HTMLUtils.escapeEntities(prefix.substring(projectRoot
                     .length() + 1)));
+    }
+
+    /** Print text and icon for choosing a user group
+     */
+    private void writeUserGroupIcon(String projectRoot) {
+        if (!UserGroupManager.getInstance().isFilteringAvailable())
+            return;
+
+        boolean exporting = isExporting();
+        if (!exporting)
+            writeHyperlink("selectGroupFilter", getSnippetParams(false, false));
+
+        // retrieve information about the filter that is in effect
+        UserFilter f = UserGroupManager.getInstance().getLocalFilter(
+            projectRoot);
+        boolean isPrivacyViolation = f instanceof UserGroupPrivacyBlock;
+
+        // display an icon to represent this group filter
+        out.print("<img border='0' src='/Images/userGroup");
+        if (isPrivacyViolation)
+            out.print("Privacy");
+        else if (f instanceof UserGroupMember)
+            out.print("Member");
+        out.print(".png' ");
+        if (isPrivacyViolation)
+            out.print("title='Group filter blocked to protect data privacy' ");
+        else if (!exporting)
+            out.print("title='Filter to group' ");
+        else if (!UserGroup.isEveryone(f))
+            out.print("title='Group filter is in effect' ");
+        out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:22px; height:22px'>");
+
+        if (!exporting)
+            out.print("</a>");
+
+        // display the name of the filter
+        if (isPrivacyViolation)
+            out.print("<span style='color:#888; font-weight:normal; text-decoration:line-through'>");
+        out.print(HTMLUtils.escapeEntities(f.toString()));
+        if (isPrivacyViolation)
+            out.print("</span>");
+
+        // display form elements to refresh the page as needed
+        out.print("<input type='hidden' name='[DB_User_Group/Name]!'>");
+        out.print("<input type='hidden' name='[User_Group/Privacy_Violation]!'>");
     }
 
 

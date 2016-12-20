@@ -112,6 +112,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
@@ -155,6 +157,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.Milestone;
 import net.sourceforge.processdash.ev.MilestoneList;
@@ -165,6 +168,10 @@ import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -233,6 +240,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             weekReportAction, scheduleOptionsAction, expandAllAction,
             showTimeLogAction, showDefectLogAction, copyTaskInfoAction;
     private List<TSAction> altReportActions;
+    private GroupFilterMenu groupFilterMenu;
 
     protected boolean disableTaskPruning;
 
@@ -802,6 +810,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
         helpMenu.add(usingTaskSchedule);
         result.add(helpMenu);
 
+        // add a group selector, if applicable
+        UserGroupManager groupMgr = UserGroupManager.getInstance();
+        if (isRollup() && groupMgr.isEnabled()) {
+            UserFilter filter = groupMgr.getGlobalFilter();
+            groupFilterMenu = new GroupFilterMenu(filter,
+                    groupMgr.isIndivFilteringSupported());
+            groupFilterMenu.addChangeListener(new GroupFilterHandler(filter));
+
+            result.add(Box.createHorizontalGlue());
+            result.add(groupFilterMenu);
+        }
+
         return result;
     }
 
@@ -817,6 +837,38 @@ public class TaskScheduleDialog implements EVTask.Listener,
         JMenu result = new JMenu(text);
         result.setMnemonic(text.charAt(0));
         return result;
+    }
+
+    private class GroupFilterHandler implements ChangeListener {
+
+        private GroupFilterHandler(UserFilter f) {
+            if (!UserGroup.isEveryone(f))
+                setGroupFilter(f);
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            GroupFilterMenu menu = (GroupFilterMenu) e.getSource();
+            setGroupFilter(menu.getSelectedItem());
+        }
+
+        private void setGroupFilter(UserFilter f) {
+            if (f != null) {
+                EVTaskListRollup rollup = (EVTaskListRollup) model;
+                rollup.applyTaskListFilter(new EVTaskListGroupFilter(f));
+                treeTable.getTree().expandRow(0);
+                recalcAll();
+                enableTaskButtons();
+            }
+        }
+
+    }
+
+    private UserFilter getUserFilter() {
+        if (groupFilterMenu == null)
+            return null;
+        else
+            return groupFilterMenu.getSelectedItem();
     }
 
     private Box newHBox(Component a, Component b) {
@@ -1036,7 +1088,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
 
         public void actionPerformed(ActionEvent e) {
-            showReport(taskListName, null, uri);
+            showReport(taskListName, null, getUserFilter(), uri);
         }
     }
 
@@ -3383,6 +3435,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void saveBaseline() {
+        if (groupFilterMenu != null)
+            groupFilterMenu.setSelectedItem(UserGroup.EVERYONE);
+
         String snapshotName = resources.format(
             "Save_Baseline.Snapshot_Name_FMT", new Date());
         String[] userValues = TaskScheduleSnapshotManager.showSnapEditDialog(
@@ -3423,6 +3478,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
             return;
         }
 
+        if (groupFilterMenu != null)
+            groupFilterMenu.setSelectedItem(UserGroup.EVERYONE);
+
         String activeSnapshotId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
         TaskScheduleSnapshotManager manager = new TaskScheduleSnapshotManager(
                 dash.getData(), model, snapshots, activeSnapshotId);
@@ -3453,7 +3511,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             chartDialog.setVisible(true);
             chartDialog.toFront();
         } else
-            chartDialog = new TaskScheduleChart(model, null, dash);
+            chartDialog = new TaskScheduleChart(model, null, groupFilterMenu,
+                    dash);
     }
 
     public void showFilteredChart() {
@@ -3480,7 +3539,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // filtering is needed;  just display the chart for that schedule.
         EVTaskList subSchedule = findTaskListWithRoot(model, task);
         if (subSchedule != null) {
-            new TaskScheduleChart(subSchedule, null, dash);
+            new TaskScheduleChart(subSchedule, null, groupFilterMenu, dash);
             return;
         }
 
@@ -3495,7 +3554,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // Build an appropriate filter, and use it to launch a chart window
         TaskFilter filter = new TaskFilter(filteredPath.substring(1),
                 getTaskFilterSet(task));
-        new TaskScheduleChart(model, filter, dash);
+        new TaskScheduleChart(model, filter, groupFilterMenu, dash);
     }
 
     private EVTaskList findTaskListWithRoot(EVTaskList tl, EVTask possibleRoot) {
@@ -3547,14 +3606,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
     public static final String WEEK_URL = "//reports/week.class";
     public void showWeekReport() {
         if (saveOrCancel(true))
-            showReport(taskListName, null, WEEK_URL);
+            showReport(taskListName, null, getUserFilter(), WEEK_URL);
     }
 
 
     public static final String REPORT_URL = "//reports/ev.class";
     public void showHTML() {
         if (saveOrCancel(true))
-            showReport(taskListName);
+            showReport(taskListName, getUserFilter());
     }
 
     public void showFilteredHTML() {
@@ -3576,7 +3635,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // The "filtered" node selected was really a sole descendant of the
         // main task list.  We can just display the regular, unfiltered chart.
         if (parent == null) {
-            showReport(taskListName);
+            showReport(taskListName, getUserFilter());
             return;
         }
 
@@ -3585,7 +3644,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         if (isMergedView()) {
             String option = EVReportSettings.MERGED_PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(getMergedPathFilterParam(task));
-            showReport(taskListName, option, REPORT_URL);
+            showReport(taskListName, option, getUserFilter(), REPORT_URL);
             return;
         }
 
@@ -3610,7 +3669,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             option = EVReportSettings.PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(subPath);
         }
-        showReport(subSchedule.getTaskListName(), option, REPORT_URL);
+        showReport(subSchedule.getTaskListName(), option, null, REPORT_URL);
     }
 
     /** Calculate a merged path string to pass to the report logic.
@@ -3646,15 +3705,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
 
-    public static void showReport(String taskListName) {
-        showReport(taskListName, null, REPORT_URL);
+    public static void showReport(String taskListName, UserFilter f) {
+        showReport(taskListName, null, f, REPORT_URL);
     }
 
     public static void showReport(String taskListName, String options,
-            String reportUri) {
+            UserFilter f, String reportUri) {
         String uri = "/" + HTMLUtils.urlEncode(taskListName) + reportUri;
         if (StringUtils.hasValue(options))
             uri = uri + "?" + options;
+        if (f != null)
+            uri = HTMLUtils.appendQuery(uri,
+                EVReportSettings.GROUP_FILTER_PARAM, f.getId());
         Browser.launch(uri);
     }
 

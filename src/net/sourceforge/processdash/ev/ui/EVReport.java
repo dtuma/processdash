@@ -75,6 +75,7 @@ import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.MilestoneList;
@@ -89,6 +90,10 @@ import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
@@ -285,6 +290,12 @@ public class EVReport extends CGIChartBase {
         if (evModel == null)
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
+
+        UserFilter f = settings.getUserGroupFilter();
+        if (f != null && !UserGroup.isEveryone(f)
+                && evModel instanceof EVTaskListRollup)
+            ((EVTaskListRollup) evModel)
+                    .applyTaskListFilter(new EVTaskListGroupFilter(f));
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
@@ -828,7 +839,8 @@ public class EVReport extends CGIChartBase {
         out.print(isSnippet ? "</h2>" : "</h1>");
 
         if (!isSnippet)
-            printFilterInfo(out, taskFilter, exportingToExcel());
+            printFilterInfo(out, taskFilter, settings, isExporting(),
+                exportingToExcel());
 
         if (!exportingToExcel()) {
             writeImageHtml(taskFilter != null);
@@ -1048,37 +1060,73 @@ public class EVReport extends CGIChartBase {
 
 
     public static void printFilterInfo(PrintWriter out, EVTaskFilter filter,
-            boolean textOnly) {
-        if (filter == null)
+            EVReportSettings settings, boolean exporting, boolean textOnly) {
+
+        String labelFilter = (filter == null ? null : filter
+                .getAttribute(EVLabelFilter.LABEL_FILTER_ATTR));
+        String pathFilter = (filter == null ? null : filter
+                .getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR));
+        UserFilter groupFilter = (settings == null ? null : settings
+                .getUserGroupFilter());
+        if (labelFilter == null && pathFilter == null && groupFilter == null)
             return;
 
-        String labelFilter = filter.getAttribute(EVLabelFilter.LABEL_FILTER_ATTR);
-        String pathFilter = filter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
-        if (labelFilter == null && pathFilter == null)
-            return;
-
-        out.print("<h2>");
+        out.print("<h2 style='position:relative; left:-10px'>");
 
         if (labelFilter != null) {
             if (!textOnly)
                 out.print("<img border=0 src='/Images/filter.png' "
-                        + "style='margin-right:2px' "
+                        + "style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
                         + "width='16' height='23' title=\"");
             out.print(resources.getHTML("Report.Filter_Tooltip"));
             out.print(textOnly ? " - " : "\">");
             out.print(HTMLUtils.escapeEntities(labelFilter));
         }
 
-        out.print(" ");
-
         if (pathFilter != null) {
             if (!textOnly)
                 out.print("<img border=0 src='/Images/hier.png' "
-                        + "style='margin-right:2px' "
+                        + "style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
                         + "width='16' height='23' title=\"");
             out.print(resources.getHTML("Report.Filter_Tooltip"));
             out.print(textOnly ? " - " : "\">");
             out.print(HTMLUtils.escapeEntities(pathFilter));
+        }
+
+        if (groupFilter != null) {
+            boolean isPrivacyViolation = groupFilter instanceof UserGroupPrivacyBlock;
+
+            // display an icon to represent this group filter
+            if (!textOnly) {
+                boolean showGroupHyperlink = !exporting
+                        && (settings.getParameters().containsKey(
+                            EVReportSettings.GROUP_FILTER_PARAM) //
+                        || settings.getParameters().containsKey(
+                            EVReportSettings.GROUP_FILTER_AUTO_PARAM));
+                if (showGroupHyperlink)
+                    out.print("<a href='../team/setup/selectGroupFilter'>");
+                out.print("<img border=0 src='/Images/userGroup");
+                if (isPrivacyViolation)
+                    out.print("Privacy");
+                else if (groupFilter instanceof UserGroupMember)
+                    out.print("Member");
+                out.print(".png' ");
+                if (isPrivacyViolation)
+                    out.print("title='Group filter blocked to protect data privacy' ");
+                else if (showGroupHyperlink)
+                    out.print("title='Filter to group' ");
+                out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
+                        + "width='23' height='23'>");
+                if (showGroupHyperlink)
+                    out.print("</a>");
+            }
+
+            // display the name of the filter
+            if (isPrivacyViolation)
+                out.print("<span style='color:#888; font-weight:normal; text-decoration:line-through'>");
+            out.print(HTMLUtils.escapeEntities(groupFilter.toString()));
+            if (isPrivacyViolation)
+                out.print("</span>");
         }
 
         out.println("</h2>");
@@ -1514,7 +1562,7 @@ public class EVReport extends CGIChartBase {
         out.print("<h1>");
         out.print(title);
         out.print("</h1>");
-        printFilterInfo(out, taskFilter, false);
+        printFilterInfo(out, taskFilter, settings, false, false);
 
         EVSchedule s = getEvSchedule(taskFilter);
 

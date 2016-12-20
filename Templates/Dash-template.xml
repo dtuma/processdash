@@ -279,7 +279,7 @@ The author(s) may be contacted at:
   <snippet id="pdash.evReport" version="1.0" category="reports">
     <resources>EV.Report.Snippet</resources>
     <context>EV Project Tag</context>
-    <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto&amp;pathFilterAuto</uri>
+    <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto&amp;pathFilterAuto&amp;groupFilterAuto</uri>
   </snippet>
 
   <snippet id="pdash.ev.cumValueChart" version="1.0" category="ev">
@@ -361,6 +361,12 @@ The author(s) may be contacted at:
     <resources>Analysis.RecentReviews</resources>
     <context>Team Project Root</context>
     <uri>/dash/snippets/recentReviews</uri>
+  </snippet>
+
+  <snippet id="pdash.privacyViolation" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>Database-Driven Rollup Tag</context>
+    <uri>/dash/snippets/privacyViolation</uri>
   </snippet>
 
 

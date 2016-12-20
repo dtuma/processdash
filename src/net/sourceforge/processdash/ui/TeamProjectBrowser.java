@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2015 Tuma Solutions, LLC
+// Copyright (C) 2013-2016 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -36,12 +37,17 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -50,7 +56,10 @@ import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -66,6 +75,8 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
@@ -77,14 +88,27 @@ import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupUtil;
+import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 public class TeamProjectBrowser extends JSplitPane {
+
+    public interface Filter {
+
+        boolean shouldShow(String projectRootPath);
+
+    }
 
     private DashboardContext ctx;
 
@@ -95,6 +119,10 @@ public class TeamProjectBrowser extends JSplitPane {
     private DashHierarchy treeProps;
 
     private JTree tree;
+
+    private JProgressBar filterReloadIndicator;
+
+    private Filter filter;
 
     private DefaultListModel scripts;
 
@@ -124,6 +152,17 @@ public class TeamProjectBrowser extends JSplitPane {
         updateTreeSelectionFromActiveTask();
     }
 
+    public Filter getFilter() {
+        return filter;
+    }
+
+    public void setFilter(Filter filter) {
+        this.filter = filter;
+        reloadHierarchy();
+        updateTreeSelectionFromActiveTask();
+        reloadScripts(getSelectedTreeNode());
+    }
+
     private void buildTree() {
         treeModel = new PropTreeModel(new DefaultMutableTreeNode("root"), null);
         tree = new JTree(treeModel);
@@ -139,7 +178,16 @@ public class TeamProjectBrowser extends JSplitPane {
 
         tree.addTreeSelectionListener(handler);
 
-        setLeftComponent(new JScrollPane(tree));
+        filterReloadIndicator = new JProgressBar();
+        filterReloadIndicator.setIndeterminate(true);
+        filterReloadIndicator.setVisible(false);
+        ToolTipTimingCustomizer.INSTANCE.install(filterReloadIndicator);
+
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.add(new JScrollPane(tree), BorderLayout.CENTER);
+        leftPanel.add(filterReloadIndicator, BorderLayout.SOUTH);
+
+        setLeftComponent(leftPanel);
     }
 
     private void reloadHierarchy() {
@@ -173,6 +221,10 @@ public class TeamProjectBrowser extends JSplitPane {
         String templateId = p.getID();
         boolean isProject = StringUtils.hasValue(templateId);
 
+        if (isProject && filter != null && !filter.shouldShow(node.path())) {
+            return true;
+        }
+
         for (int i = p.getNumChildren(); i-- > 0;) {
             PropertyKey child = p.getChild(i);
             boolean shouldPrune = isProject || pruneForDisplay(hier, child);
@@ -189,7 +241,7 @@ public class TeamProjectBrowser extends JSplitPane {
                 resources.getString("Project"));
             PropertyKey noneFound = addHierChild(hier, projectNode,
                 resources.getString("None_Found"));
-            getOrCreateProp(hier, noneFound).setID("Nonexistent Project");
+            getOrCreateProp(hier, noneFound).setID(NO_PROJECT_TEMPLATE_ID);
         }
     }
 
@@ -213,11 +265,28 @@ public class TeamProjectBrowser extends JSplitPane {
     }
 
     private void setSelectedTreeNode(PropertyKey newNode) {
-        PropertyKey nodeToSelect = treeProps.findClosestKey(newNode.path());
+        PropertyKey nodeToSelect = treeProps.findExistingKey(newNode.path());
+        if (nodeToSelect == null)
+            nodeToSelect = getBestNodeToSelect(newNode);
         PropertyKey currentlySelectedNode = getSelectedTreeNode();
         if (!nodeToSelect.equals(currentlySelectedNode)) {
             Object[] path = treeModel.getPathToKey(treeProps, nodeToSelect);
             handler.changeTreeSelection(path);
+        }
+    }
+
+    private PropertyKey getBestNodeToSelect(PropertyKey newNode) {
+        // if the active task has been filtered out of the tree, find the
+        // closest parent of that target task.
+        PropertyKey node = treeProps.findClosestKey(newNode.path());
+        while (true) {
+            // next, start walking down the tree. If we find a child that is
+            // a leaf, return it. If not, look at its first child and try again.
+            Prop prop = treeProps.pget(node);
+            if (prop.getNumChildren() == 0)
+                return node;
+            else
+                node = prop.getChild(0);
         }
     }
 
@@ -295,6 +364,12 @@ public class TeamProjectBrowser extends JSplitPane {
             return new ScriptID(BrokenDataFileHandler.SHARE_MCF_URL, "",
                     resources.format("Missing_MCF.Title_FMT", pid));
         } else {
+            if (filter != null) {
+                String templateID = treeProps.getID(key);
+                if (NO_PROJECT_TEMPLATE_ID.equals(templateID))
+                    return new ScriptID(SELECT_GROUP_FILTER_URI, "ignored",
+                            resources.getString("None_Matching.Title"));
+            }
             return new ScriptID(getNewProjectCreationUri(), "",
                     resources.getString("New.Title"));
         }
@@ -335,6 +410,8 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         ScriptID id = (ScriptID) scripts.elementAt(selectedIndex);
+        UserFilter f = UserGroupManager.getInstance().getGlobalFilter();
+        UserGroupManager.getInstance().setLocalFilter(id.getDataPath(), f);
         id.display();
 
         if (clearSelection)
@@ -347,10 +424,22 @@ public class TeamProjectBrowser extends JSplitPane {
      * Add team-project-related items to the File menu.
      */
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
+        JMenuBar menuBar = dash.getConfigurationMenus();
+
         if (Settings.isReadWrite()) {
-            JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
+            JMenu fileMenu = menuBar.getMenu(0);
             fileMenu.insert(new NewProjectAction(), 0);
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
+        }
+
+        UserGroupManager groupMgr = UserGroupManager.getInstance();
+        if (groupMgr.isEnabled()) {
+            GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
+                    UserGroup.EVERYONE, groupMgr.isIndivFilteringSupported());
+            groupFilterMenu.addChangeListener(handler);
+
+            menuBar.add(Box.createHorizontalGlue());
+            menuBar.add(groupFilterMenu);
         }
     }
 
@@ -587,6 +676,16 @@ public class TeamProjectBrowser extends JSplitPane {
     }
 
 
+    public Filter buildGroupFilter(UserFilter filter) {
+        Set<String> projectIDsToInclude = UserGroupUtil.getProjectIDsForFilter(
+            filter, ctx);
+        if (projectIDsToInclude == null)
+            return null;
+        else
+            return new TeamProjectGroupFilter(projectIDsToInclude);
+    }
+
+
     private class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
 
         public ProjectTreeCellRenderer() {
@@ -602,7 +701,7 @@ public class TeamProjectBrowser extends JSplitPane {
      * selected node in the tree and the currently active dashboard task.
      */
     private class ExternalEventHandler implements PropertyChangeListener,
-            DashHierarchy.Listener, TreeSelectionListener,
+            DashHierarchy.Listener, TreeSelectionListener, ChangeListener,
             ApplicationEventListener {
 
         boolean currentlyChangingActiveTask, currentlyChangingTreeSelection;
@@ -657,6 +756,16 @@ public class TeamProjectBrowser extends JSplitPane {
             } else if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
                 saveSplitterLocationToSettings();
                 saveActiveTaskPreference();
+            }
+        }
+
+        /** respond to a change in the global group filter */
+        public void stateChanged(ChangeEvent e) {
+            GroupFilterMenu menu = (GroupFilterMenu) e.getSource();
+            UserFilter selection = menu.getSelectedItem();
+            if (selection != null) {
+                UserGroupManager.getInstance().setGlobalFilter(selection);
+                new GroupFilterLoader(selection).execute();
             }
         }
 
@@ -910,5 +1019,94 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
     }
+
+    private GroupFilterLoader currentGroupFilterLoader;
+
+    private class GroupFilterLoader extends SwingWorker<Filter, Object>
+            implements ActionListener {
+
+        private UserFilter userFilter;
+
+        public GroupFilterLoader(UserFilter userFilter) {
+            this.userFilter = userFilter;
+            currentGroupFilterLoader = this;
+            filterReloadIndicator.setToolTipText(resources.format(
+                "Filter_Wait_Tooltip_FMT", userFilter.toString()));
+
+            // most filter calculations will occur very quickly (the exception
+            // being the first calculation in a large team dashboard, which
+            // must wait for all projects to load). If the calc takes longer
+            // than 50ms, display a progress bar.
+            Timer t = new Timer(50, this);
+            t.setRepeats(false);
+            t.start();
+        }
+
+        @Override
+        protected Filter doInBackground() throws Exception {
+            return buildGroupFilter(userFilter);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (currentGroupFilterLoader == this)
+                filterReloadIndicator.setVisible(true);
+        }
+
+        @Override
+        protected void done() {
+            if (currentGroupFilterLoader == this) {
+                try {
+                    currentGroupFilterLoader = null;
+                    filterReloadIndicator.setToolTipText(null);
+                    filterReloadIndicator.setVisible(false);
+                    setFilter(get());
+                } catch (Exception e) {
+                }
+            }
+        }
+
+    }
+
+    private class TeamProjectGroupFilter implements Filter {
+
+        private Set<String> projectIDs;
+
+        TeamProjectGroupFilter(Set<String> projectIDs) {
+            this.projectIDs = projectIDs;
+        }
+
+        @Override
+        public boolean shouldShow(String projectRootPath) {
+            // return true if this project's ID is in the list
+            String dataName = DataRepository.createDataName(projectRootPath,
+                TeamDataConstants.PROJECT_ID);
+            SimpleData sd = ctx.getData().getSimpleValue(dataName);
+            if (sd != null && projectIDs.contains(sd.format()))
+                return true;
+
+            // if this is a master project, return true if any of its
+            // subprojects are in the list
+            dataName = DataRepository.createDataName(projectRootPath,
+                "Subproject_WBS_ID_List");
+            ListData l = ListData.asListData(ctx.getData().getValue(dataName));
+            if (l != null) {
+                for (int i = l.size(); i-- > 0;) {
+                    String oneID = l.get(i).toString();
+                    if (projectIDs.contains(oneID))
+                        return true;
+                }
+            }
+
+            // this project does not appear to be in the list.
+            return false;
+        }
+
+    }
+
+
+    private static final String NO_PROJECT_TEMPLATE_ID = "Nonexistent Project";
+
+    private static final String SELECT_GROUP_FILTER_URI = "/control/showGroupFilterSelector?trigger";
 
 }
