@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,19 +27,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class ExtensionManager {
 
@@ -53,7 +53,7 @@ public class ExtensionManager {
     private static final Logger logger = Logger
             .getLogger(ExtensionManager.class.getName());
 
-    private static Map extensionXmlDocs = new Hashtable();
+    private static Map extensionXmlDocs = new LinkedHashMap();
 
     private static class ExtensionData {
         String filename;
