@@ -62,6 +62,17 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         loadRelations(xml);
     }
 
+    PermissionSpec(String id) {
+        this.id = id;
+        this.resources = Resources
+                .getDashBundle("Permissions.Unrecognized_Permission");
+        this.displayName = resources.getString("Display_Name");
+        this.permissionClass = UnrecognizedPermission.class;
+        this.defaultParams = Collections.EMPTY_MAP;
+        this.impliedBy = this.implies = Collections.EMPTY_SET;
+        this.ordinal = -1;
+    }
+
     private void loadID(Element xml) {
         // read the ID of this permission
         this.id = xml.getAttribute("id");
@@ -127,8 +138,9 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     private void loadRelations(Element xml) {
         // get a list of other permissions that we are implied by
-        this.impliedBy = Collections
-                .unmodifiableSet(getTagValues(xml, "impliedBy"));
+        Set<String> impliedBy = getTagValues(xml, "parent");
+        impliedBy.addAll(getTagValues(xml, "impliedBy"));
+        this.impliedBy = Collections.unmodifiableSet(impliedBy);
 
         // get a list of other permissions that this permission implies
         this.implies = Collections
@@ -157,6 +169,10 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         return id;
     }
 
+    public Resources getResources() {
+        return resources;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -175,6 +191,17 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     public Set<String> getImplies() {
         return implies;
+    }
+
+    public Permission createPermission(boolean inactive,
+            Map<String, String> params) {
+        try {
+            Permission result = (Permission) getPermissionClass().newInstance();
+            result.init(this, inactive, params);
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
