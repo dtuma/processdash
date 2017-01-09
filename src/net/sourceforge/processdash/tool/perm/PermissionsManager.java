@@ -50,6 +50,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class PermissionsManager {
@@ -80,6 +81,12 @@ public class PermissionsManager {
 
     private Map<String, Role> roles;
 
+    private File usersFile;
+
+    private boolean usersDirty;
+
+    private Map<String, User> users;
+
     private PermissionsManager() {}
 
 
@@ -96,6 +103,10 @@ public class PermissionsManager {
         // load the roles for this dashboard, and the permissions they map to
         this.rolesFile = new File(storageDir, "roles.dat");
         readRoles();
+
+        // load the users for this dashboard, and the roles they map to
+        this.usersFile = new File(storageDir, "users.dat");
+        readUsers();
     }
 
 
@@ -110,7 +121,10 @@ public class PermissionsManager {
         if (rolesDirty)
             saveRoles();
 
-        return !rolesDirty;
+        if (usersDirty)
+            saveUsers();
+
+        return !rolesDirty && !usersDirty;
     }
 
 
@@ -193,6 +207,56 @@ public class PermissionsManager {
     }
 
 
+    /**
+     * @return a list of all users known to this dataset
+     */
+    public List<User> getAllUsers() {
+        return new ArrayList<User>(this.users.values());
+    }
+
+
+    /**
+     * Find the user that has a particular username.
+     * 
+     * @param username
+     *            the username of a user
+     * @return the user with the given username, or null if no such user can be
+     *         found
+     */
+    public User getUserByUsername(String username) {
+        return users.get(username.toLowerCase());
+    }
+
+
+    /**
+     * Make changes to the users in this dataset.
+     * 
+     * @param usersToSave
+     *            a list of new or changed users
+     * @param usersToDelete
+     *            a list of existing users that should be deleted
+     */
+    public void alterUsers(List<User> usersToSave, List<User> usersToDelete) {
+        // delete users as requested
+        for (User u : usersToDelete) {
+            if (users.remove(u.getUsernameLC()) != null)
+                usersDirty = true;
+        }
+
+        // save new and changed users as requested
+        for (User u : usersToSave) {
+            String id = u.getUsernameLC();
+            if (StringUtils.hasValue(id)) {
+                users.put(id, u);
+                usersDirty = true;
+            }
+        }
+
+        // save the changes
+        saveUsers();
+    }
+
+
 
     /**
      * Scan extension points and load the permission specs they declare.
@@ -267,8 +331,9 @@ public class PermissionsManager {
             // no file present? create a single, standard role
             PermissionSpec spec = specs.get(ALL_PERMISSION_ID);
             Permission p = spec.createPermission(false, null);
-            Role r = new Role("r.0", resources.getString("Standard_User"),
-                    false, Collections.singletonList(p));
+            String standardRoleName = resources.getString("Standard_User");
+            Role r = new Role(STANDARD_ROLE_ID, standardRoleName, false,
+                    Collections.singletonList(p));
             roles.put(r.getId(), r);
         }
 
@@ -419,8 +484,138 @@ public class PermissionsManager {
     }
 
 
+    /**
+     * Read the users that are defined in this dataset.
+     */
+    private void readUsers() throws IOException {
+        Map users = new TreeMap();
+        if (usersFile.isFile()) {
+            try {
+                // open and parse the users XML file
+                InputStream in = new BufferedInputStream(
+                        new FileInputStream(usersFile));
+                Element xml = XMLUtils.parse(in).getDocumentElement();
 
-    private static final String ALL_PERMISSION_ID = "pdash.all";
+                // find and parse the <user> tags in the document
+                NodeList nl = xml.getElementsByTagName(USER_TAG);
+                for (int i = 0; i < nl.getLength(); i++) {
+                    User u = readUser((Element) nl.item(i));
+                    users.put(u.getUsernameLC(), u);
+                }
+            } catch (IOException ioe) {
+                throw ioe;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+
+        } else {
+            // no file present? create a catch-all user definition
+            String catchAllName = resources.getString("All_Other_Users");
+            Role standardRole = roles.get(STANDARD_ROLE_ID);
+            User u = new User(catchAllName, CATCH_ALL_USER_ID, false,
+                    standardRole == null ? Collections.EMPTY_LIST
+                            : Collections.singletonList(standardRole));
+            users.put(u.getUsernameLC(), u);
+        }
+
+        this.users = Collections.synchronizedMap(users);
+        this.usersDirty = false;
+    }
+
+
+    /**
+     * Save in-memory user information to disk.
+     */
+    private void saveUsers() {
+        try {
+            // open a file to save the users
+            OutputStream out = new BufferedOutputStream(
+                    new RobustFileOutputStream(usersFile));
+
+            // start an XML document
+            XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+            xml.setOutput(out, "UTF-8");
+            xml.startDocument("UTF-8", null);
+            xml.startTag(null, USERS_TAG);
+
+            // write XML for each user
+            List<User> users = new ArrayList(this.users.values());
+            for (User u : users) {
+                writeUser(xml, u);
+            }
+
+            // end the document and close the file
+            xml.endTag(null, USERS_TAG);
+            xml.endDocument();
+            out.close();
+
+            this.usersDirty = false;
+        } catch (IOException ioe) {
+            logger.log(Level.WARNING, "Could not save users to " + usersFile,
+                ioe);
+        }
+    }
+
+
+    /**
+     * Read a single user from an XML document.
+     */
+    private User readUser(Element xml) {
+        // get the attributes for the user
+        String name = xml.getAttribute(NAME_ATTR);
+        String username = xml.getAttribute(ID_ATTR);
+        boolean inactive = "true".equals(xml.getAttribute(INACTIVE_ATTR));
+
+        // read the list of roles assigned to the user
+        NodeList nl = xml.getElementsByTagName(ROLE_TAG);
+        List<String> roleIDs = new ArrayList<String>(nl.getLength());
+        for (int i = 0; i < nl.getLength(); i++) {
+            Element roleTag = (Element) nl.item(i);
+            String roleID = roleTag.getAttribute(ID_ATTR);
+            if (roles.containsKey(roleID))
+                roleIDs.add(roleID);
+        }
+
+        // create the user object and return it
+        return new User(name, username, inactive, roleIDs);
+    }
+
+
+    /**
+     * Write a single user to XML
+     */
+    private void writeUser(XmlSerializer xml, User u) throws IOException {
+        // start a <user> tag
+        xml.startTag(null, USER_TAG);
+
+        // write attributes for the user
+        xml.attribute(null, NAME_ATTR, u.getName());
+        xml.attribute(null, ID_ATTR, u.getUsername());
+        if (u.isInactive())
+            xml.attribute(null, INACTIVE_ATTR, "true");
+
+        // write the roles that have been assigned to the user
+        for (String id : u.getRoleIDs()) {
+            xml.startTag(null, ROLE_TAG);
+            xml.attribute(null, ID_ATTR, id);
+            xml.endTag(null, ROLE_TAG);
+        }
+
+        // end the <user> tag
+        xml.endTag(null, USER_TAG);
+    }
+
+
+
+    public static final String ALL_PERMISSION_ID = "pdash.all";
+
+    public static final String CATCH_ALL_USER_ID = "*";
+
+    private static final String STANDARD_ROLE_ID = "r.0";
+
+    private static final String USERS_TAG = "users";
+
+    private static final String USER_TAG = "user";
 
     private static final String ROLES_TAG = "roles";
 
