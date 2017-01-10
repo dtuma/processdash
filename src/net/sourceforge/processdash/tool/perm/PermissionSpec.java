@@ -204,6 +204,17 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         }
     }
 
+    public Permission createChildPermission(Permission parent) {
+        try {
+            Permission result = (Permission) getPermissionClass().newInstance();
+            Map<String, String> params = result.getChildParams(parent);
+            result.init(this, parent.isInactive(), params);
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
     public String toString() {
         return getDisplayName();

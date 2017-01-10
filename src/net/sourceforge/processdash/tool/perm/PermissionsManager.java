@@ -33,9 +33,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -254,6 +256,44 @@ public class PermissionsManager {
 
         // save the changes
         saveUsers();
+    }
+
+
+    /**
+     * Retrieve the permissions that have been granted to a particular user.
+     * 
+     * @param user
+     *            a user
+     * @param deep
+     *            false to return explicitly granted permissions; true to return
+     *            all of the transitively implied permissions as well
+     * @return a list of permissions granted to the given user
+     */
+    public List<Permission> getPermissionsForUser(User user, boolean deep) {
+        // iterate over the roles for this user, and list granted permissions
+        Set<Permission> result = new LinkedHashSet<Permission>();
+        for (Role r : user.getRoles()) {
+            if (!r.isInactive()) {
+                for (Permission p : r.getPermissions()) {
+                    if (!p.isInactive()) {
+                        if (result.add(p)) {
+                            if (deep)
+                                enumerateImpliedPermissions(result, p);
+                        }
+                    }
+                }
+            }
+        }
+        return new ArrayList<Permission>(result);
+    }
+
+    private void enumerateImpliedPermissions(Set<Permission> result,
+            Permission parent) {
+        for (PermissionSpec childSpec : getChildSpecsFor(parent.getSpec())) {
+            Permission childPerm = childSpec.createChildPermission(parent);
+            if (result.add(childPerm))
+                enumerateImpliedPermissions(result, childPerm);
+        }
     }
 
 

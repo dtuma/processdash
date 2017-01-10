@@ -72,13 +72,40 @@ public class Permission {
         return params;
     }
 
+    protected Map<String, String> getDefaultParams() {
+        return Collections.EMPTY_MAP;
+    }
+
+    protected Map<String, String> getChildParams(Permission parent) {
+        return getDefaultParams();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj != null && obj.getClass().equals(this.getClass())) {
+            Permission that = (Permission) obj;
+            return this.spec.getId().equals(that.spec.getId())
+                    && this.inactive == that.inactive
+                    && this.params.equals(that.params);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int result = spec.getId().hashCode();
+        result = result * 41 ^ params.hashCode();
+        if (inactive)
+            result++;
+        return result;
+    }
+
     @Override
     public String toString() {
         return spec.getDisplayName();
-    }
-
-    protected Map<String, String> getDefaultParams() {
-        return Collections.EMPTY_MAP;
     }
 
 }
