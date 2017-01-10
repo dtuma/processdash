@@ -305,6 +305,14 @@ public class PermissionsManager {
         Map result = new HashMap();
         for (Element xml : ExtensionManager
                 .getXmlConfigurationElements(PERMISSION_TAG)) {
+
+            // only consider <permission> tags that are direct children of the
+            // enclosing document root tag. (This avoids <permission> tags that
+            // appear within a <standardRoles> definition.)
+            if (xml.getParentNode() != xml.getOwnerDocument()
+                    .getDocumentElement())
+                continue;
+
             try {
                 PermissionSpec oneSpec = new PermissionSpec(xml);
 
@@ -350,17 +358,12 @@ public class PermissionsManager {
         Map roles = new TreeMap();
         if (rolesFile.isFile()) {
             try {
-                // open and parse the roles XML file
+                // open, parse, and load the roles XML file
                 InputStream in = new BufferedInputStream(
                         new FileInputStream(rolesFile));
                 Element xml = XMLUtils.parse(in).getDocumentElement();
+                readRolesFromXml(roles, xml);
 
-                // find and parse the <role> tags in the document
-                NodeList nl = xml.getElementsByTagName(ROLE_TAG);
-                for (int i = 0; i < nl.getLength(); i++) {
-                    Role r = readRole((Element) nl.item(i));
-                    roles.put(r.getId(), r);
-                }
             } catch (IOException ioe) {
                 throw ioe;
             } catch (Exception e) {
@@ -368,17 +371,23 @@ public class PermissionsManager {
             }
 
         } else {
-            // no file present? create a single, standard role
-            PermissionSpec spec = specs.get(ALL_PERMISSION_ID);
-            Permission p = spec.createPermission(false, null);
-            String standardRoleName = resources.getString("Standard_User");
-            Role r = new Role(STANDARD_ROLE_ID, standardRoleName, false,
-                    Collections.singletonList(p));
-            roles.put(r.getId(), r);
+            // no file present? read default roles from extension points
+            for (Element xml : ExtensionManager
+                    .getXmlConfigurationElements(STANDARD_ROLES_TAG))
+                readRolesFromXml(roles, xml);
         }
 
         this.roles = Collections.synchronizedMap(roles);
         this.rolesDirty = false;
+    }
+
+    private void readRolesFromXml(Map roles, Element xml) {
+        // find and parse the <role> tags in the document
+        NodeList nl = xml.getElementsByTagName(ROLE_TAG);
+        for (int i = 0; i < nl.getLength(); i++) {
+            Role r = readRole((Element) nl.item(i));
+            roles.put(r.getId(), r);
+        }
     }
 
 
@@ -423,6 +432,8 @@ public class PermissionsManager {
         // read the attributes for the role
         String id = xml.getAttribute(ID_ATTR);
         String name = xml.getAttribute(NAME_ATTR);
+        if (name.startsWith("${"))
+            name = resources.interpolate(name);
         boolean inactive = "true".equals(xml.getAttribute(INACTIVE_ATTR));
 
         // read the list of permissions granted by the role
@@ -551,10 +562,8 @@ public class PermissionsManager {
         } else {
             // no file present? create a catch-all user definition
             String catchAllName = resources.getString("All_Other_Users");
-            Role standardRole = roles.get(STANDARD_ROLE_ID);
             User u = new User(catchAllName, CATCH_ALL_USER_ID, false,
-                    standardRole == null ? Collections.EMPTY_LIST
-                            : Collections.singletonList(standardRole));
+                    Collections.singletonList(STANDARD_ROLE_ID));
             users.put(u.getUsernameLC(), u);
         }
 
@@ -647,11 +656,13 @@ public class PermissionsManager {
 
 
 
+    public static final String STANDARD_ROLE_ID = "r.standard";
+
     public static final String ALL_PERMISSION_ID = "pdash.all";
 
     public static final String CATCH_ALL_USER_ID = "*";
 
-    private static final String STANDARD_ROLE_ID = "r.0";
+    private static final String STANDARD_ROLES_TAG = "standardRoles";
 
     private static final String USERS_TAG = "users";
 

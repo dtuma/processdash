@@ -68,6 +68,12 @@ The author(s) may be contacted at:
 
   <!-- definitions for permissions that are provided by the dashboard -->
 
+  <standardRoles>
+    <role id="r.standard" name="${Standard_User}">
+      <permission id="pdash.all" />
+    </role>
+  </standardRoles>
+
   <permission id="pdash.all">
     <resources>Permissions.All_Permission</resources>
   </permission>
