@@ -120,7 +120,8 @@ public class HttpAuthenticator extends Authenticator {
             return null;
 
         // only handle Data Bridge requests (no support for non-PDES servers)
-        if (getRequestingURL().toString().indexOf("/DataBridge/") == -1)
+        if (getRequestingURL().toString().indexOf("/DataBridge/") == -1
+                && getRequestingURL().toString().indexOf("/api/v1/") == -1)
             return null;
 
         // find out what state we are presently in.
@@ -293,9 +294,11 @@ public class HttpAuthenticator extends Authenticator {
 
     private String getBaseURL() {
         String result = getEffectiveURL();
-        int bridgePos = result.indexOf("DataBridge");
-        if (bridgePos != -1)
-            result = result.substring(0, bridgePos);
+        int baseEndPos = result.indexOf("DataBridge");
+        if (baseEndPos == -1)
+            baseEndPos = result.indexOf("api/v1");
+        if (baseEndPos != -1)
+            result = result.substring(0, baseEndPos);
         return result;
     }
 
