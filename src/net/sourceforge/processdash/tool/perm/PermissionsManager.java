@@ -29,10 +29,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +44,28 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class PermissionsManager {
 
@@ -77,6 +89,10 @@ public class PermissionsManager {
 
     private Map<String, PermissionSpec> specs;
 
+    private WorkingDirectory workingDir;
+
+    private String bridgedUrl;
+
     private File rolesFile;
 
     private boolean rolesDirty;
@@ -99,8 +115,12 @@ public class PermissionsManager {
         this.specs = Collections.unmodifiableMap(loadPermissionSpecs());
 
         // get the directory where permission-based files are stored
-        File storageDir = ((ProcessDashboard) ctx).getWorkingDirectory()
-                .getDirectory();
+        workingDir = ((ProcessDashboard) ctx).getWorkingDirectory();
+        File storageDir = workingDir.getDirectory();
+
+        // if we are using a bridged working directory, store the URL
+        if (workingDir instanceof BridgedWorkingDirectory)
+            bridgedUrl = workingDir.getDescription();
 
         // load the roles for this dashboard, and the permissions they map to
         this.rolesFile = new File(storageDir, "roles.dat");
@@ -109,6 +129,7 @@ public class PermissionsManager {
         // load the users for this dashboard, and the roles they map to
         this.usersFile = new File(storageDir, "users.dat");
         readUsers();
+        updateExternalUsers();
     }
 
 
@@ -256,6 +277,19 @@ public class PermissionsManager {
 
         // save the changes
         saveUsers();
+    }
+
+
+    /**
+     * Update our user list based on externally available data.
+     */
+    public void updateExternalUsers() {
+        try {
+            if (Settings.isTeamMode() && bridgedUrl != null)
+                updateBridgedUsers();
+        } catch (Exception e) {
+            logger.log(Level.FINE, "Unable to update bridged users", e);
+        }
     }
 
 
@@ -598,10 +632,18 @@ public class PermissionsManager {
             xml.endDocument();
             out.close();
 
+            // flush data so the PDES can update server-side permissions
+            if (bridgedUrl != null)
+                workingDir.flushData();
+
             this.usersDirty = false;
+
         } catch (IOException ioe) {
             logger.log(Level.WARNING, "Could not save users to " + usersFile,
                 ioe);
+        } catch (LockFailureException lfe) {
+            logger.log(Level.WARNING, "Could not flush user data to server",
+                lfe);
         }
     }
 
@@ -655,6 +697,138 @@ public class PermissionsManager {
     }
 
 
+    /**
+     * Contact the PDES to retrieve a list of users for this dataset, and update
+     * our user list to match.
+     */
+    private void updateBridgedUsers() throws IOException {
+        // if we have local changes that the server doesn't know about, make
+        // certain to save them before proceeding. Otherwise, the logic below
+        // will clobber local changes with stale data from the server.
+        if (usersDirty)
+            saveUsers();
+        if (usersDirty)
+            return;
+
+        // construct the URL for retrieving permissions
+        Matcher m = DATA_BRIDGE_URL_PAT.matcher(bridgedUrl);
+        if (!m.matches())
+            return;
+
+        // contact the server and get the list of users for this dataset. If
+        // the server is running older software, this will fail and we will
+        // return without making changes.
+        JSONObject json = makeRestApiCall(m.group(1) + "/api/v1/datasets/" //
+                + m.group(2) + "/permissions/");
+        List<Map> pdesUsers = (List<Map>) json.get("users");
+
+        // make a copy of the users data structure, and prepare for changes
+        Map<String, User> oldUsers = new HashMap<String, User>(this.users);
+        Map<String, User> newUsers = new TreeMap<String, User>();
+        User catchAllUser = oldUsers.remove(CATCH_ALL_USER_ID);
+        if (catchAllUser != null)
+            newUsers.put(CATCH_ALL_USER_ID, catchAllUser);
+
+        // scan the list of PDES users, and reconcile them with the local users
+        for (Map onePdesUser : pdesUsers) {
+            String name = (String) onePdesUser.get("name");
+            String username = (String) onePdesUser.get("username");
+            if (!XMLUtils.hasValue(username)
+                    || CATCH_ALL_USER_ID.equals(username))
+                continue;
+            User oldUser = oldUsers.remove(username.toLowerCase());
+
+            List<String> roleIDs;
+            if (oldUser != null) {
+                name = getBestNameForUser(oldUser.getName(), name, username);
+                roleIDs = oldUser.getRoleIDs();
+            } else {
+                name = getBestNameForUser(name, username);
+                roleIDs = getBestRolesForUser(onePdesUser, catchAllUser);
+            }
+
+            User newUser = new User(name, username, false, roleIDs);
+            newUsers.put(newUser.getUsernameLC(), newUser);
+        }
+
+        // if any local users are no longer in the PDES list, make them inactive
+        for (User oldUser : oldUsers.values()) {
+            User newUser = new User(oldUser.getName(), oldUser.getUsername(),
+                    true, oldUser.getRoleIDs());
+            newUsers.put(newUser.getUsernameLC(), newUser);
+        }
+
+        // save the new user data structure
+        this.users = Collections.synchronizedMap(newUsers);
+    }
+
+    private String getBestNameForUser(String... names) {
+        for (String oneName : names)
+            if (XMLUtils.hasValue(oneName))
+                return oneName;
+        return null;
+    }
+
+    private List<String> getBestRolesForUser(Map pdesUser, User catchAllUser) {
+        List<String> result = null;
+
+        // if this user is the owner of the dataset, assign an owner role
+        List<String> permissions = (List<String>) pdesUser.get("permissions");
+        if (permissions != null && permissions.contains("dataset-owner"))
+            result = getDatasetOwnerRoles();
+
+        // if this is not the owner, or if no owner role was found, try using
+        // the roles from the catch-all user.
+        if (result == null && catchAllUser != null)
+            result = catchAllUser.getRoleIDs();
+
+        // if we still don't have any roles, assign the standard user role.
+        if (result == null)
+            result = Collections.singletonList(STANDARD_ROLE_ID);
+
+        return result;
+    }
+
+    private List<String> getDatasetOwnerRoles() {
+        // look through the standard role definitions, searching for ones that
+        // contain a <datasetOwnerRole/> tag. If we find it, return the IDs
+        // of the enclosing <role> tags.
+        Set<String> result = new HashSet();
+        for (Element datasetOwnerRoleTag : ExtensionManager
+                .getXmlConfigurationElements(DATASET_OWNER_ROLE_TAG)) {
+            Element roleTag = (Element) datasetOwnerRoleTag.getParentNode();
+            if (ROLE_TAG.equals(roleTag.getTagName())) {
+                String roleID = roleTag.getAttribute(ID_ATTR);
+                if (XMLUtils.hasValue(roleID))
+                    result.add(roleID);
+            }
+        }
+
+        return (result.isEmpty() ? null : new ArrayList(result));
+    }
+
+
+    /**
+     * Make a REST API call, and return the result as JSON.
+     */
+    private JSONObject makeRestApiCall(String urlStr) throws IOException {
+        InputStream in = new URL(urlStr).openStream();
+        try {
+            return (JSONObject) new JSONParser().parse(
+                new InputStreamReader(new BufferedInputStream(in), "UTF-8"));
+        } catch (IOException ioe) {
+            throw ioe;
+        } catch (Exception pe) {
+            throw new IOException(pe);
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+    }
+
+
+
+    private static final Pattern DATA_BRIDGE_URL_PAT = Pattern
+            .compile("(http.*)/DataBridge/([\\w-]+)");
 
     public static final String STANDARD_ROLE_ID = "r.standard";
 
@@ -663,6 +837,8 @@ public class PermissionsManager {
     public static final String CATCH_ALL_USER_ID = "*";
 
     private static final String STANDARD_ROLES_TAG = "standardRoles";
+
+    private static final String DATASET_OWNER_ROLE_TAG = "datasetOwnerRole";
 
     private static final String USERS_TAG = "users";
 
