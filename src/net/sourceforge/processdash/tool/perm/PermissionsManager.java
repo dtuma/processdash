@@ -141,6 +141,9 @@ public class PermissionsManager {
      *         filesystem/network problems)
      */
     public boolean saveAll() {
+        if (Settings.isReadOnly() || Settings.isPersonalMode())
+            return true;
+
         if (rolesDirty)
             saveRoles();
 
@@ -390,7 +393,7 @@ public class PermissionsManager {
      */
     private void readRoles() throws IOException {
         Map roles = new TreeMap();
-        if (rolesFile.isFile()) {
+        if (Settings.isTeamMode() && rolesFile.isFile()) {
             try {
                 // open, parse, and load the roles XML file
                 InputStream in = new BufferedInputStream(
@@ -407,8 +410,15 @@ public class PermissionsManager {
         } else {
             // no file present? read default roles from extension points
             for (Element xml : ExtensionManager
-                    .getXmlConfigurationElements(STANDARD_ROLES_TAG))
+                    .getXmlConfigurationElements(STANDARD_ROLES_TAG)) {
                 readRolesFromXml(roles, xml);
+
+                // in personal mode, only read the role definitions that are
+                // built-in to the dashboard. (Don't load any organizational
+                // overrides to the standard roles.)
+                if (Settings.isPersonalMode())
+                    break;
+            }
         }
 
         this.roles = Collections.synchronizedMap(roles);
@@ -430,6 +440,9 @@ public class PermissionsManager {
      */
     private void saveRoles() {
         try {
+            if (Settings.isReadOnly() || Settings.isPersonalMode())
+                return;
+
             // open a file to save the roles
             OutputStream out = new BufferedOutputStream(
                     new RobustFileOutputStream(rolesFile));
@@ -574,7 +587,7 @@ public class PermissionsManager {
      */
     private void readUsers() throws IOException {
         Map users = new TreeMap();
-        if (usersFile.isFile()) {
+        if (Settings.isTeamMode() && usersFile.isFile()) {
             try {
                 // open and parse the users XML file
                 InputStream in = new BufferedInputStream(
@@ -611,6 +624,9 @@ public class PermissionsManager {
      */
     private void saveUsers() {
         try {
+            if (Settings.isReadOnly() || Settings.isPersonalMode())
+                return;
+
             // open a file to save the users
             OutputStream out = new BufferedOutputStream(
                     new RobustFileOutputStream(usersFile));
