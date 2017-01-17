@@ -78,6 +78,11 @@ The author(s) may be contacted at:
     <resources>Permissions.All_Permission</resources>
   </permission>
 
+  <permission id="pdash.active">
+    <resources>Permissions.Active_User</resources>
+    <parent>none</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

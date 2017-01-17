@@ -32,6 +32,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +68,9 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -105,6 +113,11 @@ public class PermissionsManager {
 
     private Map<String, User> users;
 
+    private String currentUsername;
+
+    private Set<Permission> currentPermissions;
+
+
     private PermissionsManager() {}
 
 
@@ -130,6 +143,9 @@ public class PermissionsManager {
         this.usersFile = new File(storageDir, "users.dat");
         readUsers();
         updateExternalUsers();
+
+        // identify the current user and load their effective permissions
+        identifyCurrentUser();
     }
 
 
@@ -234,6 +250,64 @@ public class PermissionsManager {
 
 
     /**
+     * Return the username of the current user.
+     */
+    public String getCurrentUsername() {
+        return currentUsername;
+    }
+
+
+    /**
+     * Return the User object for the current user.
+     */
+    public User getCurrentUser() {
+        // identify the User object for the currently logged in user
+        User user = getUserByUsername(currentUsername);
+        if (user == null)
+            user = users.get(CATCH_ALL_USER_ID);
+        return user;
+    }
+
+
+    /**
+     * Return the permissions of the current user.
+     */
+    public Set<Permission> getCurrentPermissions() {
+        return currentPermissions;
+    }
+
+
+    /**
+     * Return the permissions of the current user that have one of the given
+     * IDs.
+     */
+    public <T extends Permission> Set<T> getCurrentPermissions(
+            String... permissionIDs) {
+        Set<T> result = new HashSet<T>();
+        for (Permission p : currentPermissions) {
+            for (String oneID : permissionIDs)
+                if (p.getSpec().getId().equals(oneID))
+                    result.add((T) p);
+        }
+        return result;
+    }
+
+
+    /**
+     * @return true if the current user has a permission with one of the given
+     *         IDs.
+     */
+    public boolean hasPermission(String... permissionIDs) {
+        for (Permission p : currentPermissions) {
+            for (String oneID : permissionIDs)
+                if (p.getSpec().getId().equals(oneID))
+                    return true;
+        }
+        return false;
+    }
+
+
+    /**
      * @return a list of all users known to this dataset
      */
     public List<User> getAllUsers() {
@@ -250,7 +324,7 @@ public class PermissionsManager {
      *         found
      */
     public User getUserByUsername(String username) {
-        return users.get(username.toLowerCase());
+        return username == null ? null : users.get(username.toLowerCase());
     }
 
 
@@ -304,11 +378,21 @@ public class PermissionsManager {
      * @param deep
      *            false to return explicitly granted permissions; true to return
      *            all of the transitively implied permissions as well
-     * @return a list of permissions granted to the given user
+     * @return a collection of permissions granted to the given user
      */
-    public List<Permission> getPermissionsForUser(User user, boolean deep) {
-        // iterate over the roles for this user, and list granted permissions
+    public Set<Permission> getPermissionsForUser(User user, boolean deep) {
         Set<Permission> result = new LinkedHashSet<Permission>();
+
+        // grant the "active user" permission if applicable
+        if (!user.isInactive()) {
+            PermissionSpec spec = specs.get(ACTIVE_USER_PERMISSION_ID);
+            Permission p = spec.createPermission(false, null);
+            result.add(p);
+            if (deep)
+                enumerateImpliedPermissions(result, p);
+        }
+
+        // iterate over the roles for this user, and list granted permissions
         for (Role r : user.getRoles()) {
             if (!r.isInactive()) {
                 for (Permission p : r.getPermissions()) {
@@ -321,7 +405,7 @@ public class PermissionsManager {
                 }
             }
         }
-        return new ArrayList<Permission>(result);
+        return result;
     }
 
     private void enumerateImpliedPermissions(Set<Permission> result,
@@ -825,11 +909,137 @@ public class PermissionsManager {
 
 
     /**
+     * Determine the identity of the current user, and resolve the permissions
+     * they should have during this session.
+     */
+    private void identifyCurrentUser() throws HttpException {
+        currentUsername = null;
+        currentPermissions = Collections.EMPTY_SET;
+
+        // try a number of ways to figure the current user, until one succeeds
+        if (bridgedUrl != null)
+            identifyUserFromPDES();
+        if (!StringUtils.hasValue(currentUsername))
+            identifyUserFromFileIO();
+        if (!StringUtils.hasValue(currentUsername))
+            identifyUserFromWhoamiCall();
+        if (!StringUtils.hasValue(currentUsername))
+            identifyUserFromSystemProperties();
+
+        // evaluate the permissions associated with the current user
+        evaluateCurrentUserPermissions();
+    }
+
+    private void identifyUserFromPDES() throws HttpException {
+        Matcher m = DATA_BRIDGE_URL_PAT.matcher(bridgedUrl);
+        if (!m.matches())
+            return;
+
+        try {
+            // make a REST API call to the server to identify the current user
+            String whoamiUrl = m.group(1) + "/api/v1/users/whoami/";
+            JSONObject json = makeRestApiCall(whoamiUrl);
+            Map user = (Map) json.get("user");
+            this.currentUsername = (String) user.get("username");
+            logger.info("From PDES, current user is " + currentUsername);
+
+            // see if this user should have extra permissions
+            List<String> permIDs = (List<String>) user.get("clientPermissions");
+            if (permIDs == null || permIDs.isEmpty())
+                return;
+
+            // calculate the implied permissions named by the whoami call
+            Set<Permission> permissions = new LinkedHashSet<Permission>();
+            for (String onePermissionID : permIDs) {
+                PermissionSpec oneSpec = specs.get(onePermissionID);
+                if (oneSpec != null) {
+                    Permission p = oneSpec.createPermission(false, null);
+                    if (p != null && permissions.add(p))
+                        enumerateImpliedPermissions(permissions, p);
+                }
+            }
+            this.currentPermissions = permissions;
+
+        } catch (HttpException.Unauthorized he) {
+            throw he;
+        } catch (Exception e) {
+            return;
+        }
+    }
+
+    private void identifyUserFromFileIO() {
+        try {
+            File f = File.createTempFile("whoami", ".tmp");
+            Path path = Paths.get(f.getAbsolutePath());
+            FileOwnerAttributeView ownerAttributeView = Files
+                    .getFileAttributeView(path, FileOwnerAttributeView.class);
+            UserPrincipal owner = ownerAttributeView.getOwner();
+            this.currentUsername = discardDomain(owner.getName());
+            f.delete();
+            logger.info("From NIO, current user is " + currentUsername);
+
+        } catch (Throwable t) {
+            // this will fail on Java 1.6. Try the next option
+        }
+    }
+
+    private void identifyUserFromWhoamiCall() {
+        try {
+            // execute the "whoami" command
+            Process p = Runtime.getRuntime().exec("whoami");
+            byte[] out = RuntimeUtils.collectOutput(p, true, false);
+            String result = new String(out).trim();
+            this.currentUsername = discardDomain(result);
+            logger.info("From whoami, current user is " + currentUsername);
+
+        } catch (Throwable t) {
+        }
+    }
+
+    private void identifyUserFromSystemProperties() {
+        this.currentUsername = discardDomain(System.getProperty("user.name"));
+        logger.info("From system, current user is " + currentUsername);
+    }
+
+    private String discardDomain(String username) {
+        if (!StringUtils.hasValue(username))
+            return null;
+        int pos = username.lastIndexOf('\\');
+        return (pos == -1 ? username : username.substring(pos + 1));
+    }
+
+    private void evaluateCurrentUserPermissions() {
+        User user = getCurrentUser();
+        if (user != null && !user.isInactive()) {
+            // if we found an active user, calculate the resulting permissions.
+            Set<Permission> permissions = getPermissionsForUser(user, true);
+            permissions.addAll(currentPermissions);
+            this.currentPermissions = Collections.unmodifiableSet(permissions);
+
+        } else if (hasPermission(ACTIVE_USER_PERMISSION_ID)) {
+            // we didn't find this user in the list, or they are inactive. But
+            // the PDES assigned them the "active user" permission (for example,
+            // because they are a data admin), and that overrides the user list.
+            // Go ahead and give them the permissions the PDES granted.
+            this.currentPermissions = Collections
+                    .unmodifiableSet(currentPermissions);
+
+        } else {
+            // if we did not find an active User object, we have no permissions
+            this.currentPermissions = Collections.EMPTY_SET;
+        }
+    }
+
+
+    /**
      * Make a REST API call, and return the result as JSON.
      */
     private JSONObject makeRestApiCall(String urlStr) throws IOException {
-        InputStream in = new URL(urlStr).openStream();
+        InputStream in = null;
         try {
+            URLConnection conn = new URL(urlStr).openConnection();
+            HttpException.checkValid(conn);
+            in = conn.getInputStream();
             return (JSONObject) new JSONParser().parse(
                 new InputStreamReader(new BufferedInputStream(in), "UTF-8"));
         } catch (IOException ioe) {
@@ -849,6 +1059,8 @@ public class PermissionsManager {
     public static final String STANDARD_ROLE_ID = "r.standard";
 
     public static final String ALL_PERMISSION_ID = "pdash.all";
+
+    public static final String ACTIVE_USER_PERMISSION_ID = "pdash.active";
 
     public static final String CATCH_ALL_USER_ID = "*";
 
