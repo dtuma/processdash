@@ -179,8 +179,16 @@ public class HttpAuthenticator extends Authenticator {
         // prompt the user for credentials
         final String title = (StringUtils.hasValue(this.title) ? this.title
                 : resources.getString("Title"));
+        String[] promptLines = resources.formatStrings("Prompt_FMT",
+            getRequestingPrompt());
+        Object[] prompt = new Object[promptLines.length];
+        System.arraycopy(promptLines, 0, prompt, 0, prompt.length);
+        // add a tooltip to the last line of the prompt, indicating the URL
+        JLabel promptLabel = new JLabel(promptLines[prompt.length - 1]);
+        promptLabel.setToolTipText(getEffectiveURL());
+        prompt[prompt.length - 1] = promptLabel;
         final Object[] message = new Object[] {
-                resources.formatStrings("Prompt_FMT", getRequestingPrompt()),
+                prompt,
                 BoxUtils.vbox(5),
                 BoxUtils.hbox(15, usernameLabel, 5, username),
                 BoxUtils.hbox(15, passwordLabel, 5, password),
