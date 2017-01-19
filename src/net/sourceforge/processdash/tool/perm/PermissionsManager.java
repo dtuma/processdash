@@ -1028,6 +1028,15 @@ public class PermissionsManager {
             // if we did not find an active User object, we have no permissions
             this.currentPermissions = Collections.EMPTY_SET;
         }
+
+        // debug print the effective permission list, if desired
+        if (logger.isLoggable(Level.FINE)) {
+            StringBuilder permlist = new StringBuilder();
+            permlist.append("current user effective permissions:");
+            for (Permission p : currentPermissions)
+                permlist.append("\n        " + p);
+            logger.fine(permlist.toString());
+        }
     }
 
 
