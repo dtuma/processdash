@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2016 Tuma Solutions, LLC
+// Copyright (C) 1998-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -147,6 +147,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.ui.AlwaysOnTopManager;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
@@ -291,6 +292,45 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
         pt.click("Set default directory");
 
+        // create the data repository
+        data = new DataRepository();
+        if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
+            data.disableFreezing();
+        data.addGlobalDefineDeclarations("#define AUTO_INDIV_ROOT_TAG t");
+        pt.click("Created Data Repository");
+
+        // load process templates, extension points, and other materials
+        templates = TemplateLoader.loadTemplates(data);
+        pt.click("Loaded templates");
+        DataVersionChecker.ensureVersionsOrExit();
+
+        // read and initialize users, roles, and permissions
+        try {
+            PermissionsManager.getInstance().init(this);
+            pt.click("Initialized permissions manager");
+
+            // check the permissions that are granted to the current user. If
+            // they do not have the "active dashboard user" permission, display
+            // a "forbidden" message and exit.
+            if (!PermissionsManager.getInstance().hasPermission(
+                PermissionsManager.ACTIVE_USER_PERMISSION_ID)) {
+                displayStartupPermissionError("Forbidden");
+                System.exit(1);
+            }
+        } catch (HttpException.Unauthorized u) {
+            // if we are connecting to a PDES that has data security disabled,
+            // the PermissionManager.init() logic will trigger a login prompt.
+            // If the user fails to login successfully, display an
+            // "unauthorized" message and exit.
+            displayStartupPermissionError("Unauthorized");
+            System.exit(1);
+        } catch (IOException ioe) {
+            // if I/O problems prevented reading users/roles, exit with error
+            logErr("Unable to read permission files", ioe);
+            displayStartupIOError("Errors.Read_File_Error.Permissions_Files",
+                    ioe.getMessage(), ioe);
+            System.exit(1);
+        }
 
         // configure the writability of the data and lock if applicable
         maybeSetupHistoricalMode();
@@ -300,6 +340,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             tryToLockDataForWriting();
             pt.click("Tried to acquire write lock");
         }
+        data.configureEditability();
 
         // check for a dataset migration import request
         DatasetAutoMigrator.maybeRun(workingDirectory,
@@ -326,15 +367,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Started web server");
 
 
-        // create the data repository.
-        data = new DataRepository();
-        if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
-            data.disableFreezing();
-        data.addGlobalDefineDeclarations("#define AUTO_INDIV_ROOT_TAG t");
-        pt.click("Created Data Repository");
-        templates = TemplateLoader.loadTemplates(data);
-        pt.click("Loaded templates");
-        DataVersionChecker.ensureVersionsOrExit();
         aum = new AutoUpdateManager(TemplateLoader.getPackages());
         resources = Resources.getDashBundle("ProcessDashboard");
         InternalSettings.loadLocaleSpecificDefaults(resources);
@@ -347,7 +379,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         pt.click("Set datafile search URLs");
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
-        logger.info("Process Dashboard version " + versionNumber);
+        System.out.println("Process Dashboard version " + versionNumber);
+        System.out.println("Running as user "
+                + PermissionsManager.getInstance().getCurrentUsername());
 
         setupWindowTitle(title);
 
@@ -1756,6 +1790,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (saveUserGroupData() == false)
             recordUnsavedItem(unsavedData, "Group_Data");
 
+        if (savePermissionsData() == false)
+            recordUnsavedItem(unsavedData, "Permissions_Data");
+
         String flushResult = flushWorkingData();
         if (flushResult != null)
             unsavedData.add(flushResult);
@@ -1801,6 +1838,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     public boolean saveUserGroupData() {
         return UserGroupManager.getInstance().saveAll();
+    }
+
+    public boolean savePermissionsData() {
+        return PermissionsManager.getInstance().saveAll();
     }
 
     public static final String FLUSH_SUCCESSFUL = null;

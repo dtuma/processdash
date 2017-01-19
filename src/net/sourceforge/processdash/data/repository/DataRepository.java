@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2016 Tuma Solutions, LLC
+// Copyright (C) 1998-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1470,12 +1470,16 @@ public class DataRepository implements Repository, DataContext,
 
 
     public DataRepository() {
-        saveDisabled = Settings.isReadOnly();
+        saveDisabled = true;
         INTERN_MAP = data;
         includedFileCache.put("<dataFile.txt>", globalDataDefinitions);
         dataNotifier = new DataNotifier();
         dataFreezer  = new DataFreezer();
         janitor = new DataJanitor();
+    }
+
+    public void configureEditability() {
+        saveDisabled = Settings.isReadOnly();
     }
 
     public void startServer(ServerSocket socket) {

@@ -485,10 +485,8 @@ public class PermissionsManager {
                 Element xml = XMLUtils.parse(in).getDocumentElement();
                 readRolesFromXml(roles, xml);
 
-            } catch (IOException ioe) {
-                throw ioe;
             } catch (Exception e) {
-                throw new IOException(e);
+                throw new IOException(rolesFile.getName(), e);
             }
 
         } else {
@@ -684,10 +682,9 @@ public class PermissionsManager {
                     User u = readUser((Element) nl.item(i));
                     users.put(u.getUsernameLC(), u);
                 }
-            } catch (IOException ioe) {
-                throw ioe;
+
             } catch (Exception e) {
-                throw new IOException(e);
+                throw new IOException(usersFile.getName(), e);
             }
 
         } else {
