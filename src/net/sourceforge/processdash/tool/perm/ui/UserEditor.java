@@ -25,18 +25,28 @@ package net.sourceforge.processdash.tool.perm.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
+import java.beans.EventHandler;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.TableRowSorter;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.User;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.TableUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class UserEditor {
 
@@ -44,7 +54,13 @@ public class UserEditor {
 
     private Set<User> usersToDelete;
 
+    private JTextField searchField;
+
+    private JCheckBox showInactiveCheckbox;
+
     private JTable table;
+
+    private TableRowSorter rowSorter;
 
     static final Resources resources = Resources
             .getDashBundle("Permissions.UserEditor");
@@ -74,20 +90,71 @@ public class UserEditor {
 
 
     private Object buildUI(boolean editable) {
-        makeTable();
-        return new Object[] { new JScrollPane(table),
-                new JOptionPaneTweaker.MakeResizable() };
+        Object table = makeTable();
+        Object toolbar = makeToolbar(editable);
+        updateFilter();
+
+        return BoxUtils.vbox(toolbar, 5, table,
+            new JOptionPaneTweaker.MakeResizable());
     }
 
-
-    private void makeTable() {
-        this.table = new JTable(model);
+    private Object makeTable() {
+        table = new JTable(model);
+        rowSorter = new TableRowSorter(model);
+        table.setRowSorter(rowSorter);
 
         int preferredWidth = TableUtils.configureTable(table,
             UserTableModel.COLUMN_WIDTHS, UserTableModel.COLUMN_TOOLTIPS);
         int preferredHeight = 15 * table.getRowHeight();
         table.setPreferredScrollableViewportSize(
             new Dimension(preferredWidth, preferredHeight));
+
+        return new JScrollPane(table);
+    }
+
+    private Object makeToolbar(boolean editable) {
+        FilterHandler filterer = EventHandler.create(FilterHandler.class, this,
+            "updateFilter");
+        BoxUtils toolbar = BoxUtils.hbox();
+
+        searchField = new JTextField(10);
+        searchField.getDocument().addDocumentListener(filterer);
+        toolbar.addItems(resources.getString("Find") + ":", 3, searchField, 20);
+
+        showInactiveCheckbox = new JCheckBox(
+                resources.getString("Show_Inactive"));
+        showInactiveCheckbox.addActionListener(filterer);
+        toolbar.addItems(showInactiveCheckbox, 100, BoxUtils.GLUE);
+
+        return toolbar;
+    }
+
+    public interface FilterHandler extends ActionListener, DocumentListener {
+    }
+
+    public void updateFilter() {
+        rowSorter.setRowFilter(calcFilter());
+    }
+
+    private RowFilter<UserTableModel, Object> calcFilter() {
+        RowFilter<UserTableModel, Object> textFilter = null;
+        String searchText = searchField.getText().trim();
+        if (StringUtils.hasValue(searchText))
+            textFilter = RowFilter.regexFilter("(?i)" + searchText,
+                UserTableModel.NAME_COL, UserTableModel.USERNAME_COL,
+                UserTableModel.ROLES_COL);
+
+        RowFilter<UserTableModel, Object> activeFilter = null;
+        if (showInactiveCheckbox.isSelected() == false)
+            activeFilter = RowFilter.regexFilter("^true$",
+                UserTableModel.ACTIVE_COL);
+
+        if (textFilter == null)
+            return activeFilter;
+        else if (activeFilter == null)
+            return textFilter;
+        else
+            return RowFilter.andFilter(Arrays.asList(textFilter, activeFilter));
     }
 
 
