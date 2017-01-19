@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,6 +80,9 @@ public class PermissionsManager {
 
     public static final DashboardPermission PERMISSION = new DashboardPermission(
             "permissionsManager.config");
+
+    public static final DashboardPermission EDIT_PERMISSION = new DashboardPermission(
+            "permissionsManager.edit");
 
     private static final Resources resources = Resources
             .getDashBundle("Permissions");
@@ -222,30 +226,57 @@ public class PermissionsManager {
 
 
     /**
+     * Find the role that has a particular name.
+     * 
+     * @param name
+     *            the name of a role
+     * @return the role with the given name (using a case-insensitive
+     *         comparison), or null if no such role can be found
+     */
+    public Role getRoleByName(String name) {
+        if (StringUtils.hasValue(name)) {
+            for (Role r : roles.values()) {
+                if (name.equalsIgnoreCase(r.getName()))
+                    return r;
+            }
+        }
+        return null;
+    }
+
+
+    /**
      * Make changes to the roles in this dataset.
      * 
      * @param rolesToSave
-     *            a list of new or changed roles
+     *            a collection of new or changed roles
      * @param rolesToDelete
-     *            a list of existing roles that should be deleted
+     *            a collection of existing roles that should be deleted
      */
-    public void alterRoles(List<Role> rolesToSave, List<Role> rolesToDelete) {
+    public void alterRoles(Collection<Role> rolesToSave,
+            Collection<Role> rolesToDelete) {
+        EDIT_PERMISSION.checkPermission();
+
         // delete roles as requested
-        for (Role r : rolesToDelete) {
-            if (roles.remove(r.getId()) != null)
-                rolesDirty = true;
+        if (rolesToDelete != null) {
+            for (Role r : rolesToDelete) {
+                if (roles.remove(r.getId()) != null)
+                    rolesDirty = true;
+            }
         }
 
         // save new and changed roles as requested
-        for (Role r : rolesToSave) {
-            if (r.getId() == null)
-                r.id = "r." + generateUniqueID();
-            roles.put(r.getId(), r);
-            rolesDirty = true;
+        if (rolesToSave != null) {
+            for (Role r : rolesToSave) {
+                if (r.getId() == null)
+                    r.id = "r." + generateUniqueID();
+                roles.put(r.getId(), r);
+                rolesDirty = true;
+            }
         }
 
         // save the changes
-        saveRoles();
+        if (rolesDirty)
+            saveRoles();
     }
 
 
@@ -332,28 +363,36 @@ public class PermissionsManager {
      * Make changes to the users in this dataset.
      * 
      * @param usersToSave
-     *            a list of new or changed users
+     *            a collection of new or changed users
      * @param usersToDelete
-     *            a list of existing users that should be deleted
+     *            a collection of existing users that should be deleted
      */
-    public void alterUsers(List<User> usersToSave, List<User> usersToDelete) {
+    public void alterUsers(Collection<User> usersToSave,
+            Collection<User> usersToDelete) {
+        EDIT_PERMISSION.checkPermission();
+
         // delete users as requested
-        for (User u : usersToDelete) {
-            if (users.remove(u.getUsernameLC()) != null)
-                usersDirty = true;
+        if (usersToDelete != null) {
+            for (User u : usersToDelete) {
+                if (users.remove(u.getUsernameLC()) != null)
+                    usersDirty = true;
+            }
         }
 
         // save new and changed users as requested
-        for (User u : usersToSave) {
-            String id = u.getUsernameLC();
-            if (StringUtils.hasValue(id)) {
-                users.put(id, u);
-                usersDirty = true;
+        if (usersToSave != null) {
+            for (User u : usersToSave) {
+                String id = u.getUsernameLC();
+                if (StringUtils.hasValue(id)) {
+                    users.put(id, u);
+                    usersDirty = true;
+                }
             }
         }
 
         // save the changes
-        saveUsers();
+        if (usersDirty)
+            saveUsers();
     }
 
 
@@ -753,6 +792,11 @@ public class PermissionsManager {
         String name = xml.getAttribute(NAME_ATTR);
         String username = xml.getAttribute(ID_ATTR);
         boolean inactive = "true".equals(xml.getAttribute(INACTIVE_ATTR));
+
+        // add special handling for the name of the catch-all user, to handle
+        // datasets that are shared by people speaking different languages.
+        if (CATCH_ALL_USER_ID.equals(username))
+            name = resources.getString("All_Other_Users");
 
         // read the list of roles assigned to the user
         NodeList nl = xml.getElementsByTagName(ROLE_TAG);

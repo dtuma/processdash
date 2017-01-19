@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2012 Tuma Solutions, LLC
+// Copyright (C) 2005-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,10 +30,11 @@ import javax.swing.table.TableColumnModel;
 
 public class TableUtils {
 
-    public static void configureTable(JTable table, int[] columnWidths,
+    public static int configureTable(JTable table, int[] columnWidths,
             String[] tooltips) {
 
         // setup column widths
+        int totalWidth = 0;
         if (columnWidths != null) {
             if (columnWidths.length != table.getColumnCount())
                 throw new IllegalArgumentException(
@@ -41,6 +42,7 @@ public class TableUtils {
             for (int i = 0; i < columnWidths.length; i++) {
                 TableColumn column = table.getColumnModel().getColumn(i);
                 column.setPreferredWidth(columnWidths[i]);
+                totalWidth += columnWidths[i];
             }
         }
 
@@ -48,6 +50,8 @@ public class TableUtils {
         if (tooltips != null)
             ToolTipTableCellRendererProxy
                     .installHeaderToolTips(table, tooltips);
+
+        return totalWidth;
     }
 
     public static TableColumnModel cloneTableColumnModel(TableColumnModel m) {
