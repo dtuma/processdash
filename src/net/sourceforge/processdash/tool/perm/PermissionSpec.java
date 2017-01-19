@@ -54,6 +54,10 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     private int ordinal;
 
+    private static final Resources UNRECOGNIZED_PERM_RESOURCES = Resources
+            .getDashBundle("Permissions.Unrecognized_Permission");
+
+
     PermissionSpec(Element xml) throws Exception {
         loadID(xml);
         loadResources(xml);
@@ -64,9 +68,8 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     PermissionSpec(String id) {
         this.id = id;
-        this.resources = Resources
-                .getDashBundle("Permissions.Unrecognized_Permission");
-        this.displayName = resources.getString("Display_Name");
+        this.resources = UNRECOGNIZED_PERM_RESOURCES;
+        this.displayName = resources.format("Description_FMT", id);
         this.permissionClass = UnrecognizedPermission.class;
         this.defaultParams = Collections.EMPTY_MAP;
         this.impliedBy = this.implies = Collections.EMPTY_SET;
@@ -84,19 +87,28 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         // get the resource bundle we will use to produce user-readable text
         Set<String> resourceTags = getTagValues(xml, "resources");
         if (resourceTags.isEmpty())
-            throw error("no <resources> tag provided");
+            this.resources = UNRECOGNIZED_PERM_RESOURCES;
         else if (resourceTags.size() > 1)
             throw error("more than 1 <resources> tag was provided");
-        String resourceBundleKey = resourceTags.iterator().next();
-        try {
-            this.resources = Resources.getDashBundle(resourceBundleKey);
-        } catch (Exception e) {
-            throw error("could not find resource bundle " + resourceBundleKey);
+        else {
+            String resBundleKey = resourceTags.iterator().next();
+            try {
+                this.resources = Resources.getDashBundle(resBundleKey);
+            } catch (Exception e) {
+                throw error("could not find resource bundle " + resBundleKey);
+            }
         }
 
         // look up the display name of this permission
         try {
-            this.displayName = resources.getString("Display_Name");
+            this.displayName = xml.getAttribute("name");
+            if (XMLUtils.hasValue(displayName))
+                ;
+            else if (resourceTags.isEmpty())
+                this.displayName = id;
+            else
+                this.displayName = resources.getString("Display_Name");
+
         } catch (Exception e) {
             throw error("could not find Display_Name in resource bundle");
         }

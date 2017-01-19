@@ -27,9 +27,4 @@ public class UnrecognizedPermission extends Permission {
 
     public UnrecognizedPermission() {}
 
-    @Override
-    public String toString() {
-        return getSpec().getResources().format("Description_FMT", getId());
-    }
-
 }
