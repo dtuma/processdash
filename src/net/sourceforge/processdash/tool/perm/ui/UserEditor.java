@@ -25,19 +25,25 @@ package net.sourceforge.processdash.tool.perm.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableRowSorter;
 
 import net.sourceforge.processdash.i18n.Resources;
@@ -126,6 +132,9 @@ public class UserEditor {
         showInactiveCheckbox.addActionListener(filterer);
         toolbar.addItems(showInactiveCheckbox, 100, BoxUtils.GLUE);
 
+        if (editable)
+            toolbar.addItems(5, new JButton(new DeleteAction()));
+
         return toolbar;
     }
 
@@ -168,6 +177,83 @@ public class UserEditor {
                 usersToSave.add(oneUser.getNewUser());
         }
         PermissionsManager.getInstance().alterUsers(usersToSave, usersToDelete);
+    }
+
+
+    private abstract class UserAction extends AbstractAction
+            implements ListSelectionListener {
+
+        UserAction(String resKey) {
+            super(resources.getString(resKey));
+            table.getSelectionModel().addListSelectionListener(this);
+            valueChanged(null);
+        }
+
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            setEnabled(shouldBeEnabled(getSelectedModelRows()));
+        }
+
+        protected int[] getSelectedModelRows() {
+            int[] selectedRows = table.getSelectedRows();
+            for (int i = selectedRows.length; i-- > 0;)
+                selectedRows[i] = table.convertRowIndexToModel(selectedRows[i]);
+            return selectedRows;
+        }
+
+        protected abstract boolean shouldBeEnabled(int[] rows);
+
+        protected Component getParent() {
+            return SwingUtilities.getWindowAncestor(showInactiveCheckbox);
+        }
+
+    }
+
+
+    private class DeleteAction extends UserAction {
+
+        DeleteAction() {
+            super("Delete");
+        }
+
+        @Override
+        protected boolean shouldBeEnabled(int[] rows) {
+            return rows.length > 0;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int[] rows = getSelectedModelRows();
+            if (rows.length == 0) {
+                // nothing to do
+                return;
+
+            } else if (rows.length == 1 && model.isCatchAllUserRow(rows[0])) {
+                // the user is trying to delete the "catch all" user. display a
+                // message explaining that this is not allowed.
+                JOptionPane.showMessageDialog(getParent(),
+                    resources.getStrings("Delete.Not_Allowed_Message"),
+                    resources.getString("Delete.Not_Allowed_Title"),
+                    JOptionPane.ERROR_MESSAGE);
+
+            } else if (JOptionPane.showConfirmDialog(getParent(),
+                resources.getString("Delete.Confirm_Message"),
+                resources.getString("Delete.Confirm_Title"),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
+                // we asked for confirmation, and the user said no. do nothing.
+
+            } else {
+                // delete the rows requested. Delete starting with the highest
+                // numbered model row, so lower indexes will still be valid.
+                // Note that the model will automatically refuse to delete the
+                // catch-all user row, so we don't need to check for that here.
+                Arrays.sort(rows);
+                for (int i = rows.length; i-- > 0;)
+                    model.deleteUser(rows[i]);
+            }
+        }
+
     }
 
 }
