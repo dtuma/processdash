@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -816,7 +816,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             UserFilter filter = groupMgr.getGlobalFilter();
             groupFilterMenu = new GroupFilterMenu(filter,
                     groupMgr.isIndivFilteringSupported());
-            groupFilterMenu.addChangeListener(new GroupFilterHandler(filter));
+            groupFilterMenu.addGroupChangeListener( //
+                new GroupFilterHandler(filter));
 
             result.add(Box.createHorizontalGlue());
             result.add(groupFilterMenu);

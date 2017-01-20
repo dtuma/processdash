@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2016 Tuma Solutions, LLC
+// Copyright (C) 2013-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -436,7 +436,7 @@ public class TeamProjectBrowser extends JSplitPane {
         if (groupMgr.isEnabled()) {
             GroupFilterMenu groupFilterMenu = new GroupFilterMenu(
                     UserGroup.EVERYONE, groupMgr.isIndivFilteringSupported());
-            groupFilterMenu.addChangeListener(handler);
+            groupFilterMenu.addGroupChangeListener(handler);
 
             menuBar.add(Box.createHorizontalGlue());
             menuBar.add(groupFilterMenu);

@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,11 +63,11 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
         getPopupMenu().addPopupMenuListener(new Handler());
     }
 
-    public void addChangeListener(ChangeListener l) {
+    public void addGroupChangeListener(ChangeListener l) {
         listeners.add(ChangeListener.class, l);
     }
 
-    public void removeChangeListener(ChangeListener l) {
+    public void removeGroupChangeListener(ChangeListener l) {
         listeners.remove(ChangeListener.class, l);
     }
 
