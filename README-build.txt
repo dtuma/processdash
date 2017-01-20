@@ -1,6 +1,6 @@
 To build the PSP Dashboard, you will need:
 
-   * the Sun JDK, version 1.6.  Set the environment variable
+   * the Sun JDK, version 1.7 or higher.  Set the environment variable
      JAVA_HOME to the path to your JDK installation directory.
 
    * ant, available from http://ant.apache.org/

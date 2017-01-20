@@ -107,7 +107,8 @@ The author(s) may be contacted at:
     <!-- Compile the java code from ${src} into ${build} -->
     <mkdir dir="${build}"/>
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
-           includeAntRuntime="no" target="${compile.target}">
+           source="${compile.target}" target="${compile.target}"
+           includeAntRuntime="no">
       <classpath>
         <pathelement location="${pspdash.jar}"/>
         <pathelement location="${swingx.jar}"/>
