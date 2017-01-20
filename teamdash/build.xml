@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2016 Tuma Solutions, LLC
+Copyright (C) 2002-2017 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -295,6 +295,7 @@ The author(s) may be contacted at:
     <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
+      <root classname="net.sourceforge.processdash.team.ui.PersonLookupDialog"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
@@ -345,7 +346,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 117) {
+        if (classCount > 119) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2015 Tuma Solutions, LLC
+// Copyright (C) 2010-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -21,12 +21,14 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.team;
+package net.sourceforge.processdash.team.ui;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -43,7 +45,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -77,10 +78,10 @@ public class PersonLookupDialog {
 
     HtmlPane html;
 
-    TeamMember person;
+    PersonLookupData person;
 
 
-    public PersonLookupDialog(JFrame parent, TeamMember person) {
+    public PersonLookupDialog(Window parent, PersonLookupData person) {
 
         this.person = person;
 
@@ -94,7 +95,8 @@ public class PersonLookupDialog {
                     "cancelLookup");
         scrollPane.getActionMap().put("cancelLookup", new CancelAction());
 
-        dialog = new JDialog(parent, "Team Member Details", true);
+        dialog = new JDialog(parent, "Team Member Details",
+                ModalityType.APPLICATION_MODAL);
         dialog.getContentPane().add(scrollPane);
         dialog.pack();
 
@@ -111,7 +113,7 @@ public class PersonLookupDialog {
         dialog.setVisible(true);
     }
 
-    private String getInitialUrl(TeamMember person) {
+    private String getInitialUrl(PersonLookupData person) {
         StringBuffer buf = new StringBuffer();
         buf.append(getLookupServerUrl());
         if (hasValue(person.getServerIdentityInfo()))

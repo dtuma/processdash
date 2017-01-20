@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.ui.PersonLookupData;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -47,7 +48,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 /** Holds information about a individual member of a project team.
  */
-public class TeamMember implements Cloneable {
+public class TeamMember implements PersonLookupData, Cloneable {
 
     /** An internal ID that is guaranteed to be unique within a team project */
     private int id;

@@ -83,6 +83,7 @@ import javax.swing.text.JTextComponent;
 
 import com.toedter.calendar.JDateChooser;
 
+import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.StringUtils;
 

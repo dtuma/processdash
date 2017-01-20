@@ -97,6 +97,7 @@ import javax.swing.event.TableModelListener;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -135,7 +136,6 @@ import teamdash.hist.ui.BlameHistoryAction;
 import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
-import teamdash.team.PersonLookupDialog;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
