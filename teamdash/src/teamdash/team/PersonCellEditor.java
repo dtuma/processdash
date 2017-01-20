@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2013 Tuma Solutions, LLC
+// Copyright (C) 2010-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,13 @@ package teamdash.team;
 import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
+import java.io.IOException;
 import java.util.EventObject;
 import java.util.Map;
 
@@ -201,7 +203,13 @@ public class PersonCellEditor extends DefaultCellEditor {
 
         // open a PersonLookupDialog.  This method will block until the user
         // finishes interacting with the dialog.
-        new PersonLookupDialog(parentFrame, m);
+        try {
+            new PersonLookupDialog(parentFrame, m);
+        } catch (IOException ioe) {
+            // if we couldn't reach the server, provide an audible beep
+            Toolkit.getDefaultToolkit().beep();
+            ioe.printStackTrace();
+        }
 
         // retrieve the final values of the name & identity fields.  If they
         // have changed, mark the team member list as dirty.

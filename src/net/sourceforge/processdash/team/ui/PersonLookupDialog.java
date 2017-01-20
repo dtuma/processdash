@@ -27,6 +27,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -81,7 +82,8 @@ public class PersonLookupDialog {
     PersonLookupData person;
 
 
-    public PersonLookupDialog(Window parent, PersonLookupData person) {
+    public PersonLookupDialog(Window parent, PersonLookupData person)
+            throws IOException {
 
         this.person = person;
 
@@ -98,16 +100,13 @@ public class PersonLookupDialog {
         dialog = new JDialog(parent, "Team Member Details",
                 ModalityType.APPLICATION_MODAL);
         dialog.getContentPane().add(scrollPane);
-        dialog.pack();
+        dialog.setSize(100, 30);
 
-        try {
-            String url = getInitialUrl(person);
-            html.setPage(url);
-        } catch (IOException ioe) {
-            Toolkit.getDefaultToolkit().beep();
-            ioe.printStackTrace();
-            return;
-        }
+        // ask the editor pane to make the initial connection to the server
+        // synchronously, so we can receive the IOException if that fails.
+        html.getDocument().putProperty("load priority", -1);
+        String url = getInitialUrl(person);
+        html.setPage(url);
 
         dialog.setLocationRelativeTo(parent);
         dialog.setVisible(true);
@@ -197,6 +196,16 @@ public class PersonLookupDialog {
             d.width = (int) (d.width + xDelta + 4);
             dialog.setSize(d);
             dialog.validate();
+        }
+
+        // if the size of the window changed, reposition it so its center
+        // stays in the same location as before
+        if (yDelta > 0 || xDelta > 0) {
+            Point location = dialog.getLocation();
+            location.setLocation( //
+                Math.max(0, location.x - Math.max(0, xDelta / 2)),
+                Math.max(0, location.y - Math.max(0, yDelta / 2)));
+            dialog.setLocation(location);
         }
 
         // scan the HTML document, and arrange for all text fields to perform

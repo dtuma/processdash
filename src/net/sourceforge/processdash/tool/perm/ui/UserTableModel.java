@@ -53,23 +53,35 @@ public class UserTableModel extends AbstractTableModel {
         return users.get(row);
     }
 
+    public int findRowForUser(String username) {
+        if (username == null)
+            return -1;
+        for (int i = 0; i < getRowCount(); i++) {
+            if (username.equalsIgnoreCase(getUser(i).getUsername()))
+                return i;
+        }
+        return -1;
+    }
+
     public boolean isCatchAllUserRow(int row) {
         return CATCH_ALL_USER_ID.equals(getUser(row).getUsername());
     }
 
     public void addUser(EditableUser newUser) {
-        if (editable) {
+        if (editable && newUser != null) {
             int newRow = getRowCount();
             users.add(newUser);
             fireTableRowsInserted(newRow, newRow);
         }
     }
 
-    public void deleteUser(int row) {
+    public EditableUser deleteUser(int row) {
         if (editable && !isCatchAllUserRow(row)) {
-            users.remove(row);
+            EditableUser deleted = users.remove(row);
             fireTableRowsDeleted(row, row);
+            return deleted;
         }
+        return null;
     }
 
     @Override
@@ -131,8 +143,7 @@ public class UserTableModel extends AbstractTableModel {
             break;
 
         case USERNAME_COL:
-            if (!isCatchAllUserRow(rowIndex)
-                    && !CATCH_ALL_USER_ID.equals(aValue))
+            if (!isCatchAllUserRow(rowIndex) && !isCatchAllUsername(aValue))
                 user.setUsername((String) aValue);
             break;
 
@@ -144,6 +155,14 @@ public class UserTableModel extends AbstractTableModel {
             user.setRoleNames((String) aValue);
             break;
 
+        }
+    }
+
+    private boolean isCatchAllUsername(Object value) {
+        if (value instanceof String) {
+            return ((String) value).trim().equals(CATCH_ALL_USER_ID);
+        } else {
+            return false;
         }
     }
 

@@ -23,11 +23,15 @@
 
 package net.sourceforge.processdash.tool.perm.ui;
 
+import static net.sourceforge.processdash.tool.perm.PermissionsManager.CATCH_ALL_USER_ID;
+
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,11 +51,14 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableRowSorter;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.ui.PersonLookupData;
+import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.User;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.TableUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class UserEditor {
@@ -106,6 +113,7 @@ public class UserEditor {
 
     private Object makeTable() {
         table = new JTable(model);
+        table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         rowSorter = new TableRowSorter(model);
         table.setRowSorter(rowSorter);
 
@@ -132,6 +140,12 @@ public class UserEditor {
         showInactiveCheckbox.addActionListener(filterer);
         toolbar.addItems(showInactiveCheckbox, 100, BoxUtils.GLUE);
 
+        if (editable) {
+            AbstractAction add = (PersonLookupDialog.isLookupServerConfigured() //
+                    ? new AddPdesUserAction() : new AddPlainUserAction());
+            toolbar.addItems(5, new JButton(add));
+        }
+
         if (editable)
             toolbar.addItems(5, new JButton(new DeleteAction()));
 
@@ -141,6 +155,10 @@ public class UserEditor {
     public interface FilterHandler extends ActionListener, DocumentListener {
     }
 
+    /**
+     * Update the table row filter to reflect the values of the search text
+     * field and the "show inactive users" checkbox.
+     */
     public void updateFilter() {
         rowSorter.setRowFilter(calcFilter());
     }
@@ -167,6 +185,103 @@ public class UserEditor {
     }
 
 
+    /**
+     * If a filter is in effect, tweak it to ensure that the given user will be
+     * displayed.
+     */
+    private void addUserToFilter(String username) {
+        // if there isn't a current row filter, there is nothing to do
+        RowFilter<UserTableModel, Object> currentFilter = rowSorter
+                .getRowFilter();
+        if (currentFilter == null)
+            return;
+
+        // create a filter that specifically chooses the given individual.
+        RowFilter<UserTableModel, Object> userFilter = RowFilter
+                .regexFilter("(?i)" + username, UserTableModel.USERNAME_COL);
+
+        // install a new "or filter" that includes this user in the results.
+        rowSorter.setRowFilter(RowFilter.orFilter(Arrays.asList( //
+            currentFilter, userFilter)));
+    }
+
+
+    /**
+     * Add a new user to the end of the table
+     */
+    private void addNewUser(String username, String name) {
+        // clear the user search if one is in effect.
+        searchField.setText("");
+
+        // create a new user object, and set its name/username/active flag
+        EditableUser newUser = new EditableUser(null);
+        newUser.setUsername(username);
+        newUser.setName(name);
+        newUser.setActive(true);
+
+        // copy the roles from the catch-all user
+        int catchAllRow = model.findRowForUser(CATCH_ALL_USER_ID);
+        if (catchAllRow != -1) {
+            EditableUser catchAllUser = model.getUser(catchAllRow);
+            newUser.setRoleIDs(catchAllUser.getRoleIDs());
+        }
+
+        // add the user, then scroll to and select the new row
+        final int numRows = table.getRowCount();
+        model.addUser(newUser);
+        selectNewUserRow(numRows, name);
+    }
+
+
+    /**
+     * Select the table row for given user, and possibly start editing their
+     * name if it is missing.
+     */
+    private void selectNewUserRow(final int visibleRow, String name) {
+        // if the user is nameless, we should place the editing cursor on the
+        // name column. Otherwise, we should place it on the roles column.
+        int modelCol = (!StringUtils.hasValue(name) ? UserTableModel.NAME_COL
+                : UserTableModel.ROLES_COL);
+        final int col = table.convertColumnIndexToView(modelCol);
+
+        table.setRowSelectionInterval(visibleRow, visibleRow);
+        table.getColumnModel().getSelectionModel().setLeadSelectionIndex(col);
+        table.scrollRectToVisible(table.getCellRect(visibleRow, col, true));
+
+        // if this user doesn't have a name yet, start editing that cell.
+        if (!StringUtils.hasValue(name)) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    table.requestFocusInWindow();
+                    table.editCellAt(visibleRow, col);
+                }
+            });
+        }
+    }
+
+
+    /**
+     * @return the dialog window containing our UI components
+     */
+    protected Window getDialogParent() {
+        return SwingUtilities.getWindowAncestor(showInactiveCheckbox);
+    }
+
+
+    /**
+     * @return the currently selected rows, in model coordinates
+     */
+    protected int[] getSelectedModelRows() {
+        int[] rows = table.getSelectedRows();
+        for (int i = rows.length; i-- > 0;)
+            rows[i] = table.convertRowIndexToModel(rows[i]);
+        return rows;
+    }
+
+
+    /**
+     * Save any additions, deletions, and edits that were made in this window.
+     */
     private void saveChanges() {
         Set<User> usersToSave = new HashSet();
         for (int i = model.getRowCount(); i-- > 0;) {
@@ -180,10 +295,126 @@ public class UserEditor {
     }
 
 
-    private abstract class UserAction extends AbstractAction
+
+    /**
+     * An action to add a new, empty user row (when the PDES is not in use).
+     */
+    private class AddPlainUserAction extends AbstractAction {
+
+        public AddPlainUserAction() {
+            super(resources.getString("Add"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            addNewUser("", "");
+        }
+
+    }
+
+
+    /**
+     * An action to look up users from the PDES, and add them.
+     */
+    private class AddPdesUserAction extends AbstractAction
+            implements PersonLookupData {
+
+        private String name, username;
+
+        AddPdesUserAction() {
+            super(resources.getString("Add"));
+        }
+
+        public String getName() {
+            return null;
+        }
+
+        public String getServerIdentityInfo() {
+            // provide initialization parameters for the person lookup logic
+            return "allowEmptySave=t&saveText="
+                    + HTMLUtils.urlEncode(resources.getString("Add"));
+        }
+
+        public void setName(String name) {
+            this.name = name;
+            if (name != null)
+                name = name.trim();
+        }
+
+        public void setServerIdentityInfo(String query) {
+            username = (String) HTMLUtils.parseQuery(query).get("username");
+            if (username != null)
+                username = username.trim();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // reset state, then display a PDES user lookup dialog
+            name = username = null;
+            try {
+                new PersonLookupDialog(getDialogParent(), this);
+            } catch (IOException ioe) {
+                // if the server is unreachable, fall back to the plain logic
+                // and just add an empty row for the user to type into.
+                addNewUser("", "");
+                return;
+            }
+
+            // save the data received from the user lookup dialog
+            if (!StringUtils.hasValue(username))
+                // the user pressed cancel. do nothing
+                return;
+
+            else if (updateExistingUser(username, name))
+                // the user entered a username that's already in the table
+                return;
+
+            else
+                // add a new user to the end of the table
+                addNewUser(username, name);
+        }
+
+        private boolean updateExistingUser(String username, String name) {
+            // find the user with this username in the table model.
+            int existingRow = model.findRowForUser(username);
+            if (existingRow == -1)
+                return false;
+
+            // update the user's data based on the new values
+            EditableUser user = model.getUser(existingRow);
+            if (!CATCH_ALL_USER_ID.equals(username)) {
+                if (StringUtils.hasValue(name))
+                    user.setName(name);
+                user.setUsername(username);
+            }
+            user.setActive(true);
+
+            // find the visible table row that is displaying the user
+            int tableRow = table.convertRowIndexToView(existingRow);
+            if (tableRow == -1) {
+                // if the user isn't visible, install a new row filter that
+                // will cause them to be.
+                addUserToFilter(username);
+                tableRow = table.convertRowIndexToView(existingRow);
+            }
+
+            // highlight the table row for the user we just updated
+            if (tableRow != -1)
+                selectNewUserRow(tableRow, user.getName());
+
+            return true;
+        }
+
+    }
+
+
+    /**
+     * An action that should be enabled/disabled based on the active selection.
+     */
+    private abstract class EnablementAction extends AbstractAction
             implements ListSelectionListener {
 
-        UserAction(String resKey) {
+        EnablementAction(String resKey) {
             super(resources.getString(resKey));
             table.getSelectionModel().addListSelectionListener(this);
             valueChanged(null);
@@ -194,23 +425,15 @@ public class UserEditor {
             setEnabled(shouldBeEnabled(getSelectedModelRows()));
         }
 
-        protected int[] getSelectedModelRows() {
-            int[] selectedRows = table.getSelectedRows();
-            for (int i = selectedRows.length; i-- > 0;)
-                selectedRows[i] = table.convertRowIndexToModel(selectedRows[i]);
-            return selectedRows;
-        }
-
         protected abstract boolean shouldBeEnabled(int[] rows);
-
-        protected Component getParent() {
-            return SwingUtilities.getWindowAncestor(showInactiveCheckbox);
-        }
 
     }
 
 
-    private class DeleteAction extends UserAction {
+    /**
+     * An action to delete the selected users.
+     */
+    private class DeleteAction extends EnablementAction {
 
         DeleteAction() {
             super("Delete");
@@ -231,12 +454,12 @@ public class UserEditor {
             } else if (rows.length == 1 && model.isCatchAllUserRow(rows[0])) {
                 // the user is trying to delete the "catch all" user. display a
                 // message explaining that this is not allowed.
-                JOptionPane.showMessageDialog(getParent(),
+                JOptionPane.showMessageDialog(getDialogParent(),
                     resources.getStrings("Delete.Not_Allowed_Message"),
                     resources.getString("Delete.Not_Allowed_Title"),
                     JOptionPane.ERROR_MESSAGE);
 
-            } else if (JOptionPane.showConfirmDialog(getParent(),
+            } else if (JOptionPane.showConfirmDialog(getDialogParent(),
                 resources.getString("Delete.Confirm_Message"),
                 resources.getString("Delete.Confirm_Title"),
                 JOptionPane.YES_NO_OPTION,
@@ -249,8 +472,11 @@ public class UserEditor {
                 // Note that the model will automatically refuse to delete the
                 // catch-all user row, so we don't need to check for that here.
                 Arrays.sort(rows);
-                for (int i = rows.length; i-- > 0;)
-                    model.deleteUser(rows[i]);
+                for (int i = rows.length; i-- > 0;) {
+                    EditableUser u = model.deleteUser(rows[i]);
+                    if (u != null && u.getOriginalUser() != null)
+                        usersToDelete.add(u.getOriginalUser());
+                }
             }
         }
 
