@@ -119,6 +119,7 @@ Authors:
   <property name="json.jar"       value="${lib}/json_simple.jar"/>
   <property name="image4j.jar"    value="${lib}/image4j.jar"/>
   <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
+  <property name="swingx.jar"     value="${lib}/swingx-0.9.1.jar"/>
   <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
   <property name="datatips.jar"   value="${lib}/datatips.jar"/>
   <property name="colt.jar"       value="${lib}/colt.jar"/>
@@ -151,6 +152,7 @@ Authors:
     <pathelement location="${kxml.jar}"/>
     <pathelement location="${json.jar}"/>
     <pathelement location="${image4j.jar}"/>
+    <pathelement location="${swingx.jar}"/>
     <pathelement location="${jcalendar.jar}"/>
     <pathelement location="${datatips.jar}"/>
     <pathelement location="${jna.jar}"/>
@@ -547,6 +549,7 @@ Authors:
       <zipfileset src="${kxml.jar}"/>
       <zipfileset src="${json.jar}"/>
       <zipfileset src="${image4j.jar}"/>
+      <zipfileset src="${swingx.jar}" includes="org/jdesktop/swingx/autocomplete/"/>
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${jna.jar}"/>
       <zipfileset src="${keyring.jar}" excludes="META-INF/**" />

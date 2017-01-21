@@ -35,7 +35,8 @@ import java.util.Map.Entry;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 
-import teamdash.wbs.AutocompletingDataTableCellEditor;
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;

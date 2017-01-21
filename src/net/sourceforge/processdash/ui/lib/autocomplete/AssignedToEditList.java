@@ -21,8 +21,10 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs;
+package net.sourceforge.processdash.ui.lib.autocomplete;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 
 public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
@@ -65,7 +67,18 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
         }
 
         private double getTimeOrDefault(String time, double defaultTime) {
-            return (time == null ? defaultTime : NumericDataValue.parse(time));
+            if (time == null)
+                return defaultTime;
+
+            else if ("".equals(time))
+                return 0;
+
+            try {
+                return FORMATTER.parse(time.toString()).doubleValue();
+            } catch (ParseException nfe) {
+            }
+
+            return Double.NaN;
         }
 
     }
@@ -102,5 +115,8 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
             return false;
         return a.equals(b);
     }
+
+    protected static final NumberFormat FORMATTER = NumberFormat
+            .getNumberInstance();
 
 }

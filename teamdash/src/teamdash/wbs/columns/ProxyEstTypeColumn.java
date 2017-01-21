@@ -31,7 +31,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellEditor;
 
-import teamdash.wbs.AutocompletingDataTableCellEditor;
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;

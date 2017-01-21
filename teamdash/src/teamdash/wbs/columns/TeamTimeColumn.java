@@ -23,8 +23,8 @@
 
 package teamdash.wbs.columns;
 
-import static teamdash.wbs.AssignedToDocument.SEPARATOR;
-import static teamdash.wbs.AssignedToDocument.SEPARATOR_SPACE;
+import static net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.SEPARATOR;
+import static net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.SEPARATOR_SPACE;
 import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_BEG;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_END;
@@ -52,6 +52,11 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToEditList;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToEditList.Change;
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -61,11 +66,6 @@ import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.merge.MergeWarning.Severity;
 import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
-import teamdash.wbs.AssignedToComboBox;
-import teamdash.wbs.AssignedToDocument;
-import teamdash.wbs.AssignedToEditList;
-import teamdash.wbs.AssignedToEditList.Change;
-import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;

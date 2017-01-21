@@ -41,11 +41,12 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument;
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
-import teamdash.wbs.AssignedToComboBox;
-import teamdash.wbs.AssignedToDocument;
-import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;

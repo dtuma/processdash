@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package teamdash.wbs;
+package net.sourceforge.processdash.ui.lib.autocomplete;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.text.JTextComponent;
 
-import teamdash.wbs.AssignedToDocument.Word;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.Word;
 
 public class AssignedToComboBoxAdaptor implements ActionListener {
 

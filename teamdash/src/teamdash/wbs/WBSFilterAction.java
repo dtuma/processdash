@@ -59,6 +59,7 @@ import javax.swing.table.TableCellEditor;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;

@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs;
+package net.sourceforge.processdash.ui.lib.autocomplete;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

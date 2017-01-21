@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package teamdash.wbs;
+package net.sourceforge.processdash.ui.lib.autocomplete;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -52,7 +52,7 @@ import javax.swing.text.TextAction;
 
 import org.jdesktop.swingx.autocomplete.workarounds.MacOSXPopupLocationFix;
 
-import teamdash.wbs.AssignedToDocument.Word;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.Word;
 
 
 public class AssignedToComboBox extends JComboBox {

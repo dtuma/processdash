@@ -45,8 +45,7 @@ The author(s) may be contacted at:
   <property name="keyring.jar" value="${processdash.lib}/keyring-lib.jar"/>
   <property name="svg.jar" value="${processdash.lib}/svgSalamander.jar"/>
   <property name="dashlibsrc" value="${processdash.lib}/src"/>
-  <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
-  <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
+  <property name="swingx.jar" value="${processdash.lib}/swingx-0.9.1.jar"/>
   <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
   <property name="apple-eawt.jar" value="lib/com-apple-eawt.jar"/>
   <property name="servlet.jar" value="lib/servlet-api.jar"/>
@@ -301,6 +300,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
+      <root classname="net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor"/>
       <root classname="net.sourceforge.processdash.ui.lib.BoxUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.CheckboxTree"/>
       <root classname="net.sourceforge.processdash.ui.lib.DropDownButton"/>
@@ -347,7 +347,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 119) {
+        if (classCount > 124) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -425,10 +425,6 @@ class dependency has been added in a dashboard class?)
       <!-- include files from libraries we use -->
       <zipfileset src="${swingx.jar}"
           includes="org/jdesktop/swingx/autocomplete/"/>
-      <zipfileset src="${swingx-src.jar}">
-        <include name="swingx-src/COPYING"/>
-        <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
-      </zipfileset>
       <zipfileset src="${poi.jar}" excludes="${gpl.exclude}"/>
       <zipfileset src="${xmlpull.jar}"/>
       <zipfileset src="${jcalendar.jar}"/>

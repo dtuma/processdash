@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-package teamdash.wbs;
+package net.sourceforge.processdash.ui.lib.autocomplete;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
