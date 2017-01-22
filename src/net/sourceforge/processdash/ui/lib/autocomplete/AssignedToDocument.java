@@ -2,7 +2,7 @@
  * Copyright 2004 Sun Microsystems, Inc., 4150 Network Circle,
  * Santa Clara, California 95054, U.S.A. All rights reserved.
  * 
- * Modifications Copyright (C) 2014 Tuma Solutions, LLC
+ * Modifications Copyright (C) 2014-2017 Tuma Solutions, LLC
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -81,6 +81,10 @@ public class AssignedToDocument extends PlainDocument {
      */
     private String defaultTime = "0";
 
+    /**
+     * The pattern to use to identify editable words in the document.
+     */
+    private Pattern wordPattern = DEFAULT_WORD_PAT;
 
     /**
      * Creates a new AssignedToDocument.
@@ -126,6 +130,10 @@ public class AssignedToDocument extends PlainDocument {
 
     public void setDefaultTime(String defaultTime) {
         this.defaultTime = defaultTime;
+    }
+
+    public void setWordPattern(Pattern wordPattern) {
+        this.wordPattern = wordPattern;
     }
 
     @Override
@@ -608,7 +616,7 @@ public class AssignedToDocument extends PlainDocument {
         List<Word> result = new ArrayList();
         try {
             Word prev = null;
-            Matcher m = WORD_PAT.matcher(getText(0, getLength()));
+            Matcher m = wordPattern.matcher(getText(0, getLength()));
             while (m.find()) {
                 Word w = new Word();
                 w.beg = m.start();
@@ -625,7 +633,7 @@ public class AssignedToDocument extends PlainDocument {
         return result;
     }
 
-    private static final Pattern WORD_PAT = Pattern
+    private static final Pattern DEFAULT_WORD_PAT = Pattern
             .compile("(\u00AB?\\p{L}+\u00BB?)|([0-9.][0-9.,]*)");
 
     public Word getWord(int pos) {
@@ -649,7 +657,7 @@ public class AssignedToDocument extends PlainDocument {
     }
 
     public void setTargetInitials(int pos, String word, boolean append) {
-        if (selecting || word == null || !WORD_PAT.matcher(word).matches())
+        if (selecting || word == null || !wordPattern.matcher(word).matches())
             return;
 
         Word w = getWord(pos);

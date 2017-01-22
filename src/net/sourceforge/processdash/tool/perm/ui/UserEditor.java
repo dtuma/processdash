@@ -32,9 +32,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -54,10 +58,13 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.ui.PersonLookupData;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
+import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.TableUtils;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -116,6 +123,9 @@ public class UserEditor {
         table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         rowSorter = new TableRowSorter(model);
         table.setRowSorter(rowSorter);
+
+        table.getColumnModel().getColumn(UserTableModel.ROLES_COL)
+                .setCellEditor(new RolesCellEditor());
 
         int preferredWidth = TableUtils.configureTable(table,
             UserTableModel.COLUMN_WIDTHS, UserTableModel.COLUMN_TOOLTIPS);
@@ -481,5 +491,51 @@ public class UserEditor {
         }
 
     }
+
+
+    /**
+     * A table cell editor that provides autocompletion for role names.
+     */
+    private class RolesCellEditor extends AutocompletingDataTableCellEditor {
+
+        private AssignedToComboBox comboBox;
+
+        RolesCellEditor() {
+            super(new AssignedToComboBox(true));
+            comboBox = (AssignedToComboBox) getComboBox();
+            comboBox.setWordPattern(ROLE_NAME_PAT);
+            comboBox.setInitialsList(getRoleNames());
+        }
+
+        private List<String> getRoleNames() {
+            List<String> roleNames = new ArrayList<String>();
+            for (Role r : PermissionsManager.getInstance().getAllRoles()) {
+                if (!r.isInactive())
+                    roleNames.add(r.getName());
+            }
+            Collections.sort(roleNames, String.CASE_INSENSITIVE_ORDER);
+            return roleNames;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            // call super() so the editor setup timer will be restarted
+            super.getTableCellEditorComponent(table, null, isSelected, row,
+                column);
+
+            // initialize the combo box contents and return it
+            comboBox.setFullText((String) value);
+            return comboBox;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return comboBox.getFullText();
+        }
+
+    }
+
+    private static final Pattern ROLE_NAME_PAT = Pattern.compile("(\\w[^,]*)");
 
 }

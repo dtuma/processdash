@@ -2,7 +2,7 @@
  * Copyright 2004 Sun Microsystems, Inc., 4150 Network Circle,
  * Santa Clara, California 95054, U.S.A. All rights reserved.
  * 
- * Modifications Copyright (C) 2014 Tuma Solutions, LLC
+ * Modifications Copyright (C) 2014-2017 Tuma Solutions, LLC
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.Action;
 import javax.swing.ComboBoxEditor;
@@ -119,6 +120,10 @@ public class AssignedToComboBox extends JComboBox {
 
     public void setDefaultTime(String time) {
         document.setDefaultTime(time);
+    }
+
+    public void setWordPattern(Pattern p) {
+        document.setWordPattern(p);
     }
 
     private class FocusHandler extends FocusAdapter {
