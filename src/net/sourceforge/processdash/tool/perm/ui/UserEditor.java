@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
@@ -81,6 +82,8 @@ public class UserEditor {
     private JTable table;
 
     private TableRowSorter rowSorter;
+
+    private boolean duplicateUsernameDialogVisible;
 
     static final Resources resources = Resources
             .getDashBundle("Permissions.UserEditor");
@@ -124,6 +127,8 @@ public class UserEditor {
         rowSorter = new TableRowSorter(model);
         table.setRowSorter(rowSorter);
 
+        table.getColumnModel().getColumn(UserTableModel.USERNAME_COL)
+                .setCellEditor(new UsernameCellEditor());
         table.getColumnModel().getColumn(UserTableModel.ROLES_COL)
                 .setCellEditor(new RolesCellEditor());
 
@@ -239,34 +244,50 @@ public class UserEditor {
         // add the user, then scroll to and select the new row
         final int numRows = table.getRowCount();
         model.addUser(newUser);
-        selectNewUserRow(numRows, name);
+        selectNewUserRow(numRows);
     }
 
 
     /**
      * Select the table row for given user, and possibly start editing their
-     * name if it is missing.
+     * name/username if it is missing.
      */
-    private void selectNewUserRow(final int visibleRow, String name) {
-        // if the user is nameless, we should place the editing cursor on the
-        // name column. Otherwise, we should place it on the roles column.
-        int modelCol = (!StringUtils.hasValue(name) ? UserTableModel.NAME_COL
-                : UserTableModel.ROLES_COL);
+    private void selectNewUserRow(final int visibleRow) {
+        // make certain we have a valid row to display
+        if (visibleRow == -1)
+            return;
+
+        // identify the most useful cell to begin editing.
+        final int modelCol = getBestColumnToEdit(visibleRow);
         final int col = table.convertColumnIndexToView(modelCol);
 
+        // select the row and column we just identified
         table.setRowSelectionInterval(visibleRow, visibleRow);
         table.getColumnModel().getSelectionModel().setLeadSelectionIndex(col);
         table.scrollRectToVisible(table.getCellRect(visibleRow, col, true));
 
-        // if this user doesn't have a name yet, start editing that cell.
-        if (!StringUtils.hasValue(name)) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    table.requestFocusInWindow();
+        // make certain the table gets focus. And if this user doesn't have a
+        // name/username yet, start editing that cell.
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                table.requestFocusInWindow();
+                if (modelCol <= UserTableModel.USERNAME_COL)
                     table.editCellAt(visibleRow, col);
-                }
-            });
-        }
+            }
+        });
+    }
+
+    private int getBestColumnToEdit(int visibleRow) {
+        int modelRow = table.convertRowIndexToModel(visibleRow);
+        EditableUser user = model.getUser(modelRow);
+        if (!StringUtils.hasValue(user.getName()))
+            return UserTableModel.NAME_COL;
+        else if (!StringUtils.hasValue(user.getUsername()))
+            return UserTableModel.USERNAME_COL;
+        else if (!user.getActive())
+            return UserTableModel.ACTIVE_COL;
+        else
+            return UserTableModel.ROLES_COL;
     }
 
 
@@ -296,10 +317,21 @@ public class UserEditor {
         Set<User> usersToSave = new HashSet();
         for (int i = model.getRowCount(); i-- > 0;) {
             EditableUser oneUser = model.getUser(i);
+            // the username is the unique ID we use to identify users. So if
+            // an individual's username was changed, this is equivalent to
+            // deleting the old user and adding a new one with a different
+            // username. Oblige by adding the old user to the deletion list.
             if (oneUser.isUsernameChange())
                 usersToDelete.add(oneUser.getOriginalUser());
-            if (oneUser.isModified())
-                usersToSave.add(oneUser.getNewUser());
+
+            // if this row of the table was modified, and it has a nonempty
+            // username, save it. If the username is empty, we skip the row
+            // as either (1) an aborted addition, or (2) the deletion of an
+            // old user by clearing out the values on their row.
+            if (oneUser.isModified()) {
+                if (StringUtils.hasValue(oneUser.getUsername()))
+                    usersToSave.add(oneUser.getNewUser());
+            }
         }
         PermissionsManager.getInstance().alterUsers(usersToSave, usersToDelete);
     }
@@ -317,6 +349,9 @@ public class UserEditor {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (duplicateUsernameDialogVisible)
+                return;
+
             addNewUser("", "");
         }
 
@@ -359,6 +394,9 @@ public class UserEditor {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (duplicateUsernameDialogVisible)
+                return;
+
             // reset state, then display a PDES user lookup dialog
             name = username = null;
             try {
@@ -409,8 +447,7 @@ public class UserEditor {
             }
 
             // highlight the table row for the user we just updated
-            if (tableRow != -1)
-                selectNewUserRow(tableRow, user.getName());
+            selectNewUserRow(tableRow);
 
             return true;
         }
@@ -456,6 +493,9 @@ public class UserEditor {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (duplicateUsernameDialogVisible)
+                return;
+
             int[] rows = getSelectedModelRows();
             if (rows.length == 0) {
                 // nothing to do
@@ -488,6 +528,76 @@ public class UserEditor {
                         usersToDelete.add(u.getOriginalUser());
                 }
             }
+        }
+
+    }
+
+
+    /**
+     * A table cell editor that guards against the entry of duplicate usernames.
+     */
+    private class UsernameCellEditor extends DefaultCellEditor {
+
+        private String otherUsername;
+
+        private UsernameCellEditor() {
+            super(new JTextField());
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            // see if this username is a duplicate. If not, return normally
+            int otherRow = getIndexOfDuplicateUsernameRow();
+            if (otherRow == -1)
+                return super.stopCellEditing();
+
+            // the user has entered a duplicate username. Show them an error
+            // message and ask what they want to do
+            String title = resources.getString("Duplicate_Username.Title");
+            String[] message = resources.formatStrings(
+                "Duplicate_Username.Message_FMT", otherUsername);
+            duplicateUsernameDialogVisible = true;
+            int userChoice = JOptionPane.showConfirmDialog(getDialogParent(),
+                message, title, JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.ERROR_MESSAGE);
+            duplicateUsernameDialogVisible = false;
+
+            // if the user presses "OK", return false to let them keep editing.
+            if (userChoice == JOptionPane.OK_OPTION)
+                return false;
+
+            // if the user presses "Cancel", cancel this editing session and
+            // select the row for the duplicate user.
+            cancelCellEditing();
+            addUserToFilter(otherUsername);
+            selectNewUserRow(table.convertRowIndexToView(otherRow));
+            return true;
+        }
+
+        private int getIndexOfDuplicateUsernameRow() {
+            // find the index of the row that is currently being edited
+            int editingRow = table.getEditingRow();
+            if (editingRow == -1)
+                return -1;
+            editingRow = table.convertRowIndexToModel(editingRow);
+
+            // read the proposed username that has been entered into this row
+            String newUsername = ((JTextField) getComponent()).getText().trim();
+            if (newUsername.isEmpty())
+                return -1;
+
+            // check to see if any other user already has this username. If
+            // so, return the model index of that user's row.
+            for (int row = 0; row < model.getRowCount(); row++) {
+                if (row != editingRow) {
+                    otherUsername = model.getUser(row).getUsername();
+                    if (newUsername.equalsIgnoreCase(otherUsername))
+                        return row;
+                }
+            }
+
+            // no other user has this username.
+            return -1;
         }
 
     }

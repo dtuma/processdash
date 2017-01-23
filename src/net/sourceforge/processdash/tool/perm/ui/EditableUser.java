@@ -30,7 +30,6 @@ import java.util.List;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
-import net.sourceforge.processdash.util.StringUtils;
 
 public class EditableUser {
 
@@ -66,16 +65,10 @@ public class EditableUser {
      *         object.
      */
     public User getNewUser() {
-        return new User(getName(), getUsername(), !getActive(), getRoleIDs());
-    }
-
-
-    /**
-     * @return true if this user has a valid name and username
-     */
-    public boolean isValid() {
-        return StringUtils.hasValue(getName())
-                && StringUtils.hasValue(getUsername());
+        String name = trimToNull(getName());
+        if (name == null)
+            name = getUsername();
+        return new User(name, getUsername(), !getActive(), getRoleIDs());
     }
 
 
