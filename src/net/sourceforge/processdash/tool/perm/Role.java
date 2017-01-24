@@ -69,7 +69,14 @@ public class Role implements Comparable<Role> {
 
     @Override
     public int compareTo(Role that) {
-        return String.CASE_INSENSITIVE_ORDER.compare(this.name, that.name);
+        if (this == that)
+            return 0;
+        else if (PermissionsManager.STANDARD_ROLE_ID.equals(this.id))
+            return -1;
+        else if (PermissionsManager.STANDARD_ROLE_ID.equals(that.id))
+            return +1;
+        else
+            return String.CASE_INSENSITIVE_ORDER.compare(this.name, that.name);
     }
 
 }
