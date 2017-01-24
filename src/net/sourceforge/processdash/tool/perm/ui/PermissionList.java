@@ -98,13 +98,21 @@ public class PermissionList extends JTable {
         this.dirty = false;
     }
 
-    public void addPermission(Permission p) {
+    public int addPermission(Permission p) {
         DefaultTableModel m = getTableModel();
-        if (isEmpty())
+        if (isEmpty()) {
             m.setValueAt(p, 0, 0);
-        else
+            dirty = true;
+            return 0;
+        } else {
+            for (int i = 0; i < getRowCount(); i++) {
+                if (p.equals(getPermission(i)))
+                    return i;
+            }
             m.addRow(new Object[] { p });
-        dirty = true;
+            dirty = true;
+            return getRowCount() - 1;
+        }
     }
 
     public Permission getPermission(int row) {

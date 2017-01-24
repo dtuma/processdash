@@ -221,7 +221,7 @@ public class PermissionsManager {
      * @return the role with the given ID, or null if no such role can be found
      */
     public Role getRoleByID(String id) {
-        return roles.get(id);
+        return id == null ? null : roles.get(id);
     }
 
 

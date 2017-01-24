@@ -32,8 +32,11 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -54,6 +57,8 @@ import javax.swing.event.ListSelectionListener;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.perm.Permission;
+import net.sourceforge.processdash.tool.perm.PermissionSpec;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -61,7 +66,8 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class RolesEditor {
 
-    private AbstractAction copyRoleAction, renameRoleAction, deleteRoleAction;
+    private AbstractAction copyRoleAction, renameRoleAction, deleteRoleAction,
+            addPermAction, editPermAction, deletePermAction, revertPermAction;
 
     private DefaultListModel<Role> roles;
 
@@ -114,15 +120,16 @@ public class RolesEditor {
         // create the roles button panel
         JPanel roleButtons = new JPanel(new GridLayout(2, 2, 5, 5));
         roleButtons.add(new JButton(new AddRoleAction()));
-        roleButtons.add(new JButton(copyRoleAction = new CopyRoleAction()));
-        roleButtons.add(new JButton(renameRoleAction = new RenameRoleAction()));
-        roleButtons.add(new JButton(deleteRoleAction = new DeleteRoleAction()));
+        roleButtons.add(new JButton(new CopyRoleAction()));
+        roleButtons.add(new JButton(new RenameRoleAction()));
+        roleButtons.add(new JButton(new DeleteRoleAction()));
 
         // create the permissions button panel
-        JPanel permButtons = new JPanel(new GridLayout(1, 3, 5, 5));
-        permButtons.add(new JButton("Add")); // FIXME
-        permButtons.add(new JButton("Edit")); // FIXME
-        permButtons.add(new JButton("Delete")); // FIXME
+        JPanel permButtons = new JPanel(new GridLayout(1, 4, 5, 5));
+        permButtons.add(new JButton(new AddPermissionAction()));
+        permButtons.add(new JButton(new EditPermissionAction()));
+        permButtons.add(new JButton(new DeletePermissionAction()));
+        permButtons.add(new JButton(new RevertPermissionsAction()));
 
         // read the known roles, and add them to a list
         roles = new DefaultListModel();
@@ -137,6 +144,10 @@ public class RolesEditor {
 
         // create an object for editing the permissions in the selected role
         permissionList = new PermissionList();
+        permissionList.setSelectionMode(
+            ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        permissionList.getSelectionModel()
+                .addListSelectionListener(new PermissionSelectionHandler());
         JScrollPane psp = new JScrollPane(permissionList);
         psp.setPreferredSize(new Dimension(200, 300)); // FIXME
 
@@ -333,6 +344,7 @@ public class RolesEditor {
         public CopyRoleAction() {
             super(resources.getString("Copy"));
             setEnabled(false);
+            copyRoleAction = this;
         }
 
         @Override
@@ -359,6 +371,7 @@ public class RolesEditor {
         public RenameRoleAction() {
             super(resources.getString("Rename"));
             setEnabled(false);
+            renameRoleAction = this;
         }
 
         @Override
@@ -388,6 +401,7 @@ public class RolesEditor {
         public DeleteRoleAction() {
             super(resources.getString("Delete"));
             setEnabled(false);
+            deleteRoleAction = this;
         }
 
         @Override
@@ -426,6 +440,8 @@ public class RolesEditor {
             copyRoleAction.setEnabled(hasSelection);
             renameRoleAction.setEnabled(hasSelection);
             deleteRoleAction.setEnabled(hasSelection);
+            addPermAction.setEnabled(hasSelection);
+            revertPermAction.setEnabled(false);
 
             if (selected != currentlyEditing) {
                 currentlyEditing = selected;
@@ -437,6 +453,138 @@ public class RolesEditor {
         }
 
     }
+
+
+    private class AddPermissionAction extends AbstractAction {
+
+        private PermissionChooser chooser;
+
+        public AddPermissionAction() {
+            super(resources.getString("Add"));
+            setEnabled(false);
+            addPermAction = this;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (chooser == null)
+                chooser = new PermissionChooser();
+
+            List<PermissionSpec> specsToAdd = chooser
+                    .promptForPermissions(userInterface);
+            if (specsToAdd.isEmpty())
+                return;
+
+            permissionList.clearSelection();
+            for (PermissionSpec oneSpec : specsToAdd) {
+                Map<String, String> params = null; // FIXME
+                Permission p = oneSpec.createPermission(false, params);
+                if (p != null) {
+                    int row = permissionList.addPermission(p);
+                    permissionList.addRowSelectionInterval(row, row);
+                }
+            }
+
+            if (permissionList.isDirty())
+                revertPermAction.setEnabled(true);
+        }
+
+    }
+
+
+    private class EditPermissionAction extends AbstractAction {
+
+        public EditPermissionAction() {
+            super(resources.getString("Edit"));
+            setEnabled(false);
+            editPermAction = this;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+
+            revertPermAction.setEnabled(true);
+        }
+
+    }
+
+
+    private class DeletePermissionAction extends AbstractAction {
+
+        public DeletePermissionAction() {
+            super(resources.getString("Delete"));
+            setEnabled(false);
+            deletePermAction = this;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int[] selectedRows = permissionList.getSelectedRows();
+            Arrays.sort(selectedRows);
+            for (int i = selectedRows.length; i-- > 0;)
+                permissionList.deletePermission(selectedRows[i]);
+            permissionList.clearSelection();
+
+            if (permissionList.isDirty())
+                revertPermAction.setEnabled(true);
+        }
+
+    }
+
+
+    private class RevertPermissionsAction extends AbstractAction {
+
+        public RevertPermissionsAction() {
+            super(resources.getString("Revert"));
+            setEnabled(false);
+            revertPermAction = this;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (currentlyEditing == null)
+                return;
+
+            // find the original/saved version of this role.
+            Role revert = PermissionsManager.getInstance()
+                    .getRoleByID(currentlyEditing.getId());
+
+            // if this role could not be found, it has been newly added in
+            // this invocation of the roles editor. Reset it to an empty state
+            if (revert == null) {
+                revert = new Role(null, currentlyEditing.getName(),
+                        currentlyEditing.isInactive(), Collections.EMPTY_LIST);
+                rolesToSave.add(revert);
+            }
+
+            rolesToSave.remove(currentlyEditing);
+            permissionList.setContents(revert.getPermissions());
+
+            int pos = roles.indexOf(currentlyEditing);
+            currentlyEditing = revert;
+            roles.set(pos, revert);
+
+            setEnabled(false);
+        }
+
+    }
+
+
+    private class PermissionSelectionHandler implements ListSelectionListener {
+
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            int[] rows = {};
+            if (!permissionList.isEmpty())
+                rows = permissionList.getSelectedRows();
+
+            editPermAction.setEnabled(rows.length == 1); // FIXME
+            deletePermAction.setEnabled(rows.length > 0);
+        }
+
+    }
+
 
     private static final String SIZE_PREF = "userPref.rolesEditor.dimensions";
 
