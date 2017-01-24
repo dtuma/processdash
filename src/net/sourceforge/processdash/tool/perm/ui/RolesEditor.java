@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.perm.ui;
 
 import static net.sourceforge.processdash.tool.perm.PermissionsManager.STANDARD_ROLE_ID;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -40,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -64,6 +66,8 @@ import net.sourceforge.processdash.tool.perm.PermissionEditor;
 import net.sourceforge.processdash.tool.perm.PermissionSpec;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
+import net.sourceforge.processdash.tool.perm.User;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -414,12 +418,39 @@ public class RolesEditor {
             if (STANDARD_ROLE_ID.equals(currentlyEditing.getId()))
                 return;
 
+            // identify the users who are assigned to this role
+            Vector<User> affectedUsers = new Vector();
+            for (User u : PermissionsManager.getInstance().getAllUsers()) {
+                if (u.getRoleIDs().contains(currentlyEditing.getId()))
+                    affectedUsers.addElement(u);
+            }
+
+            // create the objects to display in the confirmation dialog
             String title = resources.getString("Delete_Title");
             String prompt = resources.format("Delete_Prompt_FMT",
                 currentlyEditing.getName());
+            Object message;
+            int iconType;
+            if (affectedUsers.isEmpty()) {
+                message = prompt;
+                iconType = JOptionPane.QUESTION_MESSAGE;
+            } else {
+                JPanel p = new JPanel(new BorderLayout(20, 10));
+                Object[] header = resources.getStrings("Delete_Warning_Header");
+                p.add(BoxUtils.vbox(header), BorderLayout.NORTH);
+                p.add(new JOptionPaneTweaker.MakeResizable(),
+                    BorderLayout.WEST);
+                JList list = new JList(affectedUsers);
+                list.setVisibleRowCount(Math.min(affectedUsers.size(), 10));
+                p.add(new JScrollPane(list), BorderLayout.CENTER);
+                p.add(new JLabel(prompt), BorderLayout.SOUTH);
+                message = p;
+                iconType = JOptionPane.ERROR_MESSAGE;
+            }
+
+            // ask the user for confirmation
             int userChoice = JOptionPane.showConfirmDialog(userInterface,
-                prompt, title, JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
+                message, title, JOptionPane.YES_NO_OPTION, iconType);
 
             if (userChoice == JOptionPane.YES_OPTION) {
                 Role delete = currentlyEditing;

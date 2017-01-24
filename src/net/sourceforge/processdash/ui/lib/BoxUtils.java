@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,12 @@ public abstract class BoxUtils extends Box {
             add(Box.createRigidArea((Dimension) item));
         } else if (item == GLUE) {
             add(createGlueItem());
+        } else if (item instanceof Iterable) {
+            for (Object oneItem : (Iterable) item)
+                addItem(oneItem);
+        } else if (item instanceof Object[]) {
+            for (Object oneItem : (Object[]) item)
+                addItem(oneItem);
         }
         return this;
     }

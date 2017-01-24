@@ -75,4 +75,9 @@ public class User {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return getName() + " (" + getUsername() + ")";
+    }
+
 }
