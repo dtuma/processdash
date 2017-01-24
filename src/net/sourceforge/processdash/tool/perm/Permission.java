@@ -80,6 +80,10 @@ public class Permission {
         return getDefaultParams();
     }
 
+    public PermissionEditor getEditor() {
+        return spec.getEditor();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

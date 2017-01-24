@@ -46,6 +46,8 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     private Class permissionClass;
 
+    private PermissionEditor editor;
+
     private Map<String, String> defaultParams;
 
     private Set<String> impliedBy;
@@ -62,6 +64,7 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         loadID(xml);
         loadResources(xml);
         loadPermissionsClass(xml);
+        loadEditor(xml);
         loadDefaultParams(xml);
         loadRelations(xml);
     }
@@ -131,6 +134,22 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
         }
     }
 
+    private void loadEditor(Element xml) throws Exception {
+        if (xml.hasAttribute("editor")) {
+            try {
+                this.editor = (PermissionEditor) ExtensionManager
+                        .getExecutableExtension(xml, "editor", null);
+            } catch (ClassCastException cce) {
+                throw error(
+                    "editor attribute does not name a PermissionEditor class");
+            } catch (Exception e) {
+                throw error("can't instantiate " + xml.getAttribute("editor"));
+            }
+        } else {
+            this.editor = null;
+        }
+    }
+
     private void loadDefaultParams(Element xml) {
         // look for "param" tags in this xml element.
         NodeList nl = xml.getElementsByTagName("param");
@@ -191,6 +210,10 @@ public class PermissionSpec implements Comparable<PermissionSpec> {
 
     public Class getPermissionClass() {
         return permissionClass;
+    }
+
+    public PermissionEditor getEditor() {
+        return editor;
     }
 
     public Map<String, String> getDefaultParams() {

@@ -58,6 +58,7 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.perm.Permission;
+import net.sourceforge.processdash.tool.perm.PermissionEditor;
 import net.sourceforge.processdash.tool.perm.PermissionSpec;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
@@ -477,8 +478,21 @@ public class RolesEditor {
 
             permissionList.clearSelection();
             for (PermissionSpec oneSpec : specsToAdd) {
-                Map<String, String> params = null; // FIXME
-                Permission p = oneSpec.createPermission(false, params);
+                // create a default instance of the requested permission
+                Permission p = oneSpec.createPermission(false, null);
+
+                // edit parameters for the permission, if applicable
+                PermissionEditor editor = (p == null ? null : p.getEditor());
+                if (editor != null) {
+                    Map<String, String> params = editor.editPermission(p,
+                        userInterface, true);
+                    if (params == null)
+                        p = null;
+                    else
+                        p = oneSpec.createPermission(false, params);
+                }
+
+                // add the resulting permission to the list
                 if (p != null) {
                     int row = permissionList.addPermission(p);
                     permissionList.addRowSelectionInterval(row, row);
@@ -502,9 +516,35 @@ public class RolesEditor {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
+            // find which permission row is selected. abort if not exactly one
+            int[] rows = permissionList.getSelectedRows();
+            if (rows.length != 1)
+                return;
 
-            revertPermAction.setEnabled(true);
+            // get the permission for the selected row
+            Permission perm = permissionList.getPermission(rows[0]);
+            if (perm == null)
+                return;
+
+            // if the given permission is not editable, abort
+            PermissionEditor editor = perm.getEditor();
+            if (editor == null)
+                return;
+
+            // edit the parameters for the selected permission. abort if the
+            // user cancels the edit operation
+            Map<String, String> modifiedParams = editor.editPermission(perm,
+                userInterface, false);
+            if (modifiedParams == null)
+                return;
+
+            // create and store a new permission with the given parameters
+            Permission modified = perm.getSpec()
+                    .createPermission(perm.isInactive(), modifiedParams);
+            if (modified != null && !modified.equals(perm)) {
+                permissionList.alterPermission(rows[0], modified);
+                revertPermAction.setEnabled(true);
+            }
         }
 
     }
@@ -579,7 +619,8 @@ public class RolesEditor {
             if (!permissionList.isEmpty())
                 rows = permissionList.getSelectedRows();
 
-            editPermAction.setEnabled(rows.length == 1); // FIXME
+            editPermAction.setEnabled(rows.length == 1 && permissionList
+                    .getPermission(rows[0]).getEditor() != null);
             deletePermAction.setEnabled(rows.length > 0);
         }
 
