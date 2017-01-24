@@ -143,11 +143,12 @@ public class RolesEditor {
         for (Role r : PermissionsManager.getInstance().getAllRoles())
             roles.addElement(r);
         rolesList = new JList(roles);
-        rolesList.setVisibleRowCount(15);
         rolesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rolesList.addListSelectionListener(new RoleSelectionHandler());
         JScrollPane rsp = new JScrollPane(rolesList);
-        rsp.setPreferredSize(new Dimension(200, 300)); // FIXME
+        int prefHeight = Math.max(rolesList.getCellBounds(0, 0).height * 15 + 6,
+            200);
+        rsp.setPreferredSize(new Dimension(200, prefHeight));
 
         // create an object for editing the permissions in the selected role
         permissionList = new PermissionList();
@@ -156,7 +157,7 @@ public class RolesEditor {
         permissionList.getSelectionModel()
                 .addListSelectionListener(new PermissionSelectionHandler());
         JScrollPane psp = new JScrollPane(permissionList);
-        psp.setPreferredSize(new Dimension(200, 300)); // FIXME
+        psp.setPreferredSize(new Dimension(450, prefHeight));
 
         // create titles to display on the dialog
         JLabel rolesTitle = new JLabel(resources.getString("Roles_Header"));
