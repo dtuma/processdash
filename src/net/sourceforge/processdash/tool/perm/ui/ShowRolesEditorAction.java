@@ -21,55 +21,33 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.perm;
+package net.sourceforge.processdash.tool.perm.ui;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 
-public class Role implements Comparable<Role> {
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 
-    String id;
+import net.sourceforge.processdash.Settings;
 
-    private String name;
+public class ShowRolesEditorAction extends AbstractAction {
 
-    private boolean inactive;
+    private Component parent;
 
-    private List<Permission> permissions;
+    private boolean editable;
 
-    public Role(String id, String name, boolean inactive,
-            List<Permission> permissions) {
-        this.id = id;
-        this.name = name;
-        this.inactive = inactive;
-        this.permissions = Collections
-                .unmodifiableList(new ArrayList(permissions));
-    }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isInactive() {
-        return inactive;
-    }
-
-    public List<Permission> getPermissions() {
-        return permissions;
+    public ShowRolesEditorAction(Component parent) {
+        this.parent = parent;
+        this.editable = Settings.isReadWrite();
+        putValue(Action.NAME, RolesEditor.resources
+                .getString(editable ? "Edit_Roles" : "View_Roles"));
     }
 
     @Override
-    public String toString() {
-        return getName();
-    }
-
-    @Override
-    public int compareTo(Role that) {
-        return String.CASE_INSENSITIVE_ORDER.compare(this.name, that.name);
+    public void actionPerformed(ActionEvent e) {
+        new RolesEditor(parent, editable);
     }
 
 }

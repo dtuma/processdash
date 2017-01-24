@@ -58,6 +58,7 @@ import net.sourceforge.processdash.tool.export.ui.SaveBackupAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.mobile.OpenMobileSetupWizard;
+import net.sourceforge.processdash.tool.perm.ui.ShowRolesEditorAction;
 import net.sourceforge.processdash.tool.perm.ui.ShowUserEditorAction;
 import net.sourceforge.processdash.tool.prefs.OpenPreferencesDialogAction;
 import net.sourceforge.processdash.tool.probe.ProbeDialog;
@@ -178,6 +179,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         toolMenu.add(new OfflineModeToggleMenuItem(parent.getWorkingDirectory()));
         addToolExtensions(toolMenu, extensionItems, "prefs");
         if (!personalMode) {
+            toolMenu.add(new ShowRolesEditorAction(parent));
             toolMenu.add(new ShowUserEditorAction(parent));
         }
         toolMenu.addSeparator();
