@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -98,6 +99,30 @@ public class JOptionPaneTweaker extends Component {
         public void doTweak(JDialog dialog) {
             c.requestFocus();
         }
+    }
+
+    public static class DisableKeys extends JOptionPaneTweaker {
+
+        public DisableKeys() {
+            super(100);
+        }
+
+        public void addNotify() {
+            super.addNotify();
+
+            JOptionPane pane = (JOptionPane) SwingUtilities
+                    .getAncestorOfClass(JOptionPane.class, this);
+            if (pane != null) {
+                SwingUtilities.replaceUIInputMap(pane,
+                    JComponent.WHEN_IN_FOCUSED_WINDOW, null);
+                SwingUtilities.replaceUIActionMap(pane, null);
+            }
+        }
+
+        public void doTweak(JDialog dialog) {
+            dialog.getRootPane().setDefaultButton(null);
+        }
+
     }
 
 }

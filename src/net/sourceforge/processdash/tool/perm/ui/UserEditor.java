@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.perm.ui;
 
 import static net.sourceforge.processdash.tool.perm.PermissionsManager.CATCH_ALL_USER_ID;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
@@ -45,6 +46,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -113,15 +115,17 @@ public class UserEditor {
 
 
     private Object buildUI(boolean editable) {
-        Object table = makeTable();
-        Object toolbar = makeToolbar(editable);
+        Component table = makeTable();
+        Component toolbar = makeToolbar(editable);
         updateFilter();
 
-        return BoxUtils.vbox(toolbar, 5, table,
-            new JOptionPaneTweaker.MakeResizable());
+        JPanel p = new JPanel(new BorderLayout(0, 5));
+        p.add(toolbar, BorderLayout.NORTH);
+        p.add(table, BorderLayout.CENTER);
+        return p;
     }
 
-    private Object makeTable() {
+    private Component makeTable() {
         table = new JTable(model);
         table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         rowSorter = new TableRowSorter(model);
@@ -141,7 +145,7 @@ public class UserEditor {
         return new JScrollPane(table);
     }
 
-    private Object makeToolbar(boolean editable) {
+    private Component makeToolbar(boolean editable) {
         FilterHandler filterer = EventHandler.create(FilterHandler.class, this,
             "updateFilter");
         BoxUtils toolbar = BoxUtils.hbox();
@@ -163,6 +167,9 @@ public class UserEditor {
 
         if (editable)
             toolbar.addItems(5, new JButton(new DeleteAction()));
+
+        toolbar.addItem(new JOptionPaneTweaker.MakeResizable());
+        toolbar.addItem(new JOptionPaneTweaker.DisableKeys());
 
         return toolbar;
     }

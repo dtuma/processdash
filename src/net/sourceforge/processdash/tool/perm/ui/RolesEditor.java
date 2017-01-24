@@ -182,7 +182,8 @@ public class RolesEditor {
         userInterface.add(rolesTitle);
 
         c.gridx = 2;
-        Component comp = new JOptionPaneTweaker.MakeResizable();
+        Component comp = BoxUtils.hbox(new JOptionPaneTweaker.MakeResizable(),
+            new JOptionPaneTweaker.DisableKeys());
         layout.addLayoutComponent(comp, c);
         userInterface.add(comp);
 
