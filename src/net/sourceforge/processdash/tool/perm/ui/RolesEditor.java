@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.perm.ui;
 
+import static net.sourceforge.processdash.tool.perm.PermissionsManager.STANDARD_ROLE_ID;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -409,6 +411,8 @@ public class RolesEditor {
         public void actionPerformed(ActionEvent e) {
             if (currentlyEditing == null)
                 return;
+            if (STANDARD_ROLE_ID.equals(currentlyEditing.getId()))
+                return;
 
             String title = resources.getString("Delete_Title");
             String prompt = resources.format("Delete_Prompt_FMT",
@@ -440,7 +444,8 @@ public class RolesEditor {
             boolean hasSelection = (selected != null);
             copyRoleAction.setEnabled(hasSelection);
             renameRoleAction.setEnabled(hasSelection);
-            deleteRoleAction.setEnabled(hasSelection);
+            deleteRoleAction.setEnabled(hasSelection //
+                    && !STANDARD_ROLE_ID.equals(selected.getId()));
             addPermAction.setEnabled(hasSelection);
             revertPermAction.setEnabled(false);
 
