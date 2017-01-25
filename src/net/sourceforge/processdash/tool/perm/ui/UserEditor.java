@@ -66,6 +66,7 @@ import javax.swing.table.TableRowSorter;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.ui.PersonLookupData;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
+import net.sourceforge.processdash.tool.perm.Permission;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
@@ -176,6 +177,8 @@ public class UserEditor {
                     ? new AddPdesUserAction() : new AddPlainUserAction());
             toolbar.addItems(5, new JButton(add));
         }
+
+        toolbar.addItems(5, new JButton(new ViewAction()));
 
         if (editable)
             toolbar.addItems(5, new JButton(new DeleteAction()));
@@ -492,6 +495,50 @@ public class UserEditor {
         }
 
         protected abstract boolean shouldBeEnabled(int[] rows);
+
+    }
+
+
+    /**
+     * An action to view the permission of the selected user.
+     */
+    private class ViewAction extends EnablementAction {
+
+        public ViewAction() {
+            super("View");
+        }
+
+        @Override
+        protected boolean shouldBeEnabled(int[] rows) {
+            return rows.length == 1;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int[] rows = getSelectedModelRows();
+            if (rows.length != 1)
+                return;
+
+            // retrieve the permissions of the selected user, and build a
+            // component to display them
+            User user = model.getUser(rows[0]).getNewUser();
+            PermissionList list = new PermissionList();
+            list.setContents(new ArrayList<Permission>(PermissionsManager
+                    .getInstance().getPermissionsForUser(user, false)));
+            JScrollPane sp = new JScrollPane(list);
+            sp.setPreferredSize(new Dimension(300, 200));
+
+            // build the contents to display in the dialog
+            String title = resources.getString("View_Permissions.Title");
+            String header = resources.format("View_Permissions.Header_FMT",
+                user.getName());
+            Object[] message = { header, sp,
+                    new JOptionPaneTweaker.MakeResizable() };
+
+            // show the list of user permissions
+            JOptionPane.showMessageDialog(getDialogParent(), message, title,
+                JOptionPane.PLAIN_MESSAGE);
+        }
 
     }
 
