@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2016 Tuma Solutions, LLC
+// Copyright (C) 2003-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -256,6 +256,10 @@ public class DashboardIconFactory {
         return extLinkIcon = loadNamedIcon("externalLink", extLinkIcon);
     }
 
+    public static Icon getHelpIcon(int height) {
+        return loadAndScaleIcon("help", height, false);
+    }
+
     public static Icon getTaskOverflowIcon() {
         return new TaskOverflowIcon();
     }
@@ -293,9 +297,13 @@ public class DashboardIconFactory {
     }
 
     private static Icon loadAndScaleIcon(String name, boolean pad) {
+        return loadAndScaleIcon(name, STD_ICON_HEIGHT, pad);
+    }
+
+    private static Icon loadAndScaleIcon(String name, int height, boolean pad) {
         ImageIcon big = (ImageIcon) loadNamedIcon(name, null);
         Image bigImage = big.getImage();
-        int newHeight = STD_ICON_HEIGHT - (pad ? 2 * STD_ICON_PAD : 0);
+        int newHeight = height - (pad ? 2 * STD_ICON_PAD : 0);
         int newWidth = (int) Math.round((double) big.getIconWidth() * newHeight
                 / big.getIconHeight());
         Image smallImage = bigImage.getScaledInstance(newWidth, newHeight,

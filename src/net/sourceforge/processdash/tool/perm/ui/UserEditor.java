@@ -31,6 +31,8 @@ import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,18 +45,22 @@ import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultCellEditor;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
 import net.sourceforge.processdash.i18n.Resources;
@@ -63,6 +69,8 @@ import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
+import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.TableUtils;
@@ -129,12 +137,16 @@ public class UserEditor {
         table = new JTable(model);
         table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         rowSorter = new TableRowSorter(model);
+        rowSorter.setSortable(UserTableModel.ROLES_COL, false);
         table.setRowSorter(rowSorter);
 
         table.getColumnModel().getColumn(UserTableModel.USERNAME_COL)
                 .setCellEditor(new UsernameCellEditor());
         table.getColumnModel().getColumn(UserTableModel.ROLES_COL)
                 .setCellEditor(new RolesCellEditor());
+        table.getColumnModel().getColumn(UserTableModel.ROLES_COL)
+                .setHeaderRenderer(new RolesHeaderRenderer());
+        table.getTableHeader().addMouseListener(new RolesColumnClickHandler());
 
         int preferredWidth = TableUtils.configureTable(table,
             UserTableModel.COLUMN_WIDTHS, UserTableModel.COLUMN_TOOLTIPS);
@@ -605,6 +617,69 @@ public class UserEditor {
 
             // no other user has this username.
             return -1;
+        }
+
+    }
+
+
+    /**
+     * Open the role definition report if the user clicks on the header for the
+     * Roles column
+     */
+    private class RolesColumnClickHandler extends MouseAdapter {
+
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e)) {
+                int col = table.getTableHeader().columnAtPoint(e.getPoint());
+                col = table.convertColumnIndexToModel(col);
+                if (col == UserTableModel.ROLES_COL)
+                    Browser.launch("/dash/rolesReport");
+            }
+        }
+
+    }
+
+
+    /**
+     * Renderer to display the header for the Roles column
+     */
+    private class RolesHeaderRenderer implements TableCellRenderer {
+
+        private TableCellRenderer delegate;
+
+        private String tooltip;
+
+        private Icon icon;
+
+        RolesHeaderRenderer() {
+            delegate = table.getTableHeader().getDefaultRenderer();
+            String tip = HTMLUtils.escapeEntities(
+                UserTableModel.COLUMN_TOOLTIPS[UserTableModel.ROLES_COL]);
+            tooltip = "<html><div style='width:200px'>" + tip + "</div></html>";
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                Object value, boolean isSelected, boolean hasFocus, int row,
+                int column) {
+            Component result = delegate.getTableCellRendererComponent(table,
+                value, isSelected, hasFocus, row, column);
+
+            if (result instanceof JLabel) {
+                if (icon == null) {
+                    int height = result.getFontMetrics(result.getFont())
+                            .getAscent() - 1;
+                    icon = DashboardIconFactory.getHelpIcon(height);
+                }
+
+                JLabel l = (JLabel) result;
+                l.setHorizontalTextPosition(SwingConstants.LEFT);
+                l.setIcon(icon);
+                l.setIconTextGap(10);
+                l.setToolTipText(tooltip);
+            }
+
+            return result;
         }
 
     }
