@@ -56,6 +56,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
@@ -516,8 +517,15 @@ public class UserGroupManager {
 
         // end the document and close the file
         xml.endTag(null, GROUPS_TAG);
+        xml.ignorableWhitespace(System.lineSeparator());
         xml.endDocument();
         out.close();
+
+        // add a tamper-deterrent thumbprint to the shared groups file.
+        if (!custom) {
+            TamperDeterrent.getInstance().addThumbprint(targetFile, targetFile,
+                TamperDeterrent.FileType.XML);
+        }
 
         // if we saved the file successfully, clear its dirty flag
         needsSave.remove(custom);
