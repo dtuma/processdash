@@ -128,6 +128,7 @@ import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
+import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
@@ -290,6 +291,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             default_directory = prop_file.getParentFile().getAbsolutePath();
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
+        DashController.setDataDirectory(prop_file.getParentFile());
         pt.click("Set default directory");
 
         // create the data repository
@@ -303,6 +305,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         templates = TemplateLoader.loadTemplates(data);
         pt.click("Loaded templates");
         DataVersionChecker.ensureVersionsOrExit();
+        TamperDeterrent.init();
 
         // read and initialize users, roles, and permissions
         try {
