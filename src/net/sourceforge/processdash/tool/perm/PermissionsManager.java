@@ -65,6 +65,8 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -73,6 +75,7 @@ import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.XMLUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
@@ -125,7 +128,7 @@ public class PermissionsManager {
     private PermissionsManager() {}
 
 
-    public void init(DashboardContext ctx) throws IOException {
+    public void init(DashboardContext ctx) throws IOException, TamperException {
         PERMISSION.checkPermission();
 
         // load the definitions for known permission types
@@ -139,6 +142,9 @@ public class PermissionsManager {
         if (workingDir instanceof BridgedWorkingDirectory)
             bridgedUrl = workingDir.getDescription();
 
+        // identify the current user
+        identifyCurrentUser();
+
         // load the roles for this dashboard, and the permissions they map to
         this.rolesFile = new File(storageDir, "roles.dat");
         readRoles();
@@ -148,8 +154,8 @@ public class PermissionsManager {
         readUsers();
         updateExternalUsers();
 
-        // identify the current user and load their effective permissions
-        identifyCurrentUser();
+        // evaluate the permissions associated with the current user
+        evaluateCurrentUserPermissions();
     }
 
 
@@ -514,9 +520,10 @@ public class PermissionsManager {
     /**
      * Read the roles that are defined in this dataset.
      */
-    private void readRoles() throws IOException {
+    private void readRoles() throws IOException, TamperException {
         Map roles = new TreeMap();
         if (Settings.isTeamMode() && rolesFile.isFile()) {
+            verifyFile(rolesFile);
             try {
                 // open, parse, and load the roles XML file
                 InputStream in = new BufferedInputStream(
@@ -565,8 +572,9 @@ public class PermissionsManager {
                 return;
 
             // open a file to save the roles
+            File tmp = TempFileFactory.get().createTempFile("roles", ".dat");
             OutputStream out = new BufferedOutputStream(
-                    new RobustFileOutputStream(rolesFile));
+                    new RobustFileOutputStream(tmp));
 
             // start an XML document
             XmlSerializer xml = XMLUtils.getXmlSerializer(true);
@@ -582,8 +590,14 @@ public class PermissionsManager {
 
             // end the document and close the file
             xml.endTag(null, ROLES_TAG);
+            xml.ignorableWhitespace(System.lineSeparator());
             xml.endDocument();
             out.close();
+
+            // add a tamper-deterrent thumbprint to the file
+            TamperDeterrent.getInstance().addThumbprint(tmp, rolesFile,
+                TamperDeterrent.FileType.XML);
+            tmp.delete();
 
             this.rolesDirty = false;
         } catch (IOException ioe) {
@@ -706,9 +720,10 @@ public class PermissionsManager {
     /**
      * Read the users that are defined in this dataset.
      */
-    private void readUsers() throws IOException {
+    private void readUsers() throws IOException, TamperException {
         Map users = new TreeMap();
         if (Settings.isTeamMode() && usersFile.isFile()) {
+            verifyFile(usersFile);
             try {
                 // open and parse the users XML file
                 InputStream in = new BufferedInputStream(
@@ -748,8 +763,9 @@ public class PermissionsManager {
                 return;
 
             // open a file to save the users
+            File tmp = TempFileFactory.get().createTempFile("users", ".dat");
             OutputStream out = new BufferedOutputStream(
-                    new RobustFileOutputStream(usersFile));
+                    new RobustFileOutputStream(tmp));
 
             // start an XML document
             XmlSerializer xml = XMLUtils.getXmlSerializer(true);
@@ -765,8 +781,14 @@ public class PermissionsManager {
 
             // end the document and close the file
             xml.endTag(null, USERS_TAG);
+            xml.ignorableWhitespace(System.lineSeparator());
             xml.endDocument();
             out.close();
+
+            // add a tamper-deterrent thumbprint to the file
+            TamperDeterrent.getInstance().addThumbprint(tmp, usersFile,
+                TamperDeterrent.FileType.XML);
+            tmp.delete();
 
             // flush data so the PDES can update server-side permissions
             if (bridgedUrl != null)
@@ -950,8 +972,7 @@ public class PermissionsManager {
 
 
     /**
-     * Determine the identity of the current user, and resolve the permissions
-     * they should have during this session.
+     * Determine the identity of the current user
      */
     private void identifyCurrentUser() throws HttpException {
         currentUsername = null;
@@ -966,9 +987,6 @@ public class PermissionsManager {
             identifyUserFromWhoamiCall();
         if (!StringUtils.hasValue(currentUsername))
             identifyUserFromSystemProperties();
-
-        // evaluate the permissions associated with the current user
-        evaluateCurrentUserPermissions();
     }
 
     private void identifyUserFromPDES() throws HttpException {
@@ -1049,6 +1067,10 @@ public class PermissionsManager {
         return (pos == -1 ? username : username.substring(pos + 1));
     }
 
+
+    /**
+     * Evaluate the permissions that should be assigned to the current user.
+     */
     private void evaluateCurrentUserPermissions() {
         User user = getCurrentUser();
         if (user != null && !user.isInactive()) {
@@ -1099,6 +1121,21 @@ public class PermissionsManager {
         } finally {
             FileUtils.safelyClose(in);
         }
+    }
+
+
+    /**
+     * Throw an exception if one of our files has been tampered with.
+     * 
+     * To avoid denial-of-service problems, people who have been granted "all
+     * permissions" by a PDES are still allowed to open the tampered files. This
+     * allows them to review the configuration, fix any problems, and save a
+     * new/good version of the files.
+     */
+    private void verifyFile(File file) throws IOException, TamperException {
+        if (hasPermission(ALL_PERMISSION_ID) == false)
+            TamperDeterrent.getInstance().verifyThumbprint(file,
+                TamperDeterrent.FileType.XML);
     }
 
 

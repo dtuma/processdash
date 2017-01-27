@@ -129,6 +129,7 @@ import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
@@ -326,6 +327,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             // If the user fails to login successfully, display an
             // "unauthorized" message and exit.
             displayStartupPermissionError("Unauthorized");
+            System.exit(1);
+        } catch (TamperException te) {
+            logErr("Permission-related files have been tampered with", te);
+            displayPermissionsTamperingError();
             System.exit(1);
         } catch (IOException ioe) {
             // if I/O problems prevented reading users/roles, exit with error
@@ -1442,6 +1447,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Resources res = Resources.getDashBundle("Authentication.Errors");
         String title = res.getString(resourceKey + ".Title");
         Object message = res.getStrings(resourceKey + ".Message");
+        JOptionPane.showMessageDialog(hideSS(), message, title,
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+
+    private void displayPermissionsTamperingError() {
+        Resources res = Resources.getDashBundle("Permissions.Tamper_Error");
+        String title = res.getString("Title");
+        Object message = res.getStrings("Message");
         JOptionPane.showMessageDialog(hideSS(), message, title,
             JOptionPane.ERROR_MESSAGE);
     }
