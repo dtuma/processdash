@@ -26,7 +26,7 @@ package net.sourceforge.processdash.tool.perm;
 import java.awt.Component;
 import java.util.Map;
 
-public interface PermissionEditor {
+public interface PermissionEditor<T extends Permission> {
 
     /**
      * Interact with the user to configure the parameters for a permission.
@@ -42,7 +42,7 @@ public interface PermissionEditor {
      *         parameters that should be used to create a modified permission
      *         reflecting the user's edits
      */
-    public Map<String, String> editPermission(Permission p, Component parent,
+    public Map<String, String> editPermission(T p, Component parent,
             boolean isAdd);
 
 }
