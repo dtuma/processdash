@@ -70,6 +70,7 @@ import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -123,6 +124,8 @@ public class PermissionsManager {
     private String currentUsername;
 
     private Set<Permission> currentPermissions;
+
+    private boolean legacyPdesMode;
 
 
     private PermissionsManager() {}
@@ -429,7 +432,7 @@ public class PermissionsManager {
         Set<Permission> result = new LinkedHashSet<Permission>();
 
         // grant the "active user" permission if applicable
-        if (!user.isInactive()) {
+        if (!user.isInactive() || legacyPdesMode) {
             PermissionSpec spec = specs.get(ACTIVE_USER_PERMISSION_ID);
             Permission p = spec.createPermission(false, null);
             result.add(p);
@@ -460,6 +463,15 @@ public class PermissionsManager {
             if (result.add(childPerm))
                 enumerateImpliedPermissions(result, childPerm);
         }
+    }
+
+
+    /**
+     * @return true if this dataset is being managed by an older version of the
+     *         PDES, which has not been upgraded to include user sync support
+     */
+    public boolean isLegacyPdesMode() {
+        return legacyPdesMode;
     }
 
 
@@ -1020,9 +1032,19 @@ public class PermissionsManager {
             this.currentPermissions = permissions;
 
         } catch (HttpException.Unauthorized he) {
+            // if the attempt to contact the "whoami" API triggered a password
+            // challenge that the user failed, propagate that failure along.
             throw he;
+
         } catch (Exception e) {
-            return;
+            // older versions of the PDES will not have the whoami REST API.
+            // fall back and try retrieving the HTTP Auth username that was
+            // used to authenticate to the DataBridge
+            this.currentUsername = HttpAuthenticator.getLastUsername();
+            if (StringUtils.hasValue(currentUsername)) {
+                logger.info("From HTTP, current user is " + currentUsername);
+                legacyPdesMode = true;
+            }
         }
     }
 
@@ -1073,7 +1095,7 @@ public class PermissionsManager {
      */
     private void evaluateCurrentUserPermissions() {
         User user = getCurrentUser();
-        if (user != null && !user.isInactive()) {
+        if (user != null && (!user.isInactive() || legacyPdesMode)) {
             // if we found an active user, calculate the resulting permissions.
             Set<Permission> permissions = getPermissionsForUser(user, true);
             permissions.addAll(currentPermissions);

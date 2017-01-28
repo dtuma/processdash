@@ -155,6 +155,13 @@ public class UserEditor {
         table.setPreferredScrollableViewportSize(
             new Dimension(preferredWidth, preferredHeight));
 
+        // when talking to a legacy PDES, the PDES determines which users are
+        // active, not us; so don't display the "Active" column in the table.
+        if (isLegacyPdesMode()) {
+            table.getColumnModel().removeColumn(
+                table.getColumnModel().getColumn(UserTableModel.ACTIVE_COL));
+        }
+
         return new JScrollPane(table);
     }
 
@@ -170,7 +177,12 @@ public class UserEditor {
         showInactiveCheckbox = new JCheckBox(
                 resources.getString("Show_Inactive"));
         showInactiveCheckbox.addActionListener(filterer);
-        toolbar.addItems(showInactiveCheckbox, 100, BoxUtils.GLUE);
+        if (isLegacyPdesMode()) {
+            showInactiveCheckbox.setSelected(true);
+        } else {
+            toolbar.addItem(showInactiveCheckbox);
+        }
+        toolbar.addItems(100, BoxUtils.GLUE);
 
         if (editable) {
             AbstractAction add = (PersonLookupDialog.isLookupServerConfigured() //
@@ -306,10 +318,15 @@ public class UserEditor {
             return UserTableModel.NAME_COL;
         else if (!StringUtils.hasValue(user.getUsername()))
             return UserTableModel.USERNAME_COL;
-        else if (!user.getActive())
+        else if (!user.getActive() && !isLegacyPdesMode())
             return UserTableModel.ACTIVE_COL;
         else
             return UserTableModel.ROLES_COL;
+    }
+
+
+    private boolean isLegacyPdesMode() {
+        return PermissionsManager.getInstance().isLegacyPdesMode();
     }
 
 
@@ -317,7 +334,7 @@ public class UserEditor {
      * @return the dialog window containing our UI components
      */
     protected Window getDialogParent() {
-        return SwingUtilities.getWindowAncestor(showInactiveCheckbox);
+        return SwingUtilities.getWindowAncestor(table);
     }
 
 
@@ -570,8 +587,11 @@ public class UserEditor {
             } else if (rows.length == 1 && model.isCatchAllUserRow(rows[0])) {
                 // the user is trying to delete the "catch all" user. display a
                 // message explaining that this is not allowed.
-                JOptionPane.showMessageDialog(getDialogParent(),
-                    resources.getStrings("Delete.Not_Allowed_Message"),
+                Object msg = resources.getString("Delete.Not_Allowed_Message");
+                if (!PermissionsManager.getInstance().isLegacyPdesMode())
+                    msg = new Object[] { msg, " ", resources
+                            .getStrings("Delete.Not_Allowed_Message_2") };
+                JOptionPane.showMessageDialog(getDialogParent(), msg,
                     resources.getString("Delete.Not_Allowed_Title"),
                     JOptionPane.ERROR_MESSAGE);
 
