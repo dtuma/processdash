@@ -218,6 +218,8 @@ public class UserGroupManager {
     public UserGroup getGroupByID(String groupID) {
         if (UserGroup.EVERYONE_ID.equals(groupID))
             return UserGroup.EVERYONE;
+        else if (groups == null)
+            return null;
         else
             return groups.get(groupID);
     }
