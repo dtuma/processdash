@@ -538,18 +538,30 @@ public class UserEditor {
 
             // retrieve the permissions of the selected user, and build a
             // component to display them
-            User user = model.getUser(rows[0]).getNewUser();
-            PermissionList list = new PermissionList();
+            final User user = model.getUser(rows[0]).getNewUser();
+            final PermissionList list = new PermissionList();
             list.setContents(new ArrayList<Permission>(PermissionsManager
                     .getInstance().getPermissionsForUser(user, false)));
             JScrollPane sp = new JScrollPane(list);
             sp.setPreferredSize(new Dimension(300, 200));
 
+            // create a checkbox for toggling between explicit and full list
+            final JCheckBox cb = new JCheckBox(
+                    resources.getString("View_Permissions.Show_Children"));
+            cb.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    boolean deep = cb.isSelected();
+                    list.setContents(new ArrayList(PermissionsManager
+                            .getInstance().getPermissionsForUser(user, deep)));
+                }
+            });
+            Object footer = BoxUtils.hbox(BoxUtils.GLUE, cb, BoxUtils.GLUE);
+
             // build the contents to display in the dialog
             String title = resources.getString("View_Permissions.Title");
             String header = resources.format("View_Permissions.Header_FMT",
                 user.getName());
-            Object[] message = { header, sp,
+            Object[] message = { header, sp, footer,
                     new JOptionPaneTweaker.MakeResizable() };
 
             // show the list of user permissions
