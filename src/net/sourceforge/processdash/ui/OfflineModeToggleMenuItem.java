@@ -66,13 +66,14 @@ public class OfflineModeToggleMenuItem extends JCheckBoxMenuItem implements
     }
 
     public void setOfflineLockStatus(OfflineLockStatus status) {
+        boolean isOffline = (status == OfflineLockStatus.Enabled);
         boolean shouldShow = (status != OfflineLockStatus.NotLocked
                 && status != OfflineLockStatus.Unsupported
+                && (isOffline || Settings.isPersonalMode())
                 && Settings.isReadWrite());
         setVisible(shouldShow);
         setEnabled(shouldShow);
 
-        boolean isOffline = (status == OfflineLockStatus.Enabled);
         setSelected(isOffline);
     }
 
