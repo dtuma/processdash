@@ -475,10 +475,11 @@ public class RolesEditor {
 
             Role selected = rolesList.getSelectedValue();
             boolean hasSelection = (selected != null);
+            boolean isNotStandard = hasSelection //
+                    && !STANDARD_ROLE_ID.equals(selected.getId());
             copyRoleAction.setEnabled(hasSelection);
-            renameRoleAction.setEnabled(hasSelection);
-            deleteRoleAction.setEnabled(hasSelection //
-                    && !STANDARD_ROLE_ID.equals(selected.getId()));
+            renameRoleAction.setEnabled(isNotStandard);
+            deleteRoleAction.setEnabled(isNotStandard);
             addPermAction.setEnabled(hasSelection);
             revertPermAction.setEnabled(false);
 
