@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ public class ExternalResourceManifestXMLv1 implements
         ExternalResourceMappingLoader, ExternalResourceXmlConstantsv1 {
 
 
+    private String datasetUrl;
+
     private List<MappingEntry> mappingEntries;
 
     private List<MCFEntry> mcfEntries;
@@ -57,7 +59,15 @@ public class ExternalResourceManifestXMLv1 implements
     }
 
     public boolean isEmpty() {
-        return mappingEntries.isEmpty();
+        return mappingEntries.isEmpty() && datasetUrl == null;
+    }
+
+    public String getDatasetUrl() {
+        return datasetUrl;
+    }
+
+    public void setDatasetUrl(String datasetUrl) {
+        this.datasetUrl = datasetUrl;
     }
 
     public List<MCFEntry> getMcfEntries() {
@@ -92,6 +102,8 @@ public class ExternalResourceManifestXMLv1 implements
         ser.setOutput(out, ENCODING);
         ser.startDocument(ENCODING, null);
         ser.startTag(null, DOC_ROOT_ELEM);
+        if (datasetUrl != null)
+            ser.attribute(null, DATASET_URL, datasetUrl);
 
         Collections.sort(mappingEntries);
         for (MappingEntry e : mappingEntries)
@@ -127,6 +139,10 @@ public class ExternalResourceManifestXMLv1 implements
         } catch (Exception e) {
             return Collections.EMPTY_MAP;
         }
+
+        String url = doc.getDocumentElement().getAttribute(DATASET_URL);
+        if (XMLUtils.hasValue(url))
+            datasetUrl = url;
 
         Map result = new HashMap();
         NodeList directories = doc.getElementsByTagName(IMPORT_DIR_ELEM);

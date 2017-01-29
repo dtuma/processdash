@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ public class ExternalResourceManager {
 
     File defaultMapDataSource = null;
 
+    String datasetUrl = null;
+
     List<ExternalResourceManifestXMLv1.MCFEntry> mcfMappings = null;
 
     ExternalResourceManager() {}
@@ -77,6 +79,10 @@ public class ExternalResourceManager {
 
     public void setDashboardContext(DashboardContext dashboardContext) {
         this.dashboardContext = dashboardContext;
+        String workingDirLocation = dashboardContext.getWorkingDirectory()
+                .getDescription();
+        if (workingDirLocation != null && workingDirLocation.startsWith("http"))
+            datasetUrl = workingDirLocation;
     }
 
     public void addExternalResourcesToBackup(ZipOutputStream out)
@@ -102,6 +108,7 @@ public class ExternalResourceManager {
             ExternalResourceManifestXMLv1 loader = new ExternalResourceManifestXMLv1();
             if (mapper.loadMappings(loader.load(baseDir))) {
                 defaultMapDataSource = baseDir;
+                datasetUrl = loader.getDatasetUrl();
                 mcfMappings = loader.getMcfEntries();
             } else {
                 // the zip file did not contain any archived external resources.
@@ -138,6 +145,10 @@ public class ExternalResourceManager {
             return origFile;
         else
             return mapper.remapFilename(origFile);
+    }
+
+    public String getDatasetUrl() {
+        return datasetUrl;
     }
 
     public List<ExternalResourceManifestXMLv1.MCFEntry> getMcfs() {

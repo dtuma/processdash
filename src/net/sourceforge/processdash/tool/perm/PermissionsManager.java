@@ -61,7 +61,6 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
@@ -71,6 +70,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -138,7 +138,7 @@ public class PermissionsManager {
         this.specs = Collections.unmodifiableMap(loadPermissionSpecs());
 
         // get the directory where permission-based files are stored
-        workingDir = ((ProcessDashboard) ctx).getWorkingDirectory();
+        workingDir = ctx.getWorkingDirectory();
         File storageDir = workingDir.getDirectory();
 
         // if we are using a bridged working directory, store the URL
@@ -991,8 +991,9 @@ public class PermissionsManager {
         currentPermissions = Collections.EMPTY_SET;
 
         // try a number of ways to figure the current user, until one succeeds
-        if (bridgedUrl != null)
-            identifyUserFromPDES();
+        String pdesUrl = ExternalResourceManager.getInstance().getDatasetUrl();
+        if (pdesUrl != null && Settings.isTeamMode())
+            identifyUserFromPDES(pdesUrl);
         if (!StringUtils.hasValue(currentUsername))
             identifyUserFromFileIO();
         if (!StringUtils.hasValue(currentUsername))
@@ -1001,8 +1002,8 @@ public class PermissionsManager {
             identifyUserFromSystemProperties();
     }
 
-    private void identifyUserFromPDES() throws HttpException {
-        Matcher m = DATA_BRIDGE_URL_PAT.matcher(bridgedUrl);
+    private void identifyUserFromPDES(String datasetUrl) throws HttpException {
+        Matcher m = DATA_BRIDGE_URL_PAT.matcher(datasetUrl);
         if (!m.matches())
             return;
 

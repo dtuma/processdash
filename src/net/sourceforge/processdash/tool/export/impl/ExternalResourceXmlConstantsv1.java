@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@ public interface ExternalResourceXmlConstantsv1 extends XmlConstants {
     public String MANIFEST_FILE_NAME = "externalResources.xml";
 
     public String DOC_ROOT_ELEM = "externalResources";
+
+    public String DATASET_URL = "datasetUrl";
 
     public String IMPORT_DIR_ELEM = "importedDirectory";
 
