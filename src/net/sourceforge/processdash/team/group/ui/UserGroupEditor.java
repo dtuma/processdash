@@ -23,6 +23,9 @@
 
 package net.sourceforge.processdash.team.group.ui;
 
+import static net.sourceforge.processdash.team.group.GroupPermission.GROUP_PARAM;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -37,6 +40,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -58,9 +62,14 @@ import javax.swing.event.ListSelectionListener;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.tool.perm.Permission;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
+import net.sourceforge.processdash.tool.perm.Role;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.StringUtils;
@@ -444,9 +453,24 @@ public class UserGroupEditor {
             String title = resources.getString("Delete_Title");
             String prompt = resources.format("Delete_Prompt_FMT",
                 currentlyEditing.getDisplayName());
+            Object message = prompt;
+            int iconStyle = JOptionPane.QUESTION_MESSAGE;
+
+            JList affectedRoles = getAffectedRoleList();
+            if (affectedRoles != null) {
+                JPanel p = new JPanel(new BorderLayout(20, 5));
+                Object[] header = resources.getStrings("Delete_Warning");
+                p.add(BoxUtils.vbox(header), BorderLayout.NORTH);
+                p.add(new JOptionPaneTweaker.MakeResizable(),
+                    BorderLayout.WEST);
+                p.add(new JScrollPane(affectedRoles), BorderLayout.CENTER);
+                p.add(new JLabel(prompt), BorderLayout.SOUTH);
+                message = p;
+                iconStyle = JOptionPane.ERROR_MESSAGE;
+            }
+
             int userChoice = JOptionPane.showConfirmDialog(userInterface,
-                prompt, title, JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
+                message, title, JOptionPane.YES_NO_OPTION, iconStyle);
 
             if (userChoice == JOptionPane.YES_OPTION) {
                 UserGroup delete = currentlyEditing;
@@ -457,6 +481,32 @@ public class UserGroupEditor {
                 groupsToDelete.add(delete);
             }
         }
+
+        private JList getAffectedRoleList() {
+            String groupID = currentlyEditing.getId();
+            if (currentlyEditing.isCustom() || groupID == null)
+                return null;
+
+            Vector<String> roleNames = new Vector<String>();
+            for (Role r : PermissionsManager.getInstance().getAllRoles()) {
+                for (Permission p : r.getPermissions()) {
+                    if (p instanceof GroupPermission) {
+                        String permGroupID = p.getParams().get(GROUP_PARAM);
+                        if (groupID.equals(permGroupID)) {
+                            roleNames.add(r.getName());
+                            break;
+                        }
+                    }
+                }
+            }
+            if (roleNames.isEmpty())
+                return null;
+
+            JList result = new JList(roleNames);
+            result.setVisibleRowCount(Math.min(10, roleNames.size()));
+            return result;
+        }
+
     }
 
 
