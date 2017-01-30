@@ -83,6 +83,16 @@ The author(s) may be contacted at:
     <parent>none</parent>
   </permission>
 
+  <permission id="pdash.projects">
+    <resources>Permissions.Edit_Projects</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
+  <permission id="pdash.projects.create">
+    <resources>Permissions.Create_Projects</resources>
+    <parent>pdash.projects</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

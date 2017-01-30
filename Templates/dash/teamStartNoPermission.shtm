@@ -1,0 +1,47 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2017 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Insufficient Permissions</h2>
+
+<div class=error>
+
+<p>You do not have permission to create new projects in this dashboard.
+Please contact the owner of this dashboard to create the project, or to be
+granted the associated permissions.</p>
+
+</div>
+
+</body>

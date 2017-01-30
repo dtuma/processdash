@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -114,6 +115,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String INVITE_URL = "teamStartInvite.shtm";
     private static final String INVITE_REPLY_PAGE = "inviteReply";
     private static final String DECLINED_URL = "teamStartDeclined.shtm";
+    // Information for the page which tells the user the don't have permission
+    private static final String NO_PERM_URL = "teamStartNoPermission.shtm";
     // Information for the page which tells the user they are in read only mode
     private static final String READ_ONLY_URL = "teamStartReadOnly.shtm";
 
@@ -168,6 +171,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String page = getParameter(PAGE);
         if (page == null)                         showWelcomePage();
         else if (WELCOME_PAGE.equals(page))       showWelcomePage();
+        else if (insufficientPermissions())       showNoPermissionPage();
         else if (Settings.isReadOnly())           showReadOnlyPage();
         else if (TEST_TYPE_PAGE.equals(page))     testDatasetType();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
@@ -235,6 +239,17 @@ public class TeamStartBootstrap extends TinyCGIBase {
             printRedirect(inProgressUri);
         else
             printRedirect(WELCOME_URL);
+    }
+
+    /** Return true if this user does not have permission to create projects */
+    private boolean insufficientPermissions() {
+        return PermissionsManager.getInstance()
+                .hasPermission("pdash.projects.create") == false;
+    }
+
+    /** Display the no permission error page */
+    private void showNoPermissionPage() {
+        printRedirect(NO_PERM_URL);
     }
 
     /** Display the read-only error page */

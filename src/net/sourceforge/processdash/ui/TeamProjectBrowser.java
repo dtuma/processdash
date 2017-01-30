@@ -49,6 +49,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
@@ -96,6 +97,7 @@ import net.sourceforge.processdash.team.group.UserGroupUtil;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -370,8 +372,12 @@ public class TeamProjectBrowser extends JSplitPane {
                     return new ScriptID(SELECT_GROUP_FILTER_URI, "ignored",
                             resources.getString("None_Matching.Title"));
             }
-            return new ScriptID(getNewProjectCreationUri(), "",
-                    resources.getString("New.Title"));
+            if (canCreateProjects())
+                return new ScriptID(getNewProjectCreationUri(), "",
+                        resources.getString("New.Title"));
+            else
+                return new ScriptID(null, "",
+                        resources.getString("Select_Project"));
         }
     }
 
@@ -410,6 +416,8 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         ScriptID id = (ScriptID) scripts.elementAt(selectedIndex);
+        if (id.getScript() == null)
+            return;
         UserFilter f = UserGroupManager.getInstance().getGlobalFilter();
         UserGroupManager.getInstance().setLocalFilter(id.getDataPath(), f);
         id.display();
@@ -426,10 +434,13 @@ public class TeamProjectBrowser extends JSplitPane {
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
         JMenuBar menuBar = dash.getConfigurationMenus();
 
-        if (Settings.isReadWrite()) {
-            JMenu fileMenu = menuBar.getMenu(0);
+        JMenu fileMenu = menuBar.getMenu(0);
+        if (canCreateProjects()) {
             fileMenu.insert(new NewProjectAction(), 0);
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
+        } else if (fileMenu.getMenuComponentCount() > 0
+                && fileMenu.getMenuComponent(0) instanceof JSeparator) {
+            fileMenu.remove(0);
         }
 
         UserGroupManager groupMgr = UserGroupManager.getInstance();
@@ -441,6 +452,11 @@ public class TeamProjectBrowser extends JSplitPane {
             menuBar.add(Box.createHorizontalGlue());
             menuBar.add(groupFilterMenu);
         }
+    }
+
+    private boolean canCreateProjects() {
+        return Settings.isReadWrite() && PermissionsManager.getInstance()
+                .hasPermission("pdash.projects.create");
     }
 
 

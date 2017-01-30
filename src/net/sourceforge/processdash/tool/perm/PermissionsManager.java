@@ -338,6 +338,10 @@ public class PermissionsManager {
      *         IDs.
      */
     public boolean hasPermission(String... permissionIDs) {
+        // permissions are only relevant for team dashboards, for now
+        if (!Settings.isTeamMode())
+            return true;
+
         for (Permission p : currentPermissions) {
             for (String oneID : permissionIDs)
                 if (p.getSpec().getId().equals(oneID))
