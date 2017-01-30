@@ -62,6 +62,7 @@ import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -101,7 +102,9 @@ public class UserGroupManager {
     private UserGroupManager() {
         listeners = new EventListenerList();
         globalFilter = UserGroup.EVERYONE;
-        if (Settings.isReadOnly())
+        if (!PermissionsManager.getInstance().hasPermission("pdash.editGroups"))
+            readOnlyCode = "No_Permission";
+        else if (Settings.isReadOnly())
             readOnlyCode = "Read_Only";
 
         // user groups are only relevant for team dashboards, and they require

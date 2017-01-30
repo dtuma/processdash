@@ -52,6 +52,7 @@ import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.team.group.ui.ShowUserGroupEditorAction;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.diff.ui.OpenLOCDiffAction;
 import net.sourceforge.processdash.tool.export.ui.SaveBackupAction;
@@ -181,6 +182,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         if (!personalMode) {
             toolMenu.add(new ShowRolesEditorAction(parent));
             toolMenu.add(new ShowUserEditorAction(parent));
+            toolMenu.add(new ShowUserGroupEditorAction(parent));
         }
         toolMenu.addSeparator();
 

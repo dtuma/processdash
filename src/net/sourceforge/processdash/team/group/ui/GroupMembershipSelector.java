@@ -54,7 +54,7 @@ public class GroupMembershipSelector extends CheckboxList {
         // store the read-only flag
         this.readOnlyCode = readOnlyCode;
         if (readOnlyCode != null)
-            new ToolTipTimingCustomizer(1500, 60000).install(this);
+            new ToolTipTimingCustomizer(300, 60000).install(this);
 
         // install a cell renderer that will display a "person" icon
         Icon icon = DashboardIconFactory.getIndividualIcon();

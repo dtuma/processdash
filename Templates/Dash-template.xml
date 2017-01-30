@@ -74,16 +74,26 @@ The author(s) may be contacted at:
     </role>
   </standardRoles>
 
-  <permission id="pdash.all">
+  <permission id="pdash.all" ordinal="1">
     <resources>Permissions.All_Permission</resources>
   </permission>
 
-  <permission id="pdash.active">
+  <permission id="pdash.active" ordinal="0">
     <resources>Permissions.Active_User</resources>
     <parent>none</parent>
   </permission>
 
-  <permission id="pdash.projects">
+  <permission id="pdash.teamSettings" ordinal="1000">
+    <resources>Permissions.Edit_Team</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
+  <permission id="pdash.editGroups">
+    <resources>Permissions.Edit_Groups</resources>
+    <parent>pdash.teamSettings</parent>
+  </permission>
+
+  <permission id="pdash.projects" ordinal="2000">
     <resources>Permissions.Edit_Projects</resources>
     <parent>pdash.all</parent>
   </permission>
