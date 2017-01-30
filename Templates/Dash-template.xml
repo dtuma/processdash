@@ -88,7 +88,17 @@ The author(s) may be contacted at:
     <parent>pdash.all</parent>
   </permission>
 
-  <permission id="pdash.editGroups">
+  <permission id="pdash.editRoles" ordinal="1020">
+    <resources>Permissions.Edit_Roles</resources>
+    <parent>pdash.teamSettings</parent>
+  </permission>
+
+  <permission id="pdash.editUsers" ordinal="1030">
+    <resources>Permissions.Edit_Users</resources>
+    <parent>pdash.teamSettings</parent>
+  </permission>
+
+  <permission id="pdash.editGroups" ordinal="1040">
     <resources>Permissions.Edit_Groups</resources>
     <parent>pdash.teamSettings</parent>
   </permission>

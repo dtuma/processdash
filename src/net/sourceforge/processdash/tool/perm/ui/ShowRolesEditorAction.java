@@ -30,6 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
 public class ShowRolesEditorAction extends AbstractAction {
 
@@ -40,7 +41,8 @@ public class ShowRolesEditorAction extends AbstractAction {
 
     public ShowRolesEditorAction(Component parent) {
         this.parent = parent;
-        this.editable = Settings.isReadWrite();
+        this.editable = Settings.isReadWrite() && PermissionsManager
+                .getInstance().hasPermission("pdash.editRoles");
         putValue(Action.NAME, RolesEditor.resources
                 .getString(editable ? "Edit_Roles" : "View_Roles"));
     }

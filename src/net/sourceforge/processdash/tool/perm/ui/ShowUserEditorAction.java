@@ -30,6 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
 public class ShowUserEditorAction extends AbstractAction {
 
@@ -40,7 +41,8 @@ public class ShowUserEditorAction extends AbstractAction {
 
     public ShowUserEditorAction(Component parent) {
         this.parent = parent;
-        this.editable = Settings.isReadWrite();
+        this.editable = Settings.isReadWrite() && PermissionsManager
+                .getInstance().hasPermission("pdash.editUsers");
         putValue(Action.NAME, UserEditor.resources
                 .getString(editable ? "Edit_Users" : "View_Users"));
     }
