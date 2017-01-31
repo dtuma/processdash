@@ -34,6 +34,8 @@ import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
 public class ShowRolesEditorAction extends AbstractAction {
 
+    static final String PERMISSION = "pdash.editRoles";
+
     private Component parent;
 
     private boolean editable;
@@ -41,15 +43,17 @@ public class ShowRolesEditorAction extends AbstractAction {
 
     public ShowRolesEditorAction(Component parent) {
         this.parent = parent;
-        this.editable = Settings.isReadWrite() && PermissionsManager
-                .getInstance().hasPermission("pdash.editRoles");
+        this.editable = Settings.isReadWrite()
+                && PermissionsManager.getInstance().hasPermission(PERMISSION);
         putValue(Action.NAME, RolesEditor.resources
                 .getString(editable ? "Edit_Roles" : "View_Roles"));
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        new RolesEditor(parent, editable);
+        do {
+            new RolesEditor(parent, editable);
+        } while (PermissionChangeApprover.needsRevisit(parent, editable));
     }
 
 }

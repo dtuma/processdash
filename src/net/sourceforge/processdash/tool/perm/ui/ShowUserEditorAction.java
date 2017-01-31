@@ -34,6 +34,8 @@ import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
 public class ShowUserEditorAction extends AbstractAction {
 
+    static final String PERMISSION = "pdash.editUsers";
+
     private Component parent;
 
     private boolean editable;
@@ -41,15 +43,17 @@ public class ShowUserEditorAction extends AbstractAction {
 
     public ShowUserEditorAction(Component parent) {
         this.parent = parent;
-        this.editable = Settings.isReadWrite() && PermissionsManager
-                .getInstance().hasPermission("pdash.editUsers");
+        this.editable = Settings.isReadWrite()
+                && PermissionsManager.getInstance().hasPermission(PERMISSION);
         putValue(Action.NAME, UserEditor.resources
                 .getString(editable ? "Edit_Users" : "View_Users"));
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        new UserEditor(parent, editable);
+        do {
+            new UserEditor(parent, editable);
+        } while (PermissionChangeApprover.needsRevisit(parent, editable));
     }
 
 }

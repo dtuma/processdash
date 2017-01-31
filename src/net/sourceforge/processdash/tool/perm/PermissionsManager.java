@@ -123,6 +123,8 @@ public class PermissionsManager {
 
     private String currentUsername;
 
+    private Set<Permission> externallyGrantedPermissions;
+
     private Set<Permission> currentPermissions;
 
     private boolean legacyPdesMode;
@@ -158,7 +160,7 @@ public class PermissionsManager {
         updateExternalUsers();
 
         // evaluate the permissions associated with the current user
-        evaluateCurrentUserPermissions();
+        assignCurrentUserPermissions();
     }
 
 
@@ -348,6 +350,32 @@ public class PermissionsManager {
                     return true;
         }
         return false;
+    }
+
+
+    /**
+     * Identify the permissions the user has lost and gained as a result of
+     * current editing operations.
+     * 
+     * @return null if no permissions have been gained or lost. Otherwise, an
+     *         array with two entries. The first entry contains the permissions
+     *         the current user has lost, and the second entry contains the
+     *         permissions the user has gained.
+     */
+    public Set<Permission>[] getPermissionDelta() {
+        // if the user has the same permissions as before, return null
+        Set<Permission> newPermissions = calculateCurrentUserPermissions();
+        if (newPermissions.equals(currentPermissions))
+            return null;
+
+        // calculate the list of permissions the user has lost and gained
+        Set<Permission> lostPerms = new HashSet(currentPermissions);
+        lostPerms.removeAll(newPermissions);
+        Set<Permission> gainedPerms = new HashSet(newPermissions);
+        gainedPerms.removeAll(currentPermissions);
+
+        // build and return the result array
+        return new Set[] { lostPerms, gainedPerms };
     }
 
 
@@ -992,6 +1020,7 @@ public class PermissionsManager {
      */
     private void identifyCurrentUser() throws HttpException {
         currentUsername = null;
+        externallyGrantedPermissions = Collections.EMPTY_SET;
         currentPermissions = Collections.EMPTY_SET;
 
         // try a number of ways to figure the current user, until one succeeds
@@ -1034,7 +1063,8 @@ public class PermissionsManager {
                         enumerateImpliedPermissions(permissions, p);
                 }
             }
-            this.currentPermissions = permissions;
+            this.externallyGrantedPermissions = this.currentPermissions = //
+                    Collections.unmodifiableSet(permissions);
 
         } catch (HttpException.Unauthorized he) {
             // if the attempt to contact the "whoami" API triggered a password
@@ -1098,34 +1128,34 @@ public class PermissionsManager {
     /**
      * Evaluate the permissions that should be assigned to the current user.
      */
-    private void evaluateCurrentUserPermissions() {
+    private void assignCurrentUserPermissions() {
+        this.currentPermissions = calculateCurrentUserPermissions();
+        debugLogCurrentUserPermissions(Level.FINE);
+    }
+
+    private Set<Permission> calculateCurrentUserPermissions() {
         User user = getCurrentUser();
         if (user != null && (!user.isInactive() || legacyPdesMode)) {
             // if we found an active user, calculate the resulting permissions.
             Set<Permission> permissions = getPermissionsForUser(user, true);
-            permissions.addAll(currentPermissions);
-            this.currentPermissions = Collections.unmodifiableSet(permissions);
-
-        } else if (hasPermission(ACTIVE_USER_PERMISSION_ID)) {
-            // we didn't find this user in the list, or they are inactive. But
-            // the PDES assigned them the "active user" permission (for example,
-            // because they are a data admin), and that overrides the user list.
-            // Go ahead and give them the permissions the PDES granted.
-            this.currentPermissions = Collections
-                    .unmodifiableSet(currentPermissions);
+            permissions.addAll(externallyGrantedPermissions);
+            return Collections.unmodifiableSet(permissions);
 
         } else {
-            // if we did not find an active User object, we have no permissions
-            this.currentPermissions = Collections.EMPTY_SET;
+            // we didn't find this user in the list, or they are inactive. Only
+            // grant them permissions that were externally assigned.
+            return externallyGrantedPermissions;
         }
+    }
 
+    private void debugLogCurrentUserPermissions(Level level) {
         // debug print the effective permission list, if desired
-        if (logger.isLoggable(Level.FINE)) {
+        if (logger.isLoggable(level)) {
             StringBuilder permlist = new StringBuilder();
             permlist.append("current user effective permissions:");
             for (Permission p : currentPermissions)
                 permlist.append("\n        " + p);
-            logger.fine(permlist.toString());
+            logger.log(level, permlist.toString());
         }
     }
 
