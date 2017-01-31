@@ -784,31 +784,37 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.add(viewMenu);
 
         // create the Tools menu
-        if (rw) {
+        boolean hasBaselinePerm = PermissionsManager.getInstance()
+                .hasPermission("pdash.ev.baselines");
+        if (rw || hasBaselinePerm) {
             JMenu toolsMenu = makeMenu("Tools");
 
-            saveBaselineAction = new TSAction("Buttons.Save_Baseline") {
-                public void actionPerformed(ActionEvent e) {
-                    saveBaseline(); }};
-            toolsMenu.add(saveBaselineAction);
-
-            TSAction manageBaselines = new TSAction("Buttons.Manage_Baselines") {
-                public void actionPerformed(ActionEvent e) {
-                    manageBaselines(); }};
-            toolsMenu.add(manageBaselines);
-
-            if (!isCollaborationBlocked()) {
-                collaborateAction = new TSAction("Buttons.Collaborate") {
+            if (hasBaselinePerm) {
+                saveBaselineAction = new TSAction("Buttons.Save_Baseline") {
                     public void actionPerformed(ActionEvent e) {
-                        showCollaborationWizard(); }};
-                toolsMenu.add(collaborateAction);
+                        saveBaseline(); }};
+                toolsMenu.add(saveBaselineAction);
+
+                TSAction manageBaselines = new TSAction("Buttons.Manage_Baselines") {
+                    public void actionPerformed(ActionEvent e) {
+                        manageBaselines(); }};
+                toolsMenu.add(manageBaselines);
             }
 
-            scheduleOptionsAction = new TSAction("Buttons.Schedule_Options") {
-                public void actionPerformed(ActionEvent e) {
-                    showOptionsDialog();
-                }};
-            toolsMenu.add(scheduleOptionsAction);
+            if (rw) {
+                if (!isCollaborationBlocked()) {
+                    collaborateAction = new TSAction("Buttons.Collaborate") {
+                        public void actionPerformed(ActionEvent e) {
+                            showCollaborationWizard(); }};
+                    toolsMenu.add(collaborateAction);
+                }
+
+                scheduleOptionsAction = new TSAction("Buttons.Schedule_Options") {
+                    public void actionPerformed(ActionEvent e) {
+                        showOptionsDialog();
+                    }};
+                toolsMenu.add(scheduleOptionsAction);
+            }
 
             result.add(toolsMenu);
         }
@@ -3502,7 +3508,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
             resources.getString("Manage_Baselines.Window_Title"),
             JOptionPane.PLAIN_MESSAGE);
         if (manager.isDirty()) {
-            setDirty(true);
+            if (canEdit()) {
+                setDirty(true);
+            } else {
+                model.save();
+            }
             recalcAll();
         }
     }

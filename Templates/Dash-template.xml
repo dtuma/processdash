@@ -123,6 +123,11 @@ The author(s) may be contacted at:
     <parent>pdash.projects</parent>
   </permission>
 
+  <permission id="pdash.ev.baselines" ordinal="2050">
+    <resources>Permissions.EV_Baselines</resources>
+    <parent>pdash.projects</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->
