@@ -2,6 +2,10 @@
 <head>
 <title>TEAM Project Parameters and Settings</title>
 <link rel=stylesheet type="text/css" href="style.css">
+[!--#if !EXPORT #--]
+<script src="/dash/requireEditPerm?perm=pdash.projects.settings"
+        type="text/javascript"></script>
+[!--#endif#--]
 <style>
 #settingsExportBanner {
     position: fixed;
@@ -20,9 +24,11 @@
 
 <!--#if not indiv -->
 
+[!--#if !EXPORT --]
 <span style="display:none">
 <a href="rollup_plan_summary.shtm">TEAM project plan summary</a>
 </span>
+[!--#endif--]
 
 <!--#endif-->
 
@@ -55,7 +61,7 @@
 <td>TEAM Project Network Directory</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory]s"></td>
 <!--#if !indiv -->
-[!--#if ![Team_Data_Directory_URL] --]
+[!--#if ![Team_Data_Directory_URL] && !EXPORT --]
 <td rowspan="2" valign="middle" style="font: xx-large sans-serif">}</td>
 <td rowspan="2" valign="middle">
 <i><a href="setup/move">Move...</a></i>
@@ -130,7 +136,9 @@
 <tr>
 <td COLSPAN=2>Designate a defect type standard for this team project:
 [!--#include file="/dash/dtsSelect?None_Text=None" --]
-&nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i></td>
+[!--#if !EXPORT #--]
+&nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i>
+[!--#endif--]</td>
 </tr>
 
 <!--#endif-->
@@ -280,6 +288,7 @@ document.writeln("<P>Problem loading the data.js script!");
 </script>
 
 <!--#if not indiv && not master -->
+[!--#if !EXPORT --]
 <div id="settingsExportBanner" style="display:none">
 You have made changes to the settings on this page.  You will need to 
 <a href="../control/exportNow.class">export these changes</a>, then wait up to
@@ -303,6 +312,7 @@ personal dashboards.
     }
     addDataLoadedObserver(registerSettingObserver);
 </script>
+[!--#endif--]
 <!--#endif-->
 
 </body>

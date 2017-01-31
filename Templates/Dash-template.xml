@@ -108,8 +108,13 @@ The author(s) may be contacted at:
     <parent>pdash.all</parent>
   </permission>
 
-  <permission id="pdash.projects.create">
+  <permission id="pdash.projects.create" ordinal="2010">
     <resources>Permissions.Create_Projects</resources>
+    <parent>pdash.projects</parent>
+  </permission>
+
+  <permission id="pdash.projects.settings" ordinal="2020">
+    <resources>Permissions.Project_Settings</resources>
     <parent>pdash.projects</parent>
   </permission>
 

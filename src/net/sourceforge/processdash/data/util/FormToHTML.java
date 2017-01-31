@@ -175,9 +175,9 @@ public class FormToHTML {
         SimpleData value = data.getSimpleValue(inputName.name);
         String result = "";
         boolean isTimeValue = false;
-        if (checkmark)
-            result = (value != null && value.test() ? "*": "");
-        else if (value instanceof NumberData) {
+        if (checkmark) {
+            result = (value != null && value.test() ? "&#9745;": "&#9744;");
+        } else if (value instanceof NumberData) {
             int numDigits = inputName.digitFlag();
             double val = ((NumberData) value).getDouble();
             if (InterpreterFactory.isPercentInputName(inputName))
@@ -187,9 +187,9 @@ public class FormToHTML {
                 isTimeValue = true;
             } else
                 result = FormatUtil.formatNumber(val, numDigits);
-        } else if (value != null)
-            result = value.format();
-        result = HTMLUtils.escapeEntities(result);
+        } else if (value != null) {
+            result = HTMLUtils.escapeEntities(value.format());
+        }
 
         // interpolate it into the StringBuffer
         text.replace(beg, end, result);
