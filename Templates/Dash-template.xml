@@ -118,6 +118,11 @@ The author(s) may be contacted at:
     <parent>pdash.projects</parent>
   </permission>
 
+  <permission id="pdash.ev.editRollups" ordinal="2040">
+    <resources>Permissions.EV_Rollups</resources>
+    <parent>pdash.projects</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

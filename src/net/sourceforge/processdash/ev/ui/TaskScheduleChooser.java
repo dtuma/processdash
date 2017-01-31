@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,6 +65,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.MultiWindowCheckboxIcon;
@@ -74,6 +75,7 @@ public class TaskScheduleChooser
 {
 
     protected static Map openWindows = new Hashtable();
+    private static Boolean canEdit_ = null;
 
     protected DashboardContext dash;
     protected JDialog dialog = null;
@@ -89,10 +91,23 @@ public class TaskScheduleChooser
         this(dash, EVTaskList.findTaskLists(dash.getData()));
     }
     public TaskScheduleChooser(DashboardContext dash, String[] templates) {
-        if (templates == null || templates.length == 0)
+        if (templates != null && templates.length > 0)
+            displayChooseTemplateDialog(dash, templates);
+        else if (canEdit())
             displayNewTemplateDialog(dash);
         else
-            displayChooseTemplateDialog(dash, templates);
+            JOptionPane.showMessageDialog(null,
+                resources.getStrings("No_Schedules_Found.Message"),
+                resources.getString("No_Schedules_Found.Title"),
+                JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private boolean canEdit() {
+        if (canEdit_ == null) {
+            canEdit_ = Settings.isReadWrite() && PermissionsManager
+                    .getInstance().hasPermission("pdash.ev.editRollups");
+        }
+        return canEdit_;
     }
 
     public boolean isDisplayable() {
@@ -104,7 +119,7 @@ public class TaskScheduleChooser
 
 
     public void displayNewTemplateDialog(DashboardContext dash) {
-        if (Settings.isReadOnly()) {
+        if (!canEdit()) {
             Toolkit.getDefaultToolkit().beep();
             return;
         }
@@ -214,11 +229,13 @@ public class TaskScheduleChooser
         else
             dialog = new JDialog();
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
-        dialog.setTitle(resources.getString("Choose_Window.Title"));
+        dialog.setTitle(resources.getString(canEdit() ? "Choose_Window.Title"
+                : "Choose_Window.Read_Only_Title"));
 
         Box promptBox = Box.createHorizontalBox();
         promptBox.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2));
         promptBox.add(new JLabel(resources.getString("Choose_Window.Prompt")));
+        promptBox.add(Box.createHorizontalStrut(100));
         promptBox.add(Box.createHorizontalGlue());
         promptBox.add(new MultiLabel());
 
@@ -241,16 +258,16 @@ public class TaskScheduleChooser
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         newButton = new JButton(resources.getDlgString("New"));
-        if (Settings.isReadWrite()) buttons.add(newButton);
+        if (canEdit()) buttons.add(newButton);
         newButton.addActionListener(this);
 
         renameButton = new JButton(resources.getDlgString("Rename"));
-        if (Settings.isReadWrite()) buttons.add(renameButton);
+        if (canEdit()) buttons.add(renameButton);
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
         deleteButton = new JButton(resources.getDlgString("Delete"));
-        if (Settings.isReadWrite()) buttons.add(deleteButton);
+        if (canEdit()) buttons.add(deleteButton);
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 

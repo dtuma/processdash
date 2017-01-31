@@ -173,6 +173,7 @@ import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
@@ -221,6 +222,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     /** the dashboard */
     protected DashboardContext dash;
     protected String taskListName;
+    private boolean hasRollupEditPerm;
 
     private EVTaskList.FlatTreeModel flatModel = null;
     private TreeTableModel mergedModel = null;
@@ -261,6 +263,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                               boolean createRollup) {
         this.dash = dash;
         this.taskListName = taskListName;
+        this.hasRollupEditPerm = PermissionsManager.getInstance()
+                .hasPermission("pdash.ev.editRollups");
 
         if (dash instanceof ApplicationEventSource) {
             ((ApplicationEventSource) dash).addApplicationEventListener(this);
@@ -433,7 +437,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         WindowUtils.showWindowToFront(frame);
 
         // if the task list is empty, open the add task dialog immediately.
-        if (((EVTask) model.getRoot()).isLeaf() && Settings.isReadWrite())
+        if (((EVTask) model.getRoot()).isLeaf() && canEdit())
             addTask();
         else {
             if (getErrors() != null)
@@ -459,6 +463,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
         return (mergedViewAction != null && mergedViewAction.isSelected());
     }
 
+    protected boolean canEdit() {
+        if (Settings.isReadOnly())
+            return false;
+        else if (!isRollup())
+            return true;
+        else
+            return hasRollupEditPerm;
+    }
+
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
@@ -482,7 +495,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         addTaskAction = new TSAction("Buttons.Add_Schedule", "Buttons.Add_Task") {
             public void actionPerformed(ActionEvent e) {
                 addTask(); }};
-        if (Settings.isReadWrite())
+        if (canEdit())
             result.add(new JButton(addTaskAction));
         result.add(Box.createHorizontalGlue());
 
@@ -493,7 +506,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             public void actionPerformed(ActionEvent e) {
                 deleteTask(); }};
         deleteTaskAction.setEnabled(false);
-        if (Settings.isReadWrite())
+        if (canEdit())
             result.add(new JButton(deleteTaskAction));
         result.add(Box.createHorizontalGlue());
 
@@ -504,7 +517,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 moveTaskUp(); }};
         moveUpAction.setEnabled(false);
         moveUpAction.setMnemonic('U');
-        if (Settings.isReadWrite())
+        if (canEdit())
             result.add(new JButton(moveUpAction));
         result.add(Box.createHorizontalGlue());
 
@@ -514,7 +527,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 moveTaskDown(); }};
         moveDownAction.setEnabled(false);
         moveDownAction.setMnemonic('D');
-        if (Settings.isReadWrite())
+        if (canEdit())
             result.add(new JButton(moveDownAction));
         result.add(Box.createHorizontalGlue());
 
@@ -659,7 +672,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         saveAction = new TSAction("Save") {
             public void actionPerformed(ActionEvent e) {
                 save(); }};
-        if (Settings.isReadWrite()) {
+        if (canEdit()) {
             box.add(new JButton(saveAction));
             box.add(Box.createHorizontalStrut(2));
         }
@@ -711,7 +724,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     private JMenuBar buildMenuBar() {
         JMenuBar result = new JMenuBar();
-        boolean rw = Settings.isReadWrite();
+        boolean rw = canEdit();
 
         // create the File menu
         JMenu fileMenu = makeMenu("File");
@@ -2539,7 +2552,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
      *  then add the selected task to the task list as a child of the
      *  task tree root. */
     protected void addTask() {
-        if (Settings.isReadOnly()) return;
+        if (!canEdit()) return;
 
         boolean madeChange = false;
         if (isRollup()) {
@@ -2771,7 +2784,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     /** delete the currently selected task.
      */
     protected void deleteTask() {
-        if (Settings.isReadOnly()) return;
+        if (!canEdit()) return;
 
         TreePath selPath = treeTable.getTree().getSelectionPath();
         if (selPath == null) return;
@@ -2861,7 +2874,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
      * task tree root.
      */
     protected void moveTaskUp() {
-        if (Settings.isReadOnly())
+        if (!canEdit())
             return;
 
         if (isFlatView()) {
@@ -2913,7 +2926,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
      * task tree root.
      */
     protected void moveTaskDown() {
-        if (Settings.isReadOnly())
+        if (!canEdit())
             return;
 
         if (isFlatView()) {
