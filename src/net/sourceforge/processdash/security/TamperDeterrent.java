@@ -33,11 +33,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.AccessControlException;
-import java.util.List;
+import java.util.Arrays;
+import java.util.ServiceLoader;
 
-import org.w3c.dom.Element;
-
-import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
@@ -53,7 +51,8 @@ public class TamperDeterrent {
 
     public enum FileType {
 
-        XML("<!--THUMBPRINT ", " -->", "UTF-8");
+        XML("<!--THUMBPRINT ", " -->", "UTF-8"), //
+        WBS("<!--THUMBPRINT ", " -->", "UTF-8");
 
         private byte[] thumbStart, thumbEnd;
 
@@ -105,15 +104,12 @@ public class TamperDeterrent {
             throw new IllegalStateException(
                     "TamperDeterrent was already initialized");
 
-        // see if a tamper deterrent implementation was provided by an add-on
-        List<Element> config = ExtensionManager
-                .getXmlConfigurationElements("tamperDeterrent");
-        if (!config.isEmpty()) {
-            try {
-                INSTANCE = (TamperDeterrent) ExtensionManager
-                        .getExecutableExtension(config.get(0), "class", null);
-            } catch (Throwable t) {
-            }
+        // see if a tamper deterrent service implementation was provided
+        try {
+            ServiceLoader<TamperDeterrent> loader = ServiceLoader
+                    .load(TamperDeterrent.class);
+            INSTANCE = loader.iterator().next();
+        } catch (Throwable t) {
         }
 
         // install a default (no-op) tamper deterrent
@@ -170,6 +166,7 @@ public class TamperDeterrent {
 
         // read the file and calculate the thumbprint
         FileData fileData = readFile(src, t);
+        fileData.thumbprint = null;
         calcThumbprint(fileData);
         String thumbData = thisType + SEP + fileData.thumbprint;
 
@@ -215,11 +212,15 @@ public class TamperDeterrent {
         if (!EQ(thisType, fileData.thumprintType))
             throw new TamperException(f);
 
+        // retrieve the thumbprint from the file, then erase that information
+        // from the data we provide to the service implementation
+        String thumbprintCurrentlyEmbeddedInFile = fileData.thumbprint;
+        fileData.thumbprint = null;
+
         // calculate the correct thumbprint for the file. If it does not match
         // the embedded thumbprint, throw an exception.
-        String printCurrentlyEmbeddedInFile = fileData.thumbprint;
         calcThumbprint(fileData);
-        if (!EQ(printCurrentlyEmbeddedInFile, fileData.thumbprint))
+        if (!EQ(thumbprintCurrentlyEmbeddedInFile, fileData.thumbprint))
             throw new TamperException(f);
     }
 
@@ -230,6 +231,9 @@ public class TamperDeterrent {
      */
     protected class FileData {
 
+        // the type of the file
+        public FileType fileType;
+
         // the raw contents of the file
         public byte[] content;
 
@@ -239,11 +243,7 @@ public class TamperDeterrent {
 
         // the type and value of the thumbprint. Will be null if the file did
         // not contain a thumbprint.
-        private String thumprintType, thumbprint;
-
-        public void setThumbprint(String t) {
-            this.thumbprint = t;
-        }
+        public String thumprintType, thumbprint;
 
     }
 
@@ -254,6 +254,7 @@ public class TamperDeterrent {
     private FileData readFile(File f, FileType t) throws IOException {
         // read the contents of the file in question
         FileData result = new FileData();
+        result.fileType = t;
         result.content = FileUtils.slurpContents(
             new BufferedInputStream(new FileInputStream(f)), true);
 
@@ -284,6 +285,9 @@ public class TamperDeterrent {
             result.thumbprint = thumbData.substring(sepPos + SEP.length())
                     .trim();
         }
+
+        // redact the thumbprint data from the content array
+        Arrays.fill(result.content, thumbStart, result.thumbEndPos, (byte) 0);
 
         return result;
     }
