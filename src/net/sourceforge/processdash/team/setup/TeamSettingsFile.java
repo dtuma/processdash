@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,28 +24,36 @@
 package net.sourceforge.processdash.team.setup;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
-import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
-import net.sourceforge.processdash.util.StringUtils;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlSerializer;
+
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.FileType;
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.TempFileFactory;
+import net.sourceforge.processdash.util.VersionUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 public class TeamSettingsFile {
@@ -62,6 +70,10 @@ public class TeamSettingsFile {
     private File projDataDir;
 
     private String projDataUrl;
+
+    private String version;
+
+    private Date timestamp;
 
     private String projectName;
 
@@ -98,6 +110,14 @@ public class TeamSettingsFile {
             return new File(projDataDir, SETTINGS_FILENAME).getPath();
         else
             return projDataUrl + "/" + SETTINGS_FILENAME;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
     }
 
     public String getProjectName() {
@@ -168,6 +188,8 @@ public class TeamSettingsFile {
             Element e = XMLUtils.parse(new BufferedInputStream(
                 getInputStream())).getDocumentElement();
 
+            this.version = getAttribute(e, VERSION_ATTR);
+            this.timestamp = XMLUtils.getXMLDate(e, TIMESTAMP_ATTR);
             this.projectName = getAttribute(e, PROJECT_NAME_ATTR);
             this.projectID = getAttribute(e, PROJECT_ID_ATTR);
             this.processID = getAttribute(e, PROCESS_ID_ATTR);
@@ -234,34 +256,86 @@ public class TeamSettingsFile {
     }
 
 
+    public boolean needsRefresh() {
+        // if this team settings file didn't contain version or timestamp
+        // attributes, it is old and needs refreshing.
+        if (this.version == null || this.timestamp == null)
+            return true;
+
+        // check with each of the data writers to see if they have new data.
+        for (TeamSettingsDataWriter dataWriter : DATA_WRITERS) {
+
+            // if the format of data written by this writer has changed, give
+            // it a chance to write its data in the new format.
+            String oneVersion = dataWriter.getFormatVersion();
+            if (VersionUtils.compareVersions(oneVersion, this.version) > 0)
+                return true;
+
+            // if the data written by this writer has changed since the file
+            // was written, give it a chance to write its new data.
+            Date oneTime = dataWriter.getDataTimestamp();
+            if (oneTime != null && oneTime.compareTo(this.timestamp) > 0)
+                return true;
+        }
+
+        return false;
+    }
+
+
     public void write() throws IOException {
         if (isReadOnly)
             throw new IOException("Cannot save read-only file");
 
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        Writer out = new OutputStreamWriter(buf, "UTF-8");
+        File tmp = TempFileFactory.get().createTempFile("settings", ".tmp");
+        Writer out = new OutputStreamWriter(new BufferedOutputStream( //
+                new FileOutputStream(tmp)), "UTF-8");
 
         // write XML header
-        out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
+        out.write("<?xml version='1.0' encoding='UTF-8'?>" + NL);
         // open XML tag
         out.write("<project-settings");
 
         // write the project attributes
-        writeAttr(out, "\n    ", PROJECT_NAME_ATTR, projectName);
-        writeAttr(out, "\n    ", PROJECT_ID_ATTR, projectID);
-        writeAttr(out, "\n    ", PROCESS_ID_ATTR, processID);
-        writeAttr(out, "\n    ", TEMPLATE_PATH_ATTR, templatePath);
-        writeAttr(out, "\n    ", SCHEDULE_NAME_ATTR, scheduleName);
-        out.write(">\n");
+        String indent = NL + "    ";
+        writeAttr(out, indent, PROJECT_NAME_ATTR, projectName);
+        writeAttr(out, indent, PROJECT_ID_ATTR, projectID);
+        writeAttr(out, indent, PROCESS_ID_ATTR, processID);
+        writeAttr(out, indent, TEMPLATE_PATH_ATTR, templatePath);
+        writeAttr(out, indent, SCHEDULE_NAME_ATTR, scheduleName);
+
+        // write global, dashboard-specific attributes
+        writeAttr(out, indent, VERSION_ATTR,
+            TemplateLoader.getPackageVersion("pspdash"));
+        writeAttr(out, indent, TIMESTAMP_ATTR,
+            "@" + System.currentTimeMillis());
+        writeAttr(out, indent, DATASET_ID_ATTR, DashController.getDatasetID());
+        out.write(">" + NL);
 
         writeRelatedProjects(out, MASTER_PROJECT_TAG, masterProjects);
         writeRelatedProjects(out, SUBPROJECT_TAG, subprojects);
 
-        out.write("</project-settings>\n");
+        if (!DATA_WRITERS.isEmpty()) {
+            XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+            xml.setOutput(out);
+            for (TeamSettingsDataWriter dataWriter : DATA_WRITERS) {
+                if (dataWriter.getDataTimestamp() != null) {
+                    dataWriter.writeTeamSettings(projectID, xml);
+                    xml.flush();
+                    out.write(NL);
+                }
+            }
+            out.write(NL);
+        }
+
+        out.write("</project-settings>" + NL);
 
         out.close();
 
-        copyToDestination(buf.toByteArray());
+        try {
+            copyToDestination(tmp);
+        } finally {
+            tmp.delete();
+        }
     }
 
     private void writeRelatedProjects(Writer out, String tagName, List projects) throws IOException {
@@ -269,12 +343,13 @@ public class TeamSettingsFile {
             RelatedProject proj = (RelatedProject) i.next();
             out.write("    <");
             out.write(tagName);
-            writeAttr(out, "\n        ", SHORT_NAME_ATTR, proj.shortName);
-            writeAttr(out, "\n        ", PROJECT_ID_ATTR, proj.projectID);
-            writeAttr(out, "\n        ", TEAM_DIR_ATTR, proj.teamDirectory);
-            writeAttr(out, "\n        ", TEAM_DIR_UNC_ATTR, proj.teamDirectoryUNC);
-            writeAttr(out, "\n        ", TEAM_DATA_URL_ATTR, proj.teamDataURL);
-            out.write("/>\n");
+            String indent = NL + "        ";
+            writeAttr(out, indent, SHORT_NAME_ATTR, proj.shortName);
+            writeAttr(out, indent, PROJECT_ID_ATTR, proj.projectID);
+            writeAttr(out, indent, TEAM_DIR_ATTR, proj.teamDirectory);
+            writeAttr(out, indent, TEAM_DIR_UNC_ATTR, proj.teamDirectoryUNC);
+            writeAttr(out, indent, TEAM_DATA_URL_ATTR, proj.teamDataURL);
+            out.write("/>" + NL);
         }
     }
 
@@ -289,13 +364,18 @@ public class TeamSettingsFile {
         }
     }
 
-    private void copyToDestination(byte[] data) throws IOException {
+    private void copyToDestination(File tmp) throws IOException {
         IOException ioe = null;
 
         if (projDataUrl != null) {
             try {
+                TamperDeterrent.getInstance().addThumbprint(tmp, tmp,
+                    FileType.WBS);
+                InputStream in = new BufferedInputStream(
+                        new FileInputStream(tmp));
                 ResourceBridgeClient.uploadSingleFile(new URL(projDataUrl),
-                    SETTINGS_FILENAME, new ByteArrayInputStream(data));
+                    SETTINGS_FILENAME, in);
+                in.close();
                 return;
             } catch (IOException e) {
                 ioe = e;
@@ -307,17 +387,25 @@ public class TeamSettingsFile {
 
         if (projDataDir != null) {
             File dest = new File(projDataDir, SETTINGS_FILENAME);
-            RobustFileOutputStream out = new RobustFileOutputStream(dest);
-            FileUtils.copyFile(new ByteArrayInputStream(data), out);
-            out.close();
+            TamperDeterrent.getInstance().addThumbprint(tmp, dest,
+                FileType.WBS);
             return;
         }
 
         throw ioe;
     }
 
+    public static void addDataWriter(TeamSettingsDataWriter w) {
+        DATA_WRITERS.add(w);
+    }
+
+    private static List<TeamSettingsDataWriter> DATA_WRITERS = Collections
+            .synchronizedList(new ArrayList<TeamSettingsDataWriter>());
+
 
     private static final String SETTINGS_FILENAME = "settings.xml";
+
+    private static final String NL = System.lineSeparator();
 
     private static final String PROJECT_NAME_ATTR = "projectName";
 
@@ -328,6 +416,12 @@ public class TeamSettingsFile {
     private static final String TEMPLATE_PATH_ATTR = "templatePath";
 
     private static final String SCHEDULE_NAME_ATTR = "scheduleName";
+
+    private static final String VERSION_ATTR = "version";
+
+    private static final String TIMESTAMP_ATTR = "timestamp";
+
+    private static final String DATASET_ID_ATTR = "datasetID";
 
     private static final String SHORT_NAME_ATTR = "shortName";
 
