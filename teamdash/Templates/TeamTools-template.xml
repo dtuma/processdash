@@ -6,4 +6,12 @@
         book="teamhelp/book.html" 
         bookTitle="Printable Team Users Manual" />
 
+
+    <!-- permissions used by the WBS Editor -->
+
+    <permission id="wbs.all">
+        <resources>WBSEditor.Permission</resources>
+        <parent>hidden/none</parent>
+    </permission>
+
 </dashboard-process-template>

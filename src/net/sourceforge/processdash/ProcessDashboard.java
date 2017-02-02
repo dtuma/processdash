@@ -132,6 +132,7 @@ import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
+import net.sourceforge.processdash.team.setup.PermissionSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
@@ -615,6 +616,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Settings.setDatasetID(DashController.getDatasetID(false));
         UserGroupManager.getInstance().init(this);
         TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
+        TeamSettingsFile.addDataWriter(new PermissionSettingsWriter());
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);

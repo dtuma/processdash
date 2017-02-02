@@ -41,6 +41,7 @@ import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -111,11 +112,15 @@ public class PermissionsManager {
 
     private File rolesFile;
 
+    private Date rolesTimestamp;
+
     private boolean rolesDirty;
 
     private Map<String, Role> roles;
 
     private File usersFile;
+
+    private Date usersTimestamp;
 
     private boolean usersDirty;
 
@@ -186,6 +191,21 @@ public class PermissionsManager {
 
 
     /**
+     * @return the date/time when user and/or role data was last changed.
+     */
+    public Date getPermissionsTimestamp() {
+        if (rolesTimestamp == null)
+            return usersTimestamp;
+        else if (usersTimestamp == null)
+            return rolesTimestamp;
+        else if (usersTimestamp.compareTo(rolesTimestamp) > 0)
+            return usersTimestamp;
+        else
+            return rolesTimestamp;
+    }
+
+
+    /**
      * Get a list of permission specs that are directly implied by a given
      * parent.
      * 
@@ -210,6 +230,32 @@ public class PermissionsManager {
                 result.add(oneSpec);
         }
         Collections.sort(result);
+        return result;
+    }
+
+
+    /**
+     * Finds the permission spec with the given ID, performs a deep enumeration
+     * of the permissions it implies, and returns the IDs of those permissions.
+     */
+    public Set<String> getPermissionsImpliedBy(String permissionID) {
+        // look up the permission spec with the given ID. Abort if not found
+        PermissionSpec root = specs.get(permissionID);
+        if (root == null)
+            return Collections.EMPTY_SET;
+
+        // build a set of implied permissions. Iteratively deepen the tree
+        Set<String> result = new HashSet();
+        List<PermissionSpec> specsToAdd = Collections.singletonList(root);
+        do {
+            List<PermissionSpec> childSpecs = new ArrayList<PermissionSpec>();
+            for (PermissionSpec oneSpec : specsToAdd) {
+                if (result.add(oneSpec.getId()))
+                    childSpecs.addAll(getChildSpecsFor(oneSpec));
+            }
+            specsToAdd = childSpecs;
+        } while (specsToAdd.isEmpty() == false);
+
         return result;
     }
 
@@ -266,12 +312,13 @@ public class PermissionsManager {
     public void alterRoles(Collection<Role> rolesToSave,
             Collection<Role> rolesToDelete) {
         EDIT_PERMISSION.checkPermission();
+        boolean madeChange = false;
 
         // delete roles as requested
         if (rolesToDelete != null) {
             for (Role r : rolesToDelete) {
                 if (roles.remove(r.getId()) != null)
-                    rolesDirty = true;
+                    rolesDirty = madeChange = true;
             }
         }
 
@@ -281,9 +328,13 @@ public class PermissionsManager {
                 if (r.getId() == null)
                     r.id = "r." + generateUniqueID();
                 roles.put(r.getId(), r);
-                rolesDirty = true;
+                rolesDirty = madeChange = true;
             }
         }
+
+        // record a new timestamp for role data
+        if (madeChange)
+            rolesTimestamp = new Date();
 
         // save the changes
         if (rolesDirty)
@@ -411,12 +462,13 @@ public class PermissionsManager {
     public void alterUsers(Collection<User> usersToSave,
             Collection<User> usersToDelete) {
         EDIT_PERMISSION.checkPermission();
+        boolean madeChange = false;
 
         // delete users as requested
         if (usersToDelete != null) {
             for (User u : usersToDelete) {
                 if (users.remove(u.getUsernameLC()) != null)
-                    usersDirty = true;
+                    usersDirty = madeChange = true;
             }
         }
 
@@ -426,10 +478,14 @@ public class PermissionsManager {
                 String id = u.getUsernameLC();
                 if (StringUtils.hasValue(id)) {
                     users.put(id, u);
-                    usersDirty = true;
+                    usersDirty = madeChange = true;
                 }
             }
         }
+
+        // record a new timestamp for user data
+        if (madeChange)
+            usersTimestamp = new Date();
 
         // save the changes
         if (usersDirty)
@@ -575,6 +631,11 @@ public class PermissionsManager {
                 Element xml = XMLUtils.parse(in).getDocumentElement();
                 readRolesFromXml(roles, xml);
 
+                // store the timestamp for role data
+                rolesTimestamp = XMLUtils.getXMLDate(xml, TIMESTAMP_ATTR);
+                if (rolesTimestamp == null)
+                    rolesTimestamp = new Date(rolesFile.lastModified());
+
             } catch (Exception e) {
                 throw new IOException(rolesFile.getName(), e);
             }
@@ -625,6 +686,9 @@ public class PermissionsManager {
             xml.setOutput(out, "UTF-8");
             xml.startDocument("UTF-8", null);
             xml.startTag(null, ROLES_TAG);
+            if (rolesTimestamp != null)
+                xml.attribute(null, TIMESTAMP_ATTR,
+                    XMLUtils.saveDate(rolesTimestamp));
 
             // write XML for each role
             List<Role> roles = new ArrayList(this.roles.values());
@@ -732,7 +796,7 @@ public class PermissionsManager {
     /**
      * Write a single permission grant to XML
      */
-    private void writePermission(XmlSerializer xml, Permission p)
+    public static void writePermission(XmlSerializer xml, Permission p)
             throws IOException {
         // start a <permission> tag
         xml.startTag(null, PERMISSION_TAG);
@@ -781,6 +845,11 @@ public class PermissionsManager {
                     users.put(u.getUsernameLC(), u);
                 }
 
+                // store the timestamp for user data
+                usersTimestamp = XMLUtils.getXMLDate(xml, TIMESTAMP_ATTR);
+                if (usersTimestamp == null)
+                    usersTimestamp = new Date(usersFile.lastModified());
+
             } catch (Exception e) {
                 throw new IOException(usersFile.getName(), e);
             }
@@ -816,6 +885,9 @@ public class PermissionsManager {
             xml.setOutput(out, "UTF-8");
             xml.startDocument("UTF-8", null);
             xml.startTag(null, USERS_TAG);
+            if (usersTimestamp != null)
+                xml.attribute(null, TIMESTAMP_ATTR,
+                    XMLUtils.saveDate(usersTimestamp));
 
             // write XML for each user
             List<User> users = new ArrayList(this.users.values());
@@ -1223,6 +1295,8 @@ public class PermissionsManager {
     private static final String PERMISSION_TAG = "permission";
 
     private static final String PARAM_TAG = "param";
+
+    private static final String TIMESTAMP_ATTR = "timestamp";
 
     private static final String ID_ATTR = "id";
 
