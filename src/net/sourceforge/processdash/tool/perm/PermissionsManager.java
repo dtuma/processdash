@@ -29,15 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileOwnerAttributeView;
-import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,7 +48,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlSerializer;
@@ -70,12 +61,9 @@ import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
-import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
-import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
-import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -997,8 +985,8 @@ public class PermissionsManager {
         // contact the server and get the list of users for this dataset. If
         // the server is running older software, this will fail and we will
         // return without making changes.
-        JSONObject json = makeRestApiCall(m.group(1) + "/api/v1/datasets/" //
-                + m.group(2) + "/permissions/");
+        JSONObject json = WhoAmI.makeRestApiCall(
+            m.group(1) + "/api/v1/datasets/" + m.group(2) + "/permissions/");
         List<Map> pdesUsers = (List<Map>) json.get("users");
 
         // make a copy of the users data structure, and prepare for changes
@@ -1091,109 +1079,34 @@ public class PermissionsManager {
      * Determine the identity of the current user
      */
     private void identifyCurrentUser() throws HttpException {
-        currentUsername = null;
         externallyGrantedPermissions = Collections.EMPTY_SET;
         currentPermissions = Collections.EMPTY_SET;
 
-        // try a number of ways to figure the current user, until one succeeds
-        String pdesUrl = ExternalResourceManager.getInstance().getDatasetUrl();
-        if (pdesUrl != null && Settings.isTeamMode())
-            identifyUserFromPDES(pdesUrl);
-        if (!StringUtils.hasValue(currentUsername))
-            identifyUserFromFileIO();
-        if (!StringUtils.hasValue(currentUsername))
-            identifyUserFromWhoamiCall();
-        if (!StringUtils.hasValue(currentUsername))
-            identifyUserFromSystemProperties();
-    }
+        // see if there is a PDES URL we should use for authentication
+        String pdesUrl = (Settings.isTeamMode() == false) ? null
+                : ExternalResourceManager.getInstance().getDatasetUrl();
 
-    private void identifyUserFromPDES(String datasetUrl) throws HttpException {
-        Matcher m = DATA_BRIDGE_URL_PAT.matcher(datasetUrl);
-        if (!m.matches())
+        // ask the WhoAmI implementation to identify the current user
+        WhoAmI whoAmI = new WhoAmI(pdesUrl);
+        currentUsername = whoAmI.getUsername();
+        legacyPdesMode = whoAmI.isLegacyPdesMode();
+
+        // if there are no externally granted permissions, we are done
+        if (whoAmI.getExternalPermissionGrants().isEmpty())
             return;
 
-        try {
-            // make a REST API call to the server to identify the current user
-            String whoamiUrl = m.group(1) + "/api/v1/users/whoami/";
-            JSONObject json = makeRestApiCall(whoamiUrl);
-            Map user = (Map) json.get("user");
-            this.currentUsername = (String) user.get("username");
-            logger.info("From PDES, current user is " + currentUsername);
-
-            // see if this user should have extra permissions
-            List<String> permIDs = (List<String>) user.get("clientPermissions");
-            if (permIDs == null || permIDs.isEmpty())
-                return;
-
-            // calculate the implied permissions named by the whoami call
-            Set<Permission> permissions = new LinkedHashSet<Permission>();
-            for (String onePermissionID : permIDs) {
-                PermissionSpec oneSpec = specs.get(onePermissionID);
-                if (oneSpec != null) {
-                    Permission p = oneSpec.createPermission(false, null);
-                    if (p != null && permissions.add(p))
-                        enumerateImpliedPermissions(permissions, p);
-                }
-            }
-            this.externallyGrantedPermissions = this.currentPermissions = //
-                    Collections.unmodifiableSet(permissions);
-
-        } catch (HttpException.Unauthorized he) {
-            // if the attempt to contact the "whoami" API triggered a password
-            // challenge that the user failed, propagate that failure along.
-            throw he;
-
-        } catch (Exception e) {
-            // older versions of the PDES will not have the whoami REST API.
-            // fall back and try retrieving the HTTP Auth username that was
-            // used to authenticate to the DataBridge
-            this.currentUsername = HttpAuthenticator.getLastUsername();
-            if (StringUtils.hasValue(currentUsername)) {
-                logger.info("From HTTP, current user is " + currentUsername);
-                legacyPdesMode = true;
+        // calculate the implied permissions named by the whoami logic
+        Set<Permission> permissions = new LinkedHashSet<Permission>();
+        for (String onePermissionID : whoAmI.getExternalPermissionGrants()) {
+            PermissionSpec oneSpec = specs.get(onePermissionID);
+            if (oneSpec != null) {
+                Permission p = oneSpec.createPermission(false, null);
+                if (p != null && permissions.add(p))
+                    enumerateImpliedPermissions(permissions, p);
             }
         }
-    }
-
-    private void identifyUserFromFileIO() {
-        try {
-            File f = File.createTempFile("whoami", ".tmp");
-            Path path = Paths.get(f.getAbsolutePath());
-            FileOwnerAttributeView ownerAttributeView = Files
-                    .getFileAttributeView(path, FileOwnerAttributeView.class);
-            UserPrincipal owner = ownerAttributeView.getOwner();
-            this.currentUsername = discardDomain(owner.getName());
-            f.delete();
-            logger.info("From NIO, current user is " + currentUsername);
-
-        } catch (Throwable t) {
-            // this will fail on Java 1.6. Try the next option
-        }
-    }
-
-    private void identifyUserFromWhoamiCall() {
-        try {
-            // execute the "whoami" command
-            Process p = Runtime.getRuntime().exec("whoami");
-            byte[] out = RuntimeUtils.collectOutput(p, true, false);
-            String result = new String(out).trim();
-            this.currentUsername = discardDomain(result);
-            logger.info("From whoami, current user is " + currentUsername);
-
-        } catch (Throwable t) {
-        }
-    }
-
-    private void identifyUserFromSystemProperties() {
-        this.currentUsername = discardDomain(System.getProperty("user.name"));
-        logger.info("From system, current user is " + currentUsername);
-    }
-
-    private String discardDomain(String username) {
-        if (!StringUtils.hasValue(username))
-            return null;
-        int pos = username.lastIndexOf('\\');
-        return (pos == -1 ? username : username.substring(pos + 1));
+        this.externallyGrantedPermissions = this.currentPermissions = //
+                Collections.unmodifiableSet(permissions);
     }
 
 
@@ -1233,27 +1146,6 @@ public class PermissionsManager {
 
 
     /**
-     * Make a REST API call, and return the result as JSON.
-     */
-    private JSONObject makeRestApiCall(String urlStr) throws IOException {
-        InputStream in = null;
-        try {
-            URLConnection conn = new URL(urlStr).openConnection();
-            HttpException.checkValid(conn);
-            in = conn.getInputStream();
-            return (JSONObject) new JSONParser().parse(
-                new InputStreamReader(new BufferedInputStream(in), "UTF-8"));
-        } catch (IOException ioe) {
-            throw ioe;
-        } catch (Exception pe) {
-            throw new IOException(pe);
-        } finally {
-            FileUtils.safelyClose(in);
-        }
-    }
-
-
-    /**
      * Throw an exception if one of our files has been tampered with.
      * 
      * To avoid denial-of-service problems, people who have been granted "all
@@ -1269,8 +1161,7 @@ public class PermissionsManager {
 
 
 
-    private static final Pattern DATA_BRIDGE_URL_PAT = Pattern
-            .compile("(http.*)/DataBridge/([\\w-]+)");
+    private static final Pattern DATA_BRIDGE_URL_PAT = WhoAmI.DATA_BRIDGE_URL_PAT;
 
     public static final String STANDARD_ROLE_ID = "r.standard";
 
