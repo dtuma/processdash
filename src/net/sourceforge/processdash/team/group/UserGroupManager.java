@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -96,6 +97,8 @@ public class UserGroupManager {
 
     private Set<Boolean> needsSave;
 
+    private Map<Boolean, Date> timestamps;
+
     private Map<String, UserGroup> groups;
 
 
@@ -145,6 +148,7 @@ public class UserGroupManager {
         customFile = new File(customDir, customFilename);
 
         // load group data from both files
+        timestamps = new HashMap<Boolean, Date>();
         groups = new HashMap<String, UserGroup>();
         reloadGroups(false);
         reloadGroups(true);
@@ -191,6 +195,14 @@ public class UserGroupManager {
      */
     public String getReadOnlyCode() {
         return readOnlyCode;
+    }
+
+    /**
+     * @return the date/time when shared groups were last modified
+     */
+    public Date getSharedGroupsTimestamp() {
+        // return the timestamp for shared (non-custom) groups
+        return timestamps.get(Boolean.FALSE);
     }
 
     public void addUserGroupEditListener(UserGroupEditListener l) {
@@ -444,6 +456,9 @@ public class UserGroupManager {
             throw new IllegalStateException("Shared groups are read-only: "
                     + readOnlyCode);
 
+        // make a note of the time we are changing the data in the given file
+        timestamps.put(g.isCustom(), new Date());
+
         // custom groups could be altered simultaneously by different processes.
         // to be on the safe side, try reloading the custom groups file before
         // we modify it.
@@ -501,6 +516,14 @@ public class UserGroupManager {
                 result.put(id, oneGroup);
         }
 
+        // update the data timestamp for this type
+        Date fileTs = XMLUtils.getXMLDate(xml, TIMESTAMP_ATTR);
+        if (fileTs == null)
+            fileTs = new Date(f.lastModified());
+        Date memoryTs = timestamps.get(custom);
+        if (memoryTs == null || fileTs.compareTo(memoryTs) > 0)
+            timestamps.put(custom, fileTs);
+
         return result;
     }
 
@@ -519,6 +542,11 @@ public class UserGroupManager {
         xml.setOutput(out, "UTF-8");
         xml.startDocument("UTF-8", null);
         xml.startTag(null, GROUPS_TAG);
+
+        // write the data timestamp, if we have one
+        Date ts = timestamps.get(custom);
+        if (ts != null)
+            xml.attribute(null, TIMESTAMP_ATTR, XMLUtils.saveDate(ts));
 
         // write XML for each group
         List<UserGroup> groups = new ArrayList<UserGroup>(this.groups.values());
@@ -574,6 +602,8 @@ public class UserGroupManager {
     private static final String CUSTOM_ID_PREFIX = "c.";
 
     private static final String GROUPS_TAG = "groups";
+
+    private static final String TIMESTAMP_ATTR = "timestamp";
 
     private static final String DATA_PREFIX = "User_Group/";
 
