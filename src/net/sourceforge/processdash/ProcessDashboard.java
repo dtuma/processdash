@@ -132,9 +132,9 @@ import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
-import net.sourceforge.processdash.team.setup.PermissionSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
+import net.sourceforge.processdash.team.setup.WbsPermissionSettingsWriter;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -618,7 +618,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         UserGroupManager.getInstance().init(this);
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
-            TeamSettingsFile.addDataWriter(new PermissionSettingsWriter());
+            TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());
             TeamSettingsRepublisher.init(this);
         }
         BackgroundTaskManager.initialize(this);

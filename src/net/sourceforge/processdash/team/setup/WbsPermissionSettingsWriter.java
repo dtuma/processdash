@@ -42,7 +42,7 @@ import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class PermissionSettingsWriter
+public class WbsPermissionSettingsWriter
         implements TeamSettingsDataWriter, PermissionsChangeListener {
 
     private Set<String> wbsPermissionIDs;
@@ -52,7 +52,7 @@ public class PermissionSettingsWriter
     private List<Role> allRoles;
 
 
-    public PermissionSettingsWriter() {
+    public WbsPermissionSettingsWriter() {
         wbsPermissionIDs = Collections.unmodifiableSet(PermissionsManager
                 .getInstance().getPermissionsImpliedBy("wbs.all"));
         PermissionsManager.getInstance().addPermissionsChangeListener(this);
@@ -61,7 +61,7 @@ public class PermissionSettingsWriter
 
     @Override
     public String getFormatVersion() {
-        return "2.3.1";
+        return "2.3.1.2";
     }
 
 
