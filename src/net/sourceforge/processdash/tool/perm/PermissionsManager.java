@@ -96,6 +96,8 @@ public class PermissionsManager {
 
     private Map<String, PermissionSpec> specs;
 
+    private Date specsTimestamp;
+
     private WorkingDirectory workingDir;
 
     private String bridgedUrl;
@@ -183,17 +185,19 @@ public class PermissionsManager {
 
 
     /**
-     * @return the date/time when user and/or role data was last changed.
+     * @return the date/time when user, role, or perm data was last changed.
      */
     public Date getPermissionsTimestamp() {
-        if (rolesTimestamp == null)
-            return usersTimestamp;
-        else if (usersTimestamp == null)
-            return rolesTimestamp;
-        else if (usersTimestamp.compareTo(rolesTimestamp) > 0)
-            return usersTimestamp;
-        else
-            return rolesTimestamp;
+        return maxDate(specsTimestamp, rolesTimestamp, usersTimestamp);
+    }
+
+    private Date maxDate(Date... dates) {
+        Date result = null;
+        for (Date d : dates) {
+            if (result == null || (d != null && d.after(result)))
+                result = d;
+        }
+        return result;
     }
 
 
@@ -602,6 +606,7 @@ public class PermissionsManager {
      */
     private Map loadPermissionSpecs() {
         Map result = new HashMap();
+        long ts = 1;
         for (Element xml : ExtensionManager
                 .getXmlConfigurationElements(PERMISSION_TAG)) {
 
@@ -615,14 +620,16 @@ public class PermissionsManager {
             try {
                 PermissionSpec oneSpec = new PermissionSpec(xml);
 
-                if (result.containsKey(oneSpec.getId()))
+                if (result.containsKey(oneSpec.getId())) {
                     logger.severe("Conflicting definitions were provided "
                             + "for the permission with id '" + oneSpec.getId()
                             + "'; discarding the definition in "
                             + ExtensionManager
                                     .getDebugDescriptionOfSource(xml));
-                else
+                } else {
                     result.put(oneSpec.getId(), oneSpec);
+                    ts = Math.max(ts, ExtensionManager.getModTimeOfSource(xml));
+                }
 
             } catch (Exception e) {
                 logger.warning("Could not create permission with id '"
@@ -631,6 +638,8 @@ public class PermissionsManager {
                         + ": " + e.getMessage());
             }
         }
+
+        specsTimestamp = new Date(ts);
         return result;
     }
 
@@ -675,9 +684,11 @@ public class PermissionsManager {
 
         } else {
             // no file present? read default roles from extension points
+            long ts = 1;
             for (Element xml : ExtensionManager
                     .getXmlConfigurationElements(STANDARD_ROLES_TAG)) {
                 readRolesFromXml(roles, xml);
+                ts = Math.max(ts, ExtensionManager.getModTimeOfSource(xml));
 
                 // in personal mode, only read the role definitions that are
                 // built-in to the dashboard. (Don't load any organizational
@@ -685,6 +696,7 @@ public class PermissionsManager {
                 if (Settings.isPersonalMode())
                     break;
             }
+            rolesTimestamp = new Date(ts);
         }
 
         this.roles = Collections.synchronizedMap(roles);
@@ -892,6 +904,7 @@ public class PermissionsManager {
             User u = new User(catchAllName, CATCH_ALL_USER_ID, false,
                     Collections.singletonList(STANDARD_ROLE_ID));
             users.put(u.getUsernameLC(), u);
+            usersTimestamp = new Date(1);
         }
 
         this.users = Collections.synchronizedMap(users);
@@ -1038,6 +1051,7 @@ public class PermissionsManager {
         User catchAllUser = oldUsers.remove(CATCH_ALL_USER_ID);
         if (catchAllUser != null)
             newUsers.put(CATCH_ALL_USER_ID, catchAllUser);
+        boolean madePermChange = false;
 
         // scan the list of PDES users, and reconcile them with the local users
         for (Map onePdesUser : pdesUsers) {
@@ -1052,9 +1066,13 @@ public class PermissionsManager {
             if (oldUser != null) {
                 name = getBestNameForUser(oldUser.getName(), name, username);
                 roleIDs = oldUser.getRoleIDs();
+                if (oldUser.isInactive())
+                    madePermChange = true;
+
             } else {
                 name = getBestNameForUser(name, username);
                 roleIDs = getBestRolesForUser(onePdesUser, catchAllUser);
+                madePermChange = true;
             }
 
             User newUser = new User(name, username, false, roleIDs);
@@ -1066,7 +1084,12 @@ public class PermissionsManager {
             User newUser = new User(oldUser.getName(), oldUser.getUsername(),
                     true, oldUser.getRoleIDs());
             newUsers.put(newUser.getUsernameLC(), newUser);
+            madePermChange = true;
         }
+
+        // possibly update the user timestamp
+        if (madePermChange)
+            this.usersTimestamp = new Date();
 
         // save the new user data structure
         this.users = Collections.synchronizedMap(newUsers);
