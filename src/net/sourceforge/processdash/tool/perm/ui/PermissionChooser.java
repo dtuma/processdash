@@ -70,7 +70,7 @@ public class PermissionChooser {
         sp = new JScrollPane(tree);
         Dimension d = tree.getPreferredSize();
         d.width = Math.min(d.width + 20, 300);
-        d.height = Math.min(d.height + 20, 300);
+        d.height = Math.min(d.height + 20, 500);
         sp.setPreferredSize(d);
     }
 
