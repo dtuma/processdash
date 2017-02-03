@@ -2491,8 +2491,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class MilestonesEditorAction extends AbstractAction {
         public MilestonesEditorAction() {
-            super("Edit Milestones");
-            putValue(MNEMONIC_KEY, new Integer('E'));
+            if (MilestonesEditor.isEditable(teamProject)) {
+                putValue(NAME, resources.getString("Milestones.Edit"));
+                putValue(MNEMONIC_KEY, new Integer('E'));
+            } else {
+                putValue(NAME, resources.getString("Milestones.View"));
+                putValue(MNEMONIC_KEY, new Integer('V'));
+            }
         }
 
         public void actionPerformed(ActionEvent e) {

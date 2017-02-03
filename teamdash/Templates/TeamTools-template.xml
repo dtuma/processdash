@@ -14,6 +14,12 @@
         <parent>hidden/none</parent>
     </permission>
 
+    <permission id="wbs.milestones" ordinal="2030">
+        <resources>WBSEditor.Milestones.Permission</resources>
+        <parent>pdash.projects</parent>
+        <impliedBy>wbs.all</impliedBy>
+    </permission>
+
     <permission id="wbs.workflows" ordinal="3010">
         <resources>WBSEditor.Workflow.Permission</resources>
         <parent>pdash.standards</parent>
