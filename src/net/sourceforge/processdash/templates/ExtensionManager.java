@@ -60,9 +60,12 @@ public class ExtensionManager {
 
         URL baseUrl;
 
-        public ExtensionData(String filename, URL baseUrl) {
+        long modTime;
+
+        public ExtensionData(String filename, URL baseUrl, long modTime) {
             this.filename = filename;
             this.baseUrl = baseUrl;
+            this.modTime = modTime;
         }
 
         public String getDescription() {
@@ -76,8 +79,9 @@ public class ExtensionManager {
         }
     }
 
-    static void addXmlDoc(Document doc, String filename, URL baseUrl) {
-        ExtensionData metaData = new ExtensionData(filename, baseUrl);
+    static void addXmlDoc(Document doc, String filename, URL baseUrl,
+            long modTime) {
+        ExtensionData metaData = new ExtensionData(filename, baseUrl, modTime);
         extensionXmlDocs.put(doc, metaData);
     }
 
@@ -305,14 +309,20 @@ public class ExtensionManager {
 
 
     public static String getDebugDescriptionOfSource(Element configElement) {
-        if (configElement == null) return null;
-        Document configDoc = configElement.getOwnerDocument();
-        ExtensionData metaData = (ExtensionData) extensionXmlDocs
-                .get(configDoc);
-        if (metaData == null)
+        ExtensionData metaData = getMetaData(configElement);
+        return (metaData == null ? null : metaData.getDescription());
+    }
+
+    public static long getModTimeOfSource(Element configElement) {
+        ExtensionData metaData = getMetaData(configElement);
+        return (metaData == null ? -1 : metaData.modTime);
+    }
+
+    private static ExtensionData getMetaData(Element configElement) {
+        if (configElement == null)
             return null;
-        else
-            return metaData.getDescription();
+        Document configDoc = configElement.getOwnerDocument();
+        return (ExtensionData) extensionXmlDocs.get(configDoc);
     }
 
     private static void initializeExecutableExtension(Object obj, Element xml,

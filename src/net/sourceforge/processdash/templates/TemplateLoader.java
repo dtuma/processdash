@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2015 Tuma Solutions, LLC
+// Copyright (C) 1998-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -257,7 +257,7 @@ public class TemplateLoader {
         try {
             ByteArrayInputStream in =
                 new ByteArrayInputStream(rollupXML.getBytes("UTF-8"));
-            loadXMLProcessTemplate(templates, data, null, null, in, true);
+            loadXMLProcessTemplate(templates, data, null, null, -1, in, true);
         } catch (IOException ioe) {}
     }
 
@@ -334,7 +334,7 @@ public class TemplateLoader {
         // load MCF process templates if the above steps were successful
         if (mcfXmlData != null) {
             loadXMLProcessTemplate(templates, data, mcfXmlFile.getPath(), null,
-                mcfXmlData, true);
+                mcfXmlFile.lastModified(), mcfXmlData, true);
             dashPackages.add(new DashPackage(mcfID, mcfVersion));
         }
     }
@@ -363,7 +363,7 @@ public class TemplateLoader {
                     if (mcfXmlData != null) {
                         String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
                         loadXMLProcessTemplate(templates, data, n, null,
-                            mcfXmlData, true);
+                            file.getTime(), mcfXmlData, true);
                         jarFile.close();
                         return JarSearchResult.Mcf;
                     }
@@ -382,7 +382,7 @@ public class TemplateLoader {
                     debug("loading template: " + filename);
                     String n = file.getName() + " (in " + jarURL + ")";
                     loadXMLProcessTemplate(templates, data, n, jarFileUrl,
-                            jarFile, false);
+                        file.getTime(), jarFile, false);
                     foundTemplates = true;
                 } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
@@ -426,7 +426,7 @@ public class TemplateLoader {
                 try {
                     debug("loading template: " + f);
                     loadXMLProcessTemplate
-                        (templates, data, f.getPath(), null,
+                        (templates, data, f.getPath(), null, f.lastModified(),
                          new FileInputStream(f), true);
                     processTimestamp(f);
                     foundTemplates = true;
@@ -459,9 +459,9 @@ public class TemplateLoader {
         if (webInfXml.isFile()) {
             try {
                 debug("loading template: " + webInfXml);
-                loadXMLProcessTemplate
-                    (templates, data, webInfXml.getPath(), null,
-                     new FileInputStream(webInfXml), true);
+                loadXMLProcessTemplate(templates, data, webInfXml.getPath(),
+                    null, webInfXml.lastModified(),
+                    new FileInputStream(webInfXml), true);
                 processTimestamp(webInfXml);
                 foundTemplates = true;
             } catch (IOException ioe) {
@@ -485,7 +485,7 @@ public class TemplateLoader {
     private static void loadXMLProcessTemplate(DashHierarchy templates,
                                                DataRepository data,
                                                String filename,
-                                               URL baseUrl,
+                                               URL baseUrl, long modTime,
                                                InputStream in, boolean close)
         throws IOException
     {
@@ -496,7 +496,7 @@ public class TemplateLoader {
 
             // this closes the file without our permission.
             Document doc = XMLUtils.parse(in);
-            ExtensionManager.addXmlDoc(doc, filename, baseUrl);
+            ExtensionManager.addXmlDoc(doc, filename, baseUrl, modTime);
             root = doc.getDocumentElement();
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
