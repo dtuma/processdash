@@ -97,6 +97,7 @@ import javax.swing.event.TableModelListener;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
@@ -1779,6 +1780,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             HttpAuthenticator.maybeInitialize("WBS Editor");
         } catch (Exception e) {}
+        TamperDeterrent.init();
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
@@ -1830,6 +1832,14 @@ public class WBSEditor implements WindowListener, SaveListener,
                         .getTargetZipFile().canWrite())
                     forceReadOnly = true;
             }
+        }
+
+        try {
+            if (!isDumpAndExitMode())
+                WBSPermissionManager.init(workingDirectory, proj);
+        } catch (HttpException.Unauthorized he) {
+            displayStartupPermissionError("Unauthorized");
+            return null;
         }
 
         if (indivMode && proj.getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING))

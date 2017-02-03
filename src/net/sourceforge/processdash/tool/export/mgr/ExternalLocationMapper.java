@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ public class ExternalLocationMapper {
 
     Map generalizedRemappings = null;
 
+    String datasetUrl = null;
+
     public ExternalLocationMapper() {}
 
     public void loadDefaultMappings() {
@@ -59,6 +61,7 @@ public class ExternalLocationMapper {
             File mapDataSource = new File(setting);
             ExternalResourceManifestXMLv1 loader = new ExternalResourceManifestXMLv1();
             loadMappings(loader.load(mapDataSource));
+            datasetUrl = loader.getDatasetUrl();
         }
     }
 
@@ -101,6 +104,16 @@ public class ExternalLocationMapper {
 
     private String denormalize(String path) {
         return path.replace('/', File.separatorChar);
+    }
+
+    /**
+     * @return the dataset URL, as read from the external resources manifest
+     *         file. If this process is not running from a compressed archive,
+     *         this will return null.
+     * @since 2.3.2
+     */
+    public String getDatasetUrl() {
+        return datasetUrl;
     }
 
     /** @since 2.1.10 */
