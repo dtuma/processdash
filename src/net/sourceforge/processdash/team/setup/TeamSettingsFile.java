@@ -50,6 +50,8 @@ import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.FileType;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.VersionUtils;
@@ -70,6 +72,8 @@ public class TeamSettingsFile {
     private File projDataDir;
 
     private String projDataUrl;
+
+    private File overrideDir;
 
     private String version;
 
@@ -103,6 +107,29 @@ public class TeamSettingsFile {
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
         this.isReadOnly = false;
+
+        this.overrideDir = getOverrideDir(url, dir);
+    }
+
+    private File getOverrideDir(String... locations) {
+        // if an external resource mapper is in operation, ask it for an
+        // alternative location for our project data directory
+        for (String location : locations) {
+            if (StringUtils.hasValue(location)) {
+                String remapped = ExternalResourceManager.getInstance()
+                        .remapFilename(location);
+                if (remapped != null && !remapped.equals(location))
+                    return new File(remapped);
+            }
+        }
+
+        // if we are running from a data backup, but this particular
+        // settings.xml file is located on the network, mark it as read-only.
+        if (CompressedInstanceLauncher.isRunningFromCompressedData())
+            setReadOnly();
+
+        // no remapped location is in effect (typical for normal operation)
+        return null;
     }
 
     public String getSettingsFileDescription() {
@@ -209,6 +236,12 @@ public class TeamSettingsFile {
 
     private InputStream getInputStream() throws IOException {
         IOException ioe = null;
+
+        if (overrideDir != null) {
+            File f = new File(overrideDir, SETTINGS_FILENAME);
+            return new FileInputStream(f);
+        }
+
         if (projDataUrl != null) {
             try {
                 URL u = new URL(projDataUrl + "/" + SETTINGS_FILENAME);
@@ -366,6 +399,13 @@ public class TeamSettingsFile {
 
     private void copyToDestination(File tmp) throws IOException {
         IOException ioe = null;
+
+        if (overrideDir != null) {
+            File dest = new File(overrideDir, SETTINGS_FILENAME);
+            TamperDeterrent.getInstance().addThumbprint(tmp, dest,
+                FileType.WBS);
+            return;
+        }
 
         if (projDataUrl != null) {
             try {
