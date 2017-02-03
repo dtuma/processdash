@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -71,10 +71,10 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
     public ProxyEditor(TeamProject teamProject, ProxyDataModel proxyModel) {
         this.teamProject = teamProject;
         this.proxyModel = proxyModel;
-        this.proxyModel.setEditingEnabled(teamProject.isReadOnly() == false);
+        this.proxyModel.setEditingEnabled(isEditable(teamProject));
 
         table = createProxyJTable();
-        table.setEditingEnabled(teamProject.isReadOnly() == false);
+        table.setEditingEnabled(isEditable(teamProject));
 
         buildToolbar();
 
@@ -84,6 +84,11 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
+    }
+
+    public static boolean isEditable(TeamProject teamProject) {
+        return teamProject.isReadOnly() == false
+                && WBSPermissionManager.hasPerm("wbs.proxies", "2.3.1.2");
     }
 
     public void show() {
@@ -138,7 +143,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
 
-        if (teamProject.isReadOnly()) {
+        if (!isEditable(teamProject)) {
             IMPORT.setEnabled(false);
             IMPORT_ORG.setEnabled(false);
         }

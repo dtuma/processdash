@@ -2479,7 +2479,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ProxyEditorAction extends AbstractAction {
         public ProxyEditorAction() {
-            super(resources.getString("Proxies.Menu"));
+            super(resources.getString(ProxyEditor.isEditable(teamProject) //
+                    ? "Proxies.Menu" : "Proxies.Menu_View"));
             putValue(MNEMONIC_KEY, new Integer('P'));
         }
 
