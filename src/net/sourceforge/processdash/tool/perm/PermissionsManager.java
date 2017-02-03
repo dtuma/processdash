@@ -47,6 +47,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.event.EventListenerList;
+
 import org.json.simple.JSONObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -121,6 +123,8 @@ public class PermissionsManager {
     private Set<Permission> currentPermissions;
 
     private boolean legacyPdesMode;
+
+    private EventListenerList listeners;
 
 
     private PermissionsManager() {}
@@ -321,8 +325,10 @@ public class PermissionsManager {
         }
 
         // record a new timestamp for role data
-        if (madeChange)
+        if (madeChange) {
             rolesTimestamp = new Date();
+            firePermissionsChangeEvent();
+        }
 
         // save the changes
         if (rolesDirty)
@@ -472,8 +478,10 @@ public class PermissionsManager {
         }
 
         // record a new timestamp for user data
-        if (madeChange)
+        if (madeChange) {
             usersTimestamp = new Date();
+            firePermissionsChangeEvent();
+        }
 
         // save the changes
         if (usersDirty)
@@ -548,6 +556,38 @@ public class PermissionsManager {
      */
     public boolean isLegacyPdesMode() {
         return legacyPdesMode;
+    }
+
+
+    /**
+     * Add a listener for permissions changes
+     */
+    public void addPermissionsChangeListener(PermissionsChangeListener l) {
+        if (listeners == null)
+            listeners = new EventListenerList();
+        listeners.add(PermissionsChangeListener.class, l);
+    }
+
+
+    /**
+     * Remove a listener for permissions changes
+     */
+    public void removePermissionsChangeListener(PermissionsChangeListener l) {
+        if (listeners != null)
+            listeners.remove(PermissionsChangeListener.class, l);
+    }
+
+
+    /**
+     * Fire a permissions changed event
+     */
+    private void firePermissionsChangeEvent() {
+        if (listeners != null) {
+            PermissionsChangeEvent e = new PermissionsChangeEvent(this);
+            for (PermissionsChangeListener l : listeners
+                    .getListeners(PermissionsChangeListener.class))
+                l.permissionsChanged(e);
+        }
     }
 
 
