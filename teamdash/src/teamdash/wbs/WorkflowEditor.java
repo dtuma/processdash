@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -94,7 +94,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
-        this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
+        this.workflowModel.setEditingEnabled(isEditable(teamProject));
 
         UnitsColumnVisibilityMgr unitsColMgr = new UnitsColumnVisibilityMgr();
         table = createWorkflowJTable
@@ -106,7 +106,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         undoList.setForComponent(table);
         workflowModel.addTableModelListener(new UndoableEventRepeater());
 
-        table.setEditingEnabled(teamProject.isReadOnly() == false);
+        table.setEditingEnabled(isEditable(teamProject));
         buildToolbar(columnSelector.getAction());
         frame = new JFrame(teamProject.getProjectName() +
                            " - Common Team Workflows");
@@ -115,6 +115,11 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(800 + optColumnWidth, 400);
         frame.setVisible(true);
+    }
+
+    public static boolean isEditable(TeamProject teamProject) {
+        return teamProject.isReadOnly() == false
+                && WBSPermissionManager.hasPerm("wbs.workflows", "2.3.1.2");
     }
 
     public void show() {
@@ -235,7 +240,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         addToolbarButtons(actions);
         toolBar.addSeparator();
 
-        if (teamProject.isReadOnly()) {
+        if (isEditable(teamProject) == false) {
             IMPORT.setEnabled(false);
             IMPORT_ORG.setEnabled(false);
         }

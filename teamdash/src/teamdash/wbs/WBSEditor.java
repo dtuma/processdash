@@ -2400,8 +2400,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class WorkflowEditorAction extends AbstractAction {
         public WorkflowEditorAction() {
-            super("Edit Workflows");
-            putValue(MNEMONIC_KEY, new Integer('E'));
+            super(resources.getString(WorkflowEditor.isEditable(teamProject) //
+                    ? "Workflow.Edit" : "Workflow.View"));
+            putValue(MNEMONIC_KEY, new Integer('W'));
         }
         public void actionPerformed(ActionEvent e) {
             showWorkflowEditor();

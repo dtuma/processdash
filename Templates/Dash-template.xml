@@ -128,6 +128,11 @@ The author(s) may be contacted at:
     <parent>pdash.projects</parent>
   </permission>
 
+  <permission id="pdash.standards" ordinal="3000">
+    <resources>Permissions.Edit_Process_Standards</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

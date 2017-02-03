@@ -14,4 +14,10 @@
         <parent>hidden/none</parent>
     </permission>
 
+    <permission id="wbs.workflows" ordinal="3010">
+        <resources>WBSEditor.Workflow.Permission</resources>
+        <parent>pdash.standards</parent>
+        <impliedBy>wbs.all</impliedBy>
+    </permission>
+
 </dashboard-process-template>
