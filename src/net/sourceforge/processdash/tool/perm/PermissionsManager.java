@@ -256,7 +256,10 @@ public class PermissionsManager {
      * @return a list of all roles known to this dataset
      */
     public List<Role> getAllRoles() {
-        List<Role> roles = new ArrayList(this.roles.values());
+        List<Role> roles;
+        synchronized (this.roles) {
+            roles = new ArrayList(this.roles.values());
+        }
         Collections.sort(roles);
         return roles;
     }
@@ -428,7 +431,9 @@ public class PermissionsManager {
      * @return a list of all users known to this dataset
      */
     public List<User> getAllUsers() {
-        return new ArrayList<User>(this.users.values());
+        synchronized (this.users) {
+            return new ArrayList<User>(this.users.values());
+        }
     }
 
 
@@ -719,8 +724,7 @@ public class PermissionsManager {
                     XMLUtils.saveDate(rolesTimestamp));
 
             // write XML for each role
-            List<Role> roles = new ArrayList(this.roles.values());
-            for (Role r : roles) {
+            for (Role r : getAllRoles()) {
                 writeRole(xml, r);
             }
 
@@ -918,8 +922,7 @@ public class PermissionsManager {
                     XMLUtils.saveDate(usersTimestamp));
 
             // write XML for each user
-            List<User> users = new ArrayList(this.users.values());
-            for (User u : users) {
+            for (User u : getAllUsers()) {
                 writeUser(xml, u);
             }
 

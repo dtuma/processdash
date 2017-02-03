@@ -134,6 +134,7 @@ import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
 import net.sourceforge.processdash.team.setup.PermissionSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
+import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -615,8 +616,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
         UserGroupManager.getInstance().init(this);
-        TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
-        TeamSettingsFile.addDataWriter(new PermissionSettingsWriter());
+        if (Settings.isTeamMode()) {
+            TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
+            TeamSettingsFile.addDataWriter(new PermissionSettingsWriter());
+            TeamSettingsRepublisher.init(this);
+        }
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);

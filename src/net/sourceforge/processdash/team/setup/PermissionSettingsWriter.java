@@ -35,19 +35,27 @@ import java.util.Set;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.tool.perm.Permission;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.Role;
 import net.sourceforge.processdash.tool.perm.User;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class PermissionSettingsWriter implements TeamSettingsDataWriter {
+public class PermissionSettingsWriter
+        implements TeamSettingsDataWriter, PermissionsChangeListener {
 
     private Set<String> wbsPermissionIDs;
+
+    private List<User> allUsers;
+
+    private List<Role> allRoles;
 
 
     public PermissionSettingsWriter() {
         wbsPermissionIDs = Collections.unmodifiableSet(PermissionsManager
                 .getInstance().getPermissionsImpliedBy("wbs.all"));
+        PermissionsManager.getInstance().addPermissionsChangeListener(this);
     }
 
 
@@ -70,13 +78,13 @@ public class PermissionSettingsWriter implements TeamSettingsDataWriter {
         xml.startTag(null, ROLES_TAG);
 
         // gather the list of users known to this team dashboard
-        List<User> allUsers = PermissionsManager.getInstance().getAllUsers();
+        List<User> allUsers = getAllUsers();
         Set<String> usersToWrite = new HashSet();
         for (User u : allUsers)
             usersToWrite.add(u.getUsername());
 
         // write data for each role
-        for (Role r : PermissionsManager.getInstance().getAllRoles())
+        for (Role r : getAllRoles())
             writeRoleSettings(xml, r, allUsers, usersToWrite);
 
         // write an empty role for users with no WBS permissions
@@ -143,6 +151,29 @@ public class PermissionSettingsWriter implements TeamSettingsDataWriter {
         xml.attribute(null, USERS_ATTR, StringUtils.join(usersToWrite, ","));
         xml.endTag(null, ROLE_TAG);
     }
+
+
+
+    @Override
+    public void permissionsChanged(PermissionsChangeEvent event) {
+        allUsers = null;
+        allRoles = null;
+        TeamSettingsRepublisher.getInstance().requestRepublish();
+    }
+
+    private List<User> getAllUsers() {
+        if (allUsers == null)
+            allUsers = PermissionsManager.getInstance().getAllUsers();
+        return allUsers;
+    }
+
+    private List<Role> getAllRoles() {
+        if (allRoles == null)
+            allRoles = PermissionsManager.getInstance().getAllRoles();
+        return allRoles;
+    }
+
+
 
     private static final String ROLES_TAG = "roles";
 
