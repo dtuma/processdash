@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -479,6 +479,8 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private CustomColumnsAction makeCustomColumnsAction() {
+        if (!WBSPermissionManager.hasPerm("wbs.columns", "2.3.1.2"))
+            return null;
         CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
         colMgr.setCustomColumnListener(this);
         return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);

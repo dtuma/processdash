@@ -1069,8 +1069,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("Tabs");
         result.setMnemonic('A');
         for (int i = 0; i < tabActions.length; i++) {
-            result.add(tabActions[i]);
-            if (i == 2 || i == 4) result.addSeparator();
+            if (tabActions[i] != null) {
+                result.add(tabActions[i]);
+                if (i == 2 || i == 4) result.addSeparator();
+            }
         }
 
         return result;

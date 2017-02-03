@@ -32,4 +32,10 @@
         <impliedBy>wbs.all</impliedBy>
     </permission>
 
+    <permission id="wbs.columns" ordinal="3040">
+        <resources>WBSEditor.CustomColumns.Permission</resources>
+        <parent>pdash.standards</parent>
+        <impliedBy>wbs.all</impliedBy>
+    </permission>
+
 </dashboard-process-template>
