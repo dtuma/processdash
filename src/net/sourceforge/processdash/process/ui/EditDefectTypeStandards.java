@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2015 Tuma Solutions, LLC
+// Copyright (C) 2003-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -73,13 +74,15 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
     private static int uniqueNumber = 0;
 
+    public static boolean canEdit() {
+        return Settings.isReadWrite() && PermissionsManager.getInstance()
+                .hasPermission("pdash.defectTypes");
+    }
+
     protected void doPost() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
 
-        if (Settings.isReadOnly()) {
-            out.print("Location: ../reports/dts.class\r\n\r\n");
-            return;
-        }
+        boolean canEdit = canEdit();
 
         String contentType = (String) env.get("CONTENT_TYPE");
         if (contentType.toLowerCase().contains("multipart/form-data"))
@@ -87,17 +90,17 @@ public class EditDefectTypeStandards extends TinyCGIBase {
         else
             parseFormData();
 
-        if (parameters.containsKey(SAVE)) {
+        if (canEdit && parameters.containsKey(SAVE)) {
             save(getParameter(NAME), getParameter(CONTENTS));
-        } else if (parameters.containsKey(SET_DEFAULT)) {
+        } else if (canEdit && parameters.containsKey(SET_DEFAULT)) {
             saveDefault(getParameter(NAME));
         } else if (parameters.containsKey(EXPORT)) {
             handleExport();
             return;
-        } else if (parameters.containsKey(IMPORT)) {
+        } else if (canEdit && parameters.containsKey(IMPORT)) {
             handleImportForm();
             return;
-        } else if (parameters.containsKey(IMPORT_CONFIRM)) {
+        } else if (canEdit && parameters.containsKey(IMPORT_CONFIRM)) {
             handleImportConfirm();
         }
 
@@ -107,30 +110,26 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void doGet() throws IOException {
-        if (Settings.isReadOnly()) {
-            out.print("Location: ../reports/dts.class\r\n\r\n");
-            return;
-        }
-
         writeHeader();
 
+        boolean canEdit = canEdit();
         String action = getParameter(ACTION);
         String name = getParameter(NAME);
-        if (CREATE.equals(action))
+        if (canEdit && CREATE.equals(action))
             createNew();
         else if (OPTIONS[VIEW].equals(action))
             showStandard(name);
-        else if (OPTIONS[EDIT].equals(action))
+        else if (canEdit && OPTIONS[EDIT].equals(action))
             editExisting(name);
-        else if (OPTIONS[DELETE].equals(action))
+        else if (canEdit && OPTIONS[DELETE].equals(action))
             deleteExisting(name);
-        else if (OPTIONS[COPY].equals(action))
+        else if (canEdit && OPTIONS[COPY].equals(action))
             copyExisting(name);
-        else if (OPTIONS[DEFAULT].equals(action))
+        else if (canEdit && OPTIONS[DEFAULT].equals(action))
             setDefault(name);
         else if (EXPORT.equals(action))
             showExportPage();
-        else if (IMPORT.equals(action))
+        else if (canEdit && IMPORT.equals(action))
             showImportForm(null);
         else
             showListOfDefinedStandards();
@@ -164,6 +163,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     protected void showListOfDefinedStandards() throws IOException {
         DataRepository data = getDataRepository();
         String[] standards = DefectTypeStandard.getDefinedStandards(data);
+        boolean canEdit = canEdit();
 
         String defaultName = DefectTypeStandard.get("", data).getName();
 
@@ -171,9 +171,12 @@ public class EditDefectTypeStandards extends TinyCGIBase {
         out.print("<p>");
         out.println(resources.getHTML("Welcome_Prompt"));
         out.println("<ul>");
-        out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+CREATE+"\">");
-        out.print(resources.getHTML("Create_Option"));
-        out.println("</a></li>");
+
+        if (canEdit) {
+            out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+CREATE+"\">");
+            out.print(resources.getHTML("Create_Option"));
+            out.println("</a></li>");
+        }
 
         if (standards.length > 0) {
             out.print("<li>");
@@ -188,7 +191,8 @@ public class EditDefectTypeStandards extends TinyCGIBase {
                 out.print(htmlName);
                 out.print("</b>&quot;</li></ul></td>");
 
-                for (int o = 0;   o < OPTIONS.length;   o++) {
+                int numOptions = (canEdit ? OPTIONS.length : 1);
+                for (int o = 0; o < numOptions; o++) {
                     if (o == DEFAULT && standards[i].equals(defaultName)) {
                         out.print("<td><i>(default)</i></td>");
                     } else {
@@ -204,9 +208,13 @@ public class EditDefectTypeStandards extends TinyCGIBase {
             out.print("</table></li>");
         }
 
-        out.print("<li><a href=\"dtsEdit.class?"+ACTION+"="+IMPORT+"\">");
-        out.print(resources.getHTML("Import_Option"));
-        out.println("</a> / <a href=\"dtsEdit.class?"+ACTION+"="+EXPORT+"\">");
+        out.print("<li>");
+        if (canEdit) {
+            out.print("<a href=\"dtsEdit.class?"+ACTION+"="+IMPORT+"\">");
+            out.print(resources.getHTML("Import_Option"));
+            out.println("</a> / ");
+        }
+        out.print("<a href=\"dtsEdit.class?"+ACTION+"="+EXPORT+"\">");
         out.print(resources.getHTML("Export_Option"));
         out.println("</a></li>");
 
