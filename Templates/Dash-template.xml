@@ -119,12 +119,12 @@ The author(s) may be contacted at:
   </permission>
 
   <permission id="pdash.ev.editRollups" ordinal="2040">
-    <resources>Permissions.EV_Rollups</resources>
+    <resources>EV.Permission.Rollups</resources>
     <parent>pdash.projects</parent>
   </permission>
 
   <permission id="pdash.ev.baselines" ordinal="2050">
-    <resources>Permissions.EV_Baselines</resources>
+    <resources>EV.Permission.Baselines</resources>
     <parent>pdash.projects</parent>
   </permission>
 
@@ -136,6 +136,30 @@ The author(s) may be contacted at:
   <permission id="pdash.defectTypes" ordinal="3050">
     <resources>Defects.Standard.Permission</resources>
     <parent>pdash.standards</parent>
+  </permission>
+
+  <permission id="pdash.indivData" ordinal="4000"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>Permissions.View_Personal_Data</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
+  <permission id="pdash.indivData.ev" ordinal="4400"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Personal</resources>
+    <parent>pdash.indivData</parent>
+  </permission>
+
+  <permission id="pdash.indivData.ev.report" ordinal="4410"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Report</resources>
+    <parent>pdash.indivData.ev</parent>
+  </permission>
+
+  <permission id="pdash.indivData.ev.charts" ordinal="4420"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Charts</resources>
+    <parent>pdash.indivData.ev.report</parent>
   </permission>
 
 

@@ -168,6 +168,7 @@ import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
+import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
@@ -3022,6 +3023,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     protected void enableTaskButtons() {
         if (treeTable != null) {
+            filteredChartAction.putValue(Action.SHORT_DESCRIPTION, null);
+            filteredReportAction.putValue(Action.SHORT_DESCRIPTION, null);
+
             if (isFlatView())
                 enableTaskButtonsFlatView();
             else if (isMergedView())
@@ -3108,10 +3112,54 @@ public class TaskScheduleDialog implements EVTask.Listener,
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
-        filteredChartAction.setEnabled(canFilter);
-        filteredReportAction.setEnabled(canFilter);
+        filteredChartAction.setEnabled(canFilter //
+                && checkPermission(filteredChartAction, firstRowNum,
+                    "pdash.indivData.ev.charts", "Chart"));
+        filteredReportAction.setEnabled(canFilter //
+                && checkPermission(filteredReportAction, firstRowNum,
+                    "pdash.indivData.ev.report", "Report"));
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
     }
+
+    private boolean checkPermission(AbstractAction a, int row,
+            String permissionID, String resKey) {
+        // if this is not a rollup in a team dashboard, permissions are OK
+        if (!isRollup() || !Settings.isTeamMode())
+            return true;
+
+        // get the list of people we can view data for. If null, the current
+        // user does not have permission to view personal data at all.
+        UserFilter userFilter = GroupPermission.getGrantedMembers(permissionID);
+        if (userFilter == null) {
+            a.putValue(Action.SHORT_DESCRIPTION,
+                resources.getString("Buttons.Filtered_" + resKey + "_Blocked"));
+            return false;
+        }
+
+        // if the user is allowed to view data for everyone, return true
+        if (UserGroup.isEveryone(userFilter))
+            return true;
+
+        // find the personal schedule we are asking to view data for.
+        TreePath path = treeTable.getTree().getPathForRow(row);
+        if (path.getPathCount() < 2)
+            return false;
+        EVTask rootTask = (EVTask) path.getPathComponent(1);
+        EVTaskList subSchedule = findTaskListWithRoot(model, rootTask);
+        if (subSchedule == null)
+            return false;
+
+        // see if the current user has permission to view this schedule
+        EVTaskListGroupFilter filter = new EVTaskListGroupFilter(userFilter);
+        if (filter.include(subSchedule.getID()))
+            return true;
+
+        // if we don't have permission, display an explanatory tooltip
+        a.putValue(Action.SHORT_DESCRIPTION,
+            resources.getString("Buttons.Filtered_" + resKey + "_Restricted"));
+        return false;
+    }
+
 
     protected void toggleFlatView() {
         boolean isCurrentlyFlat = (treeTable.getColumnModel() == flatColumnModel);

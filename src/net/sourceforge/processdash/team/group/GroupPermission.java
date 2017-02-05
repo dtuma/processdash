@@ -24,11 +24,14 @@
 package net.sourceforge.processdash.team.group;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import net.sourceforge.processdash.team.group.ui.GroupPermissionEditor;
 import net.sourceforge.processdash.tool.perm.Permission;
 import net.sourceforge.processdash.tool.perm.PermissionEditor;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
 public class GroupPermission extends Permission {
 
@@ -91,6 +94,62 @@ public class GroupPermission extends Permission {
 
     private String getMissingText() {
         return UserGroup.resources.getString("Missing_Group");
+    }
+
+
+
+    /**
+     * Find all the group permissions with the given ID that have been granted
+     * to the current user, and return a set of dataset IDs for the groups in
+     * question.
+     * 
+     * @param permissionID
+     *            the ID of a group permission
+     * @return null if the user does not have this permission; the EVERYONE
+     *         group if the user has been granted it; otherwise, a set of
+     *         dataset IDs representing the combined set of people in all the
+     *         granted groups
+     */
+    public static UserFilter getGrantedMembers(String permissionID) {
+        // find all the granted permissions
+        Set<Permission> perms = PermissionsManager.getInstance()
+                .getCurrentPermissions(permissionID);
+        if (perms.isEmpty())
+            return null;
+
+        // collect the dataset IDs from all the granted groups
+        MemberSet result = new MemberSet(permissionID);
+        for (Permission onePerm : perms) {
+            if (onePerm instanceof GroupPermission) {
+                UserGroup oneGroup = ((GroupPermission) onePerm).getGroup();
+                if (UserGroup.isEveryone(oneGroup))
+                    return UserGroup.EVERYONE;
+                else if (oneGroup != null)
+                    result.addAll(oneGroup.getDatasetIDs());
+            }
+        }
+        return result;
+    }
+
+    private static class MemberSet extends HashSet<String>
+            implements UserFilter {
+
+        private String id;
+
+        public MemberSet(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public Set<String> getDatasetIDs() {
+            return this;
+        }
+
     }
 
 }
