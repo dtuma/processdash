@@ -162,6 +162,12 @@ The author(s) may be contacted at:
     <parent>pdash.indivData.ev.report</parent>
   </permission>
 
+  <permission id="pdash.indivData.ev.week" ordinal="4430"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Week</resources>
+    <parent>pdash.indivData.ev.report</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,11 +52,13 @@ import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
 import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
@@ -122,6 +124,12 @@ public class EVWeekReport extends TinyCGIBase {
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
 
+        EVTaskListFilter privacyFilter = null;
+        UserFilter pf = GroupPermission
+                .getGrantedMembers("pdash.indivData.ev.week");
+        if (!UserGroup.isEveryone(pf))
+            privacyFilter = new EVTaskListGroupFilter(pf);
+
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
@@ -182,7 +190,7 @@ public class EVWeekReport extends TinyCGIBase {
                 && parameters.containsKey(SPLIT_PARAM))
             purpose = SPLIT_REPORT;
         writeReport(taskListName, evModel, effDate, settings, taskFilter,
-            purpose);
+            privacyFilter, purpose);
     }
 
     private Date maybeRoundToMonthEnd(boolean shouldRound, Date d) {
@@ -217,7 +225,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void writeReport(String taskListName, EVTaskList evModel,
             Date effDate, EVReportSettings settings, EVTaskFilter taskFilter,
-            int purpose) throws IOException {
+            EVTaskListFilter privacyFilter, int purpose) throws IOException {
 
         EVSchedule schedule = evModel.getSchedule();
         double totalPlanTime = schedule.getMetrics().totalPlan();
@@ -460,108 +468,117 @@ public class EVWeekReport extends TinyCGIBase {
             indivDetail = " class='hideIfCollapsed'";
         String hh = (purpose == SPLIT_REPORT ? "h2" : "h3");
 
-        interpOut("<" + hh + indivDetail + ">${Summary.Header}");
-        if (isTopLevel(purpose) && showAssignedTo && !isExporting()) {
-            String splitLink = (String) env.get("REQUEST_URI");
-            if (purpose == PLAIN_REPORT)
-                splitLink = HTMLUtils.appendQuery(splitLink, SPLIT_PARAM, "t");
-            else
-                splitLink = HTMLUtils.removeParam(splitLink, SPLIT_PARAM);
-            out.print("&nbsp;&nbsp;<span class='nav'><a href='");
-            out.print(splitLink);
-            out.print("'>");
-            out.print(resources.getHTML(purpose == PLAIN_REPORT ? "Show_Split"
-                    : "Show_Rollup"));
-            out.print("</a></span>");
-        }
-        out.print("</" + hh + ">");
-        out.print("<table border=1 name='summary'><tr><td></td><td></td>");
-        if (taskFilter == null)
-            interpOut("<td class=header colspan=3>${Summary.Direct_Hours}"
-                    + "</td><td></td>");
-        interpOut("<td class=header colspan=3>${Summary.Earned_Value}"
-                + "</td></tr>\n" //
-                + "<tr><td></td><td></td>");
-        if (taskFilter == null)
+        String personalDataID = evModel.getPersonalDataID();
+        boolean shouldHideSummary = (privacyFilter != null
+                && personalDataID != null
+                && privacyFilter.include(personalDataID) == false);
+
+        if (!shouldHideSummary) {
+
+            interpOut("<" + hh + indivDetail + ">${Summary.Header}");
+            if (isTopLevel(purpose) && showAssignedTo && !isExporting()) {
+                String splitLink = (String) env.get("REQUEST_URI");
+                if (purpose == PLAIN_REPORT)
+                    splitLink = HTMLUtils.appendQuery(splitLink, SPLIT_PARAM, "t");
+                else
+                    splitLink = HTMLUtils.removeParam(splitLink, SPLIT_PARAM);
+                out.print("&nbsp;&nbsp;<span class='nav'><a href='");
+                out.print(splitLink);
+                out.print("'>");
+                out.print(resources.getHTML(purpose == PLAIN_REPORT ? "Show_Split"
+                        : "Show_Rollup"));
+                out.print("</a></span>");
+            }
+            out.print("</" + hh + ">");
+            out.print("<table border=1 name='summary'><tr><td></td><td></td>");
+            if (taskFilter == null)
+                interpOut("<td class=header colspan=3>${Summary.Direct_Hours}"
+                        + "</td><td></td>");
+            interpOut("<td class=header colspan=3>${Summary.Earned_Value}"
+                    + "</td></tr>\n" //
+                    + "<tr><td></td><td></td>");
+            if (taskFilter == null)
+                interpOut("<td class=header>${Summary.Plan}</td>"
+                        + "<td class=header>${Summary.Actual}</td>"
+                        + "<td class=header>${Summary.Ratio}</td><td></td>");
             interpOut("<td class=header>${Summary.Plan}</td>"
                     + "<td class=header>${Summary.Actual}</td>"
-                    + "<td class=header>${Summary.Ratio}</td><td></td>");
-        interpOut("<td class=header>${Summary.Plan}</td>"
-                + "<td class=header>${Summary.Actual}</td>"
-                + "<td class=header>${Summary.Ratio}</td></tr>\n");
-
-        String thisWeekKey;
-        String keySuffix = (monthly ? "_Month" : "_Week");
-        if (reportingPeriodIncludesToday) thisWeekKey = "This" + keySuffix;
-        else if (reportingPeriodPrecedesToday) thisWeekKey = "Last" + keySuffix;
-        else thisWeekKey = "This_Period";
-        out.print("<tr><td class=left>"
-                + effRes.getHTML("Summary." + thisWeekKey)
-                + "</td><td></td>");
-        if (taskFilter == null) {
-            double directTimeThisWeek;
-            if (monthly)
-                directTimeThisWeek = sumActualTime(actualTimeThisWeek);
-            else
-                directTimeThisWeek = weekSlice.getActualDirectTime();
-            printTimeData(weekSlice.getPlanDirectTime(), directTimeThisWeek);
-            out.print("<td></td>");
-        }
-        printPctData(planValueThisWeek / totalPlanTime, //
-            valueEarnedThisWeek / totalPlanTime);
-        out.print("</tr>\n");
-
-        out.print("<tr><td class=left>" + encodeHTML(resources.format(
-                "Summary.To_Date_FMT", effDateDisplay)) + "</td><td></td>");
-        double directTimeToDate = 0;
-        if (taskFilter == null) {
-            if (monthly)
-                directTimeToDate = schedule.get(0).getActualDirectTime()
-                        + sumActualTime(getActualTimeSpent(tasks, startDate,
-                            effDate));
-            else
-                directTimeToDate = weekSlice.getCumActualDirectTime();
-            printTimeData(weekSlice.getCumPlanDirectTime(), directTimeToDate);
-            out.print("<td></td>");
-        }
-        printPctData(planValueToDate / totalPlanTime, //
-            valueEarnedToDate / totalPlanTime);
-        out.print("</tr>\n");
-
-        double numWeeks = Double.NaN;
-        if (startDate != null)
-            numWeeks = (effDate.getTime() - startDate.getTime() - EVSchedule
-                    .dstDifference(startDate.getTime(), effDate.getTime()))
-                    / (double) MILLIS_PER_WEEK;
-        if (monthly) {
-            numWeeks = numWeeks / WEEKS_PER_MONTH;
-            interpOut("<tr" + indivDetail + "><td class=left>"
-                    + "${Month.Summary.Average_per_Month}</td><td></td>");
-        } else {
-            interpOut("<tr" + indivDetail
-                    + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
-        }
-        if (taskFilter == null) {
-            double planTimePerWeek = weekSlice.getCumPlanDirectTime() / numWeeks;
-            double actualTimePerWeek = directTimeToDate / numWeeks;
-            printTimeData(planTimePerWeek, actualTimePerWeek);
-            out.print("<td></td>");
-        }
-        double planEVPerWeek = planValueToDate / (totalPlanTime * numWeeks);
-        double actualEVPerWeek = valueEarnedToDate / (totalPlanTime * numWeeks);
-        printPctData(planEVPerWeek, actualEVPerWeek);
-        out.print("</tr>\n");
-
-        if (taskFilter == null) {
-            interpOut("<tr" + indivDetail
-                    + "><td class=left>${Summary.Completed_Tasks_To_Date}"
+                    + "<td class=header>${Summary.Ratio}</td></tr>\n");
+    
+            String thisWeekKey;
+            String keySuffix = (monthly ? "_Month" : "_Week");
+            if (reportingPeriodIncludesToday) thisWeekKey = "This" + keySuffix;
+            else if (reportingPeriodPrecedesToday) thisWeekKey = "Last" + keySuffix;
+            else thisWeekKey = "This_Period";
+            out.print("<tr><td class=left>"
+                    + effRes.getHTML("Summary." + thisWeekKey)
                     + "</td><td></td>");
-            printData(formatTime(completedTasksTotalPlanTime),
-                      formatTime(completedTasksTotalActualTime),
-                      1.0 / cpi, "timeFmt");
-            out.print("<td></td><td></td><td></td><td></td></tr>\n");
+            if (taskFilter == null) {
+                double directTimeThisWeek;
+                if (monthly)
+                    directTimeThisWeek = sumActualTime(actualTimeThisWeek);
+                else
+                    directTimeThisWeek = weekSlice.getActualDirectTime();
+                printTimeData(weekSlice.getPlanDirectTime(), directTimeThisWeek);
+                out.print("<td></td>");
+            }
+            printPctData(planValueThisWeek / totalPlanTime, //
+                valueEarnedThisWeek / totalPlanTime);
+            out.print("</tr>\n");
+    
+            out.print("<tr><td class=left>" + encodeHTML(resources.format(
+                    "Summary.To_Date_FMT", effDateDisplay)) + "</td><td></td>");
+            double directTimeToDate = 0;
+            if (taskFilter == null) {
+                if (monthly)
+                    directTimeToDate = schedule.get(0).getActualDirectTime()
+                            + sumActualTime(getActualTimeSpent(tasks, startDate,
+                                effDate));
+                else
+                    directTimeToDate = weekSlice.getCumActualDirectTime();
+                printTimeData(weekSlice.getCumPlanDirectTime(), directTimeToDate);
+                out.print("<td></td>");
+            }
+            printPctData(planValueToDate / totalPlanTime, //
+                valueEarnedToDate / totalPlanTime);
+            out.print("</tr>\n");
+    
+            double numWeeks = Double.NaN;
+            if (startDate != null)
+                numWeeks = (effDate.getTime() - startDate.getTime() - EVSchedule
+                        .dstDifference(startDate.getTime(), effDate.getTime()))
+                        / (double) MILLIS_PER_WEEK;
+            if (monthly) {
+                numWeeks = numWeeks / WEEKS_PER_MONTH;
+                interpOut("<tr" + indivDetail + "><td class=left>"
+                        + "${Month.Summary.Average_per_Month}</td><td></td>");
+            } else {
+                interpOut("<tr" + indivDetail
+                        + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
+            }
+            if (taskFilter == null) {
+                double planTimePerWeek = weekSlice.getCumPlanDirectTime() / numWeeks;
+                double actualTimePerWeek = directTimeToDate / numWeeks;
+                printTimeData(planTimePerWeek, actualTimePerWeek);
+                out.print("<td></td>");
+            }
+            double planEVPerWeek = planValueToDate / (totalPlanTime * numWeeks);
+            double actualEVPerWeek = valueEarnedToDate / (totalPlanTime * numWeeks);
+            printPctData(planEVPerWeek, actualEVPerWeek);
+            out.print("</tr>\n");
+    
+            if (taskFilter == null) {
+                interpOut("<tr" + indivDetail
+                        + "><td class=left>${Summary.Completed_Tasks_To_Date}"
+                        + "</td><td></td>");
+                printData(formatTime(completedTasksTotalPlanTime),
+                          formatTime(completedTasksTotalActualTime),
+                          1.0 / cpi, "timeFmt");
+                out.print("<td></td><td></td><td></td><td></td></tr>\n");
+            }
+            out.print("</table>\n");
+    
         }
-        out.print("</table>\n");
 
         if (purpose == PLAIN_REPORT || purpose == LEAF_REPORT) {
             out.print("<div class='hideIfCollapsed'>\n");
@@ -789,7 +806,7 @@ public class EVWeekReport extends TinyCGIBase {
                 int childPurpose = (childModel instanceof EVTaskListRollup
                         ? SUB_REPORT : LEAF_REPORT);
                 writeReport(childName, childModel, effDate, settings,
-                    taskFilter, childPurpose);
+                    taskFilter, privacyFilter, childPurpose);
             }
         }
 

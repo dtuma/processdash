@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.team.group.ui.GroupPermissionEditor;
 import net.sourceforge.processdash.tool.perm.Permission;
 import net.sourceforge.processdash.tool.perm.PermissionEditor;
@@ -111,6 +112,10 @@ public class GroupPermission extends Permission {
      *         granted groups
      */
     public static UserFilter getGrantedMembers(String permissionID) {
+        // in personal mode, return "everyone" to indicate all permissions
+        if (Settings.isTeamMode() == false)
+            return UserGroup.EVERYONE;
+
         // find all the granted permissions
         Set<Permission> perms = PermissionsManager.getInstance()
                 .getCurrentPermissions(permissionID);

@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.Collections;
 import java.util.Set;
 
 import net.sourceforge.processdash.team.group.UserFilter;
@@ -32,7 +33,8 @@ public class EVTaskListGroupFilter implements EVTaskListFilter {
     private Set<String> datasetIDs;
 
     public EVTaskListGroupFilter(UserFilter f) {
-        this.datasetIDs = f.getDatasetIDs();
+        this.datasetIDs = (f == null ? Collections.EMPTY_SET
+                : f.getDatasetIDs());
     }
 
     @Override
