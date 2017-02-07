@@ -76,7 +76,6 @@ public class TaskScheduleChooser
 {
 
     protected static Map openWindows = new Hashtable();
-    private static Boolean canEdit_ = null;
 
     protected DashboardContext dash;
     protected JDialog dialog = null;
@@ -104,11 +103,9 @@ public class TaskScheduleChooser
     }
 
     private boolean canEdit() {
-        if (canEdit_ == null) {
-            canEdit_ = Settings.isReadWrite() && PermissionsManager
-                    .getInstance().hasPermission(EVPermissions.ROLLUPS);
-        }
-        return canEdit_;
+        return Settings.isReadWrite()
+                && (Settings.isPersonalMode() || PermissionsManager
+                        .getInstance().hasPermission(EVPermissions.ROLLUPS));
     }
 
     public boolean isDisplayable() {
@@ -230,7 +227,9 @@ public class TaskScheduleChooser
         else
             dialog = new JDialog();
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
-        dialog.setTitle(resources.getString(canEdit() ? "Choose_Window.Title"
+
+        boolean canEdit = canEdit();
+        dialog.setTitle(resources.getString(canEdit ? "Choose_Window.Title"
                 : "Choose_Window.Read_Only_Title"));
 
         Box promptBox = Box.createHorizontalBox();
@@ -259,16 +258,16 @@ public class TaskScheduleChooser
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         newButton = new JButton(resources.getDlgString("New"));
-        if (canEdit()) buttons.add(newButton);
+        if (canEdit) buttons.add(newButton);
         newButton.addActionListener(this);
 
         renameButton = new JButton(resources.getDlgString("Rename"));
-        if (canEdit()) buttons.add(renameButton);
+        if (canEdit) buttons.add(renameButton);
         renameButton.addActionListener(this);
         renameButton.setEnabled(false);
 
         deleteButton = new JButton(resources.getDlgString("Delete"));
-        if (canEdit()) buttons.add(deleteButton);
+        if (canEdit) buttons.add(deleteButton);
         deleteButton.addActionListener(this);
         deleteButton.setEnabled(false);
 
