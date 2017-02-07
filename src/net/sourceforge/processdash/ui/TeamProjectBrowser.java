@@ -49,7 +49,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
@@ -97,6 +96,8 @@ import net.sourceforge.processdash.team.group.UserGroupUtil;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
@@ -434,13 +435,10 @@ public class TeamProjectBrowser extends JSplitPane {
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
         JMenuBar menuBar = dash.getConfigurationMenus();
 
-        JMenu fileMenu = menuBar.getMenu(0);
-        if (canCreateProjects()) {
+        if (Settings.isReadWrite()) {
+            JMenu fileMenu = menuBar.getMenu(0);
             fileMenu.insert(new NewProjectAction(), 0);
             fileMenu.insert(new AlterTeamProjectMenu(), 1);
-        } else if (fileMenu.getMenuComponentCount() > 0
-                && fileMenu.getMenuComponent(0) instanceof JSeparator) {
-            fileMenu.remove(0);
         }
 
         UserGroupManager groupMgr = UserGroupManager.getInstance();
@@ -870,21 +868,33 @@ public class TeamProjectBrowser extends JSplitPane {
 
     }
 
-    private class NewProjectAction extends AbstractAction {
+    private class NewProjectAction extends AbstractAction
+            implements PermissionsChangeListener {
 
         public NewProjectAction() {
             super(resources.getString("Menu.File.New_Team_Project"));
+            PermissionsManager.getInstance().addPermissionsChangeListener(this);
+            permissionsChanged(null);
         }
 
         public void actionPerformed(ActionEvent e) {
             Browser.launch(getNewProjectCreationUri());
         }
 
+        @Override
+        public void permissionsChanged(PermissionsChangeEvent event) {
+            boolean hasPermission = canCreateProjects();
+            setEnabled(hasPermission);
+            putValue(SHORT_DESCRIPTION, hasPermission ? null
+                    : resources.getString("New.No_Permission"));
+        }
+
     }
 
     private class AlterTeamProjectMenu extends JMenu implements
-            TreeSelectionListener {
+            TreeSelectionListener, PermissionsChangeListener {
 
+        private boolean hasPermission;
         private RelaunchProjectAction relaunchAction;
 
         public AlterTeamProjectMenu() {
@@ -899,12 +909,23 @@ public class TeamProjectBrowser extends JSplitPane {
             if (relaunchAction.isSupported())
                 add(relaunchAction);
             add(new DeleteProjectAction());
+
+            PermissionsManager.getInstance().addPermissionsChangeListener(this);
+            permissionsChanged(null);
+        }
+
+        @Override
+        public void permissionsChanged(PermissionsChangeEvent event) {
+            hasPermission = canCreateProjects();
+            setToolTipText(hasPermission ? null
+                    : resources.getString("Alter.No_Permission"));
+            valueChanged(null);
         }
 
         public void valueChanged(TreeSelectionEvent e) {
             PropertyKey projectKey = getSelectedTreeNode();
             String templateID = ctx.getHierarchy().getID(projectKey);
-            setEnabled(StringUtils.hasValue(templateID));
+            setEnabled(hasPermission && StringUtils.hasValue(templateID));
             relaunchAction.checkEnabledForProcess(templateID);
         }
 
