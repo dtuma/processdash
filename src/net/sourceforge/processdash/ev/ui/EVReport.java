@@ -67,6 +67,7 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVMetrics;
+import net.sourceforge.processdash.ev.EVPermissions;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -298,8 +299,8 @@ public class EVReport extends CGIChartBase {
             rollup.applyTaskListFilter(new EVTaskListGroupFilter(f));
 
             String permID = (parameters.containsKey(CHARTS_PARAM)
-                    ? "pdash.indivData.ev.charts"
-                    : "pdash.indivData.ev.report");
+                    ? EVPermissions.PERSONAL_CHARTS
+                    : EVPermissions.PERSONAL_REPORT);
             settings.checkPersonalDataPermission(rollup, permID);
         }
 

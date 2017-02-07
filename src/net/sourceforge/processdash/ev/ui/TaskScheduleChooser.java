@@ -62,6 +62,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVPermissions;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserGroupManager;
@@ -105,7 +106,7 @@ public class TaskScheduleChooser
     private boolean canEdit() {
         if (canEdit_ == null) {
             canEdit_ = Settings.isReadWrite() && PermissionsManager
-                    .getInstance().hasPermission("pdash.ev.editRollups");
+                    .getInstance().hasPermission(EVPermissions.ROLLUPS);
         }
         return canEdit_;
     }

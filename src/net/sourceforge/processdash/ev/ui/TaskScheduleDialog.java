@@ -150,6 +150,7 @@ import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVMetrics;
+import net.sourceforge.processdash.ev.EVPermissions;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVSnapshot;
 import net.sourceforge.processdash.ev.EVTask;
@@ -266,7 +267,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         this.dash = dash;
         this.taskListName = taskListName;
         this.hasRollupEditPerm = PermissionsManager.getInstance()
-                .hasPermission("pdash.ev.editRollups");
+                .hasPermission(EVPermissions.ROLLUPS);
 
         if (dash instanceof ApplicationEventSource) {
             ((ApplicationEventSource) dash).addApplicationEventListener(this);
@@ -787,7 +788,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         // create the Tools menu
         boolean hasBaselinePerm = PermissionsManager.getInstance()
-                .hasPermission("pdash.ev.baselines");
+                .hasPermission(EVPermissions.BASELINES);
         if (rw || hasBaselinePerm) {
             JMenu toolsMenu = makeMenu("Tools");
 
@@ -902,7 +903,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             // find out which people we have permission to view charts for. If
             // we have permission to view data for the given person, we're OK
             UserFilter pf = GroupPermission
-                    .getGrantedMembers("pdash.indivData.ev.charts");
+                    .getGrantedMembers(EVPermissions.PERSONAL_CHARTS);
             if (UserGroup.isEveryone(pf))
                 return true;
             EVTaskListFilter tlf = new EVTaskListGroupFilter(pf);
@@ -3149,10 +3150,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
         filteredChartAction.setEnabled(canFilter //
                 && checkPermission(filteredChartAction, firstRowNum,
-                    "pdash.indivData.ev.charts", "Chart"));
+                    EVPermissions.PERSONAL_CHARTS, "Chart"));
         filteredReportAction.setEnabled(canFilter //
                 && checkPermission(filteredReportAction, firstRowNum,
-                    "pdash.indivData.ev.report", "Report"));
+                    EVPermissions.PERSONAL_REPORT, "Report"));
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
     }
 
