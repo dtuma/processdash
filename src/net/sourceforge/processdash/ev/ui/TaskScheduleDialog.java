@@ -157,6 +157,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
 import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.Milestone;
@@ -877,10 +878,44 @@ public class TaskScheduleDialog implements EVTask.Listener,
             if (f != null) {
                 EVTaskListRollup rollup = (EVTaskListRollup) model;
                 rollup.applyTaskListFilter(new EVTaskListGroupFilter(f));
+                chartAction.setEnabled(checkChartPermission(f));
                 treeTable.getTree().expandRow(0);
                 recalcAll();
                 enableTaskButtons();
             }
+        }
+
+        private boolean checkChartPermission(UserFilter f) {
+            // clear the tooltip for the chart action.
+            chartAction.putValue(Action.SHORT_DESCRIPTION, null);
+
+            // if no group filter is in effect, charts are always OK. (This
+            // aligns with our strategy of not censoring "teams of one")
+            if (UserGroup.isEveryone(f))
+                return true;
+
+            // if our current rollup includes more than one person, we're OK
+            String personalDataID = model.getPersonalDataID();
+            if (personalDataID == null)
+                return true;
+
+            // find out which people we have permission to view charts for. If
+            // we have permission to view data for the given person, we're OK
+            UserFilter pf = GroupPermission
+                    .getGrantedMembers("pdash.indivData.ev.charts");
+            if (UserGroup.isEveryone(pf))
+                return true;
+            EVTaskListFilter tlf = new EVTaskListGroupFilter(pf);
+            if (tlf.include(personalDataID))
+                return true;
+
+            // the filter has narrowed data down to a single individual, whose
+            // charts we do not have permission to view. Disable the charts.
+            chartAction.putValue(Action.SHORT_DESCRIPTION,
+                resources.getString("Buttons.Filtered_Chart_Restricted"));
+            if (chartDialog != null)
+                chartDialog.dispose();
+            return false;
         }
 
     }

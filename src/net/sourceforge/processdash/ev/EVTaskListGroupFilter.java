@@ -27,14 +27,17 @@ import java.util.Collections;
 import java.util.Set;
 
 import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 
 public class EVTaskListGroupFilter implements EVTaskListFilter {
 
     private Set<String> datasetIDs;
 
     public EVTaskListGroupFilter(UserFilter f) {
-        this.datasetIDs = (f == null ? Collections.EMPTY_SET
-                : f.getDatasetIDs());
+        if (f == null)
+            this.datasetIDs = Collections.EMPTY_SET;
+        else if (!UserGroup.isEveryone(f))
+            this.datasetIDs = f.getDatasetIDs();
     }
 
     @Override
