@@ -79,6 +79,10 @@ public class PermissionsManager {
     public static final DashboardPermission EDIT_PERMISSION = new DashboardPermission(
             "permissionsManager.edit");
 
+    public static final String EDIT_ROLES_PERM = "pdash.editRoles";
+
+    public static final String EDIT_USERS_PERM = "pdash.editUsers";
+
     private static final Resources resources = Resources
             .getDashBundle("Permissions");
 
@@ -334,6 +338,7 @@ public class PermissionsManager {
         // record a new timestamp for role data
         if (madeChange) {
             rolesTimestamp = new Date();
+            reassignCurrentUserPermissions();
             firePermissionsChangeEvent();
         }
 
@@ -406,28 +411,27 @@ public class PermissionsManager {
 
 
     /**
-     * Identify the permissions the user has lost and gained as a result of
-     * current editing operations.
+     * See whether the current user would lose the ability to edit users/roles
+     * as a result of current editing operations.
      * 
-     * @return null if no permissions have been gained or lost. Otherwise, an
-     *         array with two entries. The first entry contains the permissions
-     *         the current user has lost, and the second entry contains the
-     *         permissions the user has gained.
+     * @return a set containing the IDs of the permissions that would be lost.
      */
-    public Set<Permission>[] getPermissionDelta() {
-        // if the user has the same permissions as before, return null
-        Set<Permission> newPermissions = calculateCurrentUserPermissions();
-        if (newPermissions.equals(currentPermissions))
-            return null;
+    public Set<String> checkPermissionLoss() {
+        // identify which permissions the user has right now. If they have had
+        // user/role editing permissions in the past, they will still have them.
+        Set<String> result = new HashSet<String>();
+        if (hasPermission(EDIT_ROLES_PERM))
+            result.add(EDIT_ROLES_PERM);
+        if (hasPermission(EDIT_USERS_PERM))
+            result.add(EDIT_USERS_PERM);
 
-        // calculate the list of permissions the user has lost and gained
-        Set<Permission> lostPerms = new HashSet(currentPermissions);
-        lostPerms.removeAll(newPermissions);
-        Set<Permission> gainedPerms = new HashSet(newPermissions);
-        gainedPerms.removeAll(currentPermissions);
+        // calculate the permissions the user would be granted if the dashboard
+        // was closed and reopened, and remove those from the result.
+        for (Permission p : calculateCurrentUserPermissions())
+            result.remove(p.getSpec().getId());
 
-        // build and return the result array
-        return new Set[] { lostPerms, gainedPerms };
+        // return the result
+        return result;
     }
 
 
@@ -489,6 +493,7 @@ public class PermissionsManager {
         // record a new timestamp for user data
         if (madeChange) {
             usersTimestamp = new Date();
+            reassignCurrentUserPermissions();
             firePermissionsChangeEvent();
         }
 
@@ -1181,6 +1186,18 @@ public class PermissionsManager {
      */
     private void assignCurrentUserPermissions() {
         this.currentPermissions = calculateCurrentUserPermissions();
+        debugLogCurrentUserPermissions(Level.FINE);
+    }
+
+    /**
+     * Recalculate the permissions that should be assigned to the current user.
+     * Retain "edit role/user" permissions, even if they have been lost.
+     */
+    private void reassignCurrentUserPermissions() {
+        Set<Permission> newPermissions = getCurrentPermissions(EDIT_ROLES_PERM,
+            EDIT_USERS_PERM);
+        newPermissions.addAll(calculateCurrentUserPermissions());
+        this.currentPermissions = Collections.unmodifiableSet(newPermissions);
         debugLogCurrentUserPermissions(Level.FINE);
     }
 

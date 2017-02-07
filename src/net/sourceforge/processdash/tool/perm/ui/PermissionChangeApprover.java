@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.tool.perm.Permission;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 
@@ -49,30 +48,16 @@ public class PermissionChangeApprover {
         if (CompressedInstanceLauncher.isRunningFromCompressedData())
             return false;
 
-        // get the permissions that have changed since the dashboard opened
-        Set<Permission>[] delta = PermissionsManager.getInstance()
-                .getPermissionDelta();
-        if (delta == null)
-            return false;
-
-        // determine whether the user has lost crucial capabilities
+        // determine whether the user has lost important capabilities
+        Set<String> lostPermissions = PermissionsManager.getInstance()
+                .checkPermissionLoss();
         int change = 0;
-        for (Permission p : delta[0]) {
-            String permId = p.getSpec().getId();
-            if (permId.equals(ShowUserEditorAction.PERMISSION))
-                change |= LOST_USERS;
-            else if (permId.equals(ShowRolesEditorAction.PERMISSION))
-                change |= LOST_ROLES;
-        }
-
-        // show a warning if there was an innocuous permissions change
-        if (change == 0) {
-            JOptionPane.showMessageDialog(parent,
-                resources.getStrings("Permission_Change.Message"),
-                resources.getString("Permission_Change.Title"),
-                JOptionPane.PLAIN_MESSAGE);
+        if (lostPermissions.contains(PermissionsManager.EDIT_ROLES_PERM))
+            change += LOST_ROLES;
+        if (lostPermissions.contains(PermissionsManager.EDIT_USERS_PERM))
+            change += LOST_USERS;
+        if (change == 0)
             return false;
-        }
 
         // if the user will lose important permissions, ask for confirmation
         String title = resources.getString("Permission_Loss.Title");
