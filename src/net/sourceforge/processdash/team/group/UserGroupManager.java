@@ -81,8 +81,6 @@ public class UserGroupManager {
 
     private UserFilter globalFilter;
 
-    private String readOnlyCode;
-
     private boolean enabled;
 
     private boolean indivFilteringSupported;
@@ -105,10 +103,6 @@ public class UserGroupManager {
     private UserGroupManager() {
         listeners = new EventListenerList();
         globalFilter = UserGroup.EVERYONE;
-        if (!PermissionsManager.getInstance().hasPermission("pdash.editGroups"))
-            readOnlyCode = "No_Permission";
-        else if (Settings.isReadOnly())
-            readOnlyCode = "Read_Only";
 
         // user groups are only relevant for team dashboards, and they require
         // a recent version of the database plugin. If these conditions are not
@@ -194,7 +188,12 @@ public class UserGroupManager {
      *         explaining why they cannot
      */
     public String getReadOnlyCode() {
-        return readOnlyCode;
+        if (!PermissionsManager.getInstance().hasPermission("pdash.editGroups"))
+            return "No_Permission";
+        else if (Settings.isReadOnly())
+            return "Read_Only";
+        else
+            return null;
     }
 
     /**
@@ -452,9 +451,9 @@ public class UserGroupManager {
             throw new IllegalArgumentException("Invalid group ID");
 
         // don't allow modification of non-custom groups in read-only mode
-        if (!g.isCustom() && readOnlyCode != null)
+        if (!g.isCustom() && getReadOnlyCode() != null)
             throw new IllegalStateException("Shared groups are read-only: "
-                    + readOnlyCode);
+                    + getReadOnlyCode());
 
         // make a note of the time we are changing the data in the given file
         timestamps.put(g.isCustom(), new Date());
