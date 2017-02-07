@@ -69,7 +69,7 @@ public class PermissionChooser {
         // create a scroll pane to contain the tree
         sp = new JScrollPane(tree);
         Dimension d = tree.getPreferredSize();
-        d.width = Math.min(d.width + 20, 300);
+        d.width = Math.min(d.width + 20, 500);
         d.height = Math.min(d.height + 20, 500);
         sp.setPreferredSize(d);
     }
