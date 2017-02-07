@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2016 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,7 +38,10 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
@@ -68,6 +71,7 @@ public class EVReportSettings {
     private String taskListName;
     private boolean usingCustomizationSettings;
     private Boolean isRollup;
+    private UserFilter userGroupFilter;
 
 
 
@@ -212,15 +216,54 @@ public class EVReportSettings {
                 || Boolean.FALSE.equals(isRollup))
             return null;
 
+        if (userGroupFilter != null)
+            return userGroupFilter;
+
         String filterID = getParameter(GROUP_FILTER_PARAM);
         UserFilter f = UserGroupManager.getInstance().getFilterById(filterID);
         if (f == null)
             f = UserGroup.EVERYONE;
         else if (UserGroupManager.getInstance().isPrivacyViolation(prefix))
             f = new UserGroupPrivacyBlock(f);
+        userGroupFilter = f;
 
         return f;
     }
+
+
+    /**
+     * If a filter is in place, check to see whether it violates a data privacy
+     * permission. If so, install a "privacy block" group filter.
+     * 
+     * @param evModel
+     *            the earned value task list, to which any filtering has already
+     *            been applied
+     * @param permissionID
+     *            the ID of a data privacy permission to check
+     */
+    public void checkPersonalDataPermission(EVTaskListRollup evModel,
+            String permissionID) {
+        // if no user filter is in place, or if it's already a block, return.
+        if (userGroupFilter == null
+                || userGroupFilter instanceof UserGroupPrivacyBlock)
+            return;
+
+        // see if the model contains data for only one person. If not, we're OK
+        String personalDataID = evModel.getPersonalDataID();
+        if (personalDataID == null)
+            return;
+
+        // if we've been granted permission to see this person's data, we're OK
+        UserFilter pf = GroupPermission.getGrantedMembers(permissionID);
+        EVTaskListFilter tlf = new EVTaskListGroupFilter(pf);
+        if (tlf.include(personalDataID))
+            return;
+
+        // install a data privacy block filter to protect personal data.
+        userGroupFilter = new UserGroupPrivacyBlock(userGroupFilter);
+        evModel.applyTaskListFilter(new EVTaskListGroupFilter(userGroupFilter));
+    }
+
 
     /** Build a task filter object that should be used to display the report.
      */

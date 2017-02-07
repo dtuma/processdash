@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -293,9 +293,15 @@ public class EVReport extends CGIChartBase {
 
         UserFilter f = settings.getUserGroupFilter();
         if (f != null && !UserGroup.isEveryone(f)
-                && evModel instanceof EVTaskListRollup)
-            ((EVTaskListRollup) evModel)
-                    .applyTaskListFilter(new EVTaskListGroupFilter(f));
+                && evModel instanceof EVTaskListRollup) {
+            EVTaskListRollup rollup = (EVTaskListRollup) evModel;
+            rollup.applyTaskListFilter(new EVTaskListGroupFilter(f));
+
+            String permID = (parameters.containsKey(CHARTS_PARAM)
+                    ? "pdash.indivData.ev.charts"
+                    : "pdash.indivData.ev.report");
+            settings.checkPersonalDataPermission(rollup, permID);
+        }
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
