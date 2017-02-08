@@ -363,6 +363,10 @@ public class EVReport extends CGIChartBase {
             out.print("Status: 404 Not Found\r\n\r\n");
             out.flush();
 
+        } else if (ExcelReport.hasPermission() == false) {
+            writeHtmlHeader();
+            ExcelReport.writeNoPermission(out);
+
         } else if ("Excel97".equalsIgnoreCase(Settings
                 .getVal("excel.exportChartsMethod"))) {
             out.print("Content-type: application/vnd.ms-excel\r\n\r\n");

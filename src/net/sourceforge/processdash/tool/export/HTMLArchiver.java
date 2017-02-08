@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2014 Tuma Solutions, LLC
+// Copyright (C) 2004-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.FormToHTML;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -65,6 +66,7 @@ public class HTMLArchiver {
     protected Map requestContents;
     private Set itemsToWrite;
     private Set excelPartsWritten;
+    private boolean writeExcelLinks;
     private boolean postponeWritingAdditionalItems = false;
     private boolean supportAnchors;
 
@@ -92,6 +94,7 @@ public class HTMLArchiver {
         this.requestContents = new HashMap();
         this.itemsToWrite = new TreeSet();
         this.excelPartsWritten = new HashSet();
+        this.writeExcelLinks = ExcelReport.hasPermission();
 
         switch (outputMode) {
             case OUTPUT_JAR:
@@ -251,8 +254,13 @@ public class HTMLArchiver {
                             continue;
                         } else if (subURI.indexOf(".iqy") != -1) {
                             // special handling for excel export links
-                            safeURL = writeExcelPart(uri, html, contentType);
-                            extra = " target='_blank'";
+                            if (writeExcelLinks) {
+                                safeURL = writeExcelPart(uri, html, contentType);
+                                extra = " target='_blank'";
+                            } else {
+                                hideHyperlinksTo(html, subURI);
+                                continue;
+                            }
                         } else if (subURI.equalsIgnoreCase("about:blank")
                                 || subURI.endsWith("nohref")) {
                             // no need to alter about:blank references
@@ -310,6 +318,22 @@ public class HTMLArchiver {
         ThreadThrottler.tick();
     }
 
+    private void hideHyperlinksTo(StringBuffer html, String uri) {
+        int pos = 0;
+        while (true) {
+            pos = html.indexOf(uri, pos);
+            if (pos == -1)
+                return;
+
+            int ins = html.indexOf(">", pos);
+            if (ins == -1)
+                return;
+
+            html.insert(ins, " style='display:none'");
+            pos = ins + 21;
+        }
+    }
+
     protected int findFormScriptStart(StringBuffer html) {
         int pos = StringUtils.indexOf(html, "/data.js");
         if (pos == -1) return -1;
@@ -342,16 +366,18 @@ public class HTMLArchiver {
             if (pos == -1) pos = StringUtils.lastIndexOf(result, "</BODY>");
         }
 
-        // write the target of the "export to excel" link.
-        String excelURL = writeExcelPart(uri, result, contentType);
+        if (writeExcelLinks) {
+            // write the target of the "export to excel" link.
+            String excelURL = writeExcelPart(uri, result, contentType);
 
-        // insert an "export to excel" link in the HTML document
-        String exportLink = "<a target='_blank' href='"+ excelURL +
-            "'>Export to Excel</a>";
-        if (pos == -1)
-            result.append(exportLink);
-        else
-            result.insert(pos, exportLink);
+            // insert an "export to excel" link in the HTML document
+            String exportLink = "<a target='_blank' href='"+ excelURL +
+                "'>Export to Excel</a>";
+            if (pos == -1)
+                result.append(exportLink);
+            else
+                result.insert(pos, exportLink);
+        }
 
         // write out the resulting document
         writeTextFile(uri, contentType, result);

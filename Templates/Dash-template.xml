@@ -168,6 +168,16 @@ The author(s) may be contacted at:
     <parent>pdash.indivData.ev.report</parent>
   </permission>
 
+  <permission id="pdash.export" ordinal="5000">
+    <resources>Permissions.Export</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
+  <permission id="pdash.export.reportsExcel" ordinal="5200">
+    <resources>Permissions.Export_Reports</resources>
+    <parent>pdash.export</parent>
+  </permission>
+
 
 
   <!-- definitions for background tasks that are provided by the dashboard -->

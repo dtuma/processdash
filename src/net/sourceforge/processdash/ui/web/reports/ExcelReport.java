@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,10 +25,13 @@ package net.sourceforge.processdash.ui.web.reports;
 
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -41,10 +44,30 @@ public class ExcelReport extends TinyCGIBase {
     protected void writeHeader() { }
 
     protected void writeContents() throws IOException {
-        if (useIQY())
+        if (hasPermission() == false) {
+            super.writeHeader();
+            writeNoPermission(out);
+        } else if (useIQY())
             writeIQY();
         else
             writeHTML();
+    }
+
+    public static boolean hasPermission() {
+        return PermissionsManager.getInstance()
+                .hasPermission("pdash.export.reportsExcel");
+    }
+
+    public static void writeNoPermission(PrintWriter out) {
+        Resources resources = Resources.getDashBundle("Permissions");
+        String title = resources.getHTML("Export_Reports.No_Permission_Title");
+        out.print("<html>\n<head>\n<title>");
+        out.print(title);
+        out.print("</title>\n</head>\n<body>\n<h1>");
+        out.print(title);
+        out.print("</h1>\n<p>");
+        out.print(resources.getHTML("Export_Reports.No_Permission_Message"));
+        out.print("</p>\n</body>\n</html>\n");
     }
 
     protected void writeIQY() throws IOException {
