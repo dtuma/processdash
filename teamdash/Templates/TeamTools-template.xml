@@ -38,4 +38,10 @@
         <impliedBy>wbs.all</impliedBy>
     </permission>
 
+    <permission id="wbs.excel" ordinal="5100">
+        <resources>WBSEditor.Excel.Permission</resources>
+        <parent>pdash.export</parent>
+        <impliedBy>wbs.all</impliedBy>
+    </permission>
+
 </dashboard-process-template>

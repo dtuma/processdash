@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,7 +39,10 @@ import javax.swing.table.TableColumnModel;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import net.sourceforge.processdash.i18n.Resources;
+
 import teamdash.wbs.DataJTable;
+import teamdash.wbs.WBSPermissionManager;
 import teamdash.wbs.WBSTabPanel;
 
 public class SaveAsExcelAction extends AbstractAction {
@@ -47,12 +50,22 @@ public class SaveAsExcelAction extends AbstractAction {
     private JFileChooser fileChooser;
     private File lastFileSelected;
 
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Excel");
+
+
     public SaveAsExcelAction() throws Throwable {
-        super("Export Snapshot to Excel...");
+        super(resources.getString("Menu"));
 
         // throw an exception if the POI classes aren't available.  Our caller
         // will catch the exception and skip this menu item.
         Class.forName(HSSFWorkbook.class.getName());
+
+        // ensure the user has the appropriate permission
+        if (!WBSPermissionManager.hasPerm("wbs.excel", "2.3.1.3")) {
+            setEnabled(false);
+            putValue(SHORT_DESCRIPTION, resources.getString("No_Permission"));
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -65,7 +78,7 @@ public class SaveAsExcelAction extends AbstractAction {
     private File getOutputFile() {
         if (fileChooser == null) {
             fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Export Snapshot");
+            fileChooser.setDialogTitle(resources.getString("Dialog_Title"));
             fileChooser.setFileFilter(new ExcelFileFilter());
         }
 
@@ -102,7 +115,7 @@ public class SaveAsExcelAction extends AbstractAction {
 
         @Override
         public String getDescription() {
-            return "Excel Spreadsheets (.xls)";
+            return resources.getString("File_Type") + " (.xls)";
         }
     }
 
@@ -121,14 +134,10 @@ public class SaveAsExcelAction extends AbstractAction {
         try {
             writer.save(f);
         } catch (IOException ioe) {
-            Object message = new Object[] {
-                "The Work Breakdown Structure Editor was unable to write to the file:",
-                "      " + f.getAbsolutePath(),
-                "Make certain you have permission to write to that location, then",
-                "try again."
-            };
-            JOptionPane.showMessageDialog(tabPanel, message, "Export Failed",
-                JOptionPane.ERROR_MESSAGE);
+            Object message = resources.formatStrings("Error.Message_FMT",
+                f.getAbsolutePath());
+            JOptionPane.showMessageDialog(tabPanel, message,
+                resources.getString("Error.Title"), JOptionPane.ERROR_MESSAGE);
         }
 
     }
