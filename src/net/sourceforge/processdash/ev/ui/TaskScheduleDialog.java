@@ -176,6 +176,8 @@ import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -243,7 +245,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             closeAction, saveAction, errorAction, filteredChartAction,
             saveBaselineAction, collaborateAction, filteredReportAction,
             weekReportAction, scheduleOptionsAction, expandAllAction,
-            showTimeLogAction, showDefectLogAction, copyTaskInfoAction;
+            showTimeLogAction, showDefectLogAction, copyTaskInfoAction,
+            manageBaselinesAction;
     private List<TSAction> altReportActions;
     private GroupFilterMenu groupFilterMenu;
 
@@ -787,22 +790,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.add(viewMenu);
 
         // create the Tools menu
-        boolean hasBaselinePerm = PermissionsManager.getInstance()
-                .hasPermission(EVPermissions.BASELINES);
-        if (rw || hasBaselinePerm) {
+        if (Settings.isReadWrite()) {
             JMenu toolsMenu = makeMenu("Tools");
 
-            if (hasBaselinePerm) {
-                saveBaselineAction = new TSAction("Buttons.Save_Baseline") {
-                    public void actionPerformed(ActionEvent e) {
-                        saveBaseline(); }};
-                toolsMenu.add(saveBaselineAction);
+            saveBaselineAction = new BaselineAction("Buttons.Save_Baseline") {
+                public void actionPerformed(ActionEvent e) {
+                    saveBaseline(); }};
+            toolsMenu.add(saveBaselineAction);
 
-                TSAction manageBaselines = new TSAction("Buttons.Manage_Baselines") {
-                    public void actionPerformed(ActionEvent e) {
-                        manageBaselines(); }};
-                toolsMenu.add(manageBaselines);
-            }
+            manageBaselinesAction = new BaselineAction("Buttons.Manage_Baselines") {
+                public void actionPerformed(ActionEvent e) {
+                    manageBaselines(); }};
+            toolsMenu.add(manageBaselinesAction);
 
             if (rw) {
                 if (!isCollaborationBlocked()) {
@@ -1089,6 +1088,25 @@ public class TaskScheduleDialog implements EVTask.Listener,
             actionPerformed(path);
         }
         protected void actionPerformed(String path) {}
+    }
+
+    abstract class BaselineAction extends TSAction
+            implements PermissionsChangeListener {
+
+        public BaselineAction(String resKey) {
+            super(resKey);
+            PermissionsManager.getInstance().addPermissionsChangeListener(this);
+            permissionsChanged(null);
+        }
+
+        @Override
+        public void permissionsChanged(PermissionsChangeEvent event) {
+            boolean hasPerm = PermissionsManager.getInstance()
+                    .hasPermission(EVPermissions.BASELINES);
+            setEnabled(hasPerm);
+            putValue(SHORT_DESCRIPTION, hasPerm ? null
+                    : resources.getString("Buttons.No_Baseline_Permission"));
+        }
     }
 
     class ShowTimeLogAction extends TSSelectedTaskAction {
@@ -3502,6 +3520,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     .removeApplicationEventListener(this);
         frame.dispose();
 
+        removePermissionsListeners(saveBaselineAction, manageBaselinesAction);
+
         if (shouldUseExpandedNodesPref()) {
             saveExpandedNodesPref(model.getID());
         }
@@ -3518,6 +3538,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
         treeTable.dispose();
         treeTable = null;
         scheduleTable = null;
+    }
+
+    private void removePermissionsListeners(Object... listeners) {
+        PermissionsManager mgr = PermissionsManager.getInstance();
+        for (Object l : listeners) {
+            if (l instanceof PermissionsChangeListener) {
+                mgr.removePermissionsChangeListener(
+                    (PermissionsChangeListener) l);
+            }
+        }
     }
 
     protected void save() {
