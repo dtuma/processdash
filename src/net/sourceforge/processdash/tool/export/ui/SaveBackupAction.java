@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2016 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,9 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.tool.redact.RedactFilterer;
 import net.sourceforge.processdash.tool.redact.ui.RedactFilterConfigDialog;
@@ -63,7 +66,8 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
 
-public class SaveBackupAction extends AbstractAction {
+public class SaveBackupAction extends AbstractAction
+        implements PermissionsChangeListener {
 
     private DataContext dataContext;
 
@@ -78,15 +82,27 @@ public class SaveBackupAction extends AbstractAction {
         super(resources.getString("Menu.Save_Backup"));
         this.dataContext = dashContext.getData();
         RedactFilterer.setDashboardContext(dashContext);
+        PermissionsManager.getInstance().addPermissionsChangeListener(this);
+        permissionsChanged(null);
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (backupCoordinator != null) {
+        if (backupCoordinator != null || !PermissionsManager.getInstance()
+                .hasPermission("pdash.export.saveBackup")) {
             backupCoordinator.beep();
         } else {
             backupCoordinator = new BackupCoordinator();
             backupCoordinator.start();
         }
+    }
+
+    @Override
+    public void permissionsChanged(PermissionsChangeEvent event) {
+        boolean hasPermission = PermissionsManager.getInstance()
+                .hasPermission("pdash.export.saveBackup");
+        setEnabled(hasPermission);
+        putValue(SHORT_DESCRIPTION, hasPermission ? null
+                : resources.getString("Save_Backup.No_Permission"));
     }
 
     private class BackupCoordinator extends Thread {
