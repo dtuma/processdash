@@ -30,6 +30,10 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.ImportedDefectManager;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -39,9 +43,13 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task {
 
+    public static final String PERMISSION = "pdash.indivData.defects";
+
     private static final Resources resources =
         Resources.getDashBundle("Defects.Report");
 
+    private UserFilter privacyFilter;
+    private boolean someDefectsBlocked;
     private String typeFilt, injFilt, remFilt;
 
     private static final String HEADER_TEXT =
@@ -64,11 +72,14 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         "<th>${FixPending}</th>\n" +
         "<th>${Description}</th></tr>";
 
-    private static final String TABLE_END_TEXT =
-        "</table></p><!-- cutEnd -->" +
+    private static final String EXPORT_FOOTER_TEXT =
         "<P class='doNotPrint'><A HREF=\"excel.iqy\"><I>" +
         "${Export_to_Excel}</I></A></P>" ;
 
+    private static final String BLOCKED_BY_PERMISSION =
+        "<P class=doNotPrint><I>${No_Permission}</I></P>";
+    private static final String FILTERED_BY_PERMISSION =
+        "<P class=doNotPrint><I>${Filtered_By_Permission}</I></P>";
     private static final String DISCLAIMER =
         "<P class=doNotPrint><I>${Caveat}</I></P>";
     private static final String END_TEXT =
@@ -86,6 +97,15 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         header = StringUtils.findAndReplace(header, "%for owner%", owner);
         header = StringUtils.findAndReplace(header, "%for path%", title);
         out.print(header);
+
+        // ensure the user has permission to view defects
+        privacyFilter = GroupPermission.getGrantedMembers(PERMISSION);
+        if (privacyFilter == null) {
+            interpOut(BLOCKED_BY_PERMISSION);
+            out.println(END_TEXT);
+            return;
+        }
+        someDefectsBlocked = false;
 
         typeFilt = getParameter("type");
         injFilt  = getParameter("inj");
@@ -117,11 +137,18 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
         } else
             DefectAnalyzer.run(getPSPProperties(), path, true, this);
 
-        out.println(resources.interpolate(TABLE_END_TEXT, HTMLUtils.ESC_ENTITIES));
+        out.println("</table></p>");
 
-        if (getParameter("EXPORT") == null && !parameters.containsKey("noDisclaimer"))
-            out.println(resources.interpolate(DISCLAIMER,
-                                              HTMLUtils.ESC_ENTITIES));
+        if (!isExporting() && someDefectsBlocked)
+            interpOut(FILTERED_BY_PERMISSION);
+
+        out.println("<!-- cutEnd -->");
+
+        if (!isExportingToExcel())
+            interpOut(EXPORT_FOOTER_TEXT);
+        if (!isExporting() && !parameters.containsKey("noDisclaimer"))
+            interpOut(DISCLAIMER);
+
         out.println(END_TEXT);
     }
 
@@ -143,14 +170,32 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             return HTMLUtils.escapeEntities(text);
     }
 
+    private void interpOut(String html) {
+        out.println(resources.interpolate(html, HTMLUtils.ESC_ENTITIES));
+    }
+
     private boolean phaseMatches(String a, String b) {
         return (a.equalsIgnoreCase(b) || a.endsWith("/" + b));
+    }
+
+    private boolean passesPrivacyFilter(Defect d) {
+        if (UserGroup.isEveryone(privacyFilter))
+            return true;
+
+        else if (d.extra_attrs != null
+                && privacyFilter.getDatasetIDs().contains(
+                    d.extra_attrs.get(ImportedDefectManager.DATASET_ID_ATTR)))
+            return true;
+
+        someDefectsBlocked = true;
+        return false;
     }
 
     public void analyze(String path, Defect d) {
         if ((typeFilt != null && !d.defect_type.equalsIgnoreCase(typeFilt)) ||
             (injFilt != null && !phaseMatches(d.phase_injected, injFilt)) ||
-            (remFilt != null && !phaseMatches(d.phase_removed, remFilt)))
+            (remFilt != null && !phaseMatches(d.phase_removed, remFilt)) ||
+            (passesPrivacyFilter(d) == false))
             return;
 
         out.println("<TR>");

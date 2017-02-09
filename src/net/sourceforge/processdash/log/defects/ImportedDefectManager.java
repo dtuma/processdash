@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2016 Tuma Solutions, LLC
+// Copyright (C) 2004-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,8 @@ import net.sourceforge.processdash.util.HashTree;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class ImportedDefectManager implements DefectXmlConstantsv1 {
+
+    public static final String DATASET_ID_ATTR = "datasetID";
 
     private static final String DEFECT_LIST_SUFFIX = "/defects";
     private static final String DEFECT_LIST_ELEM = DEFECT_LIST_SUFFIX.substring(1);
@@ -263,11 +265,13 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         QueryUtils.addCriteriaToHql(query, "d", args, dbCriteria);
 
         List<DefectToAnalyze> defects = new ArrayList();
+        Map<Object, String> datasetIDs = QueryUtils
+                .mapColumns(queryRunner.queryHql(DATASET_ID_QUERY));
         List<Object[]> rawData = queryRunner.queryHql(query.toString(),
             args.toArray());
         for (Object[] oneRow : rawData) {
             String path = getDefectPathFromHqlResultRow(oneRow);
-            Defect d = getDefectFromHqlResultRow(oneRow);
+            Defect d = getDefectFromHqlResultRow(oneRow, datasetIDs);
             defects.add(new DefectToAnalyze(path, d));
         }
 
@@ -275,6 +279,12 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         for (DefectToAnalyze defect : defects)
             t.analyze(defect.path, defect.defect);
     }
+
+    private static final String DATASET_ID_QUERY = "select " //
+            + "p.person.key, p.value.text " //
+            + "from PersonAttrFact as p "
+            + "where p.attribute.identifier = 'person.pdash.dataset_id' "
+            + "and p.versionInfo.current = 1";
 
     private static final String DEFECT_HQL_QUERY = "select " //
             + "d.planItem.project.name, " // 0
@@ -293,7 +303,8 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
             + "d.fixTimeMin, " // 13
             + "d.fixCount, " // 14
             + "d.fixDefect, " // 15
-            + "description.text " // 16
+            + "description.text, " // 16
+            + "d.dataBlock.person.key " // 17
             + "from DefectLogFact d " //
             + "left outer join d.description as description " //
             + "join d.injectedPhase.mapsToPhase injPhase " //
@@ -315,7 +326,8 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         return result;
     }
 
-    private static Defect getDefectFromHqlResultRow(Object[] row) {
+    private static Defect getDefectFromHqlResultRow(Object[] row,
+            Map<Object, String> datasetIDs) {
         Defect d = new Defect();
         d.number = "";
         d.date = (Date) row[2];
@@ -329,6 +341,8 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         d.fix_count = ((Number) row[14]).intValue();
         d.fix_defect = (row[15] == null ? " " : "Yes");
         d.description = asString(row[16]);
+        d.extra_attrs = Collections.singletonMap(DATASET_ID_ATTR,
+            datasetIDs.get(row[17]));
         return d;
     }
 

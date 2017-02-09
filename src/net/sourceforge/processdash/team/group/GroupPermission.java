@@ -133,6 +133,8 @@ public class GroupPermission extends Permission {
                     result.addAll(oneGroup.getDatasetIDs());
             }
         }
+        result.remove(null);
+        result.remove("");
         return result;
     }
 

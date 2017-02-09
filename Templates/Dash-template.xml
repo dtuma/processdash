@@ -144,6 +144,12 @@ The author(s) may be contacted at:
     <parent>pdash.all</parent>
   </permission>
 
+  <permission id="pdash.indivData.defects" ordinal="4200"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>Defects.Report.Permission</resources>
+    <parent>pdash.indivData</parent>
+  </permission>
+
   <permission id="pdash.indivData.ev" ordinal="4400"
            class="net.sourceforge.processdash.team.group.GroupPermission">
     <resources>EV.Permission.Personal</resources>
