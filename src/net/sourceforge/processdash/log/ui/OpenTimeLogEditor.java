@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,13 @@
 
 package net.sourceforge.processdash.log.ui;
 
+import static net.sourceforge.processdash.ui.web.reports.TimeLogReport.PERMISSION;
+
+import java.awt.Component;
 import java.io.IOException;
 import java.util.Enumeration;
+
+import javax.swing.JOptionPane;
 
 import org.w3c.dom.Element;
 
@@ -36,6 +41,8 @@ import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.RolledUpTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -58,6 +65,18 @@ public class OpenTimeLogEditor extends TinyCGIBase {
     }
 
     private void showRollupTimeLog() {
+        // ensure the user has permission to view time logs for everyone
+        if (!UserGroup.isEveryone(GroupPermission.getGrantedMembers(PERMISSION))) {
+            Component parent = null;
+            if (getDashboardContext() instanceof Component)
+                parent = (Component) getDashboardContext();
+            JOptionPane.showMessageDialog(parent,
+                TimeLogEditor.resources.getStrings("Team_Forbidden.Message"),
+                TimeLogEditor.resources.getString("Team_Forbidden.Title"),
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         TimeLog tl = new RolledUpTimeLog.FromResultSet(getDashboardContext(),
                 getPrefix(), parameters);
         TimeLogEditor e = new TimeLogEditor(tl, getAugmentedHierarchy(), null,
