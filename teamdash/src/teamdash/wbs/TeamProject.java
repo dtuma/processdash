@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -177,6 +177,14 @@ public class TeamProject implements WBSFilenameConstants {
     /** Return the ID of the project */
     public String getProjectID() {
         return projectID;
+    }
+
+    /** Return the dataset ID of the team dashboard that owns this project */
+    public String getDatasetID() {
+        String result = null;
+        if (projectSettings != null)
+            result = projectSettings.getAttribute("datasetID");
+        return (XMLUtils.hasValue(result) ? result : null);
     }
 
     /** Get the list of team members on this project */

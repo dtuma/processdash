@@ -375,6 +375,13 @@ public abstract class UserGroupManager {
         InputStream in = new BufferedInputStream(new FileInputStream(f));
         Element xml = XMLUtils.parse(in).getDocumentElement();
 
+        // if the <groups> tag isn't the root of the document, find it
+        if (!GROUPS_TAG.equals(xml.getTagName())) {
+            NodeList nl = xml.getElementsByTagName(GROUPS_TAG);
+            if (nl.getLength() > 0)
+                xml = (Element) nl.item(0);
+        }
+
         // extract each of the groups from the XML file
         Map<String, UserGroup> result = new HashMap();
         NodeList nl = xml.getElementsByTagName(UserGroup.GROUP_TAG);

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -98,6 +98,7 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
@@ -1837,8 +1838,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         try {
-            if (!isDumpAndExitMode())
+            if (!isDumpAndExitMode()) {
+                UserGroupManagerWBS.init(proj);
                 WBSPermissionManager.init(workingDirectory, proj);
+            }
         } catch (HttpException.Unauthorized he) {
             displayStartupPermissionError("Unauthorized");
             return null;

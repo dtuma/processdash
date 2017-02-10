@@ -297,6 +297,7 @@ The author(s) may be contacted at:
     <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
       <root classname="net.sourceforge.processdash.security.TamperDeterrent"/>
+      <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.team.ui.PersonLookupDialog"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
@@ -351,7 +352,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 127) {
+        if (classCount > 133) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -405,6 +406,7 @@ class dependency has been added in a dashboard class?)
       </fileset>
       <fileset dir="${processdash.dir}">
         <include name="Templates/resources/Authentication*.properties"/>
+        <include name="Templates/resources/ProcessDashboard*.properties"/>
       </fileset>
 
       <!-- include the wbs-editor-related templates -->
