@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.data.repository.SubscribingExpressionContext;
-import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.tool.db.StudyGroupManager;
 
 public class Dbuserfiltergroup extends DbAbstractFunction {
@@ -84,7 +84,7 @@ public class Dbuserfiltergroup extends DbAbstractFunction {
 
         // if the list of dataset IDs only contains "*empty*", return an
         // error code signifying an empty group
-        if (datasetIds.contains(UserGroupManager.EMPTY_GROUP_TOKEN))
+        if (datasetIds.contains(UserGroupManagerDash.EMPTY_GROUP_TOKEN))
             return new DoubleData(-1, false);
 
         // retrieve the study group manager

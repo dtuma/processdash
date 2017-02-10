@@ -92,6 +92,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupUtil;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
@@ -420,7 +421,7 @@ public class TeamProjectBrowser extends JSplitPane {
         if (id.getScript() == null)
             return;
         UserFilter f = UserGroupManager.getInstance().getGlobalFilter();
-        UserGroupManager.getInstance().setLocalFilter(id.getDataPath(), f);
+        UserGroupManagerDash.getInstance().setLocalFilter(id.getDataPath(), f);
         id.display();
 
         if (clearSelection)

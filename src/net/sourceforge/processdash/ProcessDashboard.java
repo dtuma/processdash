@@ -131,6 +131,7 @@ import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
@@ -279,6 +280,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
+        UserGroupManagerDash.install();
         DashboardURLStreamHandlerFactory.initialize(null);
         TemplateLoader.resetTemplateURLs();
         configureSystemPropertiesFromSettings();
@@ -615,7 +617,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
-        UserGroupManager.getInstance().init(this);
+        UserGroupManagerDash.getInstance().init(this);
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
             TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());

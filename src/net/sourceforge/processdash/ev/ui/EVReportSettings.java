@@ -45,6 +45,7 @@ import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.team.ui.SelectGroupFilter;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
@@ -223,7 +224,7 @@ public class EVReportSettings {
         UserFilter f = UserGroupManager.getInstance().getFilterById(filterID);
         if (f == null)
             f = UserGroup.EVERYONE;
-        else if (UserGroupManager.getInstance().isPrivacyViolation(prefix))
+        else if (UserGroupManagerDash.getInstance().isPrivacyViolation(prefix))
             f = new UserGroupPrivacyBlock(f);
         userGroupFilter = f;
 
@@ -442,7 +443,8 @@ public class EVReportSettings {
     }
 
     private void lookupGroupFilter() {
-        SaveableData sval = data.getInheritableValue(prefix, UserGroupManager.FILTER_DATANAME);
+        SaveableData sval = data.getInheritableValue(prefix,
+            UserGroupManagerDash.FILTER_DATANAME);
         SimpleData val = (sval == null ? null : sval.getSimpleValue());
         parameters.put(GROUP_FILTER_PARAM, val == null ? "" : val.format());
     }

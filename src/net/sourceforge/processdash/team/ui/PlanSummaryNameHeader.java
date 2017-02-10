@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.team.group.UserGroupPrivacyBlock;
 import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
@@ -200,7 +201,7 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
             writeHyperlink("selectGroupFilter", getSnippetParams(false, false));
 
         // retrieve information about the filter that is in effect
-        UserFilter f = UserGroupManager.getInstance().getLocalFilter(
+        UserFilter f = UserGroupManagerDash.getInstance().getLocalFilter(
             projectRoot);
         boolean isPrivacyViolation = f instanceof UserGroupPrivacyBlock;
 

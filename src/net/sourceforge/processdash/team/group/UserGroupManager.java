@@ -48,28 +48,15 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
 
-import net.sourceforge.processdash.DashController;
-import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.TamperDeterrent;
-import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
-import net.sourceforge.processdash.tool.db.DatabasePlugin;
-import net.sourceforge.processdash.tool.db.QueryRunner;
-import net.sourceforge.processdash.tool.db.QueryUtils;
-import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
-public class UserGroupManager {
+public abstract class UserGroupManager {
 
-    private static UserGroupManager INSTANCE = new UserGroupManager();
+    private static UserGroupManager INSTANCE;
 
     public static UserGroupManager getInstance() {
         return INSTANCE;
@@ -85,12 +72,6 @@ public class UserGroupManager {
 
     private boolean indivFilteringSupported;
 
-    private DataRepository dataRepository;
-
-    private DatabasePlugin databasePlugin;
-
-    private QueryRunner query;
-
     private File sharedFile, customFile;
 
     private Set<Boolean> needsSave;
@@ -100,45 +81,30 @@ public class UserGroupManager {
     private Map<String, UserGroup> groups;
 
 
-    private UserGroupManager() {
+    UserGroupManager(boolean enable) {
+        PERMISSION.checkPermission();
+        if (INSTANCE != null)
+            throw new IllegalStateException();
+
         listeners = new EventListenerList();
         globalFilter = UserGroup.EVERYONE;
-
-        // user groups are only relevant for team dashboards, and they require
-        // a recent version of the database plugin. If these conditions are not
-        // met, disable the user group manager.
-        enabled = Settings.isTeamMode()
-                && TemplateLoader.meetsPackageRequirement("tpidw-embedded",
-                    "1.5.4.1");
+        enabled = enable;
         indivFilteringSupported = false;
+        groups = Collections.EMPTY_MAP;
+        INSTANCE = this;
     }
 
-    public void init(DashboardContext ctx) {
+    void init(File sharedFile, String datasetID) {
         // ensure calling code has permission to perform initialization
         PERMISSION.checkPermission();
 
-        // if the user group manager is disabled, perform minimal setup.
-        if (!enabled) {
-            groups = Collections.EMPTY_MAP;
-            return;
-        }
-
-        // save the data repository for future use
-        dataRepository = ctx.getData();
-
-        // retrieve an object for querying the database
-        databasePlugin = QueryUtils.getDatabasePlugin(ctx.getData());
-        query = databasePlugin.getObject(QueryRunner.class);
-
-        // determine the file for storage of shared groups
-        File wd = ((ProcessDashboard) ctx).getWorkingDirectory().getDirectory();
-        sharedFile = new File(wd, "groups.dat");
+        // save the location of the shared file
+        this.sharedFile = sharedFile;
 
         // determine the file for storage of custom/personal groups
         File appDir = DirectoryPreferences.getApplicationDirectory();
         File customDir = new File(appDir, "groups");
-        String datasetID = DashController.getDatasetID().toLowerCase();
-        String customFilename = "groups-" + datasetID + ".xml";
+        String customFilename = "groups-" + datasetID.toLowerCase() + ".xml";
         customFile = new File(customDir, customFilename);
 
         // load group data from both files
@@ -187,14 +153,7 @@ public class UserGroupManager {
      * @return null if shared groups can be edited; otherwise, a reason code
      *         explaining why they cannot
      */
-    public String getReadOnlyCode() {
-        if (!PermissionsManager.getInstance().hasPermission("pdash.editGroups"))
-            return "No_Permission";
-        else if (Settings.isReadOnly())
-            return "Read_Only";
-        else
-            return null;
-    }
+    public abstract String getReadOnlyCode();
 
     /**
      * @return the date/time when shared groups were last modified
@@ -245,41 +204,11 @@ public class UserGroupManager {
         if (f == null)
             throw new NullPointerException();
         this.globalFilter = f;
-        if (f instanceof UserGroupMember)
-            saveDataElements(f);
-        saveDataElement("/" + FILTER_DATANAME, StringData.create(f.getId()));
     }
+
 
     public UserFilter getGlobalFilter() {
         return globalFilter;
-    }
-
-
-    public void setLocalFilter(String path, UserFilter f) {
-        if (!enabled)
-            return;
-        if (f instanceof UserGroupMember)
-            saveDataElements(f);
-        String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
-        saveDataElement(dataName,
-            f == null ? null : StringData.create(f.getId()));
-    }
-
-    public UserFilter getLocalFilter(String path) {
-        String dataName = DataRepository.createDataName(path, FILTER_DATANAME);
-        String filterId = getString(dataName);
-        UserFilter result = getFilterById(filterId);
-        if (result == null)
-            return globalFilter;
-        else if (isPrivacyViolation(path))
-            return new UserGroupPrivacyBlock(result);
-        else
-            return result;
-    }
-
-    public boolean isPrivacyViolation(String path) {
-        String dataName = DataRepository.createDataName(path, PRIVACY_DATANAME);
-        return (getString(dataName) != null);
     }
 
 
@@ -291,16 +220,6 @@ public class UserGroupManager {
             return UserGroup.EVERYONE;
 
         } else if (filterId.startsWith(UserGroupMember.ID_PREFIX)) {
-            // if this is an individual, try looking up their details from the
-            // data elements saved in the repository
-            String dataName = DATA_PREFIX + filterId + NAME_SUFFIX;
-            String displayName = getString(dataName);
-            dataName = DATA_PREFIX + filterId + DATASET_IDS_SUFFIX;
-            ListData l = ListData.asListData(dataRepository.getValue(dataName));
-            if (displayName != null && l != null && l.test())
-                return new UserGroupMember(displayName, (String) l.get(0));
-
-            // if that failed, look for the person in the database
             for (UserGroupMember m : getAllKnownPeople()) {
                 if (m.getId().equals(filterId))
                     return m;
@@ -345,24 +264,11 @@ public class UserGroupManager {
         return result.toString();
     }
 
-    private void groupWasSaved(UserGroup g) {
-        // save data elements for this group
-        saveDataElements(g);
-
+    void groupWasSaved(UserGroup g) {
         // notify listeners about the change
         fireUserGroupEditEvent(new UserGroupEditEvent(this, g, false));
     }
 
-    private void saveDataElements(UserFilter f) {
-        saveDataElement(f.getId(), NAME_SUFFIX, StringData.create(f.toString()));
-
-        ListData datasetIDs = new ListData();
-        for (String oneID : f.getDatasetIDs())
-            datasetIDs.add(oneID);
-        if (datasetIDs.test() == false)
-            datasetIDs.add(EMPTY_GROUP_TOKEN);
-        saveDataElement(f.getId(), DATASET_IDS_SUFFIX, datasetIDs);
-    }
 
 
     public void deleteGroup(UserGroup g) {
@@ -379,44 +285,9 @@ public class UserGroupManager {
         }
     }
 
-    private void groupWasDeleted(UserGroup g) {
-        // discard data elements for this group
-        saveDataElement(g.getId(), NAME_SUFFIX, null);
-        saveDataElement(g.getId(), DATASET_IDS_SUFFIX, null);
-
+    void groupWasDeleted(UserGroup g) {
         // notify listeners about the change
         fireUserGroupEditEvent(new UserGroupEditEvent(this, g, true));
-    }
-
-    private void saveDataElement(String id, String suffix, SimpleData value) {
-        String dataName = "/" + DATA_PREFIX + id + suffix;
-        saveDataElement(dataName, value);
-    }
-
-    private void saveDataElement(String name, SimpleData value) {
-        SimpleData oldValue = dataRepository.getSimpleValue(name);
-        if (!simpleDataIsEqual(oldValue, value)) {
-            dataRepository.putValue(name, value);
-            if (oldValue == null)
-                dataRepository.pinElement(name);
-        }
-    }
-
-    private boolean simpleDataIsEqual(SimpleData a, SimpleData b) {
-        if (a == b)
-            return true;
-        else if (a == null || b == null)
-            return false;
-        else
-            return a.equals(b);
-    }
-
-    private String getString(String dataName) {
-        SimpleData sd = dataRepository.getSimpleValue(dataName);
-        if (sd != null && sd.test())
-            return sd.format();
-        else
-            return null;
     }
 
 
@@ -578,25 +449,8 @@ public class UserGroupManager {
      *         loaded; so if this method is called shortly after startup in a
      *         large Team Dashboard, it may take a long time to return.
      */
-    public Set<UserGroupMember> getAllKnownPeople() {
-        // query the database for all known people, and add them to the group
-        QueryUtils.waitForAllProjects(databasePlugin);
-        List<Object[]> rawData = query.queryHql(EVERYONE_QUERY);
-        Set<UserGroupMember> members = new HashSet();
-        for (Object[] row : rawData) {
-            String userName = (String) row[1];
-            String datasetID = (String) row[2];
-            UserGroupMember m = new UserGroupMember(userName, datasetID);
-            members.add(m);
-        }
-        return members;
-    }
+    public abstract Set<UserGroupMember> getAllKnownPeople();
 
-    private static final String EVERYONE_QUERY = //
-    "select p.person.key, p.person.encryptedName, p.value.text "
-            + "from PersonAttrFact as p " //
-            + "where p.versionInfo.current = 1 "
-            + "and p.attribute.identifier = 'person.pdash.dataset_id'";
 
     private static final String CUSTOM_ID_PREFIX = "c.";
 
@@ -604,19 +458,7 @@ public class UserGroupManager {
 
     private static final String TIMESTAMP_ATTR = "timestamp";
 
-    private static final String DATA_PREFIX = "User_Group/";
-
-    public static final String FILTER_DATANAME = DATA_PREFIX + "/Filter";
-
-    public static final String PRIVACY_DATANAME = DATA_PREFIX + "Privacy_Violation";
-
-    private static final String NAME_SUFFIX = "//Name";
-
-    private static final String DATASET_IDS_SUFFIX = "//Dataset_IDs";
-
-    public static final String EMPTY_GROUP_TOKEN = "*empty*";
-
-    private static DashboardPermission PERMISSION = new DashboardPermission(
+    static DashboardPermission PERMISSION = new DashboardPermission(
             "userGroupManager");
 
 }

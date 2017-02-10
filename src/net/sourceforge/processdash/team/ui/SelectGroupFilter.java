@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupMember;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -140,7 +141,7 @@ public class SelectGroupFilter extends TinyCGIBase {
                     + (end == -1 ? "" : destUri.substring(end));
 
         } else {
-            UserGroupManager.getInstance().setLocalFilter(projectRoot, f);
+            UserGroupManagerDash.getInstance().setLocalFilter(projectRoot, f);
             getDataRepository().waitForCalculations();
         }
 
