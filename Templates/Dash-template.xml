@@ -381,14 +381,14 @@ The author(s) may be contacted at:
 
   <snippet id="pdash.timeLog" version="1.0" category="reports">
     <resources>Time.Report</resources>
-    <!-- 
-         Note: the time log snippet is only enabled for "Simple Projects"
-         at this time. In particular, it can not be added to any team
-         project planning summary, because it cannot support the filtering
-         techniques that are used by those forms.
-      -->
     <context>Simple Project Tag</context>
     <uri>/reports/timelog.class?noDisclaimer</uri>
+  </snippet>
+
+  <snippet id="pdash.timeLogDB" version="1.0" category="reports">
+    <resources>Time.Report</resources>
+    <context>Database-Driven Rollup Tag</context>
+    <uri>/reports/timelog.class?type=db&amp;hideComments</uri>
   </snippet>
 
   <snippet id="pdash.testExpression" version="1.0" category="reports">

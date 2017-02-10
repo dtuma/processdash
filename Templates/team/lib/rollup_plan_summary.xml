@@ -252,6 +252,12 @@
 
 <snippet instanceId="61" type="pdash.defectLog" version="1.0" />
 
+<snippet instanceId="62" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Time Log</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="63" type="pdash.timeLogDB" version="1.0" />
+
 <snippet instanceId="70" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
   <param name="Name">Add Your Own Sections Here</param>
 </parameters>]]></snippet>
