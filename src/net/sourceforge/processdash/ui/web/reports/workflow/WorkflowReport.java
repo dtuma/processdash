@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,10 +43,13 @@ import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class WorkflowReport extends HttpServlet {
+
+    public static final String PERMISSION = "pdash.reports.workflow";
 
     protected static final String SELF_URI = "workflowToDate";
 
@@ -70,7 +73,10 @@ public class WorkflowReport extends HttpServlet {
         String page = req.getParameter(PAGE_PARAM);
         String workflowID = req.getParameter(WORKFLOW_PARAM);
 
-        if (StringUtils.hasValue(page))
+        if (!PermissionsManager.getInstance().hasPermission(PERMISSION))
+            writeWorkflowSelectionScreen(req, resp);
+
+        else if (StringUtils.hasValue(page))
             showAnalysisPage(req, resp, page);
 
         else if (StringUtils.hasValue(workflowID) == false)
@@ -99,7 +105,12 @@ public class WorkflowReport extends HttpServlet {
         out.print(title);
         out.print("</h1>\n");
 
-        if (req.getParameter("wait") != null) {
+        if (!PermissionsManager.getInstance().hasPermission(PERMISSION)) {
+            out.print("<p><i>");
+            out.print(esc(res("Workflow.Analysis.No_Permission")));
+            out.print("</i></p>\n");
+
+        } else if (req.getParameter("wait") != null) {
             out.print("<p>");
             out.print(esc(res("Workflow.Analysis.Wait_Message")));
             out.print("</p>\n");

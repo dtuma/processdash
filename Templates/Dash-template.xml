@@ -138,6 +138,16 @@ The author(s) may be contacted at:
     <parent>pdash.standards</parent>
   </permission>
 
+  <permission id="pdash.reports" ordinal="3500">
+    <resources>Permissions.View_Team_Reports</resources>
+    <parent>pdash.all</parent>
+  </permission>
+
+  <permission id="pdash.reports.workflow" ordinal="3520">
+    <resources>Analysis.Workflow.Analysis.Permission</resources>
+    <parent>pdash.reports</parent>
+  </permission>
+
   <permission id="pdash.indivData" ordinal="4000"
            class="net.sourceforge.processdash.team.group.GroupPermission">
     <resources>Permissions.View_Personal_Data</resources>
