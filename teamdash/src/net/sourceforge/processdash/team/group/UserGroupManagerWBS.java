@@ -25,6 +25,7 @@ package net.sourceforge.processdash.team.group;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import teamdash.wbs.TeamProject;
@@ -32,8 +33,16 @@ import teamdash.wbs.WBSFilenameConstants;
 
 public class UserGroupManagerWBS extends UserGroupManager {
 
+    public static UserGroupManagerWBS getInstance() {
+        return (UserGroupManagerWBS) UserGroupManager.getInstance();
+    }
+
+
+    private Map<String, String> datasetIDMap;
+
     private UserGroupManagerWBS() {
         super(true);
+        datasetIDMap = Collections.EMPTY_MAP;
     }
 
     public static void init(TeamProject proj) {
@@ -56,6 +65,14 @@ public class UserGroupManagerWBS extends UserGroupManager {
     @Override
     public Set<UserGroupMember> getAllKnownPeople() {
         return Collections.EMPTY_SET;
+    }
+
+    public Map<String, String> getDatasetIDMap() {
+        return datasetIDMap;
+    }
+
+    public void setDatasetIDMap(Map<String, String> datasetIDMap) {
+        this.datasetIDMap = Collections.unmodifiableMap(datasetIDMap);
     }
 
 }

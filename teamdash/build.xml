@@ -326,6 +326,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.util.Diff"/>
       <root classname="net.sourceforge.processdash.util.FastDateFormat"/>
       <root classname="net.sourceforge.processdash.util.HTMLUtils"/>
+      <root classname="net.sourceforge.processdash.util.NonclosingInputStream"/>
       <root classname="net.sourceforge.processdash.util.NullSafeObjectUtils"/>
       <root classname="net.sourceforge.processdash.util.PatternList"/>
       <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
@@ -352,7 +353,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 133) {
+        if (classCount > 134) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

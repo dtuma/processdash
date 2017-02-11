@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
@@ -84,6 +85,9 @@ public class UserDataWriter extends TinyCGIBase {
         String fullName = ProcessDashboard.getOwnerName(getDataContext());
         if (hasValue(fullName))
             ser.attribute(null, OWNER_FULLNAME_ATTR, fullName);
+        String datasetID = DashController.getDatasetID(false);
+        if (hasValue(datasetID))
+            ser.attribute(null, DATASET_ID_ATTR, datasetID);
         ser.attribute(null, TIMESTAMP_ATTR, XMLUtils.saveDate(timestamp));
 
         if (hasValue(getData("Enable_Reverse_Sync"))) {
@@ -570,6 +574,8 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String OWNER_USERNAME_ATTR = "userName";
 
     private static final String OWNER_FULLNAME_ATTR = "fullName";
+
+    private static final String DATASET_ID_ATTR = "datasetID";
 
     private static final String TIMESTAMP_ATTR = "timestamp";
 

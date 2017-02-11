@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ package teamdash.wbs;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -49,7 +49,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.VersionUtils;
 
 import teamdash.XMLUtils;
@@ -156,18 +159,24 @@ public class WBSSynchronizer {
         WBSNode wbsRoot = teamProject.getWBS().getRoot();
         wbsRoot.setAttribute(SYNC_IN_PROGRESS_ATTR, Boolean.TRUE);
         maxPastClientIDs = buildMaxClientIdMap(wbsRoot);
+        Map<String, String> datasetIDMap = new HashMap<String, String>();
 
         for (Iterator i = teamProject.getTeamMemberList().getTeamMembers()
                 .iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
+            addDatasetIdMapping(datasetIDMap, dump);
             syncTeamMember(m, dump);
             if (dump == directDumpData)
                 reloadedMemberNames.remove(m.getName());
         }
 
         if (createMissingTeamMembers)
-            addMissingTeamMembers(exportFiles);
+            addMissingTeamMembers(exportFiles, datasetIDMap);
+
+        datasetIDMap.remove("");
+        datasetIDMap.remove(null);
+        UserGroupManagerWBS.getInstance().setDatasetIDMap(datasetIDMap);
 
         wbsRoot.setAttribute(EFFECTIVE_DATE_ATTR, effectiveDate);
         wbsRoot.removeAttribute(SYNC_IN_PROGRESS_ATTR);
@@ -181,6 +190,17 @@ public class WBSSynchronizer {
         nodeMap = null;
         clientIdMap = null;
         maxPastClientIDs = null;
+    }
+
+    private void addDatasetIdMapping(Map<String, String> map, Element dump) {
+        if (dump != null) {
+            String initials = dump.getAttribute(INITIALS_ATTR).toLowerCase();
+            String datasetID = dump.getAttribute(DATASET_ID_ATTR);
+            if (XMLUtils.hasValue(initials) && XMLUtils.hasValue(datasetID)) {
+                map.put(initials, datasetID);
+                map.put(datasetID, initials);
+            }
+        }
     }
 
 
@@ -340,30 +360,52 @@ public class WBSSynchronizer {
             return getUserDumpData(f);
     }
 
-    @SuppressWarnings("resource")
     private Element getUserDumpData(File f) {
         FileInputStream fileInputStream = null;
+        Element result = null;
+        String datasetID = null;
         try {
             fileInputStream = new FileInputStream(f);
             ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(
                     fileInputStream));
+            NonclosingInputStream nis = new NonclosingInputStream(zipIn);
+
             ZipEntry e;
-            while ((e = zipIn.getNextEntry()) != null)
-                if (e.getName().equals(USER_DUMP_ENTRY_NAME))
-                    return XMLUtils.parse(zipIn).getDocumentElement();
+            while ((e = zipIn.getNextEntry()) != null) {
+                if (e.getName().equals(USER_DUMP_ENTRY_NAME)) {
+                    result = XMLUtils.parse(nis).getDocumentElement();
+                    if (result.hasAttribute(DATASET_ID_ATTR))
+                        break;
+                } else if (e.getName().equals(MANIFEST_ENTRY_NAME)) {
+                    datasetID = getDatasetIdFromManifest(nis);
+                }
+            }
+
         } catch (Exception e) {
             logger.severe("Unable to read user dump data from file " + f);
             e.printStackTrace();
         }
+        FileUtils.safelyClose(fileInputStream);
 
-        // the user's exported pdash file did not contain a dump file.
-        logger.fine("No " + USER_DUMP_ENTRY_NAME + " file found in " + f);
-        if (fileInputStream != null) {
-            try {
-                fileInputStream.close();
-            } catch (IOException ioe) {}
+        if (result == null) {
+            // the user's exported pdash file did not contain a dump file.
+            logger.fine("No " + USER_DUMP_ENTRY_NAME + " file found in " + f);
+        } else if (XMLUtils.hasValue(datasetID)) {
+            result.setAttribute(DATASET_ID_ATTR, datasetID);
         }
-        return null;
+
+        return result;
+    }
+
+    private String getDatasetIdFromManifest(InputStream in) {
+        try {
+            Element xml = XMLUtils.parse(in).getDocumentElement();
+            NodeList nl = xml.getElementsByTagName(FROM_DATASET_TAG);
+            Element fd = (Element) nl.item(0);
+            return fd.getAttribute(DATASET_ID_ATTR);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 
@@ -452,13 +494,14 @@ public class WBSSynchronizer {
     public static final AttributeMerger<Integer, String> MAX_CLIENT_ID_MERGER = new MaxClientIDMerger();
 
 
-    private void addMissingTeamMembers(Map<String, File> unclaimedExportFiles) {
+    private void addMissingTeamMembers(Map<String, File> unclaimedExportFiles,
+            Map<String, String> datasetIDMap) {
         Date timestamp = getLastTeamListReverseSyncDate();
         TeamMemberList team = new TeamMemberList(teamProject.getTeamMemberList());
         boolean madeChange = false;
 
         for (File file : unclaimedExportFiles.values())
-            if (addMissingTeamMember(timestamp, team, file))
+            if (addMissingTeamMember(timestamp, team, file, datasetIDMap))
                 madeChange = true;
 
         if (madeChange) {
@@ -495,7 +538,7 @@ public class WBSSynchronizer {
     }
 
     private boolean addMissingTeamMember(Date syncTimestamp,
-            TeamMemberList team, File f) {
+            TeamMemberList team, File f, Map<String, String> datasetIDMap) {
         Element xml = getUserDumpData(f);
         if (xml == null)
             return false;
@@ -513,6 +556,7 @@ public class WBSSynchronizer {
         if (containsTeamMember(team, initials, fullName, username))
             return false;
 
+        addDatasetIdMapping(datasetIDMap, xml);
         addTeamMember(team, initials, username, fullName);
         return true;
     }
@@ -1019,6 +1063,8 @@ public class WBSSynchronizer {
 
     private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
 
+    private static final String MANIFEST_ENTRY_NAME = "manifest.xml";
+
     private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
 
     private static final String USER_DATA_TAG = "userData";
@@ -1032,6 +1078,10 @@ public class WBSSynchronizer {
     private static final String OWNER_USERNAME_ATTR = "userName";
 
     private static final String OWNER_FULLNAME_ATTR = "fullName";
+
+    private static final String DATASET_ID_ATTR = "datasetID";
+
+    private static final String FROM_DATASET_TAG = "fromDataset";
 
     private static final String TEAM_LIST_SYNC_TIMESTAMP = "Team List Reverse Sync Timestamp";
 
