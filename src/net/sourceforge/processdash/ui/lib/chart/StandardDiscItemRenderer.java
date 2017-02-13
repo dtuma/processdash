@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,9 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
     /** The base disc paint (fallback). */
     private transient Paint baseDiscPaint;
 
+    /** A paint key that should always map to the base disc paint. */
+    private Comparable baseDiscPaintKey;
+
     /** The label paint map. */
     private PaintMap labelPaintMap;
 
@@ -137,6 +140,14 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
         }
     }
 
+    public Comparable getBaseDiscPaintKey() {
+        return baseDiscPaintKey;
+    }
+
+    public void setBaseDiscPaintKey(Comparable baseDiscPaintKey) {
+        this.baseDiscPaintKey = baseDiscPaintKey;
+    }
+
     /**
      * Returns the paint for the specified disc. This is equivalent to
      * <code>lookupDiscPaint(section, false)</code>.
@@ -168,6 +179,10 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
         // if a paint key mapper is in effect, use it to translate the key
         if (paintKeyMapper != null)
             key = paintKeyMapper.getPaintKey(key);
+
+        // see if this is the key for the base color
+        if (key.equals(baseDiscPaintKey))
+            return baseDiscPaint;
 
         // check if there is a paint defined for the specified key
         Paint result = this.discPaintMap.getPaint(key);
