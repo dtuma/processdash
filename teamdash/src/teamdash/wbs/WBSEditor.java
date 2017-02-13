@@ -269,6 +269,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             reverseSynchronizer.setCreateMissingTeamMembers(false);
             showActualData = reverseSynchronizer.getFoundActualData();
             showActualSize = reverseSynchronizer.getFoundActualSizeData();
+            teamProject.getTeamMemberList().setSchedulePrivacyFlags(null);
         }
 
         // record the valid task types in this process.
@@ -1233,6 +1234,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamProject.getTeamMemberList().copyFrom(src.getTeamMemberList());
         teamProject.getTeamMemberList().getSubteamModel()
                 .copyFrom(src.getTeamMemberList().getSubteamModel());
+        teamProject.getTeamMemberList().setSchedulePrivacyFlags(null);
         if (teamListEditor != null)
             teamListEditor.origListWasReplaced();
     }

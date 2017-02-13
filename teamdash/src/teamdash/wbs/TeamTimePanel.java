@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.ToolTipManager;
@@ -70,6 +71,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.i18n.Resources;
+
+import teamdash.team.PrivacyType;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.MilestoneColorColumn;
@@ -160,6 +164,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private Color overtaskedColor = Color.red;
     /** A timer used to recalc once after receiving multiple TableModelEvents */
     private Timer recalcTimer;
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Team");
+
 
     /** Create a team time panel.
      * @param teamList the list of team members to display.
@@ -1081,10 +1089,15 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 nameLabel.setIcon(SPACER_ICON);
             memberBarHighlighter.listen(nameLabel, this);
 
-            hoursPerWeekLabel = new JLabel(hoursPerWeekFormat.format(teamMember
-                    .getHoursPerWeek()));
+            PrivacyType privacy = teamMember.getSchedulePrivacy();
+            boolean censorHours = privacy == PrivacyType.Censored
+                    || privacy == PrivacyType.Uncertain;
+            hoursPerWeekLabel = new JLabel(censorHours ? "*"
+                    : hoursPerWeekFormat.format(teamMember.getHoursPerWeek()),
+                    SwingConstants.CENTER);
             hoursPerWeekLabel.setOpaque(true);
-            hoursPerWeekLabel.setToolTipText("Hours per Week (Nominal)");
+            hoursPerWeekLabel.setToolTipText(resources.getString(
+                censorHours ? "Hours_Censored" : "Hours_Nominal"));
             memberBarHighlighter.listen(hoursPerWeekLabel, this);
 
             memberBarHighlighter.listen(this, this);

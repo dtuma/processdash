@@ -122,6 +122,8 @@ public class TeamMemberListEditor implements WindowListener,
         teamMemberList.resetWeekOffset();
         // notify the customization hyperlink so it can update its date
         ((TeamMemberListTable) table).updateCustomizationHyperlinkText();
+        // reset privacy flags on the orig list
+        orig.setSchedulePrivacyFlags(addedTeamMemberIDs);
     }
 
     public boolean displayHyperlinkedItem(String item) {
@@ -187,6 +189,7 @@ public class TeamMemberListEditor implements WindowListener,
         // commit and save the changes
         orig.publishChanges(irreversibleChanges);
         orig.copyFrom(teamMemberList);
+        orig.setSchedulePrivacyFlags(addedTeamMemberIDs);
 
         // now refresh the table with the newly saved data. (This will discard
         // empty rows in the middle of the list.)
