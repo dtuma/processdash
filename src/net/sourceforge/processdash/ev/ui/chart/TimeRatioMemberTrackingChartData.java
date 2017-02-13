@@ -27,19 +27,25 @@ import org.jfree.data.xy.XYZDataset;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserFilter;
 
 public class TimeRatioMemberTrackingChartData extends XYChartData implements
         XYZDataset, DataPointLimitable {
 
     private EVTaskListRollup rollup;
     private int maxDataPoints;
+    private String permissionID;
 
     public TimeRatioMemberTrackingChartData(ChartEventAdapter eventAdapter,
-            EVTaskListRollup rollup, int maxDataPoints) {
+            EVTaskListRollup rollup, int maxDataPoints, String permissionID) {
         super(eventAdapter);
         this.rollup = rollup;
         this.maxDataPoints = maxDataPoints;
+        this.permissionID = permissionID;
     }
 
     public int getMaxDataPoints() {
@@ -55,9 +61,19 @@ public class TimeRatioMemberTrackingChartData extends XYChartData implements
     public void recalc() {
         clearSeries();
 
+        // see if the user has permission to view personal data in this chart
+        UserFilter f = GroupPermission.getGrantedMembers(permissionID);
+        if (f == null)
+            return;
+        EVTaskListFilter pf = new EVTaskListGroupFilter(f);
+
         MemberChartNameHelper nameHelper = new MemberChartNameHelper(rollup);
         for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
             EVTaskList tl = rollup.getSubSchedule(i);
+            String personalDataID = tl.getPersonalDataID();
+            if (personalDataID != null && !pf.include(personalDataID))
+                continue;
+
             EVSchedule subsched = tl.getSchedule();
             String seriesName = nameHelper.get(tl);
             maybeAddSeries(subsched.getTimeRatioTrackingChartSeries(

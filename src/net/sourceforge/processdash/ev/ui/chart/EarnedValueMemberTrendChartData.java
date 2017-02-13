@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,20 +25,33 @@ package net.sourceforge.processdash.ev.ui.chart;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserFilter;
 
 public class EarnedValueMemberTrendChartData extends XYChartData {
 
     private EVTaskListRollup rollup;
 
+    private String permissionID;
+
     public EarnedValueMemberTrendChartData(ChartEventAdapter eventAdapter,
-            EVTaskListRollup rollup) {
+            EVTaskListRollup rollup, String permissionID) {
         super(eventAdapter);
         this.rollup = rollup;
+        this.permissionID = permissionID;
     }
 
     public void recalc() {
         clearSeries();
+
+        // see if the user has permission to view personal data in this chart
+        UserFilter f = GroupPermission.getGrantedMembers(permissionID);
+        if (f == null)
+            return;
+        EVTaskListFilter pf = new EVTaskListGroupFilter(f);
 
         EVSchedule schedule = rollup.getSchedule();
         double mult = 100.0 / schedule.getMetrics().totalPlan();
@@ -47,6 +60,10 @@ public class EarnedValueMemberTrendChartData extends XYChartData {
         MemberChartNameHelper nameHelper = new MemberChartNameHelper(rollup);
         for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
             EVTaskList tl = rollup.getSubSchedule(i);
+            String personalDataID = tl.getPersonalDataID();
+            if (personalDataID != null && !pf.include(personalDataID))
+                continue;
+
             EVSchedule subschedule = tl.getSchedule();
             String seriesName = nameHelper.get(tl);
             maybeAddSeries(subschedule.getActualValueTrendChartSeries(

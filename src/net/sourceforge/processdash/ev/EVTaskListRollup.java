@@ -495,24 +495,26 @@ public class EVTaskListRollup extends EVTaskList {
         return super.getSnapshots(data);
     }
 
-    public XYDataset getTeamMemberCompletionDateData() {
+    public XYDataset getTeamMemberCompletionDateData(String permissionID) {
         return new ConfidenceIntervalMemberCompletionDateChartData(
-                new EVTaskChartEventAdapter(), this);
+                new EVTaskChartEventAdapter(), this, permissionID);
     }
 
-    public XYDataset getTeamMemberDirectTimeTrendData() {
+    public XYDataset getTeamMemberDirectTimeTrendData(String permissionID) {
         return new DirectTimeMemberTrendChartData(
-                new EVTaskChartEventAdapter(), this);
+                new EVTaskChartEventAdapter(), this, permissionID);
     }
 
-    public XYDataset getTeamMemberEarnedValueTrendData() {
+    public XYDataset getTeamMemberEarnedValueTrendData(String permissionID) {
         return new EarnedValueMemberTrendChartData(
-                new EVTaskChartEventAdapter(), this);
+                new EVTaskChartEventAdapter(), this, permissionID);
     }
 
-    public XYDataset getTeamMemberTimeRatioTrackingChartData(int numDataPoints) {
+    public XYDataset getTeamMemberTimeRatioTrackingChartData(int numDataPoints,
+            String permissionID) {
         return new TimeRatioMemberTrackingChartData(
-                new EVTaskChartEventAdapter(), this, numDataPoints);
+                new EVTaskChartEventAdapter(), this, numDataPoints,
+                permissionID);
     }
 
 

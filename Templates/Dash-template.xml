@@ -197,6 +197,12 @@ The author(s) may be contacted at:
     <impliedBy>wbs.all</impliedBy>
   </permission>
 
+  <permission id="pdash.indivData.ev.teamCharts" ordinal="4500"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Team_Charts</resources>
+    <parent>pdash.indivData.ev</parent>
+  </permission>
+
   <permission id="pdash.export" ordinal="5000">
     <resources>Permissions.Export</resources>
     <parent>pdash.all</parent>

@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,30 +30,48 @@ import org.jfree.data.Range;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ci.SingleValueConfidenceInterval;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserFilter;
 
 public class ConfidenceIntervalMemberCompletionDateChartData extends
     ConfidenceIntervalChartData implements DomainInfo {
 
     private EVTaskListRollup rollup;
 
+    private String permissionID;
+
     private Double lowerBound, upperBound;
 
     public ConfidenceIntervalMemberCompletionDateChartData(
-            ChartEventAdapter eventAdapter, EVTaskListRollup rollup) {
+            ChartEventAdapter eventAdapter, EVTaskListRollup rollup,
+            String permissionID) {
         super(eventAdapter, 0, ConfidenceIntervalCompletionDateChartData
                 .getMaxChartDate());
         this.rollup = rollup;
+        this.permissionID = permissionID;
     }
 
     public void recalc() {
         clearSeries();
         lowerBound = upperBound = null;
 
+        // see if the user has permission to view personal data in this chart
+        UserFilter f = GroupPermission.getGrantedMembers(permissionID);
+        if (f == null)
+            return;
+        EVTaskListFilter pf = new EVTaskListGroupFilter(f);
+
         MemberChartNameHelper nameHelper = new MemberChartNameHelper(rollup);
         for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
             EVTaskList tl = rollup.getSubSchedule(i);
+            String personalDataID = tl.getPersonalDataID();
+            if (personalDataID != null && !pf.include(personalDataID))
+                continue;
+
             String seriesName = nameHelper.get(tl);
 
             // by default, attempt to add a series based on the forecast date
