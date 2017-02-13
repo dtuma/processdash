@@ -37,6 +37,8 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.FileType;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
@@ -49,10 +51,21 @@ public class WBSPermissionManager {
 
     private static String version = "";
 
+    private static String currentUser = null;
+
     private static Set<WBSPermission> permissions = Collections.EMPTY_SET;
 
     private static final Logger logger = Logger
             .getLogger(WBSPermissionManager.class.getName());
+
+
+    /**
+     * @return the username of the current user
+     */
+    public static String getCurrentUser() {
+        return currentUser;
+    }
+
 
     /**
      * Return true if the current user has a permission with the given ID.
@@ -81,6 +94,49 @@ public class WBSPermissionManager {
     }
 
 
+    /**
+     * Evaluate whether the current user has been assigned a group permission.
+     * 
+     * @param permissionID
+     *            the ID of a permission
+     * @param version
+     *            the version of the Process Dashboard software when the
+     *            definition of permission was added. If the team project
+     *            settings file was written by an older version of the
+     *            dashboard, the permission will be implicitly granted for
+     *            "Everyone" by omission.
+     * @return null if the user is granted permission to everyone; an empty list
+     *         if they have not been granted permission; otherwise, a list of
+     *         the datasetIDs to which they have been granted permission
+     */
+    public static Set<String> getGroupPerm(String permissionID,
+            String permissionVersion) {
+        if (VersionUtils.compareVersions(version, permissionVersion) < 0)
+            return null;
+
+        Set<String> result = new HashSet();
+        for (WBSPermission wbsPerm : permissions) {
+            String permID = wbsPerm.getId();
+            if (ALL_PERMISSIONS.equals(permID)) {
+                return null;
+            } else if (permissionID.equals(permID)) {
+                String groupID = wbsPerm.getParams().get("group");
+                if (UserGroup.EVERYONE_ID.equals(groupID))
+                    return null;
+
+                UserGroup group = UserGroupManager.getInstance()
+                        .getGroupByID(groupID);
+                if (group != null)
+                    result.addAll(group.getDatasetIDs());
+            }
+        }
+        return result;
+    }
+
+
+    /**
+     * Identify the current user and determine their permissions.
+     */
     public static void init(WorkingDirectory workingDirectory, TeamProject proj)
             throws HttpException.Unauthorized {
 
@@ -114,10 +170,11 @@ public class WBSPermissionManager {
         else
             pdesUrl = ExternalLocationMapper.getInstance().getDatasetUrl();
         WhoAmI whoAmI = new WhoAmI(pdesUrl);
+        currentUser = whoAmI.getUsername();
 
         // find the permissions granted in the settings.xml file
         Set<WBSPermission> perms = getPermissionsForUser(settings,
-            whoAmI.getUsername().toLowerCase());
+            currentUser.toLowerCase());
         perms.remove(null);
 
         // add the externally granted permissions of the current user

@@ -505,7 +505,7 @@ public class WBSSynchronizer {
                 madeChange = true;
 
         if (madeChange) {
-            team.assignMissingUniqueIDs();
+            team.assignMissingUniqueIDs(null);
             teamProject.getTeamMemberList().copyFrom(team);
         }
 

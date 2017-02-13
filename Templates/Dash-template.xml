@@ -190,6 +190,13 @@ The author(s) may be contacted at:
     <parent>pdash.indivData.ev.report</parent>
   </permission>
 
+  <permission id="pdash.indivData.scheduleHours" ordinal="4440"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>EV.Permission.Schedule_Hours</resources>
+    <parent>pdash.indivData.ev.report</parent>
+    <impliedBy>wbs.all</impliedBy>
+  </permission>
+
   <permission id="pdash.export" ordinal="5000">
     <resources>Permissions.Export</resources>
     <parent>pdash.all</parent>

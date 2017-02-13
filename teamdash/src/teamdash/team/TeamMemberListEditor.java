@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,8 @@ public class TeamMemberListEditor implements WindowListener,
     private TeamMemberList teamMemberList;
     /** The original list of team members, before we edited it. */
     private TeamMemberList orig;
+    /** A list of the IDs of team members who have been added in this session */
+    private Set<Integer> addedTeamMemberIDs;
     /** The table displaying the team member list */
     private JTable table;
     /** The frame containing/displaying the editor  */
@@ -72,8 +74,10 @@ public class TeamMemberListEditor implements WindowListener,
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.setInitialsPolicyName(initialsPolicy);
         teamMemberList.addTableModelListener(this);
+        teamMemberList.setSchedulePrivacyFlags(null);
         teamMemberList.maybeAddEmptyRow();
         table = new TeamMemberListTable(teamMemberList);
+        addedTeamMemberIDs = new HashSet();
         JPanel buttons = buildButtons();
 
         frame = new JFrame(projectName + " - Team Members");
@@ -88,6 +92,7 @@ public class TeamMemberListEditor implements WindowListener,
 
     public void show() {
         teamMemberList.maybeAddEmptyRow();
+        teamMemberList.setSchedulePrivacyFlags(addedTeamMemberIDs);
         frame.setExtendedState(JFrame.NORMAL);
         frame.setVisible(true);
         frame.repaint();
@@ -177,7 +182,7 @@ public class TeamMemberListEditor implements WindowListener,
 
         // Assign IDs to any newly added team members.
         teamMemberList.eraseDeletedTeamMemberIDs(irreversibleChanges);
-        teamMemberList.assignMissingUniqueIDs();
+        teamMemberList.assignMissingUniqueIDs(addedTeamMemberIDs);
 
         // commit and save the changes
         orig.publishChanges(irreversibleChanges);

@@ -66,6 +66,8 @@ public class TeamMember implements PersonLookupData, Cloneable {
     private Map<String, String> extraAttributes;
     /** The schedule for this team member */
     private WeeklySchedule schedule;
+    /** The privacy policy for this person's schedule */
+    private PrivacyType schedulePrivacy;
 
 
     /** public TeamMember() { } */
@@ -196,6 +198,14 @@ public class TeamMember implements PersonLookupData, Cloneable {
     }
 
     public WeeklySchedule getSchedule() { return schedule; }
+
+    public PrivacyType getSchedulePrivacy() {
+        return schedulePrivacy;
+    }
+
+    public void setSchedulePrivacy(PrivacyType schedulePrivacy) {
+        this.schedulePrivacy = schedulePrivacy;
+    }
 
     /** returns true if this individual has no name and no initials. */
     public boolean isEmpty() {

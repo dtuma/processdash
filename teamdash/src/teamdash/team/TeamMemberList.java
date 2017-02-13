@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -35,17 +35,21 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sourceforge.processdash.util.StringUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 import teamdash.XMLUtils;
+import teamdash.wbs.WBSPermissionManager;
 
 
 
@@ -161,7 +165,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         // determine what date to scroll to initially
         weekOffset = getDefaultWeekOffset();
 
-        isDirty = assignMissingUniqueIDs();
+        isDirty = assignMissingUniqueIDs(null);
     }
 
     /** Create a cloned copy of the given team member list */
@@ -280,6 +284,66 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
         // scroll the view to align to the new start week.
         setWeekOffset(week - FIRST_WEEK_COLUMN - 1);
+    }
+
+    /**
+     * Set schedule privacy attributes for all the team members in this list
+     */
+    public void setSchedulePrivacyFlags(Set<Integer> allowTeamMemberIDs) {
+        String initials = System.getProperty("teamdash.wbs.indivInitials");
+        String user = WBSPermissionManager.getCurrentUser();
+        Set<String> datasets = WBSPermissionManager.getGroupPerm(
+            "pdash.indivData.scheduleHours", "2.3.1.4");
+        for (TeamMember m : teamMembers) {
+            m.setSchedulePrivacy(getMemberType(m, user, initials,
+                allowTeamMemberIDs, datasets));
+        }
+    }
+
+    private PrivacyType getMemberType(TeamMember m, String currentUserName,
+            String currentUserInitials, Set<Integer> allowTeamMemberIDs,
+            Set<String> grantedDatasets) {
+        // if this member has no initials, this is an empty row. allow editing
+        String initials = m.getInitials();
+        if (!StringUtils.hasValue(initials))
+            return PrivacyType.Allowed;
+
+        // see if this team member's initials match those of the current user
+        if (initials.equalsIgnoreCase(currentUserInitials))
+            return PrivacyType.Me;
+
+        // see if this team member's username matches the current user
+        Map<String, String> serverInfo = HTMLUtils.parseQuery(m
+                .getServerIdentityInfo());
+        if (currentUserName.equalsIgnoreCase(serverInfo.get("username")))
+            return PrivacyType.Me;
+
+        // is this team member a person who should always be allowed?
+        if (allowTeamMemberIDs != null
+                && allowTeamMemberIDs.contains(m.getId()))
+            return PrivacyType.Allowed;
+
+        // test the two most common permission grant cases
+        if (grantedDatasets == null)
+            return (onlyEditableFor == null ? PrivacyType.Allowed
+                    : PrivacyType.Visible);
+        else if (grantedDatasets.isEmpty())
+            return PrivacyType.Censored;
+
+        // identify the datasetID for this team member
+        String datasetID = UserGroupManagerWBS.getInstance().getDatasetIDMap()
+                .get(initials.toLowerCase());
+        if (datasetID == null)
+            datasetID = serverInfo.get("datasetID");
+
+        // determine the privacy type based on the dataset ID
+        if (!XMLUtils.hasValue(datasetID))
+            return PrivacyType.Uncertain;
+        else if (grantedDatasets.contains(datasetID))
+            return (onlyEditableFor == null ? PrivacyType.Allowed
+                    : PrivacyType.Visible);
+        else
+            return PrivacyType.Censored;
     }
 
     /** Add an empty team member to the bottom of the list if the last member
@@ -454,6 +518,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     //// information and methods to implement the TableModel interface
     ////////////////////////////////////////////////////////////////////////
 
+    public static final int PRIVACY_COLUMN = -1;
     public static final int NAME_COLUMN = 0;
     public static final int INITIALS_COLUMN = 1;
     public static final int COLOR_COLUMN = 2;
@@ -518,12 +583,16 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         if (isReadOnly())
             return false;
 
+        PrivacyType p = teamMembers.get(row).getSchedulePrivacy();
+        if (p == PrivacyType.Visible || p == PrivacyType.Censored
+                || p == PrivacyType.Uncertain)
+            return false;
+
         if (onlyEditableFor != null) {
             if (col == INITIALS_COLUMN)
                 return false;
-            String initials = (String) getValueAt(row, INITIALS_COLUMN);
-            if (!onlyEditableFor.equalsIgnoreCase(initials))
-                return false;
+            else
+                return p == PrivacyType.Me;
         }
 
         if (col < FIRST_WEEK_COLUMN)
@@ -539,6 +608,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public Object getValueAt(int row, int column) {
         TeamMember m = get(row);
         switch (column) {
+        case PRIVACY_COLUMN: return m.getSchedulePrivacy();
         case NAME_COLUMN: return m.getName();
         case INITIALS_COLUMN: return m.getInitials();
         case COLOR_COLUMN: return m.getColor();
@@ -832,10 +902,12 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
      * Look through this list and assign unique IDs to any individuals who do
      * not already have them.
      * 
+     * @param addedIDs
+     *            if non-null, newly assigned IDs will be added to this set
      * @return true if any IDs were assigned, false if all team members already
      *         had IDs.
      */
-    public boolean assignMissingUniqueIDs() {
+    public boolean assignMissingUniqueIDs(Set<Integer> addedIDs) {
         Set<Integer> usedIDs = new HashSet<Integer>();
         for (TeamMember m : teamMembers)
             usedIDs.add(m.getId());
@@ -852,6 +924,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
                 } while (newID == 0 || usedIDs.contains(newID));
                 usedIDs.add(newID);
                 m.setId(newID);
+                if (addedIDs != null)
+                    addedIDs.add(newID);
                 madeChange = true;
             }
         }

@@ -116,6 +116,9 @@ public class TeamMemberListTable extends JTable {
     /** a hyperlink allowing the user to customize team schedule parameters */
     JLabel customizationHyperlink;
 
+    /** Color for unmodifiable table cells */
+    Color unmodifiableCellBackground;
+
 
     /**
      * Create a table for editing the given {@link TeamMemberList}
@@ -139,12 +142,15 @@ public class TeamMemberListTable extends JTable {
 
         // Set up renderer and editor for the weekly columns.
         NumberFormat hoursFormatter = createHoursFormatter();
-        setDefaultRenderer(WeekData.class, new WeekDataRenderer(hoursFormatter));
+        WeekDataRenderer weekRenderer = new WeekDataRenderer(hoursFormatter);
+        setDefaultRenderer(Double.class, weekRenderer);
+        setDefaultRenderer(WeekData.class, weekRenderer);
         setDefaultEditor(WeekData.class, new WeekDataEditor(hoursFormatter));
 
         tokenDragHandler = new TokenDragHandler();
         dateScrollingHandler = new DateScrollingHandler();
         customizationHyperlink = createCustomizationHyperlink();
+        unmodifiableCellBackground = UIManager.getColor("control");
         setTransferHandler(new TransferSupport());
         setDragEnabled(true);
         createButtons();
@@ -199,6 +205,23 @@ public class TeamMemberListTable extends JTable {
 
         if (result instanceof JTextComponent)
             ((JTextComponent) result).selectAll();
+
+        return result;
+    }
+
+    @Override
+    public Component prepareRenderer(TableCellRenderer renderer, int row,
+            int column) {
+        Component result = super.prepareRenderer(renderer, row, column);
+
+        if (result instanceof DefaultTableCellRenderer) {
+            if (row == getSelectedRow() && column == getSelectedColumn())
+                ;
+            else if (isCellEditable(row, column))
+                result.setBackground(getBackground());
+            else
+                result.setBackground(unmodifiableCellBackground);
+        }
 
         return result;
     }
@@ -562,6 +585,10 @@ public class TeamMemberListTable extends JTable {
 
         JComponent endCell;
 
+        JComponent censored;
+        
+        JComponent uncertain;
+
         Font regularFont;
 
         Font italicFont;
@@ -603,6 +630,24 @@ public class TeamMemberListTable extends JTable {
             endCell.setToolTipText("<html>Drag to set schedule end date.<br>"
                     + "Drag all the way to the right to remove "
                     + "end date</html>");
+
+            censored = makeCensoredLabel();
+            censored.setToolTipText(
+                TeamMember.resources.getString("Hours_Censored"));
+
+            uncertain = makeCensoredLabel();
+            uncertain.setToolTipText(
+                TeamMember.resources.getString("Hours_Censored_Uncertain"));
+        }
+
+        private JLabel makeCensoredLabel() {
+            JLabel result = new JLabel("*", CENTER);
+            result.setFont(italicFont);
+            result.setBackground(unmodifiableCellBackground);
+            result.setOpaque(true);
+            result.setBorder(BorderFactory
+                    .createEmptyBorder(italicFont.getSize() / 3, 0, 0, 0));
+            return result;
         }
 
 
@@ -610,36 +655,47 @@ public class TeamMemberListTable extends JTable {
                 Object value, boolean isSelected, boolean hasFocus, int row,
                 int column) {
             Component component = this;
-            boolean cellIsModifiable = false;
 
-            WeekData week = (WeekData) value;
-            if (week == null)
-                return component;
+            Font f = regularFont;
+            double time = 0;
+            if (value instanceof WeekData) {
+                WeekData week = (WeekData) value;
+                switch (week.getType()) {
+                case WeekData.TYPE_OUTSIDE_SCHEDULE:
+                    component = outsideSchedule;
+                    break;
+                case WeekData.TYPE_START:
+                    component = startCell;
+                    break;
+                case WeekData.TYPE_END:
+                    component = endCell;
+                    break;
+                case WeekData.TYPE_DEFAULT:
+                    f = italicFont;
+                    // continue through to next block
+                default:
+                    time = week.getHours();
+                    break;
+                }
 
-            switch (week.getType()) {
-            case WeekData.TYPE_OUTSIDE_SCHEDULE:
-                component = outsideSchedule;
-                break;
-            case WeekData.TYPE_START:
-                component = startCell;
-                break;
-            case WeekData.TYPE_END:
-                component = endCell;
-                break;
-            default:
-                cellIsModifiable = true;
-                break;
+            } else if (value instanceof Number) {
+                time = ((Number) value).doubleValue();
             }
 
-            if (cellIsModifiable) {
-                String display = hoursFormat.format(week.getHours());
+            if (component == this) {
+                PrivacyType pt = (PrivacyType) table.getModel().getValueAt(row,
+                    TeamMemberList.PRIVACY_COLUMN);
+                if (pt == PrivacyType.Censored)
+                    return censored;
+                else if (pt == PrivacyType.Uncertain)
+                    return uncertain;
+
+                String display = hoursFormat.format(time);
                 if (tokenDragHandler.isDragging())
                     isSelected = hasFocus = false;
                 super.getTableCellRendererComponent(table, display, isSelected,
                     hasFocus, row, column);
-
-                setFont(week.getType() == WeekData.TYPE_DEFAULT ? italicFont
-                        : regularFont);
+                setFont(f);
             }
             else {
                 if (isSelected && hasFocus)
