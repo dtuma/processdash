@@ -5,7 +5,8 @@ select task.planItem.key,
     task.planTimeMin,
     task.actualTimeMin,
     task.actualCompletionDate,
-    task.dataBlock.person.encryptedName
+    task.dataBlock.person.encryptedName,
+    task.dataBlock.person.key
 from TaskStatusFact as task
 join task.planItem.phase.mapsToPhase mapsTo
 where mapsTo.process.identifier = ?

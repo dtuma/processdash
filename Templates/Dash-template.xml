@@ -148,6 +148,12 @@ The author(s) may be contacted at:
     <parent>pdash.reports</parent>
   </permission>
 
+  <permission id="pdash.reports.scanner" ordinal="3530"
+           class="net.sourceforge.processdash.team.group.GroupPermission">
+    <resources>Analysis.Scanner.Permission</resources>
+    <parent>pdash.reports</parent>
+  </permission>
+
   <permission id="pdash.indivData" ordinal="4000"
            class="net.sourceforge.processdash.team.group.GroupPermission">
     <resources>Permissions.View_Personal_Data</resources>

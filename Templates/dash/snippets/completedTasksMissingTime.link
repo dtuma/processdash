@@ -1,3 +1,3 @@
-class:net.sourceforge.processdash.team.ui.scanner.GenericScanItemList
+class:net.sourceforge.processdash.team.ui.scanner.CompletedTasksMissingTime
 numIdFields=2
 itemFormat=={3}/{4} -- {5}, {6,date,short}

@@ -7,7 +7,8 @@ select
   t.actualCompletionDateDim.key,
   t.dataBlock.person.encryptedName,
   t.planItem.wbsElement.name,
-  t.planItem.task.name
+  t.planItem.task.name,
+  t.dataBlock.person.key
 from ProcessEnactment as pe, TaskStatusFact as t
 join t.planItem.phase.mapsToPhase phase
 where pe.includesItem.key = t.planItem.key

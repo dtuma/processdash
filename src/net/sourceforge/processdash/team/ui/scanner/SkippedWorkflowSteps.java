@@ -29,12 +29,21 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.tool.db.PersonFilter;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 public class SkippedWorkflowSteps extends GenericScanItemList {
 
+    private static final String PERMISSION = "pdash.reports.scanner";
+
     @Override
     protected List<Object[]> getItems() throws IOException {
+        // ensure the user has permission to view skipped workflow steps
+        PersonFilter privacyFilter = new PersonFilter(PERMISSION, //
+                getPdash().getQuery());
+        if (privacyFilter.isBlock())
+            return Collections.EMPTY_LIST;
+
         List<Object[]> allTasks = super.getItems();
         List<Object[]> skippedTasks = new LinkedList();
 
@@ -43,7 +52,8 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
             List<Object[]> enactmentTasks = getTasksForEnactment(allTasks, pos);
             if (shouldProcessEnactment(enactmentTasks)) {
                 sortTasksWithinEnactment(enactmentTasks);
-                findSkippedTasksInEnactment(skippedTasks, enactmentTasks);
+                findSkippedTasksInEnactment(skippedTasks, enactmentTasks,
+                    privacyFilter);
             }
             pos += enactmentTasks.size();
         }
@@ -180,7 +190,7 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
      * followed by completed tasks.
      */
     private void findSkippedTasksInEnactment(List<Object[]> skippedTasks,
-            List<Object[]> enactmentTasks) {
+            List<Object[]> enactmentTasks, PersonFilter privacyFilt) {
 
         Object[] previousTask = null;
         Object[] workingIncompleteTask = null;
@@ -197,7 +207,9 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
 
             if (incomplete(task)) {
                 // if this task is incomplete, make a note of it.
-                if (workingIncompleteTask == null) {
+                if (!privacyFilt.include(task[Field.PersonKey.ordinal()])) {
+                    // data privacy permissions dictate us to ignore this step
+                } else if (workingIncompleteTask == null) {
                     workingIncompleteTask = task;
                 } else {
                     appendResourceNames(workingIncompleteTask, task);
@@ -239,7 +251,8 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
     }
 
     private enum Field {
-        TaskID, Root, Process, Parent, Ordinal, Completed, Who, WBSName, TaskName
+        TaskID, Root, Process, Parent, Ordinal, Completed, Who, WBSName, //
+        TaskName, PersonKey
     };
 
     private static class TaskSorter implements Comparator<Object[]> {

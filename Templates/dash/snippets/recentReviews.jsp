@@ -9,15 +9,17 @@
 <script type="text/javascript" src="/dash/snippets/recentReviews.js" />
 </head>
 <body>
-<h3><fmt:message key="Title" /></h3>
-
 <c:choose>
 
+<c:when test="${blocked}"></c:when>
+
 <c:when test="${empty reviews}">
+<h3><fmt:message key="Title" /></h3>
 <p><i><fmt:message key="None_Found" /></i></p>
 </c:when>
 
 <c:otherwise>
+<h3><fmt:message key="Title" /></h3>
 <p><table border width="100%">
 <tr>
 <th rowspan="2"><fmt:message key="Columns.Task" />

@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import net.sourceforge.processdash.api.PDashQuery;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.tool.db.PersonFilter;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.util.AdaptiveNumberFormat;
 import net.sourceforge.processdash.util.DateUtils;
@@ -48,6 +49,8 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class RecentReviews extends HttpServlet {
+
+    private static final String PERMISSION = "pdash.reports.scanner";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -69,17 +72,26 @@ public class RecentReviews extends HttpServlet {
         List<String> reviewPhases = data.getList("/" + processID
                 + "/Review_Phase_List");
 
+        // ensure the user has permission to view recent reviews
+        PDashQuery query = pdash.getQuery();
+        PersonFilter privacyFilter = new PersonFilter(PERMISSION, query);
+        if (privacyFilter.isBlock()) {
+            req.setAttribute("blocked", Boolean.TRUE);
+            return;
+        }
+
         // query the database for data about recently completed reviews
         String[] hql = getHql(req);
-        PDashQuery query = pdash.getQuery();
         List<Object[]> taskData = query.query(hql[0], processID, reviewPhases);
         List<Integer> planItemKeys = QueryUtils.pluckColumn(taskData, 0);
         List<Object[]> defectCounts = query.query(hql[1], planItemKeys);
 
         // build objects to hold the resulting data
         List<ReviewRow> reviews = new ArrayList<RecentReviews.ReviewRow>();
-        for (Object[] oneRow : taskData)
-            reviews.add(new ReviewRow(oneRow));
+        for (Object[] oneRow : taskData) {
+            if (privacyFilter.include(oneRow[8]))
+                reviews.add(new ReviewRow(oneRow));
+        }
         for (Object[] oneRow : defectCounts)
             storeDefectCounts(reviews, oneRow);
         req.setAttribute("reviews", reviews);
