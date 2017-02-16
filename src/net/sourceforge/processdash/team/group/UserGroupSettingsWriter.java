@@ -23,15 +23,11 @@
 
 package net.sourceforge.processdash.team.group;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import javax.swing.Timer;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -39,25 +35,27 @@ import net.sourceforge.processdash.team.setup.TeamSettingsDataWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
 
 public class UserGroupSettingsWriter implements TeamSettingsDataWriter,
-        UserGroupEditListener, ActionListener {
+        UserGroupEditListener {
 
-    private Timer timer;
+    private boolean needsRepublish;
 
     public UserGroupSettingsWriter() {
-        timer = new Timer(1000, this);
-        timer.setRepeats(false);
+        needsRepublish = false;
         UserGroupManager.getInstance().addUserGroupEditListener(this);
     }
+
 
     @Override
     public void userGroupEdited(UserGroupEditEvent e) {
         if (e.getGroup().isCustom() == false)
-            timer.restart();
+            needsRepublish = true;
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        TeamSettingsRepublisher.getInstance().requestRepublish();
+    public void userGroupsChanged() {
+        if (needsRepublish)
+            TeamSettingsRepublisher.getInstance().requestRepublish();
+        needsRepublish = false;
     }
 
 

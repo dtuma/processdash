@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -109,7 +110,7 @@ public abstract class UserGroupManager {
 
         // load group data from both files
         timestamps = new HashMap<Boolean, Date>();
-        groups = new HashMap<String, UserGroup>();
+        groups = Collections.synchronizedMap(new HashMap<String, UserGroup>());
         reloadGroups(false);
         reloadGroups(true);
         needsSave = new HashSet<Boolean>();
@@ -175,7 +176,10 @@ public abstract class UserGroupManager {
         for (UserGroupEditListener l : listeners
                 .getListeners(UserGroupEditListener.class)) {
             try {
-                l.userGroupEdited(event);
+                if (event != null)
+                    l.userGroupEdited(event);
+                else
+                    l.userGroupsChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -234,20 +238,42 @@ public abstract class UserGroupManager {
     }
 
 
-    public void saveGroup(UserGroup g) {
+    public void alterGroups(Collection<UserGroup> groupsToSave,
+            Collection<UserGroup> groupsToDelete) {
+        // delete the requested set of groups
+        if (groupsToDelete != null) {
+            for (UserGroup g : groupsToDelete)
+                if (g.getId() != null)
+                    deleteGroupImpl(g);
+        }
+
+        // save the requested set of groups
+        if (groupsToSave != null) {
+            for (UserGroup g : groupsToSave)
+                saveGroupImpl(g);
+        }
+
+        // notify listeners if changes were made
+        if (!needsSave.isEmpty())
+            fireUserGroupEditEvent(null);
+
+        // flush in-memory changes to disk
+        saveAll();
+    }
+
+
+    private void saveGroupImpl(UserGroup g) {
         prepareForModification(g);
 
         // if this is a new group, assign it a unique group ID
         if (g.getId() == null)
             g.id = generateUniqueID(g.isCustom());
 
-        // add or replace the given group, and save the changes.
+        // add or replace the given group.
         groups.put(g.getId(), g);
-        try {
-            saveFile(g.isCustom());
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+
+        // make a note that this file needs saving.
+        needsSave.add(g.isCustom());
         groupWasSaved(g);
     }
 
@@ -271,16 +297,13 @@ public abstract class UserGroupManager {
 
 
 
-    public void deleteGroup(UserGroup g) {
+    private void deleteGroupImpl(UserGroup g) {
         prepareForModification(g);
 
-        // delete the requested group, and save the changes.
+        // delete the requested group
         if (groups.remove(g.getId()) != null) {
-            try {
-                saveFile(g.isCustom());
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
+            // make a note that this file needs saving.
+            needsSave.add(g.isCustom());
             groupWasDeleted(g);
         }
     }
@@ -295,7 +318,7 @@ public abstract class UserGroupManager {
         if (needsSave == null || needsSave.isEmpty())
             return true;
 
-        for (Boolean custom : needsSave) {
+        for (Boolean custom : new HashSet<Boolean>(needsSave)) {
             try {
                 saveFile(custom);
             } catch (IOException ioe) {
@@ -331,8 +354,8 @@ public abstract class UserGroupManager {
 
         // custom groups could be altered simultaneously by different processes.
         // to be on the safe side, try reloading the custom groups file before
-        // we modify it.
-        if (g.isCustom())
+        // we modify it (as long as we don't have unsaved changes).
+        if (g.isCustom() && !needsSave.contains(Boolean.TRUE))
             reloadGroups(true);
     }
 
@@ -405,9 +428,6 @@ public abstract class UserGroupManager {
     }
 
     private void saveFile(boolean custom) throws IOException {
-        // make a note that this file needs saving.
-        needsSave.add(custom);
-
         // find the file that should be modified
         File targetFile = custom ? customFile : sharedFile;
         targetFile.getParentFile().mkdirs();
