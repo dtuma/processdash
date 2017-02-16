@@ -644,9 +644,7 @@ public class DataRepository implements Repository, DataContext,
 
         public void run() {
             while (running) try {
-                if (fireEvent())
-                    yield();
-                else
+                if (fireEvent() == false)
                     doWait();
             } catch (Exception e) {}
         }
@@ -658,9 +656,25 @@ public class DataRepository implements Repository, DataContext,
         }
 
         public boolean flush() {
-            boolean result = false;
-            while (fireEvent()) { result = true; }
-            return result;
+            if (notifications.isEmpty())
+                return false;
+
+            boolean done = false;
+            do {
+                if (!done) {
+                    synchronized (this) {
+                        this.notifyAll();
+                    }
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ie) {}
+                }
+
+                done = notifications.isEmpty();
+
+            } while (!done);
+
+            return true;
         }
 
         public void quit() {
