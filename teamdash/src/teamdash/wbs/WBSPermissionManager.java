@@ -140,6 +140,15 @@ public class WBSPermissionManager {
     public static void init(WorkingDirectory workingDirectory, TeamProject proj)
             throws HttpException.Unauthorized {
 
+        // determine the identity of the current user.
+        String pdesUrl;
+        if (workingDirectory instanceof BridgedWorkingDirectory)
+            pdesUrl = workingDirectory.getDescription();
+        else
+            pdesUrl = ExternalLocationMapper.getInstance().getDatasetUrl();
+        WhoAmI whoAmI = new WhoAmI(pdesUrl);
+        currentUser = whoAmI.getUsername();
+
         // look at the team settings.xml file. if it was written by an old
         // version of the dashboard, it will not contain a version. In that
         // case, exit without any further analysis.
@@ -162,15 +171,6 @@ public class WBSPermissionManager {
             version = "999.999";
             return;
         }
-
-        // determine the identity of the current user.
-        String pdesUrl;
-        if (workingDirectory instanceof BridgedWorkingDirectory)
-            pdesUrl = workingDirectory.getDescription();
-        else
-            pdesUrl = ExternalLocationMapper.getInstance().getDatasetUrl();
-        WhoAmI whoAmI = new WhoAmI(pdesUrl);
-        currentUser = whoAmI.getUsername();
 
         // find the permissions granted in the settings.xml file
         Set<WBSPermission> perms = getPermissionsForUser(settings,
