@@ -48,6 +48,7 @@ public class TaskListMapper implements StringMapper {
             if (m.matches())
                 taskListIDs.put(m.group(1).replace(EQ_REPL, '='), m.group(2));
         }
+        in.close();
     }
 
     private static final Pattern TASK_LIST_ID_DECL_PAT = Pattern
