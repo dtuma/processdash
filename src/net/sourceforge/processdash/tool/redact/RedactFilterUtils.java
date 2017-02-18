@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Map;
 
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.StringMapper;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class RedactFilterUtils {
@@ -122,6 +124,33 @@ public class RedactFilterUtils {
             return hash(str);
         }
     };
+
+    public static StringMapper hashPrefixMapper(final String prefix) {
+        return new StringMapper() {
+            public String getString(String str) {
+                return prefix + hash(str);
+            }
+        };
+    }
+
+    public static StringMapper hashListMapper(StringMapper itemMapper) {
+        return hashListMapper(itemMapper, ",");
+    }
+
+    public static StringMapper hashListMapper(final StringMapper itemMapper,
+            final String delim) {
+        return new StringMapper() {
+            public String getString(String str) {
+                if (str == null || str.length() == 0)
+                    return str;
+
+                String[] listItems = str.split(delim);
+                for (int i = listItems.length; i-- > 0;)
+                    listItems[i] = itemMapper.getString(listItems[i]);
+                return StringUtils.join(Arrays.asList(listItems), delim);
+            }
+        };
+    }
 
     public static final String hash(String s) {
         return hash(s, false, 99);

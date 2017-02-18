@@ -40,6 +40,7 @@ The author(s) may be contacted at:
   <redact-filter-set ordinal="400" id="labels"/>
   <redact-filter-set ordinal="500" id="workflows"/>
   <redact-filter-set ordinal="550" id="defectTypes"/>
+  <redact-filter-set ordinal="575" id="users"/>
   <redact-filter-set ordinal="600" id="logFiles"/>
 
   <redact-filter class="&pkg;FilterCensoredFiles"/>
@@ -57,7 +58,9 @@ The author(s) may be contacted at:
   <redact-line-filter class="&pkg;FilterPdashTimelog"/>
   <redact-line-filter class="&pkg;FilterPdashUserDump"/>
   <redact-line-filter class="&pkg;FilterPspdashIniFile"/>
+  <redact-line-filter class="&pkg;FilterRolesFile"/>
   <redact-line-filter class="&pkg;FilterStateFile"/>
+  <redact-line-filter class="&pkg;FilterUsersFile"/>
   <redact-line-filter class="&pkg;FilterWbsAttributes"/>
   <redact-line-filter class="&pkg;FilterWbsMilestones"/>
   <redact-line-filter class="&pkg;FilterWbsNodeNames"/>

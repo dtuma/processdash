@@ -176,6 +176,20 @@ public class WhoAmI {
 
 
     /**
+     * Return a predictable hash of a username.
+     */
+    public static String hashUsername(String username) {
+        if (username == null || username.isEmpty() || "*".equals(username)
+                || (username.startsWith("[") && username.endsWith("]")))
+            return username;
+
+        int hashCode = Math.abs(username.toLowerCase().hashCode());
+        return "[" + Long.toString(hashCode, Character.MAX_RADIX) + "]";
+    }
+
+
+
+    /**
      * Make a REST API call, and return the result as JSON.
      */
     static JSONObject makeRestApiCall(String urlStr) throws IOException {

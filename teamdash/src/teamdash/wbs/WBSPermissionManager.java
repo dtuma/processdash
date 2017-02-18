@@ -197,6 +197,7 @@ public class WBSPermissionManager {
         // used if we don't find any mention of this user in the settings file.
         Set<WBSPermission> userPerms = new HashSet();
         Set<WBSPermission> catchAllPerms = new HashSet();
+        String usernameHash = WhoAmI.hashUsername(username);
 
         // find the <roles> tag in the settings document. If the tag is not
         // found, return an empty set.
@@ -211,7 +212,8 @@ public class WBSPermissionManager {
             List<String> usersForRole = Arrays.asList(
                 role.getAttribute("users").toLowerCase().split(","));
             Set<WBSPermission> perms;
-            if (usersForRole.contains(username)) {
+            if (usersForRole.contains(username)
+                    || usersForRole.contains(usernameHash)) {
                 // if our target user has this role, store permissions in
                 // the userPerms collection
                 perms = userPerms;

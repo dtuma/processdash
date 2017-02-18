@@ -363,6 +363,8 @@ public class PermissionsManager {
         // identify the User object for the currently logged in user
         User user = getUserByUsername(currentUsername);
         if (user == null)
+            user = getUserByUsername(WhoAmI.hashUsername(currentUsername));
+        if (user == null)
             user = users.get(CATCH_ALL_USER_ID);
         return user;
     }
