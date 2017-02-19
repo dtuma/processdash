@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -60,6 +60,7 @@ import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -150,8 +151,11 @@ public class SyncWBS extends TinyCGIBase {
 
     public void writeContents() throws IOException {
         try {
-            if (Settings.getBool("READ_ONLY", false))
+            if (Settings.isReadOnly()) {
+                if (Settings.isTeamMode())
+                    DataImporter.refreshPrefix("/");
                 signalError("generalError", READ_ONLY_MODE_ERR_MESSAGE);
+            }
 
             // locate the root of the included project.
             findProject();
@@ -619,6 +623,9 @@ public class SyncWBS extends TinyCGIBase {
             UserNotificationManager.getInstance().removeNotification(
                     SyncScanner.getScanTaskID(projectRoot));
         }
+
+        if (isTeam)
+            DataImporter.refreshPrefix("/");
     }
 
 

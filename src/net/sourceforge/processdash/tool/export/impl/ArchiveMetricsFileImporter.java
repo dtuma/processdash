@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2015 Tuma Solutions, LLC
+// Copyright (C) 2005-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,8 +32,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.w3c.dom.Element;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -45,12 +51,8 @@ import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 public class ArchiveMetricsFileImporter implements Runnable,
         ArchiveMetricsXmlConstants {
@@ -212,6 +214,9 @@ public class ArchiveMetricsFileImporter implements Runnable,
             }
         }
 
+        // make a note of the individual who exported this data
+        recordKnownPerson();
+
         // Protect this data from being viewed via external http requests.
         defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
 
@@ -271,6 +276,21 @@ public class ArchiveMetricsFileImporter implements Runnable,
         String filename = file.getAbsolutePath();
         throw new IOException("Unable to import '" + filename
                 + "'; not a valid archive file: " + message);
+    }
+
+    private void recordKnownPerson() {
+        String projectID = null;
+        String initials = null;
+        for (Entry<String, Object> e : ((Map<String, Object>)defns).entrySet()) {
+            String dataName = e.getKey();
+            if (dataName.endsWith("/Project_ID"))
+                projectID = e.getValue().toString();
+            else if (dataName.endsWith("/Indiv_Initials"))
+                initials = e.getValue().toString();
+        }
+
+        UserGroupManagerDash.getInstance().addPersonFromPdash(projectID,
+            initials, owner, srcDatasetID);
     }
 
     private void addImportMetadata(Map<String, String> packageIDs) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
@@ -70,6 +71,7 @@ public class DataImporter extends Thread {
     public static final String EXPORT_FILE_OLD_SUFFIX = ".txt";
     public static final String EXPORT_FILE_SUFFIX = ".pdash";
     public static final String MESSAGES_FILE = "messages.xml";
+    private static final String TEAM_LIST_FILE = "team.xml";
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
 
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
@@ -372,6 +374,10 @@ public class DataImporter extends Thread {
             // accept new message XML files
             return filename;
 
+        else if (filename.equals(TEAM_LIST_FILE))
+            // accept new team member list files
+            return filename;
+
         else
             // reject other files.
             return null;
@@ -477,6 +483,8 @@ public class DataImporter extends Thread {
             task.doImport();
         } else if (filename.equals(MESSAGES_FILE)) {
             MessageImporterXMLv1.importServerMessageFile(f);
+        } else if (filename.equals(TEAM_LIST_FILE)) {
+            UserGroupManagerDash.getInstance().addTeamMemberList(f);
         }
 
         prefixes.put(f.getName(), prefix);

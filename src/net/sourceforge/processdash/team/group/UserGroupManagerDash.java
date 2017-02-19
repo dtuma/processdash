@@ -23,10 +23,19 @@
 
 package net.sourceforge.processdash.team.group;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
@@ -36,10 +45,10 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.tool.db.DatabasePlugin;
-import net.sourceforge.processdash.tool.db.QueryRunner;
-import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class UserGroupManagerDash extends UserGroupManager {
 
@@ -52,11 +61,9 @@ public class UserGroupManagerDash extends UserGroupManager {
     }
 
 
+    private Map<String, KnownPerson> joinedPeople, allTeamMembers;
+
     private DataRepository dataRepository;
-
-    private DatabasePlugin databasePlugin;
-
-    private QueryRunner query;
 
 
     private UserGroupManagerDash() {
@@ -66,6 +73,9 @@ public class UserGroupManagerDash extends UserGroupManager {
         super(Settings.isTeamMode()
                 && TemplateLoader.meetsPackageRequirement("tpidw-embedded",
                     "1.5.4.1"));
+        ReverseOrder reverse = new ReverseOrder();
+        joinedPeople = Collections.synchronizedMap(new TreeMap(reverse));
+        allTeamMembers = Collections.synchronizedMap(new TreeMap(reverse));
     }
 
     public void init(DashboardContext ctx) {
@@ -78,10 +88,6 @@ public class UserGroupManagerDash extends UserGroupManager {
 
         // save the data repository for future use
         dataRepository = ctx.getData();
-
-        // retrieve an object for querying the database
-        databasePlugin = QueryUtils.getDatabasePlugin(ctx.getData());
-        query = databasePlugin.getObject(QueryRunner.class);
 
         // determine the file for storage of shared groups
         File wd = ctx.getWorkingDirectory().getDirectory();
@@ -240,31 +246,136 @@ public class UserGroupManagerDash extends UserGroupManager {
 
 
     /**
-     * @return the list of all people known to this Team Dashboard. <b>Note:</b>
-     *         this list cannot be generated until all project data has been
-     *         loaded; so if this method is called shortly after startup in a
-     *         large Team Dashboard, it may take a long time to return.
+     * @return the list of all people known to this Team Dashboard.
      */
     @Override
     public Set<UserGroupMember> getAllKnownPeople() {
-        // query the database for all known people, and add them to the group
-        QueryUtils.waitForAllProjects(databasePlugin);
-        List<Object[]> rawData = query.queryHql(EVERYONE_QUERY);
-        Set<UserGroupMember> members = new HashSet();
-        for (Object[] row : rawData) {
-            String userName = (String) row[1];
-            String datasetID = (String) row[2];
-            UserGroupMember m = new UserGroupMember(userName, datasetID);
-            members.add(m);
+        Set<UserGroupMember> result = new HashSet();
+        Set<String> namesSeen = new HashSet();
+
+        // create users for each person who has joined a team project. Entries
+        // will be processed from newest team project to oldest, so the logic
+        // below will prefer the most-recently-written full name for each person
+        for (KnownPerson p : joinedPeople.values()) {
+            if (result.add(p.asMember()))
+                namesSeen.add(p.fullName);
         }
-        return members;
+
+        // now, look through the data for people who have been added to a team,
+        // but who might not have joined the project yet. This data isn't as
+        // reliable, so we only use it for people we haven't seen yet.
+        for (Entry<String, KnownPerson> e : allTeamMembers.entrySet()) {
+            String key = e.getKey();
+            if (joinedPeople.containsKey(key))
+                // this team member (as identified by a projectID/initials pair)
+                // has joined the project, so we have their data already.
+                continue;
+
+            KnownPerson p = e.getValue();
+            if (namesSeen.contains(p.fullName))
+                // we've already seen an individual with this exact name. The
+                // person we saw already is more reliable (either because they
+                // came from joining data, or from a newer project).
+                continue;
+
+            if (result.add(p.asMember()))
+                namesSeen.add(p.fullName);
+        }
+
+        return result;
     }
 
-    private static final String EVERYONE_QUERY = //
-    "select p.person.key, p.person.encryptedName, p.value.text "
-            + "from PersonAttrFact as p " //
-            + "where p.versionInfo.current = 1 "
-            + "and p.attribute.identifier = 'person.pdash.dataset_id'";
+
+    /**
+     * Make note of the fact that we saw a PDASH file describing a particular
+     * individual who has joined a team project.
+     */
+    public void addPersonFromPdash(String projectID, String initials,
+            String fullName, String datasetID) {
+        if (XMLUtils.hasValue(projectID) //
+                && XMLUtils.hasValue(initials) //
+                && XMLUtils.hasValue(fullName) //
+                && XMLUtils.hasValue(datasetID)) {
+            KnownPerson p = new KnownPerson();
+            p.projectID = projectID.toLowerCase();
+            p.initials = initials.toLowerCase();
+            p.fullName = fullName;
+            p.datasetID = datasetID;
+            joinedPeople.put(p.getKey(), p);
+        }
+    }
+
+
+    /**
+     * Scan the team member list of a project for any individuals it contains
+     */
+    public void addTeamMemberList(File f) {
+        // look at the name of the directory containing the import file. If it
+        // isn't a bridged import directory, ignore it - because we'll only find
+        // server identity info in a PDES-based team member list file.
+        String parentDir = f.getParentFile().getName().toLowerCase();
+        if (!parentDir.startsWith("http")
+                && !CompressedInstanceLauncher.isRunningFromCompressedData())
+            return;
+
+        // infer the project ID from the name of the parent directory
+        int commaPos = parentDir.lastIndexOf(',');
+        String projectID = parentDir.substring(commaPos + 1);
+
+        // parse the data in the team member list. Abort if corrupt
+        Element xml;
+        try {
+            xml = XMLUtils
+                    .parse(new BufferedInputStream(new FileInputStream(f)))
+                    .getDocumentElement();
+        } catch (Exception e) {
+            return;
+        }
+
+        // find each of the team members, and see if they contain datasetIDs
+        NodeList nl = xml.getElementsByTagName("teamMember");
+        for (int i = 0; i < nl.getLength(); i++) {
+            Element m = (Element) nl.item(i);
+            String serverInfo = m.getAttribute("serverIdentityData");
+            if (!XMLUtils.hasValue(serverInfo))
+                continue;
+
+            String datasetID = (String) HTMLUtils.parseQuery(serverInfo)
+                    .get("datasetID");
+            if (!XMLUtils.hasValue(datasetID))
+                continue;
+
+            KnownPerson p = new KnownPerson();
+            p.projectID = projectID;
+            p.initials = m.getAttribute("initials").toLowerCase();
+            p.fullName = m.getAttribute("name");
+            p.datasetID = datasetID;
+            allTeamMembers.put(p.getKey(), p);
+        }
+    }
+
+
+    private static class KnownPerson {
+
+        String projectID, initials, fullName, datasetID;
+
+        String getKey() {
+            return projectID + "/" + initials;
+        }
+
+        UserGroupMember asMember() {
+            return new UserGroupMember(fullName, datasetID);
+        }
+
+    }
+
+
+    private static class ReverseOrder implements Comparator<String> {
+        public int compare(String a, String b) {
+            return b.compareTo(a);
+        }
+    }
+
 
     private static final String DATA_PREFIX = "User_Group/";
 
