@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,6 +77,8 @@ public class HttpAuthenticator extends Authenticator {
 
     private String lastUsername;
 
+    private char[] lastPassword;
+
 
     private static final String SETTING_PREFIX = //
             "net.sourceforge.processdash.HttpAuthenticator.";
@@ -136,6 +138,8 @@ public class HttpAuthenticator extends Authenticator {
             char[] password = getPasswordFromKeyring(lastUsername);
             if (password != null)
                 return new PasswordAuthentication(lastUsername, password);
+            else if (lastUsername != null && lastPassword != null)
+                return new PasswordAuthentication(lastUsername, mask(lastPassword));
             else
                 state = State.UserEntry1;
         }
@@ -222,6 +226,7 @@ public class HttpAuthenticator extends Authenticator {
             // if the user entered credentials, return them.
             if (rememberMe != null && rememberMe.isSelected())
                 savePasswordToKeyring(lastUsername, password.getPassword());
+            lastPassword = mask(password.getPassword());
             return new PasswordAuthentication(lastUsername,
                     password.getPassword());
         } else {
@@ -234,6 +239,8 @@ public class HttpAuthenticator extends Authenticator {
     private void determineCurrentState() {
         if (isRetry() == false) {
             // if this operation is not a retry, reset to initial state.
+            if (lastUrl == null || !getBaseURL().equals(getBaseURL(lastUrl)))
+                lastPassword = null;
             lastUrl = getEffectiveURL();
             lastTimestamp = System.currentTimeMillis();
             lastUsername = prefs.get(prefsKey(LAST_USERNAME), null);
@@ -243,6 +250,8 @@ public class HttpAuthenticator extends Authenticator {
         // if we are not in a failure mode, increment the state by one position
         if (state.compareTo(State.Failed) < 0)
             state = State.values()[state.ordinal() + 1];
+        else
+            lastPassword = null;
     }
 
     private boolean isRetry() {
@@ -300,8 +309,19 @@ public class HttpAuthenticator extends Authenticator {
         return username + "@" + getBaseURL();
     }
 
+    private char[] mask(char[] password) {
+        // tweak the chars to make passwords less readable in heap dumps
+        char[] result = new char[password.length];
+        for (int i = result.length; i-- > 0;)
+            result[i] = (char) (password[i] ^ 0x5555);
+        return result;
+    }
+
     private String getBaseURL() {
-        String result = getEffectiveURL();
+        return getBaseURL(getEffectiveURL());
+    }
+
+    private String getBaseURL(String result) {
         int baseEndPos = result.indexOf("DataBridge");
         if (baseEndPos == -1)
             baseEndPos = result.indexOf("api/v1");
