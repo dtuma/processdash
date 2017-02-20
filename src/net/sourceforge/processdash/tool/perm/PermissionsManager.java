@@ -60,6 +60,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
+import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -758,6 +759,10 @@ public class PermissionsManager {
                 TamperDeterrent.FileType.XML);
             tmp.delete();
 
+            // from now forward, require a version of the dashboard that
+            // understands and enforces users, roles and permissions
+            DataVersionChecker.registerDataRequirement("pspdash", "2.3.2");
+
             this.rolesDirty = false;
         } catch (IOException ioe) {
             logger.log(Level.WARNING, "Could not save roles to " + rolesFile,
@@ -956,6 +961,10 @@ public class PermissionsManager {
             TamperDeterrent.getInstance().addThumbprint(tmp, usersFile,
                 TamperDeterrent.FileType.XML);
             tmp.delete();
+
+            // from now forward, require a version of the dashboard that
+            // understands and enforces users, roles and permissions
+            DataVersionChecker.registerDataRequirement("pspdash", "2.3.2");
 
             // flush data so the PDES can update server-side permissions
             if (bridgedUrl != null)
