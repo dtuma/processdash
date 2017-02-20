@@ -103,6 +103,11 @@ The author(s) may be contacted at:
     <parent>pdash.teamSettings</parent>
   </permission>
 
+  <permission id="pdash.manageImportExport" ordinal="1050">
+    <resources>ImportExport.Wizard.Permission</resources>
+    <parent>pdash.teamSettings</parent>
+  </permission>
+
   <permission id="pdash.editPreferences" ordinal="1060">
     <resources>Tools.Prefs.Dialog.Permission</resources>
     <parent>pdash.teamSettings</parent>

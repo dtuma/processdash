@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,10 +27,26 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-public class ShowExportWizardAction extends AbstractAction {
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
+
+public class ShowExportWizardAction extends AbstractAction
+        implements PermissionsChangeListener {
 
     public ShowExportWizardAction(String name) {
         super(name);
+        PermissionsManager.getInstance().addPermissionsChangeListener(this);
+        permissionsChanged(null);
+    }
+
+    @Override
+    public void permissionsChanged(PermissionsChangeEvent event) {
+        boolean hasPerm = PermissionsManager.getInstance()
+                .hasPermission("pdash.manageImportExport");
+        setEnabled(hasPerm);
+        putValue(SHORT_DESCRIPTION, hasPerm ? null : Wizard.resources //
+                .getString("Permission.No_Permission"));
     }
 
     public void actionPerformed(ActionEvent e) {
