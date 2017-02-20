@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,8 +29,13 @@ import javax.swing.AbstractAction;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
+import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 
-public class OpenPreferencesDialogAction extends AbstractAction {
+public class OpenPreferencesDialogAction extends AbstractAction
+        implements PermissionsChangeListener {
+
     private static final Resources resources = Resources.getDashBundle("Tools.Prefs.Dialog");
 
     private static final String MENU_TEXT_RESOURCE = "Menu_Text";
@@ -45,6 +50,18 @@ public class OpenPreferencesDialogAction extends AbstractAction {
     public OpenPreferencesDialogAction(ProcessDashboard parent) {
         super(resources.getString(MENU_TEXT_RESOURCE));
         this.parent = parent;
+
+        PermissionsManager.getInstance().addPermissionsChangeListener(this);
+        permissionsChanged(null);
+    }
+
+    @Override
+    public void permissionsChanged(PermissionsChangeEvent event) {
+        boolean hasPerm = PermissionsManager.getInstance()
+                .hasPermission("pdash.editPreferences");
+        setEnabled(hasPerm);
+        putValue(SHORT_DESCRIPTION,
+            hasPerm ? null : resources.getString("Permission.No_Permission"));
     }
 
     public void actionPerformed(ActionEvent e) {

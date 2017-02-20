@@ -103,6 +103,11 @@ The author(s) may be contacted at:
     <parent>pdash.teamSettings</parent>
   </permission>
 
+  <permission id="pdash.editPreferences" ordinal="1060">
+    <resources>Tools.Prefs.Dialog.Permission</resources>
+    <parent>pdash.teamSettings</parent>
+  </permission>
+
   <permission id="pdash.projects" ordinal="2000">
     <resources>Permissions.Edit_Projects</resources>
     <parent>pdash.all</parent>
