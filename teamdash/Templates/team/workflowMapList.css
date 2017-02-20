@@ -188,3 +188,11 @@ a:hover {
 a:visited {
     color: #00e;
 }
+
+div.errorMessage {
+    background-color: #ffcccc;
+    border: 1px solid #d77;
+    color: #a30000;
+    margin: 1em 0;
+    padding: 1em;
+}

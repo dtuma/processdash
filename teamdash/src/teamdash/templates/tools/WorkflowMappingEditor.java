@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -106,6 +107,15 @@ public class WorkflowMappingEditor extends HttpServlet {
 
     private void showAddWorkflowMapPage(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
+        // ensure the user has permission to add a new mapping
+        if (!hasPermission()) {
+            StringBuffer url = req.getRequestURL();
+            String workflowId = req.getParameter(ADD_PARAM);
+            HTMLUtils.appendQuery(url, LIST_PARAM, workflowId);
+            HTMLUtils.appendQuery(url, "noPermission", "t");
+            resp.sendRedirect(url.toString());
+            return;
+        }
 
         // get the workflow mapping business object
         WorkflowMappingManager mgr = new WorkflowMappingManager(
@@ -165,7 +175,7 @@ public class WorkflowMappingEditor extends HttpServlet {
             HttpServletResponse resp) throws ServletException, IOException {
 
         // save the changed phase data if requested
-        if (hasParam(req, "save")) {
+        if (hasParam(req, "save") && hasPermission()) {
             Map<String, String> changes = getChangedPhaseMappings(req);
             if (changes != null) {
                 // get the workflow mapping business object
@@ -269,9 +279,13 @@ public class WorkflowMappingEditor extends HttpServlet {
         HTMLUtils.appendQuery(url, TARGET_PARAM, target);
         HTMLUtils.appendQuery(url, FOCUS_PARAM, focus);
         if (hasParam(req, EDIT_PARAM)) {
-            HTMLUtils.appendQuery(url, EDIT_PARAM, "t");
-            if (hasParam(req, ADDING_PARAM))
-                HTMLUtils.appendQuery(url, ADDING_PARAM, "t");
+            if (hasPermission()) {
+                HTMLUtils.appendQuery(url, EDIT_PARAM, "t");
+                if (hasParam(req, ADDING_PARAM))
+                    HTMLUtils.appendQuery(url, ADDING_PARAM, "t");
+            } else {
+                HTMLUtils.appendQuery(url, "noPermission", "t");
+            }
         }
         resp.sendRedirect(url.toString());
     }
@@ -297,6 +311,17 @@ public class WorkflowMappingEditor extends HttpServlet {
 
     private boolean hasParam(HttpServletRequest req, String paramName) {
         return StringUtils.hasValue(req.getParameter(paramName));
+    }
+
+    private boolean hasPermission() {
+        try {
+            return PermissionsManager.getInstance()
+                    .hasPermission("wbs.workflowMappings");
+        } catch (Throwable t) {
+            // earlier versions of the dashboard will not have this class,
+            // and do not enforce permissions.
+            return true;
+        }
     }
 
 

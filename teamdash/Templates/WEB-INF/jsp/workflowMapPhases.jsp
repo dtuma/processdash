@@ -13,6 +13,12 @@
 
 <h1><c:out value="${resources[editing ? 'Edit.Title' : 'View.Title']}"/></h1>
 
+<c:if test="${!empty param.noPermission}">
+  <div class="errorMessage">
+    <c:out value="${resources['Permission.No_Permission']}"/>
+  </div>
+</c:if>
+
 <form action="workflowMap" method="post">
 <input type="hidden" name="source" value="${param.source}" />
 <input type="hidden" name="target" value="${param.target}" />

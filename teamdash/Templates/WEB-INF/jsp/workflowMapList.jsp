@@ -10,6 +10,12 @@
 
 <h1><c:out value="${resources['List.Title']}"/></h1>
 
+<c:if test="${!empty param.noPermission}">
+  <div class="errorMessage">
+    <c:out value="${resources['Permission.No_Permission']}"/>
+  </div>
+</c:if>
+
 <div class="mainWorkflow"><div class="workflow">
   <div class="projectName">&laquo;&nbsp;<c:out
           value="${workflow.project}"/>&nbsp;&raquo;</div>
