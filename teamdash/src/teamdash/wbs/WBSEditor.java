@@ -1846,6 +1846,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             }
         } catch (HttpException.Unauthorized he) {
             displayStartupPermissionError("Unauthorized");
+            waitFrame.dispose();
             return null;
         }
 
