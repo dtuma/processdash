@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -201,7 +201,6 @@ public class UndoList {
         if (undoList.size()-1 < MIN_LEVELS)
             return false;
 
-        Runtime.getRuntime().gc();
         long freeMemory = Runtime.getRuntime().freeMemory();
         long totalMemory = Runtime.getRuntime().totalMemory();
         long usedMemory = totalMemory - freeMemory;
