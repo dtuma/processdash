@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -79,6 +79,9 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
 
         SimpleData d = dataContext.getSimpleValue(DISALLOW_EDITING_TAG);
         if (d != null && d.test())
+            return true;
+
+        if (!hasEditPermission())
             return true;
 
         return false;

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -41,6 +42,9 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
     @Override
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
+
+        if (!hasEditPermission())
+            throw new TinyCGIException(403, "No permission");
 
         out.write(HTML_TRANSITIONAL_DOCTYPE);
 

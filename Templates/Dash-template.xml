@@ -143,6 +143,11 @@ The author(s) may be contacted at:
     <parent>pdash.all</parent>
   </permission>
 
+  <permission id="pdash.cms" ordinal="3045">
+    <resources>CMS.Edit_Page.Permission</resources>
+    <parent>pdash.standards</parent>
+  </permission>
+
   <permission id="pdash.defectTypes" ordinal="3050">
     <resources>Defects.Standard.Permission</resources>
     <parent>pdash.standards</parent>

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -305,6 +306,10 @@ public abstract class AbstractPageAssembler implements PageAssembler,
     /** Convience routine */
     protected static String esc(String s) {
         return HTMLUtils.escapeEntities(s);
+    }
+
+    protected static boolean hasEditPermission() {
+        return PermissionsManager.getInstance().hasPermission("pdash.cms");
     }
 
 }
