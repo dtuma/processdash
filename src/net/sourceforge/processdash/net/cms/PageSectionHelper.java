@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -110,7 +110,10 @@ public class PageSectionHelper {
                 sectionStatus = EMPTY_SECTION;
             } else {
                 int oneStatus = snip.getStatus();
-                if (sectionStatus == EMPTY_SECTION)
+                if (oneStatus == SnippetInvoker.NO_PERMISSION
+                        && AbstractPageAssembler.hasEditPermission())
+                    sectionStatus = SnippetInvoker.STATUS_OK;
+                else if (sectionStatus == EMPTY_SECTION)
                     sectionStatus = oneStatus;
                 else if (oneStatus <= SnippetInvoker.STATUS_OK)
                     sectionStatus = SnippetInvoker.STATUS_OK;

@@ -286,6 +286,7 @@ The author(s) may be contacted at:
 
   <snippet id="pdash.editHelp" version="1.0" category="hidden">
     <resources>CMS.Snippet.EditHelp</resources>
+    <permission>pdash.cms</permission>
     <context>*</context>
     <mode>edit</mode>
     <uri>/dash/snippets/editHelp.shtm</uri>

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -63,19 +64,23 @@ public class SnippetInvoker implements CMSSnippetEnvironment {
      * match the context of this invoker. */
     public static final int STATUS_CONTEXT_MISMATCH = 2;
 
+    /** Status indicating that a snippet was not invoked, because the user does
+     * not have the necessary permission. */
+    public static final int NO_PERMISSION = 3;
+
     /** Status indicating that a snippet was not invoked, because it did not
      * support the active mode of this invoker. */
-    public static final int UNSUPPORTED_MODE = 3;
+    public static final int UNSUPPORTED_MODE = 4;
 
     /** Status indicating that an error was encountered during the invocation
      * of this snippet. */
-    public static final int STATUS_INTERNAL_ERROR = 4;
+    public static final int STATUS_INTERNAL_ERROR = 5;
 
     /** Canonical key components to use for the statuses above when retrieving
      * data from a resource bundle. */
     public static final String[] STATUS_RESOURCE_KEYS = { "OK",
-            "No_Definition", "Context_Mismatch", "Unsupported_Mode",
-            "Internal_Error" };
+            "No_Definition", "Context_Mismatch", "No_Permission", 
+            "Unsupported_Mode", "Internal_Error" };
 
 
 
@@ -172,12 +177,13 @@ public class SnippetInvoker implements CMSSnippetEnvironment {
         }
     }
 
-    /** Check to see if the given snippet is valid for the current context.
+    /** Check to see if the given snippet is valid for the current context and
+     * the current user.
      * 
      * @param snippet a snippet to test.
      * @return  true if the definition for this snippet matches the context
-     *    of this invoker.  If false is returned, the snippet's status will
-     *    be set to indicate the problem.
+     *    of this invoker, and if the user has permission.  If false is
+     *    returned, the snippet's status will be set to indicate the problem.
      */
     public boolean test(SnippetInstanceTO snippet) {
         SnippetDefinition defn = snippet.getDefinition();
@@ -186,6 +192,15 @@ public class SnippetInvoker implements CMSSnippetEnvironment {
             return false;
         } else if (!defn.matchesContext(dataContext)) {
             snippet.setStatus(SnippetInvoker.STATUS_CONTEXT_MISMATCH);
+            return false;
+        }
+
+        String permID = defn.getPermission();
+        if (permID != null
+                && (!XMLUtils.hasValue(mode) || "view".equalsIgnoreCase(mode)
+                        || "toc".equalsIgnoreCase(mode))
+                && !PermissionsManager.getInstance().hasPermission(permID)) {
+            snippet.setStatus(SnippetInvoker.NO_PERMISSION);
             return false;
         }
 

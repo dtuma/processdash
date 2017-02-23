@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ public class SnippetDefinition {
 
     private Set modes;
 
+    private Set<String> permissions;
+
     private Set uris;
 
     private Set widgets;
@@ -117,6 +119,8 @@ public class SnippetDefinition {
                     "The contexts must be specified");
 
         modes = readSet(xml, "mode", false);
+
+        permissions = readSet(xml, "permission", false);
 
         uris = readSet(xml, "uri", true);
 
@@ -219,6 +223,14 @@ public class SnippetDefinition {
     /** Returns a list of modes this snippet supports, in addition to "view" */
     public Set getModes() {
         return modes;
+    }
+
+    /**
+     * Returns the ID of a permission that is required to view this snippet, or
+     * null if no permission is necessary.
+     */
+    public String getPermission() {
+        return permissions.isEmpty() ? null : permissions.iterator().next();
     }
 
     /** Returns the resource bundle that is used by the snippet */
