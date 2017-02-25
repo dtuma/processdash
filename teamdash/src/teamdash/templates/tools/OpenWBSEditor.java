@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -177,13 +177,6 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private boolean checkEntryCriteria(String url, String directory) {
-        String javaVersion = System.getProperty("java.version");
-        if (javaVersion.startsWith("1.3")) {
-            writeHtmlHeader();
-            out.print(JAVA_VERSION_MSG1 + javaVersion + JAVA_VERSION_MSG2);
-            return false;
-        }
-
         // If a URL was provided and it maps to a valid team server
         // collection, we'll be fine in terms of opening the WBS.
         if (url != null) {
@@ -637,17 +630,6 @@ public class OpenWBSEditor extends TinyCGIBase {
         "<p>The Work Breakdown Structure Editor cannot be used until you " +
         "specify a team data directory on the Project Parameters and " +
         "Settings page.</p></body></html>";
-
-
-    private static final String JAVA_VERSION_MSG1 =
-        "<html><body><h1>Incorrect Java Version</h1>" +
-        "Sorry, but the team planning tools require version 1.4 or higher " +
-        "of the Java Runtime Environment (JRE).  You are currently running the " +
-        "dashboard with version ";
-    private static final String JAVA_VERSION_MSG2 =
-        " of the JRE.  To use the team planning tools, please upgrade the " +
-        "Java Runtime Environment on your computer, restart the dashboard, " +
-        "and try again.</body></html>";
 
 
     private static final String SERVER_UNAVAILABLE_MSG1 =

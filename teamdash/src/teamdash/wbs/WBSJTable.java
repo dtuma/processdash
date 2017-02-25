@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -482,10 +482,6 @@ public class WBSJTable extends JTable {
         customActions.add(new ActionMapping("expandTree", EXPAND_ACTION));
         customActions.add(new ActionMapping("moveTreeUp", MOVEUP_ACTION));
         customActions.add(new ActionMapping("moveTreeDown", MOVEDOWN_ACTION));
-
-        // Java 1.3 doesn't handle the "auto restart editing" actions very
-        // well, so if we're in a 1.3 JRE stop here.
-        if (System.getProperty("java.version").startsWith("1.3")) return;
 
         // Find the default row navigation actions for the table, and replace
         // them with new actions which (1) perform the original action, then

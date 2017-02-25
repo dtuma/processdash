@@ -23,7 +23,6 @@
 
 package teamdash.wbs;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -881,12 +880,6 @@ public class WBSTabPanel extends JLayeredPane implements
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         // remove the borders from the scroll pane
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        // we need to add an explicit border for the scroll bar in Java 1.3,
-        // otherwise its right edge vanishes when we remove the border from
-        // the scrollPane.
-        if (System.getProperty("java.version").startsWith("1.3"))
-            scrollPane.getVerticalScrollBar().setBorder(
-                BorderFactory.createMatteBorder(0, 0, 0, 1, Color.darkGray));
 
         // make the WBS table the "row header view" of the scroll pane.
         scrollPane.setRowHeaderView(wbsTable);

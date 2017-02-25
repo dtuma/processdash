@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -480,8 +480,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             // don't display a border around the text field.
             textField.setBorder(BorderFactory.createEmptyBorder());
             textField.setDisabledTextColor(Color.gray);
-            if (System.getProperty("java.version").compareTo("1.4") > 0)
-                textField.addMouseMotionListener(new VerticalDragHandler());
+            textField.addMouseMotionListener(new VerticalDragHandler());
             new ConditionalPasteAction(textField);
             new ConditionalRightAction(textField);
             this.add(textField);
