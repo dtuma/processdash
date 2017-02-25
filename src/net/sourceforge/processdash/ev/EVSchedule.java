@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -71,6 +71,7 @@ public class EVSchedule implements TableModel {
 
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
+    public static final String VIEW_INDIV_HOURS_PERMISSION = "pdash.indivData.scheduleHours";
     static Resources resources = Resources.getDashBundle("EV");
     static final String END_TOKEN = resources.getString("Schedule.End_Token");
     static final String SCHEDULE_TAG = "schedule";

@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,11 +73,16 @@ import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListFilter;
+import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.team.group.GroupPermission;
+import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.JDialogCellEditor;
@@ -96,7 +101,11 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
     private List<ScheduleTableRow> scheduleRows;
 
-    boolean rowsAreEditable;
+    private boolean rowsAreEditable;
+
+    private boolean rowsWereFiltered;
+
+    private EVTaskListFilter privacyFilter;
 
     private TotalTableRow totalRow;
 
@@ -130,15 +139,27 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
     @Override
     protected Object showEditorDialog(Object value) throws EditingCancelled {
+        // identify the privacy controls governing visibility of personal hours
+        UserFilter pf = GroupPermission
+                .getGrantedMembers(EVSchedule.VIEW_INDIV_HOURS_PERMISSION);
+        if (pf == null) {
+            showBlockedByPrivacyMessage(true);
+            return null;
+        }
+        privacyFilter = new EVTaskListGroupFilter(pf);
+
         collectScheduleRows();
         if (!scheduleRows.isEmpty()) {
             buildAndShowGUI();
+        } else if (rowsWereFiltered) {
+            showBlockedByPrivacyMessage(false);
         }
         return null;
     }
 
     private void collectScheduleRows() {
         rowsAreEditable = false;
+        rowsWereFiltered = false;
         scheduleRows = new ArrayList();
         totalRow = new TotalTableRow();
         collectScheduleRows(rollupTaskList);
@@ -152,9 +173,21 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         } else {
             ScheduleTableRow oneRow = new ScheduleTableRow(tl);
-            if (oneRow.isDisplayable())
-                scheduleRows.add(oneRow);
+            if (oneRow.isDisplayable()) {
+                if (oneRow.hasPermission())
+                    scheduleRows.add(oneRow);
+                else
+                    rowsWereFiltered = true;
+            }
         }
+    }
+
+    private void showBlockedByPrivacyMessage(boolean noPermission) {
+        JOptionPane.showMessageDialog(parent.frame,
+            TaskScheduleDialog.resources.getStrings(noPermission ? //
+                    "Balance.Blocked_Message" : "Balance.Filtered_Tooltip"),
+            TaskScheduleDialog.resources.getString("Balance.Read_Only_Title"),
+            JOptionPane.WARNING_MESSAGE);
     }
 
     private void buildAndShowGUI() {
@@ -516,7 +549,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             this.rowLabel = tl.getDisplayName();
             this.locked = false;
 
-            boolean isEditable = tl instanceof EVTaskListData;
+            boolean isEditable = tl instanceof EVTaskListData
+                    && Settings.isReadWrite();
             if (isEditable)
                 // this will ensure that the schedule is extended far enough
                 // to include the date in question
@@ -576,6 +610,10 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         boolean isDisplayable() {
             return targetPeriod != null;
+        }
+
+        boolean hasPermission() {
+            return privacyFilter.include(targetTaskList.getID());
         }
 
         boolean isRedistTarget(ScheduleTableRow fromRow) {
@@ -674,6 +712,14 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             super.addToPanel(panel, row);
             if (chartData != null)
                 addColoredIcon(null);
+            if (rowsWereFiltered) {
+                String tip = "<html><div width='300'>"
+                        + TaskScheduleDialog.resources.getHTML(
+                            "Balance.Filtered_Tooltip")
+                        + "</div></html>";
+                rowJLabel.setToolTipText(tip);
+                timeLabel.setToolTipText(tip);
+            }
         }
 
         @Override
