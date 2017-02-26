@@ -991,7 +991,17 @@ public class TemplateLoader {
                 public String run() {
                     return System.getProperty("java.version");
                 }});
+
+        // strip final prerelease/build information if present (JEP 223)
+        int end = Math.min(truncPos(result, '-'), truncPos(result, '+'));
+        result = result.substring(0, end);
+
         return result;
+    }
+
+    private static int truncPos(String version, char c) {
+        int pos = version.indexOf(c);
+        return (pos == -1 ? version.length() : pos);
     }
 
     /** Return the DashPackage object for an installed package, or null if
