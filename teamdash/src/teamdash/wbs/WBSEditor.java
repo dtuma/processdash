@@ -1274,7 +1274,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private void replaceWBS(TeamProject src) {
         tabPanel.stopCellEditing();
+        Set<Integer> hiddenNodes = teamProject.getWBS().getHiddenNodeIDs();
         replaceWBSModel(teamProject.getWBS(), src.getWBS(), tabPanel.wbsTable);
+        teamProject.getWBS().setHiddenNodeIDs(hiddenNodes);
         tabPanel.undoList.clear();
     }
 

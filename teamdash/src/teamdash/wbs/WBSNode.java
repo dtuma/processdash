@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,8 @@ public class WBSNode implements Cloneable {
     private int indentLevel;
     /** True if this node is expanded, false if it is collapsed */
     private boolean expanded;
+    /** True if this node has been hidden by a filter */
+    private boolean hidden;
     /** True if this node is read only */
     private boolean readOnly;
     /** A collection of attributes containing the data for this node */
@@ -169,6 +171,17 @@ public class WBSNode implements Cloneable {
      * @param expanded <code>true</code> to expand this node,
      *    <code>false</code> to collapse this node.  */
     public void setExpanded(boolean expanded) { this.expanded = expanded; }
+
+
+    /** Returns true if this node has been hidden by a filter */
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    /** Set whether this node has been hidden by a filter */
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
 
 
     /** Returns true if this node is read only.
@@ -376,6 +389,8 @@ public class WBSNode implements Cloneable {
                     newAttributes.put(name, e.getValue());
             }
             result.attributes = newAttributes;
+
+            result.setHidden(false);
 
             return result;
         } catch (CloneNotSupportedException cnse) {

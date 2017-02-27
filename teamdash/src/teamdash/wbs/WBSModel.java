@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -536,7 +536,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         // check to see if this node was hidden by a filtering operation.  If
         // so, this node and its children should not appear in the row list.
-        if (nodePos > 0 && isHiddenByFilter(node))
+        if (nodePos > 0 && node.isHidden())
             return;
 
         resultList.add(nodePos);
@@ -578,7 +578,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             this.nodePos = nodePos;
             this.node = wbsNodes.get(nodePos);
             this.expanded = (nodePos == 0 || node.isExpanded());
-            this.visible = !isHiddenByFilter(node);
+            this.visible = (nodePos == 0 || !node.isHidden());
             this.childIndexes = new IntList();
             node.setAttribute(CACHED_PARENT, null);
             node.setAttribute(CACHED_CHILDREN, null);
@@ -661,19 +661,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
 
 
-    /** A collection of IDs for nodes that should be hidden */
-    private Set<Integer> filteredNodeIDs;
-
     public void filterRows(WBSFilter... filters) {
-        if (filters == null || filters.length == 0
-                || (filters.length == 1 && filters[0] == null)) {
-            this.filteredNodeIDs = null;
-        } else {
-            Set<Integer> newHiddenNodes = new HashSet();
-            calcfilteredNodes(filters, 0, getRoot(), newHiddenNodes);
-            newHiddenNodes.remove(getRoot().getUniqueID());
-            this.filteredNodeIDs = newHiddenNodes;
+        // start by making all nodes unfiltered
+        for (WBSNode n : wbsNodes)
+            n.setHidden(false);
+
+        // if any filters were provided, evaluate them
+        if (filters != null && filters.length > 0
+                && !(filters.length == 1 && filters[0] == null)) {
+            calcfilteredNodes(filters, 0, getRoot());
+            getRoot().setHidden(false);
         }
+
         recalcRows(true, true);
     }
 
@@ -692,14 +691,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
      *            been satisfied by ancestors of this node.
      * @param node
      *            a node to match
-     * @param filteredIDs
-     *            a collection where we should write the IDs of nodes that do
-     *            not match the filter.
      * 
      * @return true if this node matches, false if it should be filtered.
      */
     private boolean calcfilteredNodes(WBSFilter[] filters,
-            int alreadyMatchedLen, WBSNode node, Set<Integer> filteredIDs) {
+            int alreadyMatchedLen, WBSNode node) {
         // check to see if this node matches all of the remaining filters.
         int matchLen = filterMatchLen(filters, alreadyMatchedLen, false, node);
         int fullMatchLen = filterMatchLen(filters, matchLen, true, node);
@@ -714,14 +710,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         // recurse over each of our children.
         for (WBSNode child : getChildren(node)) {
             // if one of our children matches the remaining filters, we match.
-            if (calcfilteredNodes(filters, matchLen, child, filteredIDs))
+            if (calcfilteredNodes(filters, matchLen, child))
                 shouldShow = true;
         }
 
         // if we don't match all the filters, and our decendants don't either,
         // this node should be hidden.
         if (shouldShow == false)
-            filteredIDs.add(node.getUniqueID());
+            node.setHidden(true);
         return shouldShow;
     }
 
@@ -768,26 +764,6 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return len;
     }
 
-    private boolean isHiddenByFilter(WBSNode node) {
-        if (filteredNodeIDs == null || node == null)
-            return false;
-        else
-            return filteredNodeIDs.contains(node.getUniqueID());
-    }
-
-    public void remapFilteredNodeIDs(Map<Integer, Integer> idMap) {
-        if (filteredNodeIDs != null && idMap != null && !idMap.isEmpty()) {
-            Set<Integer> newFilter = new HashSet<Integer>();
-            for (Integer oldID : filteredNodeIDs) {
-                Integer newID = idMap.get(oldID);
-                if (newID != null)
-                    newFilter.add(newID);
-                else
-                    newFilter.add(oldID);
-            }
-            filteredNodeIDs = newFilter;
-        }
-    }
 
     /**
      * Find a WBSNode that matches the given filter
@@ -1077,14 +1053,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         // if the node in question is currently filtered, we will be making
         // it visible again.  This means that all of its descendants should
         // also be made visible.
-        if (isHiddenByFilter(n)) {
+        if (n.isHidden()) {
             for (WBSNode desc : getDescendants(n))
-                filteredNodeIDs.remove(desc.getUniqueID());
+                desc.setHidden(false);
         }
 
         do {
-            if (filteredNodeIDs != null)
-                filteredNodeIDs.remove(n.getUniqueID());
+            n.setHidden(false);
             n = getParent(n);
             if (n == null) break;
             n.setExpanded(true);
@@ -1369,8 +1344,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         void restore() {
             synchronized (WBSModel.this) {
                 Set expandedNodeIDs = getExpandedNodeIDs();
+                Set<Integer> hiddenNodeIDs = getHiddenNodeIDs();
                 wbsNodes = (ArrayList) WBSNode.cloneNodeList(wbsNodeList);
                 setExpandedNodeIDs(expandedNodeIDs, false);
+                setHiddenNodeIDs(hiddenNodeIDs, false);
                 recalcRows(false);
                 fireTableDataChanged();
             }
@@ -1554,6 +1531,29 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
         if (notify)
             recalcRowsForExpansionEvent();
+    }
+
+    public Set<Integer> getHiddenNodeIDs() {
+        Set<Integer> hiddenNodes = new HashSet<Integer>(wbsNodes.size());
+        for (int i = 1; i < wbsNodes.size(); i++) {
+            WBSNode node = wbsNodes.get(i);
+            if (node.isHidden())
+                hiddenNodes.add(node.getUniqueID());
+        }
+        return hiddenNodes;
+    }
+
+    public void setHiddenNodeIDs(Set<Integer> hiddenNodes) {
+        setHiddenNodeIDs(hiddenNodes, true);
+    }
+
+    public void setHiddenNodeIDs(Set<Integer> hiddenNodes, boolean notify) {
+        for (int i = 1; i < wbsNodes.size(); i++) {
+            WBSNode node = wbsNodes.get(i);
+            node.setHidden(hiddenNodes.contains(node.getUniqueID()));
+        }
+        if (notify)
+            recalcRows();
     }
 
     public static final String CREATED_WITH_ATTR = "createdWithVersion";
