@@ -661,7 +661,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
 
 
-    public void filterRows(WBSFilter... filters) {
+    public void filterRows(boolean showRelated, boolean showCompleted,
+            WBSLeafNodeCompletionTester completionTester,
+            WBSFilter... filters) {
         // start by making all nodes unfiltered
         for (WBSNode n : wbsNodes)
             n.setHidden(false);
@@ -671,7 +673,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 && !(filters.length == 1 && filters[0] == null)) {
             calcfilteredNodes(filters, 0, getRoot());
             getRoot().setHidden(false);
+        } else {
+            // if no filters were given, there is nothing "related" to show
+            showRelated = false;
         }
+
+        // hide completed nodes if requested
+        if (showCompleted == false && completionTester != null)
+            hideCompletedTasks(getRoot(), completionTester);
+
+        // show related tasks if requested
+        if (showRelated)
+            showRelatedTasks(getRoot(), showCompleted ? null : completionTester);
 
         recalcRows(true, false);
     }
@@ -762,6 +775,64 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             }
         }
         return len;
+    }
+
+    /**
+     * Make all tasks visible if they are under a visible component parent
+     */
+    private void showRelatedTasks(WBSNode node,
+            WBSLeafNodeCompletionTester completionTester) {
+        // if this node is not visible, don't display any children
+        if (node.isHidden())
+            return;
+
+        // this is a visible node. Look for tasks underneath this node that
+        // should be made visible.
+        for (WBSNode child : getChildren(node)) {
+
+            // if this child node is a task, make it visible.
+            boolean madeChildVisible = false;
+            if (child.getType().endsWith(TeamProcess.TASK_SUFFIX)) {
+                madeChildVisible = child.isHidden();
+                child.setHidden(false);
+            }
+
+            // recurse through the tree as applicable.
+            showRelatedTasks(child, completionTester);
+
+            // if we just made this child visible, re-run the "completed task"
+            // logic to re-hide it if it (or its children) were completed.
+            if (madeChildVisible && completionTester != null)
+                hideCompletedTasks(child, completionTester);
+        }
+    }
+
+    /**
+     * Scan the WBS and hide components/tasks that are complete
+     * @return true if the given node's visible children are 100% complete
+     */
+    private boolean hideCompletedTasks(WBSNode node,
+            WBSLeafNodeCompletionTester completionTester) {
+        if (node.isHidden())
+            return true;
+
+        WBSNode[] children = getChildren(node);
+        if (children.length == 0) {
+            boolean isComplete = completionTester.isComplete(node);
+            if (isComplete)
+                node.setHidden(true);
+            return isComplete;
+            
+        } else {
+            boolean childrenAreComplete = true;
+            for (WBSNode child : children) {
+                if (hideCompletedTasks(child, completionTester) == false)
+                    childrenAreComplete = false;
+            }
+            if (childrenAreComplete)
+                node.setHidden(true);
+            return childrenAreComplete;
+        }
     }
 
 

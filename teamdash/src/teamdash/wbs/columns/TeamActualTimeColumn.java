@@ -38,12 +38,13 @@ import teamdash.team.TeamMemberList;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.WBSLeafNodeCompletionTester;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WBSSynchronizer.ActualSubtaskData;
 
 public class TeamActualTimeColumn extends AbstractNumericColumn implements
-        CalculatedDataColumn {
+        CalculatedDataColumn, WBSLeafNodeCompletionTester {
 
     public static final String COLUMN_ID = "Actual-Time";
 
@@ -310,6 +311,32 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         node.setAttribute(TeamCompletionDateColumn.ATTR_NAME, cd);
         node.setNumericAttribute(PercentCompleteColumn.RESULT_ATTR,
             percentComplete);
+    }
+
+    @Override
+    public boolean isComplete(WBSNode leafNode) {
+        boolean sawCompletion = false;
+        for (int i = 0; i < teamSize; i++) {
+            // retrieve the planned time for one team member.
+            double memberPlanTime = nanToZero(
+                leafNode.getNumericAttribute(planTimeAttrs[i]));
+            boolean assignedWithZero = (leafNode
+                    .getAttribute(assignedWithZeroAttrs[i]) != null);
+            if (memberPlanTime > 0 || assignedWithZero) {
+                // if this team member is assigned to this leaf task, get
+                // their actual completion date for the task.
+                Date memberCompletionDate = (Date) leafNode
+                        .getAttribute(completionDateAttrs[i]);
+                // if this member is not completed, the overall task isn't
+                // complete either
+                if (memberCompletionDate == null)
+                    return false;
+                else
+                    sawCompletion = true;
+            }
+        }
+
+        return sawCompletion;
     }
 
     private static double nanToZero(double d) {

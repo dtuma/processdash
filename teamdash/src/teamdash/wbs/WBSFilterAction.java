@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -66,12 +66,15 @@ import teamdash.hist.BlameModelData;
 import teamdash.wbs.WBSFilterFactory.TaskStatus;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 
 public class WBSFilterAction extends AbstractAction {
 
     private WBSJTable wbsTable;
 
     private WBSTabPanel tabPanel;
+
+    private WBSLeafNodeCompletionTester completionTester;
 
     private BlameModelData wbsBlameData;
 
@@ -96,6 +99,10 @@ public class WBSFilterAction extends AbstractAction {
 
     void setWbsTabPanel(WBSTabPanel p) {
         this.tabPanel = p;
+
+        DataTableModel data = p.wbsTable.dataModel;
+        int col = data.findColumn(TeamActualTimeColumn.COLUMN_ID);
+        this.completionTester = (TeamActualTimeColumn) data.getColumn(col);
     }
 
     public boolean isActive() {
@@ -147,6 +154,10 @@ public class WBSFilterAction extends AbstractAction {
     private JLabel blameLabel;
 
     private ChangedItemsField blameFilter;
+
+    private JCheckBox showCompletedTasks;
+
+    private JCheckBox showRelatedTasks;
 
     private boolean needsShowInfoMessage;
 
@@ -235,6 +246,14 @@ public class WBSFilterAction extends AbstractAction {
         blameFilter.setVisible(wbsBlameData != null);
         panel.add(blameFilter);  layout.setConstraints(blameFilter, vc);
 
+        lc.gridy++;  vc.gridy++;
+        showCompletedTasks = new JCheckBox(resources.getString("Show_Completed"), true);
+        panel.add(showCompletedTasks);  layout.setConstraints(showCompletedTasks, vc);
+
+        lc.gridy++;  vc.gridy++;
+        showRelatedTasks = new JCheckBox(resources.getString("Show_Related"));
+        panel.add(showRelatedTasks);  layout.setConstraints(showRelatedTasks, vc);
+
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add(Box.createHorizontalGlue());
         buttonBox.add(new JButton(removeAction));
@@ -317,7 +336,8 @@ public class WBSFilterAction extends AbstractAction {
             false);
 
         // apply the filter to the WBS
-        wbsModel.filterRows(filters);
+        wbsModel.filterRows(showRelatedTasks.isSelected(),
+            showCompletedTasks.isSelected(), completionTester, filters);
 
         // update the "active" flag of this object, and alter the appearance
         this.isActive = (filters != null);
