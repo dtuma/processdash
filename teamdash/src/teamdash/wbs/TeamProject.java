@@ -462,9 +462,18 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     private boolean saveProjectSettings(File externalDir) {
-        if (projectSettings == null)
+        File srcFile = new File(directory, SETTINGS_FILENAME);
+        if (!srcFile.isFile())
             return true;
-        return saveXML(projectSettings, externalDir, SETTINGS_FILENAME);
+
+        try {
+            File destFile = new File(externalDir, SETTINGS_FILENAME);
+            FileUtils.copyFile(srcFile, destFile);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private boolean saveUserSettings(File directory) {
