@@ -63,7 +63,6 @@ import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
-import teamdash.wbs.WBSFilterFactory.TaskStatus;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
@@ -143,8 +142,6 @@ public class WBSFilterAction extends AbstractAction {
 
     private CompletingField assignedToFilter;
 
-    private TaskStatusField taskStatusFilter;
-
     private CompletingField labelFilter;
 
     private CompletingField milestoneFilter;
@@ -211,12 +208,6 @@ public class WBSFilterAction extends AbstractAction {
         panel.add(label);  layout.setConstraints(label, lc);
         assignedToFilter = new AssignedToField();
         panel.add(assignedToFilter); layout.setConstraints(assignedToFilter, vc);
-
-        lc.gridy++;  vc.gridy++;
-        label = new JLabel(resources.getString("Items.Task_Status"));
-        panel.add(label);  layout.setConstraints(label, lc);
-        taskStatusFilter = new TaskStatusField();
-        panel.add(taskStatusFilter); layout.setConstraints(taskStatusFilter, vc);
 
         lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Labels"));
@@ -293,10 +284,6 @@ public class WBSFilterAction extends AbstractAction {
         if (filt != null)
             filters.add(WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF,
                 filt));
-
-        filt = taskStatusFilter.createTaskStatusFilter();
-        if (filt != null)
-            filters.add(filt);
 
         filt = labelFilter.createDataColumnFilter();
         if (filt != null)
@@ -683,34 +670,6 @@ public class WBSFilterAction extends AbstractAction {
         }
 
     }
-
-
-    /** A component which allows selection of task status */
-    private class TaskStatusField extends CompletingChoicesField {
-        
-        @Override
-        protected String[] getChoices() {
-            return getChoices("Items.Task_Status.", "Not_Started",
-                "In_Progress", "Incomplete", "Completed");
-        }
-
-        public WBSFilter createTaskStatusFilter() {
-            int selIndex = valueField.getSelectedIndex();
-            if (selIndex > 0 && selIndex < TASK_STATUS_OPTIONS.length)
-                return WBSFilterFactory
-                        .createTaskStatusFilter(TASK_STATUS_OPTIONS[selIndex]);
-            else
-                return null;
-        }
-
-    }
-
-    private static final TaskStatus[][] TASK_STATUS_OPTIONS = {
-        null, //
-        { TaskStatus.Not_Started }, //
-        { TaskStatus.In_Progress }, //
-        { TaskStatus.Not_Started , TaskStatus.In_Progress }, //
-        { TaskStatus.Completed } };
 
 
     /** A component which allows selection of changed items only */
