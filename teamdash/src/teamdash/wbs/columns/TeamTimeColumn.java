@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -392,6 +392,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         Map<WBSNode, Double> minTimes = new HashMap();
         double totalWeight = 0;
         for (WBSNode child : wbsModel.getDescendants(topNode)) {
+            // do not make any changes to nodes that are hidden.
+            if (child.isHidden())
+                continue;
+
             // get the top-down time estimate for this node.
             double val = child.getNumericAttribute(topDownAttrName);
 
@@ -1174,7 +1178,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             size = value;
 
             double savedRate = node.getNumericAttribute(RATE_ATTR);
-            if (savedRate > 0 && safe(size) != 0)
+            if (savedRate > 0 && safe(size) != 0 && !node.isHidden())
                 // if there is a saved value for the rate, and the size value
                 // entered is meaningful, we should recalculate the time per
                 // person based upon that rate.

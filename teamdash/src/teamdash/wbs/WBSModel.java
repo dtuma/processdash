@@ -673,7 +673,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             getRoot().setHidden(false);
         }
 
-        recalcRows(true, true);
+        recalcRows(true, false);
     }
 
     /**

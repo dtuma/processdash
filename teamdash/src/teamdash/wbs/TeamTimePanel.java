@@ -80,7 +80,6 @@ import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
-import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
 
 /** Displays a panel containing dynamic bar charts for each team member. The
@@ -103,8 +102,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** A list of the bar charts for each individual (each is a
      * TeamMemberBar object). */
     private List<TeamMemberBar> teamMemberBars;
-    /** The column number holding unassigned time data */
-    private int unassignedTimeColumn;
     /** The point in time when the first person is starting */
     private long teamStartTime;
     /** The team effective date for actual metrics collected so far */
@@ -187,8 +184,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.showMilestoneMarks = true;
         this.colorByMilestone = false;
         this.balanceThroughMilestone = -1;
-        this.unassignedTimeColumn = dataModel
-                .findColumn(UnassignedTimeColumn.COLUMN_ID);
 
         this.recalcTimer = new Timer(100, EventHandler.create(
             ActionListener.class, this, "recalc"));
@@ -578,13 +573,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     protected double getUnassignedTime() {
         if (includeUnassigned == false || subteamFilter != null)
             return 0;
-        else if (balanceThroughMilestone > 0)
-            return getUnassignedTimeThroughMilestone();
-        else
-            return getTotalUnassignedTime();
-    }
 
-    protected double getUnassignedTimeThroughMilestone() {
         WBSNode rootNode = dataModel.getWBSModel().getRoot();
         Map<Integer, Double> unassignedMilestoneTime =
                 (Map<Integer, Double>) rootNode.getAttribute(
@@ -599,18 +588,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (id == balanceThroughMilestone)
                 break;
         }
-        return result;
-    }
 
-    protected double getTotalUnassignedTime() {
-        if (unassignedTimeColumn == -1)
-            return 0;
-        NumericDataValue unassignedTime =
-            (NumericDataValue) dataModel.getValueAt(0, unassignedTimeColumn);
-        if (unassignedTime != null)
-            return unassignedTime.value;
-        else
-            return 0;
+        if (balanceThroughMilestone <= 0) {
+            Double time = unassignedMilestoneTime.get(-1);
+            if (time != null)
+                result += time;
+        }
+
+        return result;
     }
 
     /** Recalculate the duration of a balanced team schedule.
@@ -1017,9 +1002,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** The TeamMember we are displaying data for */
         private TeamMember teamMember;
 
-        /** The column in the data model holding time for our team member */
-        private int columnNumber;
-
         /** True if our colored bar has a dark color */
         private boolean barIsDark;
 
@@ -1071,7 +1053,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         public TeamMemberBar(TeamMember teamMember) {
             this.teamMember = teamMember;
-            this.columnNumber = findTimeColumn();
 
             this.indivEffectiveDate = getIndivEffectiveDate();
             effectivePastHours = teamMember.getSchedule().getEffortForDate(
@@ -1153,16 +1134,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (teamMilestoneBar != null)
                 teamMilestoneBar.addHoursToTeamMilestoneEffort(milestoneEffort);
 
-            recalcTotalHours(cumMilestoneEffort);
+            recalcTotalHours(milestoneEffort, cumMilestoneEffort);
         }
 
-        protected void recalcTotalHours(double cumMilestoneEffort) {
+        protected void recalcTotalHours(Map<Integer, Double> milestoneEffort,
+                double cumMilestoneEffort) {
             if (balanceThroughMilestone > 0) {
                 totalHours = cumMilestoneEffort;
             } else if (showRemainingWork) {
                 totalHours = getEffectiveRemainingHours();
             } else {
-                totalHours = getTotalAssignedHours();
+                totalHours = cumMilestoneEffort;
+                Double noMilestoneTime = milestoneEffort.get(-1);
+                if (noMilestoneTime != null)
+                    totalHours += noMilestoneTime;
             }
             recalcFinishDate();
         }
@@ -1246,23 +1231,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return remainingTime + effectivePastHours;
         }
 
-        private double getTotalAssignedHours() {
-            if (columnNumber == -1) {
-                columnNumber = findTimeColumn();
-                // if we can't find a column for this team member, return
-                // a total time of 0 hours.
-                if (columnNumber == -1) return 0;
-            }
-            // retrieve the total planned time for all tasks assigned to
-            // this team member.
-            NumericDataValue totalTime =
-                (NumericDataValue) dataModel.getValueAt(0, columnNumber);
-            if (totalTime != null)
-                return totalTime.value;
-            else
-                return 0;
-        }
-
         protected Date getStartDate() {
             return teamMember.getStartDate();
         }
@@ -1281,12 +1249,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                         .getMilestonePlanTimeAttr(teamMember);
             return (Map<Integer, Double>) dataModel.getWBSModel().getRoot()
                     .getAttribute(attrName);
-        }
-
-        /** Look up the time column for this team member. */
-        private int findTimeColumn() {
-            String columnID = TeamMemberTimeColumn.getColumnID(teamMember);
-            return dataModel.findColumn(columnID);
         }
 
         private boolean barIsDark() {
@@ -1582,7 +1544,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
         @Override
-        protected void recalcTotalHours(double cumMilestoneEffort) {
+        protected void recalcTotalHours(Map<Integer, Double> milestoneEffort,
+                double cumMilestoneEffort) {
             // do nothing; our total hours value will be set elsewhere
         }
 

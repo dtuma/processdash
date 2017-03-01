@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,5 +37,10 @@ public interface Pruner {
      * "inherited" attribute set to the value of their nearest ancestor.
      */
     public boolean shouldPrune(WBSNode node);
+
+    /** Returns true if the given node should be included in calculations, even
+     * though it is hidden.
+     */
+    public boolean shouldIncludeHidden(WBSNode node);
 
 }

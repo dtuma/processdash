@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -267,13 +267,17 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                 // ask our child to compute its time data
                 recalculate(children[i], childTime, timeCalc,
                     childEarnedValue, childCompletionDate);
-                // now accumulate time from that child into our total
-                for (int j = 0; j < teamSize; j++)
-                    actualTime[j] += childTime[j];
-                // accumulate EV related data from our children
-                earnedValue[0] += childEarnedValue[0];
-                completionDate[0] = Math.max(completionDate[0],
-                    childCompletionDate[0]);
+
+                // if the child isn't hidden, add its values to our totals
+                if (!children[i].isHidden()) {
+                    // accumulate time from that child into our total
+                    for (int j = 0; j < teamSize; j++)
+                        actualTime[j] += childTime[j];
+                    // accumulate EV related data from our children
+                    earnedValue[0] += childEarnedValue[0];
+                    completionDate[0] = Math.max(completionDate[0],
+                        childCompletionDate[0]);
+                }
             }
         }
 

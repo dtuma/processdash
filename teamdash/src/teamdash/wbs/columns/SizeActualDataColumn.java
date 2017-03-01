@@ -27,6 +27,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomNamedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -61,7 +62,9 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
         double result = safe(node.getNumericAttribute(nodeAttrName));
 
         for (WBSNode child : wbsModel.getChildren(node)) {
-            result += recalc(child);
+            double childVal = recalc(child);
+            if (shouldFilterFromCalculations(child) == false)
+                result += childVal;
         }
 
         Object value = null;
@@ -70,6 +73,11 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
         node.setAttribute(resultAttrName, value);
 
         return result;
+    }
+
+    protected boolean shouldFilterFromCalculations(WBSNode node) {
+        return (node.isHidden()
+                && !node.getType().endsWith(TeamProcess.TASK_SUFFIX));
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {}

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -447,7 +447,7 @@ public class TeamProcess {
     static final String PSP_TASK_TYPE = "PSP Task";
     static final String PSP_WORKFLOW_TASK_TYPE = "PSP Workflow Task";
     static final String CODE_TASK_TYPE = "Code Task";
-    static final String TASK_SUFFIX = " Task";
+    public static final String TASK_SUFFIX = " Task";
     static final String WORKFLOW_TASK_SUFFIX = " Workflow Task";
 
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";

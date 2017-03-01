@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -216,9 +216,19 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         double bottomUpValue = 0;
         for (int i = 0;   i < numToInclude;   i++) {
             double childValue = recalc(children[i]);
-            bottomUpValue += childValue;
+            if (shouldFilterFromCalculations(children[i]) == false)
+                bottomUpValue += childValue;
         }
         return bottomUpValue;
+    }
+
+    protected boolean shouldFilterFromCalculations(WBSNode node) {
+        if (node.isHidden() == false)
+            return false;
+        else if (pruner == null)
+            return true;
+        else
+            return pruner.shouldIncludeHidden(node) == false;
     }
 
     /**
@@ -253,6 +263,9 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
     protected int filterChildren(WBSNode[] children) {
         int len = children.length;
+        if (pruner == null)
+            return len;
+
         int left = 0;
         int right = len - 1;
 
@@ -359,6 +372,9 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     }
 
     protected void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
+        if (shouldFilterFromCalculations(node))
+            return;
+
         WBSNode[] children = wbsModel.getReorderableChildren(node);
         int numToInclude = filterChildren(children);
 
@@ -383,6 +399,9 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         double topDownValue;
         for (int i = children.length;   i-- > 0; ) {
             child = children[i];
+            if (shouldFilterFromCalculations(child))
+                continue;
+
             topDownValue = child.getNumericAttribute(topDownAttrName);
             if (!Double.isNaN(topDownValue)) {
                 topDownValue *= ratio;
