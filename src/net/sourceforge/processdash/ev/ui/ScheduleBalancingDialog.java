@@ -263,7 +263,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         // create a chart and a chart panel
         JFreeChart chart = new JFreeChart(plot);
         chart.removeLegend();
-        ChartPanel chartPanel = new ChartPanel(chart);
+        ChartPanel chartPanel = new ChartPanel(chart, false);
         chartPanel.setInitialDelay(50);
         chartPanel.setDismissDelay(60000);
         chartPanel.setMinimumDrawHeight(40);

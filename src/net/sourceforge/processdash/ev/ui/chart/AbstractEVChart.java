@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2015 Tuma Solutions, LLC
+// Copyright (C) 2003-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
     protected void adjustPlot(P plot, D data, Map environment, Map parameters) { }
 
     protected ChartPanel getChartPanel(JFreeChart chart, D data) {
-        return new ChartPanel(chart);
+        return new ChartPanel(chart, false);
     }
 
     /** This method has to be overridden to return the appropriate JFreeChart

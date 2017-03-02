@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public class EVXYChartPanel extends ChartPanel
     private Dataset data;
 
     public EVXYChartPanel(JFreeChart chart, Dataset data) {
-        super(chart);
+        super(chart, false);
         this.data = data;
         this.data.addChangeListener(this);
 
