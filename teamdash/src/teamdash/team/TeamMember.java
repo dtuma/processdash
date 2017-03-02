@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +38,9 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupData;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -56,6 +59,8 @@ public class TeamMember implements PersonLookupData, Cloneable {
     private String name;
     /** A query string provided by the lookup service for future reference */
     private String serverIdentityInfo;
+    /** A cached version of server info, as a map of parameters */
+    private Map serverIdentityInfoMap;
     /** The initials of the team member (e.g. jd) */
     private String initials;
     /** A color that will be used to represent this individual in various
@@ -156,6 +161,25 @@ public class TeamMember implements PersonLookupData, Cloneable {
     public String getServerIdentityInfo() { return serverIdentityInfo; }
     public void setServerIdentityInfo(String i) {
         this.serverIdentityInfo = trim(i);
+        this.serverIdentityInfoMap = null;
+    }
+
+    // retrieve the server info as a map
+    public Map getServerIdentityInfoMap() {
+        if (serverIdentityInfoMap == null)
+            serverIdentityInfoMap = Collections
+                    .unmodifiableMap(HTMLUtils.parseQuery(serverIdentityInfo));
+        return serverIdentityInfoMap;
+    }
+
+    public String getDatasetID() {
+        // the user group manager is the ultimate authority. Ask it first
+        String result = UserGroupManagerWBS.getInstance().getDatasetIDMap()
+                .get(initials.toLowerCase());
+        if (result != null)
+            return result;
+        else
+            return (String) getServerIdentityInfoMap().get("datasetID");
     }
 
     // getter/setter for the initials property.

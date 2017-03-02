@@ -44,8 +44,6 @@ import javax.swing.table.AbstractTableModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
-import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.XMLUtils;
@@ -313,8 +311,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             return PrivacyType.Me;
 
         // see if this team member's username matches the current user
-        Map<String, String> serverInfo = HTMLUtils.parseQuery(m
-                .getServerIdentityInfo());
+        Map<String, String> serverInfo = m.getServerIdentityInfoMap();
         if (currentUserName.equalsIgnoreCase(serverInfo.get("username")))
             return PrivacyType.Me;
 
@@ -331,10 +328,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             return PrivacyType.Censored;
 
         // identify the datasetID for this team member
-        String datasetID = UserGroupManagerWBS.getInstance().getDatasetIDMap()
-                .get(initials.toLowerCase());
-        if (datasetID == null)
-            datasetID = serverInfo.get("datasetID");
+        String datasetID = m.getDatasetID();
 
         // determine the privacy type based on the dataset ID
         if (!XMLUtils.hasValue(datasetID))
