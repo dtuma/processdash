@@ -445,7 +445,7 @@ public class TeamSettingsFile {
 
     private static final String SETTINGS_FILENAME = "settings.xml";
 
-    private static final String NL = System.lineSeparator();
+    private static final String NL = System.getProperty("line.separator");
 
     private static final String PROJECT_NAME_ATTR = "projectName";
 
