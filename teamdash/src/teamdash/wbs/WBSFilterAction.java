@@ -68,6 +68,7 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
 import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 
@@ -78,6 +79,8 @@ public class WBSFilterAction extends AbstractAction {
     private WBSTabPanel tabPanel;
 
     private TeamActualTimeColumn taskTester;
+
+    private PlanTimeWatcher planTimeWatcher;
 
     private BlameModelData wbsBlameData;
 
@@ -106,6 +109,8 @@ public class WBSFilterAction extends AbstractAction {
         DataTableModel data = p.wbsTable.dataModel;
         int col = data.findColumn(TeamActualTimeColumn.COLUMN_ID);
         this.taskTester = (TeamActualTimeColumn) data.getColumn(col);
+        col = data.findColumn(PlanTimeWatcher.COLUMN_ID);
+        this.planTimeWatcher = (PlanTimeWatcher) data.getColumn(col);
     }
 
     public boolean isActive() {
@@ -329,6 +334,11 @@ public class WBSFilterAction extends AbstractAction {
         int[] selectedRows = wbsTable.getSelectedRows();
         List<WBSNode> selectedNodes = wbsModel.getNodesForRows(selectedRows,
             false);
+
+        // reset the plan time watcher, so it does not fire false alarms after
+        // noticing that other team members' times were changed by this filter
+        if (planTimeWatcher != null)
+            planTimeWatcher.reset();
 
         // apply the filter to the WBS
         wbsModel.filterRows(showRelatedTasks.isSelected(),

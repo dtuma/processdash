@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2015 Tuma Solutions, LLC
+// Copyright (C) 2010-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -131,6 +131,12 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         discrepantIndividuals = calcDiscrepancies();
         maybeFireChangeEvent();
         return false;
+    }
+
+    public void reset() {
+        WBSNode rootNode = dataModel.getWBSModel().getRoot();
+        for (int i = teamMemberColumns.size(); i-- > 0;)
+            rootNode.removeAttribute(teamMemberAttrs[i]);
     }
 
     private List<String> calcDiscrepancies() {
