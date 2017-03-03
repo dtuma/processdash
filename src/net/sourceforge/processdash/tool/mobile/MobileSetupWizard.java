@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,11 +77,7 @@ public class MobileSetupWizard extends TinyCGIBase {
             URL u = new URL(location);
             FileUtils.slurpContents(u.openStream(), true);
         } catch (IOException ioe) {
-            int pos = location.indexOf("DataBridge/");
-            if (pos != -1)
-                location = location.substring(0, pos);
-            getDataRepository().putValue("/mobile//Server_URL",
-                StringData.create(location));
+            storePdesLocation(location);
             printRedirect("mobileError.shtm?noNetwork");
             return;
         }
@@ -92,6 +88,13 @@ public class MobileSetupWizard extends TinyCGIBase {
             dataToken = getDataToken(location);
         } catch (IOException ioe) {
             printRedirect("mobileError.shtm?upgradePdes");
+            return;
+        }
+
+        // if we received the token "-", mobile support is disabled by the PDES
+        if ("-".equals(dataToken)) {
+            storePdesLocation(location);
+            printRedirect("mobileError.shtm?pdesMobileDisabled");
             return;
         }
 
@@ -113,6 +116,14 @@ public class MobileSetupWizard extends TinyCGIBase {
         if (username != null)
             ctx.putValue("/mobile//Username", StringData.create(username));
         printRedirect("mobileSuccess.shtm");
+    }
+
+    private void storePdesLocation(String location) {
+        int pos = location.indexOf("DataBridge/");
+        if (pos != -1)
+            location = location.substring(0, pos);
+        getDataRepository().putValue("/mobile//Server_URL",
+            StringData.create(location));
     }
 
     private String getDataToken(String datasetUrl) throws IOException {

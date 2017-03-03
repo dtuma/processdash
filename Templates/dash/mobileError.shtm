@@ -1,6 +1,6 @@
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,6 +62,18 @@ communicate with the server:</p>
 <p>Unfortunately, the server could not be reached.  Please check your network
 connection, then try choosing the "C &rarr; Tools &rarr; Mobile App" menu
 option again.</p>
+
+<!--#elif pdesMobileDisabled -->
+
+<p>Your data is managed by the following server:</p>
+
+<pre style="margin-left:1cm"><!--#echo [mobile//Server_URL] --></pre>
+
+<p>Unfortunately, the server administrator has specifically disabled support
+for the mobile Process Dashboard Companion app.  They might have done this
+because of network restrictions (such as corporate firewalls) or other
+controlling factors (such as corporate data security policies).  For more
+information, please contact your PDES server administrator.</p>
 
 <!--#else-->
 
