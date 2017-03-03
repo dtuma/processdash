@@ -77,6 +77,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
     private TeamMemberFilter teamFilter;
 
+    private boolean rollupEveryone;
+
     private int teamPlanTimeColumnNum = -1;
 
     private int teamSize;
@@ -94,6 +96,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.teamMembers = teamMembers;
+        this.rollupEveryone = true;
         this.columnID = COLUMN_ID;
         this.columnName = "Actual Time";
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID,
@@ -207,6 +210,9 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             int milestone = MilestoneColumn.getMilestoneID(node);
             // accumulate EV and completion date information for this leaf
             for (int i = 0; i < teamSize; i++) {
+                // decide whether data from this team member should be included
+                // in team sums
+                boolean rollupMember = rollupEveryone || matchesTeamFilter[i];
                 // retrieve the planned time for one team member.
                 double memberPlanTime = nanToZero(node
                         .getNumericAttribute(planTimeAttrs[i]));
@@ -218,12 +224,14 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     Date memberCompletionDate = (Date) node
                             .getAttribute(completionDateAttrs[i]);
                     // keep track of the max completion date so far.
-                    completionDate[0] = mergeCompletionDate(completionDate[0],
-                        memberCompletionDate);
+                    if (rollupMember)
+                        completionDate[0] = mergeCompletionDate(
+                            completionDate[0], memberCompletionDate);
                     // if this individual has completed this task, then the
                     // team has earned the value associated with the task.
                     if (memberCompletionDate != null) {
-                        earnedValue[0] += memberPlanTime;
+                        if (rollupMember)
+                            earnedValue[0] += memberPlanTime;
                         timeCalc[i].addCompletedTask(memberPlanTime,
                             actualTime[i], milestone);
                     } else {
@@ -248,8 +256,9 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                             for (ActualSubtaskData subtask : subtaskData) {
                                 if (subtask.getCompletionDate() != null) {
                                     // this subtask was completed
-                                    earnedValue[0] += subtask.getPlanTime()
-                                            * ratio;
+                                    if (rollupMember)
+                                        earnedValue[0] += subtask.getPlanTime()
+                                                * ratio;
                                     timeCalc[i].addCompletedTask(
                                         subtask.getPlanTime(),
                                         subtask.getActualTime(), milestone);
@@ -294,8 +303,9 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
         double totalActualTime = 0;
         for (int i = 0; i < teamSize; i++) {
-            // add up the actual time for the entire team
-            totalActualTime += actualTime[i];
+            // add up the actual time for all included team members
+            if (rollupEveryone || matchesTeamFilter[i])
+                totalActualTime += actualTime[i];
             // also store the total time per individual for this node
             node.setNumericAttribute(actTimeAttrs[i], actualTime[i]);
         }
@@ -327,7 +337,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     public boolean isComplete(WBSNode leafNode) {
         boolean sawCompletion = false;
         for (int i = 0; i < teamSize; i++) {
-            if (isDirectlyAssignedToNode(leafNode, i)) {
+            if ((rollupEveryone || matchesTeamFilter[i])
+                    && isDirectlyAssignedToNode(leafNode, i)) {
                 // if this team member is assigned to this leaf task, get
                 // their actual completion date for the task.
                 Date memberCompletionDate = (Date) leafNode
@@ -367,16 +378,21 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         return assignedWithZero;
     }
 
-    public TeamMemberFilter setUserFilter(UserFilter filter) {
+    public TeamMemberFilter setUserFilter(UserFilter filter,
+            boolean forceRollupEveryone) {
         if (filter == null || UserGroup.isEveryone(filter)) {
             teamFilter = null;
             Arrays.fill(matchesTeamFilter, true);
+            this.rollupEveryone = true;
 
         } else {
             teamFilter = new TeamMemberFilter(teamMembers, filter);
             for (int i = 0; i < teamSize; i++)
                 matchesTeamFilter[i] = teamFilter.include(teamMembers.get(i));
+            this.rollupEveryone = forceRollupEveryone;
         }
+
+        dataModel.columnChanged(this);
 
         return teamFilter;
     }

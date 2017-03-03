@@ -316,8 +316,8 @@ public class WBSFilterAction extends AbstractAction {
     }
 
 
-    private void setUserFilter(UserFilter userFilter) {
-        taskTester.setUserFilter(userFilter);
+    private void setUserFilter(UserFilter userFilter, boolean rollupEveryone) {
+        taskTester.setUserFilter(userFilter, rollupEveryone);
     }
 
 
@@ -412,7 +412,7 @@ public class WBSFilterAction extends AbstractAction {
         }
 
         public void actionPerformed(ActionEvent e) {
-            setUserFilter(null);
+            setUserFilter(null, true);
             setFilters(null);
         }
     }
@@ -662,7 +662,7 @@ public class WBSFilterAction extends AbstractAction {
 
         public WBSFilter getFilter() {
             UserFilter f = (UserFilter) valueField.getSelectedItem();
-            setUserFilter(f);
+            setUserFilter(f, showRelatedTasks.isSelected());
             return taskTester.getUserWBSNodeFilter();
         }
     }
