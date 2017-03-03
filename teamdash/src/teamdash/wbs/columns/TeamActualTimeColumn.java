@@ -25,6 +25,7 @@ package teamdash.wbs.columns;
 
 import java.beans.EventHandler;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,12 +33,16 @@ import java.util.Map;
 
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
 
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberFilter;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.WBSFilter;
 import teamdash.wbs.WBSLeafNodeCompletionTester;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -70,6 +75,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
     private TeamMemberList teamMembers;
 
+    private TeamMemberFilter teamFilter;
+
     private int teamPlanTimeColumnNum = -1;
 
     private int teamSize;
@@ -80,6 +87,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     private String[] subtaskDataAttrs;
     private String[] planTimeAttrs;
     private String[] assignedWithZeroAttrs;
+    private boolean[] matchesTeamFilter;
 
     public TeamActualTimeColumn(DataTableModel dataModel,
             TeamMemberList teamMembers) {
@@ -115,6 +123,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         subtaskDataAttrs = new String[teamSize];
         planTimeAttrs = new String[teamSize];
         assignedWithZeroAttrs = new String[teamSize];
+        matchesTeamFilter = new boolean[teamSize];
 
         for (int i = 0; i < initials.length; i++) {
             TeamMember m = (TeamMember) people.get(i);
@@ -131,6 +140,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     .getTopDownAttrName(TeamMemberTimeColumn.getColumnID(m));
             assignedWithZeroAttrs[i] = TeamTimeColumn
                     .getMemberAssignedZeroAttrName(m);
+            matchesTeamFilter[i] = teamFilter == null || teamFilter.include(m);
         }
     }
 
@@ -317,12 +327,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     public boolean isComplete(WBSNode leafNode) {
         boolean sawCompletion = false;
         for (int i = 0; i < teamSize; i++) {
-            // retrieve the planned time for one team member.
-            double memberPlanTime = nanToZero(
-                leafNode.getNumericAttribute(planTimeAttrs[i]));
-            boolean assignedWithZero = (leafNode
-                    .getAttribute(assignedWithZeroAttrs[i]) != null);
-            if (memberPlanTime > 0 || assignedWithZero) {
+            if (isDirectlyAssignedToNode(leafNode, i)) {
                 // if this team member is assigned to this leaf task, get
                 // their actual completion date for the task.
                 Date memberCompletionDate = (Date) leafNode
@@ -338,6 +343,56 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
         return sawCompletion;
     }
+
+    public boolean isAssignedToActiveGroup(WBSNode node) {
+        if (teamFilter == null)
+            return true;
+
+        for (int i = 0; i < teamSize; i++) {
+            if (matchesTeamFilter[i] && isDirectlyAssignedToNode(node, i))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isDirectlyAssignedToNode(WBSNode node, int memberIndex) {
+        // see if this member has a nonzero top-down planned time on this node
+        double planTime = node.getNumericAttribute(planTimeAttrs[memberIndex]);
+        if (planTime > 0)
+            return true;
+
+        // see if this member is assigned to this node with zero time
+        boolean assignedWithZero = (node
+                .getAttribute(assignedWithZeroAttrs[memberIndex]) != null);
+        return assignedWithZero;
+    }
+
+    public TeamMemberFilter setUserFilter(UserFilter filter) {
+        if (filter == null || UserGroup.isEveryone(filter)) {
+            teamFilter = null;
+            Arrays.fill(matchesTeamFilter, true);
+
+        } else {
+            teamFilter = new TeamMemberFilter(teamMembers, filter);
+            for (int i = 0; i < teamSize; i++)
+                matchesTeamFilter[i] = teamFilter.include(teamMembers.get(i));
+        }
+
+        return teamFilter;
+    }
+
+    public WBSFilter getUserWBSNodeFilter() {
+        if (teamFilter == null)
+            return null;
+        else
+            return new WBSFilter() {
+                @Override
+                public boolean match(WBSNode node) {
+                    return isAssignedToActiveGroup(node);
+                }
+            };
+    }
+
 
     private static double nanToZero(double d) {
         return (Double.isNaN(d) ? 0 : d);

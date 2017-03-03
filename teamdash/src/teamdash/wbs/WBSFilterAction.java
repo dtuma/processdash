@@ -35,7 +35,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -59,7 +61,9 @@ import javax.swing.table.TableCellEditor;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
+import net.sourceforge.processdash.team.group.UserFilter;
+import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
@@ -73,7 +77,7 @@ public class WBSFilterAction extends AbstractAction {
 
     private WBSTabPanel tabPanel;
 
-    private WBSLeafNodeCompletionTester completionTester;
+    private TeamActualTimeColumn taskTester;
 
     private BlameModelData wbsBlameData;
 
@@ -101,7 +105,7 @@ public class WBSFilterAction extends AbstractAction {
 
         DataTableModel data = p.wbsTable.dataModel;
         int col = data.findColumn(TeamActualTimeColumn.COLUMN_ID);
-        this.completionTester = (TeamActualTimeColumn) data.getColumn(col);
+        this.taskTester = (TeamActualTimeColumn) data.getColumn(col);
     }
 
     public boolean isActive() {
@@ -140,7 +144,7 @@ public class WBSFilterAction extends AbstractAction {
 
     private TextField nameFilter;
 
-    private CompletingField assignedToFilter;
+    private GroupField groupFilter;
 
     private CompletingField labelFilter;
 
@@ -163,7 +167,7 @@ public class WBSFilterAction extends AbstractAction {
         if (dialog == null)
             buildGui();
 
-        assignedToFilter.refreshValues();
+        groupFilter.refreshValues();
         labelFilter.refreshValues();
         milestoneFilter.refreshValues();
         dialog.setVisible(true);
@@ -206,8 +210,8 @@ public class WBSFilterAction extends AbstractAction {
         lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Assigned_To"));
         panel.add(label);  layout.setConstraints(label, lc);
-        assignedToFilter = new AssignedToField();
-        panel.add(assignedToFilter); layout.setConstraints(assignedToFilter, vc);
+        groupFilter = new GroupField();
+        panel.add(groupFilter); layout.setConstraints(groupFilter, vc);
 
         lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Labels"));
@@ -280,10 +284,9 @@ public class WBSFilterAction extends AbstractAction {
         if (name != null)
             filters.add(WBSFilterFactory.createNodeNameFilter(name));
 
-        WBSFilter filt = assignedToFilter.createDataColumnFilter();
+        WBSFilter filt = groupFilter.getFilter();
         if (filt != null)
-            filters.add(WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF,
-                filt));
+            filters.add(filt);
 
         filt = labelFilter.createDataColumnFilter();
         if (filt != null)
@@ -308,6 +311,11 @@ public class WBSFilterAction extends AbstractAction {
     }
 
 
+    private void setUserFilter(UserFilter userFilter) {
+        taskTester.setUserFilter(userFilter);
+    }
+
+
     private void setFilters(WBSFilter[] filters) {
         // hide the filter dialog, since the user is done with it
         dialog.setVisible(false);
@@ -324,7 +332,7 @@ public class WBSFilterAction extends AbstractAction {
 
         // apply the filter to the WBS
         wbsModel.filterRows(showRelatedTasks.isSelected(),
-            showCompletedTasks.isSelected(), completionTester, filters);
+            showCompletedTasks.isSelected(), taskTester, filters);
 
         // update the "active" flag of this object, and alter the appearance
         this.isActive = (filters != null);
@@ -394,6 +402,7 @@ public class WBSFilterAction extends AbstractAction {
         }
 
         public void actionPerformed(ActionEvent e) {
+            setUserFilter(null);
             setFilters(null);
         }
     }
@@ -606,30 +615,45 @@ public class WBSFilterAction extends AbstractAction {
     }
 
 
-    /** A component which supports auto-complete for team member initials */
-    private class AssignedToField extends CompletingField {
+    /** A component which supports selection of a team member group */
+    private class GroupField extends CompletingField {
 
-        private AssignedToComboBox valueField;
-
-        public AssignedToField() {
-            super("Assigned To", "[^a-zA-Z]+");
+        public GroupField() {
+            super(null);
+            refreshValues();
         }
 
         @Override
         protected JComboBox getComboBox() {
-            valueField = (AssignedToComboBox) super.getComboBox();
-            valueField.setNumbersAllowed(false);
-            return valueField;
+            return new JComboBox();
+        }
+
+        @Override
+        public void refreshValues() {
+            Object currentSelection = valueField.getSelectedItem();
+
+            Vector choices = new Vector();
+            choices.addAll(UserGroupManager.getInstance().getGroups().values());
+            Collections.sort(choices);
+
+            valueField.removeAllItems();
+            valueField.addItem(UserGroup.EVERYONE);
+            for (Object group : choices)
+                valueField.addItem(group);
+
+            if (currentSelection != null)
+                valueField.setSelectedItem(currentSelection);
         }
 
         @Override
         protected void clearValue() {
-            valueField.setFullText("");
+            valueField.setSelectedIndex(0);
         }
 
-        public String getValue() {
-            String result = valueField.getFullText().trim();
-            return (result.length() > 0 ? result : null);
+        public WBSFilter getFilter() {
+            UserFilter f = (UserFilter) valueField.getSelectedItem();
+            setUserFilter(f);
+            return taskTester.getUserWBSNodeFilter();
         }
     }
 
