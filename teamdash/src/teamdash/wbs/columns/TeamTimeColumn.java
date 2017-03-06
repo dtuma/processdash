@@ -65,6 +65,7 @@ import teamdash.merge.AttributeMerger;
 import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.merge.MergeWarning.Severity;
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberFilter;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
@@ -91,6 +92,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     int unitsColumn = -1;
     IntList teamMemberColumns;
     String[] teamMemberInitials;
+    TeamMemberFilter teamFilter;
+    boolean[] matchesFilter;
+    boolean singlePersonFilter;
     RateColumn rateColumn;
     TimePerPersonColumn timePerPersonColumn;
     NumPeopleColumn numPeopleColumn;
@@ -149,6 +153,30 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         teamMemberInitials = new String[newCols.size()];
         for (int i = 0; i < teamMemberInitials.length; i++)
             teamMemberInitials[i] = dataModel.getColumnName(newCols.get(i));
+
+        checkTeamFilter();
+    }
+
+    public void setTeamFilter(TeamMemberFilter f) {
+        this.teamFilter = f;
+        checkTeamFilter();
+        dataModel.columnChanged(this);
+    }
+
+    private void checkTeamFilter() {
+        if (teamFilter == null) {
+            matchesFilter = null;
+            singlePersonFilter = false;
+        } else {
+            int count = 0;
+            matchesFilter = new boolean[teamMemberInitials.length];
+            for (int i = 0; i < matchesFilter.length; i++) {
+                matchesFilter[i] = teamFilter.include(teamMemberInitials[i]);
+                if (matchesFilter[i])
+                    count++;
+            }
+            singlePersonFilter = (count == 1);
+        }
     }
 
 
@@ -724,7 +752,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         IndivTime[] result = new IndivTime[teamMemberColumns.size()];
         for (int i = teamMemberColumns.size();   i-- > 0; )
             result[i] = new IndivTime(node, isLeaf, teamMemberColumns.get(i),
-                    teamMemberInitials[i]);
+                    teamMemberInitials[i], matchesFilter != null && !matchesFilter[i]);
         return result;
     }
 
@@ -1494,6 +1522,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         double time;
         int column;
         String initials;
+        boolean hidden;
         String zeroAttrName;
         boolean zeroButAssigned;
         String ordinalAttrName;
@@ -1501,12 +1530,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         boolean hasError;
         boolean completed;
 
-        public IndivTime(WBSNode node, boolean isLeaf, int column, String initials) {
+        public IndivTime(WBSNode node, boolean isLeaf, int column,
+                String initials, boolean hidden) {
             this.node = node;
             this.column = column;
             Object value = dataModel.getValueAt(node, column);
             this.time = safe(parse(value));
             this.initials = initials;
+            this.hidden = hidden;
             this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
             this.ordinalAttrName = getMemberAssignedOrdinalAttrName(initials);
@@ -1602,6 +1633,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         boolean sortBefore(IndivTime that) {
             if (that == null)
                 return true;
+            else if (this.hidden != that.hidden)
+                return that.hidden;
             else if (this.time > that.time)
                 return true;
             else if (this.time < that.time)
@@ -1784,7 +1817,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData != null) {
                 Object result = getValueForTimes(leafData.individualTimes,
-                    leafData.timePerPerson, leafData.getRoles());
+                    leafData.timePerPerson, leafData.getRoles(), true);
                 if (leafData instanceof LeafComponentData
                         && result != UNASSIGNED)
                     result = new ErrorValue(result, resources.format(
@@ -1792,7 +1825,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                         node.getType().toLowerCase()), ErrorValue.INFO);
                 return result;
             } else {
-                return getValueForTimes(getIndivTimes(node), -1, null);
+                return getValueForTimes(getIndivTimes(node), -1, null, false);
             }
         }
 
@@ -1805,50 +1838,74 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 return null;
             else
                 return getValueForTimes(leafData.individualTimes,
-                    leafData.timePerPerson, null).toString();
+                    leafData.timePerPerson, null, false).toString();
         }
 
         private Object getValueForTimes(IndivTime[] times, double defaultTime,
-                String roles)
+                String roles, boolean mentionHidden)
         {
             String tooltip = null;
             StringBuffer result = new StringBuffer();
             StringBuffer annotatedResult = new StringBuffer();
             StringBuffer htmlResult = new StringBuffer();
+            StringBuffer hiddenPeople = new StringBuffer();
             annotatedResult.append(DEFAULT_TIME_MARKER + "(").append(
                 NumericDataValue.format(defaultTime)).append(")");
 
             boolean[] needsDisplay = new boolean[times.length];
             for (int i = times.length; i-- > 0; )
                 needsDisplay[i] = times[i].isAssigned();
+            int visibleCount = 0;
 
             while (true) {
                 int i = findPosOfSortFirstTime(times, needsDisplay);
                 if (i == -1)
                     break;
 
-                if (times[i].hasError)
-                    tooltip = RESOURCES_TIME_MISMATCH;
                 times[i].appendTimeString(
                     result.append(SEPARATOR_SPACE), defaultTime, false);
-                times[i].appendTimeString(
-                    htmlResult.append(SEPARATOR + "&nbsp;"), defaultTime, true);
-                times[i].appendTimeString(
-                    annotatedResult.append(SEPARATOR_SPACE), -1, false);
+
+                if (times[i].hidden) {
+                    hiddenPeople.append(SEPARATOR_SPACE).append(times[i].initials);
+
+                } else {
+                    if (times[i].hasError)
+                        tooltip = RESOURCES_TIME_MISMATCH;
+                    times[i].appendTimeString(
+                        htmlResult.append(SEPARATOR + "&nbsp;"), defaultTime, true);
+                    times[i].appendTimeString(
+                        annotatedResult.append(SEPARATOR_SPACE), -1, false);
+                    visibleCount++;
+                }
+
                 needsDisplay[i] = false;
             }
 
             if (roles != null && roles.length() > 0) {
                 result.append(roles);
 
-                String htmlRoles = StringUtils.findAndReplace(
-                    roles.substring(2), " ", "&nbsp;");
-                htmlResult.append(SEPARATOR)
-                        .append("&nbsp;<b style='color:blue'>")
-                        .append(htmlRoles).append("</b>");
+                if (!singlePersonFilter || result.length() == 0) {
+                    String htmlRoles = StringUtils.findAndReplace(
+                        roles.substring(2), " ", "&nbsp;");
+                    htmlResult.append(SEPARATOR)
+                            .append("&nbsp;<b style='color:blue'>")
+                            .append(htmlRoles).append("</b>");
 
+                    if (tooltip == null)
+                        tooltip = UNASSIGNED_TOOLTIP;
+                }
+            }
+
+            if (hiddenPeople.length() > 0 && mentionHidden) {
                 if (tooltip == null)
-                    tooltip = UNASSIGNED_TOOLTIP;
+                    tooltip = resources.format("Assigned_To.Also_Tooltip_FMT",
+                        hiddenPeople.substring(SEPARATOR_SPACE.length()));
+
+                htmlResult.append(visibleCount > 1 ? SEPARATOR : " ");
+                htmlResult.append("&nbsp;<i style='color:silver'>")
+                        .append(visibleCount == 0 ? ASSIGNED_TO_OTHERS
+                                : AND_ASSIGNED_TO_OTHERS)
+                        .append("</i>");
             }
 
             if (result.length() == 0)
@@ -1858,7 +1915,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                     new AnnotatedValue(
                         result.toString().substring(2),
                         annotatedResult.toString()),
-                    htmlResult.substring(7), tooltip);
+                    htmlResult.substring(Math.min(7, htmlResult.length())),
+                    tooltip);
             else
                 return result.toString().substring(2);
         }
@@ -1912,6 +1970,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             UNASSIGNED_TOOLTIP, ErrorValue.INFO);
     private static final String RESOURCES_TIME_MISMATCH = resources
             .getString("Assigned_To.TDBU_Mismatch");
+    private static final String ASSIGNED_TO_OTHERS = resources
+            .getHTML("Assigned_To.Others");
+    private static final String AND_ASSIGNED_TO_OTHERS = resources
+            .getHTML("Assigned_To.And_Others");
     private static Pattern TIME_SETTING_PATTERN = Pattern.compile( //
             "([a-zA-Z]+)[^a-zA-Z0-9.,;-]*(-?[0-9.][0-9.,]*)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;

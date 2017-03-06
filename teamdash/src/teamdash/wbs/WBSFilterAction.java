@@ -67,10 +67,12 @@ import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
+import teamdash.team.TeamMemberFilter;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class WBSFilterAction extends AbstractAction {
 
@@ -79,6 +81,8 @@ public class WBSFilterAction extends AbstractAction {
     private WBSTabPanel tabPanel;
 
     private TeamActualTimeColumn taskTester;
+
+    private TeamTimeColumn teamTimeColumn;
 
     private PlanTimeWatcher planTimeWatcher;
 
@@ -109,6 +113,8 @@ public class WBSFilterAction extends AbstractAction {
         DataTableModel data = p.wbsTable.dataModel;
         int col = data.findColumn(TeamActualTimeColumn.COLUMN_ID);
         this.taskTester = (TeamActualTimeColumn) data.getColumn(col);
+        col = data.findColumn(TeamTimeColumn.COLUMN_ID);
+        this.teamTimeColumn = (TeamTimeColumn) data.getColumn(col);
         col = data.findColumn(PlanTimeWatcher.COLUMN_ID);
         this.planTimeWatcher = (PlanTimeWatcher) data.getColumn(col);
     }
@@ -317,7 +323,9 @@ public class WBSFilterAction extends AbstractAction {
 
 
     private void setUserFilter(UserFilter userFilter, boolean rollupEveryone) {
-        taskTester.setUserFilter(userFilter, rollupEveryone);
+        TeamMemberFilter teamFilter = taskTester.setUserFilter(userFilter,
+            rollupEveryone);
+        teamTimeColumn.setTeamFilter(rollupEveryone ? null : teamFilter);
     }
 
 
