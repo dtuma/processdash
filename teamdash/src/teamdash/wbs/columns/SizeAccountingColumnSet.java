@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -166,13 +166,14 @@ public class SizeAccountingColumnSet {
         }
 
         @Override
-        protected double sumUpChildValues(WBSNode[] children, int numToInclude) {
-            double result = super.sumUpChildValues(children, numToInclude);
+        protected double sumUpChildValues(WBSNode parent, WBSNode[] children,
+                int numToInclude) {
+            double result = super.sumUpChildValues(parent, children,
+                numToInclude);
 
             // This node is a candidate for bottom-up size restoration if it
             // has a nonzero bottom-up size, and if it has children that are
             // tasks (rather than components). Record this fact, either way.
-            WBSNode parent = wbsModel.getParent(children[0]);
             if (result > 0 && hasTaskChildren(children, numToInclude))
                 parent.setAttribute(restoreCandidateAttrName, "t");
             else

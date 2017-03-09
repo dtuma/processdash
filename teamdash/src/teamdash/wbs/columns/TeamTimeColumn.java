@@ -196,16 +196,46 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     }
 
     public Object getValueAt(WBSNode node, boolean ignoreErrors) {
+        // get the numeric value from superclass logic
         NumericDataValue result = (NumericDataValue) super.getValueAt(node);
-        if (result == null || result.errorMessage != null || ignoreErrors)
-            return result;
+        if (result == null)
+            return null;
 
-        result.errorColor = Color.blue;
-        result.errorMessage = getInfoTooltip(node, result);
+        // get the filtered time on this node
+        double filteredTime = (matchesFilter == null ? 0
+                : safe(node.getNumericAttribute(FILTERED_TIME_ATTR)));
+
+        if (result.errorMessage != null) {
+            // if this node has a top-down-bottom-up mismatch, adjust the text
+            // of the tooltip so the bottom-up number accounts for the filtered
+            // time. Do not remove filtered time from the top-down value,
+            // because a mismatch prevents us from correlating the top-down
+            // number to any child contribution, whether filtered or not.
+            if (filteredTime > 0) {
+                double bottomUpValue = result.expectedValue - filteredTime;
+                result.errorMessage = getMismatchTooltip(bottomUpValue);
+            }
+
+        } else {
+            // add informative warnings to the value if needed
+            if (!ignoreErrors) {
+                result.errorColor = Color.blue;
+                result.errorMessage = getInfoTooltip(node, result,
+                    filteredTime);
+            }
+
+            // remove filtered time from the value we display
+            if (filteredTime > 0) {
+                result.value -= filteredTime;
+                result.expectedValue -= filteredTime;
+            }
+        }
+
         return result;
     }
 
-    private String getInfoTooltip(WBSNode node, NumericDataValue result) {
+    private String getInfoTooltip(WBSNode node, NumericDataValue result,
+            double filteredTime) {
         if (result.value == 0)
             return NEED_ESTIMATE_TOOLTIP;
 
@@ -214,8 +244,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             LeafTaskData leafTaskData = (LeafTaskData) leafData;
             if (leafTaskData.isMinTimeViolated()) {
                 result.errorColor = MIN_TIME_VIOLATION_COLOR;
-                return resources.format("Team_Time.Min_Time_Violated_FMT",
-                    leafTaskData.minTime);
+                String resKey = (filteredTime > 0
+                        ? "Team_Time.Min_Time_Violated_Team_FMT"
+                        : "Team_Time.Min_Time_Violated_FMT");
+                return resources.format(resKey,
+                    NumericDataValue.format(leafTaskData.minTime),
+                    NumericDataValue.format(result.value));
             }
             if (!leafData.isFullyAssigned())
                 return NEED_ASSIGNMENT_TOOLTIP;
@@ -227,13 +261,18 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         } else { // not a leaf node
             IndivTime[] indivTimes = getIndivTimes(node);
+            double hiddenErrTime = 0;
             for (IndivTime i : indivTimes) {
                 if (i.hasError) {
-                    result.errorColor = Color.red;
-                    return RESOURCES_TIME_MISMATCH;
+                    if (i.hidden) {
+                        hiddenErrTime += i.time;
+                    } else {
+                        result.errorColor = Color.red;
+                        return RESOURCES_TIME_MISMATCH;
+                    }
                 }
             }
-            if (!equal(result.value, sumIndivTimes(indivTimes)))
+            if (!equal(result.value, sumIndivTimes(indivTimes) - hiddenErrTime))
                 return NEED_ASSIGNMENT_TOOLTIP;
         }
 
@@ -264,12 +303,35 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 node.setAttribute(topDownAttrName, null);
             else
                 node.setNumericAttribute(topDownAttrName, leafData.teamTime);
+            node.setNumericAttribute(FILTERED_TIME_ATTR, leafData.filteredTime);
         } else {
             unassignedTimeColumn.clearUnassignedTime(node);
         }
 
         // Then, recalculate as usual.
         return super.recalc(node);
+    }
+
+
+    @Override
+    protected double sumUpChildValues(WBSNode parent, WBSNode[] children,
+            int numToInclude) {
+        // perform standard logic to recalc children and sum up total time
+        double result = super.sumUpChildValues(parent, children, numToInclude);
+
+        // sum up filtered time from child to parent
+        double filteredTime = 0;
+        if (matchesFilter != null) {
+            for (int i = 0; i < numToInclude; i++) {
+                WBSNode child = children[i];
+                if (shouldFilterFromCalculations(child) == false)
+                    filteredTime += safe(
+                        child.getNumericAttribute(FILTERED_TIME_ATTR));
+            }
+        }
+        parent.setNumericAttribute(FILTERED_TIME_ATTR, filteredTime);
+
+        return result;
     }
 
 
@@ -293,8 +355,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     private void clearIndividualTopDownBottomUpMismatches(WBSNode node) {
         for (int i = teamMemberColumns.size();  i-- > 0; ) {
-            int oneMemberColumn = teamMemberColumns.get(i);
-            dataModel.setValueAt("", node, oneMemberColumn);
+            if (matchesFilter == null || matchesFilter[i]) {
+                int oneMemberColumn = teamMemberColumns.get(i);
+                dataModel.setValueAt("", node, oneMemberColumn);
+            }
         }
     }
 
@@ -902,7 +966,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
      * values. */
     private abstract class LeafNodeData {
         WBSNode node;
-        double timePerPerson, unassignedTime, teamTime;
+        double timePerPerson, unassignedTime, filteredTime, teamTime;
         int actualNumPeople;
         IndivTime[] individualTimes;
 
@@ -1156,6 +1220,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             unassignedTime = (numPeople - actualNumPeople) * timePerPerson;
             unassignedTimeColumn.setUnassignedTime(node, unassignedTime);
             teamTime = sumIndivTimes() + unassignedTime;
+            filteredTime = figureFilteredTime();
         }
 
         @Override
@@ -1175,6 +1240,39 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             double result = 0;
             for (int i = 0;   i < individualTimes.length;   i++)
                 result += individualTimes[i].time;
+            return result;
+        }
+
+        double figureFilteredTime() {
+            // if no filter is in effect, filtered time is zero
+            if (matchesFilter == null)
+                return 0;
+
+            boolean sawAssignment = false;
+            double result = 0;
+            for (int i = 0; i < individualTimes.length; i++) {
+                if (individualTimes[i].hidden)
+                    result += individualTimes[i].time;
+                if (individualTimes[i].isAssigned())
+                    sawAssignment = true;
+            }
+
+            if (singlePersonFilter) {
+                // if we are in single person mode and this task has already
+                // been assigned to someone, add unassigned time to filtered
+                // time, so it will be excluded from the plan time column.
+                if (sawAssignment)
+                    return result + unassignedTime;
+
+                // if we are in single person mode and this task is unassigned,
+                // we'd like the unfiltered time to equal one "timePerPerson"
+                // amount. calculate a filtered time value that will do that.
+                double pseudoHidden = teamTime - timePerPerson;
+                if (pseudoHidden >= 0)
+                    return pseudoHidden;
+            }
+
+            // return the amount of time assigned to hidden individuals.
             return result;
         }
 
@@ -1511,6 +1609,21 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 unassignedTime = 0;
                 unassignedTimeColumn.clearUnassignedTime(node);
             }
+            filteredTime = sumFilteredTime();
+        }
+
+        private double sumFilteredTime() {
+            // if no filter is in effect, filtered time is zero
+            if (matchesFilter == null)
+                return 0;
+
+            // sum the time for individuals who were hidden by the filter
+            double result = 0;
+            for (int i = 0; i < individualTimes.length; i++) {
+                if (individualTimes[i].hidden)
+                    result += individualTimes[i].time;
+            }
+            return result;
         }
 
     }
@@ -2118,6 +2231,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
 
     private static final String DATA_ATTR_NAME = "Time_Data";
+    private static final String FILTERED_TIME_ATTR = "Filtered_Time";
     public static final String RATE_ATTR = "Rate";
     public static final String TPP_ATTR  = "Time Per Person";
     public static final String NUM_PEOPLE_ATTR = "# People";

@@ -27,6 +27,8 @@ package teamdash.wbs.columns;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
@@ -81,6 +83,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     }
 
 
+    @Override
     public Object getValueAt(WBSNode node) {
 
         // if this node has an inherited value, return it.
@@ -102,10 +105,16 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             return new NumericDataValue(topDownValue);
 
         // return a "mismatch" object
-        String errMsg = "top-down/bottom-up mismatch (bottom-up = " +
-            NumericDataValue.format(bottomUpValue) + ")";
+        String errMsg = getMismatchTooltip(bottomUpValue);
         return new NumericDataValue
             (topDownValue, true, false, errMsg, bottomUpValue);
+    }
+
+    protected String getMismatchTooltip(double bottomUpValue) {
+        String errorMessage = resources.format("TDBU_Mismatch_FMT",
+            NumericDataValue.format(bottomUpValue));
+        return "<html><div style='width:250px'>"
+                + HTMLUtils.escapeEntities(errorMessage) + "</div></html>";
     }
 
 
@@ -173,7 +182,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         } else {
             // this node has children.  Recursively calculate the
             // bottom-up value from those of the children.
-            double bottomUpValue = sumUpChildValues(children, numToInclude);
+            double bottomUpValue = sumUpChildValues(node, children,
+                numToInclude);
 
             // if we have a mismatch, make an attempt to fix it.
             if (!Double.isNaN(topDownValue)
@@ -181,7 +191,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
                 boolean fixWasMade = attemptToRepairTopDownBottomUpMismatch(
                     node, topDownValue, bottomUpValue, children, numToInclude);
                 if (fixWasMade)
-                    bottomUpValue = sumUpChildValues(children, numToInclude);
+                    bottomUpValue = sumUpChildValues(node, children,
+                        numToInclude);
             }
 
             // save the bottom-up attribute value we calculated.
@@ -212,7 +223,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         return 0;
     }
 
-    protected double sumUpChildValues(WBSNode[] children, int numToInclude) {
+    protected double sumUpChildValues(WBSNode parent, WBSNode[] children,
+            int numToInclude) {
         double bottomUpValue = 0;
         for (int i = 0;   i < numToInclude;   i++) {
             double childValue = recalc(children[i]);
