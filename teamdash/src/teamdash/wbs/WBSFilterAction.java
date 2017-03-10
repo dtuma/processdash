@@ -86,6 +86,8 @@ public class WBSFilterAction extends AbstractAction {
 
     private PlanTimeWatcher planTimeWatcher;
 
+    private TeamTimePanel teamTimePanel;
+
     private BlameModelData wbsBlameData;
 
     private boolean isActive;
@@ -117,6 +119,10 @@ public class WBSFilterAction extends AbstractAction {
         this.teamTimeColumn = (TeamTimeColumn) data.getColumn(col);
         col = data.findColumn(PlanTimeWatcher.COLUMN_ID);
         this.planTimeWatcher = (PlanTimeWatcher) data.getColumn(col);
+    }
+
+    public void setTeamTimePanel(TeamTimePanel teamTimePanel) {
+        this.teamTimePanel = teamTimePanel;
     }
 
     public boolean isActive() {
@@ -326,6 +332,7 @@ public class WBSFilterAction extends AbstractAction {
         TeamMemberFilter teamFilter = taskTester.setUserFilter(userFilter,
             rollupEveryone);
         teamTimeColumn.setTeamFilter(rollupEveryone ? null : teamFilter);
+        teamTimePanel.applyTeamFilter(teamFilter);
     }
 
 

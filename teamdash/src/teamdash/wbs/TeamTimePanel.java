@@ -48,6 +48,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,7 @@ import net.sourceforge.processdash.i18n.Resources;
 
 import teamdash.team.PrivacyType;
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberFilter;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
@@ -123,6 +125,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showBalancedBar;
     /** Should the bars for each team member be shown, or hidden */
     private boolean showTeamMemberBars;
+    /** A team member filter that was registered by a group filter */
+    private TeamMemberFilter teamMemberFilter;
     /** IDs of individuals who should receive bars, or null for no filter */
     private Set<Integer> subteamFilter;
     /** The name to display for the filtered subteam */
@@ -318,8 +322,28 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
     }
 
+    public void applyTeamFilter(TeamMemberFilter filter) {
+        if (filter == null) {
+            applySubteamFilter(null, null);
+        } else {
+            Set<Integer> effectiveSubteam = calcEffectiveSubteam(filter);
+            applySubteamFilter(effectiveSubteam, filter.getDisplayName());
+            this.teamMemberFilter = filter;
+        }
+    }
+
+    private Set<Integer> calcEffectiveSubteam(TeamMemberFilter filter) {
+        Set<Integer> result = new HashSet<Integer>();
+        for (TeamMember m : this.teamList.getTeamMembers()) {
+            if (filter.include(m))
+                result.add(m.getId());
+        }
+        return result;
+    }
+
     public void applySubteamFilter(Set<Integer> subteamFilter,
             String subteamName) {
+        this.teamMemberFilter = null;
         this.subteamFilter = subteamFilter;
         this.subteamName = subteamName;
         this.teamList.setSubteamFilter(subteamFilter);
@@ -458,10 +482,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         teamMilestoneBar.effectivePastHours += historicalTeamMemberCollateralTime;
 
         // add all horizontal bars to our panel.
+        boolean onlyOneVisiblePerson = teamMemberBars.size() == 2;
         for (TeamMemberBar bar : teamMemberBars) {
             // possibly skip over this row if requested
             if (bar instanceof TeamMilestoneBar) {
-                if (!showBalancedBar) continue;
+                if (!showBalancedBar || onlyOneVisiblePerson) continue;
             } else {
                 if (!showTeamMemberBars) continue;
             }
@@ -498,7 +523,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 && maxScheduleLength > 0
                 && balancedLength > 0
                 && balancedLength <= maxScheduleLength
-                && teamMemberBars.size() > 0) {
+                && teamMemberBars.size() > 2) {
             TeamMemberBar bar = teamMemberBars.get(0);
             Rectangle r = bar.getBounds();
             Insets i = bar.getInsets();
@@ -636,10 +661,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** Listen for and respond to changes in the data or the team list.
      */
     public void tableChanged(TableModelEvent e) {
-        if (e.getSource() == teamList)
+        if (e.getSource() == teamList) {
             // if the list of team members changed, we need to discard
             // and rebuild the contents of this panel from scratch.
+            if (teamMemberFilter != null)
+                subteamFilter = calcEffectiveSubteam(teamMemberFilter);
             rebuildPanelContents();
+        }
 
         // whenever data changes, recalculate and redisplay.
         recalcTimer.restart();

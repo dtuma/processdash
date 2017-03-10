@@ -71,4 +71,8 @@ public class TeamMemberFilter {
             return filter.getDatasetIDs().contains(member.getDatasetID());
     }
 
+    public String getDisplayName() {
+        return filter.toString();
+    }
+
 }
