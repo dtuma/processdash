@@ -150,7 +150,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
             // save the new top-down value for this node.
             userChangingValue(node, newValue);
-            node.setNumericAttribute(topDownAttrName, newValue);
+            node.setNumericAttribute(topDownAttrName,
+                newValue + getFilteredAmount(node));
         }
 
         // ask the data model to recalculate this column.
@@ -352,14 +353,15 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
                 // Go ahead and set its bottom up value. (This will eventually
                 // be set by the recalculation logic, but this line allows the
                 // getValueAt to return as a non-error value in the meantime.)
-                delegate.setNumericAttribute(bottomUpAttrName, newValue);
+                double f = getFilteredAmount(delegate);
+                delegate.setNumericAttribute(bottomUpAttrName, newValue + f);
                 if (delegate != node) {
                     // if the delegate is different from the target node, make
                     // the change on the delegate. (If they are the same, these
                     // lines are unnecessary because they will be performed by
                     // the setValueAt logic after this method returns.)
                     userChangingValue(delegate, newValue);
-                    delegate.setNumericAttribute(topDownAttrName, newValue);
+                    delegate.setNumericAttribute(topDownAttrName, newValue + f);
                 }
             }
         }
@@ -368,6 +370,10 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     protected void multiplyValuesUnder(WBSNode node, double newValue,
             double oldValue, double ratio) {
         multiplyValue(node, ratio);
+    }
+
+    protected double getFilteredAmount(WBSNode node) {
+        return 0;
     }
 
     protected WBSNode getSingleLeafForNode(WBSNode node, boolean withValue) {
@@ -407,26 +413,32 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
      */
     protected void multiplyValue(WBSNode node, double ratio) {
         WBSNode[] children = wbsModel.getChildren(node);
-        WBSNode child;
-        double topDownValue;
         for (int i = children.length;   i-- > 0; ) {
-            child = children[i];
+            WBSNode child = children[i];
             if (shouldFilterFromCalculations(child))
                 continue;
 
-            topDownValue = child.getNumericAttribute(topDownAttrName);
+            double topDownValue = child.getNumericAttribute(topDownAttrName);
             if (!Double.isNaN(topDownValue)) {
-                topDownValue *= ratio;
-                userChangingValue(child, topDownValue);
-                child.setNumericAttribute(topDownAttrName, topDownValue);
+                double filt = getFilteredAmount(child);
+                double visibleAmount = topDownValue - filt;
+                visibleAmount *= ratio;
+                userChangingValue(child, visibleAmount);
+                child.setNumericAttribute(topDownAttrName, visibleAmount + filt);
             }
 
             multiplyValue(child, ratio);
         }
     }
 
-    /** When the user edits and changes a value, this function is called
-     * for each affected node before the change is made. */
+    /**
+     * When the user edits and changes a value, this function is called for each
+     * affected node before the change is made.
+     * 
+     * @param value
+     *            the new value, not including any
+     *            {@link #getFilteredAmount(WBSNode) filtered amount}
+     */
     protected void userChangingValue(WBSNode node, double value) {}
 
 

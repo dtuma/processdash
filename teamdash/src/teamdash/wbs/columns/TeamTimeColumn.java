@@ -202,8 +202,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             return null;
 
         // get the filtered time on this node
-        double filteredTime = (matchesFilter == null ? 0
-                : safe(node.getNumericAttribute(FILTERED_TIME_ATTR)));
+        double filteredTime = getFilteredAmount(node);
 
         if (result.errorMessage != null) {
             // if this node has a top-down-bottom-up mismatch, adjust the text
@@ -325,8 +324,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             for (int i = 0; i < numToInclude; i++) {
                 WBSNode child = children[i];
                 if (shouldFilterFromCalculations(child) == false)
-                    filteredTime += safe(
-                        child.getNumericAttribute(FILTERED_TIME_ATTR));
+                    filteredTime += getFilteredAmount(child);
             }
         }
         parent.setNumericAttribute(FILTERED_TIME_ATTR, filteredTime);
@@ -334,23 +332,33 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         return result;
     }
 
+    @Override
+    protected double getFilteredAmount(WBSNode node) {
+        if (matchesFilter == null)
+            return 0;
+        else
+            return safe(node.getNumericAttribute(FILTERED_TIME_ATTR));
+    }
+
 
     /** When the user edits and changes a value, this function is called
      * for each affected node before the change is made. */
     protected void userChangingValue(WBSNode node, double value) {
         LeafNodeData leafData = getLeafNodeData(node);
-        if (leafData != null)
+        if (leafData != null) {
             // if this is a leaf node, pass this notification along to the
             // LeafNodeData object so it can take the appropriate action
             // (e.g., scaling the personal times appropriately)
-            leafData.userSetTeamTime(value);
+            if (value >= 0)
+                leafData.userSetTeamTime(value);
 
-        else if (Double.isNaN(value))
+        } else if (Double.isNaN(value)) {
             // if this is NOT a leaf node, and the user deleted the number
             // from the "Team Time" column, they are probably trying to clear
             // a top-down-bottom-up mismatch.  Oblige by deleting the top-down
             // estimates for each individual team member.
             clearIndividualTopDownBottomUpMismatches(node);
+        }
     }
 
     private void clearIndividualTopDownBottomUpMismatches(WBSNode node) {
@@ -489,12 +497,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 continue;
 
             // get the top-down time estimate for this node.
-            double val = child.getNumericAttribute(topDownAttrName);
+            double filt = getFilteredAmount(child);
+            double val = child.getNumericAttribute(topDownAttrName) - filt;
 
             // look for a minimum time setting on this node.
             double minTime = WorkflowMinTimeColumn.getMinTimeAt(child);
             if (minTime > 0) {
                 minTimes.put(child, minTime);
+
+                // applying minimum time logic to a task with filtered team
+                // members would be very complex. Don't attempt it for now.
+                if (filt > 0) {
+                    minTimes.clear();
+                    break;
+                }
 
                 // if the current node's time is the result of a previous "min
                 // time" adjustment, allocate the node a weight based on the
@@ -598,7 +614,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 WorkflowMinTimeColumn.storeReplacedTimeAt(leaf, Double.NaN);
             }
             userChangingValue(leaf, leafTime);
-            leaf.setNumericAttribute(topDownAttrName, leafTime);
+            leaf.setNumericAttribute(topDownAttrName,
+                leafTime + getFilteredAmount(leaf));
         }
     }
 
@@ -1011,6 +1028,65 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             return null;
         }
 
+        protected boolean maybeAssignToSingleFilteredPerson(double time) {
+            // check to see if we are in single person filter mode.
+            if (matchesFilter == null || singlePersonFilter == false)
+                return false;
+
+            // if no one at all is assigned to this node, don't change that.
+            // the user could be planning arbitrary work with no particular
+            // individual in mind yet.
+            boolean isAssigned = false;
+            for (IndivTime i : individualTimes)
+                isAssigned |= i.isAssigned();
+            if (isAssigned == false)
+                return false;
+
+            // a single person filter is in effect, so one of two things will
+            // be true:
+            //
+            //   - that user is assigned to this node, and the team time
+            //     is equal to their time. changing the team time should
+            //     simply change their assigned time estimate (or unassign
+            //     them, if the new estimate is zero).
+            //
+            //   - the user is not assigned to this node, so the team time
+            //     is zero. entering an estimate should assign them, with
+            //     the specified time value.
+            //
+            // the logic for both scenarios is the same: find the person
+            // and assign them to this node with the specified time value.
+            for (int i = individualTimes.length; i-- > 0;) {
+                if (matchesFilter[i])
+                    individualTimes[i].setTime(time);
+            }
+            return true;
+        }
+
+        protected void spreadTimeToVisibleAssigned(double newVisibleTeamTime) {
+            // this method is not intended to be used for scaling down to zero
+            if (!(newVisibleTeamTime > 0))
+                return;
+
+            // count the number of people who are both assigned and visible
+            int numVisiblePeople = 0;
+            for (IndivTime i : individualTimes)
+                if (i.isAssignedAndVisible())
+                    numVisiblePeople++;
+
+            // if there aren't any visible people, abort this edit
+            if (numVisiblePeople == 0) {
+                teamTime = filteredTime;
+
+            } else {
+                // divide the new time among the assigned individuals
+                double timePerPerson = newVisibleTeamTime / numVisiblePeople;
+                for (IndivTime i : individualTimes)
+                    if (i.isAssignedAndVisible())
+                        i.setTime(timePerPerson);
+            }
+        }
+
         void maybeAddMembers(AssignedToEditList edits, Map times) {}
 
         protected String getRoles() {
@@ -1019,7 +1095,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         abstract boolean isTypeMismatch();
         abstract boolean isFullyAssigned();
-        abstract void userSetTeamTime(double value);
+        abstract void userSetTeamTime(double newVisibleTeamTime);
         abstract void userSetAssignedTo(Object newValue);
         abstract void recalc();
 
@@ -1155,9 +1231,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         void figureTimePerPerson() {
+            // if a filter is in effect, prefer the hardcoded time per person
+            boolean tryCalc = true;
+            if (matchesFilter != null) {
+                timePerPerson = safe(node.getNumericAttribute(TPP_ATTR));
+                tryCalc = (timePerPerson == 0);
+            }
+
             // the default way to calculate time per person is by finding
             // the mode of the individual times
-            timePerPerson = getMode(individualTimes);
+            if (tryCalc)
+                timePerPerson = getMode(individualTimes);
 
             // if that didn't work, calculate time per person from rate and
             // size.
@@ -1380,7 +1464,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
                 // find individuals with that amount of time, and update them.
                 for (int i = individualTimes.length;   i-- > 0; ) {
-                    if (individualTimes[i].isAssigned() &&
+                    if (individualTimes[i].isAssignedAndVisible() &&
                             equal(individualTimes[i].time, oldTimePerPerson))
                         individualTimes[i].setTime(timePerPerson);
                 }
@@ -1405,17 +1489,28 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         /** Messaged when the user edits the team time for a leaf node. */
-        public void userSetTeamTime(double value) {
-            if (teamTime == value)
+        public void userSetTeamTime(double newVisibleTeamTime) {
+            double oldVisibleTeamTime = teamTime - filteredTime;
+            if (oldVisibleTeamTime == newVisibleTeamTime)
                 return;
 
             node.setAttribute(RATE_ATTR, null);
-            double oldTeamTime = teamTime;
-            teamTime = value;
-            if (oldTeamTime == 0)
-                userSetTimePerPerson(teamTime / numPeople);
-            else {
-                double ratio = teamTime / oldTeamTime;
+            teamTime = newVisibleTeamTime + filteredTime;
+
+            if (maybeAssignToSingleFilteredPerson(newVisibleTeamTime)) {
+                // no additional work needed
+
+            } else if (oldVisibleTeamTime == 0) {
+                if (matchesFilter == null) {
+                    // if no filter is in effect, use traditional logic
+                    userSetTimePerPerson(teamTime / numPeople);
+                } else {
+                    // spread the time across any visible team members
+                    spreadTimeToVisibleAssigned(newVisibleTeamTime);
+                }
+
+            } else {
+                double ratio = newVisibleTeamTime / oldVisibleTeamTime;
                 timePerPerson *= ratio;
                 node.setNumericAttribute(TPP_ATTR, timePerPerson);
                 dataModel.columnChanged(timePerPersonColumn);
@@ -1423,8 +1518,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 recalculateRate();
 
                 // find individuals with nonzero time, and update them.
-                for (int i = individualTimes.length;   i-- > 0; )
-                    individualTimes[i].multiplyTime(ratio);
+                for (IndivTime i : individualTimes)
+                    if (!i.hidden)
+                        i.multiplyTime(ratio);
             }
             figureTeamTime();
         }
@@ -1525,23 +1621,22 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         @Override
-        void userSetTeamTime(double value) {
-            double oldTeamTime = teamTime;
-            teamTime = value;
-            if (oldTeamTime == 0) {
-                // divide the new time among the assigned individuals, if any
-                if (actualNumPeople > 0 && teamTime > 0) {
-                    double timePerPerson = teamTime / actualNumPeople;
-                    for (int i = individualTimes.length;   i-- > 0; )
-                        if (individualTimes[i].isAssigned())
-                            individualTimes[i].setTime(timePerPerson);
-                }
+        void userSetTeamTime(double newVisibleTeamTime) {
+            double oldVisibleTeamTime = teamTime - filteredTime;
+            teamTime = newVisibleTeamTime + filteredTime;
+            
+            if (maybeAssignToSingleFilteredPerson(newVisibleTeamTime)) {
+                // no additional work needed
+
+            } else if (oldVisibleTeamTime == 0) {
+                spreadTimeToVisibleAssigned(newVisibleTeamTime);
 
             } else {
                 // find individuals with nonzero time, and update them.
-                double ratio = teamTime / oldTeamTime;
-                for (int i = individualTimes.length;   i-- > 0; )
-                    individualTimes[i].multiplyTime(ratio);
+                double ratio = newVisibleTeamTime / oldVisibleTeamTime;
+                for (IndivTime i : individualTimes)
+                    if (!i.hidden)
+                        i.multiplyTime(ratio);
             }
         }
 
@@ -1667,6 +1762,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         public boolean isAssigned() {
             return time > 0 || zeroButAssigned;
+        }
+
+        public boolean isAssignedAndVisible() {
+            return !hidden && isAssigned();
         }
 
         public void setTime(double newTime) {
