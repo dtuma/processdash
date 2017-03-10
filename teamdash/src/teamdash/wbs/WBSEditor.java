@@ -1166,6 +1166,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return false;
 
         TeamProjectMerger merger = mergeCoordinator.doMerge();
+        UserGroupManagerWBS.getInstance().reload();
         if (merger == null) {
             // no merge needed. check for new reverse sync data.
             if (reverseSynchronizer != null && forceReverseSync)

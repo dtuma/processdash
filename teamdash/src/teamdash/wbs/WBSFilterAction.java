@@ -63,7 +63,6 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
-import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
@@ -636,19 +635,22 @@ public class WBSFilterAction extends AbstractAction {
 
         @Override
         public void refreshValues() {
-            Object currentSelection = valueField.getSelectedItem();
+            UserGroupManagerWBS mgr = UserGroupManagerWBS.getInstance();
+            String currentSelection = mgr.getGlobalFilter().getId();
+            mgr.reload();
 
             Vector choices = new Vector();
-            choices.addAll(UserGroupManager.getInstance().getGroups().values());
+            choices.addAll(mgr.getGroups().values());
             Collections.sort(choices);
 
             valueField.removeAllItems();
             valueField.addItem(UserGroup.EVERYONE);
-            for (Object group : choices)
-                valueField.addItem(group);
-
-            if (currentSelection != null)
-                valueField.setSelectedItem(currentSelection);
+            valueField.setSelectedIndex(0);
+            for (Object filt : choices) {
+                valueField.addItem(filt);
+                if (((UserFilter) filt).getId().equals(currentSelection))
+                    valueField.setSelectedItem(filt);
+            }
         }
 
         @Override

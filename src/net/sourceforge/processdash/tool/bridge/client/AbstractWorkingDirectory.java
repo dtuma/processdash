@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2015 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -74,15 +74,18 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
 
     protected String getWorkingId() {
         if (remoteURL != null) {
-            String url = remoteURL;
-            if (url.startsWith("https"))
-                url = "http" + url.substring(5);
-            return FileUtils.makeSafeIdentifier(url);
+            return getWorkingIdForUrl(remoteURL);
 
         } else {
             String path = targetDirectory.getAbsolutePath();
             return FileUtils.makeSafeIdentifier(path);
         }
+    }
+
+    static String getWorkingIdForUrl(String url) {
+        if (url.startsWith("https"))
+            url = "http" + url.substring(5);
+        return FileUtils.makeSafeIdentifier(url);
     }
 
     public File getTargetDirectory() {

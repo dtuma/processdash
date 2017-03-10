@@ -72,6 +72,10 @@ public class UserGroupManagerWBS extends UserGroupManager {
         return "WBS_Editor";
     }
 
+    public void reload() {
+        super.reloadAll();
+    }
+
     @Override
     public Set<UserGroupMember> getAllKnownPeople() {
         return Collections.EMPTY_SET;
@@ -122,14 +126,6 @@ public class UserGroupManagerWBS extends UserGroupManager {
             this.includeRelated = includeRelated;
             fireFilterChangedEvent();
         }
-    }
-
-    @Override
-    protected void groupWasSaved(UserGroup g) {
-        super.groupWasSaved(g);
-
-        if (getGlobalFilter().getId().equals(g.getId()))
-            rebuildTeamMemberFilter();
     }
 
     public void addUserGroupFilterListener(UserGroupFilterListener l) {

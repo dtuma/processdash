@@ -49,9 +49,11 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.FileType;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.VersionUtils;
@@ -409,6 +411,7 @@ public class TeamSettingsFile {
 
         if (projDataUrl != null) {
             try {
+                // sign the file and upload to the PDES
                 TamperDeterrent.getInstance().addThumbprint(tmp, tmp,
                     FileType.WBS);
                 InputStream in = new BufferedInputStream(
@@ -416,6 +419,12 @@ public class TeamSettingsFile {
                 ResourceBridgeClient.uploadSingleFile(new URL(projDataUrl),
                     SETTINGS_FILENAME, in);
                 in.close();
+
+                // copy the file to the local cache directory as well
+                File cd = BridgedWorkingDirectory.getLocalCacheDir(projDataUrl);
+                if (cd.isDirectory())
+                    FileUtils.copyFile(tmp, new File(cd, SETTINGS_FILENAME));
+
                 return;
             } catch (IOException e) {
                 ioe = e;

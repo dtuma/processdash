@@ -111,9 +111,13 @@ public abstract class UserGroupManager {
         // load group data from both files
         timestamps = new HashMap<Boolean, Date>();
         groups = Collections.synchronizedMap(new HashMap<String, UserGroup>());
+        reloadAll();
+        needsSave = new HashSet<Boolean>();
+    }
+
+    protected void reloadAll() {
         reloadGroups(false);
         reloadGroups(true);
-        needsSave = new HashSet<Boolean>();
     }
 
     /**
