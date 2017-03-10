@@ -52,6 +52,9 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.team.group.UserGroupFilterEvent;
+import net.sourceforge.processdash.team.group.UserGroupFilterListener;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToEditList;
@@ -84,7 +87,8 @@ import teamdash.wbs.WorkflowModel;
 /** This column manages the calculation and interrelationship of several
  * tightly related columns dealing with team time.
  */
-public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListener {
+public class TeamTimeColumn extends TopDownBottomUpColumn
+        implements ChangeListener, UserGroupFilterListener {
 
     public static final String COLUMN_ID = "Time";
 
@@ -119,6 +123,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         m.addDataColumn(unassignedTimeColumn = new UnassignedTimeColumn(m));
 
         m.addTeamMemberColumnListener(this);
+        UserGroupManagerWBS.getInstance().addUserGroupFilterListener(this);
     }
 
 
@@ -157,8 +162,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         checkTeamFilter();
     }
 
-    public void setTeamFilter(TeamMemberFilter f) {
-        this.teamFilter = f;
+    @Override
+    public void groupFilterChanged(UserGroupFilterEvent e) {
+        teamFilter = (e.isIncludeRelated() ? null : e.getFilter());
         checkTeamFilter();
         dataModel.columnChanged(this);
     }

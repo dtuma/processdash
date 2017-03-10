@@ -73,6 +73,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.group.UserGroupFilterEvent;
+import net.sourceforge.processdash.team.group.UserGroupFilterListener;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 
 import teamdash.team.PrivacyType;
 import teamdash.team.TeamMember;
@@ -89,7 +92,8 @@ import teamdash.wbs.columns.UnassignedTimeColumn;
  * team member.  A separate indicator shows the approximate duration of the
  * balanced team schedule.
  */
-public class TeamTimePanel extends JPanel implements TableModelListener {
+public class TeamTimePanel extends JPanel
+        implements TableModelListener, UserGroupFilterListener {
 
     /** The list of team members on this project. */
     private TeamMemberList teamList;
@@ -205,6 +209,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         dataModel.addTableModelListener(this);
         teamList.addTableModelListener(this);
+        UserGroupManagerWBS.getInstance().addUserGroupFilterListener(this);
     }
 
     public boolean isShowBalancedBar() {
@@ -322,7 +327,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
     }
 
-    public void applyTeamFilter(TeamMemberFilter filter) {
+    @Override
+    public void groupFilterChanged(UserGroupFilterEvent e) {
+        TeamMemberFilter filter = e.getFilter();
         if (filter == null) {
             applySubteamFilter(null, null);
         } else {

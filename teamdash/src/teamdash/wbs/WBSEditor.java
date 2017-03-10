@@ -417,7 +417,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
-        tabPanel.wbsTable.FILTER_ACTION.setTeamTimePanel(teamTimePanel);
 
         try {
             new MacOSXWBSHelper(this);

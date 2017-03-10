@@ -65,7 +65,7 @@ public abstract class UserGroupManager {
 
 
 
-    private EventListenerList listeners;
+    protected EventListenerList listeners;
 
     private UserFilter globalFilter;
 
@@ -290,7 +290,7 @@ public abstract class UserGroupManager {
         return result.toString();
     }
 
-    void groupWasSaved(UserGroup g) {
+    protected void groupWasSaved(UserGroup g) {
         // notify listeners about the change
         fireUserGroupEditEvent(new UserGroupEditEvent(this, g, false));
     }
@@ -308,7 +308,7 @@ public abstract class UserGroupManager {
         }
     }
 
-    void groupWasDeleted(UserGroup g) {
+    protected void groupWasDeleted(UserGroup g) {
         // notify listeners about the change
         fireUserGroupEditEvent(new UserGroupEditEvent(this, g, true));
     }

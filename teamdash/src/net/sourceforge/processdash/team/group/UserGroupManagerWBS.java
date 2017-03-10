@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import teamdash.team.TeamMemberFilter;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSFilenameConstants;
 
@@ -39,6 +41,13 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
 
     private Map<String, String> datasetIDMap;
+
+    private TeamMemberList teamMemberList;
+
+    private TeamMemberFilter teamMemberFilter;
+
+    private boolean includeRelated;
+
 
     private UserGroupManagerWBS() {
         super(true);
@@ -55,6 +64,7 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
         // initialize the user group manager
         new UserGroupManagerWBS().init(settingsFile, datasetID);
+        getInstance().teamMemberList = proj.getTeamMemberList();
     }
 
     @Override
@@ -73,6 +83,69 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
     public void setDatasetIDMap(Map<String, String> datasetIDMap) {
         this.datasetIDMap = Collections.unmodifiableMap(datasetIDMap);
+        if (teamMemberFilter != null)
+            fireFilterChangedEvent();
+    }
+
+    public void setFilter(UserFilter f, boolean includeRelated) {
+        this.includeRelated = includeRelated;
+        setGlobalFilter(f);
+    }
+
+    @Override
+    public void setGlobalFilter(UserFilter f) {
+        if (f == null)
+            f = UserGroup.EVERYONE;
+        super.setGlobalFilter(f);
+        rebuildTeamMemberFilter();
+    }
+
+    private void rebuildTeamMemberFilter() {
+        UserFilter f = getGlobalFilter();
+        if (UserGroup.isEveryone(f))
+            teamMemberFilter = null;
+        else
+            teamMemberFilter = new TeamMemberFilter(teamMemberList, f);
+        fireFilterChangedEvent();
+    }
+
+    public TeamMemberFilter getTeamMemberFilter() {
+        return teamMemberFilter;
+    }
+
+    public boolean isIncludeRelated() {
+        return includeRelated;
+    }
+
+    public void setIncludeRelated(boolean includeRelated) {
+        if (this.includeRelated != includeRelated) {
+            this.includeRelated = includeRelated;
+            fireFilterChangedEvent();
+        }
+    }
+
+    @Override
+    protected void groupWasSaved(UserGroup g) {
+        super.groupWasSaved(g);
+
+        if (getGlobalFilter().getId().equals(g.getId()))
+            rebuildTeamMemberFilter();
+    }
+
+    public void addUserGroupFilterListener(UserGroupFilterListener l) {
+        listeners.add(UserGroupFilterListener.class, l);
+    }
+
+    public void removeUserGroupFilterListener(UserGroupFilterListener l) {
+        listeners.remove(UserGroupFilterListener.class, l);
+    }
+
+    private void fireFilterChangedEvent() {
+        UserGroupFilterEvent e = new UserGroupFilterEvent(this);
+        for (UserGroupFilterListener l : listeners
+                .getListeners(UserGroupFilterListener.class)) {
+            l.groupFilterChanged(e);
+        }
     }
 
 }

@@ -64,15 +64,14 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManager;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
-import teamdash.team.TeamMemberFilter;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
-import teamdash.wbs.columns.TeamTimeColumn;
 
 public class WBSFilterAction extends AbstractAction {
 
@@ -82,11 +81,7 @@ public class WBSFilterAction extends AbstractAction {
 
     private TeamActualTimeColumn taskTester;
 
-    private TeamTimeColumn teamTimeColumn;
-
     private PlanTimeWatcher planTimeWatcher;
-
-    private TeamTimePanel teamTimePanel;
 
     private BlameModelData wbsBlameData;
 
@@ -115,14 +110,8 @@ public class WBSFilterAction extends AbstractAction {
         DataTableModel data = p.wbsTable.dataModel;
         int col = data.findColumn(TeamActualTimeColumn.COLUMN_ID);
         this.taskTester = (TeamActualTimeColumn) data.getColumn(col);
-        col = data.findColumn(TeamTimeColumn.COLUMN_ID);
-        this.teamTimeColumn = (TeamTimeColumn) data.getColumn(col);
         col = data.findColumn(PlanTimeWatcher.COLUMN_ID);
         this.planTimeWatcher = (PlanTimeWatcher) data.getColumn(col);
-    }
-
-    public void setTeamTimePanel(TeamTimePanel teamTimePanel) {
-        this.teamTimePanel = teamTimePanel;
     }
 
     public boolean isActive() {
@@ -328,14 +317,6 @@ public class WBSFilterAction extends AbstractAction {
     }
 
 
-    private void setUserFilter(UserFilter userFilter, boolean rollupEveryone) {
-        TeamMemberFilter teamFilter = taskTester.setUserFilter(userFilter,
-            rollupEveryone);
-        teamTimeColumn.setTeamFilter(rollupEveryone ? null : teamFilter);
-        teamTimePanel.applyTeamFilter(teamFilter);
-    }
-
-
     private void setFilters(WBSFilter[] filters) {
         // hide the filter dialog, since the user is done with it
         dialog.setVisible(false);
@@ -427,7 +408,7 @@ public class WBSFilterAction extends AbstractAction {
         }
 
         public void actionPerformed(ActionEvent e) {
-            setUserFilter(null, true);
+            UserGroupManagerWBS.getInstance().setFilter(null, true);
             setFilters(null);
         }
     }
@@ -676,8 +657,9 @@ public class WBSFilterAction extends AbstractAction {
         }
 
         public WBSFilter getFilter() {
-            UserFilter f = (UserFilter) valueField.getSelectedItem();
-            setUserFilter(f, showRelatedTasks.isSelected());
+            UserGroupManagerWBS.getInstance().setFilter(
+                (UserFilter) valueField.getSelectedItem(),
+                showRelatedTasks.isSelected());
             return taskTester.getUserWBSNodeFilter();
         }
     }

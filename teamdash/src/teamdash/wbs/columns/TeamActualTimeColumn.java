@@ -33,8 +33,9 @@ import java.util.Map;
 
 import javax.swing.event.TableModelListener;
 
-import net.sourceforge.processdash.team.group.UserFilter;
-import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.team.group.UserGroupFilterEvent;
+import net.sourceforge.processdash.team.group.UserGroupFilterListener;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberFilter;
@@ -48,8 +49,9 @@ import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WBSSynchronizer.ActualSubtaskData;
 
-public class TeamActualTimeColumn extends AbstractNumericColumn implements
-        CalculatedDataColumn, WBSLeafNodeCompletionTester {
+public class TeamActualTimeColumn extends AbstractNumericColumn
+        implements CalculatedDataColumn, UserGroupFilterListener,
+        WBSLeafNodeCompletionTester {
 
     public static final String COLUMN_ID = "Actual-Time";
 
@@ -109,6 +111,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         refreshTeam();
         teamMembers.addTableModelListener(EventHandler.create(
             TableModelListener.class, this, "reloadTeam"));
+        UserGroupManagerWBS.getInstance().addUserGroupFilterListener(this);
     }
 
     public void reloadTeam() {
@@ -378,23 +381,19 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         return assignedWithZero;
     }
 
-    public TeamMemberFilter setUserFilter(UserFilter filter,
-            boolean forceRollupEveryone) {
-        if (filter == null || UserGroup.isEveryone(filter)) {
-            teamFilter = null;
+    @Override
+    public void groupFilterChanged(UserGroupFilterEvent e) {
+        teamFilter = e.getFilter();
+        if (teamFilter == null) {
             Arrays.fill(matchesTeamFilter, true);
-            this.rollupEveryone = true;
-
+            rollupEveryone = true;
         } else {
-            teamFilter = new TeamMemberFilter(teamMembers, filter);
             for (int i = 0; i < teamSize; i++)
                 matchesTeamFilter[i] = teamFilter.include(teamMembers.get(i));
-            this.rollupEveryone = forceRollupEveryone;
+            rollupEveryone = e.isIncludeRelated();
         }
 
         dataModel.columnChanged(this);
-
-        return teamFilter;
     }
 
     public WBSFilter getUserWBSNodeFilter() {

@@ -183,7 +183,7 @@ public class UserGroupManagerDash extends UserGroupManager {
 
 
     @Override
-    void groupWasSaved(UserGroup g) {
+    protected void groupWasSaved(UserGroup g) {
         // save data elements for this group
         saveDataElements(g);
 
@@ -204,7 +204,7 @@ public class UserGroupManagerDash extends UserGroupManager {
 
 
     @Override
-    void groupWasDeleted(UserGroup g) {
+    protected void groupWasDeleted(UserGroup g) {
         // discard data elements for this group
         saveDataElement(g.getId(), NAME_SUFFIX, null);
         saveDataElement(g.getId(), DATASET_IDS_SUFFIX, null);
