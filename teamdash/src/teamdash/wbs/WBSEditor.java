@@ -356,11 +356,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         if (!isMode(MODE_MASTER))
-            tabPanel.addTab((showActualData ? "Planned Time" : "Time"),
+            tabPanel.addTab("Planned Time",
                      new String[] { TeamTimeColumn.COLUMN_ID,
                                     WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID,
                                     UnassignedTimeColumn.COLUMN_ID },
-                     new String[] { "Team", "", "Unassigned" });
+                     new String[] { "Total", "", "Unassigned" });
 
         tabPanel.addTab("Task Time",
                 new String[] {
@@ -392,7 +392,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             tabPanel.addTab("Actual Time",
                 new String[] { TeamActualTimeColumn.COLUMN_ID,
                                WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
-                new String[] { "Team", "" });
+                new String[] { "Total", "" });
 
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);

@@ -36,7 +36,12 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import net.sourceforge.processdash.team.group.UserGroupFilterEvent;
+import net.sourceforge.processdash.team.group.UserGroupFilterListener;
+import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberFilter;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableColumn;
@@ -48,8 +53,8 @@ import teamdash.wbs.WorkflowWBSModel;
  * When the team list changes, this class can recreate the columns and adjust
  * all affected TableColumnModel objects.
  */
-public class TeamMemberColumnManager
-    implements TeamMemberList.InitialsListener, TableModelListener {
+public class TeamMemberColumnManager implements TeamMemberList.InitialsListener,
+        TableModelListener, UserGroupFilterListener {
 
     public interface TeamMemberColumn {
         public boolean validFor(TeamMember t);
@@ -62,6 +67,8 @@ public class TeamMemberColumnManager
     private WorkflowWBSModel workflows;
     /** The list of team members */
     private TeamMemberList teamList;
+    /** A filter controlling the team members who should be shown */
+    private TeamMemberFilter teamFilter;
     /** The list of TeamMemberTimeColumn objects for each team member */
     private List<TeamMemberTimeColumn> planTimeColumnList;
     /** The list of TeamMemberActualTimeColumn objects for each team member */
@@ -88,6 +95,7 @@ public class TeamMemberColumnManager
 
         teamList.addInitialsListener(this);
         teamList.addTableModelListener(this);
+        UserGroupManagerWBS.getInstance().addUserGroupFilterListener(this);
     }
 
 
@@ -237,6 +245,16 @@ public class TeamMemberColumnManager
 
         // resynchronize all the column models with the new list of columns.
         createColumns();
+        updateAffectedColumnModels();
+    }
+
+    @Override
+    public void groupFilterChanged(UserGroupFilterEvent e) {
+        teamFilter = e.getFilter();
+        updateAffectedColumnModels();
+    }
+
+    private void updateAffectedColumnModels() {
         Iterator i = affectedColumnModels.iterator();
         while (i.hasNext()) {
             AffectedTableColumnModel settings =
@@ -281,7 +299,9 @@ public class TeamMemberColumnManager
         /** Add all of the TeamMemberTimeColumn objects to this model. */
         public void addAllColumns() {
             for (DataColumn dataColumn : getColumnSet())
-                addColumn(dataColumn);
+                if (teamFilter == null
+                        || teamFilter.include(dataColumn.getColumnName()))
+                    addColumn(dataColumn);
         }
 
         private List<? extends DataColumn> getColumnSet() {
