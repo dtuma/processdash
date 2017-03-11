@@ -27,13 +27,19 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
+import net.sourceforge.processdash.i18n.Resources;
+
+import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberFilter;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSFilenameConstants;
 
 public class UserGroupManagerWBS extends UserGroupManager {
+
+    private static Resources resources = Resources.getDashBundle("WBSEditor");
 
     public static UserGroupManagerWBS getInstance() {
         return (UserGroupManagerWBS) UserGroupManager.getInstance();
@@ -76,9 +82,28 @@ public class UserGroupManagerWBS extends UserGroupManager {
         super.reloadAll();
     }
 
+    public UserGroupMember getMe() {
+        TeamMember me = teamMemberList.getTeamMemberForCurrentUser();
+        if (me == null)
+            return null;
+        else
+            return new UserGroupMember(resources.getString("Filter.Me"),
+                    getIdForFilter(me));
+    }
+
     @Override
     public Set<UserGroupMember> getAllKnownPeople() {
-        return Collections.EMPTY_SET;
+        Set<UserGroupMember> result = new TreeSet<UserGroupMember>();
+        for (TeamMember m : teamMemberList.getTeamMembers())
+            result.add(new UserGroupMember(m.getName(), getIdForFilter(m)));
+        return result;
+    }
+
+    private String getIdForFilter(TeamMember m) {
+        String result = m.getDatasetID();
+        if (result == null)
+            result = TeamMemberFilter.getTeamMemberPseudoID(m);
+        return result;
     }
 
     public Map<String, String> getDatasetIDMap() {

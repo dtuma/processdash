@@ -636,7 +636,7 @@ public class WBSFilterAction extends AbstractAction {
         @Override
         public void refreshValues() {
             UserGroupManagerWBS mgr = UserGroupManagerWBS.getInstance();
-            String currentSelection = mgr.getGlobalFilter().getId();
+            String selectedID = mgr.getGlobalFilter().getId();
             mgr.reload();
 
             Vector choices = new Vector();
@@ -646,9 +646,17 @@ public class WBSFilterAction extends AbstractAction {
             valueField.removeAllItems();
             valueField.addItem(UserGroup.EVERYONE);
             valueField.setSelectedIndex(0);
-            for (Object filt : choices) {
+            addUserFilter(mgr.getMe(), selectedID);
+            for (Object filt : choices)
+                addUserFilter((UserFilter) filt, selectedID);
+            for (UserFilter filt : mgr.getAllKnownPeople())
+                addUserFilter(filt, selectedID);
+        }
+
+        private void addUserFilter(UserFilter filt, String selectedID) {
+            if (filt != null) {
                 valueField.addItem(filt);
-                if (((UserFilter) filt).getId().equals(currentSelection))
+                if (filt.getId().equals(selectedID))
                     valueField.setSelectedItem(filt);
             }
         }

@@ -23,6 +23,8 @@
 
 package teamdash.team;
 
+import java.util.Set;
+
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 
@@ -67,12 +69,18 @@ public class TeamMemberFilter {
             return false;
         else if (UserGroup.isEveryone(filter))
             return true;
-        else
-            return filter.getDatasetIDs().contains(member.getDatasetID());
+
+        Set<String> ids = filter.getDatasetIDs();
+        return ids.contains(member.getDatasetID())
+                || ids.contains(getTeamMemberPseudoID(member));
     }
 
     public String getDisplayName() {
         return filter.toString();
+    }
+
+    public static String getTeamMemberPseudoID(TeamMember m) {
+        return "tmid:" + m.getId();
     }
 
 }

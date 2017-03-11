@@ -340,6 +340,25 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             return PrivacyType.Censored;
     }
 
+    public TeamMember getTeamMemberForCurrentUser() {
+        String username = WBSPermissionManager.getCurrentUser();
+        for (TeamMember m : teamMembers) {
+            String mu = (String) m.getServerIdentityInfoMap().get("username");
+            if (mu != null && mu.equalsIgnoreCase(username))
+                return m;
+        }
+
+        String initials = System.getProperty("teamdash.wbs.indivInitials");
+        if (initials != null) {
+            for (TeamMember m : teamMembers) {
+                if (initials.equalsIgnoreCase(m.getInitials()))
+                    return m;
+            }
+        }
+
+        return null;
+    }
+
     /** Add an empty team member to the bottom of the list if the last member
      * in the list is not currently empty.
      */
