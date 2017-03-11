@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -167,8 +167,9 @@ public class WBSExcelWriter {
 
         int childRowPos = rowNum;
         for (WBSNode child : children) {
-            childRowPos = writeDataForNodes(sheet, childRowPos + 1, child,
-                columns);
+            if (!child.isHidden())
+                childRowPos = writeDataForNodes(sheet, childRowPos + 1, child,
+                    columns);
         }
 
         sheet.groupRow(rowNum + 1, childRowPos);
