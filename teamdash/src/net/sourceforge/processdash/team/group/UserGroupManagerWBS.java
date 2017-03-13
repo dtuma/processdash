@@ -25,6 +25,7 @@ package net.sourceforge.processdash.team.group;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -46,7 +47,9 @@ public class UserGroupManagerWBS extends UserGroupManager {
     }
 
 
-    private Map<String, String> datasetIDMap;
+    private Map<Integer, String> datasetIDMap;
+    
+    private Map<Integer, String> datasetIDMapExt;
 
     private TeamMemberList teamMemberList;
 
@@ -57,7 +60,8 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
     private UserGroupManagerWBS() {
         super(true);
-        datasetIDMap = Collections.EMPTY_MAP;
+        datasetIDMap = new HashMap<Integer, String>();
+        datasetIDMapExt = Collections.unmodifiableMap(datasetIDMap);
     }
 
     public static void init(TeamProject proj) {
@@ -106,12 +110,12 @@ public class UserGroupManagerWBS extends UserGroupManager {
         return result;
     }
 
-    public Map<String, String> getDatasetIDMap() {
-        return datasetIDMap;
+    public Map<Integer, String> getDatasetIDMap() {
+        return datasetIDMapExt;
     }
 
-    public void setDatasetIDMap(Map<String, String> datasetIDMap) {
-        this.datasetIDMap = Collections.unmodifiableMap(datasetIDMap);
+    public void addDatasetIDMappings(Map<Integer, String> map) {
+        this.datasetIDMap.putAll(map);
         if (teamMemberFilter != null)
             fireFilterChangedEvent();
     }

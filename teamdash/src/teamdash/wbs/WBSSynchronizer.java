@@ -174,9 +174,8 @@ public class WBSSynchronizer {
         if (createMissingTeamMembers)
             addMissingTeamMembers(exportFiles, datasetIDMap);
 
-        datasetIDMap.remove("");
-        datasetIDMap.remove(null);
-        UserGroupManagerWBS.getInstance().setDatasetIDMap(datasetIDMap);
+        UserGroupManagerWBS.getInstance()
+                .addDatasetIDMappings(finalizeDatasetIdMappings(datasetIDMap));
 
         wbsRoot.setAttribute(EFFECTIVE_DATE_ATTR, effectiveDate);
         wbsRoot.removeAttribute(SYNC_IN_PROGRESS_ATTR);
@@ -196,11 +195,21 @@ public class WBSSynchronizer {
         if (dump != null) {
             String initials = dump.getAttribute(INITIALS_ATTR).toLowerCase();
             String datasetID = dump.getAttribute(DATASET_ID_ATTR);
-            if (XMLUtils.hasValue(initials) && XMLUtils.hasValue(datasetID)) {
+            if (XMLUtils.hasValue(initials) && XMLUtils.hasValue(datasetID))
                 map.put(initials, datasetID);
-                map.put(datasetID, initials);
-            }
         }
+    }
+
+    private Map<Integer, String> finalizeDatasetIdMappings(
+            Map<String, String> initialsMap) {
+        Map<Integer, String> result = new HashMap<Integer, String>();
+        for (TeamMember m : teamProject.getTeamMemberList().getTeamMembers()) {
+            String initials = m.getInitials().toLowerCase();
+            String datasetId = initialsMap.get(initials);
+            if (datasetId != null)
+                result.put(m.getId(), datasetId);
+        }
+        return result;
     }
 
 

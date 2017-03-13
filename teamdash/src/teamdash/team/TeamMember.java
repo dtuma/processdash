@@ -175,11 +175,10 @@ public class TeamMember implements PersonLookupData, Cloneable {
     public String getDatasetID() {
         // the user group manager is the ultimate authority. Ask it first
         String result = UserGroupManagerWBS.getInstance().getDatasetIDMap()
-                .get(initials.toLowerCase());
-        if (result != null)
-            return result;
-        else
-            return (String) getServerIdentityInfoMap().get("datasetID");
+                .get(id);
+        if (result == null)
+            result = (String) getServerIdentityInfoMap().get("datasetID");
+        return result;
     }
 
     // getter/setter for the initials property.
