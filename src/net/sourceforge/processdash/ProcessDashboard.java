@@ -78,6 +78,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import javax.swing.UIManager;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -1185,6 +1186,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             try {
                 LogManager.getLogManager().readConfiguration(
                     new FileInputStream(logConfig));
+            } catch (Exception e) {}
+        }
+
+        // enable the system look and feel if requested/configured
+        if (Settings.getBool("useSystemLAF", false)) {
+            try {
+                String laf = UIManager.getSystemLookAndFeelClassName();
+                UIManager.setLookAndFeel(laf);
+                RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf", laf);
             } catch (Exception e) {}
         }
 
