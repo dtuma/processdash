@@ -1175,6 +1175,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 return false;
         }
 
+        UserGroupManagerWBS.getInstance()
+                .teamMemberIDsChanged(merger.getTeamMemberIDChanges());
         replaceDataFrom(merger.getMerged());
         mergeConflictDialog.addNotifications(merger
                 .getConflicts(mergeConflictDialog));

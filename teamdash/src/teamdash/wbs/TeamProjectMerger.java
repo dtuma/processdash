@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,8 @@ public class TeamProjectMerger {
 
     private List<MergeConflictNotification> conflicts;
 
+    private Map<Integer, Integer> teamMemberIDChanges;
+
     public TeamProjectMerger(TeamProject base, TeamProject main,
             TeamProject incoming) {
         this.base = base;
@@ -69,6 +71,10 @@ public class TeamProjectMerger {
         WBSModelMergeConflictNotificationFactory.refineAll(conflicts,
             dataModelSource);
         return conflicts;
+    }
+
+    public Map<Integer, Integer> getTeamMemberIDChanges() {
+        return teamMemberIDChanges;
     }
 
     public void run() {
@@ -105,6 +111,7 @@ public class TeamProjectMerger {
             teamMerger.getChangesNeededToMainInitials());
         changeInitials(incoming.getWBS(), incoming.getWorkflows(),
             teamMerger.getChangesNeededToIncomingInitials());
+        teamMemberIDChanges = teamMerger.getChangesMadeToIncomingIDs();
 
         return teamMerger.getMerged();
     }

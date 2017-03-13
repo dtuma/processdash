@@ -88,25 +88,15 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
     public UserGroupMember getMe() {
         TeamMember me = teamMemberList.getTeamMemberForCurrentUser();
-        if (me == null)
-            return null;
-        else
-            return new UserGroupMember(resources.getString("Filter.Me"),
-                    getIdForFilter(me));
+        return new UserGroupMemberWBS(resources.getString("Filter.Me"),
+                me == null ? -99 : me.getId());
     }
 
     @Override
     public Set<UserGroupMember> getAllKnownPeople() {
         Set<UserGroupMember> result = new TreeSet<UserGroupMember>();
         for (TeamMember m : teamMemberList.getTeamMembers())
-            result.add(new UserGroupMember(m.getName(), getIdForFilter(m)));
-        return result;
-    }
-
-    private String getIdForFilter(TeamMember m) {
-        String result = m.getDatasetID();
-        if (result == null)
-            result = TeamMemberFilter.getTeamMemberPseudoID(m);
+            result.add(new UserGroupMemberWBS(m.getName(), m.getId()));
         return result;
     }
 
@@ -118,6 +108,23 @@ public class UserGroupManagerWBS extends UserGroupManager {
         this.datasetIDMap.putAll(map);
         if (teamMemberFilter != null)
             fireFilterChangedEvent();
+    }
+
+    public void teamMemberIDsChanged(Map<Integer, Integer> changes) {
+        if (changes == null || changes.isEmpty())
+            return;
+
+        // if we are currently filtering to a single individual, possibly
+        // update the unique ID in that filter based on the ID changes
+        UserFilter f = getGlobalFilter();
+        if (f instanceof UserGroupMemberWBS) {
+            UserGroupMemberWBS ugmw = (UserGroupMemberWBS) f;
+            UserGroupMemberWBS repl = ugmw.getReplacement(changes);
+            if (repl != null) {
+                super.setGlobalFilter(repl);
+                teamMemberFilter = new TeamMemberFilter(teamMemberList, repl);
+            }
+        }
     }
 
     public void setFilter(UserFilter f, boolean includeRelated) {

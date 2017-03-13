@@ -72,15 +72,15 @@ public class TeamMemberFilter {
 
         Set<String> ids = filter.getDatasetIDs();
         return ids.contains(member.getDatasetID())
-                || ids.contains(getTeamMemberPseudoID(member));
+                || ids.contains(getTeamMemberPseudoID(member.getId()));
     }
 
     public String getDisplayName() {
         return filter.toString();
     }
 
-    public static String getTeamMemberPseudoID(TeamMember m) {
-        return "tmid:" + m.getId();
+    public static String getTeamMemberPseudoID(int teamMemberUniqueId) {
+        return "tmid:" + teamMemberUniqueId;
     }
 
 }
