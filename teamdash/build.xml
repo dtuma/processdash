@@ -296,6 +296,7 @@ The author(s) may be contacted at:
 
     <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.hier.ui.icons.HierarchyIcons"/>
       <root classname="net.sourceforge.processdash.security.TamperDeterrent"/>
       <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
@@ -307,6 +308,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.tool.perm.WhoAmI"/>
       <root classname="net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor"/>
       <root classname="net.sourceforge.processdash.ui.lib.BoxUtils"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ColorFilter"/>
       <root classname="net.sourceforge.processdash.ui.lib.CheckboxTree"/>
       <root classname="net.sourceforge.processdash.ui.lib.DropDownButton"/>
       <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
@@ -353,7 +355,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 134) {
+        if (classCount > 144) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

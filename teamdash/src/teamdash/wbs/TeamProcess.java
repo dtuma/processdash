@@ -37,6 +37,7 @@ import javax.swing.JMenuItem;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.team.mcf.CustomProcess;
 
 
@@ -301,15 +302,14 @@ public class TeamProcess {
         iconMap = new HashMap();
 
         // create a handful of icons that always exist.
-        Color c = new Color(204, 204, 255);
-        iconMap.put(PROJECT_TYPE, IconFactory.getProjectIcon());
-        iconMap.put(COMPONENT_TYPE, IconFactory.getComponentIcon());
-        iconMap.put(SOFTWARE_COMPONENT_TYPE, IconFactory.getSoftwareComponentIcon());
+        iconMap.put(PROJECT_TYPE, HierarchyIcons.getProjectIcon());
+        iconMap.put(COMPONENT_TYPE, HierarchyIcons.getComponentIcon());
+        iconMap.put(SOFTWARE_COMPONENT_TYPE, HierarchyIcons.getSoftwareComponentIcon());
         iconMap.put(WORKFLOW_TYPE, IconFactory.getWorkflowIcon());
-        iconMap.put(PSP_TASK_TYPE, IconFactory.getPSPTaskIcon(c));
-        iconMap.put(PSP_WORKFLOW_TASK_TYPE, IconFactory.getPSPTaskIcon(Color.white));
-        iconMap.put(PROBE_TASK_TYPE, IconFactory.getProbeTaskIcon());
-        iconMap.put(null, IconFactory.getTaskIcon(c));
+        iconMap.put(PSP_TASK_TYPE, HierarchyIcons.getPSPTaskIcon());
+        iconMap.put(PSP_WORKFLOW_TASK_TYPE, HierarchyIcons.getPSPTaskIcon(Color.white));
+        iconMap.put(PROBE_TASK_TYPE, HierarchyIcons.getProbeTaskIcon());
+        iconMap.put(null, HierarchyIcons.getTaskIcon());
 
         Map defaultSizeIconColors = new HashMap();
 
@@ -319,9 +319,9 @@ public class TeamProcess {
             String phase = (String) phases.get(phaseNum);
             Color phaseColor = getPhaseColor(phaseNum, numPhases);
             iconMap.put(phase + TASK_SUFFIX,
-                IconFactory.getTaskIcon(phaseColor));
+                HierarchyIcons.getTaskIcon(phaseColor));
             iconMap.put(phase + WORKFLOW_TASK_SUFFIX,
-                IconFactory.getWorkflowTaskIcon(phaseColor));
+                HierarchyIcons.getWorkflowTaskIcon(phaseColor));
 
             // keep track of a likely color to use for each size metric icon.
             String sizeMetricName = getPhaseSizeMetric(phase);
@@ -359,9 +359,9 @@ public class TeamProcess {
 
         // now, create the icon and save it in our map.
         if ("document".equalsIgnoreCase(sizeMetric.getAttr("iconStyle")))
-            return IconFactory.getDocumentIcon(c);
+            return HierarchyIcons.getDocumentIcon(c);
         else
-            return IconFactory.getComponentIcon(c);
+            return HierarchyIcons.getComponentIcon(c);
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,8 @@ import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
+
 import teamdash.wbs.columns.ProxySizeColumn;
 
 public class ProxyJTable extends WBSJTable {
@@ -54,7 +56,7 @@ public class ProxyJTable extends WBSJTable {
         iconMap.put(ProxyWBSModel.BUCKET_TYPE,
             IconFactory.getProxyBucketIcon(getRowHeight()));
         iconMap.put(null, IconFactory.getModifiedIcon(
-            IconFactory.getComponentIcon(), IconFactory.ERROR_ICON));
+            HierarchyIcons.getComponentIcon(), IconFactory.ERROR_ICON));
     }
 
     private void customizeColumns() {

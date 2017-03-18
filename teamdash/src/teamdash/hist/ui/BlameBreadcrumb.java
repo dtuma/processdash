@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,9 +34,8 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.util.StringUtils;
-
-import teamdash.wbs.IconFactory;
 
 public class BlameBreadcrumb extends JLabel {
 
@@ -94,7 +93,7 @@ public class BlameBreadcrumb extends JLabel {
         } else {
             fullPath = StringUtils.findAndReplace(fullPath.substring(1), "/",
                 PATH_SEP);
-            setIcon(IconFactory.getProjectIcon());
+            setIcon(HierarchyIcons.getProjectIcon());
             setText(fullPath + (columnName == null ? "" : BULLET + columnName));
             recalcTextTruncation();
         }

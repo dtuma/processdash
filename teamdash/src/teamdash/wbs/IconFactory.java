@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -43,6 +42,16 @@ import javax.swing.GrayFilter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import net.sourceforge.processdash.ui.lib.ColorFilter;
+import net.sourceforge.processdash.ui.lib.RecolorableIcon;
+
+import teamdash.wbs.icons.CommonWorkflowsIcon;
+import teamdash.wbs.icons.ExpansionToggleIcon;
+import teamdash.wbs.icons.MilestoneIcon;
+import teamdash.wbs.icons.ProxyBucketIcon;
+import teamdash.wbs.icons.ProxyTableIcon;
+import teamdash.wbs.icons.WorkflowIcon;
+
 /** Factory for icons used by the WBSEditor and its components.
  */
 public class IconFactory {
@@ -56,10 +65,6 @@ public class IconFactory {
 
     // Icons to depict various type of nodes in the work breakdown structure
 
-    public static Icon getProjectIcon() {
-        return new ProjectIcon(DEFAULT_COLOR);
-    }
-
     public static Icon getCommonWorkflowsIcon() {
         return new CommonWorkflowsIcon(DEFAULT_COLOR);
     }
@@ -68,48 +73,16 @@ public class IconFactory {
         return new WorkflowIcon(DEFAULT_COLOR);
     }
 
-    public static Icon getWorkflowTaskIcon(Color fill) {
-        return new WorkflowTaskIcon(fill);
-    }
-
-    public static Icon getComponentIcon() {
-        return new ComponentIcon(DEFAULT_COLOR);
-    }
-
-    public static Icon getComponentIcon(Color fill) {
-        return new ComponentIcon(fill);
-    }
-
-    public static Icon getSoftwareComponentIcon() {
-        return new SoftwareComponentIcon(DEFAULT_COLOR);
-    }
-
-    public static Icon getDocumentIcon(Color highlight) {
-        return new DocumentIcon(highlight);
-    }
-
-    public static Icon getTaskIcon(Color fill) {
-        return new TaskIcon(fill);
-    }
-
-    public static Icon getPSPTaskIcon(Color fill) {
-        return new PSPTaskIcon(fill);
-    }
-
-    public static Icon getProbeTaskIcon() {
-        return new ProbeTaskIcon();
-    }
-
     public static Icon getProxyListIcon() {
         return new CommonWorkflowsIcon(DEFAULT_COLOR);
     }
 
     public static Icon getProxyTableIcon() {
-        return loadIconResource("proxy-table.png");
+        return new ProxyTableIcon();
     }
 
     public static Icon getProxyBucketIcon(int height) {
-        return new ProxyBucketIcon(height, new Color(230, 173, 124));
+        return new ProxyBucketIcon(height);
     }
 
     public static Icon getCopyProxyIcon() {
@@ -127,12 +100,12 @@ public class IconFactory {
     public static Icon getPlusIcon() {
         return PLUS_ICON;
     }
-    private static final Icon PLUS_ICON = new PlusIcon();
+    private static final Icon PLUS_ICON = new ExpansionToggleIcon(true);
 
     public static Icon getMinusIcon() {
         return MINUS_ICON;
     }
-    private static final Icon MINUS_ICON = new MinusIcon();
+    private static final Icon MINUS_ICON = new ExpansionToggleIcon(false);
 
     public static Icon getEmptyIcon(int width, int height) {
         return new EmptyIcon(width, height);
@@ -423,11 +396,9 @@ public class IconFactory {
 
     /** Simple class to buffer an icon image for quick repainting.
      */
-    private static class BufferedIcon implements Icon {
+    private static class BufferedIcon implements RecolorableIcon {
         protected Image image = null;
         protected int width = 16, height = 16;
-
-        public BufferedIcon() {}
 
         public BufferedIcon(Icon originalIcon) {
             width = originalIcon.getIconWidth();
@@ -459,483 +430,15 @@ public class IconFactory {
             g.drawImage(image, x, y, null);
         }
 
-        public void applyFilter(RGBImageFilter filter) {
+        public RecolorableIcon recolor(RGBImageFilter filter) {
             ImageProducer prod =
                 new FilteredImageSource(image.getSource(), filter);
             this.image = Toolkit.getDefaultToolkit().createImage(prod);
+            return this;
         }
     }
 
 
-
-    /** Icon image representing a project.
-     *
-     * This draws a large square block.
-     */
-    private static class ProjectIcon extends BufferedIcon {
-
-        Color fillColor, highlight, shadow;
-
-        public ProjectIcon(Color fill) {
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            g.setColor(fillColor);
-            g.fillRect(3,  3,  10, 10);
-
-            g.setColor(shadow);
-            g.drawLine(13, 3,  13, 13); // right shadow
-            g.drawLine(3,  13, 13, 13); // bottom shadow
-
-            g.setColor(highlight);
-            g.drawLine(2,  2,  2, 13); // left highlight
-            g.drawLine(2,  2,  13, 2); // top highlight
-
-            g.setColor(Color.black);
-            g.drawRect(1, 1, 13, 13);
-        }
-    }
-
-
-
-    /**
-     * Icon image for the common team workflows root.
-     * 
-     * This draws four small boxes.
-     */
-    private static class CommonWorkflowsIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public CommonWorkflowsIcon(Color fill) {
-            this.xPoints = new int[] { 1, 1, 7, 7 };
-            this.yPoints = new int[] { 1, 7, 7, 1 };
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            super.doPaint(c, g);
-            g.translate(6, 0);
-            super.doPaint(c, g);
-            g.translate(0, 6);
-            super.doPaint(c, g);
-            g.translate(-6, 0);
-            super.doPaint(c, g);
-            g.translate(0, -6);
-
-            g.setColor(Color.black);
-            g.drawLine(7, 0, 7, 0);
-            g.drawLine(0, 7, 0, 7);
-            g.drawLine(7, 14, 7, 14);
-            g.drawLine(14, 7, 14, 7);
-        }
-
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(shadow);
-            drawHighlight(g, 1,  0, -1);
-            drawHighlight(g, 2, -1,  0);
-
-            g.setColor(highlight);
-            drawHighlight(g, 0, 1, 0);
-            drawHighlight(g, 3, 0, 1);
-        }
-
-    }
-
-
-    /** Icon image representing a defined workflow. */
-    private static class WorkflowIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public WorkflowIcon(Color fill) {
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-            this.xPoints = new int[] { 0, 15, 15,  0 };
-            this.yPoints = new int[] { 3,  3, 12, 12 };
-        }
-
-        @Override
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(shadow);
-            drawHighlight(g, 1, -1,  0);
-
-            g.setColor(highlight);
-            drawHighlight(g, 0,  0, 1);
-            drawHighlight(g, 1, -3, 0);
-            drawHighlight(g, 3,  4, 0);
-
-            g.setColor(shadow);
-            drawHighlight(g, 1, -4,  0);
-            drawHighlight(g, 3,  3,  0);
-            drawHighlight(g, 2,  0, -1);
-
-            g.setColor(highlight);
-            drawHighlight(g, 3, 1, 0);
-        }
-
-    }
-
-    /** Icon image representing a task in a defined workflow */
-    private static class WorkflowTaskIcon extends WorkflowIcon {
-
-        public WorkflowTaskIcon(Color fill) {
-            super(fill);
-        }
-
-        @Override
-        protected void drawHighlight(Graphics g, int segment, int xDelta,
-                int yDelta) {
-            // skip the display of the interior highlights
-            if (Math.abs(xDelta) < 2)
-                super.drawHighlight(g, segment, xDelta, yDelta);
-        }
-
-    }
-
-
-
-    /** Icon image representing a relative size bucket for proxy estimation.
-     * 
-     * This draws a vertical ruler with tick marks.
-     */
-    private static class ProxyBucketIcon extends BufferedIcon {
-
-        private Color bgColor;
-
-        public ProxyBucketIcon(int height, Color bgColor) {
-            this.height = height;
-            this.bgColor = bgColor;
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            g.setColor(bgColor);
-            g.fillRect(0, 0, width, height);
-            g.setColor(Color.black);
-            g.drawLine(0, 0, 0, height - 1);
-            g.drawLine(width - 1, 0, width - 1, height - 1);
-            g.drawLine(0, height / 2, width / 2, height / 2);
-            g.drawLine(0, height / 4, width / 4, height / 4);
-            g.drawLine(0, height * 3 / 4, width / 4, height * 3 / 4);
-        }
-
-    }
-
-
-
-    /** Icon image representing a project component.
-     *
-     * This draws a square block.
-     */
-    private static class ComponentIcon extends BufferedIcon {
-
-        Color fillColor, highlight, shadow;
-
-        public ComponentIcon(Color fill) {
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            if (g instanceof Graphics2D) {
-                GradientPaint grad = new GradientPaint(-10, -10, Color.white,
-                                                       16, 16, fillColor);
-                ((Graphics2D) g).setPaint(grad);
-            } else {
-                g.setColor(fillColor);
-            }
-            g.fillRect(3,  3,  10, 10);
-
-            g.setColor(shadow);
-            g.drawLine(13, 3,  13, 13); // right shadow
-            g.drawLine(3,  13, 13, 13); // bottom shadow
-
-            g.setColor(highlight);
-            g.drawLine(2,  2,  2, 13); // left highlight
-            g.drawLine(2,  2,  13, 2); // top highlight
-
-            g.setColor(Color.black);
-            g.drawRect(1, 1, 13, 13);
-        }
-    }
-
-
-
-    /** Icon image representing a software component.
-     *
-     * This draws a floppy disk.
-     */
-    private static class SoftwareComponentIcon extends BufferedIcon {
-
-        Color highlight;
-
-        public SoftwareComponentIcon(Color highlight) {
-            this.highlight = highlight;
-        }
-
-        protected void doPaint(Component c, Graphics g) {
-            // fill in floppy
-            g.setColor(highlight);
-            g.fillRect(2,2, 12,12);
-
-            // draw outline
-            g.setColor(Color.black);
-            g.drawLine( 1, 1, 13, 1);
-            g.drawLine(14, 2, 14,14);
-            g.drawLine( 1,14, 14,14);
-            g.drawLine( 1, 1,  1,14);
-
-            // draw interior lines
-            g.setColor(Color.gray);
-            g.fillRect(5,2, 6,5);
-            g.drawLine(4,8, 11,8);
-            g.drawLine(3,9, 3,13);
-            g.drawLine(12,9, 12,13);
-
-            // draw white parts
-            g.setColor(Color.white);
-            g.fillRect(8,3, 2,3);
-            g.fillRect(4,9, 8,5);
-
-            // draw text on floppy label
-            g.setColor(highlight);
-            g.drawLine(5,10, 9,10);
-            g.drawLine(5,12, 8,12);
-        }
-    }
-
-
-
-    /** Icon image representing a document
-     *
-     * This draws a page of paper.
-     */
-    private static class DocumentIcon extends BufferedIcon {
-
-        Color highlight;
-
-        public DocumentIcon(Color highlight) { this.highlight = highlight; }
-
-        protected void doPaint(Component c, Graphics g) {
-
-            int right = width - 1;
-            int bottom = height - 1;
-
-            // Draw fill
-            if (g instanceof Graphics2D) {
-                GradientPaint grad = new GradientPaint(0, 0, Color.white,
-                                                       16, 16, highlight);
-                ((Graphics2D) g).setPaint(grad);
-                g.fillRect( 3, 1, 9, 14 );
-                g.fillRect(12, 4, 2, 11 );
-
-            } else {
-                g.setColor(Color.white);
-                g.fillRect(4, 2, 9, 12 );
-
-                // Draw highlight
-                g.setColor(highlight);
-                g.drawLine( 3, 1, 3, bottom - 1 );                  // left
-                g.drawLine( 3, 1, right - 6, 1 );                   // top
-                g.drawLine( right - 2, 7, right - 2, bottom - 1 );  // right
-                g.drawLine( right - 5, 2, right - 3, 4 );           // slant
-                g.drawLine( 3, bottom - 1, right - 2, bottom - 1 ); // bottom
-            }
-
-            // Draw outline
-            g.setColor(Color.black);
-            g.drawLine( 2, 0, 2, bottom );                 // left
-            g.drawLine( 2, 0, right - 4, 0 );              // top
-            g.drawLine( 2, bottom, right - 1, bottom );    // bottom
-            g.drawLine( right - 1, 6, right - 1, bottom ); // right
-            g.drawLine( right - 6, 2, right - 2, 6 );      // slant 1
-            g.drawLine( right - 5, 1, right - 4, 1 );      // part of slant 2
-            g.drawLine( right - 3, 2, right - 3, 3 );      // part of slant 2
-            g.drawLine( right - 2, 4, right - 2, 5 );      // part of slant 2
-
-
-        }
-    }
-
-
-
-    /** Generic icon to draw a polygon with 3D edge highlighting.
-     */
-    private static class PolygonIcon extends BufferedIcon {
-        int[] xPoints;
-        int[] yPoints;
-        Color fillColor;
-
-        protected void doPaint(Component c, Graphics g) {
-            // fill shape
-            g.setColor(fillColor);
-            g.fillPolygon(xPoints, yPoints, yPoints.length);
-
-            // draw custom highlights
-            doHighlights(c, g);
-
-            // draw black outline
-            g.setColor(Color.black);
-            g.drawPolygon(xPoints, yPoints, yPoints.length);
-        }
-
-        protected void doHighlights(Component c, Graphics g) { }
-        protected void drawHighlight(Graphics g, int segment,
-                                     int xDelta, int yDelta) {
-            int segStart = segment;
-            int segEnd = (segment + 1) % xPoints.length;
-
-            g.drawLine(xPoints[segStart] + xDelta,
-                       yPoints[segStart] + yDelta,
-                       xPoints[segEnd]   + xDelta,
-                       yPoints[segEnd]   + yDelta);
-        }
-    }
-
-
-
-    /** Icon image representing a work breakdown structure task.
-     *
-     * This draws a parallelogram.
-     */
-    private static class TaskIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public TaskIcon(Color fill) {
-            this.xPoints = new int[] {  0, 5, 15, 10 };
-            this.yPoints = new int[] { 14, 1,  1, 14 };
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(shadow);
-            drawHighlight(g, 2, -1,  0);
-            drawHighlight(g, 3,  0, -1);
-
-
-            g.setColor(highlight);
-            drawHighlight(g, 0, 1, 0);
-            drawHighlight(g, 1, 0, 1);
-        }
-    }
-
-
-
-    /** Icon image representing a PSP task.
-     *
-     * This draws a pentagon.
-     */
-    private static class PSPTaskIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public PSPTaskIcon(Color fill) {
-            this.xPoints = new int[] { 7, 0,  3, 12, 15, 8 };
-            this.yPoints = new int[] { 1, 7, 15, 15,  7, 1 };
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(Color.white);
-            drawHighlight(g, 1,  1, 0); // bottom left highlight
-            drawHighlight(g, 4,  0, 1); // top right highlight
-
-            g.setColor(highlight);
-            drawHighlight(g, 0,  0, 1); // top left highlight
-            drawHighlight(g, 0,  1, 1); // top left highlight
-
-            g.setColor(shadow);
-            drawHighlight(g, 2,  0, -1); // bottom shadow
-            drawHighlight(g, 3, -1,  0); // right shadow
-        }
-    }
-
-
-
-    /**
-     * Icon image representing a PROBE task.
-     */
-    private static class ProbeTaskIcon extends BufferedIcon {
-
-        protected void doPaint(Component c, Graphics g) {
-            int pad = 2, size = 11;
-            g.setColor(Color.white);
-            g.fillRect(pad, pad, size, size);
-
-            g.setColor(Color.decode("#6b24b3"));
-            g.drawLine(pad, pad + size - 2, pad + size, pad);
-
-            g.setColor(Color.green.darker());
-            g.fillRect(pad + 4, pad + 2, 2, 2);
-            g.fillRect(pad + 4, pad + 8, 2, 2);
-            g.fillRect(pad + 9, pad + 4, 2, 2);
-
-            g.setColor(Color.black);
-            g.drawRect(pad, pad, size, size);
-        }
-
-    }
-
-
-
-    /**
-     * Icon image representing a milestone.
-     */
-    private static class MilestoneIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public MilestoneIcon(Color fill) {
-            this.xPoints = new int[] { 7, 14, 7, 0, 7 };
-            this.yPoints = new int[] { 1, 8, 15, 8, 1 };
-            this.fillColor = fill;
-            this.highlight = mixColors(fill, Color.white, 0.3f);
-            this.shadow    = mixColors(fill, Color.black, 0.7f);
-        }
-
-        protected void doHighlights(Component c, Graphics g) {
-            g.setColor(Color.white);
-            g.drawLine(1, 8, 7, 2); // top left highlight
-
-            g.setColor(highlight);
-            g.drawLine(8, 3, 12, 7); // top right highlight
-            g.drawLine(2, 9, 6, 13); // bottom left highlight
-
-            g.setColor(shadow);
-            g.drawLine(7, 14, 13, 8); // bottom right shadow
-        }
-
-    }
-
-    private static class MinusIcon implements Icon {
-        public int getIconWidth()  { return 9; }
-        public int getIconHeight() { return 9; }
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            g.drawRect(x, y, 8, 8);          // square box
-            g.drawLine(x+2, y+4, x+6, y+4);  // minus symbol
-        }
-    }
-
-    private static class PlusIcon extends MinusIcon {
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            super.paintIcon(c, g, x, y);
-            g.drawLine(x+4, y+2, x+4, y+6);  // vertical bar of plus symbol
-        }
-    }
 
     private static class EmptyIcon implements Icon {
         int width, height;
@@ -1021,54 +524,29 @@ public class IconFactory {
         Map destMap = MODIFIED_ICONS[modifierFlags - 1];
         Icon result = (Icon) destMap.get(i);
         if (result == null) {
-            BufferedIcon bufIcon = new BufferedIcon(i);
+            RecolorableIcon r;
+            if (i instanceof RecolorableIcon)
+                r = (RecolorableIcon) i;
+            else
+                r = new BufferedIcon(i);
             if ((modifierFlags & ERROR_ICON) > 0)
-                bufIcon.applyFilter(RED_FILTER);
+                r = r.recolor(RED_FILTER);
             if ((modifierFlags & PHANTOM_ICON) > 0)
-                bufIcon.applyFilter(PHANTOM_FILTER);
+                r = r.recolor(PHANTOM_FILTER);
             if ((modifierFlags & DISABLED_ICON) > 0)
-                bufIcon.applyFilter(GRAY_FILTER);
-            result = bufIcon;
+                r = r.recolor(GRAY_FILTER);
+            result = r;
             destMap.put(i, result);
         }
         return result;
     }
 
     // filter for creating "error" icons.  Converts to red monochrome.
-    private static RedFilter RED_FILTER = new RedFilter();
-    private static class RedFilter extends RGBImageFilter {
-        public RedFilter() { canFilterIndexColorModel = true; }
-
-        public int filterRGB(int x, int y, int rgb) {
-            // Use NTSC conversion formula.
-            int gray = (int)((0.30 * ((rgb >> 16) & 0xff) +
-                              0.59 * ((rgb >> 8) & 0xff) +
-                              0.11 * (rgb & 0xff)) / 3);
-
-            if (gray < 0) gray = 0;
-            if (gray > 255) gray = 255;
-            return (rgb & 0xffff0000) | (gray << 8) | (gray << 0);
-        }
-    }
+    private static RGBImageFilter RED_FILTER = ColorFilter.Red;
 
     // filter for creating "phantom" icons.  Mixes all colors
     // half-and-half with white.
-    private static PhantomFilter PHANTOM_FILTER = new PhantomFilter();
-    private static class PhantomFilter extends RGBImageFilter {
-        public PhantomFilter() { canFilterIndexColorModel = true; }
-
-        public int filterRGB(int x, int y, int rgb) {
-            int alpha = rgb & 0xff000000;
-            int red   = filt((rgb >> 16) & 0xff);
-            int green = filt((rgb >> 8)  & 0xff);
-            int blue  = filt((rgb >> 0)  & 0xff);
-
-            return alpha | (red << 16) | (green << 8) | blue;
-        }
-        public int filt(int component) {
-            return (component + 0xff) / 2;
-        }
-    }
+    private static RGBImageFilter PHANTOM_FILTER = ColorFilter.Phantom;
 
     // filter for creating "disabled" icons.
     private static GrayFilter GRAY_FILTER = new GrayFilter(true, 50);
