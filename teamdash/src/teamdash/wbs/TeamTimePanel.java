@@ -37,11 +37,13 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
 import java.beans.EventHandler;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -715,8 +717,15 @@ public class TeamTimePanel extends JPanel
         private List<CommitDate> commitDates;
         private long maxDate;
         private boolean isShowing = false;
+        private Path2D commitDateArrow;
 
         private CommitDatePane() {
+            commitDateArrow = new Path2D.Float();
+            commitDateArrow.moveTo(-ARROW_WIDTH / 2, GUTTER_HEIGHT - ARROW_HEIGHT);
+            commitDateArrow.lineTo(ARROW_WIDTH / 2, GUTTER_HEIGHT - ARROW_HEIGHT);
+            commitDateArrow.lineTo(0, GUTTER_HEIGHT - 1);
+            commitDateArrow.closePath();
+
             setOpaque(false);
             ToolTipManager.sharedInstance().registerComponent(this);
 
@@ -785,38 +794,27 @@ public class TeamTimePanel extends JPanel
             if (showCommitDates == false)
                 return;
 
-            Stroke plainStroke = null;
-            Graphics2D g2 = null;
-            if (g instanceof Graphics2D) {
-                g2 = (Graphics2D) g;
-                plainStroke = g2.getStroke();
-            }
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            float scale = (float) g2.getTransform().getScaleX();
+            g2.setStroke(new BasicStroke(1 / scale));
 
-            int[] xPoints = new int[3];
-            int[] yPoints = new int[3];
             for (CommitDate cd : commitDates) {
                 if (cd.xPos == -1)
                     continue;
 
-                g.setColor(cd.color);
-                xPoints[0] = cd.xPos + 1 - ARROW_WIDTH/2;
-                xPoints[1] = cd.xPos + ARROW_WIDTH/2;
-                xPoints[2] = cd.xPos;
-                yPoints[0] = yPoints[1] = GUTTER_HEIGHT - ARROW_HEIGHT;
-                yPoints[2] = GUTTER_HEIGHT;
-                g.fillPolygon(xPoints, yPoints, xPoints.length);
+                Graphics2D g3 = (Graphics2D) g2.create();
+                g3.translate(cd.xPos, 0);
+                g3.setColor(cd.color);
+                g3.fill(commitDateArrow);
+                g3.setColor(Color.BLACK);
+                g3.draw(commitDateArrow);
 
-                g.setColor(Color.BLACK);
-                if (g2 != null)
-                    g2.setStroke(plainStroke);
-                xPoints[1]--; /*xPoints[2]--;*/ yPoints[2]--;
-                g.drawPolygon(xPoints, yPoints, xPoints.length);
-
-                if (g2 != null)
-                    g2.setStroke(milestoneHighlighter.isHighlighted(cd)
-                            ? milestoneHighlighter.commitDateHighlightStroke
-                            : COMMIT_DATE_LINE_STYLE);
-                g.drawLine(cd.xPos, GUTTER_HEIGHT-1, cd.xPos, getHeight());
+                g3.setStroke(milestoneHighlighter.isHighlighted(cd)
+                        ? milestoneHighlighter.commitDateHighlightStroke
+                        : COMMIT_DATE_LINE_STYLE);
+                g3.drawLine(0, GUTTER_HEIGHT - 1, 0, getHeight());
             }
 
         }
@@ -1460,7 +1458,7 @@ public class TeamTimePanel extends JPanel
             Color color;
             boolean milestoneColorIsDark;
             String tooltip;
-            int xPos, rightEdge, leftEdge;
+            int xPos, rightEdge;
 
             public MilestoneMark(WBSNode milestone,
                     Map<Integer, Double> milestoneEffort,
@@ -1525,22 +1523,27 @@ public class TeamTimePanel extends JPanel
                         || showMilestoneMarks == false)
                     return;
 
-                int hh = (height + 1) / 2;
-                for (int i = 0;  i < hh;  i++) {
-                    int d = (i + 1) / 2;
-                    int l = height - i - 1;
-                    leftEdge = xPos-d;
-                    rightEdge = xPos+d;
-                    g.setColor(Color.black);
-                    g.drawLine(leftEdge, i, rightEdge, i);
-                    g.drawLine(leftEdge, l, rightEdge, l);
-                    if (d > 0) {
-                        g.setColor(color);
-                        g.drawLine(leftEdge+1, i, rightEdge-1, i);
-                        g.drawLine(leftEdge+1, l, rightEdge-1, l);
-                    }
-                }
+                float hh = height / 2f;
+                float hw = (height + 1) / 4f;
+                rightEdge = (int) (xPos + hw + 0.5f);
+                Path2D diamond = new Path2D.Float();
+                diamond.moveTo(xPos, 1);
+                diamond.lineTo(xPos - hw, hh);
+                diamond.lineTo(xPos, height - 1);
+                diamond.lineTo(xPos + hw, hh);
+                diamond.closePath();
 
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
+                    RenderingHints.VALUE_STROKE_PURE);
+                float scale = (float) g2.getTransform().getScaleX();
+                g2.setStroke(new BasicStroke(scale > 1 ? 1 / scale : 0.85f));
+                g2.setColor(color);
+                g2.fill(diamond);
+                g2.setColor(Color.black);
+                g2.draw(diamond);
             }
         }
     }
