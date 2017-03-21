@@ -56,10 +56,9 @@ public class BlameAnnotationBorder extends EmptyBorder {
             color = (Color) ((JComponent) c)
                     .getClientProperty(ANNOTATION_COLOR_KEY);
 
+        int d = height / 3;
         g.setColor(color != null ? color : DEFAULT_ANNOTATION_COLOR);
-        for (int i = height / 3; i-- > 0;) {
-            g.drawLine(x, y + 5 - i, x + i, y + 5 - i);
-        }
+        g.fillPolygon(new int[] { x, x, x + d }, new int[] { y, y + d, y }, 3);
     }
 
 

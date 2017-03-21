@@ -23,40 +23,42 @@
 
 package teamdash.wbs.icons;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
 import net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon;
 
-public class ExpansionToggleIcon extends AbstractPixelAwareRecolorableIcon {
+public class CollapseAllIcon extends AbstractPixelAwareRecolorableIcon {
 
-    private Color color;
+    private Color fill, edge;
 
-    private boolean expand;
-
-    public ExpansionToggleIcon(boolean expand) {
-        this.width = this.height = 9;
-        this.color = Color.black;
-        this.expand = expand;
+    public CollapseAllIcon(Color fill) {
+        this.fill = fill;
+        this.edge = Color.black;
     }
 
     @Override
     protected void paintIcon(Graphics2D g2, int width, int height,
             float scale) {
-        // Make the pixel size odd if it isn't already, to enable our lines to
-        // be centered.
-        int pixelSize = width;
-        if ((pixelSize & 1) == 0)
-            pixelSize--;
-        int mid = pixelSize / 2;
-        int pad = pixelSize / 4;
-        int end = pixelSize - pad - 1;
+        // compute the geometry for the icon
+        int minusWidth = (int) (0.5 + 9 * width / 16f);
+        int minusHeight = (int) (0.5 + minusWidth / 3f);
+        int top = (height - 2 * minusHeight) / 3;
+        int top2 = height - top - minusHeight - 1;
+        int left = (int) (width / 15);
+        int left2 = width - left - minusWidth - 1;
 
-        g2.setColor(color);
-        g2.drawRect(0, 0, pixelSize - 1, pixelSize - 1);
-        g2.drawLine(pad, mid, end, mid);
-        if (expand)
-            g2.drawLine(mid, pad, mid, end);
+        // fill the shapes
+        g2.setColor(fill);
+        g2.fillRect(left, top, minusWidth, minusHeight);
+        g2.fillRect(left2, top2, minusWidth, minusHeight);
+
+        // draw the edges
+        g2.setColor(edge);
+        g2.setStroke(new BasicStroke(1));
+        g2.drawRect(left, top, minusWidth, minusHeight);
+        g2.drawRect(left2, top2, minusWidth, minusHeight);
     }
 
 }

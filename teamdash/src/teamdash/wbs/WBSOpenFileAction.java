@@ -49,6 +49,7 @@ public class WBSOpenFileAction extends AbstractAction {
 
     public WBSOpenFileAction(JFrame frame) {
         super(resources.getString("Menu"));
+        putValue(SMALL_ICON, IconFactory.getOpenIcon());
         putValue(MNEMONIC_KEY, new Integer(resources.getString("Mnemonic")
                 .charAt(0)));
         this.parentFrame = frame;

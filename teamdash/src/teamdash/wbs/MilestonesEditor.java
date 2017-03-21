@@ -33,8 +33,6 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -44,6 +42,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
+
+import net.sourceforge.processdash.i18n.Resources;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.ColorCellEditor;
@@ -72,6 +72,10 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
 
     /** A toolbar for editing the milestones */
     JToolBar toolBar;
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Milestones");
+
 
     public MilestonesEditor(TeamProject teamProject,
             MilestonesDataModel milestonesModel) {
@@ -178,24 +182,17 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
-        addToolbarButton(tweakAction(table.CUT_ACTION, "Cut Milestones", null));
-        addToolbarButton(tweakAction(table.COPY_ACTION, "Copy Milestones",
-            IconFactory.getCopyMilestoneIcon()));
-        addToolbarButton(tweakAction(table.PASTE_ACTION, "Paste Milestones",
-            IconFactory.getPasteMilestoneIcon()));
+        table.tweakClipboardActions(resources,
+            IconFactory.getCopyMilestoneIcon(),
+            IconFactory.getPasteMilestoneIcon());
+        addToolbarButton(table.CUT_ACTION);
+        addToolbarButton(table.COPY_ACTION);
+        addToolbarButton(table.PASTE_ACTION);
         addToolbarButton(table.MOVEUP_ACTION);
         addToolbarButton(table.MOVEDOWN_ACTION);
         addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
         addToolbarButton(new SortMilestonesAction());
-    }
-
-    private Action tweakAction(AbstractAction a, String name, Icon icon) {
-        if (name != null)
-            a.putValue(Action.NAME, name);
-        if (icon != null)
-            a.putValue(Action.SMALL_ICON, icon);
-        return a;
     }
 
     /** Add a button to the internal tool bar */
@@ -205,12 +202,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         button.setFocusPainted(false);
         button.setToolTipText((String) a.getValue(Action.NAME));
         button.setText(null);
-
-        Icon icon = button.getIcon();
-        if (icon != null && !(icon instanceof ImageIcon))
-            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
-                IconFactory.DISABLED_ICON));
-
+        IconFactory.setDisabledIcon(button);
         toolBar.add(button);
     }
 

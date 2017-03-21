@@ -307,6 +307,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
       <root classname="net.sourceforge.processdash.tool.perm.WhoAmI"/>
       <root classname="net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor"/>
+      <root classname="net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.BoxUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.ColorFilter"/>
       <root classname="net.sourceforge.processdash.ui.lib.CheckboxTree"/>
@@ -321,6 +322,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneTweaker"/>
       <root classname="net.sourceforge.processdash.ui.lib.LargeFontsHelper"/>
       <root classname="net.sourceforge.processdash.ui.lib.PaddedIcon"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ScalableImageIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
       <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
@@ -355,7 +357,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 144) {
+        if (classCount > 147) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

@@ -23,40 +23,50 @@
 
 package teamdash.wbs.icons;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 
 import net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon;
 
-public class ExpansionToggleIcon extends AbstractPixelAwareRecolorableIcon {
+public class ExpandAllIcon extends AbstractPixelAwareRecolorableIcon {
 
-    private Color color;
+    private Color fill, edge;
 
-    private boolean expand;
-
-    public ExpansionToggleIcon(boolean expand) {
-        this.width = this.height = 9;
-        this.color = Color.black;
-        this.expand = expand;
+    public ExpandAllIcon(Color fill) {
+        this.width = 18;
+        this.fill = fill;
+        this.edge = Color.black;
     }
 
     @Override
     protected void paintIcon(Graphics2D g2, int width, int height,
             float scale) {
-        // Make the pixel size odd if it isn't already, to enable our lines to
-        // be centered.
-        int pixelSize = width;
-        if ((pixelSize & 1) == 0)
-            pixelSize--;
-        int mid = pixelSize / 2;
-        int pad = pixelSize / 4;
-        int end = pixelSize - pad - 1;
+        g2.setStroke(new BasicStroke(1));
 
-        g2.setColor(color);
-        g2.drawRect(0, 0, pixelSize - 1, pixelSize - 1);
-        g2.drawLine(pad, mid, end, mid);
-        if (expand)
-            g2.drawLine(mid, pad, mid, end);
+        // calculate the size of the icon and various features
+        int plusSize = width / 2;
+        int leg = (int) (0.7 + plusSize / 3f);
+        int body = plusSize - 2 * leg;
+
+        // calculate the shape of a single plus sign
+        int a = 0, b = leg, c = leg + body, d = plusSize;
+        Shape shape = shape(b, a, c, a, c, b, d, b, d, c, c, c, c, d, b, d, //
+            b, c, a, c, a, b, b, b);
+
+        // draw the top-left plus sign
+        g2.setColor(fill);
+        g2.fill(shape);
+        g2.setColor(edge);
+        g2.draw(shape);
+
+        // draw the bottom-right plus sign
+        g2.translate(plusSize - 1, c);
+        g2.setColor(fill);
+        g2.fill(shape);
+        g2.setColor(edge);
+        g2.draw(shape);
     }
 
 }

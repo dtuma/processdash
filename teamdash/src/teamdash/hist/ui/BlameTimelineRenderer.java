@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package teamdash.hist.ui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -74,6 +75,8 @@ public class BlameTimelineRenderer extends JComponent implements
             int dotRadius = getHeight() / 5;
             int dotDiam = dotRadius * 2 + 1;
 
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setStroke(new BasicStroke(1));
             g.setColor(Color.LIGHT_GRAY);
             if (!isFirst)
                 g.drawLine(midX, 0, midX, midY);
@@ -83,11 +86,10 @@ public class BlameTimelineRenderer extends JComponent implements
             if (isSelected)
                 g.setColor(Color.GRAY);
 
-            if (g instanceof Graphics2D) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-            }
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            if (g2.getTransform().getScaleX() > 1.5)
+                dotDiam--;
             g.fillOval(midX - dotRadius, midY - dotRadius, dotDiam, dotDiam);
         }
     }

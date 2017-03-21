@@ -38,18 +38,33 @@ import java.awt.image.RGBImageFilter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.GrayFilter;
+import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.ui.lib.ColorFilter;
 import net.sourceforge.processdash.ui.lib.RecolorableIcon;
 
+import teamdash.wbs.icons.AddColumnIcon;
+import teamdash.wbs.icons.BlockArrowIcon;
+import teamdash.wbs.icons.CollapseAllIcon;
+import teamdash.wbs.icons.CollapseIcon;
 import teamdash.wbs.icons.CommonWorkflowsIcon;
+import teamdash.wbs.icons.CopyNodeIcon;
+import teamdash.wbs.icons.EnterKeyToggleIcon;
+import teamdash.wbs.icons.ExpandAllIcon;
+import teamdash.wbs.icons.ExpandIcon;
 import teamdash.wbs.icons.ExpansionToggleIcon;
+import teamdash.wbs.icons.FolderIcon;
 import teamdash.wbs.icons.MilestoneIcon;
+import teamdash.wbs.icons.PasteIcon;
 import teamdash.wbs.icons.ProxyBucketIcon;
 import teamdash.wbs.icons.ProxyTableIcon;
+import teamdash.wbs.icons.SortDatesIcon;
+import teamdash.wbs.icons.TrashCanIcon;
+import teamdash.wbs.icons.UndoIcon;
+import teamdash.wbs.icons.WBSImageIcon;
 import teamdash.wbs.icons.WorkflowIcon;
 
 /** Factory for icons used by the WBSEditor and its components.
@@ -77,7 +92,7 @@ public class IconFactory {
         return new CommonWorkflowsIcon(DEFAULT_COLOR);
     }
 
-    public static Icon getProxyTableIcon() {
+    public static RecolorableIcon getProxyTableIcon() {
         return new ProxyTableIcon();
     }
 
@@ -86,14 +101,14 @@ public class IconFactory {
     }
 
     public static Icon getCopyProxyIcon() {
-        return loadIconResource("proxy-copy.png");
+        return new CopyNodeIcon(getProxyTableIcon(), 10f / 15, 1, 1, 4, 4);
     }
 
     public static Icon getPasteProxyIcon() {
-        return loadIconResource("proxy-paste.png");
+        return new PasteIcon(getProxyTableIcon(), 10f / 16, 5, 7);
     }
 
-    public static Icon getMilestoneIcon() {
+    public static RecolorableIcon getMilestoneIcon() {
         return new MilestoneIcon(DEFAULT_COLOR);
     }
 
@@ -116,82 +131,70 @@ public class IconFactory {
     // Icons used in toolbars and menus
 
     public static Icon getUndoIcon() {
-        if (UNDO_ICON == null) UNDO_ICON = loadIconResource("undo.png");
-        return UNDO_ICON;
+        return new UndoIcon(DEFAULT_COLOR, false);
     }
-    private static Icon UNDO_ICON = null;
 
     public static Icon getRedoIcon() {
-        if (REDO_ICON == null) REDO_ICON = loadIconResource("redo.png");
-        return REDO_ICON;
+        return new UndoIcon(DEFAULT_COLOR, true);
     }
-    private static Icon REDO_ICON = null;
 
     public static Icon getPromoteIcon() {
-        if (PROMOTE_ICON == null) PROMOTE_ICON = loadIconResource("promote.png");
-        return PROMOTE_ICON;
+        return new BlockArrowIcon(DEFAULT_COLOR, BlockArrowIcon.LEFT);
     }
-    private static Icon PROMOTE_ICON = null;
 
     public static Icon getDemoteIcon() {
-        if (DEMOTE_ICON == null) DEMOTE_ICON = loadIconResource("demote.png");
-        return DEMOTE_ICON;
+        return new BlockArrowIcon(DEFAULT_COLOR, BlockArrowIcon.RIGHT);
     }
-    private static Icon DEMOTE_ICON = null;
 
     public static Icon getMoveUpIcon() {
-        if (MOVE_UP_ICON == null) MOVE_UP_ICON = loadIconResource("moveup.png");
-        return MOVE_UP_ICON;
+        return new BlockArrowIcon(DEFAULT_COLOR, BlockArrowIcon.UP);
     }
-    private static Icon MOVE_UP_ICON = null;
 
     public static Icon getMoveDownIcon() {
-        if (MOVE_DOWN_ICON == null) MOVE_DOWN_ICON = loadIconResource("movedown.png");
-        return MOVE_DOWN_ICON;
+        return new BlockArrowIcon(DEFAULT_COLOR, BlockArrowIcon.DOWN);
     }
-    private static Icon MOVE_DOWN_ICON = null;
 
     public static Icon getCutIcon() {
-        if (CUT_ICON == null) CUT_ICON = loadIconResource("cut.gif");
         return CUT_ICON;
     }
-    private static Icon CUT_ICON = null;
+    private static Icon CUT_ICON = new WBSImageIcon("cut.png");
 
     public static Icon getCopyIcon() {
-        if (COPY_ICON == null) COPY_ICON = loadIconResource("copy.png");
-        return COPY_ICON;
+        return new CopyNodeIcon((RecolorableIcon) HierarchyIcons.getTaskIcon(),
+                10f / 14, 1, 0.6f, 3f, 3.4f);
     }
-    private static Icon COPY_ICON = null;
+
+    public static Icon getCopyWorkflowIcon() {
+        RecolorableIcon i = (RecolorableIcon) HierarchyIcons
+                .getWorkflowTaskIcon(DEFAULT_COLOR);
+        return new CopyNodeIcon(i, 10f / 14, 0, 0, 4, 4);
+    }
 
     public static Icon getCopyMilestoneIcon() {
-        if (COPY_MS_ICON == null) COPY_MS_ICON = loadIconResource("copyms.png");
-        return COPY_MS_ICON;
+        return new CopyNodeIcon(getMilestoneIcon(), 10f / 14, 0, 2, 5, 1);
     }
-    private static Icon COPY_MS_ICON = null;
 
     public static Icon getPasteIcon() {
-        if (PASTE_ICON == null) PASTE_ICON = loadIconResource("paste.png");
-        return PASTE_ICON;
+        return new PasteIcon((RecolorableIcon) HierarchyIcons.getTaskIcon(),
+                10f / 16, 5, 7);
     }
-    private static Icon PASTE_ICON = null;
+
+    public static Icon getPasteWorkflowIcon() {
+        return new PasteIcon((RecolorableIcon) HierarchyIcons
+                .getWorkflowTaskIcon(DEFAULT_COLOR), 10f / 16, 4, 6);
+    }
 
     public static Icon getPasteMilestoneIcon() {
-        if (PASTE_MS_ICON == null) PASTE_MS_ICON = loadIconResource("pastems.png");
-        return PASTE_MS_ICON;
+        return new PasteIcon(getMilestoneIcon(), 11f / 16, 5, 5);
     }
-    private static Icon PASTE_MS_ICON = null;
 
     public static Icon getDeleteIcon() {
-        if (DELETE_ICON == null) DELETE_ICON = loadIconResource("delete.png");
-        return DELETE_ICON;
+        return new TrashCanIcon(Color.white);
     }
-    private static Icon DELETE_ICON = null;
 
     public static Icon getFindIcon() {
-        if (FIND_ICON == null) FIND_ICON = loadIconResource("find.png");
-        return FIND_ICON;
+        return new WBSImageIcon("find.png");
     }
-    private static Icon FIND_ICON = null;
 
     public static Icon getFilterOnIcon() {
         if (FILTER_ON_ICON == null) FILTER_ON_ICON = loadIconResource("filter-on.png");
@@ -212,42 +215,28 @@ public class IconFactory {
     private static Icon FILTER_DELETE_ICON = null;
 
     public static Icon getInsertOnEnterIcon() {
-        if (INSERT_ON_ENTER_ICON == null)
-            INSERT_ON_ENTER_ICON = loadIconResource("enter-key-insert-on.png");
-        return INSERT_ON_ENTER_ICON;
+        return new EnterKeyToggleIcon(true);
     }
-    private static Icon INSERT_ON_ENTER_ICON = null;
 
     public static Icon getNoInsertOnEnterIcon() {
-        if (NO_INSERT_ON_ENTER_ICON == null)
-            NO_INSERT_ON_ENTER_ICON = loadIconResource("enter-key-insert-off.png");
-        return NO_INSERT_ON_ENTER_ICON;
+        return new EnterKeyToggleIcon(false);
     }
-    private static Icon NO_INSERT_ON_ENTER_ICON = null;
 
     public static Icon getNewTabIcon() {
-        if (NEW_TAB_ICON == null) NEW_TAB_ICON = loadIconResource("tab-new.png");
-        return NEW_TAB_ICON;
+        return new WBSImageIcon("tab-new.png");
     }
-    private static Icon NEW_TAB_ICON = null;
 
     public static Icon getAddTabIcon() {
-        if (ADD_TAB_ICON == null) ADD_TAB_ICON = loadIconResource("tab-add.png");
-        return ADD_TAB_ICON;
+        return new WBSImageIcon("tab-add-128.png", "tab-add-16.png");
     }
-    private static Icon ADD_TAB_ICON = null;
 
     public static Icon getRemoveTabIcon() {
-        if (REMOVE_TAB_ICON == null) REMOVE_TAB_ICON = loadIconResource("tab-remove.png");
-        return REMOVE_TAB_ICON;
+        return new WBSImageIcon("tab-remove.png");
     }
-    private static Icon REMOVE_TAB_ICON = null;
 
     public static Icon getDuplicateTabIcon() {
-        if (DUPLICATE_TAB_ICON == null) DUPLICATE_TAB_ICON = loadIconResource("tab-duplicate.png");
-        return DUPLICATE_TAB_ICON;
+        return new WBSImageIcon("tab-duplicate.png");
     }
-    private static Icon DUPLICATE_TAB_ICON = null;
 
     public static Icon getImportWorkflowsIcon() {
         if (IMPORT_WORKFLOWS_ICON == null) {
@@ -301,79 +290,79 @@ public class IconFactory {
     }
     private static Icon EXPORT_PROXIES_ICON = null;
 
+    public static Icon getSaveIcon() {
+        return new WBSImageIcon("save-32.png", "save-16.png");
+    }
+
+    public static Icon getSaveCopyIcon() {
+        return new WBSImageIcon("save-copy.png");
+    }
+
     public static Icon getOpenIcon() {
-        if (OPEN_ICON == null) OPEN_ICON = loadIconResource("open.png");
         return OPEN_ICON;
     }
-    private static Icon OPEN_ICON = null;
+    private static Icon OPEN_ICON = new FolderIcon(new Color(205, 210, 172));
+
+    public static Icon getRefreshIcon() {
+        return new WBSImageIcon("reload.png");
+    }
+
+    public static Icon getExcelIcon() {
+        return new WBSImageIcon("excel.png");
+    }
 
     public static Icon getLeftArrowIcon() {
         return getPromoteIcon();
     }
+
     public static Icon getRightArrowIcon() {
         return getDemoteIcon();
-    }
-    public static Icon getProcessAssetIcon() {
-        return loadIconResource("process-asset.png");
     }
 
     public static Icon getHorizontalArrowIcon(boolean right) {
         return (right ? getRightArrowIcon() : getLeftArrowIcon());
     }
 
+    public static Icon getProcessAssetIcon() {
+        return new WBSImageIcon("process-asset-128.png", "process-asset-32.png",
+                "process-asset-16.png");
+    }
+
     public static Icon getAcceptChangeIcon() {
-        return loadIconResource("accept.png");
+        return new WBSImageIcon("accept-128.png", "accept-16.png");
     }
 
     public static Icon getRejectChangeIcon() {
-        return loadIconResource("reject.png");
+        return new WBSImageIcon("reject-128.png", "reject-16.png");
     }
 
     public static Icon getExpandIcon() {
-        if (EXPAND_ICON == null) EXPAND_ICON = loadIconResource("expand.png");
-        return EXPAND_ICON;
+        return new ExpandIcon(DEFAULT_COLOR);
     }
-    private static Icon EXPAND_ICON = null;
 
     public static Icon getExpandAllIcon() {
-        if (EXPAND_ALL_ICON == null) EXPAND_ALL_ICON = loadIconResource("expand-all.png");
-        return EXPAND_ALL_ICON;
+        return new ExpandAllIcon(DEFAULT_COLOR);
     }
-    private static Icon EXPAND_ALL_ICON = null;
 
     public static Icon getCollapseIcon() {
-        if (COLLAPSE_ICON == null) COLLAPSE_ICON = loadIconResource("collapse.png");
-        return COLLAPSE_ICON;
+        return new CollapseIcon(DEFAULT_COLOR);
     }
-    private static Icon COLLAPSE_ICON = null;
 
     public static Icon getCollapseAllIcon() {
-        if (COLLAPSE_ALL_ICON == null) COLLAPSE_ALL_ICON = loadIconResource("collapse-all.png");
-        return COLLAPSE_ALL_ICON;
+        return new CollapseAllIcon(DEFAULT_COLOR);
     }
-    private static Icon COLLAPSE_ALL_ICON = null;
-
-    public static Icon getColumnsIcon() {
-        if (COLUMNS_ICON == null) COLUMNS_ICON = loadIconResource("columns.png");
-        return COLUMNS_ICON;
-    }
-    private static Icon COLUMNS_ICON = null;
 
     public static Icon getAddColumnIcon() {
-        return loadIconResource("column-add.png");
+        return new AddColumnIcon();
     }
 
     public static Icon getSortDatesIcon() {
-        if (SORT_DATES_ICON == null) SORT_DATES_ICON = loadIconResource("sortdates.png");
-        return SORT_DATES_ICON;
+        return new SortDatesIcon();
     }
-    private static Icon SORT_DATES_ICON = null;
 
     public static Icon getHelpIcon() {
-        if (HELP_ICON == null) HELP_ICON = loadIconResource("help.png");
-        return HELP_ICON;
+        return new WBSImageIcon("help.png");
     }
-    private static Icon HELP_ICON = null;
 
     /** Convenience method for mixing colors.
      * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .
@@ -440,7 +429,7 @@ public class IconFactory {
 
 
 
-    private static class EmptyIcon implements Icon {
+    private static class EmptyIcon implements RecolorableIcon {
         int width, height;
         protected EmptyIcon(int width, int height) {
             this.width = width;
@@ -449,12 +438,13 @@ public class IconFactory {
         public int getIconWidth() { return width; }
         public int getIconHeight() { return height; }
         public void paintIcon(Component c, Graphics g, int x, int y) {}
+        public RecolorableIcon recolor(RGBImageFilter filter) { return this; }
     }
 
 
     /** Icon capable of concatenating several other icons.
      */
-    private static class ConcatenatedIcon implements Icon {
+    private static class ConcatenatedIcon implements RecolorableIcon {
 
         private Icon[] icons;
         int width, height;
@@ -481,6 +471,18 @@ public class IconFactory {
                 icons[i].paintIcon(c, g, x, y);
                 x += icons[i].getIconWidth();
             }
+        }
+
+        @Override
+        public RecolorableIcon recolor(RGBImageFilter filter) {
+            Icon[] newIcons = new Icon[icons.length];
+            for (int i = icons.length; i-- > 0;) {
+                if (icons[i] instanceof RecolorableIcon)
+                    newIcons[i] = ((RecolorableIcon) icons[i]).recolor(filter);
+                else
+                    newIcons[i] = icons[i];
+            }
+            return new ConcatenatedIcon(newIcons);
         }
 
     }
@@ -530,26 +532,24 @@ public class IconFactory {
             else
                 r = new BufferedIcon(i);
             if ((modifierFlags & ERROR_ICON) > 0)
-                r = r.recolor(RED_FILTER);
+                r = r.recolor(ColorFilter.Red);
             if ((modifierFlags & PHANTOM_ICON) > 0)
-                r = r.recolor(PHANTOM_FILTER);
+                r = r.recolor(ColorFilter.Phantom);
             if ((modifierFlags & DISABLED_ICON) > 0)
-                r = r.recolor(GRAY_FILTER);
+                r = r.recolor(ColorFilter.Disabled);
             result = r;
             destMap.put(i, result);
         }
         return result;
     }
 
-    // filter for creating "error" icons.  Converts to red monochrome.
-    private static RGBImageFilter RED_FILTER = ColorFilter.Red;
-
-    // filter for creating "phantom" icons.  Mixes all colors
-    // half-and-half with white.
-    private static RGBImageFilter PHANTOM_FILTER = ColorFilter.Phantom;
-
-    // filter for creating "disabled" icons.
-    private static GrayFilter GRAY_FILTER = new GrayFilter(true, 50);
+    public static <T extends AbstractButton> T setDisabledIcon(T b) {
+        Icon icon = b.getIcon();
+        if (icon != null && !(icon instanceof ImageIcon)) {
+            b.setDisabledIcon(getModifiedIcon(icon, DISABLED_ICON));
+        }
+        return b;
+    }
 
 
 

@@ -42,6 +42,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import net.sourceforge.processdash.i18n.Resources;
 
 import teamdash.wbs.DataJTable;
+import teamdash.wbs.IconFactory;
 import teamdash.wbs.WBSPermissionManager;
 import teamdash.wbs.WBSTabPanel;
 
@@ -55,7 +56,7 @@ public class SaveAsExcelAction extends AbstractAction {
 
 
     public SaveAsExcelAction() throws Throwable {
-        super(resources.getString("Menu"));
+        super(resources.getString("Menu"), IconFactory.getExcelIcon());
 
         // throw an exception if the POI classes aren't available.  Our caller
         // will catch the exception and skip this menu item.

@@ -23,40 +23,36 @@
 
 package teamdash.wbs.icons;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
 
-import net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon;
+import net.sourceforge.processdash.ui.lib.AbstractRecolorableIcon;
 
-public class ExpansionToggleIcon extends AbstractPixelAwareRecolorableIcon {
+public class CollapseIcon extends AbstractRecolorableIcon {
 
-    private Color color;
+    private Color fill, edge;
 
-    private boolean expand;
+    private Shape shape;
 
-    public ExpansionToggleIcon(boolean expand) {
-        this.width = this.height = 9;
-        this.color = Color.black;
-        this.expand = expand;
+    public CollapseIcon(Color fill) {
+        this.fill = fill;
+        this.edge = Color.black;
+        this.shape = new Rectangle(3, 6, 9, 3);
     }
 
     @Override
-    protected void paintIcon(Graphics2D g2, int width, int height,
-            float scale) {
-        // Make the pixel size odd if it isn't already, to enable our lines to
-        // be centered.
-        int pixelSize = width;
-        if ((pixelSize & 1) == 0)
-            pixelSize--;
-        int mid = pixelSize / 2;
-        int pad = pixelSize / 4;
-        int end = pixelSize - pad - 1;
+    protected void paintIcon(Graphics2D g2, Shape clip, float scale) {
+        // fill the shape
+        g2.setColor(fill);
+        g2.fill(shape);
 
-        g2.setColor(color);
-        g2.drawRect(0, 0, pixelSize - 1, pixelSize - 1);
-        g2.drawLine(pad, mid, end, mid);
-        if (expand)
-            g2.drawLine(mid, pad, mid, end);
+        // draw the edge
+        g2.setColor(edge);
+        g2.setStroke(new BasicStroke(1f / scale));
+        g2.draw(shape);
     }
 
 }

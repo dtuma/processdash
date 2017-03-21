@@ -1025,9 +1025,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
-        result.add(saveAction = new SaveAction());
+        result.add(makeMenuItem(saveAction = new SaveAction()));
         if (mergeCoordinator != null)
-            result.add(new RefreshAction());
+            result.add(makeMenuItem(new RefreshAction()));
         result.addSeparator();
         if (mergeDebugger != null && mergeDebugger.supportsZipOfAllMerges()) {
             result.add(new SaveMergeDebugZipAction());
@@ -1035,8 +1035,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         if (!isMode(MODE_BOTTOM_UP)) {
             WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
-            result.add(new WBSSaveAsAction(this, openAction));
-            result.add(openAction);
+            result.add(makeMenuItem(new WBSSaveAsAction(this, openAction)));
+            result.add(makeMenuItem(openAction));
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
             if (!isZipWorkingDirectory() && !isQuicklaunchedZipDirectory())
@@ -1045,7 +1045,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
         for (int i = 0; i < fileActions.length; i++) {
-            result.add(fileActions[i]);
+            result.add(makeMenuItem(fileActions[i]));
         }
         result.addSeparator();
         result.add(new CloseAction());
@@ -1056,7 +1056,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.setMnemonic('E');
         for (int i = 0;   i < editingActions.length;   i++) {
             if (editingActions[i].getValue(Action.NAME) != null)
-                result.add(editingActions[i]);
+                result.add(makeMenuItem(editingActions[i]));
             if (i == 1) result.addSeparator();
         }
 
@@ -1072,7 +1072,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.setMnemonic('A');
         for (int i = 0; i < tabActions.length; i++) {
             if (tabActions[i] != null) {
-                result.add(tabActions[i]);
+                result.add(makeMenuItem(tabActions[i]));
                 if (i == 2 || i == 4) result.addSeparator();
             }
         }
@@ -1157,6 +1157,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowHoursPerWeekMenuItem());
             result.add(new BottomUpIncludeUnassignedMenuItem());
         }
+        return result;
+    }
+
+    private JMenuItem makeMenuItem(Action a) {
+        JMenuItem result = new JMenuItem(a);
+        IconFactory.setDisabledIcon(result);
         return result;
     }
 
@@ -2224,7 +2230,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class SaveAction extends AbstractAction {
         private boolean firstSave;
         public SaveAction() {
-            super("Save");
+            super("Save", IconFactory.getSaveIcon());
             putValue(MNEMONIC_KEY, new Integer('S'));
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, //
                 MacGUIUtils.getCtrlModifier()));
@@ -2243,7 +2249,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class RefreshAction extends AbstractAction {
         public RefreshAction() {
-            super(resources.getString("File_Refresh.Menu"));
+            super(resources.getString("File_Refresh.Menu"),
+                    IconFactory.getRefreshIcon());
             putValue(MNEMONIC_KEY, new Integer('R'));
             putValue(SHORT_DESCRIPTION, resources
                     .getString("File_Refresh.Tooltip"));

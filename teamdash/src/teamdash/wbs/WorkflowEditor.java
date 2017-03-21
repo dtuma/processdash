@@ -35,7 +35,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -236,6 +235,9 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
+        table.tweakClipboardActions(resources,
+            IconFactory.getCopyWorkflowIcon(),
+            IconFactory.getPasteWorkflowIcon());
         addToolbarButtons(table.getEditingActions());
         addToolbarButtons(actions);
         toolBar.addSeparator();
@@ -292,9 +294,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
 
         // make sure we have a disabled icon set if needed
-        if (!(icon instanceof ImageIcon))
-            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
-                    IconFactory.DISABLED_ICON));
+        IconFactory.setDisabledIcon(button);
     }
 
     public void addChangeListener(ChangeListener l) {

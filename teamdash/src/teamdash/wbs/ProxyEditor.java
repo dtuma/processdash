@@ -29,8 +29,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -130,12 +128,11 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
-        addToolbarButton(tweakAction(table.CUT_ACTION,
-            resources.getString("Cut"), null));
-        addToolbarButton(tweakAction(table.COPY_ACTION,
-            resources.getString("Copy"), IconFactory.getCopyProxyIcon()));
-        addToolbarButton(tweakAction(table.PASTE_ACTION,
-            resources.getString("Paste"), IconFactory.getPasteProxyIcon()));
+        table.tweakClipboardActions(resources, IconFactory.getCopyProxyIcon(),
+            IconFactory.getPasteProxyIcon());
+        addToolbarButton(table.CUT_ACTION);
+        addToolbarButton(table.COPY_ACTION);
+        addToolbarButton(table.PASTE_ACTION);
         addToolbarButton(table.EXPAND_ACTION);
         addToolbarButton(table.COLLAPSE_ACTION);
         addToolbarButton(table.MOVEUP_ACTION);
@@ -154,26 +151,13 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(EXPORT);
     }
 
-    private Action tweakAction(AbstractAction a, String name, Icon icon) {
-        if (name != null)
-            a.putValue(Action.NAME, name);
-        if (icon != null)
-            a.putValue(Action.SMALL_ICON, icon);
-        return a;
-    }
-
     /** Add a button to the internal tool bar */
     private void addToolbarButton(Action a) {
         JButton button = new JButton(a);
         button.setFocusPainted(false);
         button.setToolTipText((String) a.getValue(Action.NAME));
         button.setText(null);
-
-        Icon icon = button.getIcon();
-        if (icon != null && !(icon instanceof ImageIcon))
-            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
-                IconFactory.DISABLED_ICON));
-
+        IconFactory.setDisabledIcon(button);
         toolBar.add(button);
     }
 

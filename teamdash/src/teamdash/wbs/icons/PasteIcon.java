@@ -1,5 +1,5 @@
 // Copyright (C) 2017 Tuma Solutions, LLC
-// Team Functionality Add-ons for the Process Dashboard
+// Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,40 +23,40 @@
 
 package teamdash.wbs.icons;
 
-import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 
-import net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon;
+import net.sourceforge.processdash.ui.lib.AbstractRecolorableIcon;
+import net.sourceforge.processdash.ui.lib.RecolorableIcon;
 
-public class ExpansionToggleIcon extends AbstractPixelAwareRecolorableIcon {
+public class PasteIcon extends AbstractRecolorableIcon {
 
-    private Color color;
+    private RecolorableIcon clipboard;
 
-    private boolean expand;
+    private RecolorableIcon delegate;
 
-    public ExpansionToggleIcon(boolean expand) {
-        this.width = this.height = 9;
-        this.color = Color.black;
-        this.expand = expand;
+    private float scale;
+
+    private int dx, dy;
+
+    public PasteIcon(RecolorableIcon delegate, float scale, int dx, int dy) {
+        this.clipboard = new WBSImageIcon("paste.png");
+        this.delegate = delegate;
+        this.scale = scale;
+        this.dx = dx;
+        this.dy = dy;
+        this.width = dx + (int) (0.5 + delegate.getIconWidth() * scale);
     }
 
     @Override
-    protected void paintIcon(Graphics2D g2, int width, int height,
-            float scale) {
-        // Make the pixel size odd if it isn't already, to enable our lines to
-        // be centered.
-        int pixelSize = width;
-        if ((pixelSize & 1) == 0)
-            pixelSize--;
-        int mid = pixelSize / 2;
-        int pad = pixelSize / 4;
-        int end = pixelSize - pad - 1;
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        clipboard.paintIcon(c, g, x, y);
 
-        g2.setColor(color);
-        g2.drawRect(0, 0, pixelSize - 1, pixelSize - 1);
-        g2.drawLine(pad, mid, end, mid);
-        if (expand)
-            g2.drawLine(mid, pad, mid, end);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.translate(x + dx, y + dy);
+        g2.scale(scale, scale);
+        delegate.paintIcon(c, g2, 0, 0);
     }
 
 }

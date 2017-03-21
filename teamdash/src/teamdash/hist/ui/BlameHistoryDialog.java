@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -159,8 +159,11 @@ public class BlameHistoryDialog extends JDialog implements
         nextButton.getMenu().add(searchByRows);
         nextButton.getMenu().add(searchByColumns);
         nextButton.getButton().setEnabled(false);
-        BoxUtils buttonBox = BoxUtils.hbox(GLUE, new JButton(previousAction),
-            5, new JButton(rejectAction), 5, new JButton(clearAction), 5,
+        IconFactory.setDisabledIcon(nextButton.getButton());
+        BoxUtils buttonBox = BoxUtils.hbox(GLUE,
+            IconFactory.setDisabledIcon(new JButton(previousAction)), 5,
+            IconFactory.setDisabledIcon(new JButton(rejectAction)), 5,
+            IconFactory.setDisabledIcon(new JButton(clearAction)), 5,
             nextButton, GLUE, new JButton(new CloseAction()), 1);
 
         JPanel content = new JPanel(new BorderLayout());

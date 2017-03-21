@@ -432,6 +432,17 @@ public class WBSJTable extends JTable {
             MOVEDOWN_ACTION, INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
     }
 
+    public void tweakClipboardActions(Resources res, Icon copyIcon,
+            Icon pasteIcon) {
+        CUT_ACTION.putValue(Action.NAME, res.getString("Cut"));
+
+        COPY_ACTION.putValue(Action.NAME, res.getString("Copy"));
+        COPY_ACTION.putValue(Action.SMALL_ICON, copyIcon);
+
+        PASTE_ACTION.putValue(Action.NAME, res.getString("Paste"));
+        PASTE_ACTION.putValue(Action.SMALL_ICON, pasteIcon);
+    }
+
     /** Return a list of workflow-related actions */
     public Action[] getWorkflowActions(WBSModel workflows) {
         Action apply = new SelectAndApplyWorkflowAction(workflows);

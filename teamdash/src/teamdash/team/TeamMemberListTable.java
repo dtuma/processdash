@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package teamdash.team;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -1003,16 +1004,27 @@ public class TeamMemberListTable extends JTable {
         }
 
         public int getIconWidth() {
-            return 5;
+            return 7;
         }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            g.drawLine(x + 0, y + 2, x + 4, y + 2);
-            g.drawLine(x + 2, y + 0, x + 2, y + 0);
-            g.drawLine(x + 2, y + 4, x + 2, y + 4);
-            int l = (left ? 1 : 3);
-            g.drawLine(x + l, y + 1, x + l, y + 3);
+            Graphics2D g2 = (Graphics2D) g.create();
+            float scale = (float) g2.getTransform().getScaleX();
+            g2.translate(x + (left ? 1 : 0), y + 2);
+            g2.scale(1 / scale, 1 / scale);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = (int) (5 * scale);
+            int hh = (int) (0.5 + 2 * scale);
+            int l = (left ? 0 : width);
+            int m = (left ? hh : width - hh);
+
+            g2.setStroke(new BasicStroke((int) scale));
+            g2.setColor(Color.black);
+            g2.drawLine(0, 0, width, 0);
+            g2.drawLine(l, 0, m, -hh);
+            g2.drawLine(l, 0, m, +hh);
         }
 
     }

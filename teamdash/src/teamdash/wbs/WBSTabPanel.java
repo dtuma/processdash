@@ -85,6 +85,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.ui.lib.ColumnSelectorIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -591,7 +592,7 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class ChangeTabColumnsAction extends AbstractAction implements EnablementCalculation {
         public ChangeTabColumnsAction() {
-            super("Change Tab Columns", IconFactory.getColumnsIcon());
+            super("Change Tab Columns", IconFactory.getAddColumnIcon());
             enablementCalculations.add(this);
         }
 
@@ -892,7 +893,8 @@ public class WBSTabPanel extends JLayeredPane implements
         JButton colButton = new JButton(CHANGE_TAB_COLUMNS_ACTION);
         colButton.setBorder(new ChoppedEtchedBorder());
         colButton.setFocusable(false);
-        colButton.setIcon(IconFactory.getColumnsIcon());
+        colButton.setIcon(new ColumnSelectorIcon(true));
+        colButton.setDisabledIcon(new ColumnSelectorIcon(false));
         colButton.setToolTipText(colButton.getText());
         colButton.setText(null);
         scrollPane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, colButton);
@@ -962,7 +964,7 @@ public class WBSTabPanel extends JLayeredPane implements
     /** Add a button to the beginning of the internal tool bar */
     private void addToolbarButton(Action a) {
         JButton button = new JButton(a);
-        int p = (MacGUIUtils.isMacOSX() ? 2 : 0);
+        int p = (MacGUIUtils.isMacOSX() ? 2 : 1);
         button.setMargin(new Insets(p,p,p,p));
         button.setFocusPainted(false);
         button.putClientProperty("hideActionText", Boolean.TRUE);
@@ -971,6 +973,7 @@ public class WBSTabPanel extends JLayeredPane implements
             toolTip = (String) a.getValue(Action.SHORT_DESCRIPTION);
         button.setToolTipText(toolTip);
         button.setText(null);
+        IconFactory.setDisabledIcon(button);
         toolBar.add(button);
     }
 
