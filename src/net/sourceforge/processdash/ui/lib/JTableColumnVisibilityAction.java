@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -69,7 +68,7 @@ public class JTableColumnVisibilityAction extends AbstractAction {
         for (int i : readOnlyColumns)
             makeColumnReadOnly(i);
 
-        putValue(Action.SMALL_ICON, new ImageIcon(IMAGE_BYTES));
+        putValue(Action.SMALL_ICON, new ColumnSelectorIcon(true));
         putValue(Action.NAME, resources.getString("Column_Chooser.Title"));
 
         table.getActionMap().put(ACTION_KEY, this);
@@ -264,15 +263,5 @@ public class JTableColumnVisibilityAction extends AbstractAction {
     private static final String COLUMN_REMOVED = "removed";
 
     private static final String COLUMN_ADDED = "added";
-
-    private static final byte[] IMAGE_BYTES = { -119, 80, 78, 71, 13, 10, 26,
-            10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 9, 0, 0, 0, 9, 8, 2, 0,
-            0, 0, 111, -13, -111, 71, 0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 11,
-            19, 0, 0, 11, 19, 1, 0, -102, -100, 24, 0, 0, 0, 7, 116, 73, 77,
-            69, 7, -41, 4, 17, 22, 23, 43, 111, 94, -78, 25, 0, 0, 0, 35, 73,
-            68, 65, 84, 120, -38, 99, 96, -64, 13, 24, 25, 24, 24, -2, -1, -1,
-            15, -27, 48, 50, 34, -77, 25, -56, -44, -57, -124, 71, 31, 45, -28,
-            -16, 1, 0, -79, -96, 12, 11, 91, 89, 34, -116, 0, 0, 0, 0, 73, 69,
-            78, 68, -82, 66, 96, -126 };
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ public class JTableColumnVisibilityButton extends JButton {
         super(new JTableColumnVisibilityAction(table, resources,
                 readOnlyNamePat, readOnlyColumns));
 
+        setDisabledIcon(new ColumnSelectorIcon(false));
         setBorder(new ChoppedEtchedBorder());
         setFocusable(false);
         setToolTipText(getText());
