@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2010 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,8 +44,8 @@ import net.sourceforge.processdash.hier.HierarchyNoteEvent;
 import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyNoteIcon;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -100,11 +100,12 @@ public class TaskCommenterButton extends JButton implements ActionListener,
         editTooltip = resources.getHTML("Edit_Tooltip");
         noCommentTooltip = resources.getHTML("No_Comments_Tooltip");
 
-        commentPresentIcon = DashboardIconFactory.getCommentIcon();
-        commentErrorIcon = DashboardIconFactory.getCommentErrorIcon();
-        noCommentIcon = DashboardIconFactory.getNoCommentIcon();
+        commentPresentIcon = HierarchyNoteIcon.YELLOW;
+        commentErrorIcon = HierarchyNoteIcon.RED;
+        noCommentIcon = HierarchyNoteIcon.WHITE;
 
         this.setBorder(BorderFactory.createEmptyBorder());
+        this.setFocusPainted(false);
         addActionListener(this);
         taskModel.addPropertyChangeListener(this);
         new ToolTipTimingCustomizer().install(this);

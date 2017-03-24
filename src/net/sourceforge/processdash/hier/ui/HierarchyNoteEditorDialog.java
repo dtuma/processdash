@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,12 +73,13 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.hier.HierarchyNoteEvent;
 import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.hier.DashHierarchy.Event;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyNoteIcon;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -586,16 +587,16 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
             CommentTreeModel model = (CommentTreeModel) tree.getModel();
             switch (model.getCommentStatus(value)) {
             case CommentTreeModel.NO_COMMENT:
-                setIcon(DashboardIconFactory.getNoCommentIcon());
+                setIcon(HierarchyNoteIcon.WHITE);
                 break;
 
             case CommentTreeModel.HAS_COMMENT:
-                setIcon(DashboardIconFactory.getCommentIcon());
+                setIcon(HierarchyNoteIcon.YELLOW);
                 break;
 
 
             case CommentTreeModel.HAS_CONFLICT:
-                setIcon(DashboardIconFactory.getCommentErrorIcon());
+                setIcon(HierarchyNoteIcon.RED);
                 break;
             }
 

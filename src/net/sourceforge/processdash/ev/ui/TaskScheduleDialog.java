@@ -167,6 +167,7 @@ import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyNoteIcon;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -1561,8 +1562,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     Color sel, Color desel) {
 
                 colors = new Color[] { sel, desel, selRO, deselRO };
-                noteIcon = DashboardIconFactory.getWhiteCommentIcon();
-                noteErrorIcon = DashboardIconFactory.getCommentErrorIcon();
+                noteIcon = HierarchyNoteIcon.WHITE;
+                noteErrorIcon = HierarchyNoteIcon.RED;
             }
 
             public Component getTableCellRendererComponent(JTable table,
@@ -1608,8 +1609,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         class TaskNoteCellEditor extends AbstractCellEditor implements
                 TableCellEditor, Runnable {
 
-            JLabel dummyComponent = new JLabel(DashboardIconFactory
-                    .getWhiteCommentIcon());
+            JLabel dummyComponent = new JLabel(HierarchyNoteIcon.WHITE);
 
             private Object value;
             PropertyKey nodeToEdit;
@@ -2364,7 +2364,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
             public ScheduleNoteCellRenderer() {
                 super(selectedEditableColor, editableColor, Color.gray);
-                noteIcon = DashboardIconFactory.getWhiteCommentIcon();
+                noteIcon = HierarchyNoteIcon.WHITE;
             }
 
             @Override
@@ -2402,7 +2402,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             private Object fromDate, toDate;
 
             public ScheduleNoteCellEditor() {
-                button.setIcon(DashboardIconFactory.getWhiteCommentIcon());
+                button.setIcon(HierarchyNoteIcon.WHITE);
             }
 
             @Override

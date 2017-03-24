@@ -272,25 +272,6 @@ public class DashboardIconFactory {
         return new TaskOverflowIcon();
     }
 
-    private static Icon commentIcon = null;
-    public static Icon getCommentIcon() {
-        return commentIcon = loadNamedIcon("comment", commentIcon);
-    }
-
-    private static Icon noCommentIcon = null;
-    public static Icon getNoCommentIcon() {
-        return noCommentIcon = loadNamedIcon("commentNone", noCommentIcon);
-    }
-    public static Icon getWhiteCommentIcon() {
-        return getNoCommentIcon();
-    }
-
-    private static Icon commentErrorIcon = null;
-    public static Icon getCommentErrorIcon() {
-        return commentErrorIcon = loadNamedIcon("commentError",
-            commentErrorIcon);
-    }
-
     public static Icon getAddIcon() {
         return loadNamedIcon("add", null);
     }
