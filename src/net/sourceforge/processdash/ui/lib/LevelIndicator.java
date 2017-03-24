@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,10 +23,12 @@
 
 package net.sourceforge.processdash.ui.lib;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Insets;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.JComponent;
 
@@ -155,23 +157,31 @@ public class LevelIndicator extends JComponent {
     }
 
     protected void paintComponent(Graphics g) {
-        Insets i = getInsets();
-        int w = getWidth() - i.left - i.right;
-        int h = getHeight() - i.top - i.bottom;
+        int w = getWidth();
+        int h = getHeight();
         if (w < 1 || h < 1)
             return;
-        g.translate(i.left, i.top);
 
         // fill with the background color.
         g.setColor(bgColor);
         g.fillRect(0, 0, w, h);
+        
+        // create a new graphics context that removes DPI-based scaling, so we
+        // can perform our remaining operations with pixel precision
+        Graphics2D g2 = (Graphics2D) g.create();
+        AffineTransform t = g2.getTransform();
+        w = (int) (0.5 + w * t.getScaleX());
+        h = (int) (0.5 + h * t.getScaleY());
+        g2.scale(1 / t.getScaleX(), 1 / t.getScaleY());
+        g2.setStroke(new BasicStroke(1));
 
         // draw the grid
-        g.setColor(gridColor);
-        for (int x = 1; x < w; x += gridSpacing)
-            g.drawLine(x, 0, x, h - 1);
-        for (int y = 1; y < h; y += gridSpacing)
-            g.drawLine(0, y, w - 1, y);
+        g2.setColor(gridColor);
+        int space = (int) (gridSpacing * t.getScaleX());
+        for (int x = space / 2; x < w; x += space)
+            g2.drawLine(x, 0, x, h - 1);
+        for (int y = 1; y < h; y += space)
+            g2.drawLine(-1, y, w - 1, y);
 
         // how wide/tall should the bar be, based on the current level?
         int extent = (int) Math.round((vertical ? h : w) * level);
@@ -180,30 +190,29 @@ public class LevelIndicator extends JComponent {
 
         if (extent > 0) {
             if (vertical) {
-                Color[] gradient = getBarGradient(w);
+                Color[] gradient = getBarGradient(w + 1);
                 for (int x = 0; x < gradient.length; x++) {
-                    g.setColor(gradient[x]);
-                    g.drawLine(x, h - extent, x, h - 1);
+                    g2.setColor(gradient[x]);
+                    g2.drawLine(x - 1, h - extent, x - 1, h - 1);
                 }
-                g.setColor(barColor);
+                g2.setColor(barColor);
                 if (paintBarRect)
-                    g.drawRect(0, h - extent, w - 1, extent - 1);
+                    g2.drawRect(0, h - extent, w - 1, extent - 1);
                 else if (extent < h)
-                    g.drawLine(0, h - extent, w - 1, h - extent);
+                    g2.drawLine(-1, h - extent, w - 1, h - extent);
             } else {
-                Color[] gradient = getBarGradient(h);
+                Color[] gradient = getBarGradient(h + 1);
                 for (int y = 0; y < gradient.length; y++) {
-                    g.setColor(gradient[y]);
-                    g.drawLine(0, y, extent - 1, y);
+                    g2.setColor(gradient[y]);
+                    g2.drawLine(0, y - 1, extent - 1, y - 1);
                 }
-                g.setColor(barColor);
+                g2.setColor(barColor);
                 if (paintBarRect)
-                    g.drawRect(0, 0, extent - 1, h - 1);
+                    g2.drawRect(0, 0, extent - 1, h - 1);
                 else if (extent < w)
-                    g.drawLine(extent - 1, 0, extent - 1, h - 1);
+                    g2.drawLine(extent - 1, -1, extent - 1, h - 1);
             }
         }
-        g.translate(-i.left, -i.top);
     }
 
 }

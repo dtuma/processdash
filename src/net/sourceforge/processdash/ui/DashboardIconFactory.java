@@ -59,6 +59,7 @@ import net.sourceforge.processdash.ui.lib.BufferedIcon;
 import net.sourceforge.processdash.ui.lib.ConcatenatedIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 
 public class DashboardIconFactory {
@@ -215,7 +216,8 @@ public class DashboardIconFactory {
     }
 
     public static Icon getHourglassIcon() {
-        return loadAndScaleIcon("hourglass", true);
+        return new ScalableImageIcon(STD_ICON_HEIGHT,
+                DashboardIconFactory.class, "icons/hourglass.png");
     }
 
     public static Icon getGroupIcon() {
