@@ -1142,14 +1142,14 @@ public class DefectDialog extends JDialog
         private void setRunning(boolean running) {
             this.running = running;
             if (running) {
-                startButton.setIcon(DashboardIconFactory.getPlayGlowingIcon());
+                startButton.setIcon(PlayIcon.glowing());
                 startButton.setToolTipText(resources.getString("Timing.Started"));
-                stopButton.setIcon(DashboardIconFactory.getPauseBlackIcon());
+                stopButton.setIcon(PauseIcon.black());
                 stopButton.setToolTipText(resources.getString("Timing.Pause"));
             } else {
-                stopButton.setIcon(DashboardIconFactory.getPauseGlowingIcon());
+                stopButton.setIcon(PauseIcon.glowing());
                 stopButton.setToolTipText(resources.getString("Timing.Paused"));
-                startButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
+                startButton.setIcon(PlayIcon.black());
                 startButton.setToolTipText(resources.getString("Timing.Start"));
             }
         }

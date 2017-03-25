@@ -28,9 +28,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.io.File;
@@ -48,7 +45,6 @@ import javax.swing.JLabel;
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ui.lib.BufferedIcon;
-import net.sourceforge.processdash.ui.lib.ConcatenatedIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
@@ -172,45 +168,6 @@ public class DashboardIconFactory {
 
     public static Icon getTaskIcon(Color c) {
         return new TaskIcon(c);
-    }
-
-    public static Icon getCompactTimingIcon() {
-        return new BufferedIcon(new ConcatenatedIcon(getPauseBlackIcon(),
-                new PaddedIcon(getPlayGlowingIcon(), 0, 1, 0, 0)));
-    }
-
-    public static Icon getCompactTimingDisabledIcon() {
-        return new BufferedIcon(new ConcatenatedIcon(getPauseDisabledIcon(),
-            new PaddedIcon(getPlayDisabledIcon(), 0, 1, 0, 0)));
-    }
-
-    public static Icon getCompactPausedIcon() {
-        return new BufferedIcon(new ConcatenatedIcon(getPauseGlowingIcon(),
-            new PaddedIcon(getPlayBlackIcon(), 0, 1, 0, 0)));
-    }
-
-    public static Icon getPauseDisabledIcon() {
-        return new PauseIcon(DISABLED, null);
-    }
-
-    public static Icon getPauseBlackIcon() {
-        return new PauseIcon(Color.black, null);
-    }
-
-    public static Icon getPauseGlowingIcon() {
-        return new PauseIcon(Color.black, new Color(50, 50, 255));
-    }
-
-    public static Icon getPlayDisabledIcon() {
-        return new PlayIcon(DISABLED, null);
-    }
-
-    public static Icon getPlayBlackIcon() {
-        return new PlayIcon(Color.black, null);
-    }
-
-    public static Icon getPlayGlowingIcon() {
-        return new PlayIcon(Color.black, Color.green);
     }
 
     public static Icon getHourglassIcon() {
@@ -401,124 +358,6 @@ public class DashboardIconFactory {
 
         public int getIconWidth() {
             return 7;
-        }
-
-    }
-
-    private static final Color HIGHLIGHT = Color.WHITE;
-    private static final Color SHADOW = Color.GRAY;
-    private static final Color DISABLED = new Color(100, 100, 100);
-
-    private static class PauseIcon extends BufferedIcon {
-
-        private Color fill, innerGlow;
-
-        protected PauseIcon(Color fill, Color glow) {
-            this.fill = fill;
-            if (glow != null)
-                this.innerGlow = PaintUtils.makeTransparent(glow, 80);
-            renderIcon(STD_ICON_HEIGHT, STD_ICON_HEIGHT);
-        }
-
-        @Override
-        protected void doPaint(Graphics g) {
-            int pad = STD_ICON_PAD;
-            int barHeight = STD_ICON_HEIGHT - 1 - 2 * pad;
-            int barWidth = (STD_ICON_HEIGHT - 5 - 2 * pad) / 2;
-            paintBar(g, pad, pad, barWidth, barHeight);
-            paintBar(g, pad + barWidth + 4, pad, barWidth, barHeight);
-        }
-
-        private void paintBar(Graphics g, int left, int top, int width,
-                int height) {
-            g.setColor(fill);
-            g.fillRect(left, top, width, height);
-
-            int bottom = top + height;
-            int right = left + width;
-            int size = STD_ICON_HEIGHT;
-
-            if (innerGlow != null) {
-                Shape origClip = g.getClip();
-                Rectangle bar = new Rectangle(left, top, width, height);
-                g.setClip(bar);
-                g.setColor(innerGlow);
-                int midX = left + width / 2;
-                int midY = top + height / 2;
-                for (int i = size / 2; i-- > 0;)
-                    g.fillOval(midX - i, midY - i, i * 2 + 1, i * 2 + 1);
-                g.setClip(origClip);
-            }
-
-            g.setColor(SHADOW);
-            g.drawLine(left, top, left, bottom);
-            g.drawLine(left, top, right, top);
-            if (STD_ICON_HEIGHT > 18) {
-                g.setColor(PaintUtils.makeTransparent(SHADOW, 128));
-                g.drawLine(left + 1, top, left + 1, bottom);
-                g.drawLine(left, top + 1, right, top + 1);
-            }
-            g.setColor(HIGHLIGHT);
-            g.drawLine(left + 1, bottom, right, bottom);
-            g.drawLine(right, top + 1, right, bottom);
-            if (STD_ICON_HEIGHT > 18) {
-                g.setColor(PaintUtils.makeTransparent(HIGHLIGHT, 128));
-                g.drawLine(left + 2, bottom - 1, right, bottom - 1);
-                g.drawLine(right - 1, top + 2, right - 1, bottom);
-            }
-        }
-    }
-
-    private static class PlayIcon extends BufferedIcon {
-
-        private Color fill, innerGlow;
-
-        protected PlayIcon(Color fill, Color glow) {
-            this.fill = fill;
-            if (glow != null)
-                this.innerGlow = PaintUtils.makeTransparent(glow, 80);
-            renderIcon(STD_ICON_HEIGHT, STD_ICON_HEIGHT);
-        }
-
-        @Override
-        protected void doPaint(Graphics g) {
-            int pad = STD_ICON_PAD;
-            int size = STD_ICON_HEIGHT;
-            int left = pad;
-            int right = size - pad - 1;
-            int top = pad;
-            int bottom = size - pad - 1;
-            int mid = size / 2;
-
-            Polygon triangle = new Polygon(new int[] { left, left, right }, //
-                    new int[] { top, bottom, mid }, 3);
-            g.setColor(fill);
-            g.fillPolygon(triangle);
-
-            if (innerGlow != null) {
-                Shape origClip = g.getClip();
-                g.setClip(triangle);
-                Color innerGlowPaint = PaintUtils.makeTransparent(innerGlow, //
-                    size > 16 ? 55 : 140);
-                g.setColor(innerGlowPaint);
-                int cX = (left * 2 + right) / 3;
-                for (int i = size/2; i-- > 0;)
-                    g.fillOval(cX - i, mid - i, i*2+1, i*2+1);
-                g.setClip(origClip);
-            }
-
-            g.setColor(SHADOW);
-            g.drawLine(left, top, left, bottom);
-            g.drawLine(left, top, right, mid);
-            if (STD_ICON_HEIGHT > 18) {
-                g.drawLine(left + 1, top, left + 1, bottom - 2);
-                g.drawLine(left, top + 1, right - 1, mid);
-            }
-            g.setColor(HIGHLIGHT);
-            g.drawLine(left, bottom, right, mid);
-            if (STD_ICON_HEIGHT > 18) {
-                g.drawLine(left, bottom - 1, right - 1, mid);
-            }
         }
 
     }

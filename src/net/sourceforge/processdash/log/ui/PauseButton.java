@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2015 Tuma Solutions, LLC
+// Copyright (C) 2000-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,10 +48,11 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.ConcatenatedIcon;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -119,18 +120,16 @@ public class PauseButton extends DropDownButton implements ActionListener,
 
         public CompactButtonManager() {
             setMainButtonMargin(new Insets(0,0,0,0));
-            pausedIcon = padIcon(DashboardIconFactory.getCompactPausedIcon());
-            timingIcon = padIcon(DashboardIconFactory.getCompactTimingIcon());
-            getButton().setDisabledIcon(
-                padIcon(DashboardIconFactory.getCompactTimingDisabledIcon()));
+            pausedIcon = new ConcatenatedIcon(PauseIcon.glowing(),
+                    new PaddedIcon(PlayIcon.black(), 0, 1, 0, 0));
+            timingIcon = new ConcatenatedIcon(PauseIcon.black(),
+                    new PaddedIcon(PlayIcon.glowing(), 0, 1, 0, 0));
+            getButton().setDisabledIcon(new ConcatenatedIcon(PauseIcon.disabled(),
+                    new PaddedIcon(PlayIcon.disabled(), 0, 1, 0, 0)));
             getButton().setFocusPainted(false);
             getButton().addActionListener(this);
 
             updateAppearance();
-        }
-
-        private Icon padIcon(Icon icon) {
-            return icon;
         }
 
         public void updateAppearance() {
@@ -161,9 +160,9 @@ public class PauseButton extends DropDownButton implements ActionListener,
             pauseButton = new JToggleButton();
             if (!MacGUIUtils.isMacOSX())
                 pauseButton.setMargin(new Insets(0,0,0,0));
-            pauseButton.setIcon(DashboardIconFactory.getPauseBlackIcon());
-            pauseButton.setSelectedIcon(DashboardIconFactory.getPauseGlowingIcon());
-            pauseButton.setDisabledIcon(DashboardIconFactory.getPauseDisabledIcon());
+            pauseButton.setIcon(PauseIcon.black());
+            pauseButton.setSelectedIcon(PauseIcon.glowing());
+            pauseButton.setDisabledIcon(PauseIcon.disabled());
             pauseButton.setFocusPainted(false);
             pauseButton.addActionListener(this);
             setLeftWidget(pauseButton);
@@ -178,9 +177,9 @@ public class PauseButton extends DropDownButton implements ActionListener,
                     }
                 });
             }
-            playButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
-            playButton.setSelectedIcon(DashboardIconFactory.getPlayGlowingIcon());
-            playButton.setDisabledIcon(DashboardIconFactory.getPlayDisabledIcon());
+            playButton.setIcon(PlayIcon.black());
+            playButton.setSelectedIcon(PlayIcon.glowing());
+            playButton.setDisabledIcon(PlayIcon.disabled());
             playButton.setFocusPainted(false);
             playButton.addActionListener(this);
 
