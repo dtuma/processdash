@@ -160,6 +160,12 @@ public class DashboardIconFactory {
         STD_ICON_HEIGHT = height;
         STD_ICON_PAD = height / 9;
     }
+    public static int getStandardIconSize() {
+        return STD_ICON_HEIGHT;
+    }
+    public static int getStandardIconPad() {
+        return STD_ICON_PAD;
+    }
 
 
     private static Icon projectIcon = null;
