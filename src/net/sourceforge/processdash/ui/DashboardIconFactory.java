@@ -23,24 +23,16 @@
 
 package net.sourceforge.processdash.ui;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -242,16 +234,6 @@ public class DashboardIconFactory {
 
     public static Icon getLightCheckIcon() {
         return new CheckIcon(false);
-    }
-
-    public static Icon getDefectIcon() {
-        return new DefectIcon(STD_ICON_HEIGHT, Color.DARK_GRAY, //
-                new Color(0, 98, 49), new Color(0, 49, 156));
-    }
-
-    public static Icon getDisabledDefectIcon() {
-        return new DefectIcon(STD_ICON_HEIGHT, new Color(170, 170, 170), //
-                new Color(200, 200, 200), new Color(170, 170, 170));
     }
 
     public static Icon getScriptIcon() {
@@ -537,89 +519,6 @@ public class DashboardIconFactory {
             if (STD_ICON_HEIGHT > 18) {
                 g.drawLine(left, bottom - 1, right - 1, mid);
             }
-        }
-
-    }
-
-    private static class DefectIcon extends BufferedIcon {
-
-        private int width, height, pad;
-        private Color outline, fill, contrast;
-
-        public DefectIcon(int height, Color outline, Color fill, Color contrast) {
-            this.height = height;
-            this.width = (int) Math.round(height * 1.58);
-            this.pad = height / 5;
-            this.outline = outline;
-            this.fill = fill;
-            this.contrast = contrast;
-            renderIcon(width, height);
-        }
-
-        protected void doPaint(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            Shape origClip = g2.getClip();
-            Stroke origStroke = g2.getStroke();
-
-            int w = width;
-            int h = height;
-            int pad2 = 2 * pad;
-            int yMid = h / 2;
-
-            Shape torso = new Ellipse2D.Double(pad + 3, pad, w - pad - 4, h
-                    - pad2 - 1);
-            Shape head = new Ellipse2D.Double(pad - 1, yMid - pad, pad2, pad2);
-
-            Area outsideTorso = new Area(new Rectangle2D.Double(0, 0, w, h));
-            outsideTorso.subtract(new Area(torso));
-            Area outsideHead = new Area(new Rectangle2D.Double(0, 0, w, h));
-            outsideHead.subtract(new Area(head));
-            Area body = new Area(torso);
-            body.add(new Area(head));
-            Area outsideBody = new Area(outsideTorso);
-            outsideBody.subtract(new Area(head));
-
-            g2.setClip(outsideBody);
-            g2.setColor(outline);
-            // antennae
-            g2.drawArc(-1 - pad, yMid - pad - 1, pad2 + 2, pad2 + 2, -90, 180);
-            // front legs
-            g2.drawArc(pad2 + 1, 0, h - 1, h - 1, 90, 180);
-            // middle legs
-            g2.drawArc(w / 2 + 1, 0, h - 1, h - 1, 90, 180);
-            // back legs
-            g2.drawArc(w - h / 2 + pad, 2, h - 6, h - 5, 90, 180);
-
-            if (fill != null) {
-                g2.setClip(origClip);
-                g2.setColor(fill);
-                g2.fill(body.createTransformedArea(AffineTransform
-                        .getTranslateInstance(0.5, 0.5)));
-
-                // zigzags
-                g2.setClip(torso);
-                g2.setColor(contrast);
-                g2.setStroke(new BasicStroke(pad * 0.7f));
-                for (int num = 0, i = w - pad2; num++ < 3; i -= pad2) {
-                    Path2D.Double stripe = new Path2D.Double();
-                    int hhh = (h - pad2) / 4;
-                    stripe.moveTo(i + hhh, yMid - 2 * hhh);
-                    stripe.lineTo(i, yMid - hhh);
-                    stripe.lineTo(i + hhh, yMid);
-                    stripe.lineTo(i, yMid + hhh);
-                    stripe.lineTo(i + hhh, yMid + 2 * hhh);
-                    g2.draw(stripe);
-                }
-            }
-
-            g2.setColor(outline);
-            g2.setStroke(origStroke);
-            g2.setClip(outsideHead);
-            g2.draw(torso);
-            g2.setClip(outsideTorso);
-            g2.draw(head);
-
-            g2.setClip(origClip);
         }
 
     }
