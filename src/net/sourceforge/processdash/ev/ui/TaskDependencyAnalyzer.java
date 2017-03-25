@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,11 +31,11 @@ import java.util.Date;
 import java.util.Iterator;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.ui.icons.TaskScheduleIcons;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -151,13 +151,14 @@ public class TaskDependencyAnalyzer {
         return "0";
     }
 
-    public String getHtmlTable(String tableAttrs, String stopUrl,
+    public String getHtmlTable(String tableAttrs, int iconSize, String stopUrl,
             String checkUrl, String reverseUrl, String misorderedUrl,
             String misorderedReverseUrl, String sep, boolean includeBodyTags,
             boolean includeTooltips) {
         if (dependencies == null || getStatus() == NO_DEPENDENCIES)
             return null;
 
+        String iconSizeHtml = "' width='" + iconSize + "' height='" + iconSize;
         StringBuffer descr = new StringBuffer();
         if (includeBodyTags)
             descr.append("<html><body><b>").append(getRes("Explanation_All"))
@@ -181,35 +182,41 @@ public class TaskDependencyAnalyzer {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_COMPLETED_REVERSE));
                     descr.append("style='text-align:center'><img src='")
-                        .append(checkUrl).append("'></td>");
+                            .append(checkUrl).append(iconSizeHtml)
+                            .append("'></td>");
                 } else if (d.isMisordered()) {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_MISORDERED_REVERSE));
                     descr.append("style='text-align:center'><img src='")
-                        .append(misorderedReverseUrl).append("'></td>");
+                            .append(misorderedReverseUrl).append(iconSizeHtml)
+                            .append("'></td>");
                 } else {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_REVERSE));
                     descr.append("style='text-align:center'><img src='")
-                        .append(reverseUrl).append("'></td>");
+                            .append(reverseUrl).append(iconSizeHtml)
+                            .append("'></td>");
                 }
             } else if (d.isIncomplete()) {
                 if (d.isMisordered()) {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_MISORDERED_INCOMPLETE));
                     descr.append("style='text-align:center'><img src='")
-                            .append(misorderedUrl).append("'></td>");
+                            .append(misorderedUrl).append(iconSizeHtml)
+                            .append("'></td>");
                 } else {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_INCOMPLETE));
                     descr.append("style='text-align:center'><img src='")
-                            .append(stopUrl).append("'></td>");
+                            .append(stopUrl).append(iconSizeHtml)
+                            .append("'></td>");
                 }
             } else {
                 if (includeTooltips)
                     descr.append(getTooltip(ALL_COMPLETE));
                 descr.append("style='text-align:center'><img src='")
-                        .append(checkUrl).append("'></td>");
+                        .append(checkUrl).append(iconSizeHtml)
+                        .append("'></td>");
             }
             descr.append("<td style='text-align:left' nowrap>");
             if (d.isReverse()) {
@@ -281,10 +288,11 @@ public class TaskDependencyAnalyzer {
         }
 
         public String getHtmlTable(String tableAttrs) {
-            return super.getHtmlTable(tableAttrs, GUI_STOP_URL.toString(),
-                    GUI_CHECK_URL.toString(), GUI_REVERSE_URL.toString(),
-                    GUI_INCOMPLETE_MIS_URL.toString(),
-                    GUI_REVERSE_MIS_URL.toString(), GUI_SEP, true, false);
+            return super.getHtmlTable(tableAttrs,
+                TaskScheduleIcons.getDependencyIconSize(),
+                GUI_STOP_URL.toString(), GUI_CHECK_URL.toString(),
+                GUI_REVERSE_URL.toString(), GUI_INCOMPLETE_MIS_URL.toString(),
+                GUI_REVERSE_MIS_URL.toString(), GUI_SEP, true, false);
         }
 
         public void syncLabel(JLabel label) {
@@ -333,20 +341,16 @@ public class TaskDependencyAnalyzer {
         }
     }
 
-    private static final URL imageURL(String name) {
-        return TaskDependencyAnalyzer.class.getResource(name);
-    }
-
-    private static final URL GUI_STOP_URL = imageURL("stop.png");
-    private static final Icon GUI_STOP_ICON = new ImageIcon(GUI_STOP_URL);
-    private static final URL GUI_CHECK_URL = imageURL("check.png");
-    private static final Icon GUI_CHECK_ICON = new ImageIcon(GUI_CHECK_URL);
-    private static final URL GUI_REVERSE_URL = imageURL("group.png");
-    private static final Icon GUI_REVERSE_ICON = new ImageIcon(GUI_REVERSE_URL);
-    private static final URL GUI_REVERSE_MIS_URL = imageURL("warning.png");
-    private static final Icon GUI_REVERSE_MIS_ICON = new ImageIcon(GUI_REVERSE_MIS_URL);
-    private static final URL GUI_INCOMPLETE_MIS_URL = imageURL("warningRed.png");
-    private static final Icon GUI_INCOMPLETE_MIS_ICON = new ImageIcon(GUI_INCOMPLETE_MIS_URL);
+    private static final URL GUI_STOP_URL = TaskScheduleIcons.stopUrl();
+    private static final Icon GUI_STOP_ICON = TaskScheduleIcons.stopIcon();
+    private static final URL GUI_CHECK_URL = TaskScheduleIcons.checkUrl();
+    private static final Icon GUI_CHECK_ICON = TaskScheduleIcons.checkIcon();
+    private static final URL GUI_REVERSE_URL = TaskScheduleIcons.groupUrl();
+    private static final Icon GUI_REVERSE_ICON = TaskScheduleIcons.groupIcon();
+    private static final URL GUI_REVERSE_MIS_URL = TaskScheduleIcons.warningUrl();
+    private static final Icon GUI_REVERSE_MIS_ICON = TaskScheduleIcons.warningIcon();
+    private static final URL GUI_INCOMPLETE_MIS_URL = TaskScheduleIcons.warningRedUrl();
+    private static final Icon GUI_INCOMPLETE_MIS_ICON = TaskScheduleIcons.warningRedIcon();
 
     private static final String GUI_SEP = "  \u25AA  ";
 
@@ -358,7 +362,7 @@ public class TaskDependencyAnalyzer {
         }
 
         public String getHtmlTable(String tableAttrs) {
-            return super.getHtmlTable(tableAttrs, HTML_STOP_URI,
+            return super.getHtmlTable(tableAttrs, 14, HTML_STOP_URI,
                     HTML_CHECK_URI, HTML_REVERSE_URI, HTML_INCOMPLETE_MIS_URI,
                     HTML_REVERSE_MIS_URI, HTML_SEP, false, true);
         }
@@ -369,7 +373,7 @@ public class TaskDependencyAnalyzer {
     }
 
     private static final String HTML_STOP_URI = "/Images/stop.gif";
-    private static final String HTML_CHECK_URI = "/Images/check.gif";
+    private static final String HTML_CHECK_URI = "/Images/check.png";
     private static final String HTML_REVERSE_URI = "/Images/group.gif";
     private static final String HTML_REVERSE_MIS_URI = "/Images/warning.gif";
     private static final String HTML_INCOMPLETE_MIS_URI = "/Images/warningRed.gif";
