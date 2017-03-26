@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
 import net.sourceforge.processdash.ui.lib.BufferedIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
@@ -362,26 +363,6 @@ public class DashboardIconFactory {
 
         public int getIconWidth() {
             return 7;
-        }
-
-    }
-
-
-    private static class TaskOverflowIcon implements Icon {
-
-        public int getIconHeight() { return 5; }
-
-        public int getIconWidth() { return 8; }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            for (int i = 0; i < 6; i++) {
-                int left = x + i;
-                g.drawLine(left, y+2, left+2, y);
-                g.drawLine(left, y+2, left+2, y+4);
-                if (i == 1)
-                    i += 2;
-            }
         }
 
     }
