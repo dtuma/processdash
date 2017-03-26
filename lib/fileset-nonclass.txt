@@ -34,11 +34,6 @@ net/sourceforge/processdash/state
 net/sourceforge/processdash/tool/export/jarsurf/classes.txt
 net/sourceforge/processdash/tool/diff/ui/HtmlDiffReportWriter.css
 net/sourceforge/processdash/ui/about.png
-net/sourceforge/processdash/ui/add.png
-net/sourceforge/processdash/ui/add-glow.png
-net/sourceforge/processdash/ui/comment.png
-net/sourceforge/processdash/ui/commentError.png
-net/sourceforge/processdash/ui/commentNone.png
 net/sourceforge/processdash/ui/externalLink.png
 net/sourceforge/processdash/ui/group.png
 net/sourceforge/processdash/ui/help.png

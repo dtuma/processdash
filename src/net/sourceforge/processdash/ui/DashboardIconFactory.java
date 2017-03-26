@@ -212,11 +212,15 @@ public class DashboardIconFactory {
     }
 
     public static Icon getAddIcon() {
-        return loadNamedIcon("add", null);
+        return new ScalableImageIcon(STD_ICON_HEIGHT,
+                DashboardIconFactory.class, "icons/add-128.png",
+                "icons/add-17.png");
     }
 
     public static Icon getAddRolloverIcon() {
-        return loadNamedIcon("add-glow", null);
+        return new ScalableImageIcon(STD_ICON_HEIGHT,
+            DashboardIconFactory.class, "icons/add-glow-128.png",
+            "icons/add-glow-17.png");
     }
 
     private static Icon restartRequiredIcon = null;
