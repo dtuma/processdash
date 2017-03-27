@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -95,6 +95,7 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
+import net.sourceforge.processdash.ev.ui.icons.TaskScheduleIcons;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -351,13 +352,11 @@ public class TaskScheduleChart extends JFrame
 
     private class ConfigurationButton extends JLabel implements MouseListener {
 
-        private ImageIcon plainIcon, rolloverIcon;
+        private Icon plainIcon, rolloverIcon;
 
         public ConfigurationButton() {
-            plainIcon = new ImageIcon(TaskScheduleChart.class
-                .getResource("chart-options.png"));
-            rolloverIcon = new ImageIcon(TaskScheduleChart.class
-                .getResource("chart-options-glow.png"));
+            plainIcon = TaskScheduleIcons.chartOptionsIcon();
+            rolloverIcon = TaskScheduleIcons.chartOptionsGlowIcon();
             setIcon(plainIcon);
             setToolTipText(resources.getString("Configure.Icon_Tooltip"));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

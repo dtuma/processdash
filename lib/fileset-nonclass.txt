@@ -4,8 +4,6 @@ net/sourceforge/processdash/ev/ui/evCharts*
 net/sourceforge/processdash/ev/ui/icons/*.png
 net/sourceforge/processdash/ev/ui/box_checked.png
 net/sourceforge/processdash/ev/ui/box_unchecked.png
-net/sourceforge/processdash/ev/ui/chart-options-glow.png
-net/sourceforge/processdash/ev/ui/chart-options.png
 net/sourceforge/processdash/ev/ui/modified.png
 net/sourceforge/processdash/ev/ui/listicon.png
 net/sourceforge/processdash/hier/ui/block-down-arrow.gif

@@ -85,4 +85,12 @@ public class TaskScheduleIcons {
         return url("group-32.png");
     }
 
+    public static Icon chartOptionsIcon() {
+        return create(32, "chart-options.png");
+    }
+
+    public static Icon chartOptionsGlowIcon() {
+        return create(32, "chart-options-glow.png");
+    }
+
 }
