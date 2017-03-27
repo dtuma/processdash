@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.icons.ExternalLinkIcon;
 import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
 import net.sourceforge.processdash.ui.lib.BufferedIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
@@ -193,9 +194,8 @@ public class DashboardIconFactory {
         return new CheckIcon(false);
     }
 
-    private static Icon extLinkIcon = null;
     public static Icon getExternalLinkIcon() {
-        return extLinkIcon = loadNamedIcon("externalLink", extLinkIcon);
+        return new ExternalLinkIcon();
     }
 
     public static Icon getHelpIcon() {
