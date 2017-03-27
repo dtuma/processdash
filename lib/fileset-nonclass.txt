@@ -38,8 +38,6 @@ net/sourceforge/processdash/ui/externalLink.png
 net/sourceforge/processdash/ui/group.png
 net/sourceforge/processdash/ui/help.png
 net/sourceforge/processdash/ui/individual.png
-net/sourceforge/processdash/ui/script.png
-net/sourceforge/processdash/ui/script19.png
 net/sourceforge/processdash/ui/dashicon.ico
 net/sourceforge/processdash/ui/teamicon.ico
 net/sourceforge/processdash/ui/launcher.ico

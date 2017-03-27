@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2016 Tuma Solutions, LLC
+// Copyright (C) 2000-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import net.sourceforge.processdash.process.ScriptEnumeratorListener;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.icons.ReportsAndToolsIcon;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -85,8 +86,10 @@ public class ScriptButton extends DropDownButton implements
         super();
         PCSH.enableHelp(this, "AccessingScripts");
         PCSH.enableHelpKey(getMenu(), "AccessingScripts");
-        setMainButtonMargin(new Insets (1,2,1,2));
-        enabled_icon = DashboardIconFactory.getScriptIcon();
+        int pad = DashboardIconFactory.getStandardIconPad();
+        setMainButtonMargin(new Insets (pad,2,pad,2));
+        int iconHeight = DashboardIconFactory.getStandardIconSize() - 2 * pad;
+        enabled_icon = new ReportsAndToolsIcon(iconHeight);
         getButton().setIcon(padIcon(enabled_icon));
         getButton().setToolTipText(resources.getString("Tooltip"));
         getButton().setFocusPainted(false);

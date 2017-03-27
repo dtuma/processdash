@@ -194,11 +194,6 @@ public class DashboardIconFactory {
         return new CheckIcon(false);
     }
 
-    public static Icon getScriptIcon() {
-        String name = (STD_ICON_HEIGHT > 18 ? "script19" : "script");
-        return loadNamedIcon(name, null);
-    }
-
     private static Icon extLinkIcon = null;
     public static Icon getExternalLinkIcon() {
         return extLinkIcon = loadNamedIcon("externalLink", extLinkIcon);
