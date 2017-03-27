@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.icons.CheckIcon;
 import net.sourceforge.processdash.ui.icons.ExternalLinkIcon;
 import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
 import net.sourceforge.processdash.ui.lib.BufferedIcon;
@@ -185,9 +186,7 @@ public class DashboardIconFactory {
     }
 
     public static Icon getCheckIcon() {
-        Icon result = loadNamedIcon("check", null);
-        if (result == null) result = new CheckIcon(true);
-        return result;
+        return new CheckIcon(true);
     }
 
     public static Icon getLightCheckIcon() {
@@ -330,34 +329,6 @@ public class DashboardIconFactory {
         }
     }
 
-
-
-    private static class CheckIcon implements Icon {
-
-        private boolean bold;
-
-        protected CheckIcon(boolean bold) {
-            this.bold = bold;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            g.drawLine(x,   y+2, x,   y+6);
-            if (bold)
-                g.drawLine(x+1, y+2, x+1, y+6);
-            g.drawLine(x+1, y+5, x+6, y);
-            g.drawLine(x+1, y+6, x+6, y+1);
-        }
-
-        public int getIconHeight() {
-            return 7;
-        }
-
-        public int getIconWidth() {
-            return 7;
-        }
-
-    }
 
 
     /** Icon image representing a project.
