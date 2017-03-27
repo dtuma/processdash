@@ -46,7 +46,6 @@ import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ui.icons.CheckIcon;
 import net.sourceforge.processdash.ui.icons.ExternalLinkIcon;
-import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
@@ -187,10 +186,6 @@ public class DashboardIconFactory {
 
     public static Icon getHelpIcon(int height) {
         return loadAndScaleIcon("icons/help", height, false);
-    }
-
-    public static Icon getTaskOverflowIcon() {
-        return new TaskOverflowIcon();
     }
 
     public static Icon getAddIcon() {

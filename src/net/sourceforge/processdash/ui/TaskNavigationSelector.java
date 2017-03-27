@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyNavigator;
 import net.sourceforge.processdash.hier.ui.HierarchyTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
@@ -279,8 +280,7 @@ public class TaskNavigationSelector implements DashHierarchy.Listener,
     private class TaskNavMenu extends JMenu {
 
         public TaskNavMenu() {
-            setIcon(new PaddedIcon(DashboardIconFactory.getTaskOverflowIcon(),
-                    0, 6, 0, 0));
+            setIcon(new PaddedIcon(new TaskOverflowIcon(), 0, 6, 0, 0));
             setIconTextGap(0);
             add(new TaskNavSeparator());
         }
