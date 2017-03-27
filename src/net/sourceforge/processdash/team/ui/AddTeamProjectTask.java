@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,9 +33,9 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.hier.ui.AddTaskHandler;
 import net.sourceforge.processdash.hier.ui.AddTaskTypeOption;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.team.TeamDataConstants;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
 
 public class AddTeamProjectTask implements AddTaskHandler<String[]> {
 
@@ -82,7 +82,7 @@ public class AddTeamProjectTask implements AddTaskHandler<String[]> {
         // if any problems occurred, create a single, simple task type
         if (result.isEmpty()) {
             AddTaskTypeOption oneType = new AddTaskTypeOption();
-            oneType.icon = DashboardIconFactory.getTaskIcon();
+            oneType.icon = HierarchyIcons.getTaskIcon();
             oneType.templateID = templateID;
             result.add(oneType);
         }

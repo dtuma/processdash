@@ -47,9 +47,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ui.icons.CheckIcon;
 import net.sourceforge.processdash.ui.icons.ExternalLinkIcon;
 import net.sourceforge.processdash.ui.icons.TaskOverflowIcon;
-import net.sourceforge.processdash.ui.lib.BufferedIcon;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
-import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 
@@ -158,20 +156,6 @@ public class DashboardIconFactory {
         return STD_ICON_PAD;
     }
 
-
-    private static Icon projectIcon = null;
-    public static Icon getProjectIcon() {
-        if (projectIcon == null) projectIcon = new ProjectIcon(new Color(204, 204, 255));
-        return projectIcon;
-    }
-
-    public static Icon getTaskIcon() {
-        return getTaskIcon(new Color(204, 204, 255));
-    }
-
-    public static Icon getTaskIcon(Color c) {
-        return new TaskIcon(c);
-    }
 
     public static Icon getHourglassIcon() {
         return loadAndScaleIcon("icons/hourglass", true);
@@ -331,105 +315,8 @@ public class DashboardIconFactory {
 
 
 
-    /** Icon image representing a project.
-    *
-    * This draws a large square block.
-    */
-    private static class ProjectIcon implements Icon {
-
-        Color fillColor, highlight, shadow;
-
-        public ProjectIcon(Color fill) {
-            this.fillColor = fill;
-            this.highlight = PaintUtils.mixColors(fill, Color.white, 0.3f);
-            this.shadow    = PaintUtils.mixColors(fill, Color.black, 0.7f);
-        }
-
-        public int getIconWidth() { return 16; }
-
-        public int getIconHeight() { return 18; }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(fillColor);
-            g.fillRect(x+3,  y+4,  10, 10);
-
-            g.setColor(shadow);
-            g.drawLine(x+13, y+4,  x+13, y+14); // right shadow
-            g.drawLine(x+3,  y+14, x+13, y+14); // bottom shadow
-
-            g.setColor(highlight);
-            g.drawLine(x+2,  y+3,  x+2,  y+14); // left highlight
-            g.drawLine(x+2,  y+3,  x+13, y+3); // top highlight
-
-            g.setColor(Color.black);
-            g.drawRect(x+1, y+2, 13, 13);
-        }
-    }
-
     @SuppressWarnings("unused")
     private static final Color blue = new Color(102, 102, 153);
-
-
-    /** Generic icon to draw a polygon with 3D edge highlighting.
-     */
-    private static class PolygonIcon extends BufferedIcon {
-        int[] xPoints;
-        int[] yPoints;
-        Color fillColor;
-
-        protected void doPaint(Graphics g) {
-            // fill shape
-            g.setColor(fillColor);
-            g.fillPolygon(xPoints, yPoints, yPoints.length);
-
-            // draw custom highlights
-            doHighlights(g);
-
-            // draw black outline
-            g.setColor(Color.black);
-            g.drawPolygon(xPoints, yPoints, yPoints.length);
-        }
-
-        protected void doHighlights(Graphics g) { }
-        protected void drawHighlight(Graphics g, int segment,
-                                     int xDelta, int yDelta) {
-            int segStart = segment;
-            int segEnd = (segment + 1) % xPoints.length;
-
-            g.drawLine(xPoints[segStart] + xDelta,
-                       yPoints[segStart] + yDelta,
-                       xPoints[segEnd]   + xDelta,
-                       yPoints[segEnd]   + yDelta);
-        }
-    }
-
-    /** Icon image representing a work breakdown structure task.
-     *
-     * This draws a parallelogram.
-     */
-    private static class TaskIcon extends PolygonIcon {
-
-        Color highlight, shadow;
-
-        public TaskIcon(Color fill) {
-            this.xPoints = new int[] { 0, 5, 15, 10 };
-            this.yPoints = new int[] { 14, 1, 1, 14 };
-            this.fillColor = fill;
-            this.highlight = PaintUtils.mixColors(fill, Color.white, 0.3f);
-            this.shadow = PaintUtils.mixColors(fill, Color.black, 0.7f);
-            renderIcon(16, 16);
-        }
-
-        protected void doHighlights(Graphics g) {
-            g.setColor(shadow);
-            drawHighlight(g, 2, -1, 0);
-            drawHighlight(g, 3, 0, -1);
-
-            g.setColor(highlight);
-            drawHighlight(g, 0, 1, 0);
-            drawHighlight(g, 1, 0, 1);
-        }
-    }
 
 
    @SuppressWarnings("unused")

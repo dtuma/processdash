@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ import java.util.List;
 
 import javax.swing.Icon;
 
-import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 
 public class TeamPhaseIconSet extends LinkedHashMap<String, Icon> {
@@ -39,7 +39,7 @@ public class TeamPhaseIconSet extends LinkedHashMap<String, Icon> {
         for (int i = 0; i < numPhases; i++) {
             String onePhase = phaseNames.get(i);
             Color c = getPhaseColor(i, numPhases);
-            put(onePhase, DashboardIconFactory.getTaskIcon(c));
+            put(onePhase, HierarchyIcons.getTaskIcon(c));
         }
     }
 

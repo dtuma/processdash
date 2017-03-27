@@ -85,6 +85,7 @@ import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationExce
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
@@ -101,6 +102,7 @@ import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -704,7 +706,8 @@ public class TeamProjectBrowser extends JSplitPane {
     private class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
 
         public ProjectTreeCellRenderer() {
-            setLeafIcon(DashboardIconFactory.getProjectIcon());
+            setLeafIcon(new PaddedIcon(HierarchyIcons.getProjectIcon(), //
+                    1, 0, 1, 0));
         }
 
     }

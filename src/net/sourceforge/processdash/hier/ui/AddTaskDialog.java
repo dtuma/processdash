@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,9 +59,9 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JHintTextField;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -175,7 +175,7 @@ public class AddTaskDialog {
         String parentPath = StringUtils.findAndReplace(targetParent.path()
                 .substring(1), "/", " / ");
         JLabel parentLabel = new JLabel(parentPath,
-                DashboardIconFactory.getProjectIcon(), SwingConstants.LEFT);
+                HierarchyIcons.getProjectIcon(), SwingConstants.LEFT);
         parentLabel.setToolTipText(resources.getString("Parent_Tooltip"));
         return parentLabel;
     }
