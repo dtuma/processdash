@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
@@ -121,6 +122,7 @@ public class DropDownButton extends JPanel {
         setLayout(new NormalDropDownButtonLayout());
 
         mainButton.setBorder(new RightChoppedBorder(mainButton.getBorder(), 1));
+        dropDownButton.setMargin(new Insets(1, 1, 1, 1));
     }
 
     private void configureMacGUI() {
@@ -354,18 +356,28 @@ public class DropDownButton extends JPanel {
         Color arrowColor = Color.black;
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(arrowColor);
-            g.drawLine(x, y, x+4, y);
-            g.drawLine(x+1, y+1, x+3, y+1);
-            g.drawLine(x+2, y+2, x+2, y+2);
+            Graphics2D g2 = (Graphics2D) g.create();
+            double scale = g2.getTransform().getScaleX();
+            g2.translate(x, y);
+            g2.scale(1 / scale, 1 / scale);
+
+            int pw = (int) (getIconWidth() * scale) - 1;
+            int hw = pw / 2;
+            int d = pw - 2 * hw;
+            int[] xx = new int[] { 0, hw, hw + d, pw };
+            int[] yy = new int[] { 0, hw, hw, 0 };
+
+            g2.setColor(arrowColor);
+            g2.fillPolygon(xx, yy, 4);
+            g2.drawPolygon(xx, yy, 4);
         }
 
         public int getIconWidth() {
-            return 6;
+            return 5;
         }
 
         public int getIconHeight() {
-            return 4;
+            return 3;
         }
 
     }
@@ -378,12 +390,6 @@ public class DropDownButton extends JPanel {
             arrowColor = new Color(140, 140, 140);
         }
 
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            super.paintIcon(c, g, x, y);
-            g.setColor(Color.white);
-            g.drawLine(x+3, y+2, x+4, y+1);
-            g.drawLine(x+3, y+3, x+5, y+1);
-        }
     }
 
     /** Custom layout manager to arrange our children on PC/Unix systems.
@@ -396,7 +402,7 @@ public class DropDownButton extends JPanel {
             parent.getBounds(bounds);
 
             int lww = getLeftWidgetWidth();
-            int ddw = PC_DROP_DOWN_WIDTH;
+            int ddw = getDropDownButtonWidth();
             int mainW = bounds.width - ddw - lww;
 
             if (leftWidget != null)
@@ -410,14 +416,14 @@ public class DropDownButton extends JPanel {
         public Dimension minimumLayoutSize(Container parent) {
             Dimension result = mainButton.getMinimumSize();
             result.width += getLeftWidgetWidth();
-            result.width += PC_DROP_DOWN_WIDTH;
+            result.width += getDropDownButtonWidth();
             return result;
         }
 
         public Dimension preferredLayoutSize(Container parent) {
             Dimension result = mainButton.getPreferredSize();
             result.width += getLeftWidgetWidth();
-            result.width += PC_DROP_DOWN_WIDTH;
+            result.width += getDropDownButtonWidth();
             return result;
         }
 
@@ -426,6 +432,10 @@ public class DropDownButton extends JPanel {
                 return 0;
             else
                 return leftWidget.getPreferredSize().width;
+        }
+
+        private int getDropDownButtonWidth() {
+            return dropDownButton.getMinimumSize().width;
         }
 
         public void addLayoutComponent(String name, Component comp) {}
@@ -520,8 +530,6 @@ public class DropDownButton extends JPanel {
         public void removeLayoutComponent(Component comp) {}
 
     }
-
-    private static final int PC_DROP_DOWN_WIDTH = 11;
 
     private static final String MAC_BUTTON_TYPE = "JButton.buttonType";
     private static final String MAC_ICON_BUTTON_TYPE = "segmented";
