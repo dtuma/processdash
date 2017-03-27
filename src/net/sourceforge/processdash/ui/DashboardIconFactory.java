@@ -172,16 +172,15 @@ public class DashboardIconFactory {
     }
 
     public static Icon getHourglassIcon() {
-        return new ScalableImageIcon(STD_ICON_HEIGHT,
-                DashboardIconFactory.class, "icons/hourglass.png");
+        return loadAndScaleIcon("icons/hourglass", true);
     }
 
     public static Icon getGroupIcon() {
-        return loadAndScaleIcon("group", true);
+        return loadAndScaleIcon("icons/group", true);
     }
 
     public static Icon getIndividualIcon() {
-        return loadAndScaleIcon("individual", true);
+        return loadAndScaleIcon("icons/individual", true);
     }
 
     public static Icon getCheckIcon() {
@@ -199,8 +198,12 @@ public class DashboardIconFactory {
         return extLinkIcon = loadNamedIcon("externalLink", extLinkIcon);
     }
 
+    public static Icon getHelpIcon() {
+        return getHelpIcon(STD_ICON_HEIGHT);
+    }
+
     public static Icon getHelpIcon(int height) {
-        return loadAndScaleIcon("help", height, false);
+        return loadAndScaleIcon("icons/help", height, false);
     }
 
     public static Icon getTaskOverflowIcon() {
@@ -219,9 +222,8 @@ public class DashboardIconFactory {
             "icons/add-glow-17.png");
     }
 
-    private static Icon restartRequiredIcon = null;
     public static Icon getRestartRequiredIcon() {
-        return restartRequiredIcon = loadNamedIcon("restartIcon", restartRequiredIcon);
+        return loadAndScaleIcon("icons/restart", 16, false);
     }
 
     private static Icon loadAndScaleIcon(String name, boolean pad) {
@@ -230,13 +232,8 @@ public class DashboardIconFactory {
 
     private static Icon loadAndScaleIcon(String name, int height, boolean pad) {
         ImageIcon big = (ImageIcon) loadNamedIcon(name, null);
-        Image bigImage = big.getImage();
         int newHeight = height - (pad ? 2 * STD_ICON_PAD : 0);
-        int newWidth = (int) Math.round((double) big.getIconWidth() * newHeight
-                / big.getIconHeight());
-        Image smallImage = bigImage.getScaledInstance(newWidth, newHeight,
-            Image.SCALE_AREA_AVERAGING);
-        Icon smallIcon = new ImageIcon(smallImage);
+        Icon smallIcon = new ScalableImageIcon(newHeight, big);
         if (pad)
             smallIcon = new PaddedIcon(smallIcon, STD_ICON_PAD, STD_ICON_PAD,
                     STD_ICON_PAD, STD_ICON_PAD);
