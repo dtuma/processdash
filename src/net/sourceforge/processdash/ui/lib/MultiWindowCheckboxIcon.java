@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,13 @@
 
 package net.sourceforge.processdash.ui.lib;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Path2D;
 
 import javax.swing.Icon;
 
@@ -56,26 +60,35 @@ public class MultiWindowCheckboxIcon implements Icon {
     }
 
     public void paintIcon(Component c, Graphics g, int x, int y) {
-        g.setColor(boxColor);
-        g.drawRect(x + 0, y + 1, 8, 8);
-        paintFrame(g, x + 12, y);
-        paintFrame(g, x + 16, y + 3);
+        Graphics2D g2 = (Graphics2D) g.create();
+        float scale = (float) g2.getTransform().getScaleX();
+        g2.setStroke(new BasicStroke(1 / scale));
+        paintFrame(g2, x + 12, y);
+        paintFrame(g2, x + 16, y + 3);
+
+        g2.setColor(boxColor);
+        g2.drawRect(x + 0, y + 1, 8, 8);
 
         if (isChecked()) {
-            g.setColor(checkColor);
-            for (int i = -1; i < 4; i++)
-                g.drawLine(x + 3 + i, y + 6 - Math.abs(i), x + 3 + i, y + 7
-                        - Math.abs(i));
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(checkColor);
+            g2.setStroke(new BasicStroke(scale > 1.3 ? 1.5f : 1));
+            Path2D p = new Path2D.Float();
+            p.moveTo(x + 2, y + 5);
+            p.lineTo(x + 4, y + 7);
+            p.lineTo(x + 6, y + 3);
+            g2.draw(p);
         }
     }
 
     private void paintFrame(Graphics g, int x, int y) {
+        g.setColor(windowColor);
+        g.fillRect(x, y, 8, 7);
+        g.setColor(titleBarColor);
+        g.fillRect(x, y, 8, 2);
         g.setColor(frameColor);
         g.drawRect(x, y, 8, 7);
-        g.setColor(windowColor);
-        g.fillRect(x + 1, y + 1, 7, 6);
-        g.setColor(titleBarColor);
-        g.drawLine(x + 1, y + 1, x + 7, y + 1);
     }
 
 }
