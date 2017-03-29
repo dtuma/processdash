@@ -23,9 +23,6 @@
 
 package net.sourceforge.processdash.ui;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
@@ -308,62 +305,6 @@ public class DashboardIconFactory {
         }
     }
 
-
-
-    @SuppressWarnings("unused")
-    private static final Color blue = new Color(102, 102, 153);
-
-
-   @SuppressWarnings("unused")
-    private static class BlockArrowIcon implements Icon {
-
-        Color bg, fg;
-        private int width, height;
-        private int[] xpoints;
-        private int[] ypoints;
-
-        public BlockArrowIcon(int width, int height,
-                              boolean direction,
-                              Color fg, Color bg) {
-            this.width = width;
-            this.height = height;
-            this.fg = fg;
-            this.bg = bg;
-
-            int y0 = (direction ? 0 : height-1);
-            int d  = (direction ? 1 : -1);
-            int baseSize = (width+1)/2;
-
-            xpoints = new int[8];
-            ypoints = new int[8];
-            xpoints[0] = baseSize/2;  ypoints[0] = y0;
-            xpoints[1] = baseSize/2;  ypoints[1] = y0 + baseSize * d;
-            xpoints[2] = 0;           ypoints[2] = y0 + baseSize * d;
-            xpoints[3] = baseSize-1;  ypoints[3] = y0 + (height-1) * d;
-            for (int i = 0;   i < 4;   i++) {
-                xpoints[7-i] = width - xpoints[i] - 1;
-                ypoints[7-i] = ypoints[i];
-            }
-        }
-
-        public int getIconHeight() {
-            return height;
-        }
-
-        public int getIconWidth() {
-            return width;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.translate(x, y);
-            g.setColor(bg);
-            g.fillPolygon(xpoints, ypoints, 8);
-            g.setColor(Color.black);
-            g.drawPolygon(xpoints, ypoints, 8);
-            g.translate(-x, -y);
-        }
-
-    }
 
 
     private static WindowIconImageSetter getWindowIconImageSetter(
