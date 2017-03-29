@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 
 import net.sourceforge.processdash.ui.lib.HTMLSplashScreen;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -52,9 +53,10 @@ public class DashboardSplashScreen extends HTMLSplashScreen {
         super(getSplashImage(), getSplashHtmlBlocks());
     }
 
-    private static ImageIcon getSplashImage() {
+    private static ScalableImageIcon getSplashImage() {
         URL url = DashboardSplashScreen.class.getResource("splash.png");
-        return new ImageIcon(url);
+        ImageIcon icon = new ImageIcon(url);
+        return new ScalableImageIcon(icon.getIconHeight(), icon);
     }
 
     private static List<String> getSplashHtmlBlocks() {

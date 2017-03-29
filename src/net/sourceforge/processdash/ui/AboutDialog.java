@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import org.w3c.dom.Element;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /**
@@ -166,9 +167,10 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
         }
     }
 
-    private static ImageIcon getDashLogo() {
+    private static Icon getDashLogo() {
         URL url = AboutDialog.class.getResource(ABOUT_LOGO_LOCATION);
-        return new ImageIcon(url);
+        ImageIcon icon = new ImageIcon(url);
+        return new ScalableImageIcon(icon.getIconHeight(), icon);
     }
 
     /**
