@@ -5,7 +5,6 @@ net/sourceforge/processdash/ev/ui/icons/*.png
 net/sourceforge/processdash/ev/ui/box_checked.png
 net/sourceforge/processdash/ev/ui/box_unchecked.png
 net/sourceforge/processdash/ev/ui/modified.png
-net/sourceforge/processdash/ev/ui/listicon.png
 net/sourceforge/processdash/hier/ui/block-down-arrow.gif
 net/sourceforge/processdash/hier/ui/block-up-arrow.gif
 net/sourceforge/processdash/hier/ui/cut.gif

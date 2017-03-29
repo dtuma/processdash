@@ -83,7 +83,6 @@ import javax.swing.Box;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -197,6 +196,7 @@ import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
@@ -1389,10 +1389,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
             public MilestoneCellRenderer(Color sel, Color desel, Color fg) {
                 super(sel, desel, fg);
-                checkedIcon = new PaddedIcon(new ImageIcon(getClass()
-                        .getResource("box_checked.png")), 0, 1, 0, 0);
-                uncheckedIcon = new PaddedIcon(new ImageIcon(getClass()
-                        .getResource("box_unchecked.png")), 0, 1, 0, 0);
+                checkedIcon = new PaddedIcon(new ScalableImageIcon(12, //
+                        getClass(), "box_checked.png"), 0, 1, 0, 0);
+                uncheckedIcon = new PaddedIcon(new ScalableImageIcon(12, //
+                        getClass(), "box_unchecked.png"), 0, 1, 0, 0);
                 activeMilestoneColor = new Color(216, 184, 229);
                 previousMilestoneColor = new Color(240, 223, 247);
             }
@@ -2273,16 +2273,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
 
     private class PruneDecorationIcon implements Icon {
-        public int getIconWidth() { return 7; }
+        public int getIconWidth() { return 8; }
         public int getIconHeight() { return 7; }
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.red);
-            g.drawLine(x,   y,   x+6, y+6);
-            g.drawLine(x,   y+1, x+5, y+6);
-            g.drawLine(x+1, y,   x+6, y+5);
-            g.drawLine(x,   y+6, x+6, y);
-            g.drawLine(x,   y+5, x+5, y);
-            g.drawLine(x+1, y+6, x+6, y+1);
+            Graphics2D g2 = (Graphics2D) g;
+            Stroke saved = g2.getStroke();
+            g2.setStroke(new BasicStroke(3));
+            g2.setColor(Color.red);
+            g2.drawLine(x+1,   y,   x+7, y+6);
+            g2.drawLine(x+1,   y+6, x+7, y);
+            g2.setStroke(saved);
         }
     }
 
