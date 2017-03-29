@@ -52,10 +52,12 @@ import teamdash.wbs.icons.CollapseAllIcon;
 import teamdash.wbs.icons.CollapseIcon;
 import teamdash.wbs.icons.CommonWorkflowsIcon;
 import teamdash.wbs.icons.CopyNodeIcon;
+import teamdash.wbs.icons.DeleteFilterIcon;
 import teamdash.wbs.icons.EnterKeyToggleIcon;
 import teamdash.wbs.icons.ExpandAllIcon;
 import teamdash.wbs.icons.ExpandIcon;
 import teamdash.wbs.icons.ExpansionToggleIcon;
+import teamdash.wbs.icons.FilterIcon;
 import teamdash.wbs.icons.FolderIcon;
 import teamdash.wbs.icons.MilestoneIcon;
 import teamdash.wbs.icons.PasteIcon;
@@ -197,22 +199,16 @@ public class IconFactory {
     }
 
     public static Icon getFilterOnIcon() {
-        if (FILTER_ON_ICON == null) FILTER_ON_ICON = loadIconResource("filter-on.png");
-        return FILTER_ON_ICON;
+        return new FilterIcon(Color.yellow, new Color(255, 150, 0));
     }
-    private static Icon FILTER_ON_ICON = null;
 
     public static Icon getFilterOffIcon() {
-        if (FILTER_OFF_ICON == null) FILTER_OFF_ICON = loadIconResource("filter-off.png");
-        return FILTER_OFF_ICON;
+        return new FilterIcon(DEFAULT_COLOR, null);
     }
-    private static Icon FILTER_OFF_ICON = null;
 
     public static Icon getFilterDeleteIcon() {
-        if (FILTER_DELETE_ICON == null) FILTER_DELETE_ICON = loadIconResource("filter-delete.png");
-        return FILTER_DELETE_ICON;
+        return new DeleteFilterIcon();
     }
-    private static Icon FILTER_DELETE_ICON = null;
 
     public static Icon getInsertOnEnterIcon() {
         return new EnterKeyToggleIcon(true);
@@ -549,13 +545,6 @@ public class IconFactory {
             b.setDisabledIcon(getModifiedIcon(icon, DISABLED_ICON));
         }
         return b;
-    }
-
-
-
-    /** Fetch an icon from a file in the classpath. */
-    private static Icon loadIconResource(String name) {
-        return new ImageIcon(IconFactory.class.getResource(name));
     }
 
 }
