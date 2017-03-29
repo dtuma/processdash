@@ -41,7 +41,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -52,6 +51,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -90,8 +90,8 @@ public class PersonCellEditor extends DefaultCellEditor {
         super(f);
         this.textField = f;
 
-        personIcon = new ImageIcon(PersonCellRenderer.class
-                .getResource("person.png"));
+        personIcon = new ScalableImageIcon(12, PersonCellRenderer.class,
+                "person-large.png", "person.png");
         lookupButton = new JButton(personIcon);
         lookupButton.setBorder(BorderFactory.createEtchedBorder());
         lookupButton.addActionListener(EventHandler.create(

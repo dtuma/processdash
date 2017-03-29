@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,17 +26,18 @@ package teamdash.team;
 import java.awt.Component;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
+
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
 
 public class PersonCellRenderer extends DefaultTableCellRenderer {
 
     private Icon personIcon;
 
     public PersonCellRenderer() {
-        personIcon = new ImageIcon(PersonCellRenderer.class
-                .getResource("person.png"));
+        personIcon = new ScalableImageIcon(12, PersonCellRenderer.class,
+                "person-large.png", "person.png");
     }
 
     @Override
