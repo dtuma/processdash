@@ -512,7 +512,12 @@ Authors:
         <attribute name="Dash-Pkg-URL"
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
 
+        <attribute name="Specification-Title" value="Process Dashboard"/>
+        <attribute name="Implementation-Title" value="Process Dashboard"/>
+        <attribute name="Specification-Version" value="${version}"/>
         <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Specification-Vendor" value="Process Dashboard Dev Team"/>
+        <attribute name="Implementation-Vendor" value="Process Dashboard Dev Team"/>
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
