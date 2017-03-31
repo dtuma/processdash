@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -93,6 +94,9 @@ class WebAppContextDashboard extends WebAppContext {
         // install a filter which can inject hierarchy prefixes back into URIs
         FilterHolder filt = new FilterHolder(new DashboardUriPrefixFilter());
         addFilter(filt, "/*", EnumSet.allOf(DispatcherType.class));
+
+        // on Java 9, Jasper needs extra help finding system taglib files
+        setSystemTaglibJarLocation();
     }
 
     WebAppContextDashboard(URL webInfUrl) {
@@ -132,6 +136,28 @@ class WebAppContextDashboard extends WebAppContext {
 
     public boolean isOutOfDate() {
         return outOfDate;
+    }
+
+    private void setSystemTaglibJarLocation() {
+        // find the bundled "c.tld" file, which contains core JSTL support
+        URL u = WebAppContextDashboard.class.getResource("/META-INF/c.tld");
+        if (u == null)
+            return;
+
+        // compute the URL of the JAR containing the c.tld file
+        String url = u.toString();
+        int endPos = url.indexOf("!/");
+        if (!url.startsWith("jar:") || endPos == -1)
+            return;
+        String jarUri = url.substring(4, endPos);
+
+        // use a context attribute to register this JAR as a location that
+        // should be scanned for system TLD files.
+        try {
+            getServletContext().setAttribute("com.sun.appserv.tld.map",
+                Collections.singletonMap(new URI(jarUri), null));
+        } catch (Exception e) {
+        }
     }
 
     void initializeLegacyContentTypes() {
