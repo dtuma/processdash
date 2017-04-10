@@ -479,11 +479,12 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private CustomColumnsAction makeCustomColumnsAction() {
+        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        colMgr.addCustomColumnListener(this);
         if (!WBSPermissionManager.hasPerm("wbs.columns", "2.3.1.2"))
             return null;
-        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
-        colMgr.setCustomColumnListener(this);
-        return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);
+	else
+            return new CustomColumnsAction(this, wbsTable.dataModel, colMgr);
     }
 
     private class NewTabAction extends AbstractAction {

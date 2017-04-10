@@ -67,12 +67,16 @@ import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
+import teamdash.wbs.columns.CustomColumn;
+import teamdash.wbs.columns.CustomColumnListener;
+import teamdash.wbs.columns.CustomTextColumn;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 
-public class WBSFilterAction extends AbstractAction {
+public class WBSFilterAction extends AbstractAction
+        implements CustomColumnListener {
 
     private WBSJTable wbsTable;
 
@@ -147,6 +151,10 @@ public class WBSFilterAction extends AbstractAction {
 
     private JDialog dialog;
 
+    private JPanel filterPanel;
+
+    private GridBagConstraints lc, vc;
+
     private TextField nameFilter;
 
     private GroupField groupFilter;
@@ -160,6 +168,10 @@ public class WBSFilterAction extends AbstractAction {
     private JLabel blameLabel;
 
     private ChangedItemsField blameFilter;
+
+    private int customColumnFilterPos;
+
+    private List<AbstractFilterField> customColumnFilters;
 
     private JCheckBox showCompletedTasks;
 
@@ -175,17 +187,18 @@ public class WBSFilterAction extends AbstractAction {
         groupFilter.refreshValues();
         labelFilter.refreshValues();
         milestoneFilter.refreshValues();
+        refreshCustomColumnValues();
         dialog.setVisible(true);
         dialog.toFront();
     }
 
     private void buildGui() {
-        JPanel panel = new JPanel();
+        JPanel panel = filterPanel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         GridBagLayout layout = new GridBagLayout();
         panel.setLayout(layout);
 
-        GridBagConstraints lc = new GridBagConstraints();
+        lc = new GridBagConstraints();
         lc.gridx = lc.gridy = 0;  lc.anchor = GridBagConstraints.WEST;
         lc.gridwidth = 2;  lc.weightx = 1;
         lc.insets = new Insets(0, 0, 0, 40);
@@ -205,7 +218,7 @@ public class WBSFilterAction extends AbstractAction {
         label = new JLabel(resources.getString("Items.Name"));
         panel.add(label);  layout.setConstraints(label, lc);
 
-        GridBagConstraints vc = new GridBagConstraints();
+        vc = new GridBagConstraints();
         vc.weightx = vc.gridx = vc.gridy = 1;  vc.gridwidth = 2;
         vc.fill = GridBagConstraints.HORIZONTAL;
         vc.insets = new Insets(5, 5, 0, 0);
@@ -222,6 +235,7 @@ public class WBSFilterAction extends AbstractAction {
         label = new JLabel(resources.getString("Items.Labels"));
         panel.add(label);  layout.setConstraints(label, lc);
         labelFilter = new CompletingField(TaskLabelColumn.COLUMN_ID, "[ ,]+");
+        labelFilter.testAtLeaves = true;
         panel.add(labelFilter);  layout.setConstraints(labelFilter, vc);
 
         lc.gridy++;  vc.gridy++;
@@ -230,6 +244,7 @@ public class WBSFilterAction extends AbstractAction {
         milestoneFilter = new CompletingField(MilestoneColumn.COLUMN_ID);
         milestoneFilter.mask = WBSFilterFactory.ENTIRE_VALUE;
         milestoneFilter.nullItemText = resources.getString("Items.Milestone_None");
+        milestoneFilter.testAtLeaves = true;
         panel.add(milestoneFilter);  layout.setConstraints(milestoneFilter, vc);
 
         lc.gridy++;  vc.gridy++;
@@ -246,7 +261,10 @@ public class WBSFilterAction extends AbstractAction {
         blameFilter.setVisible(wbsBlameData != null);
         panel.add(blameFilter);  layout.setConstraints(blameFilter, vc);
 
-        lc.gridy++;  vc.gridy++;
+        customColumnFilterPos = lc.gridy + 1;
+        buildCustomColumns();
+
+        lc.gridy = vc.gridy = 9000;
         showCompletedTasks = new JCheckBox(resources.getString("Show_Completed"), true);
         panel.add(showCompletedTasks);  layout.setConstraints(showCompletedTasks, vc);
 
@@ -281,6 +299,76 @@ public class WBSFilterAction extends AbstractAction {
         needsShowInfoMessage = preferences.getBoolean(INFO_MSG_PREF, true);
     }
 
+    private void buildCustomColumns() {
+        customColumnFilters = new ArrayList<AbstractFilterField>();
+        for (int i = 0; i < wbsTable.dataModel.getColumnCount(); i++) {
+            DataColumn c = wbsTable.dataModel.getColumn(i);
+            if (c instanceof CustomColumn)
+                columnAdded(c.getColumnID(), c);
+        }
+        tabPanel.wbsTable.dataModel.getCustomColumnManager()
+                .addCustomColumnListener(this);
+    }
+
+    private void refreshCustomColumnValues() {
+        for (AbstractFilterField f : customColumnFilters) {
+            if (f instanceof CompletingField)
+                ((CompletingField) f).refreshValues();
+        }
+    }
+
+    @Override
+    public void columnChanged(String id, DataColumn oldColumn,
+            DataColumn newColumn) {
+        columnDeleted(id, oldColumn);
+        columnAdded(id, newColumn);
+    }
+
+    @Override
+    public void columnDeleted(String id, DataColumn oldColumn) {
+        for (AbstractFilterField f : customColumnFilters) {
+            if (id.equals(f.column.getColumnID())) {
+                customColumnFilters.remove(f);
+                filterPanel.remove(f.label);
+                filterPanel.remove(f);
+                dialog.pack();
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void columnAdded(String id, DataColumn column) {
+        // build an appropriate filter for this type of column
+        AbstractFilterField f = null;
+        if (column instanceof CustomTextColumn) {
+            CustomTextColumn ctc = (CustomTextColumn) column;
+            if (ctc.isAutocomplete()) {
+                CompletingField cf = new CompletingField(id);
+                cf.nullItemText = resources.getString("Items.Custom_None");
+                f = cf;
+            } else {
+                f = new TextField(id, "\\s*\\|+\\s*");
+            }
+            f.testAtLeaves = ctc.isInherits();
+        } else {
+            // unrecognized custom column type; build no filter
+            return;
+        }
+
+        // add the filter to the user interface
+        GridBagLayout layout = (GridBagLayout) filterPanel.getLayout();
+        lc.gridy = vc.gridy = customColumnFilterPos++;
+        f.label = new JLabel(column.getColumnName() + ":");
+        filterPanel.add(f.label);   layout.setConstraints(f.label, lc);
+        filterPanel.add(f);   layout.setConstraints(f, vc);
+        if (dialog != null)
+            dialog.pack();
+
+        // add the filter to our custom column filter list
+        customColumnFilters.add(f);
+    }
+
 
     private WBSFilter[] createFilters() {
         List<WBSFilter> filters = new ArrayList<WBSFilter>();
@@ -299,8 +387,7 @@ public class WBSFilterAction extends AbstractAction {
 
         filt = milestoneFilter.createDataColumnFilter();
         if (filt != null)
-            filters.add(WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF,
-                filt));
+            filters.add(filt);
 
         String[] notes = notesFilter.getValues();
         if (notes != null)
@@ -308,6 +395,12 @@ public class WBSFilterAction extends AbstractAction {
 
         if (wbsBlameData != null && blameFilter.isSelected())
             filters.add(WBSFilterFactory.createBlameFilter(wbsBlameData));
+
+        for (AbstractFilterField f : customColumnFilters) {
+            filt = f.createDataColumnFilter();
+            if (filt != null)
+                filters.add(filt);
+        }
 
         if (filters.isEmpty())
             return null;
@@ -432,6 +525,9 @@ public class WBSFilterAction extends AbstractAction {
     private abstract class AbstractFilterField extends JPanel implements
             ActionListener {
 
+        /** The label for this field, if it is for a custom column */
+        JLabel label;
+
         /** A button to clear this field */
         private JButton deleteButton;
 
@@ -440,6 +536,9 @@ public class WBSFilterAction extends AbstractAction {
 
         /** A regexp for splitting apart tokens in this field value */
         private String split;
+
+        /** True if filter evaluation should occur at leaves only */
+        boolean testAtLeaves;
 
         /** The mask to use for text comparisons */
         int mask = WBSFilterFactory.IGNORE_CASE + WBSFilterFactory.WHOLE_WORDS;
@@ -483,9 +582,12 @@ public class WBSFilterAction extends AbstractAction {
             String[] values = getValues();
             if (values == null)
                 return null;
-            else
-                return WBSFilterFactory.createDataColumnFilter(column, mask,
-                    values);
+
+            WBSFilter f = WBSFilterFactory.createDataColumnFilter(column, mask,
+                values);
+            if (testAtLeaves)
+                f = WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF, f);
+            return f;
         }
 
         protected abstract JComponent makeComponent();
@@ -554,7 +656,6 @@ public class WBSFilterAction extends AbstractAction {
         protected JComponent makeComponent() {
             // create the combo box to hold our values.
             valueField = getComboBox();
-            maybeAddNullItem();
 
             // the table-cell-editor component won't have a border.  Give it
             // the same border and preferred size as the plain-text editors

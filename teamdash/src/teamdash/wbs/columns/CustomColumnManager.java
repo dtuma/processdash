@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Tuma Solutions, LLC
+// Copyright (C) 2011-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ public class CustomColumnManager {
 
     private List<CustomColumn> customColumns;
 
-    private CustomColumnListener listener;
+    private List<CustomColumnListener> listeners;
 
     public CustomColumnManager(DataTableModel dataModel,
             CustomColumnSpecs projectColumnSpecs, String processID) {
@@ -69,6 +69,7 @@ public class CustomColumnManager {
         this.projectColumnSpecs = projectColumnSpecs;
         this.processID = processID;
         this.customColumns = createColumns(processID);
+        this.listeners = new ArrayList<CustomColumnListener>();
         dataModel.addRemoveDataColumns(customColumns, null);
     }
 
@@ -105,12 +106,7 @@ public class CustomColumnManager {
         for (String oneID : columnIDs) {
             CustomColumn oldColumn = findColumnById(oneID, oldColumns);
             CustomColumn newColumn = findColumnById(oneID, customColumns);
-            if (oldColumn == null)
-                listener.columnAdded(oneID, newColumn);
-            else if (newColumn == null)
-                listener.columnDeleted(oneID, oldColumn);
-            else
-                listener.columnChanged(oneID, oldColumn, newColumn);
+            fireColumnEvent(oldColumn, newColumn);
         }
     }
 
@@ -133,8 +129,12 @@ public class CustomColumnManager {
         projectColumnSpecs.putAll(specs);
     }
 
-    public void setCustomColumnListener(CustomColumnListener l) {
-        listener = l;
+    public void addCustomColumnListener(CustomColumnListener l) {
+        listeners.add(l);
+    }
+
+    public void removeCustomColumnListener(CustomColumnListener l) {
+        listeners.remove(l);
     }
 
     public void changeColumn(CustomColumn oldColumn, CustomColumn newColumn) {
@@ -147,8 +147,13 @@ public class CustomColumnManager {
             newColumn == null ? null : Collections.singletonList(newColumn),
             oldColumn == null ? null : Collections.singletonList(oldColumn));
 
-        // notify our registered listener
-        if (listener != null) {
+        // notify our registered listeners
+        fireColumnEvent(oldColumn, newColumn);
+    }
+
+    protected void fireColumnEvent(CustomColumn oldColumn,
+            CustomColumn newColumn) {
+        for (CustomColumnListener listener : listeners) {
             if (newColumn == null)
                 listener.columnDeleted(oldColumn.getColumnID(), oldColumn);
             else if (oldColumn == null)
