@@ -175,13 +175,15 @@ Editor will hide items that do not match your criteria.  Notes:
 
     <ul style='margin-top:6pt'>
 
+    <li>When a filter is in effect, columns sums update to respect the filter.
+        For example, when the "Time" column displays the total time for the
+        project or for a particular subcomponent, the displayed totals will
+        only include time from the visible children that matched the
+        filter.</li>
+
     <li>In the name, milestones, and notes fields, you can enter multiple
         values separated by the vertical bar (<tt>|</tt>) character, and it
         will find items that match any of those values.</li>
-
-    <li>In the Assigned To filter, you can list the initials of several people
-        to find tasks that are assigned to any one of them.  (This can be a
-        helpful way to perform workload balancing.)</li>
 
     <li>In the labels field, you can enter multiple labels separated by
         commas, and it will find items that have any of those labels.</li>
@@ -199,11 +201,11 @@ Editor will hide items that do not match your criteria.  Notes:
         to see all of the matches, highlight the root of the project and click
         the Expand All icon on the toolbar.</li>
 
-    <li>Although nonmatching items are hidden from view, they are still
-        present and can still be affected by editing operations.  For example,
-        if you edit the top-down time estimate for an entire component, it
-        will still scale all of the tasks underneath that component, including
-        the ones that are hidden by the filter.</li>
+    <li>Nonmatching items are hidden from view and are shielded from editing
+        operations.  For example, if you edit the top-down time estimate for
+        an entire component, this will only scale the times for the matching
+        tasks underneath that component.  Tasks that were hidden by the filter
+        will not be modified.</li>
 
     <li>While the filter is in effect, you will not be able to edit the
         hierarchical structure of the WBS.  For example, you will not be able

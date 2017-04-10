@@ -211,6 +211,7 @@ public class WBSFilterAction extends AbstractAction
         helpButton.setBorder(null);
         helpButton.setMargin(new Insets(1, 1, 1, 1));
         helpButton.setFocusable(false);
+        helpButton.setContentAreaFilled(false);
         panel.add(helpButton);  layout.setConstraints(helpButton, hc);
 
         lc.gridwidth = lc.gridy = 1;  lc.anchor = GridBagConstraints.EAST;
@@ -270,6 +271,7 @@ public class WBSFilterAction extends AbstractAction
 
         lc.gridy++;  vc.gridy++;
         showRelatedTasks = new JCheckBox(resources.getString("Show_Related"));
+        showRelatedTasks.setToolTipText(resources.getString("Show_Related_Tooltip"));
         panel.add(showRelatedTasks);  layout.setConstraints(showRelatedTasks, vc);
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
@@ -456,7 +458,7 @@ public class WBSFilterAction extends AbstractAction
         String title = resources.getString(resKey + "Title");
         Object[] message = new Object[] {
                 resources.getStrings(resKey + "Header"), " ",
-                resources.getStrings("Info.Message") };
+                resources.getStrings("Info.Message2") };
 
         JCheckBox doNotShow = new JCheckBox(
                 resources.getString("Info.Do_Not_Show"));
