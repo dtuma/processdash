@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,12 @@
 
 package teamdash.wbs;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.hist.BlameModelData;
 import teamdash.wbs.columns.ErrorNotesColumn;
@@ -172,12 +176,17 @@ public class WBSFilterFactory {
 
         String[] tokens;
 
-        Pattern[] wholeWordPatterns;
+        Pattern[] wholeWordPatterns, regexpPatterns;
 
         public TextFilter(int mask, String[] tokens) {
             this.mask = mask;
+            if (tokens.length > 1 && isRegexp(tokens))
+                tokens = new String[] {
+                        StringUtils.join(Arrays.asList(tokens), "|") };
+
             this.tokens = new String[tokens.length];
             this.wholeWordPatterns = new Pattern[tokens.length];
+            this.regexpPatterns = new Pattern[tokens.length];
 
             for (int i = 0; i < tokens.length; i++) {
                 String t = tokens[i];
@@ -205,7 +214,10 @@ public class WBSFilterFactory {
             for (int i = 0; i < tokens.length; i++) {
                 String tok = tokens[i];
                 if (tok != null) {
-                    if (is(ENTIRE_VALUE)) {
+                    if (isRegexp(tok)) {
+                        if (matchesRegexp(text, i))
+                            return true;
+                    } else if (is(ENTIRE_VALUE)) {
                         if (text.equals(tok))
                             return true;
                     } else if (text.contains(tok)) {
@@ -218,6 +230,34 @@ public class WBSFilterFactory {
             }
 
             return false;
+        }
+
+        private boolean isRegexp(String[] tokens) {
+            for (String t : tokens) {
+                if (isRegexp(t))
+                    return true;
+            }
+            return false;
+        }
+
+        private boolean isRegexp(String text) {
+            return (text.startsWith("^") || text.endsWith("$")
+                    || text.startsWith("~") || text.contains(".*"));
+        }
+
+        private boolean matchesRegexp(String text, int pos) {
+            if (regexpPatterns[pos] == null) {
+                try {
+                    String pat = tokens[pos];
+                    if (pat.startsWith("~"))
+                        pat = pat.substring(1);
+                    regexpPatterns[pos] = Pattern.compile(pat);
+                } catch (PatternSyntaxException pse) {
+                    tokens[pos] = null;
+                    return false;
+                }
+            }
+            return regexpPatterns[pos].matcher(text).find();
         }
 
         private boolean containsWholeWord(String text, int pos) {
