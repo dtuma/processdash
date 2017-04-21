@@ -1039,15 +1039,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             if (matchesFilter == null || singlePersonFilter == false)
                 return false;
 
-            // if no one at all is assigned to this node, don't change that.
-            // the user could be planning arbitrary work with no particular
-            // individual in mind yet.
-            boolean isAssigned = false;
-            for (IndivTime i : individualTimes)
-                isAssigned |= i.isAssigned();
-            if (isAssigned == false)
-                return false;
-
             // a single person filter is in effect, so one of two things will
             // be true:
             //
@@ -1069,10 +1060,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             return true;
         }
 
-        protected void spreadTimeToVisibleAssigned(double newVisibleTeamTime) {
+        protected boolean spreadTimeToVisibleAssigned(double newVisibleTeamTime) {
             // this method is not intended to be used for scaling down to zero
             if (!(newVisibleTeamTime > 0))
-                return;
+                return false;
 
             // count the number of people who are both assigned and visible
             int numVisiblePeople = 0;
@@ -1080,9 +1071,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 if (i.isAssignedAndVisible())
                     numVisiblePeople++;
 
-            // if there aren't any visible people, abort this edit
+            // if there aren't any visible people, do nothing
             if (numVisiblePeople == 0) {
-                teamTime = filteredTime;
+                return false;
 
             } else {
                 // divide the new time among the assigned individuals
@@ -1090,6 +1081,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 for (IndivTime i : individualTimes)
                     if (i.isAssignedAndVisible())
                         i.setTime(timePerPerson);
+                return true;
             }
         }
 
@@ -1510,9 +1502,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 if (matchesFilter == null) {
                     // if no filter is in effect, use traditional logic
                     userSetTimePerPerson(teamTime / numPeople);
+                } else if (spreadTimeToVisibleAssigned(newVisibleTeamTime)) {
+                    // time was successfully spread across visible team members
                 } else {
-                    // spread the time across any visible team members
-                    spreadTimeToVisibleAssigned(newVisibleTeamTime);
+                    teamTime = filteredTime;
                 }
 
             } else {
@@ -1635,6 +1628,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 // no additional work needed
 
             } else if (oldVisibleTeamTime == 0) {
+                // if there happen to be several visible assigned people with
+                // zero time, spread the new time across them evenly. If no
+                // people are assigned and visible, this will do nothing, and
+                // the newVisibleTeamTime will appear in the unassigned column.
                 spreadTimeToVisibleAssigned(newVisibleTeamTime);
 
             } else {
