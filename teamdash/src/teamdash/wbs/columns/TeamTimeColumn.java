@@ -1496,16 +1496,44 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             teamTime = newVisibleTeamTime + filteredTime;
 
             if (maybeAssignToSingleFilteredPerson(newVisibleTeamTime)) {
-                // no additional work needed
+                // if a single person filter is in effect, and no one else was
+                // assigned to the task, and the time was just changed to zero,
+                // copy that change to the time per person.
+                if (newVisibleTeamTime == 0 && actualNumPeople < 2)
+                    userSetTimePerPerson(0);
 
             } else if (oldVisibleTeamTime == 0) {
-                if (matchesFilter == null) {
-                    // if no filter is in effect, use traditional logic
+                if (matchesFilter == null || actualNumPeople == 0) {
+                    // if no filter is in effect, or if no people are assigned
+                    // to this task yet, set the time per person.
                     userSetTimePerPerson(teamTime / numPeople);
+
                 } else if (spreadTimeToVisibleAssigned(newVisibleTeamTime)) {
                     // time was successfully spread across visible team members
+
                 } else {
-                    teamTime = filteredTime;
+                    // people are assigned to this task, but all of them are
+                    // hidden by the filter. To make the visible team time go
+                    // from zero to the new number, we must increase the
+                    // unassigned time.
+                    unassignedTime += newVisibleTeamTime;
+
+                    // if the task is fully assigned, we need to increase the
+                    // number of expected people by one, so we'll have an
+                    // unassigned person we can allocate the new time to.
+                    int numUnassignedPeople = numPeople - actualNumPeople;
+                    if (numUnassignedPeople == 0) {
+                        node.setNumericAttribute(NUM_PEOPLE_ATTR, ++numPeople);
+                        dataModel.columnChanged(numPeopleColumn);
+                        numUnassignedPeople = 1;
+                    }
+
+                    // calculate the time per person that will produce the
+                    // desired amount of unassigned time
+                    timePerPerson = unassignedTime / numUnassignedPeople;
+                    node.setNumericAttribute(TPP_ATTR, timePerPerson);
+                    dataModel.columnChanged(timePerPersonColumn);
+                    recalculateRate();
                 }
 
             } else {
@@ -1520,6 +1548,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 for (IndivTime i : individualTimes)
                     if (!i.hidden)
                         i.multiplyTime(ratio);
+
+                // when a group filter is in effect, unassigned task time is
+                // always included in the team total. If unassigned time is
+                // present but the user just changed the team total to zero,
+                // their desired zero would be immediately replaced with the
+                // unassigned time by subsequent calculations. That behavior
+                // would be unexpected and undesirable, so we squash the
+                // unassigned time by resetting the number of expected people.
+                if (matchesFilter != null && unassignedTime > 0
+                        && newVisibleTeamTime == 0) {
+                    numPeople = actualNumPeople;
+                    node.setNumericAttribute(NUM_PEOPLE_ATTR, numPeople);
+                    dataModel.columnChanged(numPeopleColumn);
+                }
             }
             figureTeamTime();
         }
