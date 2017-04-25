@@ -431,11 +431,12 @@ public class WBSFilterAction extends AbstractAction
             planTimeWatcher.reset();
 
         // apply the filter to the WBS
-        wbsModel.filterRows(showRelatedTasks.isSelected(),
-            showCompletedTasks.isSelected(), taskTester, filters);
+        boolean showRelated = showRelatedTasks.isSelected();
+        boolean showCompleted = showCompletedTasks.isSelected();
+        wbsModel.filterRows(showRelated, showCompleted, taskTester, filters);
 
         // update the "active" flag of this object, and alter the appearance
-        this.isActive = (filters != null);
+        this.isActive = (filters != null || showCompleted == false);
         putValue(Action.SMALL_ICON, isActive
                 ? IconFactory.getFilterOnIcon()
                 : IconFactory.getFilterOffIcon());
@@ -503,6 +504,7 @@ public class WBSFilterAction extends AbstractAction
 
         public void actionPerformed(ActionEvent e) {
             UserGroupManagerWBS.getInstance().setFilter(null, true);
+            showCompletedTasks.setSelected(true);
             setFilters(null);
         }
     }
