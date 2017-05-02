@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,7 +29,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -132,15 +131,25 @@ public class RelaunchWorker {
         wbs.deleteNodes(nodesToDelete);
     }
 
-    private void listCompletedItems(List dest, WBSNode wbsNode) {
-        for (WBSNode child : wbs.getChildren(wbsNode)) {
-            if (PercentCompleteColumn.isComplete(child)) {
-                dest.add(child);
-                dest.addAll(Arrays.asList(wbs.getDescendants(child)));
-            } else {
-                listCompletedItems(dest, child);
+    private boolean listCompletedItems(List dest, WBSNode wbsNode) {
+        boolean deleteThisNode;
+        WBSNode[] children = wbs.getChildren(wbsNode);
+        if (children.length == 0) {
+            // delete leaf tasks if they have been completed
+            deleteThisNode = PercentCompleteColumn.isComplete(wbsNode);
+
+        } else {
+            // delete parent elements if all of their children were deleted
+            deleteThisNode = true;
+            for (WBSNode child : children) {
+                if (listCompletedItems(dest, child) == false)
+                    deleteThisNode = false;
             }
         }
+
+        if (deleteThisNode)
+            dest.add(wbsNode);
+        return deleteThisNode;
     }
 
 
