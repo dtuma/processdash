@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -188,6 +188,7 @@ public class DependencyIndicator extends JLabel implements
             case TaskDependencyAnalyzer.HAS_MISORDERED_INCOMPLETE:
             case TaskDependencyAnalyzer.HAS_REVERSE:
             case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
+            case TaskDependencyAnalyzer.HAS_COLLAB:
                 a.syncLabel(DependencyIndicator.this);
                 setVisible(true);
 

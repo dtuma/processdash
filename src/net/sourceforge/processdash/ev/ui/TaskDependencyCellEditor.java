@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -119,8 +119,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
                 Object obj = i.next();
                 if (obj instanceof EVTaskDependency) {
                     EVTaskDependency d = (EVTaskDependency) obj;
-                    // reverse dependencies aren't editable - skip over them
-                    if (!d.isReverse())
+                    // reverse/collab dependencies aren't editable - skip them
+                    if (!d.isReverse() && !d.isCollab())
                         dependencies.add(d);
                 }
             }

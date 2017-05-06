@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
@@ -155,12 +156,12 @@ public class EVDependencyCalculator {
                 projectedDate, displayName);
     }
 
-    public void addReverseDependency(EVTask t) {
-        // first, remove the reverse dependency entry if it is present.
+    public void addReverseAndCollabDependencies(EVTask t) {
+        // first, remove the reverse/collab dependency entries if present.
         if (hasValue(t.getDependencies())) {
             for (Iterator i = t.getDependencies().iterator(); i.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) i.next();
-                if (d.isReverse())
+                if (d.isReverse() || d.isCollab())
                     i.remove();
             }
         }
@@ -171,6 +172,14 @@ public class EVDependencyCalculator {
                         ProcessDashboard.getOwnerName(data));
         if (hasValue(waitingPeople))
             t.getDependencies(true).add(new EVTaskDependency(waitingPeople));
+
+        // now add a collab dependency if applicable
+        if (Settings.isPersonalMode()) {
+            EVTaskDependency collab = EVTaskDependency
+                    .getTaskCollaborators(data, t.fullName);
+            if (collab != null)
+                t.getDependencies(true).add(collab);
+        }
     }
 
     public void setParentDateForDependencies(EVTask t) {
@@ -232,7 +241,7 @@ public class EVDependencyCalculator {
 
         protected void enter(EVTask t) {
             updateDependencies(taskLists, t.getDependencies());
-            addReverseDependency(t);
+            addReverseAndCollabDependencies(t);
             setParentDateForDependencies(t);
         }
 

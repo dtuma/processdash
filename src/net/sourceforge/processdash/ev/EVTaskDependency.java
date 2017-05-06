@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ImmutableStringData;
@@ -47,9 +50,6 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 public class EVTaskDependency implements Cloneable {
 
@@ -91,11 +91,20 @@ public class EVTaskDependency implements Cloneable {
 
     public EVTaskDependency(Map waitingIndividuals) {
         this.taskID = REVERSE_PSEUDO_TASK;
-        this.displayName = this.taskListName = null;
-        this.assignedTo = StringUtils.join(waitingIndividuals.keySet(), ", ");
-        this.percentComplete = 0;
+        initForNameList(waitingIndividuals.keySet());
         this.projectedDate = EVCalculator.minStartDate(waitingIndividuals
                 .values());
+    }
+
+    public EVTaskDependency(Collection<String> collaborators) {
+        this.taskID = COLLAB_PSEUDO_TASK;
+        initForNameList(collaborators);
+    }
+
+    private void initForNameList(Collection<String> indivNames) {
+        this.displayName = this.taskListName = null;
+        this.assignedTo = StringUtils.join(indivNames, ", ");
+        this.percentComplete = 0;
         this.unresolvable = false;
     }
 
@@ -178,6 +187,10 @@ public class EVTaskDependency implements Cloneable {
         return REVERSE_PSEUDO_TASK.equals(taskID);
     }
 
+    public boolean isCollab() {
+        return COLLAB_PSEUDO_TASK.equals(taskID);
+    }
+
     public boolean isMisordered() {
         if (isReverse())
             return isNotBefore(parentDate, projectedDate);
@@ -218,8 +231,8 @@ public class EVTaskDependency implements Cloneable {
     }
     public void getAsXML(StringBuffer out, String indent,
             boolean includeResolvedInformation) {
-        if (isReverse())
-            return;  // don't persist reverse dependency information.
+        if (isReverse() || isCollab())
+            return;  // don't persist reverse dependency/collaboration info.
         if (indent != null)
             out.append(indent);
         out.append("<").append(DEPENDENCY_TAG);
@@ -435,6 +448,7 @@ public class EVTaskDependency implements Cloneable {
 
         LinkedHashMap result = new LinkedHashMap();
         Map waitingIndividuals = null;
+        EVTaskDependency collaborators = null;
 
         while (taskPath != null && taskPath.length() > 1) {
             List taskDep = getDependencies(data, taskPath);
@@ -448,6 +462,9 @@ public class EVTaskDependency implements Cloneable {
                     .getIndividualsWaitingOnTask(waitingIndividuals,
                             getTaskIDs(data, taskPath), ignoreIndividual);
 
+            if (collaborators == null)
+                collaborators = getTaskCollaborators(data, taskPath);
+
             taskPath = DataRepository.chopPath(taskPath);
         }
 
@@ -457,7 +474,22 @@ public class EVTaskDependency implements Cloneable {
         if (waitingIndividuals != null && !waitingIndividuals.isEmpty())
             resultList.add(new EVTaskDependency(waitingIndividuals));
 
+        if (collaborators != null)
+            resultList.add(collaborators);
+
         return resultList;
+    }
+
+    public static EVTaskDependency getTaskCollaborators(DataContext data,
+            String taskPath) {
+        String dataName = DataRepository.createDataName(taskPath,
+            COLLABORATORS_DATA_NAME);
+        SimpleData sd = data.getSimpleValue(dataName);
+        ListData ld = ListData.asListData(sd);
+        if (ld == null || !ld.test())
+            return null;
+        else
+            return new EVTaskDependency(ld.asList()); 
     }
 
     public static List<EVTaskDependency> getDependencies(DataContext data,
@@ -577,6 +609,8 @@ public class EVTaskDependency implements Cloneable {
 
     private static final String TASK_DEPENDENCIES_DATA_NAME = "EV_Task_Dependencies";
 
+    private static final String COLLABORATORS_DATA_NAME = "Collaborator_Names";
+
     protected static final String DEPENDENCY_TAG = "dependency";
 
     protected static final String TASK_ID_ATTR = "tid";
@@ -597,5 +631,7 @@ public class EVTaskDependency implements Cloneable {
     private static final String PROJ_DATE_ATTR = "planDate";
 
     public static final String REVERSE_PSEUDO_TASK = "REVERSE";
+
+    public static final String COLLAB_PSEUDO_TASK = "COLLAB";
 
 }

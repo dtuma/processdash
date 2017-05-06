@@ -48,11 +48,13 @@ public class TaskDependencyAnalyzer {
     public static final int ALL_COMPLETE = 4;
     public static final int HAS_REVERSE = 5;
     public static final int HAS_COMPLETED_REVERSE = 6;
-    public static final int NO_DEPENDENCIES = 7;
+    public static final int HAS_COLLAB = 7;
+    public static final int NO_DEPENDENCIES = 8;
 
     public static final String[] RES_KEYS = { "Unresolved",
             "Incomplete_Misordered", "Reverse_Misordered", "Incomplete",
-            "Complete", "Reverse", "Reverse_Completed", "None" };
+            "Complete", "Reverse", "Reverse_Completed", "Collaborators",
+            "None" };
 
     private Collection dependencies;
 
@@ -71,6 +73,8 @@ public class TaskDependencyAnalyzer {
     public boolean hasMisorderedReverse;
 
     public boolean hasCompletedReverse;
+
+    public boolean hasCollab;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -91,6 +95,7 @@ public class TaskDependencyAnalyzer {
         hasReverse = false;
         hasMisorderedIncomplete = false;
         hasMisorderedReverse = false;
+        hasCollab = false;
 
         if (dependencies != null)
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
@@ -106,6 +111,8 @@ public class TaskDependencyAnalyzer {
                     } else {
                         hasCompletedReverse = true;
                     }
+                } else if (d.isCollab()) {
+                    hasCollab = true;
                 } else if (d.getPercentComplete() < 1.0) {
                     hasIncomplete = true;
                     if (d.isMisordered())
@@ -131,6 +138,8 @@ public class TaskDependencyAnalyzer {
             return HAS_REVERSE;
         else if (hasCompletedReverse)
             return HAS_COMPLETED_REVERSE;
+        else if (hasCollab)
+            return HAS_COLLAB;
         else if (hasDependency)
             return ALL_COMPLETE;
         else
@@ -143,10 +152,11 @@ public class TaskDependencyAnalyzer {
         case HAS_MISORDERED_REVERSE:    return "1";
         case HAS_REVERSE:               return "2";
         case HAS_COMPLETED_REVERSE:     return "3";
-        case ALL_COMPLETE:              return "4";
-        case NO_DEPENDENCIES:           return "5";
-        case HAS_INCOMPLETE:            return "6";
-        case HAS_MISORDERED_INCOMPLETE: return "7";
+        case HAS_COLLAB:                return "4";
+        case ALL_COMPLETE:              return "5";
+        case NO_DEPENDENCIES:           return "6";
+        case HAS_INCOMPLETE:            return "7";
+        case HAS_MISORDERED_INCOMPLETE: return "8";
         }
         return "0";
     }
@@ -197,6 +207,12 @@ public class TaskDependencyAnalyzer {
                             .append(reverseUrl).append(iconSizeHtml)
                             .append("'></td>");
                 }
+            } else if (d.isCollab()) {
+                if (includeTooltips)
+                    descr.append(getTooltip(HAS_COLLAB));
+                descr.append("style='text-align:center'><img src='")
+                        .append(reverseUrl).append(iconSizeHtml)
+                        .append("'></td>");
             } else if (d.isIncomplete()) {
                 if (d.isMisordered()) {
                     if (includeTooltips)
@@ -229,8 +245,11 @@ public class TaskDependencyAnalyzer {
                     key = "Dependency.Reverse.Display";
                 }
                 descr.append(resources.getHTML(key));
-            }else
+            } else if (d.isCollab()) {
+                descr.append(getRes(HAS_COLLAB, "Display", true));
+            } else {
                 descr.append(nvl(d.getDisplayName()));
+            }
             descr.append(getBriefDetails(d, sep, hideNames));
             descr.append("</td></tr>");
         }
@@ -251,7 +270,7 @@ public class TaskDependencyAnalyzer {
         Date pd = d.getProjectedDate();
         if (pd != null && d.isIncomplete())
             result.append(sep).append(DATE_FORMAT.format(pd));
-        if (!d.isReverse())
+        if (!d.isReverse() && !d.isCollab())
             result.append(sep).append(
                     EVSchedule.formatPercent(d.getPercentComplete()));
         return result.toString();
@@ -322,6 +341,7 @@ public class TaskDependencyAnalyzer {
                 break;
 
             case TaskDependencyAnalyzer.HAS_REVERSE:
+            case TaskDependencyAnalyzer.HAS_COLLAB:
                 label.setIcon(GUI_REVERSE_ICON);
                 label.setText(null);
                 break;
@@ -407,7 +427,11 @@ public class TaskDependencyAnalyzer {
             // HAS_COMPLETED_REVERSE
             "<img src='" + TaskDependencyAnalyzer.HTML_CHECK_URI
                     + HTML_INDICATOR_IMG_ATTRS
-                    + getTooltipAll(HAS_COMPLETED_REVERSE) + ">"
+                    + getTooltipAll(HAS_COMPLETED_REVERSE) + ">",
+            // HAS_COLLAB
+            "<img src='" + TaskDependencyAnalyzer.HTML_REVERSE_URI
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_COLLAB) + ">",
     };
     static final String HTML_INCOMPLETE_MISORD_IND = "<img src='"
             + TaskDependencyAnalyzer.HTML_INCOMPLETE_MIS_URI

@@ -1116,8 +1116,8 @@ public class EVWeekReport extends TinyCGIBase {
         if (deps != null) {
             for (Iterator j = deps.iterator(); j.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) j.next();
-                // skip unresolvable and reverse dependencies
-                if (d.isUnresolvable() || d.isReverse())
+                // skip unresolvable, reverse, and collab dependencies
+                if (d.isUnresolvable() || d.isReverse() || d.isCollab())
                     continue;
                 // skip dependencies that have been satisfied
                 if (!(d.getPercentComplete() < 1))

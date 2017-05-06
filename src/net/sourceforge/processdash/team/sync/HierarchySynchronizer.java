@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -323,22 +323,39 @@ public class HierarchySynchronizer {
         if (isTeam())
             return null;
 
-        Map<String, String> result = new LinkedHashMap<String, String>();
+        Map<String, String> result = getIndivNameMap();
+        if (result.containsKey(initials.toLowerCase()))
+            return null;
+        else
+            return result;
+    }
 
-        for (Element e : XMLUtils.getChildElements(projectXML)) {
-            if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
-                String xmlInitials = e.getAttribute(INITIALS_ATTR);
-                String xmlName = e.getAttribute(NAME_ATTR);
-                if (initials.equalsIgnoreCase(xmlInitials))
-                    return null;
-                else if (XMLUtils.hasValue(xmlInitials)
-                        && XMLUtils.hasValue(xmlName))
-                    result.put(xmlInitials, xmlName);
+    private String getIndivName(String initials) {
+        if (initials == null)
+            return null;
+        else
+            return getIndivNameMap().get(initials.toLowerCase());
+    }
+
+    private Map<String, String> getIndivNameMap() {
+        if (indivNames_ == null) {
+            indivNames_ = new LinkedHashMap<String, String>();
+
+            for (Element e : XMLUtils.getChildElements(projectXML)) {
+                if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
+                    String xmlInitials = e.getAttribute(INITIALS_ATTR);
+                    String xmlName = e.getAttribute(NAME_ATTR);
+                    if (XMLUtils.hasValue(xmlInitials)
+                            && XMLUtils.hasValue(xmlName))
+                        indivNames_.put(xmlInitials.toLowerCase(), xmlName);
+                }
             }
         }
 
-        return result;
+        return indivNames_;
     }
+
+    private Map<String, String> indivNames_;
 
     private void loadProcessData() {
         List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
@@ -2339,6 +2356,10 @@ public class HierarchySynchronizer {
                     worker.setLastReverseSyncedValue(parseSyncTime(node) * 60);
                     putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
                 }
+                // store the names of other collaborators
+                forceData(path, "Collaborator_Names", getCollaboratorNames(node));
+            } else {
+                forceData(path, "Collaborator_Names", null);
             }
 
             PropertyKey key = hierarchy.findExistingKey(path);
@@ -2383,6 +2404,31 @@ public class HierarchySynchronizer {
             } catch (Exception e) {}
 
             return -1;
+        }
+
+        protected ListData getCollaboratorNames(Element node) {
+            String timeAttr = node.getAttribute(TIME_ATTR);
+            if (!XMLUtils.hasValue(timeAttr))
+                return null;
+            String[] assignments = timeAttr.substring(1).split(",", 0);
+            if (assignments.length == 1)
+                return null;
+
+            ListData result = new ListData();
+            for (String assignment : assignments) {
+                int eqPos = assignment.indexOf('=');
+                if (eqPos == -1)
+                    continue;
+
+                String oneInitials = assignment.substring(0, eqPos);
+                if (oneInitials.equalsIgnoreCase(initials))
+                    continue;
+
+                String name = getIndivName(oneInitials);
+                if (name != null)
+                    result.add(name);
+            }
+            return (result.test() ? result : null);
         }
 
         protected void putNumber(String path, String name, String value, double ratio) {

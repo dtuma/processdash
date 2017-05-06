@@ -1066,7 +1066,7 @@ public class EVTask implements Cloneable, DataListener {
 
         List<String> result = new ArrayList<String>();
         for (EVTaskDependency d : dependencies) {
-            if (!d.isReverse()) {
+            if (!d.isReverse() && !d.isCollab()) {
                 result.add(d.getTaskID());
             }
         }
