@@ -1270,8 +1270,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         List nodesToMove = new ArrayList();
         nodesToMove.add(node);
         nodesToMove.addAll(Arrays.asList(getDescendants(node)));
-        deleteNodes(nodesToMove, false);
-        insertNodesAt(nodesToMove, destPos, true);
+
+        WBSNode oldParent = getParent(node);
+        wbsNodes.removeAll(nodesToMove);
+        wbsNodes.addAll(destPos, nodesToMove);
+        recalcRows(false);
+        WBSNode newParent = getParent(node);
+        fireNodeMoveEvent(oldParent, newParent);
+
         return getRowsForNodes(nodesToMove);
     }
 
@@ -1319,8 +1325,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (destPos == -1)
             return null;
 
-        deleteNodes(nodesToMove, false);
-        insertNodesAt(nodesToMove, destPos - nodesToMove.size(), true);
+        WBSNode oldParent = getParent(node);
+        wbsNodes.removeAll(nodesToMove);
+        wbsNodes.addAll(destPos - nodesToMove.size(), nodesToMove);
+        recalcRows(false);
+        WBSNode newParent = getParent(node);
+        fireNodeMoveEvent(oldParent, newParent);
+
         return getRowsForNodes(nodesToMove);
     }
 
@@ -1346,6 +1357,23 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             return nextPos + 1;
         else
             return nextDescendants.get(nextDescendants.size() - 1) + 1;
+    }
+
+    private void fireNodeMoveEvent(WBSNode oldParent, WBSNode newParent) {
+        if (oldParent == newParent) {
+            // if the node swapped position with a sibling, it won't affect
+            // calculations, so we can fire a "nonstructural" change event
+            fireTableChanged(new WBSModelEvent(this, true));
+        } else {
+            // if the node was moved under a new parent, make sure the new
+            // parent is expanded so the moved node will still be visible.
+            if (newParent.isExpanded() == false) {
+                newParent.setExpanded(true);
+                recalcRows(false, true);
+            }
+            // since the node moved under a new parent, a full recalc is needed.
+            fireTableDataChanged();
+        }
     }
 
     /** Make this WBS be a copy of the given WBS.
