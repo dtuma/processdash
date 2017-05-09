@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ package net.sourceforge.processdash.log.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -53,7 +54,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -103,14 +103,9 @@ public class TimeCardDialog {
 
         model = new TimeCard(useProps, timeLog);
         treeTable = new JTreeTable(model);
-        treeTable.setDefaultRenderer
-            (String.class,
-             new TimeCardRenderer(treeTable.getTree(),
-                                  treeTable.getSelectionBackground(),
-                                  treeTable.getBackground(),
-                                  mixColors(treeTable.getBackground(),
-                                            treeTable.getForeground(), 0.8f)));
+        treeTable.setDefaultRenderer(String.class, new TimeCardRenderer());
         treeTable.setShowGrid(true);
+        treeTable.setIntercellSpacing(new Dimension(1, 1));
         treeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         treeTable.setPreferredTreeSizeFollowsRowSize(false);
         treeTable.getTableHeader().setReorderingAllowed(false);
@@ -242,7 +237,7 @@ public class TimeCardDialog {
 
     private class TimeCard extends AbstractTreeTableModel {
 
-        int month, year, daysInMonth;
+        int month, year, daysInMonth, firstDayOfWeek;
         double[] time;
         public String[] dayNames = new String[32];
 
@@ -272,7 +267,6 @@ public class TimeCardDialog {
                                                   prop.getChild(i)));
             }
 
-            public String getName() { return name; }
             public String toString() { return name; }
             public double getTime(int day) { return time[day]; }
             public int getNumChildren() { return children.size(); }
@@ -410,6 +404,7 @@ public class TimeCardDialog {
                     0, 0, 0);           // hour, minute, second
             Date from = cal.getTime();
             daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
             cal.add(Calendar.MONTH, 1);
             Date to = cal.getTime();
 
@@ -520,6 +515,14 @@ public class TimeCardDialog {
 
         /** Set the value at a particular row/column */
         public void setValueAt(Object aValue, Object node, int column) {}
+
+        public boolean isWeekend(int col) {
+            if (col > 30)
+                return false;
+            int dayOfWeek = (firstDayOfWeek + col) % 7;
+            return dayOfWeek == (Calendar.SUNDAY % 7)
+                    || dayOfWeek == (Calendar.SATURDAY % 7);
+        }
     }
 
     protected String format(double time) {
@@ -549,32 +552,27 @@ public class TimeCardDialog {
                          (a.getBlue()  * r + b.getBlue()  * s) / 255f);
     }
 
-    class TimeCardRenderer extends ShadedTableCellRenderer {
-        JTree tree;
-        public TimeCardRenderer(JTree tree, Color sel, Color desel, Color fg) {
-            super(sel, desel, fg);
-            this.tree = tree;
+    class TimeCardRenderer extends DefaultTableCellRenderer {
+        /** The alternate foreground color to use for expanded rows. */
+        Color altForeground;
+        /** The alternate background color to use for weekend columns. */
+        Color altBackground;
+
+        public TimeCardRenderer() {
+            this.altForeground = mixColors(treeTable.getForeground(),
+                treeTable.getBackground(), 0.5f);
+            this.altBackground = mixColors(treeTable.getSelectionBackground(),
+                treeTable.getBackground(), 0.4f);
             setHorizontalAlignment(SwingConstants.RIGHT);
         }
-        protected boolean useAltForeground(int row) {
-            return tree.isExpanded(row);
-        }
-    }
-    class ShadedTableCellRenderer extends DefaultTableCellRenderer {
-        /** The color to use in this renderer if the cell is selected. */
-        Color selectedBackgroundColor;
-        /** The color to use in this renderer if the cell is not selected. */
-        Color backgroundColor;
-        /** The alternate foreground color to use when useAlt returns true. */
-        Color altForeground;
 
-        public ShadedTableCellRenderer(Color sel, Color desel, Color fg) {
-            selectedBackgroundColor = sel;
-            backgroundColor = desel;
-            altForeground = fg;
+        private boolean useAltForeground(int row) {
+            return treeTable.getTree().isExpanded(row);
         }
 
-        protected boolean useAltForeground(int row) { return false; }
+        private boolean useAltBackground(int col) {
+            return model.isWeekend(col);
+        }
 
         public Component getTableCellRendererComponent(JTable table,
                                                        Object value,
@@ -582,23 +580,12 @@ public class TimeCardDialog {
                                                        boolean hasFocus,
                                                        int row,
                                                        int column) {
+            setBackground(useAltBackground(column) ? 
+                    altBackground : table.getBackground());
             Component result = super.getTableCellRendererComponent
                 (table, value, isSelected, hasFocus, row, column);
-            Color bg = null;
-            if (isSelected)
-                result.setBackground(bg = selectedBackgroundColor);
-            else
-                result.setBackground(bg = backgroundColor);
             result.setForeground(useAltForeground(row) ?
-                                 altForeground : table.getForeground());
-
-            // This step is necessary because the DefaultTableCellRenderer
-            // may have incorrectly set the "opaque" flag.
-            if (result instanceof JComponent) {
-                boolean colorMatch = (bg != null) &&
-                    ( bg.equals(table.getBackground()) ) && table.isOpaque();
-                ((JComponent)result).setOpaque(!colorMatch);
-            }
+                    altForeground : table.getForeground());
 
             return result;
         }
