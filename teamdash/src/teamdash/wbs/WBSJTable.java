@@ -259,7 +259,7 @@ public class WBSJTable extends JTable {
         // numbers will be -1 if the cut items are all hidden under a
         // collapsed node.  Don't fire a table event in those situations.
         if (rowBounds[0] >= 0 && rowBounds[1] >= 0)
-            wbsModel.fireTableRowsUpdated(rowBounds[0], rowBounds[1]);
+            wbsModel.fireNodeAppearanceChanged(rowBounds[0], rowBounds[1]);
         cutList = null;
     }
 
@@ -1021,7 +1021,7 @@ public class WBSJTable extends JTable {
 
             // update the appearance of newly cut cells (they will be
             // displaying phantom icons).
-            wbsModel.fireTableRowsUpdated(rows[0], rows[rows.length-1]);
+            wbsModel.fireNodeAppearanceChanged(rows[0], rows[rows.length-1]);
             if (isEditing()) editor.updateIconAppearance();
             WBSJTable.this.recalculateEnablement();
         }
@@ -1140,7 +1140,7 @@ public class WBSJTable extends JTable {
                 int firstRow = rowsInserted[0];
                 int lastRow = rowsInserted[rowsInserted.length-1];
                 if(maybeRenameCopiedNodes(nodesToInsert))
-                    wbsModel.fireTableRowsUpdated(firstRow, lastRow);
+                    wbsModel.fireNodeAppearanceChanged(firstRow, lastRow);
                 scrollRectToVisible(getCellRect(lastRow, 0, true));
                 scrollRectToVisible(getCellRect(firstRow-1, 0, true));
             }

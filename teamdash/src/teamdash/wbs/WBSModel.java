@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 
 import org.w3c.dom.Element;
@@ -644,9 +645,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         // for the row immediately preceding the change to alter its appearance.
         // for example, with an expansion/collapse event, the node will need to
         // repaint its expansion icon. Send an UPDATE event for this purpose.
-        fireTableChanged(new WBSModelEvent(this, initialLen, initialLen,
-                WBSModelEvent.ALL_COLUMNS, WBSModelEvent.UPDATE,
-                isExpansionOnly));
+        fireNodeAppearanceChanged(initialLen, initialLen);
 
         // Now, send a change event for any inserted/deleted rows.
         if (diff > 0) {
@@ -1103,10 +1102,20 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public int nodePosToRow(int nodePos) {
-        for (int i = 0;   i < rows.length;   i++)
-            if (rows[i] == nodePos) return i;
-        return -1;
+        int result = Arrays.binarySearch(rows, nodePos);
+        return (result < 0 ? -1 : result);
     }
+
+    private int nextVisibleNodePos(int startingNodePos) {
+        int row = Arrays.binarySearch(rows, startingNodePos);
+        if (row >= 0) {
+            return startingNodePos;
+        } else {
+            int nextRow = -row - 1;
+            return (nextRow < rows.length ? rows[nextRow] : wbsNodes.size());
+        }
+    }
+
     public int makeVisible(WBSNode node) {
         int pos = wbsNodes.indexOf(node);
         if (pos == -1)
@@ -1114,50 +1123,54 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         makeVisible(pos, true);
         return nodePosToRow(pos);
     }
-    private void makeVisible(int nodePos) {
-        makeVisible(nodePos, false);
+    private boolean makeVisible(int nodePos) {
+        return makeVisible(nodePos, false);
     }
-    private void makeVisible(int nodePos, boolean notify) {
-        if (nodePos < 0 || nodePos > wbsNodes.size()-1) return;
+    private boolean makeVisible(int nodePos, boolean notify) {
+        if (nodePos < 0 || nodePos > wbsNodes.size()-1) return false;
+        if (isVisible(nodePos)) return false;
         WBSNode n = (WBSNode) wbsNodes.get(nodePos);
 
         // if the node in question is currently filtered, we will be making
         // it visible again.  This means that all of its descendants should
         // also be made visible.
+        boolean isExpansionOnly = true;
         if (n.isHidden()) {
             for (WBSNode desc : getDescendants(n))
                 desc.setHidden(false);
+            isExpansionOnly = false;
         }
 
         do {
-            n.setHidden(false);
+            if (n.isHidden()) {
+                n.setHidden(false);
+                isExpansionOnly = false;
+            }
             n = getParent(n);
             if (n == null) break;
             n.setExpanded(true);
         } while (true);
-        recalcRows(notify);
+        recalcRows(notify, isExpansionOnly);
+        return true;
     }
     private boolean makeVisible(int[] nodePosList) {
         boolean expandedNodes = false;
         for (int i = 0;   i < nodePosList.length;   i++) {
             int nodePos = nodePosList[i];
-            if (!isVisible(nodePos)) {
-                makeVisible(nodePos);
+            if (makeVisible(nodePos)) {
                 expandedNodes = true;
             }
         }
         return expandedNodes;
     }
 
-    public boolean deleteNodes(List nodesToDelete) {
+    public boolean deleteNodes(List<WBSNode> nodesToDelete) {
         return deleteNodes(nodesToDelete, true);
     }
-    public boolean deleteNodes(List nodesToDelete, boolean notify) {
+    public boolean deleteNodes(List<WBSNode> nodesToDelete, boolean notify) {
         boolean deletionOccurred = false;
 
-        List currentVisibleNodes = new ArrayList();
-        for (int i = 0;   i < rows.length;   i++)
-            currentVisibleNodes.add(wbsNodes.get(rows[i]));
+        Set currentVisibleNodes = getVisibleNodesFollowing(nodesToDelete);
 
         Iterator i = nodesToDelete.iterator();
         while (i.hasNext())
@@ -1177,16 +1190,31 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return deletionOccurred;
     }
 
+    private Set<WBSNode> getVisibleNodesFollowing(List<WBSNode> nodes) {
+        Set<WBSNode> result = new HashSet<WBSNode>();
+        for (WBSNode n : nodes) {
+            int pos = wbsNodes.indexOf(n);
+            if (pos != -1) {
+                int next = nextVisibleNodePos(pos + 1);
+                if (next < wbsNodes.size())
+                    result.add(wbsNodes.get(next));
+            }
+        }
+        result.removeAll(nodes);
+        return result;
+    }
+
     void deleteNodesImpl(List<WBSNode> nodesToDelete) {
         for (WBSNode node : nodesToDelete)
             wbsNodes.remove(node);
     }
 
-    public int[] insertNodes(List nodesToInsert, int beforeRow) {
+    public int[] insertNodes(List<WBSNode> nodesToInsert, int beforeRow) {
         return insertNodes(nodesToInsert, beforeRow, true);
     }
 
-    protected int[] insertNodes(List nodesToInsert, int beforeRow, boolean notify) {
+    protected int[] insertNodes(List<WBSNode> nodesToInsert, int beforeRow,
+            boolean notify) {
         if (nodesToInsert == null || nodesToInsert.size() == 0) return null;
 
         int beforePos;
@@ -1206,25 +1234,31 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return getRowsForNodes(nodesToInsert);
     }
 
-    protected void insertNodesAt(List nodesToInsert, int beforePos,
+    protected void insertNodesAt(List<WBSNode> nodesToInsert, int beforePos,
             boolean notify) {
         if (nodesToInsert == null || nodesToInsert.size() == 0)
             return;
 
-        List currentVisibleNodes = new ArrayList();
-        for (int i = 0;   i < rows.length;   i++)
-            currentVisibleNodes.add(wbsNodes.get(rows[i]));
-        currentVisibleNodes.add(nodesToInsert.get(0));
+        // identify the location where the nodes should be inserted, and the
+        // position of the first visible node that follows
+        int destPos, nextPos;
+        if (beforePos < wbsNodes.size()) {
+            destPos = beforePos;
+            nextPos = nextVisibleNodePos(destPos);
+        } else {
+            destPos = nextPos = wbsNodes.size();
+        }
 
-        if (beforePos >= wbsNodes.size())
-            wbsNodes.addAll(prepareNodesForInsertion(nodesToInsert));
-        else
-            wbsNodes.addAll(beforePos, prepareNodesForInsertion(nodesToInsert));
-
+        // insert or append the specified nodes
+        wbsNodes.addAll(destPos, prepareNodesForInsertion(nodesToInsert));
         recalcRows(false);
-        Iterator i = currentVisibleNodes.iterator();
-        while (i.hasNext())
-            makeVisible(wbsNodes.indexOf(i.next()));
+
+        // ensure the first newly inserted node is visible. (This may require
+        // expanding a predecessor, if the new nodes are nested underneath)
+        makeVisible(destPos);
+        // ensure the existing node following the insertion is still visible.
+        // (This may require expanding one of the newly inserted nodes.)
+        makeVisible(nextPos + nodesToInsert.size());
 
         if (notify)
             fireTableDataChanged();
@@ -1374,6 +1408,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             // since the node moved under a new parent, a full recalc is needed.
             fireTableDataChanged();
         }
+    }
+
+    protected void fireNodeAppearanceChanged(int firstRow, int lastRow) {
+        fireTableChanged(new WBSModelEvent(this, firstRow, lastRow, 0,
+                TableModelEvent.UPDATE, true));
     }
 
     /** Make this WBS be a copy of the given WBS.

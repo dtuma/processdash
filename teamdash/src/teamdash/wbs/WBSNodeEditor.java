@@ -288,8 +288,8 @@ public class WBSNodeEditor extends AbstractCellEditor
                 // names to become invalid (which means they would need to
                 // be displayed in red).  Fire a table event so the nodes
                 // will be repainted.
-                wbsModel.fireTableRowsUpdated(rowNumber,
-                                              wbsModel.getRowCount()-1);
+                wbsModel.fireNodeAppearanceChanged(rowNumber,
+                    wbsModel.getRowCount() - 1);
                 UndoList.madeChange(table, "Rename WBS element");
             }
         }

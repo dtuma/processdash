@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,27 +28,27 @@ import javax.swing.table.TableModel;
 
 public class WBSModelEvent extends TableModelEvent {
 
-    private boolean isExpansionOnly;
+    private boolean isNonStructural;
 
-    public WBSModelEvent(TableModel source, boolean isExpansionOnly) {
+    public WBSModelEvent(TableModel source, boolean isNonStructural) {
         super(source);
-        this.isExpansionOnly = isExpansionOnly;
+        this.isNonStructural = isNonStructural;
     }
 
     public WBSModelEvent(TableModel source, int firstRow, int lastRow,
-            int column, int type, boolean isExpansionOnly) {
+            int column, int type, boolean isNonStructural) {
         super(source, firstRow, lastRow, column, type);
-        this.isExpansionOnly = isExpansionOnly;
+        this.isNonStructural = isNonStructural;
     }
 
-    public boolean isExpansionOnly() {
-        return isExpansionOnly;
+    public boolean isNonStructural() {
+        return isNonStructural;
     }
 
     public static boolean isStructuralChange(TableModelEvent e) {
         if (e instanceof WBSModelEvent) {
             WBSModelEvent wbsEvent = (WBSModelEvent) e;
-            if (wbsEvent.isExpansionOnly())
+            if (wbsEvent.isNonStructural())
                 return false;
         }
         return true;
