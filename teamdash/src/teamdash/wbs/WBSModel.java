@@ -267,14 +267,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (!(n instanceof WBSNode)) return EMPTY_NODE_LIST;
 
         WBSNode node = (WBSNode) n;
-        WBSNode[] result = (WBSNode[]) node
-                .getAttribute(CACHED_REORDERABLE_CHILDREN);
+        NodeStructure s = getStructure(node);
+        WBSNode[] result = s.reorderableChildren;
         if (result != null) return result;
 
         result = getChildren(n);
         if (result.length > 1)
             result = (WBSNode[]) result.clone();
-        if (CACHE) node.setAttribute(CACHED_REORDERABLE_CHILDREN, result);
+        s.reorderableChildren = result;
         return result;
     }
 
@@ -282,7 +282,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (!(n instanceof WBSNode)) return EMPTY_NODE_LIST;
 
         WBSNode node = (WBSNode) n;
-        WBSNode[] result = (WBSNode[]) node.getAttribute(CACHED_CHILDREN);
+        NodeStructure s = getStructure(node);
+        WBSNode[] result = s.children;
         if (result != null) return result;
 
         IntList childIndexes = getChildIndexes(n);
@@ -294,15 +295,15 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 result[i] = (WBSNode) wbsNodes.get(childIndexes.get(i));
         }
 
-        if (CACHE) node.setAttribute(CACHED_CHILDREN, result);
+        s.children = result;
         return result;
     }
     private static final WBSNode[] EMPTY_NODE_LIST = new WBSNode[0];
 
     public WBSNode getParent(WBSNode n) {
         if (n == null) return null;
-        WBSNode result = (WBSNode) n.getAttribute(CACHED_PARENT);
-        if (result != null) return result;
+        NodeStructure s = getStructure(n);
+        if (s.parent != null) return s.parent;
 
         int pos = wbsNodes.indexOf(n);
         if (pos == -1) return null;
@@ -312,7 +313,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         while (pos-- > 0) {
             possibleParent = (WBSNode) wbsNodes.get(pos);
             if (possibleParent.getIndentLevel() < nodeIndentLevel) {
-                if (CACHE) n.setAttribute(CACHED_PARENT, possibleParent);
+                s.parent = possibleParent;
                 return possibleParent;
             }
         }
@@ -336,21 +337,16 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             return null;
 
         WBSNode node = (WBSNode) n;
-        IntList result = (IntList) node.getAttribute(CACHED_CHILD_INDEXES);
+        NodeStructure s = getStructure(node);
+        IntList result = s.childIndexes;
         if (result != null) return result;
 
         int pos = wbsNodes.indexOf(n);
         if (pos == -1) return null;
-        return getChildIndexes((WBSNode) n, pos);
-    }
 
-    private IntList getChildIndexes(WBSNode node, int pos) {
-        if (node == null)
-            node = (WBSNode) wbsNodes.get(pos);
         int parentIndentLevel = node.getIndentLevel();
         int minChildIndentLevel = Integer.MAX_VALUE;
-
-        IntList result = new IntList(wbsNodes.size() - pos);
+        result = new IntList();
 
         while (++pos < wbsNodes.size()) {
             WBSNode possibleChildNode = (WBSNode) wbsNodes.get(pos);
@@ -374,7 +370,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             minChildIndentLevel = nodeIndentLevel;
         }
 
-        if (CACHE) node.setAttribute(CACHED_CHILD_INDEXES, result);
+        s.childIndexes = result;
         return result;
     }
 
@@ -567,24 +563,43 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
+    class NodeStructure {
+        private WBSModel model;
+        private WBSNode parent;
+        private WBSNode[] children;
+        private WBSNode[] reorderableChildren;
+        private IntList childIndexes;
+
+        private NodeStructure() {
+            model = WBSModel.this;
+        }
+
+        private void reset() {
+            parent = null;
+            children = reorderableChildren = null;
+            childIndexes = new IntList();
+        }
+    }
+
+    private NodeStructure getStructure(WBSNode node) {
+        if (node.structure == null || node.structure.model != this)
+            node.structure = new NodeStructure();
+        return node.structure;
+    }
+
     private class StructureData {
         StructureData parent;
         int nodePos;
         WBSNode node;
         boolean visible;
         boolean expanded;
-        IntList childIndexes;
 
         public StructureData(int nodePos) {
             this.nodePos = nodePos;
             this.node = wbsNodes.get(nodePos);
             this.expanded = (nodePos == 0 || node.isExpanded());
             this.visible = (nodePos == 0 || !node.isHidden());
-            this.childIndexes = new IntList();
-            node.setAttribute(CACHED_PARENT, null);
-            node.setAttribute(CACHED_CHILDREN, null);
-            node.setAttribute(CACHED_REORDERABLE_CHILDREN, null);
-            node.setAttribute(CACHED_CHILD_INDEXES, childIndexes);
+            getStructure(this.node).reset();
         }
 
         public StructureData appendNextRow(int nodePos) {
@@ -600,9 +615,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         private void setParent(StructureData parent) {
             this.parent = parent;
-            this.node.setAttribute(CACHED_PARENT, parent.node);
+            this.node.structure.parent = parent.node;
             this.visible = this.visible && parent.visible && parent.expanded;
-            parent.childIndexes.add(this.nodePos);
+            parent.node.structure.childIndexes.add(this.nodePos);
         }
     }
 
@@ -1696,10 +1711,4 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     public static final String CREATED_WITH_ATTR = "createdWithVersion";
 
-    private static final String CACHED_CHILDREN = "_cached_child_list_";
-    private static final String CACHED_REORDERABLE_CHILDREN =
-        "_cached_reorderable_child_list_";
-    private static final String CACHED_CHILD_INDEXES = "_cached_child_ind_";
-    private static final String CACHED_PARENT = "_cached_parent_node_";
-    private static final boolean CACHE = true;
 }

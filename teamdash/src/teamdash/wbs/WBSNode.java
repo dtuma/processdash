@@ -67,6 +67,8 @@ public class WBSNode implements Cloneable {
     private boolean readOnly;
     /** A collection of attributes containing the data for this node */
     private Map attributes = new HashMap();
+    /** A object to track structural characteristics of this node */
+    WBSModel.NodeStructure structure;
 
 
 
@@ -390,6 +392,7 @@ public class WBSNode implements Cloneable {
             }
             result.attributes = newAttributes;
 
+            result.structure = null;
             result.setHidden(false);
 
             return result;
@@ -417,6 +420,7 @@ public class WBSNode implements Cloneable {
             if (!attrNameMatchesTests(attrName, attrsToKeep))
                 i.remove();
         }
+        structure = null;
     }
     private boolean attrNameMatchesTests(String attrName, Object[] tests) {
         for (Object t : tests)
@@ -469,6 +473,8 @@ public class WBSNode implements Cloneable {
                 break;
             }
         }
+        if (discardCalculations)
+            structure = null;
     }
 
     /**
