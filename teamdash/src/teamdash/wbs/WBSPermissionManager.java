@@ -153,6 +153,8 @@ public class WBSPermissionManager {
         // version of the dashboard, it will not contain a version. In that
         // case, exit without any further analysis.
         Element settings = proj.getProjectSettings();
+        if (settings == null)
+            return;
         version = settings.getAttribute("version");
         if (!XMLUtils.hasValue(version))
             return;

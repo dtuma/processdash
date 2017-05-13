@@ -71,6 +71,8 @@ public class UserGroupManagerWBS extends UserGroupManager {
         String datasetID = proj.getDatasetID();
         if (datasetID == null)
             datasetID = proj.getProjectID();
+        if (datasetID == null)
+            datasetID = "unknown";
 
         // initialize the user group manager
         new UserGroupManagerWBS().init(settingsFile, datasetID);
