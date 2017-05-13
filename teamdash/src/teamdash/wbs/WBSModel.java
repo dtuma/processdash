@@ -233,8 +233,19 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return (WBSNode) wbsNodes.get(rows[row]);
     }
 
-    protected int getIndexOfNode(Object node) {
-        return wbsNodes.indexOf(node);
+    protected int getIndexOfNode(Object n) {
+        // if this is not a WBSNode, it isn't in our list.
+        if (!(n instanceof WBSNode))
+            return -1;
+
+        // get the structure data and return the cached pos if it is correct.
+        NodeStructure s = getStructure((WBSNode) n);
+        if (s.pos >= 0 && s.pos < wbsNodes.size() && wbsNodes.get(s.pos) == n)
+            return s.pos;
+
+        // find the node in the list, cache the result, and return it.
+        s.pos = wbsNodes.indexOf(n);
+        return s.pos;
     }
 
     protected WBSNode getNodeForPos(int pos) {
@@ -305,7 +316,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         NodeStructure s = getStructure(n);
         if (s.parent != null) return s.parent;
 
-        int pos = wbsNodes.indexOf(n);
+        int pos = getIndexOfNode(n);
         if (pos == -1) return null;
 
         int nodeIndentLevel = n.getIndentLevel();
@@ -341,7 +352,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         IntList result = s.childIndexes;
         if (result != null) return result;
 
-        int pos = wbsNodes.indexOf(n);
+        int pos = getIndexOfNode(n);
         if (pos == -1) return null;
 
         int parentIndentLevel = node.getIndentLevel();
@@ -402,7 +413,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public WBSNode[] getDescendants(WBSNode node) {
-        int nodePos = wbsNodes.indexOf(node);
+        int nodePos = getIndexOfNode(node);
         IntList descendantIndexes = getDescendantIndexes(node, nodePos);
         WBSNode[] result = new WBSNode[descendantIndexes.size()];
         for (int i = 0;   i < descendantIndexes.size();   i++)
@@ -569,15 +580,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         private WBSNode[] children;
         private WBSNode[] reorderableChildren;
         private IntList childIndexes;
+        private int pos;
 
         private NodeStructure() {
             model = WBSModel.this;
+            pos = -1;
         }
 
-        private void reset() {
+        private void reset(int newPos) {
             parent = null;
             children = reorderableChildren = null;
             childIndexes = new IntList();
+            pos = newPos;
         }
     }
 
@@ -599,7 +613,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             this.node = wbsNodes.get(nodePos);
             this.expanded = (nodePos == 0 || node.isExpanded());
             this.visible = (nodePos == 0 || !node.isHidden());
-            getStructure(this.node).reset();
+            getStructure(this.node).reset(nodePos);
         }
 
         public StructureData appendNextRow(int nodePos) {
@@ -861,7 +875,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public WBSNode findNextNodeMatching(WBSFilter f, WBSNode after, boolean wrap) {
         int pos = -1;
         if (after != null)
-            pos = wbsNodes.indexOf(after);
+            pos = getIndexOfNode(after);
 
         for (pos++; pos < wbsNodes.size();  pos++) {
             WBSNode node = wbsNodes.get(pos);
@@ -887,7 +901,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             boolean wrap) {
         int pos = -1;
         if (before != null)
-            pos = wbsNodes.indexOf(before);
+            pos = getIndexOfNode(before);
         if (pos == -1)
             pos = wbsNodes.size();
 
@@ -1102,7 +1116,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
 
     public boolean isVisible(WBSNode n) {
-        int pos = wbsNodes.indexOf(n);
+        int pos = getIndexOfNode(n);
         if (pos == -1) return false;
         return isVisible(pos);
     }
@@ -1111,7 +1125,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
     public int getRowForNode(WBSNode n) {
         if (n == null) return -1;
-        int pos = wbsNodes.indexOf(n);
+        int pos = getIndexOfNode(n);
         if (pos == -1) return -1;
         return nodePosToRow(pos);
     }
@@ -1132,7 +1146,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public int makeVisible(WBSNode node) {
-        int pos = wbsNodes.indexOf(node);
+        int pos = getIndexOfNode(node);
         if (pos == -1)
             return -1;
         makeVisible(pos, true);
@@ -1196,7 +1210,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             recalcRows(false);
             i = currentVisibleNodes.iterator();
             while (i.hasNext())
-                makeVisible(wbsNodes.indexOf(i.next()));
+                makeVisible(getIndexOfNode(i.next()));
 
             if (notify)
                 fireTableDataChanged();
@@ -1208,7 +1222,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private Set<WBSNode> getVisibleNodesFollowing(List<WBSNode> nodes) {
         Set<WBSNode> result = new HashSet<WBSNode>();
         for (WBSNode n : nodes) {
-            int pos = wbsNodes.indexOf(n);
+            int pos = getIndexOfNode(n);
             if (pos != -1) {
                 int next = nextVisibleNodePos(pos + 1);
                 if (next < wbsNodes.size())
@@ -1603,7 +1617,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 } else {
                     // if we've already merged a subsequent sibling, insert this
                     // child immediately before it
-                    insertBefore = destModel.wbsNodes.indexOf(lastMergedDestChild);
+                    insertBefore = destModel.getIndexOfNode(lastMergedDestChild);
                 }
 
                 destModel.wbsNodes.addAll(insertBefore,
@@ -1622,7 +1636,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     private static int getLastDescendantPos(WBSModel model, WBSNode node) {
-        int pos = model.wbsNodes.indexOf(node);
+        int pos = model.getIndexOfNode(node);
         if (pos == -1)
             return -1;
         IntList descendants = model.getDescendantIndexes(node, pos);
