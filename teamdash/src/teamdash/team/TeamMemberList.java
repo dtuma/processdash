@@ -44,6 +44,7 @@ import javax.swing.table.AbstractTableModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.XMLUtils;
@@ -67,6 +68,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public enum InitialsPolicy {
         Initials, Username
     }
+
+    private static final Resources resources = TeamMember.resources;
 
     /** The list of team members */
     private ArrayList<TeamMember> teamMembers = new ArrayList();
@@ -205,6 +208,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public void setInitialsPolicy(InitialsPolicy initialsPolicy) {
         this.initialsPolicy = initialsPolicy;
+        columnNames[INITIALS_COLUMN] = resources
+                .getString("Columns." + initialsPolicy);
     }
 
     public void setInitialsPolicyName(String policyName) {
@@ -539,7 +544,11 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public static final int FIRST_WEEK_COLUMN = 4;
 
     private static final String[] columnNames = {
-        "Name", "Initials", "Color", "Hrs/Week" };
+            resources.getString("Columns.Name"),
+            resources.getString("Columns.Initials"),
+            resources.getString("Columns.Color"),
+            resources.getString("Columns.Hours") };
+
     private static final Class[] columnClass = {
         String.class, String.class, Color.class, Double.class };
 
@@ -552,9 +561,6 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     }
 
     public String getColumnName(int col) {
-        if (col == INITIALS_COLUMN)
-            return initialsPolicy.toString();
-
         if (col < columnNames.length)
             return columnNames[col];
 
@@ -883,20 +889,18 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
             String name = m.getName();
             if (name == null)
-                addError(errors, "You must enter a name for each team member");
+                addError(errors, resources.getString("Errors.Name_Missing"));
             else if (names.contains(name))
-                addError(errors, "More than one team member is named '" +
-                         name + "'");
+                addError(errors,
+                    resources.format("Errors.Name_Duplicate_FMT", name));
             names.add(name);
 
             String init = m.getInitials();
             if (init == null)
-                addError(errors,
-                         "You must enter initials for each team member");
+                addError(errors, resources.getString("Errors.Initials_Missing"));
             else if (initials.contains(init))
                 addError(errors,
-                         "More than one team member has the initials '" +
-                         init + "'");
+                    resources.format("Errors.Initials_Duplicate_FMT", init));
             initials.add(init);
         }
 

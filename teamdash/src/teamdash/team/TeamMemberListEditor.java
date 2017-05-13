@@ -44,6 +44,7 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.SaveListener;
@@ -68,6 +69,8 @@ public class TeamMemberListEditor implements WindowListener,
     /** The Save button */
     private JButton saveButton;
 
+    private static final Resources resources = TeamMember.resources;
+
 
     public TeamMemberListEditor(String projectName, TeamMemberList teamList,
             String initialsPolicy) {
@@ -80,7 +83,8 @@ public class TeamMemberListEditor implements WindowListener,
         addedTeamMemberIDs = new HashSet();
         JPanel buttons = buildButtons();
 
-        frame = new JFrame(projectName + " - Team Members");
+        frame = new JFrame(projectName + " - " //
+                + resources.getString("Window_Title"));
         frame.getContentPane().add(makeScrollPane(table));
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);
 
@@ -145,10 +149,10 @@ public class TeamMemberListEditor implements WindowListener,
         if (errors == null) return true;
 
         Object[] message = new Object[] {
-            "The team list cannot be saved because it contains errors:",
+            resources.getString("Errors.Header"),
             new JList(errors) };
         JOptionPane.showMessageDialog
-            (frame, message, "Problems with Team List",
+            (frame, message, resources.getString("Errors.Title"),
              JOptionPane.ERROR_MESSAGE);
         return false;
     }
@@ -157,14 +161,12 @@ public class TeamMemberListEditor implements WindowListener,
         if (changes == null) return true;
 
         Object[] message = new Object[] {
-            "Your changes to the team list will require altering data in",
-            "the work breakdown structure:",
+            resources.getStrings("Warning.Header"),
             new JList(changes),
-            "You will not be able to undo these changes. Do you still",
-            "want to save?" };
+            resources.getStrings("Warning.Footer") };
         return (JOptionPane.YES_OPTION ==
                 JOptionPane.showConfirmDialog
-                    (frame, message, "Verify changes to Team List",
+                    (frame, message, resources.getString("Warning.Title"),
                      JOptionPane.YES_NO_OPTION));
     }
 
@@ -227,8 +229,8 @@ public class TeamMemberListEditor implements WindowListener,
             int choice =
                 JOptionPane.showConfirmDialog(
                     frame,
-                    "Would you like to save your changes to the Team Member List?",
-                    "Save Changes",
+                    resources.getString("Save.Prompt"),
+                    resources.getString("Save.Title"),
                     JOptionPane.YES_NO_CANCEL_OPTION);
 
             if (choice == JOptionPane.YES_OPTION) {
@@ -256,13 +258,13 @@ public class TeamMemberListEditor implements WindowListener,
     private JPanel buildButtons() {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
-        JButton button = new JButton("Cancel");
+        JButton button = new JButton(resources.getString("Cancel"));
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 cancel(); hide(); } });
         buttons.add(button);
 
-        saveButton = new JButton("OK");
+        saveButton = new JButton(resources.getString("OK"));
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (save()) hide(); } });
@@ -280,7 +282,7 @@ public class TeamMemberListEditor implements WindowListener,
      *     "Save", false if it should display the word "OK".
      */
     public void setCommitButtonIsSave(boolean showSave) {
-        saveButton.setText(showSave ? "Save" : "OK");
+        saveButton.setText(resources.getString(showSave ? "Save" : "OK"));
     }
 
     public void setOnlyEditableFor(String initials) {

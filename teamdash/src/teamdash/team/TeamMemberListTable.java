@@ -84,6 +84,7 @@ import javax.swing.text.JTextComponent;
 
 import com.toedter.calendar.JDateChooser;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -243,7 +244,7 @@ public class TeamMemberListTable extends JTable {
         result.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         result.setBackground(getBackground());
         result.setOpaque(true);
-        result.setToolTipText("Click for additional schedule options");
+        result.setToolTipText(resources.getString("Customize.Tooltip"));
         result.setHorizontalAlignment(SwingConstants.CENTER);
         result.setVerticalAlignment(SwingConstants.BOTTOM);
         result.setSize(WEEK_COL_WIDTH, getRowHeight());
@@ -260,13 +261,13 @@ public class TeamMemberListTable extends JTable {
     /** Create the buttons for scrolling the visible schedule columns */
     private void createButtons() {
         scrollDatesEarlierButton = createScrollButton();
-        scrollDatesEarlierButton.setToolTipText("View earlier dates");
+        scrollDatesEarlierButton.setToolTipText(resources.getString("Scroll_Left"));
         scrollDatesEarlierButton
                 .addActionListener((ActionListener) EventHandler.create(
                     ActionListener.class, this, "scrollDatesEarlier"));
 
         scrollDatesLaterButton = createScrollButton();
-        scrollDatesLaterButton.setToolTipText("View later dates");
+        scrollDatesLaterButton.setToolTipText(resources.getString("Scroll_Right"));
         scrollDatesLaterButton.addActionListener((ActionListener) EventHandler
                 .create(ActionListener.class, this, "scrollDatesLater"));
     }
@@ -532,22 +533,23 @@ public class TeamMemberListTable extends JTable {
         wb.add(Box.createHorizontalStrut(25));
         wb.add(readOnly ? new JLabel(selectedDayName)  : weekSelector);
 
-        Object[] contents = new Object[] { "Weekly schedule starts on:", wb };
+        Object[] contents = new Object[] {
+                resources.getString("Customize.Start_Day"), wb };
 
         if (readOnly) {
-            JOptionPane.showMessageDialog(this, contents,
-                "Team Schedule Settings", JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(this, contents, resources.getString( //
+                "Customize.Title_Read_Only"), JOptionPane.PLAIN_MESSAGE);
             return;
         }
 
         JDateChooser newStartDate = new JDateChooser((Date) null);
         contents = new Object[] { contents, BoxUtils.vbox(5),
-                "Move all start dates to the week of:",
+                resources.getString("Customize.Move_Dates"),
                 BoxUtils.hbox(25, newStartDate) };
 
         if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(this,
-            contents, "Customize Team Schedule", JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE)) {
+            contents, resources.getString("Customize.Title"),
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)) {
             Object selectedDay = weekSelector.getSelectedItem();
             for (int i = 0; i < dayNames.length; i++) {
                 if (selectedDay.equals(dayNames[i]))
@@ -608,7 +610,8 @@ public class TeamMemberListTable extends JTable {
 
             outsideSchedule = new JPanel();
 
-            JLabel startLabel = new JLabel("START", new ArrowIcon(false), RIGHT);
+            JLabel startLabel = new JLabel(resources.getString("Start"),
+                    new ArrowIcon(false), RIGHT);
             startLabel.setHorizontalTextPosition(LEFT);
             startLabel.setVerticalTextPosition(CENTER);
             startLabel.setIconTextGap(0);
@@ -618,9 +621,10 @@ public class TeamMemberListTable extends JTable {
             startCell.setOpaque(true);
             startCell.add(startLabel, BorderLayout.CENTER);
             startCell.add(makeGrippy(), BorderLayout.EAST);
-            startCell.setToolTipText("Drag to set schedule start date");
+            startCell.setToolTipText(resources.getString("Start_Tooltip"));
 
-            JLabel endLabel = new JLabel("END", new ArrowIcon(true), LEFT);
+            JLabel endLabel = new JLabel(resources.getString("Stop"),
+                    new ArrowIcon(true), LEFT);
             endLabel.setIconTextGap(0);
             endLabel.setBackground(unmodifiableCellBackground);
             endLabel.setFont(smallFont);
@@ -628,17 +632,15 @@ public class TeamMemberListTable extends JTable {
             endCell.setOpaque(true);
             endCell.add(endLabel, BorderLayout.CENTER);
             endCell.add(makeGrippy(), BorderLayout.WEST);
-            endCell.setToolTipText("<html>Drag to set schedule end date.<br>"
-                    + "Drag all the way to the right to remove "
-                    + "end date</html>");
+            endCell.setToolTipText("<html>" //
+                    + resources.getHTML("Stop_Tooltip") + "<br/>"
+                    + resources.getHTML("Stop_Tooltip_2") + "</html>");
 
             censored = makeCensoredLabel();
-            censored.setToolTipText(
-                TeamMember.resources.getString("Hours_Censored"));
+            censored.setToolTipText(resources.getString("Hours_Censored"));
 
             uncertain = makeCensoredLabel();
-            uncertain.setToolTipText(
-                TeamMember.resources.getString("Hours_Censored_Uncertain"));
+            uncertain.setToolTipText(resources.getString("Hours_Censored_Uncertain"));
         }
 
         private JLabel makeCensoredLabel() {
@@ -975,7 +977,7 @@ public class TeamMemberListTable extends JTable {
             empty = new JPanel();
 
             grippy = makeGrippy();
-            grippy.setToolTipText("Drag to set schedule end date");
+            grippy.setToolTipText(resources.getString("Stop_Tooltip"));
         }
 
         public Component getTableCellRendererComponent(JTable table,
@@ -1171,5 +1173,7 @@ public class TeamMemberListTable extends JTable {
 
     /** The width of the "grippy" which is displayed for draggable tokens */
     private static final int GRIPPY_WIDTH = 6;
+
+    private static final Resources resources = TeamMember.resources;
 
 }
