@@ -223,6 +223,15 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return Collections.unmodifiableList(wbsNodes);
     }
 
+    public List<WBSNode> getNonHiddenWbsNodes() {
+        List<WBSNode> result = new ArrayList<WBSNode>(wbsNodes.size());
+        for (WBSNode node : wbsNodes) {
+            if (!node.isHidden())
+                result.add(node);
+        }
+        return result;
+    }
+
     /** Returns the node which is the root of the wbs hierarchy. */
     public WBSNode getRoot() {
         return (WBSNode) wbsNodes.get(0);

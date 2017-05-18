@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.awt.event.FocusEvent;
 
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -260,6 +261,7 @@ public class DataJTable extends JTable {
                 return;
             Component opposite = e.getOppositeComponent();
             if (opposite == null
+                    || opposite instanceof JButton
                     || SwingUtilities.isDescendingFrom(opposite,
                         DataJTable.this))
                 return;

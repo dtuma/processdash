@@ -2179,9 +2179,6 @@ public class WBSJTable extends JTable {
     }
 
 
-    final WBSFindAction FIND_ACTION = new WBSFindAction(this);
-
-
     public boolean isFiltered() {
         return FILTER_ACTION.isActive();
     }

@@ -142,6 +142,7 @@ public class WBSTabPanel extends JLayeredPane implements
     JTabbedPane tabbedPane;
     JSplitPane splitPane;
     JToolBar toolBar;
+    WBSFindAction findAction;
     JFileChooser fileChooser;
     UndoList undoList;
     ArrayList<TableColumnModel> tableColumnModels = new ArrayList();
@@ -318,6 +319,134 @@ public class WBSTabPanel extends JLayeredPane implements
         return result;
     }
 
+    public List<String> getSelectedColumnIDs() {
+        int[] cols = dataTable.getSelectedColumns();
+        List<String> result = new ArrayList<String>(cols.length);
+        if (cols.length == 0 || cols.length == dataTable.getColumnCount())
+            result.add(WBSNodeColumn.COLUMN_ID);
+        for (int oneCol : cols) {
+            result.add((String) dataTable.getColumnModel().getColumn(oneCol)
+                    .getIdentifier());
+        }
+        return result;
+    }
+
+    public List<String> getActiveTabColumnIDs() {
+        List<String> result = new ArrayList(dataTable.getColumnCount() + 1);
+        result.add(WBSNodeColumn.COLUMN_ID);
+        for (int i = 0; i < dataTable.getColumnCount(); i++) {
+            result.add((String) dataTable.getColumnModel().getColumn(i)
+                    .getIdentifier());
+        }
+        return result;
+    }
+
+    public enum FindResult { NotFound, Found, Wrapped }
+
+    public FindResult findNextMatch(StringTest pattern, boolean searchForward,
+            boolean searchByColumns, List<String> columns) {
+        // find the node position where the search should begin
+        WBSNode selectedNode = getSelectedNode();
+        List<WBSNode> wbsNodes = (wbsTable.FILTER_ACTION.isActive()
+                        ? wbsTable.wbsModel.getNonHiddenWbsNodes()
+                        : wbsTable.wbsModel.getWbsNodes());
+        int selectedNodePos = Math.max(0, wbsNodes.indexOf(selectedNode));
+
+        // find the column where the search should begin
+        String selectedColumnID = getSelectedColumnID();
+        if (columns == null)
+            columns = getBlameColumnIDs();
+        int selectedColumnPos = Math.max(0, columns.indexOf(selectedColumnID));
+
+        // cache column indexes for better performance
+        DataTableModel dataModel = (DataTableModel) dataTable.getModel();
+        int[] columnIdx = new int[columns.size()];
+        for (int i = columns.size(); i-- > 0;)
+            columnIdx[i] = dataModel.findColumn(columns.get(i));
+
+        // prepare info needed for the search
+        int nodePos = selectedNodePos;
+        int columnPos = selectedColumnPos;
+        int increment = searchForward ? +1 : -1;
+        boolean wrapped = false;
+
+        while (true) {
+            if (searchByColumns) {
+                // search forward/backward for the next node.
+                nodePos += increment;
+
+                // if we run off the end of the node list, wrap and then move
+                // to another column.
+                if (outOfRange(wbsNodes, nodePos)) {
+                    nodePos = wrapPos(wbsNodes, nodePos);
+                    columnPos += increment;
+
+                    // If we run off the end of the column list, wrap columns
+                    if (outOfRange(columns, columnPos)) {
+                        columnPos = wrapPos(columns, columnPos);
+                        wrapped = true;
+                    }
+                }
+
+            } else {
+                // search forward/backward for the next column.
+                columnPos += increment;
+
+                // if we run off the end of the column list, wrap and then move
+                // to another node.
+                if (outOfRange(columns, columnPos)) {
+                    columnPos = wrapPos(columns, columnPos);
+                    nodePos += increment;
+
+                    // if we run off the end of the node list, wrap nodes
+                    if (outOfRange(wbsNodes, nodePos)) {
+                        nodePos = wrapPos(wbsNodes, nodePos);
+                        wrapped = true;
+                    }
+                }
+            }
+
+            // see if the given cell is a match
+            WBSNode oneNode = wbsNodes.get(nodePos);
+            int oneColIdx = columnIdx[columnPos];
+            Object cellValue = dataModel.getValueAt(oneNode, oneColIdx);
+            if (cellValue != null && pattern.test(cellValue.toString())) {
+                wbsTable.selectAndShowNode(oneNode);
+                selectColumn(columns.get(columnPos));
+                return wrapped ? FindResult.Wrapped : FindResult.Found;
+            }
+
+            // if we wrapped all the way around to the starting location,
+            // return false to indicate that no match was found
+            if (nodePos == selectedNodePos && columnPos == selectedColumnPos)
+                return FindResult.NotFound;
+        }
+    }
+
+    private WBSNode getSelectedNode() {
+        int selRow = Math.max(0, wbsTable.getSelectedRow());
+        WBSNode selNode = wbsTable.wbsModel.getNodeForRow(selRow);
+        return selNode;
+    }
+
+    private String getSelectedColumnID() {
+        int[] cols = dataTable.getSelectedColumns();
+        if (cols.length == 0 || cols.length == dataTable.getColumnCount()) {
+            return WBSNodeColumn.COLUMN_ID;
+        } else {
+            return (String) dataTable.getColumnModel().getColumn(cols[0])
+                    .getIdentifier();
+        }
+    }
+
+    private boolean outOfRange(List list, int pos) {
+        return pos < 0 || pos >= list.size();
+    }
+
+    private int wrapPos(List list, int pos) {
+        return (pos + list.size()) % list.size();
+    }
+
     public boolean displayHyperlinkedItem(String item) {
         String[] parts = item.split("/", 2);
         int wbsId = Integer.parseInt(parts[0]);
@@ -328,7 +457,9 @@ public class WBSTabPanel extends JLayeredPane implements
     public boolean selectColumn(String columnID) {
         // if the "node" column was requested, transfer focus to the WBS tree
         if (columnID == null || WBSNodeColumn.COLUMN_ID.equals(columnID)) {
+            dataTable.selectColumn(0);
             dataTable.getActionMap().get("focusTree").actionPerformed(null);
+            dataTable.getColumnModel().getSelectionModel().clearSelection();
             return true;
         }
 
@@ -412,7 +543,7 @@ public class WBSTabPanel extends JLayeredPane implements
         result.add(undoList.getRedoAction());
         result.addAll(Arrays.asList(wbsTable.getEditingActions()));
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
-        result.add(wbsTable.FIND_ACTION);
+        result.add(findAction);
         result.add(wbsTable.FILTER_ACTION);
 
         Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);
@@ -945,7 +1076,7 @@ public class WBSTabPanel extends JLayeredPane implements
         for (int i = 0;   i < editingActions.length;   i++)
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
-        addToolbarButton(wbsTable.FIND_ACTION);
+        addToolbarButton(findAction = new WBSFindAction(this));
         addToolbarButton(wbsTable.FILTER_ACTION);
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);
         addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);
