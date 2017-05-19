@@ -104,6 +104,15 @@ public class WBSFindAction extends AbstractAction {
 
     private JComboBox<Scope> searchScope;
 
+    private enum Match {
+        Within, Entire;
+        public String toString() {
+            return resources.getString("Match." + name());
+        }
+    }
+
+    private JComboBox<Match> matchType;
+
     private enum Direction {
         Rows, Columns;
         public String toString() {
@@ -202,6 +211,12 @@ public class WBSFindAction extends AbstractAction {
         panel.add(searchScope, pc);
 
         lc.gridy++; pc.gridy++;
+        panel.add(new JLabel(resources.getString("Match.Label")), lc);
+        matchType = new JComboBox(Match.values());
+        matchType.setSelectedItem(Match.Within);
+        panel.add(matchType, pc);
+
+        lc.gridy++; pc.gridy++;
         lc.insets.bottom = pc.insets.bottom = 12;
         panel.add(new JLabel(resources.getString("Search_By.Label")), lc);
         rowsOrColumns = new JComboBox(Direction.values());
@@ -266,9 +281,13 @@ public class WBSFindAction extends AbstractAction {
         } else {
             searchField.updateHistory(searchText);
             final String searchLower = searchText.toLowerCase();
+            final Match match = (Match) matchType.getSelectedItem();
             return new StringTest() {
                 public boolean test(String s) {
-                    return s.toLowerCase().contains(searchLower);
+                    if (match == Match.Entire)
+                        return s.toLowerCase().equals(searchLower);
+                    else
+                        return s.toLowerCase().contains(searchLower);
                 }
             };
         }
