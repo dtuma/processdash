@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -453,10 +453,16 @@ public class DataTableModel extends AbstractTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        setValueAt(aValue, wbsModel.getNodeForRow(rowIndex), columnIndex);
+        setValueAtImpl(aValue, wbsModel.getNodeForRow(rowIndex), rowIndex,
+            columnIndex);
     }
 
     public void setValueAt(Object aValue, WBSNode node, int columnIndex) {
+        setValueAtImpl(aValue, node, -2, columnIndex);
+    }
+
+    private void setValueAtImpl(Object aValue, WBSNode node, int rowIndex,
+            int columnIndex) {
         DataColumn column = getColumn(columnIndex);
         if (node == null || column == null) return;
 
@@ -464,6 +470,13 @@ public class DataTableModel extends AbstractTableModel {
             beginChange();
             columnChanged(column, columnIndex);
             column.setValueAt(aValue, node);
+
+            if (!(column instanceof CalculatedDataColumn)) {
+                if (rowIndex == -2)
+                    rowIndex = wbsModel.getRowForNode(node);
+                if (rowIndex != -1)
+                    fireTableCellUpdated(rowIndex, columnIndex);
+            }
         } finally {
             endChange();
         }

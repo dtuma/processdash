@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.MasterWBSUtil;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.ReplaceAwareColumn;
 import teamdash.wbs.TaskDependency;
 import teamdash.wbs.TaskDependencyCellEditor;
 import teamdash.wbs.TaskDependencyCellRenderer;
@@ -52,8 +53,9 @@ import teamdash.wbs.WBSNode;
 /**
  * A column which can be used to display and edit task dependencies.
  */
-public class TaskDependencyColumn extends AbstractDataColumn implements
-        CalculatedDataColumn, CustomEditedColumn, CustomRenderedColumn {
+public class TaskDependencyColumn extends AbstractDataColumn
+        implements CalculatedDataColumn, CustomEditedColumn,
+        CustomRenderedColumn, ReplaceAwareColumn {
 
     /** The ID we use for this column in the data model */
     public static final String COLUMN_ID = "Dependencies";
@@ -240,6 +242,12 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     public void storeConflictResolutionValue(Object value, WBSNode node) {
         node.setAttribute(ID_LIST_ATTR, value);
         node.setAttribute(TASK_LIST_ATTR, null);
+    }
+
+    @Override
+    public Object getReplacementValueAt(String find, String replace,
+            WBSNode node) {
+        throw new UnsupportedOperationException();
     }
 
     /** When nodes are inserted into a WBS, the WBSModel changes their IDs to

@@ -544,6 +544,7 @@ public class WBSTabPanel extends JLayeredPane implements
         result.addAll(Arrays.asList(wbsTable.getEditingActions()));
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
         result.add(findAction);
+        result.add(findAction.replaceAction);
         result.add(wbsTable.FILTER_ACTION);
 
         Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);

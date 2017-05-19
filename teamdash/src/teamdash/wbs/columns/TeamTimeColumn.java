@@ -79,6 +79,7 @@ import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.ReplaceAwareColumn;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -2050,8 +2051,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
 
 
     /** A column representing the initials of people assigned to a task. */
-    private class ResourcesColumn extends AbstractDataColumn
-            implements CalculatedDataColumn, CustomEditedColumn
+    private class ResourcesColumn extends AbstractDataColumn implements
+            CalculatedDataColumn, CustomEditedColumn, ReplaceAwareColumn
     {
         public ResourcesColumn() {
             this.columnID = RESOURCES_COL_ID;
@@ -2211,6 +2212,60 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                         updateRoleAssignments(edits, child);
                     }
                 }
+            }
+        }
+
+        public Object getReplacementValueAt(String find, String replace,
+                WBSNode node) {
+            if (find.equalsIgnoreCase(replace))
+                return REPLACEMENT_REJECTED;
+
+            AssignedToEditList edits = new AssignedToEditList();
+            boolean replaceIsValid = false;
+            for (IndivTime indiv : getIndivTimes(node)) {
+                if (indiv.initials.equalsIgnoreCase(replace))
+                    replaceIsValid = true;
+                if (indiv.isAssigned()) {
+                    Change c = new AssignedToEditList.Change();
+                    c.origTime = c.newTime = Double.toString(indiv.time);
+                    c.origInitials = indiv.initials;
+                    if (indiv.initials.equalsIgnoreCase(find) && !indiv.hidden)
+                        c.newInitials = replace;
+                    else
+                        c.newInitials = indiv.initials;
+                    edits.add(c);
+                }
+            }
+
+            // if se didn't find an individual whose initials match the
+            // "replace" value, reject the change.
+            if (!replaceIsValid)
+                return REPLACEMENT_REJECTED;
+
+            // if we haven't found a change yet, consider a role assignment
+            if (edits.isNoop())
+                maybeAddRoleReplacement(edits, find, replace, node);
+
+            // return the edits if we found any
+            return (edits.isNoop() ? REPLACEMENT_REJECTED : edits);
+        }
+
+        private void maybeAddRoleReplacement(AssignedToEditList edits,
+                String find, String replace, WBSNode node) {
+            LeafTaskData leafData = getLeafTaskData(node);
+            if (leafData == null)
+                return;
+
+            String roles = leafData.getRoles();
+            if (roles == null || roles.length() == 0)
+                return;
+
+            String roleToFind = ROLE_BEG + find.toLowerCase() + ROLE_END;
+            if (roles.toLowerCase().contains(roleToFind)) {
+                Change c = new AssignedToEditList.Change();
+                c.origInitials = roleToFind;
+                c.newInitials = replace;
+                edits.add(c);
             }
         }
 

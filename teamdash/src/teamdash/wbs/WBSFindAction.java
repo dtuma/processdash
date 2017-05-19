@@ -51,9 +51,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -68,6 +71,8 @@ public class WBSFindAction extends AbstractAction {
 
     private WBSTabPanel tabPanel;
 
+    protected Action replaceAction;
+
     private static final Resources resources = Resources
             .getDashBundle("WBSEditor.Find");
 
@@ -76,12 +81,19 @@ public class WBSFindAction extends AbstractAction {
         putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, //
             MacGUIUtils.getCtrlModifier()));
         this.tabPanel = tabPanel;
+        this.replaceAction = new WBSReplaceAction();
     }
 
 
     private JDialog dialog;
 
+    private JTabbedPane tabs;
+
     private JComboBoxWithHistory searchField;
+
+    private JLabel replaceLabel;
+
+    private JComboBoxWithHistory replaceField;
 
     private enum Scope {
         All, Current, Selection, Name;
@@ -103,13 +115,22 @@ public class WBSFindAction extends AbstractAction {
 
     private WrappedIcon wrappedIcon;
 
+    private JButton replaceButton, prevButton;
+
+    private FindAction findNext;
+
     private List<String> selectedColumns, foundColumn;
 
 
     public void actionPerformed(ActionEvent e) {
+        showDialog(0);
+    }
+
+    private void showDialog(int tabToSelect) {
         if (dialog == null)
             createDialog();
 
+        tabs.setSelectedIndex(tabToSelect);
         dialog.setVisible(true);
         dialog.toFront();
         searchField.getEditor().selectAll();
@@ -119,32 +140,48 @@ public class WBSFindAction extends AbstractAction {
 
     private void createDialog() {
         JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 8, 10, 8));
         GridBagLayout layout = new GridBagLayout();
         panel.setLayout(layout);
 
         FindPreviousAction findPrevious = new FindPreviousAction();
-        FindNextAction findNext = new FindNextAction();
+        findNext = new FindNextAction();
+        ReplaceAction replace = new ReplaceAction();
         CancelAction cancel = new CancelAction();
 
         setKey(panel, KeyEvent.VK_P, InputEvent.ALT_DOWN_MASK, findPrevious);
         setKey(panel, KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK, findNext);
+        setKey(panel, KeyEvent.VK_R, InputEvent.ALT_DOWN_MASK, replace);
         setKey(panel, KeyEvent.VK_ESCAPE, 0, cancel);
 
         GridBagConstraints lc = new GridBagConstraints();
         lc.gridx = lc.gridy = 0; lc.gridwidth = 2;
         lc.anchor = GridBagConstraints.WEST;
-        lc.insets = new Insets(0, 5, 5, 5);
+        lc.insets = new Insets(33, 12, 5, 5);
         panel.add(new JLabel(resources.getString("Label")), lc);
 
         GridBagConstraints tc = new GridBagConstraints();
         tc.gridx = 2; tc.gridy = 0;
         tc.fill = GridBagConstraints.BOTH;
         tc.weightx = 1; tc.gridwidth = 2;
-        tc.insets = new Insets(0, 0, 5, 5);
+        tc.insets = new Insets(33, 0, 5, 12);
         searchField = new JComboBoxWithHistory();
-        searchField.getEditor().addActionListener(new FindNextTrigger(findNext));
+        searchField.getEditor().addActionListener(new FindNextTrigger());
         panel.add(searchField, tc);
+
+        lc.gridy++; tc.gridy++;
+        lc.insets.top = tc.insets.top = 0;
+        replaceLabel = new JLabel(resources.getString("Replace_Label"));
+        panel.add(replaceLabel, lc);
+        replaceField = new JComboBoxWithHistory();
+        panel.add(replaceField, tc);
+
+        panel.add(BoxUtils.createHorizontalStrut(
+            replaceLabel.getPreferredSize().width), lc);
+        panel.add(BoxUtils.createVerticalStrut(
+            replaceField.getPreferredSize().height), tc);
+        replaceLabel.setVisible(false);
+        replaceField.setVisible(false);
 
         lc.gridy++;
         panel.add(BoxUtils.createVerticalStrut(10), lc);
@@ -165,6 +202,7 @@ public class WBSFindAction extends AbstractAction {
         panel.add(searchScope, pc);
 
         lc.gridy++; pc.gridy++;
+        lc.insets.bottom = pc.insets.bottom = 12;
         panel.add(new JLabel(resources.getString("Search_By.Label")), lc);
         rowsOrColumns = new JComboBox(Direction.values());
         rowsOrColumns.setSelectedItem(Direction.Rows);
@@ -173,22 +211,36 @@ public class WBSFindAction extends AbstractAction {
         GridBagConstraints wc = new GridBagConstraints();
         wc.gridx = 3; wc.gridy = lc.gridy;
         wc.anchor = GridBagConstraints.WEST;
-        wc.insets = lc.insets;
+        wc.insets = lc.insets; wc.insets.left = 5;
         wrappedIcon = new WrappedIcon();
         panel.add(wrappedIcon, wc);
 
         GridBagConstraints bc = new GridBagConstraints();
         bc.gridy = lc.gridy + 1;
         bc.anchor = GridBagConstraints.EAST;
-        bc.insets = new Insets(10, 30, 5, 5);
+        bc.insets = new Insets(10, 5, 0, 0);
         bc.gridwidth = 4;
         Box buttonBox = Box.createHorizontalBox();
-        buttonBox.add(new JButton(findPrevious));
+        replaceButton = new JButton(replace);
+        replaceButton.setVisible(false);
+        buttonBox.add(replaceButton);
+        buttonBox.add(Box.createHorizontalStrut(30));
+        buttonBox.add(prevButton = new JButton(findPrevious));
         buttonBox.add(Box.createHorizontalStrut(5));
         buttonBox.add(new JButton(findNext));
         buttonBox.add(Box.createHorizontalStrut(20));
         buttonBox.add(new JButton(cancel));
         panel.add(buttonBox, bc);
+
+        GridBagConstraints tpc = new GridBagConstraints();
+        tpc.gridx = tpc.gridy = 0;
+        tpc.gridwidth = 4; tpc.gridheight = bc.gridy;
+        tpc.fill = GridBagConstraints.BOTH;
+        tabs = new JTabbedPane();
+        tabs.add(resources.getString("Find"), new JPanel());
+        tabs.add(resources.getString("Replace"), new JPanel());
+        tabs.addChangeListener(new TabHandler());
+        panel.add(tabs, tpc);
 
         JFrame f = (JFrame) SwingUtilities.getWindowAncestor(tabPanel);
         dialog = new JDialog(f, resources.getString("Title"), false);
@@ -248,6 +300,118 @@ public class WBSFindAction extends AbstractAction {
         }
     }
 
+    private int replaceStartPos = 0;
+
+    private String replaceContinuationToken;
+
+    private void replaceText() {
+        // perform a replacement. If successful, return
+        String replaceErrorMessage = doReplace();
+        if (replaceErrorMessage == null)
+            return;
+
+        // the replacement failed. Beep or display an error as appropriate
+        replaceStartPos = 0;
+        if (replaceErrorMessage.length() > 0) {
+            JOptionPane.showMessageDialog(dialog, replaceErrorMessage,
+                resources.getString("Cannot_Replace.Title"),
+                JOptionPane.ERROR_MESSAGE);
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    private String doReplace() {
+        // identify the node where the replacement should occur
+        int[] selRows = tabPanel.wbsTable.getSelectedRows();
+        if (selRows == null || selRows.length != 1)
+            return CANNOT_REPLACE;
+        WBSNode node = tabPanel.wbsTable.wbsModel.getNodeForRow(selRows[0]);
+        if (node == null)
+            return CANNOT_REPLACE;
+
+        // identify the column where the replacement should occur
+        List<String> selCols = tabPanel.getSelectedColumnIDs();
+        if (selCols.size() != 1)
+            return CANNOT_REPLACE;
+        DataTableModel data = (DataTableModel) tabPanel.dataTable.getModel();
+        int colIndex = data.findColumn(selCols.get(0));
+        if (colIndex == -1)
+            return CANNOT_REPLACE;
+
+        // see if the given cell is editable or read-only
+        if (data.isCellEditable(node, colIndex) == false)
+            return resources.getString("Cannot_Replace.Read_Only");
+
+        // identify the search string we should be looking for
+        String searchText = (String) searchField.getEditor().getItem();
+        String searchLower = searchText.trim().toLowerCase();
+        if (searchLower.length() == 0)
+            return CANNOT_REPLACE;
+
+        // get the value in the specified cell
+        Object oldValue = data.getValueAt(node, colIndex);
+        String oldStr = (oldValue == null ? "" : oldValue.toString());
+        String oldStrL = oldStr.toLowerCase();
+
+        // see if we are performing a second replacement on a particular cell
+        String cellToken = node.getUniqueID() + "/" + selCols.get(0);
+        if (!cellToken.equals(replaceContinuationToken))
+            replaceStartPos = 0;
+
+        // find the search text within the specified value
+        int pos = oldStrL.indexOf(searchLower, replaceStartPos);
+        if (pos == -1)
+            return resources.getString("Cannot_Replace.Not_Found");
+
+        // perform the replacement
+        String replacementText = (String) replaceField.getEditor().getItem();
+        replaceField.updateHistory(replacementText);
+        try {
+            Object newValue;
+            DataColumn col = data.getColumn(colIndex);
+            if (col instanceof ReplaceAwareColumn) {
+                newValue = ((ReplaceAwareColumn) col).getReplacementValueAt(
+                    searchText, replacementText, node);
+            } else {
+                newValue = oldStr.substring(0, pos) //
+                        + replacementText //
+                        + oldStr.substring(pos + searchText.length());
+            }
+            if (newValue != ReplaceAwareColumn.REPLACEMENT_REJECTED)
+                data.setValueAt(newValue, node, colIndex);
+        } catch (Exception e) {
+            return resources.format("Cannot_Replace.Unsupported_FMT",
+                data.getColumnName(colIndex));
+        }
+
+        // see if the replacement "took," or if it was rejected by the column
+        Object finalValue = data.getValueAt(node, colIndex);
+        String finalStr = (finalValue == null ? "" : finalValue.toString());
+        if (finalStr.equals(oldStr)
+                && !searchText.equalsIgnoreCase(replacementText))
+            return resources.getString("Cannot_Replace.Rejected");
+
+        // the replacement was successful. Record an undo list entry
+        UndoList.madeChange(tabPanel, "Replace Text");
+
+        // See if the current cell includes another instance of the search text
+        int nextPos = pos + replacementText.length();
+        nextPos = finalStr.toLowerCase().indexOf(searchLower, nextPos);
+        if (nextPos != -1) {
+            replaceStartPos = nextPos;
+            replaceContinuationToken = cellToken;
+            return null;
+        }
+
+        // auto-search for the next match
+        replaceStartPos = 0;
+        findNext.performFind(true);
+        return null;
+    }
+
+    private static final String CANNOT_REPLACE = "";
+
 
     private static class JComboBoxWithHistory extends JComboBox<String> {
 
@@ -294,6 +458,19 @@ public class WBSFindAction extends AbstractAction {
     }
 
 
+    private class TabHandler implements ChangeListener {
+
+        public void stateChanged(ChangeEvent e) {
+            boolean isFind = (tabs.getSelectedIndex() == 0);
+            boolean isReplace = !isFind;
+            prevButton.setVisible(isFind);
+            replaceLabel.setVisible(isReplace);
+            replaceField.setVisible(isReplace);
+            replaceButton.setVisible(isReplace);
+        }
+
+    }
+
     private class FindAction extends AbstractAction {
         
         private boolean searchForward;
@@ -304,10 +481,15 @@ public class WBSFindAction extends AbstractAction {
         }
 
         public void actionPerformed(ActionEvent e) {
+            performFind(false);
+        }
+
+        public void performFind(boolean suppressNotFoundError) {
             StringTest filter = makeFilter();
             if (filter == null)
                 return;
             searchField.getEditor().selectAll();
+            replaceContinuationToken = null;
 
             boolean searchByColumns = //
                     (rowsOrColumns.getSelectedItem() == Direction.Columns);
@@ -317,7 +499,7 @@ public class WBSFindAction extends AbstractAction {
                 searchForward, searchByColumns, columnScope);
             foundColumn = tabPanel.getSelectedColumnIDs();
 
-            if (foundMatch == FindResult.NotFound)
+            if (foundMatch == FindResult.NotFound && !suppressNotFoundError)
                 JOptionPane.showMessageDialog(dialog,
                     resources.getString("Not_Found.Message"),
                     resources.getString("Not_Found.Title"),
@@ -346,12 +528,23 @@ public class WBSFindAction extends AbstractAction {
 
     private class FindNextTrigger implements ActionListener {
         private Timer timer;
-        FindNextTrigger(FindNextAction delegate) {
-            timer = new Timer(20, delegate);
+        FindNextTrigger() {
+            timer = new Timer(20, findNext);
             timer.setRepeats(false);
         }
         public void actionPerformed(ActionEvent e) {
             timer.restart();
+        }
+    }
+
+    private class ReplaceAction extends AbstractAction {
+        ReplaceAction() {
+            super(resources.getString("Replace"));
+            putValue(MNEMONIC_KEY, new Integer('R'));
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (replaceButton.isVisible())
+                replaceText();
         }
     }
 
@@ -362,6 +555,15 @@ public class WBSFindAction extends AbstractAction {
 
         public void actionPerformed(ActionEvent e) {
             dialog.dispose();
+        }
+    }
+
+    private class WBSReplaceAction extends AbstractAction {
+        public WBSReplaceAction() {
+            super(resources.getString("Replace_Menu"));
+        }
+        public void actionPerformed(ActionEvent e) {
+            showDialog(1);
         }
     }
 
