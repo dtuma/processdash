@@ -745,10 +745,8 @@ public class WBSFilterAction extends AbstractAction
             mgr.reload();
 
             Vector choices = new Vector();
-            if (Boolean.getBoolean("teamdash.wbs.enableGroupFilters")) {
-                choices.addAll(mgr.getGroups().values());
-                Collections.sort(choices);
-            }
+            choices.addAll(mgr.getGroups().values());
+            Collections.sort(choices);
 
             valueField.removeAllItems();
             valueField.addItem(UserGroup.EVERYONE);
