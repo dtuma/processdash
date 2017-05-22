@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ public interface TeamDataConstants {
     public static final String RELAUNCH_SOURCE_WBS_ID =
             "Relaunch_Source_WBS_ID";
     public static final String RELAUNCHABLE_SETTINGS = "Relaunchable_Settings";
+    public static final String CLOSED_PROJECT_FLAG = "Project_Is_Closed";
 
     public static final String TEAM_PROJECT_URL = "Team_URL";
     public static final String INDIV_INITIALS = "Indiv_Initials";

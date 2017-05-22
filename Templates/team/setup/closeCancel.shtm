@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Close Operation Cancelled</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Close Operation
+Cancelled<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<p>The close operation has been cancelled, so this team project remains
+open.</p>
+
+<p>You may close this browser window.</p>
+
+</body>
+</html>

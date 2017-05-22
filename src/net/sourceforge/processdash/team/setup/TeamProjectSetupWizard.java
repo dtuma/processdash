@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
@@ -167,6 +168,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String RELAUNCH_INVALID_URL = "relaunchInvalid.shtm";
     // URL of a page asking the user to close the WBS Editor
     private static final String RELAUNCH_CANNOT_COPY_URL = "relaunchCannotCopy.shtm";
+
+    // information for the close team project page
+    private static final String CLOSE_PAGE = "close";
+    private static final String CLOSE_WELCOME_URL = "closeWelcome.shtm";
+    private static final String CLOSE_ERROR_URL = "closeError.shtm";
+    private static final String CLOSE_CANCEL_URL = "closeCancel.shtm";
+    private static final String CLOSE_SUCCESS_URL = "closeSuccess.shtm";
 
     // value indicating we should add an individual to a team project
     private static final String IND_PAGE = "indiv";
@@ -273,6 +281,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         else if (RELAUNCH_START_PAGE.equals(page)) handleRelaunchWelcomePage();
         else if (RELAUNCH_NODE_PAGE.equals(page))  handleRelaunchNodePage();
         else if (RELAUNCH_NODE_SELECTED_PAGE.equals(page)) handleRelaunchNodeSelected();
+        else if (CLOSE_PAGE.equals(page))          handleCloseTeamProjectPage();
 
         else if (TEAM_CLOSE_HIERARCHY_PAGE.equals(page)) handleTeamCloseHierPage();
         else if (!prefixNamesTeamProjectStub())    showInvalidPage();
@@ -1372,6 +1381,42 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         maybeShowTeamDirPage();
     }
 
+    private void handleCloseTeamProjectPage() {
+        printRedirect(handleCloseTeamProject());
+    }
+
+    private String handleCloseTeamProject() {
+        // if the project is already closed, display a page with that message
+        if (testValue(TeamDataConstants.CLOSED_PROJECT_FLAG))
+            return CLOSE_SUCCESS_URL;
+
+        // if the operation was cancelled, show the cancel page
+        if (parameters.containsKey("cancel"))
+            return CLOSE_CANCEL_URL;
+
+        // if we see a "confirm" param, attempt to close the project
+        if (parameters.containsKey("confirm")) {
+            try {
+                CloseRelaunchedProjectWbs crpw = new CloseRelaunchedProjectWbs();
+                writeFilesToWbsDir(Collections.singleton(crpw), //
+                    remap(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL)), //
+                    remap(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY)));
+                putValue(TeamDataConstants.CLOSED_PROJECT_FLAG,
+                    ImmutableDoubleData.TRUE);
+                return CLOSE_SUCCESS_URL;
+
+            } catch (Exception e) {
+                return CLOSE_ERROR_URL;
+            }
+        }
+
+        // display the page to begin the project closing operation
+        return CLOSE_WELCOME_URL;
+    }
+    private String remap(String path) {
+        return ExternalResourceManager.getInstance().remapFilename(path);
+    }
+
     private void closeOldProjectWbs(File oldProjectWbsDir) throws IOException {
         // read the current settings from the user settings file
         File f = new File(oldProjectWbsDir, "user-settings.ini");
@@ -1444,14 +1489,17 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             // open the userDump.xml file from the PDASH
             ZipFile zip = new ZipFile(f);
             ZipEntry entry = zip.getEntry("userDump.xml");
-            if (entry == null)
+            if (entry == null) {
+                zip.close();
                 return;
+            }
             InputStream in = zip.getInputStream(entry);
 
             // skip past the XML prolog, then copy the remainder to the output
             copyBytesThrough(in, null, "?>", -1);
             FileUtils.copyFile(in, out);
             in.close();
+            zip.close();
 
         } catch (IOException ioe) {
             // if a single PDASH file is corrupt and unreadable as a ZIP file,

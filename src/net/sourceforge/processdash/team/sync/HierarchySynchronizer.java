@@ -979,6 +979,8 @@ public class HierarchySynchronizer {
         forceData(projectPath, LABEL_LIST_DATA_NAME, labelData);
         forceData(projectPath, MILESTONE_LIST_DATA_NAME, milestoneData);
         forceData(projectPath, NODE_ORDER_DATA_NAME, nodeOrderData);
+        forceData(projectPath, TeamDataConstants.CLOSED_PROJECT_FLAG,
+            projectClosed ? ImmutableDoubleData.TRUE : null);
 
         if (!isTeam()) {
             syncSchedule();

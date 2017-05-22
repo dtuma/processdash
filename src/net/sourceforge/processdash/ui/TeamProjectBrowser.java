@@ -593,6 +593,35 @@ public class TeamProjectBrowser extends JSplitPane {
 
 
 
+    private void maybeCloseSelectedProject() {
+        PropertyKey selectedNode = getSelectedTreeNode();
+        String projectPath = selectedNode.path();
+        String templateID = ctx.getHierarchy().getID(selectedNode);
+
+        // do not close plain nodes (which act as folders full of projects)
+        if (!StringUtils.hasValue(templateID))
+            return;
+
+        // if this is a team project stub, delete rather than closing
+        if (TeamStartBootstrap.TEAM_STUB_ID.equals(templateID)) {
+            maybeDeleteSelectedProject();
+            return;
+        }
+
+        // extract the process ID
+        int slashPos = templateID.indexOf('/');
+        if (slashPos == -1)
+            return;
+        String processID = templateID.substring(0, slashPos);
+
+        // open the Close Team Project page.
+        StringBuilder uri = new StringBuilder();
+        uri.append(HTMLUtils.urlEncodePath(projectPath)) //
+                .append("//").append(processID)
+                .append("/setup/wizard.class?page=close");
+        Browser.launch(uri.toString());
+    }
+
     private void maybeDeleteSelectedProject() {
         PropertyKey selectedNode = getSelectedTreeNode();
         String projectPath = selectedNode.path();
@@ -912,6 +941,7 @@ public class TeamProjectBrowser extends JSplitPane {
             relaunchAction = new RelaunchProjectAction();
             if (relaunchAction.isSupported())
                 add(relaunchAction);
+            add(new CloseProjectAction());
             add(new DeleteProjectAction());
 
             PermissionsManager.getInstance().addPermissionsChangeListener(this);
@@ -943,6 +973,18 @@ public class TeamProjectBrowser extends JSplitPane {
 
         public void actionPerformed(ActionEvent e) {
             maybeRenameSelectedProject();
+        }
+
+    }
+
+    private class CloseProjectAction extends AbstractAction {
+
+        public CloseProjectAction() {
+            super(resources.getString("Menu.File.Close_Team_Project"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            maybeCloseSelectedProject();
         }
 
     }

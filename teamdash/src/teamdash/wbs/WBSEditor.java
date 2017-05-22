@@ -627,8 +627,21 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (workingDirectory instanceof CompressedWorkingDirectory)
             return;
 
-        JOptionPane.showMessageDialog(frame,
-            resources.getStrings("Project_Closed.Message"),
+        Object message;
+        boolean wasRelaunched = StringUtils.hasValue(
+            teamProject.getUserSetting(RelaunchWorker.RELAUNCH_SOURCE_ID));
+        if (wasRelaunched) {
+            message = new Object[] {
+                    resources.getStrings("Project_Closed.Message_2"), " ",
+                    resources.getStrings("Project_Closed.Message_3"), " ",
+                    resources.getStrings("Project_Closed.Message_4"), };
+        } else {
+            message = new Object[] {
+                    resources.getStrings("Project_Closed.Message_1"), " ",
+                    resources.getStrings("Project_Closed.Message_3"), };
+        }
+
+        JOptionPane.showMessageDialog(frame, message,
             resources.getString("Project_Closed.Title"),
             JOptionPane.WARNING_MESSAGE);
     }

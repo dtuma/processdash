@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>Close Team Project</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+   li {
+      padding-bottom: 10px;
+   }
+</style>
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Close Team
+Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='close'>
+
+<p class="error">To close this project, the Team Dashboard needs to
+modify data in the team project plan.  Unfortunately, it was unable to
+perform this task.</p>
+
+<ul>
+
+<li>Please ensure that you are connected to the network.</li>
+
+<li>If you are currently editing the Work Breakdown Structure for the
+&quot;<!--#echo var=PATH_TRANSLATED -->&quot; project, please close
+the Work Breakdown Structure Editor before proceeding.</li>
+
+</ul>
+
+<p>After you have corrected these problems, click &quot;Retry&quot; to
+try the operation again.  If the problem persists, 
+<a href="/control/showConsole.class">click here</a> for additional
+information about the error that was encountered.</p>
+
+
+<table width="100%" style="margin-top:1cm"><tr>
+<td align="center"><input type="submit" name="confirm" value="Retry"></td>
+<td align="center"><input type="submit" name="cancel" value="Cancel"></td>
+</tr></table>
+
+</form>
+</body>
+</html>
