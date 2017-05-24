@@ -65,14 +65,18 @@
   <mapID target="TeamMemberManageData.defects" url="Topics/ManagingPersonalMetrics.html#defects" />
   <mapID target="TeamMemberManageData.size" url="Topics/ManagingPersonalMetrics.html#size" />
   <mapID target="TeamMemberManageData.pps" url="Topics/ManagingPersonalMetrics.html#pps" />
-  <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
-  <mapID target="TeamLeader.pps" url="Topics/TeamLeader.html#pps" />
-  <mapID target="TeamLeader.ev" url="Topics/TeamLeader.html#ev" />
-  <mapID target="TeamLeader.labelFiltering" url="Topics/TeamLeader.html#labelFiltering" />
-  <mapID target="TeamLeader.backups" url="Topics/TeamLeader.html#backups" />
-  <mapID target="TeamLeader.importExport" url="Topics/TeamLeader.html#importExport" />
-  <mapID target="TeamLeader.reassigning" url="Topics/TeamLeader.html#reassigning" />
-  <mapID target="TeamLeader.quickLauncher" url="Topics/TeamLeader.html#quickLauncher" />
 
+  <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
+  <mapID target="TeamLeaderProjectReports" url="Topics/TeamLeaderProjectReports.html" />
+  <mapID target="TeamLeader.pps" url="Topics/TeamLeaderProjectReports.html#pps" />
+  <mapID target="TeamLeader.ev" url="Topics/TeamLeaderProjectReports.html#ev" />
+  <mapID target="TeamLeader.labelFiltering" url="Topics/TeamLeaderProjectReports.html#labelFiltering" />
+  <mapID target="TeamLeaderManagePlan" url="Topics/TeamLeaderManagePlan.html" />
+  <mapID target="TeamLeader.reassigning" url="Topics/TeamLeaderManagePlan.html#reassigning" />
+  <mapID target="TeamLeaderData" url="Topics/TeamLeaderData.html" />
+  <mapID target="TeamLeader.backups" url="Topics/TeamLeaderData.html#backups" />
+  <mapID target="TeamLeader.importExport" url="Topics/TeamLeaderData.html#importExport" />
+  <mapID target="TeamLeader.quickLauncher" url="Topics/TeamLeaderData.html#quickLauncher" />
+  <mapID target="TeamLeaderProcess" url="Topics/TeamLeaderProcess.html" />
 
 </map>

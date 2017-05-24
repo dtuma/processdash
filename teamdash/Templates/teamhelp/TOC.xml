@@ -99,7 +99,17 @@
                               image="PageIcon" target="TeamMemberManageData" />
       </tocitem>
 
-      <tocitem text="Team Leaders" image="BookIcon" target="TeamLeader" />
+      <tocitem text="Team Leaders" image="BookIcon" target="TeamLeader" >
+
+            <tocitem text="Track Project Progress"
+                              image="PageIcon" target="TeamLeaderProjectReports" />
+            <tocitem text="Manage Team Plan"
+                              image="PageIcon" target="TeamLeaderManagePlan" />
+            <tocitem text="Manage Team Data"
+                              image="PageIcon" target="TeamLeaderData" />
+            <tocitem text="Analyze Process Metrics"
+                              image="PageIcon" target="TeamLeaderProcess" />
+      </tocitem>
 
    </tocitem>
 
