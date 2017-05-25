@@ -173,5 +173,62 @@ components which are 100% complete.</li>
 
 
 
+<h2><a name="groupFiltering"></a>Analyzing Filtered Data Using Groups</h2>
+
+<p>The people collaborating on a project can often be categorized in various
+ways.  For example, you might have:</p>
+
+<ul>
+
+<li>people from different reporting units within the organization</li>
+
+<li>people of different engineering disciplines, such as analysts, developers
+and QA</li>
+
+<li>different subteams within a project, each focused on a different area</li>
+
+</ul>
+
+<p>The Team Dashboard allows you to define arbitrary groups to describe these
+collections of people.  To do this, choose "Edit Groups" from the "Tools"
+menu.</p>
+
+<p class="figure"><img src="../Images/team-tools-groups.png"></p>
+
+<p>The group editor will appear, allowing you to add, copy, rename, and
+delete groups.  If you highlight the name of a group on the left, you can
+select the individuals who should be included in the group on the right.  The
+names on the right side are taken from the list of people who have 
+<a href="InviteJoin.html">joined projects</a> in this Team Dashboard.</p>
+
+<p class="figure"><img src="../Images/team-edit-groups.png"></p>
+
+<p>Once groups have been defined, you can filter your view of the Team
+Dashboard to show data pertaining to a given group.  Just click the group
+selector that appears in the top right corner of the main Team Dashboard
+window.  The tree will narrow to show projects that the given individuals are
+participating in.  To remove the filter, click the group selector and choose
+"Everyone" (the default initial value).</p>
+
+<p class="figure"><img src="../Images/team-scripts.png"></p>
+
+<p>After you select a group, that filter will be inherited by other windows
+and reports that you open.  For example, if you open the Project Task &amp;
+Schedule window, it will only show earned value data from people in the
+selected group.  And if you open a report like the <a href="#pps">Project Plan
+Summary</a>, the sums will only show data from people in the selected group.
+You can change the active filter dynamically by clicking the group selector at
+the top of a particular window or report.  This can be extremely useful as a
+way to monitor project progress for a particular subteam, reporting unit,
+etc.</p>
+
+<p>Group filters should not be used to view data for a single individual,
+since that would be a violation of TSP data privacy ethics.  Accordingly, the
+Team Dashboard reports perform a check to see whether a given group filter
+would predominately display data for a single individual.  If so, the data in
+the report will be censored to protect that individual's data privacy.</p>
+
+
+
 </body>
 </html>

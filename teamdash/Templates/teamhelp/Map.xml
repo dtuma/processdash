@@ -71,6 +71,7 @@
   <mapID target="TeamLeader.pps" url="Topics/TeamLeaderProjectReports.html#pps" />
   <mapID target="TeamLeader.ev" url="Topics/TeamLeaderProjectReports.html#ev" />
   <mapID target="TeamLeader.labelFiltering" url="Topics/TeamLeaderProjectReports.html#labelFiltering" />
+  <mapID target="TeamLeader.groupFiltering" url="Topics/TeamLeaderProjectReports.html#groupFiltering" />
   <mapID target="TeamLeaderManagePlan" url="Topics/TeamLeaderManagePlan.html" />
   <mapID target="TeamLeader.reassigning" url="Topics/TeamLeaderManagePlan.html#reassigning" />
   <mapID target="TeamLeaderData" url="Topics/TeamLeaderData.html" />
