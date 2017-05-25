@@ -109,6 +109,8 @@
                               image="PageIcon" target="TeamLeaderData" />
             <tocitem text="Analyze Process Metrics"
                               image="PageIcon" target="TeamLeaderProcess" />
+            <tocitem text="Manage Permissions and Privacy"
+                              image="PageIcon" target="TeamLeaderPermissions" />
       </tocitem>
 
    </tocitem>

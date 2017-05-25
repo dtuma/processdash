@@ -79,5 +79,9 @@
   <mapID target="TeamLeader.importExport" url="Topics/TeamLeaderData.html#importExport" />
   <mapID target="TeamLeader.quickLauncher" url="Topics/TeamLeaderData.html#quickLauncher" />
   <mapID target="TeamLeaderProcess" url="Topics/TeamLeaderProcess.html" />
+  <mapID target="TeamLeaderPermissions" url="Topics/TeamLeaderPermissions.html" />
+  <mapID target="TeamLeaderPermissions.roles" url="Topics/TeamLeaderPermissions.html#roles" />
+  <mapID target="TeamLeaderPermissions.users" url="Topics/TeamLeaderPermissions.html#users" />
+  <mapID target="TeamLeaderPermissions.privacy" url="Topics/TeamLeaderPermissions.html#privacy" />
 
 </map>
