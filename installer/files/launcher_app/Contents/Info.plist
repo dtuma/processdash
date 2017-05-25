@@ -36,6 +36,7 @@
         <array>
           <string>zip</string>
           <string>pdbk</string>
+          <string>rpdbk</string>
         </array>
       </dict>
     </array>

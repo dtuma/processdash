@@ -418,9 +418,15 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
 
-        try {
-            new MacOSXWBSHelper(this);
-        } catch (Throwable t) {}
+        if (MacGUIUtils.isMacOSX()) {
+            try {
+                new MacOSXWBSHelperJava9();
+            } catch (Throwable t1) {
+                try {
+                    new MacOSXWBSHelper(this);
+                } catch (Throwable t2) {}
+            }
+        }
 
         String windowTitle;
         if (workingDirectory instanceof CompressedWorkingDirectory)

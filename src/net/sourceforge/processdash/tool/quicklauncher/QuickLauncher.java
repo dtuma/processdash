@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2015 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -128,7 +128,9 @@ public class QuickLauncher {
                 launchFilename(fileToLaunch);
 
             new FallbackObjectFactory<Initializable>(Initializable.class)
-                .add(MAC_HELPER_CLASS).get().initialize(this);
+                .add(MAC_HELPER_CLASS + "Java9")
+                .add(MAC_HELPER_CLASS)
+                .get().initialize(this);
 
         } catch (Exception e) {
             abortWithError(e.getMessage());

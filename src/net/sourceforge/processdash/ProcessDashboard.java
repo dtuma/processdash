@@ -841,6 +841,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void initializeOsHelper() {
         try {
             osHelper = new FallbackObjectFactory<Initializable>(Initializable.class)
+                    .add(MAC_OS_X_HELPER_CLASS + "Java9")
                     .add(MAC_OS_X_HELPER_CLASS)
                     .get();
             osHelper.initialize(this);
