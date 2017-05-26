@@ -126,6 +126,10 @@ public class AssignedToComboBox extends JComboBox {
         document.setWordPattern(p);
     }
 
+    public void setSeparatorChar(char sep) {
+        document.setSeparatorChar(sep);
+    }
+
     private class FocusHandler extends FocusAdapter {
         // mark current word when the text component gains focus
         public void focusGained(FocusEvent e) {

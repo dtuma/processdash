@@ -775,6 +775,7 @@ public class UserEditor {
             super(new AssignedToComboBox(true));
             comboBox = (AssignedToComboBox) getComboBox();
             comboBox.setWordPattern(ROLE_NAME_PAT);
+            comboBox.setSeparatorChar(',');
             comboBox.setInitialsList(getRoleNames());
         }
 

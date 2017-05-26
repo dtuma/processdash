@@ -87,6 +87,18 @@ public class AssignedToDocument extends PlainDocument {
     private Pattern wordPattern = DEFAULT_WORD_PAT;
 
     /**
+     * Flag indicating whether we should use enhanced logic (checking the
+     * wordPattern) to determine if a character is a letter.
+     */
+    private boolean testLettersAgainstPattern = false;
+
+    // local versions of the well-known separator constants
+    private char separatorChar = SEPARATOR_CHAR;
+    private String separator = SEPARATOR;
+    private String separatorSpace = SEPARATOR_SPACE;
+
+
+    /**
      * Creates a new AssignedToDocument.
      * 
      * @param adaptor
@@ -134,6 +146,17 @@ public class AssignedToDocument extends PlainDocument {
 
     public void setWordPattern(Pattern wordPattern) {
         this.wordPattern = wordPattern;
+        this.testLettersAgainstPattern = true;
+    }
+
+    public char getSeparatorChar() {
+        return separatorChar;
+    }
+
+    public void setSeparatorChar(char sep) {
+        this.separatorChar = sep;
+        this.separator = String.valueOf(sep);
+        this.separatorSpace = separator + " ";
     }
 
     @Override
@@ -240,7 +263,7 @@ public class AssignedToDocument extends PlainDocument {
     private int skipPriorSeparation(int pos) throws BadLocationException {
         while (pos > 0) {
             char ch = getText(pos - 1, 1).charAt(0);
-            if (ch == ' ' || ch == SEPARATOR_CHAR)
+            if (ch == ' ' || ch == separatorChar)
                 pos--;
             else
                 break;
@@ -276,7 +299,7 @@ public class AssignedToDocument extends PlainDocument {
             } else {
                 badInput();
             }
-            justInsertedSeparator = (ch == SEPARATOR_CHAR);
+            justInsertedSeparator = (ch == separatorChar);
         } catch (BadInputException bie) {
         }
     }
@@ -350,17 +373,17 @@ public class AssignedToDocument extends PlainDocument {
         // ensure that the document ends with a final separator and space
         int endPos = getLength();
         String currentText = getText(0, endPos);
-        if (currentText.endsWith(SEPARATOR_SPACE)) {
+        if (currentText.endsWith(separatorSpace)) {
             // separator already present
-        } else if (currentText.endsWith(SEPARATOR)) {
+        } else if (currentText.endsWith(separator)) {
             // insert space after final separator
             super.insertString(endPos, " ", null);
         } else if (currentText.endsWith(" ")) {
             // insert separator before final space
-            super.insertString(endPos - 1, SEPARATOR, null);
+            super.insertString(endPos - 1, separator, null);
         } else if (currentText.length() > 0) {
             // append separator and space char
-            super.insertString(endPos, SEPARATOR_SPACE, null);
+            super.insertString(endPos, separatorSpace, null);
         }
     }
 
@@ -402,7 +425,7 @@ public class AssignedToDocument extends PlainDocument {
         // * if the cursor is at the beginning of the number. For parsing
         //   purposes we don't allow numbers to begin with a comma.
         if (str.charAt(0) == ',' && (w.isLetters() || offset == w.beg)) {
-            tryInsertPunctuation(offset, SEPARATOR_CHAR);
+            tryInsertPunctuation(offset, separatorChar);
             return;
         }
 
@@ -464,7 +487,7 @@ public class AssignedToDocument extends PlainDocument {
                 super.insertString(len++, " ", null);
             adaptor.setCaret(len);
 
-        } else if (ch == SEPARATOR_CHAR) {
+        } else if (ch == separatorChar) {
             // when the user types a separator, try moving the caret to the
             // next set of initials
             List<Word> words = getWords();
@@ -517,7 +540,12 @@ public class AssignedToDocument extends PlainDocument {
     }
 
     private boolean isLetter(char c) {
-        return Character.isLetter(c);
+        if (Character.isLetter(c))
+            return true;
+        else if (testLettersAgainstPattern)
+            return wordPattern.matcher("A" + c).matches();
+        else
+            return false;
     }
 
     private boolean isNumber(char c) {
@@ -525,7 +553,7 @@ public class AssignedToDocument extends PlainDocument {
     }
 
     private boolean isPunctuation(char c) {
-        return c == ' ' || c == '(' || c == ')' || c == SEPARATOR_CHAR;
+        return c == ' ' || c == '(' || c == ')' || c == separatorChar;
     }
 
     private void badInput() {

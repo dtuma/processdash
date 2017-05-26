@@ -204,7 +204,7 @@ public class EditableUser {
             for (String oneName : roleNames.split(",")) {
                 Role r = PermissionsManager.getInstance()
                         .getRoleByName(oneName.trim());
-                if (r != null)
+                if (r != null && !roleIDs.contains(r.getId()))
                     roleIDs.add(r.getId());
             }
             setRoleIDs(roleIDs);
