@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,16 +26,17 @@ package teamdash.wbs.columns;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -197,6 +198,9 @@ public class TaskLabelColumn extends AbstractDataColumn implements
 
     private static final String NON_LABEL_CHARS_REGEXP = "[,\u0000- |()]+";
 
+    private static final Pattern LABEL_REGEXP = Pattern
+            .compile("([^" + NON_LABEL_CHARS_REGEXP.substring(1) + ")");
+
     public TableCellRenderer getCellRenderer() {
         return LABEL_RENDERER;
     }
@@ -207,19 +211,30 @@ public class TaskLabelColumn extends AbstractDataColumn implements
 
     private class TaskLabelCellEditor extends AutocompletingDataTableCellEditor {
 
+        private AssignedToComboBox comboBox;
+
+        public TaskLabelCellEditor() {
+            super(new AssignedToComboBox(false));
+            comboBox = (AssignedToComboBox) getComboBox();
+            comboBox.setWordPattern(LABEL_REGEXP);
+            comboBox.setSeparatorChar(',');
+        }
+
         @Override
         public Component getTableCellEditorComponent(JTable table,
                 Object value, boolean isSelected, int row, int column) {
 
             // refresh the data model with the current set of known labels.
-            Set labels = collectLabels(table);
-            getComboBox().removeAllItems();
-            for (Iterator i = labels.iterator(); i.hasNext();)
-                getComboBox().addItem(i.next());
+            comboBox.setInitialsList(new ArrayList(collectLabels(table)));
 
-            // now defer to the parent for the rest of the work.
-            return super.getTableCellEditorComponent(table, ErrorValue
-                    .unwrap(value), isSelected, row, column);
+            // call super() so the editor setup timer will be restarted
+            super.getTableCellEditorComponent(table, null, isSelected, row,
+                column);
+
+            // initialize the combo box contents and return it
+            Object val = ErrorValue.unwrap(value);
+            comboBox.setFullText(val == null ? "" : val.toString());
+            return comboBox;
         }
 
         private Set collectLabels(JTable table) {
@@ -233,7 +248,6 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         private void collectLabels(Set labels, WBSNode node) {
             String nodeValue = (String) node.getAttribute(explicitValueAttr);
             if (nodeValue != null) {
-                labels.add(nodeValue);
                 for (String l : nodeValue.split(NON_LABEL_CHARS_REGEXP))
                     if (l.length() > 0)
                         labels.add(l);
@@ -242,6 +256,11 @@ public class TaskLabelColumn extends AbstractDataColumn implements
             WBSNode[] children = wbsModel.getChildren(node);
             for (int i = 0; i < children.length; i++)
                 collectLabels(labels, children[i]);
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return comboBox.getFullText();
         }
 
     }

@@ -64,6 +64,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.hist.BlameModelData;
@@ -696,11 +697,20 @@ public class WBSFilterAction extends AbstractAction
 
         @Override
         protected void clearValue() {
-            valueField.setSelectedItem("");
+            if (valueField instanceof AssignedToComboBox) {
+                ((AssignedToComboBox) valueField).setFullText("");
+            } else {
+                valueField.setSelectedItem("");
+            }
         }
 
         public String getValue() {
-            Object item = valueField.getSelectedItem();
+            Object item;
+            if (valueField instanceof AssignedToComboBox) {
+                item = ((AssignedToComboBox) valueField).getFullText();
+            } else {
+                item = valueField.getSelectedItem();
+            }
             String result = (item == null ? "" : item.toString().trim());
             return (result.length() > 0 ? result : null);
         }
