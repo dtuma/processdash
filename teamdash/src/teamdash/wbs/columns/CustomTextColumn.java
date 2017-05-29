@@ -69,10 +69,8 @@ public class CustomTextColumn extends AbstractLabelColumn implements
 
         allowedValues = parseAllowedValues(xml);
 
-        String separatorRegexp = multivalued ? "," : null;
-
-        init(dataModel, id, name, width, attrName, separatorRegexp,
-            labelPrefix, inherits, autocomplete);
+        init(dataModel, id, name, width, attrName, multivalued,
+            labelPrefix, inherits, autocomplete, isConstrainedValues());
     }
 
     public CustomTextColumn(DataTableModel dataModel, String id, String name,
@@ -89,10 +87,8 @@ public class CustomTextColumn extends AbstractLabelColumn implements
         this.autocomplete = autocomplete;
         this.allowedValues = allowedValues;
 
-        String separatorRegexp = multivalued ? "," : null;
-
-        init(dataModel, id, name, -1, attrName, separatorRegexp, labelPrefix,
-            inherits, autocomplete);
+        init(dataModel, id, name, -1, attrName, multivalued, labelPrefix,
+            inherits, autocomplete, isConstrainedValues());
     }
 
     private boolean test(Element xml, String attrName, boolean defaultVal) {

@@ -32,11 +32,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -60,14 +62,14 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
     private String inheritedAttr;
     private String separatorRegexp;
     String labelPrefix;
-    private boolean autocomplete;
+    private boolean autocomplete, constrained;
 
     protected AbstractLabelColumn() {}
 
     protected void init(DataTableModel dataModel, String columnID,
             String columnName, int columnWidth, String attribute,
-            String separatorRegexp, String labelPrefix, boolean inherits,
-            boolean autocomplete) {
+            boolean multivalued, String labelPrefix, boolean inherits,
+            boolean autocomplete, boolean constrained) {
 
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
@@ -77,9 +79,10 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
         this.explicitAttr = attribute;
         if (inherits)
             this.inheritedAttr = "Inherited_" + attribute;
-        this.separatorRegexp = separatorRegexp;
+        this.separatorRegexp = (multivalued ? "," : null);
         this.labelPrefix = labelPrefix;
         this.autocomplete = autocomplete;
+        this.constrained = constrained;
         setConflictAttributeName(attribute);
     }
 
@@ -221,10 +224,12 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
     }
 
     public TableCellEditor getCellEditor() {
-        if (autocomplete)
-            return new TaskLabelCellEditor();
-        else
+        if (autocomplete == false)
             return null;
+        else if (",".equals(separatorRegexp))
+            return new TaskMultiLabelCellEditor();
+        else
+            return new TaskLabelCellEditor();
     }
 
     protected Set<String> getAutocompleteValues() {
@@ -240,9 +245,7 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
     protected void collectValuesInUse(Set<String> values, WBSNode node) {
         String nodeValue = (String) node.getAttribute(explicitAttr);
         if (nodeValue != null && !nodeValue.equals(EMPTY_VALUE)) {
-            values.add(nodeValue);
-            if (separatorRegexp != null)
-                values.addAll(getValues(nodeValue, false));
+            values.addAll(getValues(nodeValue, false));
         }
 
         WBSNode[] children = wbsModel.getChildren(node);
@@ -269,10 +272,46 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
 
     }
 
+    private class TaskMultiLabelCellEditor extends AutocompletingDataTableCellEditor {
+
+        private AssignedToComboBox comboBox;
+
+        public TaskMultiLabelCellEditor() {
+            super(new AssignedToComboBox(constrained));
+            comboBox = (AssignedToComboBox) getComboBox();
+            comboBox.setWordPattern(WORD_REGEXP);
+            comboBox.setSeparatorChar(',');
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+
+            // refresh the data model with the current set of known labels.
+            comboBox.setInitialsList(new ArrayList(getAutocompleteValues()));
+
+            // call super() so the editor setup timer will be restarted
+            super.getTableCellEditorComponent(table, null, isSelected, row,
+                column);
+
+            // initialize the combo box contents and return it
+            Object val = ErrorValue.unwrap(value);
+            comboBox.setFullText(val == null ? "" : val.toString());
+            return comboBox;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return comboBox.getFullText();
+        }
+
+    }
+
 
     private static final String EMPTY_VALUE = " ";
     private static final String EFFECTIVE_LABEL_MESSAGE = "Inherited Value";
     private static final TableCellRenderer LABEL_RENDERER =
         new ItalicCellRenderer(EFFECTIVE_LABEL_MESSAGE);
+    private static final Pattern WORD_REGEXP = Pattern.compile("([^ ,][^,]*)");
 
 }
