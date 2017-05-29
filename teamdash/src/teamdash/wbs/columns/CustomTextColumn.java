@@ -179,6 +179,10 @@ public class CustomTextColumn extends AbstractLabelColumn implements
             return getValuesInUse();
     }
 
+    public boolean isMultivalued() {
+        return multivalued;
+    }
+
     public boolean isConstrainedValues() {
         return allowedValues != null;
     }

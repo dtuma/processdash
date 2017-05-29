@@ -169,6 +169,11 @@ public class WBSFilterFactory {
         };
     }
 
+    public static boolean isRegexp(String text) {
+        return text != null && (text.startsWith("^") || text.endsWith("$")
+                || text.startsWith("~") || text.contains(".*"));
+    }
+
 
     private static abstract class TextFilter implements WBSFilter {
 
@@ -180,7 +185,7 @@ public class WBSFilterFactory {
 
         public TextFilter(int mask, String[] tokens) {
             this.mask = mask;
-            if (tokens.length > 1 && isRegexp(tokens))
+            if (tokens.length > 1 && isRegexpArr(tokens))
                 tokens = new String[] {
                         StringUtils.join(Arrays.asList(tokens), "|") };
 
@@ -192,21 +197,25 @@ public class WBSFilterFactory {
                 String t = tokens[i];
                 if (t == null)
                     continue;
-                if (is(WHOLE_WORDS))
-                    t = t.trim();
-                if (is(IGNORE_CASE))
-                    t = t.toLowerCase();
+                if (!isRegexp(t)) {
+                    if (is(WHOLE_WORDS))
+                        t = t.trim();
+                    if (is(IGNORE_CASE))
+                        t = t.toLowerCase();
+                }
                 this.tokens[i] = (t.length() > 0 ? t : null);
             }
         }
 
         public boolean match(WBSNode node) {
             String text = getNodeText(node);
-            if (text == null && tokens.length > 0 && tokens[0] == null)
-                return true;
-
-            if (text == null || text.length() == 0)
+            if (text == null || text.length() == 0) {
+                for (String t : tokens) {
+                    if (t == null || t.endsWith("^$"))
+                        return true;
+                }
                 return false;
+            }
 
             if (is(IGNORE_CASE))
                 text = text.toLowerCase();
@@ -232,17 +241,12 @@ public class WBSFilterFactory {
             return false;
         }
 
-        private boolean isRegexp(String[] tokens) {
+        private boolean isRegexpArr(String[] tokens) {
             for (String t : tokens) {
                 if (isRegexp(t))
                     return true;
             }
             return false;
-        }
-
-        private boolean isRegexp(String text) {
-            return (text.startsWith("^") || text.endsWith("$")
-                    || text.startsWith("~") || text.contains(".*"));
         }
 
         private boolean matchesRegexp(String text, int pos) {
@@ -251,7 +255,8 @@ public class WBSFilterFactory {
                     String pat = tokens[pos];
                     if (pat.startsWith("~"))
                         pat = pat.substring(1);
-                    regexpPatterns[pos] = Pattern.compile(pat);
+                    regexpPatterns[pos] = Pattern.compile(pat,
+                        is(IGNORE_CASE) ? Pattern.CASE_INSENSITIVE : 0);
                 } catch (PatternSyntaxException pse) {
                     tokens[pos] = null;
                     return false;

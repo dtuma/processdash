@@ -232,6 +232,13 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
             return new TaskLabelCellEditor();
     }
 
+    public TableCellEditor getFilterEditor() {
+        if (autocomplete == false)
+            return null;
+        else
+            return new TaskMultiLabelCellEditor();
+    }
+
     protected Set<String> getAutocompleteValues() {
         return getValuesInUse();
     }

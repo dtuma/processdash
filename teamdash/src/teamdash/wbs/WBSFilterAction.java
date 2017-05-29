@@ -347,9 +347,7 @@ public class WBSFilterAction extends AbstractAction
         if (column instanceof CustomTextColumn) {
             CustomTextColumn ctc = (CustomTextColumn) column;
             if (ctc.isAutocomplete()) {
-                CompletingField cf = new CompletingField(id);
-                cf.nullItemText = resources.getString("Items.Custom_None");
-                f = cf;
+                f = new CustomColumnField(id);
             } else {
                 f = new TextField(id, "\\s*\\|+\\s*");
             }
@@ -643,11 +641,11 @@ public class WBSFilterAction extends AbstractAction
     private class CompletingField extends AbstractFilterField implements
             KeyListener {
 
-        protected String nullItemText;
+        protected String nullItemText, nullItemSelection;
 
         protected JComboBox valueField;
 
-        private TableCellEditor cellEditor;
+        protected TableCellEditor cellEditor;
 
         public CompletingField(String columnID) {
             super(columnID);
@@ -690,8 +688,8 @@ public class WBSFilterAction extends AbstractAction
 
         private void maybeAddNullItem() {
             if (nullItemText != null) {
-                String itemText = "\u00AB" + nullItemText + "\u00BB";
-                valueField.insertItemAt(itemText, 0);
+                nullItemSelection = "\u00AB" + nullItemText + "\u00BB";
+                valueField.insertItemAt(nullItemSelection, 0);
             }
         }
 
@@ -717,10 +715,14 @@ public class WBSFilterAction extends AbstractAction
 
         @Override
         public String[] getValues() {
-            if (nullItemText != null && valueField.getSelectedIndex() == 0)
-                return new String[] { null };
-            else
-                return super.getValues();
+            String[] result = super.getValues();
+            if (result != null && nullItemSelection != null) {
+                for (int i = result.length; i-- > 0;) {
+                    if (nullItemSelection.equals(result[i]))
+                        result[i] = null;
+                }
+            }
+            return result;
         }
 
         public void keyPressed(KeyEvent e) {
@@ -824,6 +826,92 @@ public class WBSFilterAction extends AbstractAction
             } else
                 super.keyPressed(e);
         }
+
+    }
+
+
+    /** A component for editing filter values for a custom column */
+    private class CustomColumnField extends CompletingField {
+
+        private boolean multivalued;
+
+        public CustomColumnField(String columnID) {
+            super(columnID, "\\s*,\\s*");
+            nullItemText = resources.getString("Items.Custom_None");
+            multivalued = ((CustomTextColumn) column).isMultivalued();
+            if (!multivalued)
+                mask = WBSFilterFactory.IGNORE_CASE
+                        + WBSFilterFactory.ENTIRE_VALUE;
+        }
+
+        @Override
+        protected JComboBox getComboBox() {
+            cellEditor = ((CustomTextColumn) column).getFilterEditor();
+            return (JComboBox) cellEditor.getTableCellEditorComponent(
+                tabPanel.dataTable, "", false, 0, -1);
+        }
+
+        @Override
+        public void refreshValues() {
+            super.refreshValues();
+            if (!multivalued) {
+                // single-valued columns can contain commas in the cell values,
+                // but those commas would be misrecognized by the logic in this
+                // class that allows multiple filter values. Replace any commas
+                // in cell values with an alternative unicode-comma character.
+                for (int i = valueField.getItemCount(); i-- > 1;) {
+                    String item = (String) valueField.getItemAt(i);
+                    if (item.indexOf(',') != -1) {
+                        String repl = item.replace(',', COMMA_REPL);
+                        valueField.insertItemAt(repl, i);
+                        valueField.removeItemAt(i + 1);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public String[] getValues() {
+            String[] result = super.getValues();
+
+            if (result == null) {
+                // no filter? return unchanged
+
+            } else if (result.length == 1 && (result[0] == null
+                    || WBSFilterFactory.isRegexp(result[0]))) {
+                // single "no value" or regexp filter? return unchanged
+
+            } else if (!multivalued) {
+                // single-valued column? Remove any comma replacements
+                for (int i = result.length; i-- > 0;) {
+                    if (result[i] != null)
+                        result[i] = result[i].replace(COMMA_REPL, ',');
+                }
+
+            } else {
+                // multivalued column: build a regexp to look for matches,
+                // where we require each token to match a complete value within
+                // a multivalued list
+                boolean sawNullToken = false;
+                StringBuilder pat = new StringBuilder();
+                pat.append("~((^|,\\s*)(");
+                for (String tok : result) {
+                    if (tok == null)
+                        sawNullToken = true;
+                    else
+                        pat.append("\\Q").append(tok).append("\\E|");
+                }
+                pat.setLength(pat.length() - 1);
+                pat.append(")($|,))");
+                if (sawNullToken)
+                    pat.append("|^$");
+                result = new String[] { pat.toString() };
+            }
+
+            return result;
+        }
+
+        private static final char COMMA_REPL = '\uFE50';
 
     }
 
