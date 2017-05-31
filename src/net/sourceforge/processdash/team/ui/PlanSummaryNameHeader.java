@@ -207,10 +207,15 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
 
         // display an icon to represent this group filter
         out.print("<img border='0' src='/Images/userGroup");
+        int width = 23;
         if (isPrivacyViolation)
             out.print("Privacy");
         else if (f instanceof UserGroupMember)
             out.print("Member");
+        else if (UserGroup.isEveryone(f)) {
+            out.print("Everyone");
+            width = 28;
+        }
         out.print(".png' ");
         if (isPrivacyViolation)
             out.print("title='Group filter blocked to protect data privacy' ");
@@ -218,7 +223,8 @@ public class PlanSummaryNameHeader extends SelectWBSNode {
             out.print("title='Filter to group' ");
         else if (!UserGroup.isEveryone(f))
             out.print("title='Group filter is in effect' ");
-        out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px; width:22px; height:22px'>");
+        out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px; "
+                + "width:" + width + "px; height:23px'>");
 
         if (!exporting)
             out.print("</a>");

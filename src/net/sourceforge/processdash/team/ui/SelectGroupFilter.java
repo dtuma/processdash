@@ -107,9 +107,15 @@ public class SelectGroupFilter extends TinyCGIBase {
         if (indent)
             out.print(" style='padding-left:1cm'");
         out.print("><img src='/Images/userGroup");
+        int width = 16;
         if (f instanceof UserGroupMember)
             out.print("Member");
-        out.print(".png' style='margin-right: 2px; position:relative; top:2px; width:16px; height:16px'>");
+        else if (UserGroup.isEveryone(f)) {
+            out.print("Everyone");
+            width = 19;
+        }
+        out.print(".png' style='margin-right: 2px; position:relative; top:2px; "
+                + "width:" + width + "px; height:16px'>");
         out.print("<a href='selectGroupFilter?filter=");
         out.print(HTMLUtils.urlEncode(f.getId()));
         out.print(extraLinkArgs);

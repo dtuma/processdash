@@ -1116,18 +1116,23 @@ public class EVReport extends CGIChartBase {
                             EVReportSettings.GROUP_FILTER_AUTO_PARAM));
                 if (showGroupHyperlink)
                     out.print("<a href='../team/setup/selectGroupFilter'>");
+                int width = 23;
                 out.print("<img border=0 src='/Images/userGroup");
                 if (isPrivacyViolation)
                     out.print("Privacy");
                 else if (groupFilter instanceof UserGroupMember)
                     out.print("Member");
+                else if (UserGroup.isEveryone(groupFilter)) {
+                    out.print("Everyone");
+                    width = 28;
+                }
                 out.print(".png' ");
                 if (isPrivacyViolation)
                     out.print("title='Group filter blocked to protect data privacy' ");
                 else if (showGroupHyperlink)
                     out.print("title='Filter to group' ");
                 out.print("style='margin: 0px 2px 0px 10px; position:relative; top:3px' "
-                        + "width='23' height='23'>");
+                        + "width='" + width + "' height='23'>");
                 if (showGroupHyperlink)
                     out.print("</a>");
             }

@@ -44,7 +44,7 @@ import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
 
-    private Icon groupIcon, personIcon;
+    private Icon everyoneIcon, groupIcon, personIcon;
 
     private EventListenerList listeners;
 
@@ -53,6 +53,7 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
     private boolean showIndividuals;
 
     public GroupFilterMenu(UserFilter initialSelection, boolean showIndivs) {
+        everyoneIcon = DashboardIconFactory.getEveryoneIcon();
         groupIcon = DashboardIconFactory.getGroupIcon();
         personIcon = DashboardIconFactory.getIndividualIcon();
         listeners = new EventListenerList();
@@ -78,7 +79,7 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
     public void setSelectedItem(UserFilter selection) {
         if (selection instanceof UserGroup) {
             UserGroup g = (UserGroup) selection;
-            setIcon(groupIcon);
+            setIcon(UserGroup.isEveryone(g) ? everyoneIcon : groupIcon);
             setText(g.toString());
 
         } else if (selection instanceof UserGroupMember) {

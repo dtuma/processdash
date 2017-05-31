@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -299,7 +299,7 @@ public class UserGroupSelector {
     private class ChoiceRenderer extends DefaultTreeCellRenderer implements
             TableCellRenderer {
 
-        private Icon groupIcon, personIcon, loadingIcon;
+        private Icon everyoneIcon, groupIcon, personIcon, loadingIcon;
 
         private Border plain, line;
 
@@ -312,6 +312,7 @@ public class UserGroupSelector {
         private JPanel panel;
 
         public ChoiceRenderer(JFilterableTreeComponent selector) {
+            everyoneIcon = DashboardIconFactory.getEveryoneIcon();
             groupIcon = DashboardIconFactory.getGroupIcon();
             personIcon = DashboardIconFactory.getIndividualIcon();
             loadingIcon = DashboardIconFactory.getHourglassIcon();
@@ -355,7 +356,8 @@ public class UserGroupSelector {
 
             // configure special icons for individuals and groups
             if (value instanceof UserGroup)
-                setIcon(groupIcon);
+                setIcon(UserGroup.isEveryone((UserGroup) value) //
+                        ? everyoneIcon : groupIcon);
             else if (value instanceof UserGroupMember)
                 setIcon(personIcon);
             else if (value == loadingLabel)

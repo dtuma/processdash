@@ -157,6 +157,10 @@ public class DashboardIconFactory {
         return loadAndScaleIcon("icons/hourglass", true);
     }
 
+    public static Icon getEveryoneIcon() {
+        return loadAndScaleIcon("icons/everyone", true);
+    }
+
     public static Icon getGroupIcon() {
         return loadAndScaleIcon("icons/group", true);
     }
