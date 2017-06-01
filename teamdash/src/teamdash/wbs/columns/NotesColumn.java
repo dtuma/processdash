@@ -32,9 +32,6 @@ public class NotesColumn extends AbstractNotesColumn {
     /** The ID we use for this column in the data model */
     public static final String COLUMN_ID = "Notes";
 
-    /** The name for this column */
-    private static final String COLUMN_NAME = "Notes";
-
     /** The attribute this column uses to store task notes for a WBS node */
     public static final String VALUE_ATTR = "Notes";
 
@@ -45,12 +42,12 @@ public class NotesColumn extends AbstractNotesColumn {
     protected NotesColumn(String valueAttr, String authorName) {
         super(valueAttr, authorName);
         this.columnID = COLUMN_ID;
-        this.columnName = COLUMN_NAME;
+        this.columnName = resources.getString("Notes.Name");
     }
 
     @Override
     protected String getEditDialogTitle() {
-        return "Edit Notes";
+        return resources.getString("Notes.Edit_Dialog_Title");
     }
 
 

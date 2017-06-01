@@ -61,7 +61,8 @@ public class MilestoneColumn extends AbstractDataColumn implements
 
     public MilestoneColumn(DataTableModel dataModel,
             MilestonesWBSModel milestoneModel) {
-        this.columnName = this.columnID = COLUMN_ID;
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Milestone.Name");
         this.preferredWidth = 200;
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
@@ -203,7 +204,8 @@ public class MilestoneColumn extends AbstractDataColumn implements
 
 
     private static final Integer NO_MILESTONE = -1;
-    private static final String EFFECTIVE_MILESTONE_MESSAGE = "Inherited Value";
+    private static final String EFFECTIVE_MILESTONE_MESSAGE =
+            resources.getString("Inherited_Tooltip");
     private static final TableCellRenderer MILESTONE_RENDERER = new ItalicCellRenderer(
             EFFECTIVE_MILESTONE_MESSAGE);
 

@@ -37,7 +37,8 @@ public class PercentCompleteColumn extends AbstractPrecomputedColumn implements
     public static final String RESULT_ATTR = "Percent_Complete";
 
     protected PercentCompleteColumn() {
-        super(COLUMN_ID, "%C", RESULT_ATTR, TeamActualTimeColumn.COLUMN_ID);
+        super(COLUMN_ID, resources.getString("Percent_Complete.Name"),
+                RESULT_ATTR, TeamActualTimeColumn.COLUMN_ID);
         this.preferredWidth = 40;
     }
 

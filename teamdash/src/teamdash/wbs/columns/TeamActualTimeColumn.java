@@ -100,7 +100,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
         this.teamMembers = teamMembers;
         this.rollupEveryone = true;
         this.columnID = COLUMN_ID;
-        this.columnName = "Actual Time";
+        this.columnName = resources.getString("Actual_Team_Time.Name");
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID,
                 MilestoneColumn.COLUMN_ID };
 

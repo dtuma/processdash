@@ -110,7 +110,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
 
     public TeamTimeColumn(DataTableModel m) {
         super(m, resources.getString("Team_Time.Name"), COLUMN_ID);
-        this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
+        this.dependentColumns = new String[] {
+                TaskSizeColumn.COLUMN_ID, TaskSizeUnitsColumn.COLUMN_ID };
         this.setTeamMemberColumns(new IntList());
         this.preferredWidth = 55;
         setConflictAttributeName(topDownAttrName);
@@ -129,9 +130,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
 
 
     public void storeDependentColumn(String ID, int columnNumber) {
-        if ("Task Size".equals(ID))
+        if (TaskSizeColumn.COLUMN_ID.equals(ID))
             sizeColumn = columnNumber;
-        else if ("Task Size Units".equals(ID)) {
+        else if (TaskSizeUnitsColumn.COLUMN_ID.equals(ID)) {
             unitsColumn = columnNumber;
             setTeamMemberColumns(dataModel.getTeamMemberColumnIDs());
         }
@@ -2352,9 +2353,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
 
         public TeamTimeNoErrorColumn() {
             this.columnName = resources.getString("Team_Time.Name");
-            this.columnID = "TimeNoErr";
+            this.columnID = TIME_NO_ERR_COL_ID;
             this.preferredWidth = 55;
-            this.dependentColumns = new String[] { "Time" };
+            this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID };
         }
 
         public Object getValueAt(WBSNode node) {
@@ -2373,7 +2374,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         public boolean recalculate() { return true; }
 
         public void storeDependentColumn(String ID, int columnNumber) {
-            if ("Time".equals(ID))
+            if (TeamTimeColumn.COLUMN_ID.equals(ID))
                 teamTimeColumn = columnNumber;
         }
 
@@ -2381,6 +2382,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             teamTimeColumn = -1;
         }
     }
+    public static final String TIME_NO_ERR_COL_ID = "TimeNoErr";
 
 
 

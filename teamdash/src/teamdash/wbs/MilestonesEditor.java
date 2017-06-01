@@ -48,9 +48,11 @@ import net.sourceforge.processdash.i18n.Resources;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.ColorCellEditor;
 import teamdash.team.ColorCellRenderer;
+import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
+import teamdash.wbs.columns.WBSNodeColumn;
 
 
 public class MilestonesEditor implements MergeConflictHyperlinkHandler {
@@ -133,25 +135,33 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         TableColumn col;
 
         // customize the display of the "Name" column.
-        col = table.getColumn("Name");
+        col = table.getColumnModel().getColumn(
+            milestonesModel.findColumn(WBSNodeColumn.COLUMN_ID));
         col.setPreferredWidth(300);
 
-        // customize the display and editing of the "Units" column.
-        col = table.getColumn("Commit Date");
+        // customize the display and editing of the "Commit Date" column.
+        col = table.getColumnModel().getColumn(
+            milestonesModel.findColumn(MilestoneCommitDateColumn.COLUMN_ID));
         col.setCellEditor(MilestoneCommitDateColumn.CELL_EDITOR);
         col.setCellRenderer(MilestoneCommitDateColumn.CELL_RENDERER);
         col.setPreferredWidth(60);
 
-        col = table.getColumn("Color");
+        // customize the display and editing of the "Color" column.
+        col = table.getColumnModel().getColumn(
+            milestonesModel.findColumn(MilestoneColorColumn.COLUMN_ID));
         ColorCellEditor.setUpColorEditor(table);
         ColorCellRenderer.setUpColorRenderer(table);
         col.setPreferredWidth(40);
 
-        col = table.getColumn("Hide");
+        // customize the display and editing of the "Hide" column.
+        col = table.getColumnModel().getColumn(
+            milestonesModel.findColumn(MilestoneVisibilityColumn.COLUMN_ID));
         col.setCellRenderer(MilestoneVisibilityColumn.CELL_RENDERER);
         col.setPreferredWidth(15);
 
-        col = table.getColumn("Defer Sync");
+        // customize the display and editing of the "Defer Sync" column.
+        col = table.getColumnModel().getColumn(
+            milestonesModel.findColumn(MilestoneDeferredColumn.COLUMN_ID));
         col.setCellRenderer(MilestoneDeferredColumn.CELL_RENDERER);
         col.setPreferredWidth(45);
 
@@ -218,7 +228,8 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
             Comparator<WBSNode> {
 
         public SortMilestonesAction() {
-            super("Sort by Commit Date", IconFactory.getSortDatesIcon());
+            super(resources.getString("Commit_Date.Sort"),
+                    IconFactory.getSortDatesIcon());
             if (!isEditable(teamProject))
                 setEnabled(false);
         }

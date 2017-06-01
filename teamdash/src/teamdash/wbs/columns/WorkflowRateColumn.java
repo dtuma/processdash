@@ -44,7 +44,7 @@ public class WorkflowRateColumn extends AbstractNumericColumn implements
     public WorkflowRateColumn(DataTableModel dataModel) {
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
-        this.columnName = "Rate";
+        this.columnName = resources.getString("Workflow.Rate.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 50;
         this.dependentColumns = new String[] {

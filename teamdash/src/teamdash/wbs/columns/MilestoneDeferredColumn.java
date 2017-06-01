@@ -36,7 +36,7 @@ public class MilestoneDeferredColumn extends MilestoneBooleanColumn {
     public MilestoneDeferredColumn() {
         super(ATTR_NAME);
         columnID = COLUMN_ID;
-        columnName = "Defer Sync";
+        columnName = resources.getString("Milestones.Deferred.Name");
     }
 
     public static boolean isDeferred(WBSNode node) {
@@ -48,7 +48,6 @@ public class MilestoneDeferredColumn extends MilestoneBooleanColumn {
     }
 
     public static final TableCellRenderer CELL_RENDERER = new CellRenderer(
-            "When checked, tasks for this milestone will not be copied to "
-                    + "team member project plans");
+            resources.getString("Milestones.Deferred.Tooltip"));
 
 }

@@ -36,7 +36,8 @@ public class PercentSpentColumn extends AbstractPrecomputedColumn implements
     public static final String RESULT_ATTR = "Percent_Spent";
 
     protected PercentSpentColumn() {
-        super(COLUMN_ID, "%S", RESULT_ATTR, TeamActualTimeColumn.COLUMN_ID);
+        super(COLUMN_ID, resources.getString("Percent_Spent.Name"), RESULT_ATTR,
+                TeamActualTimeColumn.COLUMN_ID);
         this.preferredWidth = 40;
     }
 

@@ -25,7 +25,6 @@ package teamdash.wbs.columns;
 
 import java.awt.Component;
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -34,6 +33,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
+
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellRenderer;
@@ -56,7 +56,8 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
 
 
     public MilestoneCommitDateColumn() {
-        this.columnName = this.columnID = COLUMN_ID;
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Milestones.Commit_Date.Name");
         this.preferredWidth = 65;
         setConflictAttributeName(VALUE_ATTR);
     }
@@ -71,8 +72,9 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
         if (projectDate == null) return masterDate;
         if (masterDate == null) return projectDate;
         if (masterDate.before(projectDate))
-            return new ErrorValue(projectDate, MessageFormat.format(
-                COMMIT_DATE_ERROR_FMT, projectDate, masterDate));
+            return new ErrorValue(projectDate,
+                    resources.format("Milestones.Commit_Date.Master_Error_FMT",
+                        projectDate, masterDate));
         else
             return projectDate;
     }
@@ -143,8 +145,6 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
     }
 
     private static final DateFormat DISPLAY_FMT = DateFormat.getDateInstance();
-    private static final String COMMIT_DATE_ERROR_FMT =
-        "Date cannot be later than master project commit date of {1,date,medium}";
     private static final SimpleDateFormat STORAGE_FMT = new SimpleDateFormat(
             "yyyy-MM-dd");
 

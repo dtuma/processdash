@@ -36,7 +36,7 @@ public class MilestoneVisibilityColumn extends MilestoneBooleanColumn {
     public MilestoneVisibilityColumn() {
         super(ATTR_NAME);
         columnID = COLUMN_ID;
-        columnName = "Hide";
+        columnName = resources.getString("Milestones.Hidden.Name");
     }
 
     public static boolean isHidden(WBSNode node) {
@@ -48,7 +48,6 @@ public class MilestoneVisibilityColumn extends MilestoneBooleanColumn {
     }
 
     public static final TableCellRenderer CELL_RENDERER = new CellRenderer(
-            "When checked, milestone marks and commit dates for this milestone"
-                    + " will not be shown on the bottom-up time panel");
+            resources.getString("Milestones.Hidden.Tooltip"));
 
 }

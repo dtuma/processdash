@@ -60,9 +60,6 @@ public class TaskDependencyColumn extends AbstractDataColumn
     /** The ID we use for this column in the data model */
     public static final String COLUMN_ID = "Dependencies";
 
-    /** The name for this column */
-    private static final String COLUMN_NAME = "Task Dependencies";
-
     /**
      * The attribute this column uses to store the list of dependent nodeIDs for
      * a WBS node
@@ -100,7 +97,7 @@ public class TaskDependencyColumn extends AbstractDataColumn
         this.dependencySource = dependencySource;
         this.iconMap = iconMap;
         this.columnID = COLUMN_ID;
-        this.columnName = COLUMN_NAME;
+        this.columnName = resources.getString("Dependencies.Name");
         this.preferredWidth = 400;
         setConflictAttributeName(ID_LIST_ATTR);
 

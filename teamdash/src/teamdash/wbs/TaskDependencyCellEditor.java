@@ -59,6 +59,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 
 
@@ -85,6 +86,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
     /** The table containing the cell we are editing. */
     private JTable parentTable;
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Columns.Dependencies");
 
 
     public TaskDependencyCellEditor(TaskDependencySource dependencySource,
@@ -114,9 +118,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         WBSModel wbsModel = dataModel.getWBSModel();
         WBSNode node = wbsModel.getNodeForRow(row);
         if (node.getIndentLevel() == 0)
-            this.errMsg = ROOT_NODE_ERROR;
-        else if (value instanceof ReadOnlyValue)
-            this.errMsg = READ_ONLY_ERROR;
+            this.errMsg = resources.getStrings("Error_Root");
+        else if (node.isReadOnly() || value instanceof ReadOnlyValue)
+            this.errMsg = resources.getStrings("Error_Read_Only");
         else {
             this.path = wbsModel.getFullName(node);
             this.value = (TaskDependencyList) WrappedValue.unwrap(value);
@@ -130,7 +134,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     public void buttonClicked() {
         if (errMsg != null) {
             JOptionPane.showMessageDialog(null, errMsg,
-                    "Operation Not Allowed", JOptionPane.ERROR_MESSAGE);
+                resources.getString("Error_Title"), JOptionPane.ERROR_MESSAGE);
             errMsg = null;
             cancelCellEditing();
             return;
@@ -157,7 +161,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
     private int setupAndShowDialog() {
         if (dialog == null) {
-            dialog = optionPane.createDialog(button, "Edit Task Predecessors");
+            dialog = optionPane.createDialog(button,
+                resources.getString("Edit_Title"));
             dialog.setResizable(true);
         }
 
@@ -229,6 +234,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         components.add(Box.createRigidArea(new Dimension(5, 5)));
 
         taskTree = new WBSJTable(dependencySource.getTaskTree(), iconMap);
+        taskTree.getColumnModel().getColumn(0)
+                .setHeaderValue(resources.getString("Task_Header"));
         taskTree.setEditingEnabled(false);
 
         AddAction addAction = new AddAction(taskTree);
@@ -295,7 +302,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     private class DependencyTableModel extends DefaultTableModel {
 
         public DependencyTableModel() {
-            addColumn("Dependencies");
+            addColumn(resources.getString("Table_Header"));
         }
 
         public boolean isCellEditable(int row, int column) {
@@ -342,7 +349,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         private WBSJTable wbs;
 
         public AddAction(WBSJTable wbs) {
-            super("Add");
+            super(resources.getString("Add"));
             putValue(MNEMONIC_KEY, new Integer('A'));
             setEnabled(false);
             this.wbs = wbs;
@@ -384,7 +391,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         private JTable table;
 
         public RemoveAction(JTable table) {
-            super("Remove");
+            super(resources.getString("Remove"));
             putValue(MNEMONIC_KEY, new Integer('R'));
             setEnabled(false);
             this.table = table;
@@ -430,7 +437,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
                 addAction.actionPerformed(null);
             else if (e.getClickCount() == 3) {
                 closedProgrammatically = true;
-                dialog.dispose();
+                dialog.setVisible(false);
             }
         }
     }
@@ -439,7 +446,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
         public void actionPerformed(ActionEvent e) {
             closedProgrammatically = true;
-            dialog.dispose();
+            dialog.setVisible(false);
         }
 
     }
@@ -459,11 +466,4 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         }
     }
 
-    private static final String[] ROOT_NODE_ERROR = new String[] {
-            "Sorry, you cannot define task dependencies",
-            "for the root node of your team project." };
-
-    private static final String[] READ_ONLY_ERROR = new String[] {
-            "Sorry, you cannot define task dependencies",
-            "for this node, because it is read-only." };
 }

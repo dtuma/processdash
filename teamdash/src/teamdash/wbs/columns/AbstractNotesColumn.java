@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.text.DateFormat;
 import java.util.Date;
 
 import javax.swing.Box;
@@ -139,7 +138,7 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
         if (when == null || who == null)
             return null;
         else
-            return "- Last edited " + DATE_FMT.format(when) + " by " + who;
+            return resources.format("Notes.Byline_FMT", when, who);
     }
 
     protected static String getTooltipAt(WBSNode node, boolean includeByline,
@@ -195,8 +194,6 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
             return false;
         return a.equals(b);
     }
-
-    private static final DateFormat DATE_FMT = DateFormat.getDateInstance();
 
     private class NotesCellRenderer extends DefaultTableCellRenderer {
 

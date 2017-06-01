@@ -47,7 +47,7 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
 
     public WorkflowMinTimeColumn(DataTableModel dataModel) {
         this.wbsModel = dataModel.getWBSModel();
-        this.columnName = "Min Time";
+        this.columnName = resources.getString("Workflow.Min_Time.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 100;
         setConflictAttributeName(ATTR_NAME);

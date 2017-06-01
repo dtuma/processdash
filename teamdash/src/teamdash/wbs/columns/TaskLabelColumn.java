@@ -73,7 +73,8 @@ public class TaskLabelColumn extends AbstractDataColumn implements
     }
 
     protected TaskLabelColumn(DataTableModel dataModel, String attr) {
-        this.columnName = this.columnID = COLUMN_ID;
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Labels.Name");
         this.preferredWidth = 200;
         this.wbsModel = dataModel.getWBSModel();
         this.explicitValueAttr = attr;
@@ -266,8 +267,9 @@ public class TaskLabelColumn extends AbstractDataColumn implements
     }
 
 
-    private static final String EFFECTIVE_LABEL_MESSAGE = "Inherited Value";
+    private static final String EFFECTIVE_LABEL_MESSAGE =
+            resources.getString("Inherited_Tooltip");
     private static final TableCellRenderer LABEL_RENDERER =
-        new ItalicCellRenderer(EFFECTIVE_LABEL_MESSAGE);
+            new ItalicCellRenderer(EFFECTIVE_LABEL_MESSAGE);
 
 }

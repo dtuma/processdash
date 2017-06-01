@@ -49,7 +49,8 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
 
     public MilestoneColorColumn(MilestonesWBSModel milestones) {
         this.milestones = milestones;
-        this.columnName = this.columnID = COLUMN_ID;
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Milestones.Color.Name");
         this.preferredWidth = 65;
     }
 

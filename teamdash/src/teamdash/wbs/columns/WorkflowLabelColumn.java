@@ -49,7 +49,7 @@ public class WorkflowLabelColumn extends TaskLabelColumn implements
     @Override
     public TableCellRenderer getCellRenderer() {
         return new WorkflowTableCellRenderer(new ItalicCellRenderer(
-                "Inherited Value"));
+                resources.getString("Inherited_Tooltip")));
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {

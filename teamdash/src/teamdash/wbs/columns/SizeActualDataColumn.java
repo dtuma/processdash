@@ -43,7 +43,8 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
     public SizeActualDataColumn(DataTableModel dataModel, String units,
             boolean plan) {
         this.wbsModel = dataModel.getWBSModel();
-        this.columnName = (plan ? "Plan " : "Actual ") + units;
+        this.columnName = resources.format(
+            plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT", units);
         this.columnID = getColumnID(units, plan);
         this.resultAttrName = getResultAttrName(units, plan);
         this.nodeAttrName = getNodeAttrName(units, plan);

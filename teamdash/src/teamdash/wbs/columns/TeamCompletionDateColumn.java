@@ -42,7 +42,8 @@ public class TeamCompletionDateColumn extends AbstractPrecomputedColumn
     public static final String ATTR_NAME = "Actual_Completion_Date";
 
     public TeamCompletionDateColumn() {
-        super(COLUMN_ID, "Completed", ATTR_NAME, TeamActualTimeColumn.COLUMN_ID);
+        super(COLUMN_ID, resources.getString("Completion_Date.Name"), ATTR_NAME,
+                TeamActualTimeColumn.COLUMN_ID);
         this.preferredWidth = 70;
     }
 

@@ -316,7 +316,8 @@ public class AbstractLabelColumn extends AbstractDataColumn implements
 
 
     private static final String EMPTY_VALUE = " ";
-    private static final String EFFECTIVE_LABEL_MESSAGE = "Inherited Value";
+    private static final String EFFECTIVE_LABEL_MESSAGE =
+        resources.getString("Inherited_Tooltip");
     private static final TableCellRenderer LABEL_RENDERER =
         new ItalicCellRenderer(EFFECTIVE_LABEL_MESSAGE);
     private static final Pattern WORD_REGEXP = Pattern.compile("([^ ,][^,]*)");

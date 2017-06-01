@@ -145,7 +145,10 @@ import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.EditableSizeColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
+import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.PhaseColumn;
@@ -156,6 +159,9 @@ import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
+import teamdash.wbs.columns.SizeTypeColumn;
+import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TaskSizeColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
@@ -331,8 +337,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         String[] planSizeTabColIDs = new String[sizeMetrics.length];
         String[] actSizeTabColIDs = new String[sizeMetrics.length];
         String[] sizeDataColNames = new String[sizeMetrics.length];
-        sizeTabColIDs[0] = "Size";       sizeTabColNames[0] = "Size";
-        sizeTabColIDs[1] = "Size-Units"; sizeTabColNames[1] = "Units";
+        sizeTabColIDs[0] = EditableSizeColumn.COLUMN_ID;
+        sizeTabColIDs[1] = SizeTypeColumn.COLUMN_ID;
         for (int i = 0; i < sizeMetrics.length; i++) {
             String units = sizeMetrics[i];
             sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(units);
@@ -341,28 +347,30 @@ public class WBSEditor implements WindowListener, SaveListener,
             actSizeTabColIDs[i] = SizeActualDataColumn.getColumnID(units, false);
             sizeDataColNames[i] = units;
         }
-        tabPanel.addTab(showActualSize ? "Launch Size" : "Size", sizeTabColIDs,
-            sizeTabColNames);
+        tabPanel.addTab(getRes(showActualSize ? "Tabs.Launch_Size" : "Tabs.Size"),
+            sizeTabColIDs, sizeTabColNames);
 
-        tabPanel.addTab(showActualSize ? "Launch Size Accounting" : "Size Accounting",
-                     new String[] { "Size-Units", "Base", "Deleted", "Modified", "Added",
-                                    "Reused", "N&C", "Total" },
-                     new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
-                                    "Reused", "N&C", "Total" });
+        tabPanel.addTab(
+            getRes(showActualSize ? "Tabs.Launch_Size_Accounting"
+                    : "Tabs.Size_Accounting"),
+            new String[] { SizeTypeColumn.COLUMN_ID, "Base", "Deleted",
+                    "Modified", "Added", "Reused", "N&C", "Total" },
+            null);
 
         if (showActualSize) {
-            tabPanel.addTab("Plan Size", planSizeTabColIDs, sizeDataColNames);
-            tabPanel.addTab("Actual Size", actSizeTabColIDs, sizeDataColNames);
+            tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
+            tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
         }
 
         if (!isMode(MODE_MASTER))
-            tabPanel.addTab("Planned Time",
+            tabPanel.addTab(getRes("Tabs.Planned_Time"),
                      new String[] { TeamTimeColumn.COLUMN_ID,
                                     WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID,
                                     UnassignedTimeColumn.COLUMN_ID },
-                     new String[] { "Total", "", "Unassigned" });
+                     new String[] { getRes("Columns.Total_Planned_Time.Name"), "",
+                                    getRes("Columns.Unassigned_Time.Short_Name") });
 
-        tabPanel.addTab("Task Time",
+        tabPanel.addTab(getRes("Tabs.Task_Time"),
                 new String[] {
                         PhaseColumn.COLUMN_ID,
                         TaskSizeColumn.COLUMN_ID,
@@ -370,32 +378,31 @@ public class WBSEditor implements WindowListener, SaveListener,
                         TeamTimeColumn.RATE_COL_ID,
                         ifMode(MODE_PLAIN, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
                         ifMode(MODE_PLAIN, TeamTimeColumn.NUM_PEOPLE_COL_ID),
-                        (isMode(MODE_MASTER) ? "TimeNoErr" : "Time"),
+                        (isMode(MODE_MASTER) ? TeamTimeColumn.TIME_NO_ERR_COL_ID
+                                : TeamTimeColumn.COLUMN_ID),
                         ifNotMode(MODE_MASTER, TeamTimeColumn.RESOURCES_COL_ID),
                         (showActualData ? TeamCompletionDateColumn.COLUMN_ID : null),
                         (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
                         (showActualData ? PercentSpentColumn.COLUMN_ID : null),
                         (showActualData ? TeamActualTimeColumn.COLUMN_ID : null) },
-            new String[] { null, null, null, null, null, null, null,
-                    null, "Completed", "%C", "%S", "Actual Time" });
+                null);
 
-        tabPanel.addTab("Task Details",
-                new String[] { "Milestone", "Labels",
+        tabPanel.addTab(getRes("Tabs.Task_Details"),
+                new String[] { MilestoneColumn.COLUMN_ID,
+                               TaskLabelColumn.COLUMN_ID,
                                ProxyEstTypeColumn.COLUMN_ID,
                                ProxyEstBucketColumn.COLUMN_ID,
                                WBSTabPanel.CUSTOM_COLUMNS_ID,
-                               "Dependencies", "Notes", ErrorNotesColumn.COLUMN_ID },
-                new String[] { "Milestone", "Task Labels", null, null,
-                               "", "Task Dependencies", "Notes", null });
+                               TaskDependencyColumn.COLUMN_ID,
+                               NotesColumn.COLUMN_ID,
+                               ErrorNotesColumn.COLUMN_ID },
+                null);
 
         if (showActualData)
-            tabPanel.addTab("Actual Time",
+            tabPanel.addTab(getRes("Tabs.Actual_Time"),
                 new String[] { TeamActualTimeColumn.COLUMN_ID,
                                WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
-                new String[] { "Total", "" });
-
-        //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
-        //table.addTab("Defects", s, s);
+                new String[] { getRes("Columns.Total_Actual_Time.Name"), "" });
 
         // read in custom tabs file
         try {
@@ -564,6 +571,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             return true;
         }
         return false;
+    }
+
+    private static String getRes(String key) {
+        return resources.getString(key);
     }
 
     public static String getOtherLockHolder(Exception e) {

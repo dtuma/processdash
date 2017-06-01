@@ -106,7 +106,8 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
 
             if (value != null) {
                 if (isRatePresent(table, row))
-                    value = String.valueOf(value) + " per Hour";
+                    value = resources.format("Workflow.Units.Per_Hour_FMT",
+                        value);
                 else if (isProbeTask(table, row))
                     value = String.valueOf(value);
                 else

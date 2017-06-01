@@ -39,7 +39,7 @@ public class UnassignedTimeColumn extends TopDownBottomUpColumn {
         "Milestone_Unassigned_Time";
 
     public UnassignedTimeColumn(DataTableModel m) {
-        super(m, "Unassigned Time", COLUMN_ID);
+        super(m, resources.getString("Unassigned_Time.Name"), COLUMN_ID);
         this.topDownAttrName += "_calc";
         this.bottomUpAttrName += "_calc";
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID,

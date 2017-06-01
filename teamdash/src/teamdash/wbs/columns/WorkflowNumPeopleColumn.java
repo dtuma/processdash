@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@
 
 package teamdash.wbs.columns;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.CustomRenderedColumn;
@@ -36,7 +39,8 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
 
     public WorkflowNumPeopleColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
-        this.columnName = this.columnID = COLUMN_ID;
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Workflow.Num_People.Name");
         this.preferredWidth = 100;
         setConflictAttributeName(ATTR_NAME);
     }
@@ -51,9 +55,9 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         int numPeople = getNumPeopleAt(node);
 
         if (numPeople == 1)
-            return "1 person";
+            return resources.getString("Workflow.Num_People.Person");
         else
-            return numPeople + " people";
+            return resources.format("Workflow.Num_People.People_FMT", numPeople);
     }
 
     static int getNumPeopleAt(WBSNode node) {
@@ -68,16 +72,12 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         if (aValue == null) return;
         String s = String.valueOf(aValue).trim();
 
-        int pos = s.indexOf(' ');
-        if (pos != -1) s = s.substring(0, pos).trim();
-        pos = s.indexOf('p');
-        if (pos != -1) s = s.substring(0, pos).trim();
-
-        try {
-            int numPeople = (int) Double.parseDouble(s);
+        Matcher m = NUM_PAT.matcher(s);
+        if (m.find()) {
+            int numPeople = Integer.parseInt(m.group());
             if (numPeople > 0)
                 node.setNumericAttribute(ATTR_NAME, numPeople);
-        } catch (NumberFormatException nfe) { }
+        }
     }
 
 
@@ -85,6 +85,7 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         return WorkflowTableCellRenderer.INSTANCE;
     }
 
+    private static final Pattern NUM_PAT = Pattern.compile("\\d+");
     public static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;
     static final String COLUMN_ID = "# People";
 }

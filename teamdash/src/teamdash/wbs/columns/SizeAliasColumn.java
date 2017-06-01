@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,12 +42,13 @@ implements CalculatedDataColumn {
     String[] sizeUnits;
     int [] columns;
 
-    public SizeAliasColumn(DataTableModel m, String name,
+    public SizeAliasColumn(DataTableModel m, String columnID, String nameKey,
                            String accountingID, String [] sizeUnits,
                            Map sizeTypes)
     {
         this.dataModel = m;
-        this.columnName = this.columnID = name;
+        this.columnID = columnID;
+        this.columnName = resources.getString(nameKey);
         this.accountingID = accountingID;
 
         this.sizeUnits = sizeUnits;

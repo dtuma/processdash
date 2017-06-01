@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,6 @@
 
 package teamdash.wbs.columns;
 
-//import java.text.NumberFormat;
-//import java.text.ParseException;
-
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
@@ -42,7 +39,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
 
     public WorkflowPercentageColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
-        this.columnName = "%";
+        this.columnName = resources.getString("Workflow.Percent.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 60;
         setConflictAttributeName(ATTR_NAME);
@@ -101,10 +98,11 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
                 int row) {
             if (ndv.value == 100) {
                 return null;
-            } else if (isRatePresent(table, row)) {
-                return String.valueOf(ndv) + "% of ";
             } else {
-                return String.valueOf(ndv) + "%";
+                String key = isRatePresent(table, row)
+                        ? "Workflow.Percent.Rate_FMT"
+                        : "Workflow.Percent.Num_FMT";
+                return resources.format(key, String.valueOf(ndv));
             }
         }
 

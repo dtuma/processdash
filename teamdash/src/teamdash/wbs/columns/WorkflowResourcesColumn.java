@@ -71,7 +71,7 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
         this.wbsModel = dataModel.getWBSModel();
         this.teamList = team;
         this.columnID = COLUMN_ID;
-        this.columnName = resources.getString("Workflow_Performed_By.Name");
+        this.columnName = resources.getString("Workflow.Performed_By.Name");
         this.preferredWidth = 200;
         setConflictAttributeName(ATTR_NAME);
     }
@@ -182,7 +182,7 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
 
     private static class ComboBoxRenderer extends DefaultListCellRenderer {
         private String newRoleMessage = ROLE_BEG
-                + resources.getString("Workflow_Performed_By.New_Role")
+                + resources.getString("Workflow.Performed_By.New_Role")
                 + ROLE_END;
         private JSeparator separator = new JSeparator();
         private int numRoles;

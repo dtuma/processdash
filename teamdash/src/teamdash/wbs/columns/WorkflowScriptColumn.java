@@ -34,13 +34,11 @@ public class WorkflowScriptColumn extends AbstractDataColumn implements
 
     private static final String COLUMN_ID = "Workflow_URL";
 
-    public static final String COLUMN_NAME = "Script URLs";
-
     public static final String VALUE_ATTR = "Workflow URL";
 
     public WorkflowScriptColumn() {
         this.columnID = COLUMN_ID;
-        this.columnName = COLUMN_NAME;
+        this.columnName = resources.getString("Workflow.Script_URLs.Name");
         this.preferredWidth = 100;
         setConflictAttributeName(VALUE_ATTR);
     }

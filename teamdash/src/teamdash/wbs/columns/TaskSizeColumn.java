@@ -41,9 +41,9 @@ public class TaskSizeColumn extends SizeAliasColumn implements
     private int unitsColumn = -1;
 
     public TaskSizeColumn(DataTableModel dataModel, TeamProcess teamProcess) {
-        super(dataModel, COLUMN_ID, "N&C-", teamProcess.getSizeMetrics(),
+        super(dataModel, COLUMN_ID, "Task_Size.Name", "N&C-",
+                teamProcess.getSizeMetrics(),
                 teamProcess.getWorkProductSizeMap());
-        this.columnName = resources.getString("Task_Size.Name");
 
         int len = this.dependentColumns.length;
         String [] dependentCols = new String[len+1];

@@ -232,8 +232,8 @@ public class SizeAccountingColumnSet {
 
             String errMsg = null;
             if (added.errorMessage != null || modified.errorMessage != null)
-                errMsg = "top-down/bottom-up mismatch (bottom-up = " +
-                    NumericDataValue.format(bottomUp) + ")";
+                errMsg = resources.format("TDBU_Mismatch_FMT",
+                    NumericDataValue.format(bottomUp));
 
             boolean editable = added.isEditable;
             boolean invisible = added.isInvisible;

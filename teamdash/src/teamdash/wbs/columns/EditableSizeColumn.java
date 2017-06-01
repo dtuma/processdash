@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@ import teamdash.wbs.WBSNode;
 public class EditableSizeColumn extends AbstractNumericColumn
 implements CalculatedDataColumn {
 
+    public static final String COLUMN_ID = "Size";
+
     static final String ATTR_NAME = "Misc Size";
 
     DataTableModel dataModel;
@@ -43,7 +45,8 @@ implements CalculatedDataColumn {
     public EditableSizeColumn(DataTableModel m, TeamProcess process) {
         this.dataModel = m;
         this.sizeMetricsMap = process.getWorkProductSizeMap();
-        this.columnName = this.columnID = "Size";
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Size.Name");
         this.dependentColumns = new String[] { "N&C" };
     }
 

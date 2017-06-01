@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         CalculatedDataColumn {
 
     /** The ID we use for this column in the data model */
-    static final String COLUMN_ID = "Size-Units";
+    public static final String COLUMN_ID = "Size-Units";
 
     /** The attribute this column uses to store its data on WBS nodes */
     private static final String ATTR_NAME = "Size Metric";
@@ -65,7 +65,7 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         this.dataModel = m;
         this.sizeMetrics = sizeMetrics;
         this.columnID = COLUMN_ID;
-        this.columnName = "Units";
+        this.columnName = resources.getString("Units.Name");
         this.dependentColumns = new String[] {
                 SizeAccountingColumnSet.getNCID("LOC") };
     }
@@ -201,26 +201,26 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
         // create aliasing columns
         String[] sizeUnits = teamProcess.getSizeMetrics();
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Base", SizeAccountingColumnSet.getBaseID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Deleted", SizeAccountingColumnSet.getDeletedID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Modified", SizeAccountingColumnSet.getModifiedID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Added", SizeAccountingColumnSet.getAddedID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Reused", SizeAccountingColumnSet.getReusedID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "N&C", SizeAccountingColumnSet.getNCID(""),
-             sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn
-            (dataModel, "Total", SizeAccountingColumnSet.getTotalID(""),
-             sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Base", "Size_Accounting.Base.Name",
+            SizeAccountingColumnSet.getBaseID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Deleted", "Size_Accounting.Deleted.Name",
+            SizeAccountingColumnSet.getDeletedID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Modified", "Size_Accounting.Modified.Name",
+            SizeAccountingColumnSet.getModifiedID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Added", "Size_Accounting.Added.Name",
+            SizeAccountingColumnSet.getAddedID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Reused", "Size_Accounting.Reused.Name",
+            SizeAccountingColumnSet.getReusedID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "N&C", "Size_Accounting.New_and_Changed.Name",
+            SizeAccountingColumnSet.getNCID(""), sizeUnits, sizeMetrics));
+        dataModel.addDataColumn(new SizeAliasColumn( //
+            dataModel, "Total", "Size_Accounting.Total.Name",
+            SizeAccountingColumnSet.getTotalID(""), sizeUnits, sizeMetrics));
     }
 }

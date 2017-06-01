@@ -34,7 +34,7 @@ public class WBSNodeColumn extends AbstractDataColumn {
 
     public WBSNodeColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
-        this.columnName = "Name";
+        this.columnName = resources.getString("Node_Name.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 300;
     }
