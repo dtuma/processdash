@@ -173,7 +173,7 @@ public class TeamTimePanel extends JPanel
     private Timer recalcTimer;
 
     private static final Resources resources = Resources
-            .getDashBundle("WBSEditor.Team");
+            .getDashBundle("WBSEditor.Team.Balance");
 
 
     /** Create a team time panel.
@@ -374,15 +374,6 @@ public class TeamTimePanel extends JPanel
 
     public boolean isSubteamFiltered() {
         return subteamFilter != null;
-    }
-
-    private String getTeamName() {
-        if (subteamFilter == null)
-            return "Team";
-        else if (subteamName == null)
-            return "Subteam";
-        else
-            return subteamName;
     }
 
     public void addSubteamFilterListener(ChangeListener l) {
@@ -646,11 +637,12 @@ public class TeamTimePanel extends JPanel
         } else {
             balancedLength = balancedDate.getTime() - leftTimeBoundary;
             maxScheduleLength = Math.max(maxScheduleLength, balancedLength);
-            String message = "Balanced " + getTeamName() + " "
-                    + getDateQualifier() + ": "
-                    + dateFormat.format(balancedDate);
+            String resKey = (subteamFilter == null ? "Team_Date_FMT"
+                    : (subteamName == null ? "Unnamed_Date_FMT" : "Subteam_Date_FMT"));
+            String message = resources.format(resKey, getDateQualifier(),
+                dateFormat.format(balancedDate), subteamName);
             if (balanceThroughMilestoneName != null) {
-                message = balanceThroughMilestoneName + " - Optimal " + message;
+                message = balanceThroughMilestoneName + " - " + message;
             }
             balancedBar.setToolTipText(message);
         }
@@ -687,7 +679,7 @@ public class TeamTimePanel extends JPanel
     }
 
     private String getDateQualifier() {
-        return (showRemainingWork ? "Replan Date" : "Plan Date");
+        return resources.getString(showRemainingWork ? "Replan_Date" : "Plan_Date");
     }
 
     public static boolean colorIsDark(Color c) {
@@ -866,8 +858,8 @@ public class TeamTimePanel extends JPanel
                     maxDate = Math.max(maxDate, this.date.getTime());
                 this.color = MilestoneColorColumn.getColor(milestone);
                 if (name != null && date != null)
-                    this.tooltip = name + " - Commit Date: "
-                            + dateFormat.format(date);
+                    this.tooltip = resources.format("Commit_Date_FMT", name,
+                        dateFormat.format(date));
             }
 
             public int getMilestoneID() {
@@ -1111,7 +1103,7 @@ public class TeamTimePanel extends JPanel
                     SwingConstants.CENTER);
             hoursPerWeekLabel.setOpaque(true);
             hoursPerWeekLabel.setToolTipText(resources.getString(
-                censorHours ? "Hours_Censored" : "Hours_Nominal"));
+                censorHours ? "Team.Hours_Censored" : "Team.Hours_Nominal"));
             memberBarHighlighter.listen(hoursPerWeekLabel, this);
 
             memberBarHighlighter.listen(this, this);
@@ -1133,14 +1125,9 @@ public class TeamTimePanel extends JPanel
         public void recalc() {
             Date startDate = getStartDate();
             lagTime = startDate.getTime() - leftTimeBoundary;
-            if (lagTime < 0) {
-                startTooltip = teamMember.getName()
-                        + " - Schedule started previously on "
-                        + dateFormat.format(startDate);
-            } else {
-                startTooltip = teamMember.getName() + " - Schedule Start Date "
-                        + dateFormat.format(startDate);
-            }
+            startTooltip = resources.format( //
+                (lagTime < 0 ? "Started_Date_FMT" : "Start_Date_FMT"),
+                teamMember.getName(), dateFormat.format(startDate));
 
             Date endDate = teamMember.getEndDate();
             if (endDate == null)
@@ -1195,22 +1182,25 @@ public class TeamTimePanel extends JPanel
 
             if (finishDate == null) {
                 finishTime = -1;
+                this.label = "";
+                String resKey = (balanceThroughMilestoneName != null
+                        ? "Total_Hours_Through_FMT" : "Total_Hours_FMT");
                 String hoursString = NumericDataValue.format(totalHours + 0.049);
-                String message = hoursString + " total hours";
-                String postQual = "";
-                if (balanceThroughMilestoneName != null)
-                    postQual = " through " + balanceThroughMilestoneName;
-                setLabel("", message, postQual);
+                String tooltip = resources.format(resKey, teamMember.getName(),
+                    hoursString, balanceThroughMilestoneName);
+                setToolTipText(tooltip);
             } else {
                 finishTime = finishDate.getTime() - leftTimeBoundary;
                 String dateString = dateFormat.format(finishDate);
                 if (endTime > 0 && finishTime > endTime)
-                    dateString = dateString + " - OVERTASKED";
-                String qualifier = getDateQualifier();
-                if (balanceThroughMilestone > 0)
-                    qualifier = balanceThroughMilestoneName + " - Optimal "
-                            + qualifier;
-                setLabel(qualifier + ": ", dateString, "");
+                    dateString += " - " + resources.getString("Overtasked");
+                this.label = dateString;
+
+                String resKey = (balanceThroughMilestoneName != null
+                        ? "Finish_Date_Through_FMT" : "Finish_Date_FMT");
+                String tooltip = resources.format(resKey, teamMember.getName(),
+                    getDateQualifier(), dateString, balanceThroughMilestoneName);
+                setToolTipText(tooltip);
             }
         }
 
@@ -1220,12 +1210,6 @@ public class TeamTimePanel extends JPanel
 
         public long getFinishTime() {
             return finishTime;
-        }
-
-        private void setLabel(String preQual, String message, String postQual) {
-            this.label = message;
-            setToolTipText(teamMember.getName() + " - " + preQual + message
-                    + postQual);
         }
 
         @Override
@@ -1484,9 +1468,9 @@ public class TeamTimePanel extends JPanel
 
                 color = MilestoneColorColumn.getColor(milestone);
                 milestoneColorIsDark = colorIsDark(color);
-                tooltip = teamMember.getName() + " - " + milestone.getName()
-                        + " - Optimal " + getDateQualifier() + ": "
-                        + dateFormat.format(when);
+                tooltip = resources.format("Finish_Date_Through_FMT",
+                    teamMember.getName(), getDateQualifier(),
+                    dateFormat.format(when), milestone.getName());
             }
 
             public int getMilestoneID() {
@@ -1553,7 +1537,7 @@ public class TeamTimePanel extends JPanel
         private Map<Integer, Double> teamMilestoneEffort;
 
         public TeamMilestoneBar() {
-            super(new TeamMember(getTeamName() + " (Balanced)", " Team ",
+            super(new TeamMember(getNameForTeamBar(), " Team ",
                     Color.darkGray, 0, teamList.getZeroDay()));
             effectivePastHours = 0;
             hideTerminalMilestoneMark = true;
@@ -1621,6 +1605,16 @@ public class TeamTimePanel extends JPanel
         }
 
     }
+
+    private String getNameForTeamBar() {
+        if (subteamFilter == null)
+            return resources.getString("Team_Bar_Label");
+        else if (subteamName == null)
+            return resources.getString("Unnamed_Bar_Label");
+        else
+            return resources.format("Subteam_Bar_Label_FMT", subteamName);
+    }
+
 
     private MouseAdapter toggleMembers = new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
