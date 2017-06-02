@@ -109,6 +109,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.hist.BlameData;
@@ -900,6 +901,8 @@ public class WBSJTable extends JTable {
 
             return result;
         }
+
+        protected String getActionName() { return (String) getValue(NAME); }
     }
 
 
@@ -909,7 +912,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public DemoteAction() {
-            super("Demote", IconFactory.getDemoteIcon());
+            super(resources.getString("Edit.Demote"), IconFactory.getDemoteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ALT));
             enablementCalculations.add(this);
@@ -918,7 +921,7 @@ public class WBSJTable extends JTable {
             if (containsReadOnlyNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
-            UndoList.madeChange(WBSJTable.this, "Demote");
+            UndoList.madeChange(WBSJTable.this, getActionName());
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
@@ -936,7 +939,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public PromoteAction() {
-            super("Promote", IconFactory.getPromoteIcon());
+            super(resources.getString("Edit.Promote"), IconFactory.getPromoteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ALT));
             enablementCalculations.add(this);
@@ -945,7 +948,7 @@ public class WBSJTable extends JTable {
             if (containsReadOnlyNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
-            UndoList.madeChange(WBSJTable.this, "Promote");
+            UndoList.madeChange(WBSJTable.this, getActionName());
         }
         public void recalculateEnablement(int[] selectedRows) {
             if (disableEditing
@@ -999,7 +1002,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CutAction() {
-            super("Cut WBS Items", IconFactory.getCutIcon());
+            super(resources.getString("Edit.WBS.Cut"), IconFactory.getCutIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
@@ -1042,7 +1045,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CopyAction() {
-            super("Copy WBS Items", IconFactory.getCopyIcon());
+            super(resources.getString("Edit.WBS.Copy"), IconFactory.getCopyIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
@@ -1075,7 +1078,8 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public PasteAction() {
-            super("Paste WBS Items", IconFactory.getPasteIcon());
+            super(resources.getString("Edit.WBS.Paste"),
+                    IconFactory.getPasteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
@@ -1145,7 +1149,7 @@ public class WBSJTable extends JTable {
                 scrollRectToVisible(getCellRect(firstRow-1, 0, true));
             }
 
-            UndoList.madeChange(WBSJTable.this, "Paste WBS elements");
+            UndoList.madeChange(WBSJTable.this, (String) getValue(NAME));
         }
         boolean rowContainsCopiedNode(int row, Set copiedIDs) {
             WBSNode destNode = wbsModel.getNodeForRow(row);
@@ -1198,7 +1202,9 @@ public class WBSJTable extends JTable {
     private class InsertAction extends RestartEditingAction implements
             EnablementCalculation {
 
-        public InsertAction() { this("Insert"); }
+        public InsertAction() {
+            this(resources.getString("Edit.Insert"));
+        }
         public InsertAction(String name) {
             super(name);
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
@@ -1253,7 +1259,7 @@ public class WBSJTable extends JTable {
             setRowSelectionInterval(row, row);
             scrollRectToVisible(getCellRect(row, 0, true));
 
-            UndoList.madeChange(WBSJTable.this, "Insert WBS element");
+            UndoList.madeChange(WBSJTable.this, getActionName());
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
@@ -1279,7 +1285,7 @@ public class WBSJTable extends JTable {
     private class InsertAfterAction extends InsertAction {
         private Action alternateAction;
         public InsertAfterAction() {
-            super("Insert After");
+            super(resources.getString("Edit.Insert_After"));
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
 
             try {
@@ -1322,23 +1328,31 @@ public class WBSJTable extends JTable {
     /** An action to configure the enterInsertsLine property */
     private class ToggleEnterBehaviorAction extends AbstractAction implements
             ChangeListener {
+        private String enabledTip, disabledTip;
         public ToggleEnterBehaviorAction() {
             enterInsertsLine.setSelected(true);
             enterInsertsLine.addChangeListener(this);
+            enabledTip = getHTML("Edit.Enter_Inserts");
+            disabledTip = getHTML("Edit.Enter_Next_Row");
             stateChanged(null);
+        }
+        private String getHTML(String resKey) {
+            String html = resources.getHTML(resKey);
+            html = StringUtils.findAndReplace(html, "\n", "<br>");
+            html = StringUtils.findAndReplace(html, "[", "<b>");
+            html = StringUtils.findAndReplace(html, "]", "</b>");
+            html = StringUtils.findAndReplace(html, "{", "<i>");
+            html = StringUtils.findAndReplace(html, "}", "</i>");
+            return "<html>" + html + "</html>";
         }
         public void stateChanged(ChangeEvent e) {
             if (enterInsertsLine.isSelected()) {
                 putValue(Action.SMALL_ICON, IconFactory.getInsertOnEnterIcon());
-                putValue(Action.SHORT_DESCRIPTION,
-                    "<html>Pressing &lt;Enter&gt; in the WBS inserts a new row</html>");
+                putValue(Action.SHORT_DESCRIPTION, enabledTip);
             } else {
                 putValue(Action.SMALL_ICON, IconFactory
                         .getNoInsertOnEnterIcon());
-                putValue(Action.SHORT_DESCRIPTION,
-                    "<html>Pressing &lt;Enter&gt; in the WBS <b>does not</b> " +
-                    "insert a new row.<br><i>To insert a new row, press </i> " +
-                    "&lt;Shift-Enter&gt;</html>");
+                putValue(Action.SHORT_DESCRIPTION, disabledTip);
             }
         }
         public void actionPerformed(ActionEvent e) {
@@ -1354,7 +1368,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public DeleteAction() {
-            super("Delete", IconFactory.getDeleteIcon());
+            super(resources.getString("Edit.Delete"), IconFactory.getDeleteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
             enablementCalculations.add(this);
         }
@@ -1387,7 +1401,7 @@ public class WBSJTable extends JTable {
             setRowSelectionInterval(rowToSelect, rowToSelect);
             scrollRectToVisible(getCellRect(rowToSelect, 0, true));
 
-            UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
+            UndoList.madeChange(WBSJTable.this, (String) getValue(NAME));
         }
         private boolean maybeAskUserToConfirmDeletion(
                 List<WBSNode> nodesToDelete) {
@@ -1800,7 +1814,7 @@ public class WBSJTable extends JTable {
             if (!affectedNodes.isEmpty()) {
                 selectRows(wbsModel.getRowsForNodes(new ArrayList(affectedNodes)));
                 WBSJTable.this.requestFocusInWindow();
-                UndoList.madeChange(WBSJTable.this, "Reapply workflow");
+                UndoList.madeChange(WBSJTable.this, (String) getValue(NAME));
             }
         }
 
@@ -1904,7 +1918,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public ExpandAction() {
-            super("Expand", IconFactory.getExpandIcon());
+            super(resources.getString("Edit.Expand"), IconFactory.getExpandIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ALT));
             enablementCalculations.add(this);
@@ -1948,7 +1962,8 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public ExpandAllAction() {
-            super("Expand All", IconFactory.getExpandAllIcon());
+            super(resources.getString("Edit.Expand_All"),
+                    IconFactory.getExpandAllIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             enablementCalculations.add(this);
         }
@@ -1989,7 +2004,8 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CollapseAction() {
-            super("Collapse", IconFactory.getCollapseIcon());
+            super(resources.getString("Edit.Collapse"),
+                    IconFactory.getCollapseIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ALT));
             enablementCalculations.add(this);
@@ -2034,7 +2050,8 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public CollapseAllAction() {
-            super("Collapse All", IconFactory.getCollapseAllIcon());
+            super(resources.getString("Edit.Collapse_All"),
+                    IconFactory.getCollapseAllIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             enablementCalculations.add(this);
         }
@@ -2076,7 +2093,7 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public MoveUpAction() {
-            super("Move Up", IconFactory.getMoveUpIcon());
+            super(resources.getString("Edit.Move_Up"), IconFactory.getMoveUpIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_UP, ALT));
             enablementCalculations.add(this);
@@ -2095,7 +2112,7 @@ public class WBSJTable extends JTable {
             WBSNode node = wbsModel.getNodeForRow(rows[0]);
             int[] finalRows = wbsModel.moveNodeUp(node);
             if (finalRows != null) {
-                UndoList.madeChange(WBSJTable.this, "Move Up");
+                UndoList.madeChange(WBSJTable.this, (String) getValue(NAME));
                 selectRows(finalRows, true);
             }
         }
@@ -2115,7 +2132,8 @@ public class WBSJTable extends JTable {
             EnablementCalculation {
 
         public MoveDownAction() {
-            super("Move Down", IconFactory.getMoveDownIcon());
+            super(resources.getString("Edit.Move_Down"),
+                    IconFactory.getMoveDownIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ALT));
             enablementCalculations.add(this);
@@ -2134,7 +2152,7 @@ public class WBSJTable extends JTable {
             WBSNode node = wbsModel.getNodeForRow(rows[0]);
             int[] finalRows = wbsModel.moveNodeDown(node);
             if (finalRows != null) {
-                UndoList.madeChange(WBSJTable.this, "Move Down");
+                UndoList.madeChange(WBSJTable.this, (String) getValue(NAME));
                 selectRows(finalRows, true);
             }
         }

@@ -259,7 +259,8 @@ public class UndoList {
     /** An action that can be used to trigger an undo operation */
     private class UndoAction extends AbstractAction {
         public UndoAction() {
-            super("Undo", IconFactory.getUndoIcon());
+            super(WBSEditor.resources.getString("Edit.Undo"),
+                    IconFactory.getUndoIcon());
             putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, //
                 MacGUIUtils.getCtrlModifier()));
@@ -273,7 +274,8 @@ public class UndoList {
     /** An action that can be used to trigger a redo operation */
     private class RedoAction extends AbstractAction {
         public RedoAction() {
-            super("Redo", IconFactory.getRedoIcon());
+            super(WBSEditor.resources.getString("Edit.Redo"),
+                    IconFactory.getRedoIcon());
             putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y, //
                 MacGUIUtils.getCtrlModifier()));

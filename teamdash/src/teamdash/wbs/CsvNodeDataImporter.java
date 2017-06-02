@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -105,11 +105,7 @@ public class CsvNodeDataImporter {
 
         if (columnPos[NAME] == -1)
             throw new ParseException(
-                    "No task name column was found.  Please\n"
-                            + "export the data again, and ensure that:\n"
-                            + " - you enable the 'Export includes headers' option\n"
-                            + " - you export the 'Name' field\n"
-                            + " - you use a comma, space, or tab as the field delimiter");
+                    WBSEditor.resources.getString("ImportCSV.Name_Not_Found"));
     }
 
     private char determineDelimiter(String line) throws ParseException {
@@ -134,7 +130,9 @@ public class CsvNodeDataImporter {
 
     private List parseData() throws IOException {
         List result = new ArrayList();
-        WBSNode node = new WBSNode(null, "Imported Items", "Component", 1, true);
+        WBSNode node = new WBSNode(null,
+                WBSEditor.resources.getString("ImportCSV.Node_Name"),
+                "Component", 1, true);
         result.add(node);
 
         String line;

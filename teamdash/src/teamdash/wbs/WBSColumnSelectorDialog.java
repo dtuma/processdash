@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,16 +45,18 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
 
+import net.sourceforge.processdash.i18n.Resources;
+
 import teamdash.TreeListSelector;
 
 public class WBSColumnSelectorDialog extends JDialog {
-    private static final String SELECTED_COLUMNS_TEXT = "Columns To Display:";
-    private static final String AVAILABLE_COLUMNS_TEXT = "Available Columns:";
-    private static final String CANCEL_BUTTON_LABEL = "Cancel";
-    private static final String SET_COLUMNS_BUTTON_LABEL = "Set Columns";
+
     private TableColumnModel tableColumnModel;
     private TreeListSelector columnSelector;
     private JLabel dialogLabel;
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.CustomTabs.Change_Columns");
 
     public WBSColumnSelectorDialog(JFrame parent, String title, Map availableTabs) {
         super(parent, title, true);
@@ -66,8 +68,10 @@ public class WBSColumnSelectorDialog extends JDialog {
         contentPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         dialogLabel = new JLabel();
         contentPanel.add(dialogLabel, BorderLayout.NORTH);
-        columnSelector = new TreeListSelector(buildTreeModel(availableTabs), AVAILABLE_COLUMNS_TEXT, SELECTED_COLUMNS_TEXT);
-        columnSelector.setBorder(new EmptyBorder(2, 2, 2, 2));
+        columnSelector = new TreeListSelector(buildTreeModel(availableTabs),
+                resources.getString("Available_Columns"),
+                resources.getString("Selected_Columns"));
+        columnSelector.setBorder(new EmptyBorder(10, 2, 2, 2));
         DefaultTreeCellRenderer treeCellRenderer = new DefaultTreeCellRenderer();
         treeCellRenderer.setOpenIcon(null);
         treeCellRenderer.setClosedIcon(null);
@@ -79,7 +83,7 @@ public class WBSColumnSelectorDialog extends JDialog {
         JPanel buttonPanel = new JPanel();
         FlowLayout buttonLayout = new FlowLayout(FlowLayout.RIGHT);
         buttonPanel.setLayout(buttonLayout);
-        JButton setColumnButton = new JButton(SET_COLUMNS_BUTTON_LABEL);
+        JButton setColumnButton = new JButton(resources.getString("Set_Columns"));
         setColumnButton.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 updateTabColumns(columnSelector.getSelectedList());
@@ -87,7 +91,7 @@ public class WBSColumnSelectorDialog extends JDialog {
             }
         });
         buttonPanel.add(setColumnButton);
-        JButton cancelButton = new JButton(CANCEL_BUTTON_LABEL);
+        JButton cancelButton = new JButton(resources.getString("Cancel"));
         cancelButton.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 dispose();
@@ -100,7 +104,7 @@ public class WBSColumnSelectorDialog extends JDialog {
     }
 
     public void setDialogMessage(String tabName) {
-        dialogLabel.setText("Select the columns to display on the '" + tabName + "' tab");
+        dialogLabel.setText(resources.format("Prompt_FMT", tabName));
     }
 
     public void setTableColumnModel(TableColumnModel tableColumnModel) {
@@ -117,7 +121,8 @@ public class WBSColumnSelectorDialog extends JDialog {
      * @return TreeNode
      */
     private TreeNode buildTreeModel(Map availableTabs) {
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Tabs");
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(
+                resources.getString("Tabs_Root"));
         for (Iterator iter = availableTabs.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry)iter.next();
             DefaultMutableTreeNode tabNode = new DefaultMutableTreeNode(entry.getKey());

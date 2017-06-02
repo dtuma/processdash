@@ -91,11 +91,11 @@ public class DataJTable extends JTable {
         ClipboardBridge clipboardBridge = new ClipboardBridge(this);
 
         copyAction = clipboardBridge.getCopyAction();
-        copyAction.putValue(Action.NAME, "Copy WBS Data");
+        copyAction.putValue(Action.NAME, WBSEditor.resources.getString("Edit.Data.Copy"));
         copyAction.putValue(DATA_ACTION_CATEGORY, DATA_ACTION_CATEGORY_CLIPBOARD);
 
         pasteAction = clipboardBridge.getPasteAction();
-        pasteAction.putValue(Action.NAME, "Paste WBS Data");
+        pasteAction.putValue(Action.NAME, WBSEditor.resources.getString("Edit.Data.Paste"));
         pasteAction.putValue(DATA_ACTION_CATEGORY, DATA_ACTION_CATEGORY_CLIPBOARD);
 
         addFocusListener(new FocusWatcher());

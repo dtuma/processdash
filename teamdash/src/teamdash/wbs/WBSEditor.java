@@ -440,11 +440,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             windowTitle = workingDirectory.getDescription();
         else
             windowTitle = teamProject.getProjectName();
-        windowTitle = windowTitle + " - Work Breakdown Structure";
+        windowTitle += " - " + resources.getString("Window.Title_Suffix");
         if (TeamServerSelector.isHistoricalModeEnabled())
             windowTitle += " @ " + TeamServerSelector.getHistoricalDateStr();
         else if (teamProject.isReadOnly())
-            windowTitle += " (Read-Only)";
+            windowTitle += " " + resources.getString("Window.Read_Only");
 
         frame = new JFrame(windowTitle);
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
@@ -878,20 +878,20 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private void showEditPreferencesDialog() {
         JCheckBox readOnlyPrompt = new JCheckBox(
-                "On startup, offer to open in read-only mode");
+                resources.getString("Preferences.Read_Only"));
         boolean readOnlyPromptSetting = teamProject
                 .getBoolUserSetting(PROMPT_READ_ONLY_SETTING);
         readOnlyPrompt.setSelected(readOnlyPromptSetting);
 
         JCheckBox membersCanEdit = new JCheckBox(
-                "Allow team members to edit the WBS");
+                resources.getString("Preferences.Team_Edit"));
         boolean membersCanEditSetting = !teamProject
                 .getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING);
         membersCanEdit.setSelected(membersCanEditSetting);
         membersCanEdit.setEnabled(!indivMode);
 
         JCheckBox allowSimulEdit = new JCheckBox(
-                "Allow multiple people to edit the WBS simultaneously");
+                resources.getString("Preferences.Simultaneous_Edit"));
         boolean simulEditSetting = teamProject
                 .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true);
         allowSimulEdit.setSelected(simulEditSetting);
@@ -903,7 +903,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean initialsPolicySetting = false;
         if ("username".equals(globalInitialsPolicy)) {
             initialsPolicy = new JCheckBox(
-                    "Identify team members by username, not initials");
+                    resources.getString("Preferences.Initials_Policy"));
             String localInitialsPolicy = teamProject
                     .getUserSetting(INITIALS_POLICY_SETTING);
             initialsPolicySetting = "username".equals(localInitialsPolicy);
@@ -917,7 +917,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean projectClosedSetting = false;
         if (projectClosedSettingStr != null) {
             projectClosed = new JCheckBox(
-                    "This project/iteration is closed for ongoing work");
+                    resources.getString("Preferences.Project_Closed"));
             projectClosedSetting = "true".equals(projectClosedSettingStr);
             projectClosed.setSelected(projectClosedSetting);
             projectClosed.setEnabled(!indivMode);
@@ -926,8 +926,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         Object[] message = new Object[] { readOnlyPrompt, membersCanEdit,
                 allowSimulEdit, initialsPolicy, projectClosed };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
-            "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
+            resources.getString("Preferences.Dialog_Title"),
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (userChoice != JOptionPane.OK_OPTION)
             return;
 
@@ -985,9 +985,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         if (restartRequired)
-            JOptionPane.showMessageDialog(frame, "You will need to close and "
-                    + "reopen the WBS Editor for your changes to take effect.",
-                "Restart Required", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(frame,
+                resources.getStrings("Preferences.Restart_Message"),
+                resources.getString("Preferences.Restart_Title"),
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void showWorkflowEditor() {
@@ -1053,7 +1054,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
     private Action saveAction, replaceAction, importFromCsvAction;
     private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
-        JMenu result = new JMenu("File");
+        JMenu result = new JMenu(resources.getString("Window.File_Menu"));
         result.setMnemonic('F');
         result.add(makeMenuItem(saveAction = new SaveAction()));
         if (mergeCoordinator != null)
@@ -1082,7 +1083,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private JMenu buildEditMenu(Action[] editingActions) {
-        JMenu result = new JMenu("Edit");
+        JMenu result = new JMenu(resources.getString("Edit.Menu"));
         result.setMnemonic('E');
         for (int i = 0;   i < editingActions.length;   i++) {
             if (editingActions[i].getValue(Action.NAME) != null)
@@ -1098,7 +1099,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private JMenu buildTabMenu(Action[] tabActions) {
-        JMenu result = new JMenu("Tabs");
+        JMenu result = new JMenu(resources.getString("Window.Tabs_Menu"));
         result.setMnemonic('A');
         for (int i = 0; i < tabActions.length; i++) {
             if (tabActions[i] != null) {
@@ -1112,7 +1113,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private JMenu buildWorkflowMenu(WBSModel workflows, Action[] workflowActions,
             Action insertWorkflowAction) {
-        JMenu result = new JMenu("Workflow");
+        JMenu result = new JMenu(resources.getString("Workflow.Menu"));
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
         result.add(new ProxyEditorAction());
@@ -1125,7 +1126,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private JMenu buildMilestonesMenu(WBSModel milestones) {
-        JMenu result = new JMenu("Milestones");
+        JMenu result = new JMenu(resources.getString("Milestones.Menu"));
         result.setMnemonic('M');
         result.add(new MilestonesEditorAction());
         if (!isMode(MODE_MASTER)) {
@@ -1151,7 +1152,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private JMenu buildTeamMenu(String initials, DataTableModel dataModel) {
-        JMenu result = new JMenu("Team");
+        JMenu result = new JMenu(resources.getString("Team.Menu"));
         result.setMnemonic('T');
         if (isMode(MODE_PLAIN))
             result.add(new ShowTeamMemberListEditorMenuItem());
@@ -1411,7 +1412,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (maybeSaveTeamMemberList() == false)
             return false;
 
-        JDialog dialog = createWaitDialog(frame, "Saving Data...");
+        JDialog dialog = createWaitDialog(frame,
+            resources.getString("Window.Saving_Data"));
         SaveThread saver = new SaveThread(dialog);
         saver.start();
         dialog.setVisible(true);
@@ -1440,7 +1442,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     static JDialog createWaitDialog(JFrame frame, String message) {
-        JDialog dialog = new JDialog(frame, "Please Wait", true);
+        JDialog dialog = new JDialog(frame,
+                resources.getString("Window.Please_Wait"), true);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         dialog.getContentPane().add(buildWaitContents(message));
         dialog.pack();
@@ -1449,7 +1452,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static JFrame createWaitFrame(String message) {
-        JFrame result = new JFrame("Please Wait");
+        JFrame result = new JFrame(resources.getString("Window.Please_Wait"));
         result.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         result.getContentPane().add(buildWaitContents(message));
         result.pack();
@@ -1492,15 +1495,16 @@ public class WBSEditor implements WindowListener, SaveListener,
                             for (int i = 0;  i < panel.getComponentCount(); i++) {
                                 Component c = panel.getComponent(i);
                                 if (c instanceof JLabel) {
-                                    JLabel label = (JLabel) c;
-                                    label.setText("Data Saved.");
+                                    ((JLabel) c).setText(resources.getString(
+                                        "Window.Data_Saved_Message"));
                                 } else if (c instanceof JProgressBar) {
                                     JProgressBar bar = (JProgressBar) c;
                                     bar.setIndeterminate(false);
                                     bar.setValue(bar.getMaximum());
                                 }
                             }
-                            saveDialog.setTitle("Data Saved");
+                            saveDialog.setTitle(
+                                resources.getString("Window.Data_Saved_Title"));
                         }});
                     Thread.sleep(750);
                 } catch (Exception e) {}
@@ -1762,9 +1766,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             (showCancel
                 ? JOptionPane.YES_NO_CANCEL_OPTION
                 : JOptionPane.YES_NO_OPTION);
-        int result = JOptionPane.showConfirmDialog
-            (frame, "Would you like to save changes?",
-             "Save Changes?", buttons);
+        int result = JOptionPane.showConfirmDialog(frame,
+            resources.getString("Window.Save_Prompt_Message"),
+            resources.getString("Window.Save_Prompt_Title"), buttons);
         switch (result) {
             case JOptionPane.CANCEL_OPTION:
             case JOptionPane.CLOSED_OPTION:
@@ -1824,13 +1828,12 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         LargeFontsHelper.maybeInitialize();
         try {
-            HttpAuthenticator.maybeInitialize("WBS Editor");
+            HttpAuthenticator.maybeInitialize(resources.getString("Window.App_Name"));
         } catch (Exception e) {}
         TamperDeterrent.init();
 
-        String message = (showTeamList
-                ? "Opening Team Member List..."
-                : "Opening Work Breakdown Structure...");
+        String message = resources.getString(
+            showTeamList ? "Window.Opening_Team" : "Window.Opening_WBS");
         JFrame waitFrame = null;
         if (!isDumpAndExitMode()) {
             waitFrame = createWaitFrame(message);
@@ -2260,7 +2263,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class SaveAction extends AbstractAction {
         private boolean firstSave;
         public SaveAction() {
-            super("Save", IconFactory.getSaveIcon());
+            super(resources.getString("Save"), IconFactory.getSaveIcon());
             putValue(MNEMONIC_KEY, new Integer('S'));
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, //
                 MacGUIUtils.getCtrlModifier()));
@@ -2414,7 +2417,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ImportFromCsvAction extends AbstractAction {
         public ImportFromCsvAction() {
-            super("Import from MS Project CSV file...");
+            super(resources.getString("ImportCSV.Menu"));
             putValue(MNEMONIC_KEY, new Integer('I'));
             setEnabled(readOnly == false);
         }
@@ -2429,7 +2432,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class CloseAction extends AbstractAction {
         public CloseAction() {
-            super("Close");
+            super(resources.getString("Close"));
             putValue(MNEMONIC_KEY, new Integer('C'));
         }
 
@@ -2440,7 +2443,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class EditPreferencesAction extends AbstractAction {
         public EditPreferencesAction() {
-            super("Preferences");
+            super(resources.getString("Preferences.Menu"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -2559,7 +2562,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class ShowCommitDatesMenuItem extends CheckBoxMenuItem implements
             ChangeListener {
         public ShowCommitDatesMenuItem() {
-            super("Show Commit Dates on Balancing Panel");
+            super(resources.getString("Milestones.Balance.Show_Commit_Dates"));
             setSelected(true);
             addChangeListener(this);
             load("teamTimePanel.showCommitDates");
@@ -2573,7 +2576,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class ShowMilestoneMarksMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public ShowMilestoneMarksMenuItem() {
-            super("Show Milestone Marks for Team Members");
+            super(resources.getString("Milestones.Balance.Show_Member_Marks"));
             setSelected(true);
             addChangeListener(this);
             load("teamTimePanel.showMilestoneMarks");
@@ -2587,7 +2590,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class ShowMilestoneColorsMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public ShowMilestoneColorsMenuItem() {
-            super("Use Milestone Colors for Team Member Bars");
+            super(resources.getString("Milestones.Balance.Use_Milestone_Colors"));
             setSelected(false);
             addChangeListener(this);
             load("teamTimePanel.colorByMilestone");
@@ -2709,7 +2712,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ShowTeamMemberListEditorMenuItem extends AbstractAction {
         public ShowTeamMemberListEditorMenuItem() {
-            super("Edit Team Member List");
+            super(resources.getString("Team.Edit_Menu"));
             putValue(MNEMONIC_KEY, new Integer('E'));
         }
         public void actionPerformed(ActionEvent e) {
@@ -2724,7 +2727,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         private WatchCoworkerTimesMenuItem watchMenu;
         public OptimizeEditingForIndivMenuItem(TeamMember t,
                 WatchCoworkerTimesMenuItem watchMenu) {
-            super("Optimize Edit Operations for: " + t.getName());
+            super(resources.format("Team.Optimize_Menu_FMT", t.getName()));
             this.initials = t.getInitials();
             this.watchMenu = watchMenu;
             setSelected(true);
@@ -2867,7 +2870,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class ShowTeamTimePanelMenuItem extends CheckBoxMenuItem
     implements ChangeListener {
         public ShowTeamTimePanelMenuItem() {
-            super("Show Bottom Up Time Panel");
+            super(resources.getString("Team.Balance.Menu"));
             setMnemonic('B');
             setSelected(teamTimePanel.isVisible());
             addChangeListener(this);
@@ -2884,7 +2887,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class BottomUpShowReplanMenuItem extends JRadioButtonMenuItem
     implements ChangeListener {
         public BottomUpShowReplanMenuItem (ButtonGroup buttonGroup) {
-            super("Colored Bars Show Remaining Work (Replan)");
+            super(resources.getString("Team.Balance.Replan"));
             setMnemonic('R');
             setDisplayedMnemonicIndex(getText().indexOf('R'));
             setSelected(true);
@@ -2901,7 +2904,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class BottomUpShowPlanMenuItem extends JRadioButtonMenuItem {
         public BottomUpShowPlanMenuItem (ButtonGroup buttonGroup) {
-            super("Colored Bars Show End-to-End Plan");
+            super(resources.getString("Team.Balance.Plan"));
             setMnemonic('P');
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
@@ -2912,7 +2915,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class BottomUpShowBalancedTeamBar extends CheckBoxMenuItem
             implements ChangeListener {
         public BottomUpShowBalancedTeamBar() {
-            super("Show Balanced Team Bar");
+            super(resources.getString("Team.Balance.Team_Bar"));
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             setSelected(true);
@@ -2927,7 +2930,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class BottomUpShowHoursPerWeekMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public BottomUpShowHoursPerWeekMenuItem() {
-            super("Show Individual Hours Per Week");
+            super(resources.getString("Team.Balance.Indiv_Hours"));
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             addChangeListener(this);
@@ -2941,7 +2944,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class BottomUpIncludeUnassignedMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public BottomUpIncludeUnassignedMenuItem() {
-            super("Include Unassigned Effort in Balanced Team Calculation");
+            super(resources.getString("Team.Balance.Include_Unassigned"));
             setSelected(true);
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));

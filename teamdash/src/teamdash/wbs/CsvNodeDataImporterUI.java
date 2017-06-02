@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
+import net.sourceforge.processdash.i18n.Resources;
+
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.CsvNodeDataImporter.ParseException;
 
@@ -50,7 +52,7 @@ public class CsvNodeDataImporterUI {
             CsvNodeDataImporter importer = new CsvNodeDataImporter();
             newNodes = importer.getNodesFromCsvFile(f, team);
         } catch (IOException e) {
-            showError("Could not open and read from the file '" + f + "'");
+            showError(resources.format("ImportCSV.Cannot_Open_FMT", f));
         } catch (ParseException e) {
             showError(e.getMessage());
         }
@@ -68,7 +70,7 @@ public class CsvNodeDataImporterUI {
 
         table.selectRows(newRows);
         table.scrollRectToVisible(table.getCellRect(newRows[0], 0, true));
-        UndoList.madeChange(table, "Import from CSV File");
+        UndoList.madeChange(table, resources.getString("ImportCSV.Change_Type"));
     }
 
     private void storeExtraNodeAttributes(WBSModel model, DataTableModel data,
@@ -84,11 +86,11 @@ public class CsvNodeDataImporterUI {
 
     private File selectFile(JComponent parent) {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select MS Project Export File");
+        chooser.setDialogTitle(resources.getString("ImportCSV.Open_Title"));
         chooser.addChoosableFileFilter(new CsvFileFilter(
-                "Text (Tab-delimited)", ".txt"));
+                resources.getString("ImportCSV.Text_Type"), ".txt"));
         chooser.addChoosableFileFilter(new CsvFileFilter(
-                "CSV (Comma-delimited)", ".csv"));
+                resources.getString("ImportCSV.CSV_Type"), ".csv"));
         chooser.setMultiSelectionEnabled(false);
 
         if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION)
@@ -99,8 +101,9 @@ public class CsvNodeDataImporterUI {
 
     private void showError(String error) {
         String[] message = error.split("\n");
-        JOptionPane.showMessageDialog(null, message, "Unable to Import",
-                JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, message,
+            resources.getString("ImportCSV.Cannot_Open_Title"),
+            JOptionPane.ERROR_MESSAGE);
     }
 
 
@@ -124,4 +127,7 @@ public class CsvNodeDataImporterUI {
         }
 
     }
+
+    private static final Resources resources = WBSEditor.resources;
+
 }

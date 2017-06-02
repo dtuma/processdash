@@ -85,6 +85,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ColumnSelectorIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -108,10 +109,6 @@ public class WBSTabPanel extends JLayeredPane implements
         MergeConflictHyperlinkHandler
 {
 
-    private static final String SAVE_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being saved.";
-    private static final String LOAD_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being imported.";
-    private static final String NO_TABS_MESSAGE = "The file selected did not contain any tabs";
-    private static final String INVALID_FILE_MESSAGE = "The file selected is not a valid tab import file.";
     private static final String TABXML_EXTENSION = ".tabxml";
     private static final String ID_ATTRIBUTE = "id";
     private static final String NAME_ATTRIBUTE = "name";
@@ -119,7 +116,6 @@ public class WBSTabPanel extends JLayeredPane implements
     private static final String COLUMN_ELEMENT = "column";
     private static final String TAB_ELEMENT = "tab";
     private static final String WBS_TABS_ELEMENT = "wbstabs";
-    private static final String COLUMN_SELECTOR_DIALOG_TITLE = "Select Tab Columns";
 
     /** The order in which the Actions should appear in the Edit menu. */
     private static final List<String> editMenuActionOrder =
@@ -135,6 +131,7 @@ public class WBSTabPanel extends JLayeredPane implements
     public static final String CUSTOM_COLUMNS_ID = "CustomColumnSet";
 
     public static final String CUSTOM_TABS_SYS_PROP = "teamdash.wbs.customTabURLs";
+    private static final Resources resources = Resources.getDashBundle("WBSEditor.CustomTabs");
 
     WBSJTable wbsTable;
     DataJTable dataTable;
@@ -621,14 +618,15 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class NewTabAction extends AbstractAction {
         public NewTabAction() {
-            super("New Tab", IconFactory.getNewTabIcon());
+            super(resources.getString("New_Tab.Menu"),
+                    IconFactory.getNewTabIcon());
         }
 
         public void actionPerformed(ActionEvent e) {
             String tabName = JOptionPane.showInputDialog(tabbedPane,
-                    "Enter a name for the new tab:",
-                    "Add New Tab",
-                    JOptionPane.QUESTION_MESSAGE);
+                resources.getString("New_Tab.Prompt"),
+                resources.getString("New_Tab.Title"),
+                JOptionPane.QUESTION_MESSAGE);
             if (null == tabName)
                 return;
 
@@ -643,15 +641,16 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class RenameTabAction extends AbstractAction implements EnablementCalculation {
         public RenameTabAction() {
-            super("Rename Tab");
+            super(resources.getString("Rename_Tab.Menu"));
             enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
             String tabName = JOptionPane.showInputDialog(tabbedPane,
-                    "Enter a new name for the '" + tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()) + "' tab:",
-                    "Rename Tab",
-                    JOptionPane.QUESTION_MESSAGE);
+                resources.format("Rename_Tab.Prompt_FMT",
+                    tabbedPane.getTitleAt(tabbedPane.getSelectedIndex())),
+                resources.getString("Rename_Tab.Title"),
+                JOptionPane.QUESTION_MESSAGE);
             if (null == tabName)
                 return;
 
@@ -668,15 +667,16 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class DuplicateTabAction extends AbstractAction implements EnablementCalculation {
         public DuplicateTabAction() {
-            super("Duplicate Tab", IconFactory.getDuplicateTabIcon());
+            super(resources.getString("Duplicate_Tab.Menu"),
+                    IconFactory.getDuplicateTabIcon());
             enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
             String tabName = JOptionPane.showInputDialog(tabbedPane,
-                    "Enter a name for the new tab:",
-                    "Duplicate Tab",
-                    JOptionPane.QUESTION_MESSAGE);
+                resources.getString("Duplicate_Tab.Prompt"),
+                resources.getString("Duplicate_Tab.Title"),
+                JOptionPane.QUESTION_MESSAGE);
             if (null == tabName)
                 return;
 
@@ -697,15 +697,17 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class DeleteTabAction extends AbstractAction implements EnablementCalculation {
         public DeleteTabAction() {
-            super("Delete Tab", IconFactory.getRemoveTabIcon());
+            super(resources.getString("Delete_Tab.Menu"),
+                    IconFactory.getRemoveTabIcon());
             enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
             int confirm = JOptionPane.showConfirmDialog(tabbedPane,
-                    "Delete tab named '" + tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()) + "'?",
-                    "Delete Tab",
-                    JOptionPane.OK_CANCEL_OPTION);
+                resources.format("Delete_Tab.Prompt_FMT",
+                    tabbedPane.getTitleAt(tabbedPane.getSelectedIndex())),
+                resources.getString("Delete_Tab.Title"),
+                JOptionPane.OK_CANCEL_OPTION);
             if (confirm == JOptionPane.OK_OPTION) {
                 removeTab(tabbedPane.getSelectedIndex());
                 customTabsDirty = true;
@@ -725,7 +727,8 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class ChangeTabColumnsAction extends AbstractAction implements EnablementCalculation {
         public ChangeTabColumnsAction() {
-            super("Change Tab Columns", IconFactory.getAddColumnIcon());
+            super(resources.getString("Change_Columns.Menu"),
+                    IconFactory.getAddColumnIcon());
             enablementCalculations.add(this);
         }
 
@@ -743,7 +746,7 @@ public class WBSTabPanel extends JLayeredPane implements
 
     private class ExportTabsAction extends AbstractAction {
         public ExportTabsAction() {
-            super("Export Tabs...");
+            super(resources.getString("Export_Tabs.Menu"));
             setEnabled(false);
         }
 
@@ -753,8 +756,10 @@ public class WBSTabPanel extends JLayeredPane implements
                 if (null != file)
                     saveTabs(file);
             } catch (IOException exception) {
-                JOptionPane.showMessageDialog(tabbedPane, exception.getMessage(),
-                        "Export Tabs", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(tabbedPane,
+                    exception.getMessage(),
+                    resources.getString("Export_Tabs.Dialog_Title"),
+                    JOptionPane.ERROR_MESSAGE);
                 exception.printStackTrace();
             }
         }
@@ -772,16 +777,20 @@ public class WBSTabPanel extends JLayeredPane implements
 
                 if (file.exists()) {
                     if (file.canWrite()) {
-                        int option = JOptionPane.showConfirmDialog(tabbedPane, "File " + file.getName()
-                                + " already exists.\nDo you want to replace it?",
-                                "Export Tabs", JOptionPane.YES_NO_OPTION);
+                        int option = JOptionPane.showConfirmDialog(tabbedPane,
+                            resources.formatStrings("Export_Tabs.Replace_FMT",
+                                file.getName()),
+                            resources.getString("Export_Tabs.Dialog_Title"),
+                            JOptionPane.YES_NO_OPTION);
 
                         if (option == JOptionPane.NO_OPTION)
                             file = getFile();
                     } else {
-                        JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
-                                + " cannot be overwritten.\nPlease choose a different file.",
-                                "Export Tabs", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(tabbedPane,
+                            resources.formatStrings(
+                                "Export_Tabs.Cannot_Write_FMT", file.getName()),
+                            resources.getString("Export_Tabs.Dialog_Title"),
+                            JOptionPane.ERROR_MESSAGE);
                         file = getFile();
                     }
                 }
@@ -796,7 +805,7 @@ public class WBSTabPanel extends JLayeredPane implements
     private class ImportTabsAction extends AbstractAction {
 
         public ImportTabsAction() {
-            super("Import Tabs...");
+            super(resources.getString("Import_Tabs.Menu"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -808,8 +817,10 @@ public class WBSTabPanel extends JLayeredPane implements
                     notifyAllListeners();
                 }
             } catch (LoadTabsException exception) {
-                JOptionPane.showMessageDialog(tabbedPane, exception.getMessage(),
-                        "Import Tabs", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(tabbedPane,
+                    exception.getMessage(),
+                    resources.getString("Import_Tabs.Error_Title"),
+                    JOptionPane.ERROR_MESSAGE);
                 exception.printStackTrace();
             }
         }
@@ -822,14 +833,18 @@ public class WBSTabPanel extends JLayeredPane implements
                 file = chooser.getSelectedFile();
                 if (file.exists()) {
                     if (!file.canRead()) {
-                        JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
-                                + " cannot be read.\nPlease check the file permissions.",
-                                "Error Importing Custom Tabs", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(tabbedPane,
+                            resources.formatStrings(
+                                "Import_Tabs.Cannot_Read_FMT", file.getName()),
+                            resources.getString("Import_Tabs.Error_Title"),
+                            JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
-                            + " does not exist.\nPlease choose a new file.",
-                            "Error Importing Custom Tabs", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(tabbedPane,
+                        resources.formatStrings("Import_Tabs.No_Such_File_FMT",
+                            file.getName()),
+                        resources.getString("Import_Tabs.Error_Title"),
+                        JOptionPane.ERROR_MESSAGE);
                     file = getFile();
                 }
             }
@@ -1050,7 +1065,8 @@ public class WBSTabPanel extends JLayeredPane implements
 
         // Create a "pseudo-tab" that displays the "Add Tab" icon.
         tabbedPane.addTab(null, IconFactory.getAddTabIcon(),
-            new EmptyComponent(new Dimension(10, 10)), "Add New Tab");
+            new EmptyComponent(new Dimension(10, 10)),
+            resources.getString("New_Tab.Tooltip"));
 
         tabbedPane.addChangeListener(new TabListener());
 
@@ -1349,7 +1365,8 @@ public class WBSTabPanel extends JLayeredPane implements
     private void showColumnSelector() {
         WBSColumnSelectorDialog columnSelectorDialog = new WBSColumnSelectorDialog(
                 (JFrame) SwingUtilities.getWindowAncestor(this),
-                COLUMN_SELECTOR_DIALOG_TITLE, getAvailableTabColumns());
+                resources.getString("Change_Columns.Dialog_Title"),
+                getAvailableTabColumns());
         columnSelectorDialog.setTableColumnModel((TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setLocationRelativeTo(this);
@@ -1391,7 +1408,8 @@ public class WBSTabPanel extends JLayeredPane implements
         try {
             loadTabs(file.toURI().toURL());
         } catch (MalformedURLException exception) {
-            LoadTabsException e = new LoadTabsException(LOAD_TABS_ERROR_MESSAGE);
+            LoadTabsException e = new LoadTabsException(
+                    resources.getString("Import_Tabs.Error_Message"));
             e.initCause(exception);
             throw e;
         }
@@ -1401,12 +1419,14 @@ public class WBSTabPanel extends JLayeredPane implements
         try {
             Document document = XMLUtils.parse(url.openStream());
             if (!WBS_TABS_ELEMENT.equals(document.getDocumentElement().getTagName()))
-                throw new LoadTabsException(INVALID_FILE_MESSAGE);
+                throw new LoadTabsException(
+                        resources.getString("Import_Tabs.Invalid_File"));
 
             // read xml
             NodeList tabNodes = document.getElementsByTagName(TAB_ELEMENT);
             if (tabNodes.getLength() == 0)
-                throw new LoadTabsException(NO_TABS_MESSAGE);
+                throw new LoadTabsException(
+                        resources.getString("Import_Tabs.Empty_File"));
 
             for (int i = 0; i < tabNodes.getLength(); i++) {
                 Element tab = (Element) tabNodes.item(i);
@@ -1425,11 +1445,13 @@ public class WBSTabPanel extends JLayeredPane implements
         } catch (LoadTabsException exception) {
             throw exception;
         } catch (SAXException saxe) {
-            LoadTabsException e = new LoadTabsException(INVALID_FILE_MESSAGE);
+            LoadTabsException e = new LoadTabsException(
+                    resources.getString("Import_Tabs.Invalid_File"));
             e.initCause(saxe);
             throw e;
         } catch (Exception exception) {
-            LoadTabsException e = new LoadTabsException(LOAD_TABS_ERROR_MESSAGE);
+            LoadTabsException e = new LoadTabsException(
+                    resources.getString("Import_Tabs.Error_Message"));
             e.initCause(exception);
             throw e;
         }
@@ -1478,7 +1500,8 @@ public class WBSTabPanel extends JLayeredPane implements
             out.write("</" + WBS_TABS_ELEMENT + ">\n");
             out.close();
         } catch (Exception e) {
-            IOException exception = new IOException(SAVE_TABS_ERROR_MESSAGE);
+            IOException exception = new IOException(
+                    resources.getString("Export_Tabs.Error_Message"));
             exception.initCause(e);
             throw exception;
         }
@@ -1521,7 +1544,7 @@ public class WBSTabPanel extends JLayeredPane implements
         }
 
         public String getDescription() {
-            return "Custom Tabs (.tabxml)";
+            return resources.getString("File_Type");
         }
 
     }
