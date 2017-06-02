@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,7 +41,10 @@ public class WBSDevelopmentTemplateClassLoader extends
     @Override
     protected URL findResourceImpl(String mappedName) {
         try {
-            File resource = new File(getBaseDir(), mappedName);
+            File baseDir = getBaseDir();
+            if (mappedName.contains("WBSEditor"))
+                baseDir = new File(baseDir, "teamdash");
+            File resource = new File(baseDir, mappedName);
             if (resource.isFile())
                 return resource.toURI().toURL();
         } catch (MalformedURLException e) {
@@ -54,6 +57,8 @@ public class WBSDevelopmentTemplateClassLoader extends
 
     private File getBaseDir() {
         if (baseDir == null) {
+            if (!Boolean.getBoolean("WBSDevelopmentTemplateClassLoader.enabled"))
+                throw new UnsupportedOperationException("Not enabled");
             File cp = RuntimeUtils.getClasspathFile(getClass());
             if (cp == null || !cp.isDirectory())
                 throw new UnsupportedOperationException();
