@@ -52,6 +52,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -73,6 +74,9 @@ import teamdash.wbs.WorkflowLibraryEditor;
 public class OpenWBSEditor extends TinyCGIBase {
 
     private static final String JAR_PARAM = "jar";
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Errors");
 
     public OpenWBSEditor() {
         this.charset = "UTF-8";
@@ -107,8 +111,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         directory = FilenameMapper.remap(directory);
 
         if (url == null && directory == null) {
-            writeHtmlHeader();
-            out.print(LOCATION_MISSING_MSG);
+            printErrorPage("Location_Missing");
             return;
         }
 
@@ -194,9 +197,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         // If the URL was bad and no directory was given, display a "server
         // unavailable" error message.
         if (directory == null) {
-            writeHtmlHeader();
-            out.print(SERVER_UNAVAILABLE_MSG1 + HTMLUtils.escapeEntities(url)
-                    + SERVER_UNAVAILABLE_MSG2);
+            printErrorPage("Server_Unavailable", url);
             return false;
         }
 
@@ -204,13 +205,31 @@ public class OpenWBSEditor extends TinyCGIBase {
         // directory" error message.
         File dir = new File(directory);
         if (!dir.isDirectory()) {
-            writeHtmlHeader();
-            out.print(DIR_MISSING_MSG1 + HTMLUtils.escapeEntities(directory) +
-                      DIR_MISSING_MSG2);
+            printErrorPage("Directory_Unavailable", directory);
             return false;
         }
 
         return true;
+    }
+
+    private void printErrorPage(String resKey, String... location) {
+        writeHtmlHeader();
+        String title = resources.getHTML(resKey + ".Title");
+        out.print("<html>\n<head>\n<title>");
+        out.print(title);
+        out.print("</title>\n</head>\n<body>\n<h1>");
+        out.print(title);
+        out.print("</h1>\n<p>");
+        if (location == null || location.length == 0) {
+            out.print(resources.getHTML(resKey + ".Message"));
+        } else {
+            out.print(resources.getHTML(resKey + ".Message_1"));
+            out.print("</p>\n<pre style='margin-left:1cm'>");
+            out.print(HTMLUtils.escapeEntities(location[0]));
+            out.print("</pre>\n<p>");
+            out.print(resources.getHTML(resKey + ".Message_2"));
+        }
+        out.print("</p>\n</body>\n</html>\n");
     }
 
     public Map<String, String> getLaunchProperties(String url) {
@@ -622,35 +641,5 @@ public class OpenWBSEditor extends TinyCGIBase {
         File jarFile = new File(jarFileName).getAbsoluteFile();
         return (jarFile.isFile() ? jarFile : null);
     }
-
-
-    private static final String LOCATION_MISSING_MSG =
-        "<html><head><title>Team Directory Missing</title></head><body>" +
-        "<h1>Team Directory Missing</h1>" +
-        "<p>The Work Breakdown Structure Editor cannot be used until you " +
-        "specify a team data directory on the Project Parameters and " +
-        "Settings page.</p></body></html>";
-
-
-    private static final String SERVER_UNAVAILABLE_MSG1 =
-        "<html><body><h1>Team Data Server Unavailable</h1>" +
-        "The team planning tools need access to the team server that hosts " +
-        "data for this project.  According to your current project settings, " +
-        "that server is <pre>";
-    private static final String SERVER_UNAVAILABLE_MSG2 =
-        "</pre>  Unfortunately, this server is unavailable.  Please check " +
-        "your network connection, or contact your system administrator to " +
-        "see if the Team Server is running.</body></html>";
-
-
-    private static final String DIR_MISSING_MSG1 =
-        "<html><body><h1>Team Data Directory Missing</h1>" +
-        "The team planning tools need access to the team data directory for " +
-        "this project.  According to your current project settings, that " +
-        "directory is <pre>";
-    private static final String DIR_MISSING_MSG2 =
-        "</pre>  Unfortunately, this directory does not appear to exist.  " +
-        "Check to make certain that the directory is accessible and try " +
-        "again.</body></html>";
 
 }

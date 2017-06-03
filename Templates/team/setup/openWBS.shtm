@@ -8,15 +8,6 @@
   Project ID for this team project is missing.  The Project ID is
   displayed on the Project Parameters and Settings page.</p>
   </body></html>
-<!--#elif ![Team_Data_Directory] && ![Team_Data_Directory_URL] -->
-  <html><head>
-  <title>Team Directory Missing</title>
-  </head><body>
-  <h1>Team Directory Missing</h1>
-  <p>The Work Breakdown Structure Editor cannot be used until you
-  specify a team data directory on the Project Parameters and Settings
-  page.</p>
-  </body></html>
 <!--#else-->
 
 <!--#set var="reverseSyncURI" inline="true" #-->
