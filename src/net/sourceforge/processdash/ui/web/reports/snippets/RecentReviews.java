@@ -86,6 +86,22 @@ public class RecentReviews extends HttpServlet {
         List<Integer> planItemKeys = QueryUtils.pluckColumn(taskData, 0);
         List<Object[]> defectCounts = query.query(hql[1], planItemKeys);
 
+        // look for PSP phases, as they require special handling. (The defect
+        // will be logged against the plan item parent, not the task itself.)
+        for (Object[] row : taskData) {
+            String planItemID = (String) row[9];
+            if (planItemID != null && (planItemID.endsWith(":Design Review")
+                    || planItemID.endsWith(":Code Review"))) {
+                Object taskKey = row[0];
+                Object parentKey = row[10];
+                Object taskPhase = row[11];
+                Number count = QueryUtils.singleValue(query.query(hql[2], //
+                    parentKey, taskPhase));
+                if (count != null && count.intValue() > 0)
+                    defectCounts.add(new Object[] { taskKey, count });
+            }
+        }
+
         // build objects to hold the resulting data
         List<ReviewRow> reviews = new ArrayList<RecentReviews.ReviewRow>();
         for (Object[] oneRow : taskData) {
