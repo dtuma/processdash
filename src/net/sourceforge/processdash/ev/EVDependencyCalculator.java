@@ -56,10 +56,19 @@ public class EVDependencyCalculator {
         this.cache = cache;
     }
 
-    public void recalculate(Collection dependencies) {
+    public boolean recalculate(Collection<EVTaskDependency> dependencies) {
+        if (dependencies == null || dependencies.isEmpty())
+            // nothing to calculate
+            return false;
+        else if (dependencies.size() == 1
+                && dependencies.iterator().next().isCollab())
+            // no calculation needed for collab dependency
+            return false;
+
         Map taskLists = new HashMap();
         openTaskListsForDependencies(taskLists, dependencies);
         updateDependencies(taskLists, dependencies);
+        return true;
     }
 
     public void recalculate(EVTaskList taskList) {
@@ -83,6 +92,10 @@ public class EVDependencyCalculator {
     }
 
     private void openTaskListForDependency(Map taskLists, EVTaskDependency d) {
+        // collab dependencies do not refer to any secondary task list.
+        if (d.isCollab())
+            return;
+
         // first, try to honor the task list named by the dependency.
         // (This policy may need to be revisited.)
         String taskListName = d.getTaskListName();
