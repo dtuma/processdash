@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberFilter;
@@ -59,7 +61,7 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
 
     private UserGroupManagerWBS() {
-        super(true);
+        super(true, TamperDeterrent.FileType.WBS);
         datasetIDMap = new HashMap<Integer, String>();
         datasetIDMapExt = Collections.unmodifiableMap(datasetIDMap);
     }
@@ -75,7 +77,12 @@ public class UserGroupManagerWBS extends UserGroupManager {
             datasetID = "unknown";
 
         // initialize the user group manager
-        new UserGroupManagerWBS().init(settingsFile, datasetID);
+        try {
+            new UserGroupManagerWBS().init(settingsFile, datasetID);
+        } catch (TamperException e) {
+            // if the shared groups file has been tampered with, degrade
+            // gracefully and publish only custom groups.
+        }
         getInstance().teamMemberList = proj.getTeamMemberList();
     }
 
@@ -85,7 +92,12 @@ public class UserGroupManagerWBS extends UserGroupManager {
     }
 
     public void reload() {
-        super.reloadAll();
+        try {
+            super.reloadAll();
+        } catch (TamperException e) {
+            // if the shared groups file has been tampered with, degrade
+            // gracefully and do not reload its data.
+        }
     }
 
     public UserGroupMember getMe() {

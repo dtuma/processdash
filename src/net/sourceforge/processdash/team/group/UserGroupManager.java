@@ -51,6 +51,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -71,6 +72,8 @@ public abstract class UserGroupManager {
 
     private boolean enabled;
 
+    private TamperDeterrent.FileType tamperFileType;
+
     private boolean indivFilteringSupported;
 
     private File sharedFile, customFile;
@@ -82,7 +85,7 @@ public abstract class UserGroupManager {
     private Map<String, UserGroup> groups;
 
 
-    UserGroupManager(boolean enable) {
+    UserGroupManager(boolean enable, TamperDeterrent.FileType fileType) {
         PERMISSION.checkPermission();
         if (INSTANCE != null)
             throw new IllegalStateException();
@@ -90,12 +93,13 @@ public abstract class UserGroupManager {
         listeners = new EventListenerList();
         globalFilter = UserGroup.EVERYONE;
         enabled = enable;
+        tamperFileType = fileType;
         indivFilteringSupported = false;
         groups = Collections.EMPTY_MAP;
         INSTANCE = this;
     }
 
-    void init(File sharedFile, String datasetID) {
+    void init(File sharedFile, String datasetID) throws TamperException {
         // ensure calling code has permission to perform initialization
         PERMISSION.checkPermission();
 
@@ -111,13 +115,13 @@ public abstract class UserGroupManager {
         // load group data from both files
         timestamps = new HashMap<Boolean, Date>();
         groups = Collections.synchronizedMap(new HashMap<String, UserGroup>());
-        reloadAll();
         needsSave = new HashSet<Boolean>();
+        reloadAll();
     }
 
-    protected void reloadAll() {
-        reloadGroups(false);
+    protected void reloadAll() throws TamperException {
         reloadGroups(true);
+        reloadGroups(false);
     }
 
     /**
@@ -359,11 +363,16 @@ public abstract class UserGroupManager {
         // custom groups could be altered simultaneously by different processes.
         // to be on the safe side, try reloading the custom groups file before
         // we modify it (as long as we don't have unsaved changes).
-        if (g.isCustom() && !needsSave.contains(Boolean.TRUE))
-            reloadGroups(true);
+        if (g.isCustom() && !needsSave.contains(Boolean.TRUE)) {
+            try {
+                reloadGroups(true);
+            } catch (TamperException e) {
+                // can't happen: the custom file is not checked for tampering
+            }
+        }
     }
 
-    private void reloadGroups(boolean custom) {
+    private void reloadGroups(boolean custom) throws TamperException {
         File targetFile = custom ? customFile : sharedFile;
         if (!targetFile.isFile())
             return;
@@ -391,13 +400,23 @@ public abstract class UserGroupManager {
                     groupWasSaved(oneGroup);
             }
 
+        } catch (TamperException te) {
+            throw te;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private Map<String, UserGroup> readFile(File f, boolean custom)
-            throws SAXException, IOException {
+            throws SAXException, IOException, TamperException {
+        // check to see if the shared groups file has been tampered with. To
+        // avoid denial-of-service problems, people who have permission to
+        // edit groups are still allowed to open the tampered files. This
+        // allows them to review the configuration, fix any problems, and save
+        // a new/good version of the file.
+        if (!custom && getReadOnlyCode() != null)
+            TamperDeterrent.getInstance().verifyThumbprint(f, tamperFileType);
+
         // open the file and parse as XML
         InputStream in = new BufferedInputStream(new FileInputStream(f));
         Element xml = XMLUtils.parse(in).getDocumentElement();

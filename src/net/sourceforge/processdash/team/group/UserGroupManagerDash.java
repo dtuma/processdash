@@ -44,6 +44,8 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.security.TamperDeterrent;
+import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
@@ -72,13 +74,14 @@ public class UserGroupManagerDash extends UserGroupManager {
         // met, disable the user group manager.
         super(Settings.isTeamMode()
                 && TemplateLoader.meetsPackageRequirement("tpidw-embedded",
-                    "1.5.4.1"));
+                    "1.5.4.1"),
+                TamperDeterrent.FileType.XML);
         ReverseOrder reverse = new ReverseOrder();
         joinedPeople = Collections.synchronizedMap(new TreeMap(reverse));
         allTeamMembers = Collections.synchronizedMap(new TreeMap(reverse));
     }
 
-    public void init(DashboardContext ctx) {
+    public void init(DashboardContext ctx) throws TamperException {
         // ensure calling code has permission to perform initialization
         PERMISSION.checkPermission();
 

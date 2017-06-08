@@ -618,7 +618,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         Settings.setDatasetID(DashController.getDatasetID(false));
-        UserGroupManagerDash.getInstance().init(this);
+        try {
+            UserGroupManagerDash.getInstance().init(this);
+        } catch (TamperException te) {
+            displayGroupsTamperingError();
+            System.exit(1);
+        }
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
             TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());
@@ -1466,16 +1471,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
 
     private void displayStartupPermissionError(String resourceKey) {
-        Resources res = Resources.getDashBundle("Authentication.Errors");
-        String title = res.getString(resourceKey + ".Title");
-        Object message = res.getStrings(resourceKey + ".Message");
-        JOptionPane.showMessageDialog(hideSS(), message, title,
-            JOptionPane.ERROR_MESSAGE);
+        displayStaticStartupError("Authentication.Errors." + resourceKey);
     }
 
-
     private void displayPermissionsTamperingError() {
-        Resources res = Resources.getDashBundle("Permissions.Tamper_Error");
+        displayStaticStartupError("Permissions.Tamper_Error");
+    }
+
+    private void displayGroupsTamperingError() {
+        displayStaticStartupError("ProcessDashboard.Groups.Tamper_Error");
+    }
+
+    private void displayStaticStartupError(String bundleName) {
+        Resources res = Resources.getDashBundle(bundleName);
         String title = res.getString("Title");
         Object message = res.getStrings("Message");
         JOptionPane.showMessageDialog(hideSS(), message, title,
