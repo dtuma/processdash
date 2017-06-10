@@ -297,6 +297,7 @@ The author(s) may be contacted at:
     <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
       <root classname="net.sourceforge.processdash.hier.ui.icons.HierarchyIcons"/>
+      <root classname="net.sourceforge.processdash.i18n.AbstractMergingTemplateClassLoader"/>
       <root classname="net.sourceforge.processdash.security.TamperDeterrent"/>
       <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
@@ -357,7 +358,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 147) {
+        if (classCount > 149) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -414,10 +415,12 @@ class dependency has been added in a dashboard class?)
       <fileset dir="${processdash.dir}/src">
         <include name="net/sourceforge/processdash/util/TempFileFactory.properties"/>
       </fileset>
-      <fileset dir="${processdash.dir}">
-        <include name="Templates/resources/Authentication*.properties"/>
-        <include name="Templates/resources/ProcessDashboard*.properties"/>
-      </fileset>
+      <zipfileset dir="${processdash.dir}/Templates/resources"
+                  prefix="Templates/resources/dash">
+        <include name="(Resources)*.properties"/>
+        <include name="Authentication*.properties"/>
+        <include name="ProcessDashboard*.properties"/>
+      </zipfileset>
 
       <!-- include the wbs-editor-related templates -->
       <fileset dir=".">

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,24 +34,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import net.sourceforge.processdash.templates.TemplateLoader;
 
 
-
-/** A special classloader for use with java.util.ResourceBundle.
- * This loads ".properties" files from the TemplateLoader search
- * path, allowing dashboard add-on files to contribute localization
- * information.  In addition, if this classloader finds more than
- * one matching ".properties" file in the TemplateLoader search
- * path, it will merge their contents.
+/**
+ * A special classloader for use with java.util.ResourceBundle, that can merge
+ * the contents of ".properties" files found in more than one location.
  */
-public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
+public abstract class AbstractMergingTemplateClassLoader
+        extends SafeTemplateClassLoader {
 
     private Map cache = Collections.synchronizedMap(new HashMap());
     private boolean reverseOrder;
     private File tempDir;
 
-    public MergingTemplateClassLoader() {
+    public AbstractMergingTemplateClassLoader() {
         try {
             // we're going to merge properties files by appending them.
             // keys will commonly appear twice as a result.  So we perform
@@ -98,7 +94,7 @@ public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
     private URL lookupTemplateResource(String mappedName) {
         // find all the URLs available to the template loader that match
         // the given name
-        URL[] result = TemplateLoader.resolveURLs(mappedName);
+        URL[] result = lookupUrlsForResource(mappedName);
         if (result.length == 0)
             // no matches found?  return null.
             return null;
@@ -116,6 +112,9 @@ public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
             return result[0];
         }
     }
+
+
+    protected abstract URL[] lookupUrlsForResource(String mappedName);
 
 
     private URL concatenateResources(String mappedName, URL[] itemsToMerge)
@@ -152,7 +151,7 @@ public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
         out.close();
 
         // return a URL to the temporary file.
-        return f.toURL();
+        return f.toURI().toURL();
     }
 
 
@@ -165,4 +164,5 @@ public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
         out.write('\n');
         in.close();
     }
+
 }

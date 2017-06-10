@@ -25,29 +25,22 @@ package net.sourceforge.processdash.i18n;
 
 import java.net.URL;
 
-import net.sourceforge.processdash.util.StringUtils;
-
+import net.sourceforge.processdash.templates.TemplateLoader;
 
 /**
- * Finds template resources that appear in the packaged TeamTools.jar file
+ * A special classloader for use with java.util.ResourceBundle. This loads
+ * ".properties" files from the TemplateLoader search path, allowing dashboard
+ * add-on files to contribute localization information. In addition, if this
+ * classloader finds more than one matching ".properties" file in the
+ * TemplateLoader search path, it will merge their contents.
  */
-public class WBSRuntimeTemplateClassLoader
+public class MergingTemplateClassLoader
         extends AbstractMergingTemplateClassLoader {
 
     @Override
     protected URL[] lookupUrlsForResource(String resourceName) {
-        String templateName = mapToTemplates(resourceName);
-
-        // look for the resource within the TeamTools.jar file. Files copied
-        // from the dashboard are in a "resources/dash" subdirectory.
-        String localName = templateName;
-        if (!localName.startsWith("Templates/resources/WBSEditor"))
-            localName = StringUtils.findAndReplace(localName, "/resources/",
-                "/resources/dash/");
-        URL localResult = WBSRuntimeTemplateClassLoader.class.getClassLoader()
-                .getResource(localName);
-
-        return new URL[] { localResult };
+        // ask the TemplateLoader to find all resources matching the given name
+        return TemplateLoader.resolveURLs(resourceName);
     }
 
 }

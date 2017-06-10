@@ -35,16 +35,19 @@ import net.sourceforge.processdash.util.RuntimeUtils;
  * teamdash project; finds localization resources in plain directories based on
  * the expected directory structure of the development environment.
  */
-public class WBSDevelopmentTemplateClassLoader extends
-        WBSAbstractTemplateClassLoader {
+public class WBSDevelopmentTemplateClassLoader extends SafeTemplateClassLoader {
+
+    public WBSDevelopmentTemplateClassLoader() {
+        getBaseDir();
+    }
 
     @Override
-    protected URL findResourceImpl(String mappedName) {
+    protected URL findResourceImpl(String resourceName) {
         try {
             File baseDir = getBaseDir();
-            if (mappedName.contains("WBSEditor"))
+            if (resourceName.startsWith("resources/WBSEditor"))
                 baseDir = new File(baseDir, "teamdash");
-            File resource = new File(baseDir, mappedName);
+            File resource = new File(baseDir, mapToTemplates(resourceName));
             if (resource.isFile())
                 return resource.toURI().toURL();
         } catch (MalformedURLException e) {
