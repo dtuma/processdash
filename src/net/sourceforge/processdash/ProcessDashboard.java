@@ -1479,7 +1479,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void displayGroupsTamperingError() {
-        displayStaticStartupError("ProcessDashboard.Groups.Tamper_Error");
+        displayStaticStartupError("Groups.Tamper_Error");
     }
 
     private void displayStaticStartupError(String bundleName) {

@@ -94,8 +94,7 @@ public class UserGroupEditor {
 
     private JPanel userInterface;
 
-    static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
+    static final Resources resources = Resources.getDashBundle("Groups");
 
 
     public UserGroupEditor(Component parent) {

@@ -78,8 +78,7 @@ public class UserGroupSelector {
 
     private UserFilter selectedItem;
 
-    private static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
+    private static final Resources resources = Resources.getDashBundle("Groups");
 
 
     public UserGroupSelector(Component parent, String resKey, boolean showIndivs) {

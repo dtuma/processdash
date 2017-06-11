@@ -419,7 +419,7 @@ class dependency has been added in a dashboard class?)
                   prefix="Templates/resources/dash">
         <include name="(Resources)*.properties"/>
         <include name="Authentication*.properties"/>
-        <include name="ProcessDashboard*.properties"/>
+        <include name="Groups*.properties"/>
       </zipfileset>
 
       <!-- include the wbs-editor-related templates -->

@@ -43,8 +43,7 @@ public class SelectGroupFilter extends TinyCGIBase {
 
     public static final String FILTER_PARAM = "groupFilter";
 
-    private static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
+    private static final Resources resources = Resources.getDashBundle("Groups");
 
     @Override
     protected void doGet() throws IOException {

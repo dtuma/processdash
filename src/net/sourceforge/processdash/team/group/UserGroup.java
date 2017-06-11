@@ -39,8 +39,7 @@ import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 public class UserGroup implements UserFilter, Comparable<UserGroup> {
 
-    static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard.Groups");
+    static final Resources resources = Resources.getDashBundle("Groups");
 
     public static final String EVERYONE_ID = "0";
 
