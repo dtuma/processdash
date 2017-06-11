@@ -23,8 +23,14 @@
 
 package net.sourceforge.processdash.i18n;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -33,6 +39,36 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class WBSRuntimeTemplateClassLoader
         extends AbstractMergingTemplateClassLoader {
+
+    private String[] userTranslations;
+
+    public WBSRuntimeTemplateClassLoader() {
+        userTranslations = findUserTranslations();
+    }
+
+    private String[] findUserTranslations() {
+        // find the directory where user translations are stored.
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File appTemplateDir = new File(appDir, "Templates");
+        if (!appTemplateDir.isDirectory())
+            return null;
+
+        // find files containing user translations, and build a list of URLs
+        List<String> translationJars = new ArrayList<String>();
+        for (File file : appTemplateDir.listFiles()) {
+            if (file.getName().startsWith("pspdash_")) {
+                try {
+                    String url = "jar:" + file.toURI().toURL() + "!/";
+                    translationJars.add(url);
+                } catch (MalformedURLException e) {
+                }
+            }
+        }
+
+        // return the results we found
+        return (translationJars.isEmpty() ? null
+                : translationJars.toArray(new String[translationJars.size()]));
+    }
 
     @Override
     protected URL[] lookupUrlsForResource(String resourceName) {
@@ -47,7 +83,33 @@ public class WBSRuntimeTemplateClassLoader
         URL localResult = WBSRuntimeTemplateClassLoader.class.getClassLoader()
                 .getResource(localName);
 
-        return new URL[] { localResult };
+        // find any user translations that may be in use. If none, return
+        // the result that we found locally in this JAR
+        List<URL> result = getUserResources(templateName);
+        if (result.isEmpty())
+            return new URL[] { localResult };
+
+        // add the local result to the user translations, and return
+        if (localResult != null)
+            result.add(localResult);
+        return result.toArray(new URL[result.size()]);
+    }
+
+    private List<URL> getUserResources(String templateName) {
+        if (userTranslations == null)
+            return Collections.EMPTY_LIST;
+
+        // Look for the named resource in each of the user translation JARs
+        List<URL> result = new ArrayList<URL>(userTranslations.length + 1);
+        for (String oneUserJar : userTranslations) {
+            try {
+                URL u = new URL(oneUserJar + templateName);
+                u.openStream().close();
+                result.add(u);
+            } catch (Exception e) {
+            }
+        }
+        return result;
     }
 
 }
