@@ -154,7 +154,7 @@ public class TeamSettingsRepublisher {
 
         TeamSettingsFile tsf = new TeamSettingsFile(dir, url);
         tsf.read();
-        if (force || tsf.needsRefresh()) {
+        if (!tsf.isReadOnly() && (force || tsf.needsRefresh())) {
             tsf.write();
             logger.fine("Republished settings.xml file for " + path);
         }

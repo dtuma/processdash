@@ -208,6 +208,10 @@ public class TeamSettingsFile {
         return subprojects;
     }
 
+    public boolean isReadOnly() {
+        return isReadOnly;
+    }
+
     public void setReadOnly() {
         this.isReadOnly = true;
     }

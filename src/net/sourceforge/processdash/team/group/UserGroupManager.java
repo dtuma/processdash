@@ -95,6 +95,7 @@ public abstract class UserGroupManager {
         enabled = enable;
         tamperFileType = fileType;
         indivFilteringSupported = false;
+        timestamps = new HashMap<Boolean, Date>();
         groups = Collections.EMPTY_MAP;
         INSTANCE = this;
     }
@@ -113,7 +114,6 @@ public abstract class UserGroupManager {
         customFile = new File(customDir, customFilename);
 
         // load group data from both files
-        timestamps = new HashMap<Boolean, Date>();
         groups = Collections.synchronizedMap(new HashMap<String, UserGroup>());
         needsSave = new HashSet<Boolean>();
         reloadAll();
