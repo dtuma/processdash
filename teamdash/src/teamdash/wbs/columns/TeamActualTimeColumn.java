@@ -42,6 +42,7 @@ import teamdash.team.TeamMemberFilter;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSFilter;
 import teamdash.wbs.WBSLeafNodeCompletionTester;
@@ -75,6 +76,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
 
     private WBSModel wbsModel;
 
+    private MilestonesWBSModel milestones;
+
     private TeamMemberList teamMembers;
 
     private TeamMemberFilter teamFilter;
@@ -94,9 +97,10 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
     private boolean[] matchesTeamFilter;
 
     public TeamActualTimeColumn(DataTableModel dataModel,
-            TeamMemberList teamMembers) {
+            MilestonesWBSModel milestones, TeamMemberList teamMembers) {
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
+        this.milestones = milestones;
         this.teamMembers = teamMembers;
         this.rollupEveryone = true;
         this.columnID = COLUMN_ID;
@@ -210,7 +214,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
         earnedValue[0] = 0;
         completionDate[0] = COMPL_DATE_NA;
         if (isLeaf) {
-            int milestone = MilestoneColumn.getMilestoneID(node);
+            int milestone = MilestoneColumn.getMilestoneID(node, milestones);
             // accumulate EV and completion date information for this leaf
             for (int i = 0; i < teamSize; i++) {
                 // decide whether data from this team member should be included

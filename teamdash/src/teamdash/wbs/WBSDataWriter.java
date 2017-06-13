@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -290,7 +290,7 @@ public class WBSDataWriter {
     /** Return true if this WBS node represents a task or other item that has
      * been assigned to a deferred milestone */
     private boolean isNodeMilestoneDeferred(WBSNode node) {
-        int milestoneID = MilestoneColumn.getMilestoneID(node);
+        int milestoneID = MilestoneColumn.getMilestoneID(node, null);
         return milestoneID != -1
                 && deferredMilestoneIDs.contains(milestoneID);
     }
@@ -327,7 +327,7 @@ public class WBSDataWriter {
         }
 
         if (milestonesModel != null) {
-            int milestoneID = MilestoneColumn.getMilestoneID(node);
+            int milestoneID = MilestoneColumn.getMilestoneID(node, null);
             String milestoneName = TaskLabelColumn.convertToLabel(
                     milestonesModel.getNameForMilestone(milestoneID));
             result = appendLabels(result, milestoneName);
@@ -358,7 +358,7 @@ public class WBSDataWriter {
 
     private String getMilestoneIdSaveString(WBSNode node) {
         int result = (milestonesModel == null ? -1 //
-                : MilestoneColumn.getMilestoneID(node));
+                : MilestoneColumn.getMilestoneID(node, milestonesModel));
         return (result < 0 ? null : Integer.toString(result));
     }
 

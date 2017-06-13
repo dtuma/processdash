@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -109,13 +109,23 @@ public class MilestoneColumn extends AbstractDataColumn implements
         return null;
     }
 
-    public static int getMilestoneID(WBSNode node) {
+    public static int getMilestoneID(WBSNode node,
+            MilestonesWBSModel milestones) {
+        Integer result = getMilestoneIDAttr(node);
+        if (result != -1 && milestones != null
+                && !milestones.getMilestoneNameMap().containsKey(result)) {
+            result = -1;
+        }
+        return result;
+    }
+
+    private static Integer getMilestoneIDAttr(WBSNode node) {
         Integer nodeValue = node.getIntegerAttribute(EXPLICIT_VALUE_ATTR);
         if (nodeValue != null)
-            return nodeValue.intValue();
+            return nodeValue;
         Integer inheritedValue = node.getIntegerAttribute(INHERITED_VALUE_ATTR);
         if (inheritedValue != null)
-            return inheritedValue.intValue();
+            return inheritedValue;
         return -1;
     }
 

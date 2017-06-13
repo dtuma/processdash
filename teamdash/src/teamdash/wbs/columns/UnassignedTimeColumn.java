@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
 
@@ -38,8 +39,11 @@ public class UnassignedTimeColumn extends TopDownBottomUpColumn {
     public static final String MILESTONE_UNASSIGNED_TIME_ATTR =
         "Milestone_Unassigned_Time";
 
-    public UnassignedTimeColumn(DataTableModel m) {
+    private MilestonesWBSModel milestones;
+
+    public UnassignedTimeColumn(DataTableModel m, MilestonesWBSModel milestones) {
         super(m, resources.getString("Unassigned_Time.Name"), COLUMN_ID);
+        this.milestones = milestones;
         this.topDownAttrName += "_calc";
         this.bottomUpAttrName += "_calc";
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID,
@@ -74,7 +78,7 @@ public class UnassignedTimeColumn extends TopDownBottomUpColumn {
         if (wbsModel.isLeaf(node)) {
             double unassignedTime = node.getNumericAttribute(topDownAttrName);
             if (unassignedTime > 0) {
-                int milestone = MilestoneColumn.getMilestoneID(node);
+                int milestone = MilestoneColumn.getMilestoneID(node, milestones);
                 Double current = milestoneTimes.get(milestone);
                 if (current == null)
                     milestoneTimes.put(milestone, unassignedTime);

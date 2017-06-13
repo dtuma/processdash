@@ -78,6 +78,7 @@ import teamdash.wbs.ErrorValue;
 import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.ItalicNumericCellRenderer;
+import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReplaceAwareColumn;
 import teamdash.wbs.TeamProcess;
@@ -108,7 +109,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
     UnassignedTimeColumn unassignedTimeColumn;
 
 
-    public TeamTimeColumn(DataTableModel m) {
+    public TeamTimeColumn(DataTableModel m, MilestonesWBSModel milestones) {
         super(m, resources.getString("Team_Time.Name"), COLUMN_ID);
         this.dependentColumns = new String[] {
                 TaskSizeColumn.COLUMN_ID, TaskSizeUnitsColumn.COLUMN_ID };
@@ -122,7 +123,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         m.addDataColumn(numPeopleColumn = new NumPeopleColumn());
         m.addDataColumn(resourcesColumn = new ResourcesColumn());
         m.addDataColumn(noErrorColumn = new TeamTimeNoErrorColumn());
-        m.addDataColumn(unassignedTimeColumn = new UnassignedTimeColumn(m));
+        m.addDataColumn(
+            unassignedTimeColumn = new UnassignedTimeColumn(m, milestones));
 
         m.addTeamMemberColumnListener(this);
         UserGroupManagerWBS.getInstance().addUserGroupFilterListener(this);

@@ -367,8 +367,8 @@ public class DataTableModel extends AbstractTableModel {
                 teamList);
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
-        addDataColumn(new TeamTimeColumn(this));
-        addDataColumn(new TeamActualTimeColumn(this, teamList));
+        addDataColumn(new TeamTimeColumn(this, milestones));
+        addDataColumn(new TeamActualTimeColumn(this, milestones, teamList));
         addDataColumn(new TaskLabelColumn(this));
         addDataColumn(new MilestoneColumn(this, milestones));
         addDataColumn(new ProxyEstTypeColumn(this, proxies));
