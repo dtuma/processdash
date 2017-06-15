@@ -45,12 +45,15 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -64,6 +67,8 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserFilter;
 import net.sourceforge.processdash.team.group.UserGroup;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+import net.sourceforge.processdash.team.group.UserGroupMember;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
@@ -75,6 +80,7 @@ import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
+import teamdash.wbs.icons.WBSImageIcon;
 
 public class WBSFilterAction extends AbstractAction
         implements CustomColumnListener {
@@ -747,7 +753,9 @@ public class WBSFilterAction extends AbstractAction
 
         @Override
         protected JComboBox getComboBox() {
-            return new JComboBox();
+            JComboBox cb = new JComboBox();
+            cb.setRenderer(new GroupFieldRenderer());
+            return cb;
         }
 
         @Override
@@ -788,6 +796,39 @@ public class WBSFilterAction extends AbstractAction
                 (UserFilter) valueField.getSelectedItem(),
                 showRelatedTasks.isSelected());
             return taskTester.getUserWBSNodeFilter();
+        }
+    }
+
+
+    private static class GroupFieldRenderer extends DefaultListCellRenderer {
+        private Icon everyone, group, individual;
+        GroupFieldRenderer() {
+            everyone = makeIcon("everyone.png");
+            group = makeIcon("group.png");
+            individual = makeIcon("individual.png");
+        }
+        private Icon makeIcon(String name) {
+            return new PaddedIcon(new WBSImageIcon(getFont().getSize() + 1, //
+                    "/net/sourceforge/processdash/ui/icons/" + name),
+                1, 1, 0, 0);
+        }
+        @Override
+        public Component getListCellRendererComponent(JList<?> list,
+                Object value, int index, boolean isSelected,
+                boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, value, index, isSelected,
+                cellHasFocus);
+            setIcon(getIconForValue(value));
+            return this;
+        }
+        private Icon getIconForValue(Object value) {
+            if (value instanceof UserGroupMember)
+                return individual;
+            else if (value instanceof UserGroup)
+                return UserGroup.isEveryone((UserGroup) value)
+                        ? everyone : group;
+            else
+                return null;
         }
     }
 
