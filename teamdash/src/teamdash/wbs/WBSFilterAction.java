@@ -233,11 +233,13 @@ public class WBSFilterAction extends AbstractAction
         nameFilter = new TextField();
         panel.add(nameFilter);  layout.setConstraints(nameFilter, vc);
 
-        lc.gridy++;  vc.gridy++;
-        label = new JLabel(resources.getString("Items.Assigned_To"));
-        panel.add(label);  layout.setConstraints(label, lc);
         groupFilter = new GroupField();
-        panel.add(groupFilter); layout.setConstraints(groupFilter, vc);
+        if (UserGroupManagerWBS.getInstance().isEnabled()) {
+            lc.gridy++;  vc.gridy++;
+            label = new JLabel(resources.getString("Items.Assigned_To"));
+            panel.add(label);  layout.setConstraints(label, lc);
+            panel.add(groupFilter); layout.setConstraints(groupFilter, vc);
+        }
 
         lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Labels"));

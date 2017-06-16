@@ -60,8 +60,8 @@ public class UserGroupManagerWBS extends UserGroupManager {
     private boolean includeRelated;
 
 
-    private UserGroupManagerWBS() {
-        super(true, TamperDeterrent.FileType.WBS);
+    private UserGroupManagerWBS(boolean enabled) {
+        super(enabled, TamperDeterrent.FileType.WBS);
         datasetIDMap = new HashMap<Integer, String>();
         datasetIDMapExt = Collections.unmodifiableMap(datasetIDMap);
     }
@@ -78,7 +78,8 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
         // initialize the user group manager
         try {
-            new UserGroupManagerWBS().init(settingsFile, datasetID);
+            boolean enabled = !proj.isMasterProject();
+            new UserGroupManagerWBS(enabled).init(settingsFile, datasetID);
         } catch (TamperException e) {
             // if the shared groups file has been tampered with, degrade
             // gracefully and publish only custom groups.
