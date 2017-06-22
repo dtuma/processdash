@@ -319,6 +319,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         Map<String, String> serverInfo = m.getServerIdentityInfoMap();
         if (currentUserName.equalsIgnoreCase(serverInfo.get("username")))
             return PrivacyType.Me;
+        if (initialsPolicy == InitialsPolicy.Username
+                && currentUserName.equalsIgnoreCase(initials))
+            return PrivacyType.Me;
 
         // is this team member a person who should always be allowed?
         if (allowTeamMemberIDs != null
@@ -346,6 +349,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     }
 
     public TeamMember getTeamMemberForCurrentUser() {
+        // find a user whose server identity matches the logged in user
         String username = WBSPermissionManager.getCurrentUser();
         for (TeamMember m : teamMembers) {
             String mu = (String) m.getServerIdentityInfoMap().get("username");
@@ -353,6 +357,17 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
                 return m;
         }
 
+        // if this team is using a "username" initials policy, try matching
+        // the logged in user against a team member's initials
+        if (initialsPolicy == InitialsPolicy.Username && username != null) {
+            for (TeamMember m : teamMembers) {
+                if (username.equalsIgnoreCase(m.getInitials()))
+                    return m;
+            }
+        }
+
+        // if the WBS Editor was launched from a personal dashboard, try
+        // finding the individual whose initials match that personal dashboard
         String initials = System.getProperty("teamdash.wbs.indivInitials");
         if (initials != null) {
             for (TeamMember m : teamMembers) {
@@ -361,6 +376,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             }
         }
 
+        // no matches were found, return null
         return null;
     }
 

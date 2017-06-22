@@ -103,8 +103,11 @@ public class UserGroupManagerWBS extends UserGroupManager {
 
     public UserGroupMember getMe() {
         TeamMember me = teamMemberList.getTeamMemberForCurrentUser();
-        return new UserGroupMemberWBS(resources.getString("Filter.Me"),
-                me == null ? -99 : me.getId());
+        if (me == null)
+            return null;
+        else
+            return new UserGroupMemberWBS(resources.getString("Filter.Me"),
+                    me.getId());
     }
 
     @Override

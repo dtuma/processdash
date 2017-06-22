@@ -275,6 +275,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             reverseSynchronizer.setCreateMissingTeamMembers(false);
             showActualData = reverseSynchronizer.getFoundActualData();
             showActualSize = reverseSynchronizer.getFoundActualSizeData();
+            teamProject.getTeamMemberList().setInitialsPolicyName(
+                teamProject.getUserSetting(INITIALS_POLICY_SETTING));
             teamProject.getTeamMemberList().setSchedulePrivacyFlags(null);
         }
 
