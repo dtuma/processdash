@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2016 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1137,6 +1137,8 @@ public class WorkflowHistDataHelper {
         if (_defectData == null) {
             _defectData = query(DEFECT_QUERY_1, getEnactmentRootKeys(),
                 getIncludedWorkflowKeys());
+            if (_defectData == Collections.EMPTY_LIST)
+                _defectData = new ArrayList<Object[]>();
             _defectData.addAll(query(DEFECT_QUERY_2, getWorkflowKey(),
                 getIncludedWorkflowKeys()));
             mapDefectPhases(_defectData);
