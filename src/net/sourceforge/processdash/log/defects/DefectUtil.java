@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2016 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -128,19 +128,17 @@ public class DefectUtil {
         // them to our result in the order they appear.
         DefectPhaseList result = new DefectPhaseList();
         result.workflowInfo = workflowInfo;
-        if (!enclosingPhases.isEmpty()) {
-            DashHierarchy hier = context.getHierarchy();
-            result.workflowRoot = hier.findExistingKey(path);
-            scanForWorkflowTasks(data, hier, result.workflowRoot, null,
-                getDevelopmentPhases(data, path), result, new HashSet(),
-                enclosingPhases, taskPath);
+        DashHierarchy hier = context.getHierarchy();
+        result.workflowRoot = hier.findExistingKey(path);
+        scanForWorkflowTasks(data, hier, result.workflowRoot, null,
+            getDevelopmentPhases(data, path), result, new HashSet(),
+            enclosingPhases, taskPath);
 
-            // set the default injection phase, if necessary
-            if (result.defaultRemovalPhase == -1)
-                result.defaultInjectionPhase = -1;
-            else if (result.defaultInjectionPhase == -1)
-                result.defaultInjectionPhase = result.defaultRemovalPhase - 1;
-        }
+        // set the default injection phase, if necessary
+        if (result.defaultRemovalPhase == -1)
+            result.defaultInjectionPhase = -1;
+        else if (result.defaultInjectionPhase == -1)
+            result.defaultInjectionPhase = result.defaultRemovalPhase - 1;
 
         return result;
     }
