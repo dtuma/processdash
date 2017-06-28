@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -104,7 +104,9 @@ public abstract class AbstractLibraryEditor {
 
     boolean dirtyFlag;
 
-    private static JFileChooser fileChooser;
+    private JFileChooser fileChooser;
+
+    private static File startingDir;
 
 
     public class UserCancelledException extends Exception {}
@@ -488,6 +490,7 @@ public abstract class AbstractLibraryEditor {
         chooser.setApproveButtonToolTipText(title);
 
         int userChoice = chooser.showDialog(parent, buttonLabel);
+        startingDir = chooser.getCurrentDirectory();
         if (userChoice == JFileChooser.APPROVE_OPTION)
             return chooser.getSelectedFile();
         else
@@ -500,6 +503,8 @@ public abstract class AbstractLibraryEditor {
             fileChooser.setFileFilter(new LibraryFileFilter());
             fileChooser.setMultiSelectionEnabled(false);
         }
+        if (startingDir != null)
+            fileChooser.setCurrentDirectory(startingDir);
         return fileChooser;
     }
 
