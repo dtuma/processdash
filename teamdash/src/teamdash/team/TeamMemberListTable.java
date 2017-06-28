@@ -445,21 +445,19 @@ public class TeamMemberListTable extends JTable {
         if (headerHeight < 10)
             return;
 
-        Insets border = scrollDatesEarlierButton.getBorder().getBorderInsets(
-            scrollDatesEarlierButton);
-        int iconHeight = headerHeight - border.top - border.bottom
-                - SCROLL_BUTTON_PADDING * 2 - 1;
-        int iconWidth = (WEEK_COL_WIDTH - SCROLL_BUTTON_PADDING * 3 - 1) / 2
-                - border.left - border.right;
+        int buttonWidth = (WEEK_COL_WIDTH - SCROLL_BUTTON_PADDING * 3 - 1) / 2;
+        int buttonHeight = headerHeight - SCROLL_BUTTON_PADDING * 2 - 1;
+        Dimension buttonSize = new Dimension(buttonWidth, buttonHeight);
+        int iconWidth = buttonWidth - 6;
+        int iconHeight = buttonHeight - 6;
 
         scrollDatesEarlierButton.setIcon(new TriangleIcon(true, iconWidth,
                 iconHeight));
-        scrollDatesEarlierButton.setSize(scrollDatesEarlierButton
-                .getMinimumSize());
+        scrollDatesEarlierButton.setSize(buttonSize);
 
         scrollDatesLaterButton.setIcon(new TriangleIcon(false, iconWidth,
                 iconHeight));
-        scrollDatesLaterButton.setSize(scrollDatesLaterButton.getMinimumSize());
+        scrollDatesLaterButton.setSize(buttonSize);
     }
 
     /**
