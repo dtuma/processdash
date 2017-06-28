@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.awt.event.FocusListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTextArea;
+import javax.swing.UIManager;
 
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.UndoList;
@@ -65,6 +66,8 @@ public class DataProblemsTextArea extends JTextArea implements FocusListener {
         this.wbsDataModel = wbsDataModel;
         this.dataProblemsColumn = wbsDataModel
                 .findColumn(ErrorNotesColumn.COLUMN_ID);
+
+        setFont(UIManager.getFont("Table.font"));
         this.hint = BlameHistoryDialog.resources.getString("Data_Problem");
         this.hintColor = Color.gray;
         this.hintFont = getFont().deriveFont(Font.ITALIC);

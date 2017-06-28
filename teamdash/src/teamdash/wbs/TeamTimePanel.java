@@ -1083,6 +1083,8 @@ public class TeamTimePanel extends JPanel
             effectivePastHours = teamMember.getSchedule().getEffortForDate(
                 indivEffectiveDate);
 
+            setMinimumSize(new Dimension(0, 16));
+            setPreferredSize(new Dimension(100, 16));
             setBorder(COLORED_BAR_BORDER);
             // use the color associated with the given team member.
             setForeground(teamMember.getColor());
@@ -1367,7 +1369,7 @@ public class TeamTimePanel extends JPanel
         }
 
         public Font createPlainFont(float height) {
-            return UIManager.getFont("Table.font").deriveFont(Font.BOLD).deriveFont(height);
+            return UIManager.getFont("Table.font").deriveFont(height);
         }
 
         private int calcLabelPos(int barLeft, int barRight, int barWidth,

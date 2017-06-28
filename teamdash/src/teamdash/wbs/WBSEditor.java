@@ -1474,7 +1474,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         bar.setIndeterminate(true);
         panel.add(bar, BorderLayout.CENTER);
 
-        panel.add(Box.createHorizontalStrut(200), BorderLayout.SOUTH);
+        panel.add(Box.createHorizontalStrut(250), BorderLayout.SOUTH);
         return panel;
     }
 
@@ -1919,6 +1919,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 w.showApplicableStartupMessages();
                 if (itemHref != null)
                     w.showHyperlinkedItem(itemHref);
+                else
+                    w.tabPanel.wbsTable.requestFocusInWindow();
             }
             HttpAuthenticator.setParentComponent(w.tabPanel);
 

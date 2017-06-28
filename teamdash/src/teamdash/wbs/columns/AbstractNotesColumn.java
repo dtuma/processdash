@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -265,6 +266,7 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
             setClickCountToStart(2);
 
             textArea = new JTextArea();
+            textArea.setFont(UIManager.getFont("Table.font"));
             textArea.setLineWrap(true);
             textArea.setWrapStyleWord(true);
 

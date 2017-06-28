@@ -75,6 +75,7 @@ public class BlameValueTable extends JTable {
     public Component prepareRenderer(TableCellRenderer renderer, int row,
             int column) {
         Component result = super.prepareRenderer(renderer, row, column);
+        result.setForeground(Color.BLACK);
         if (getValueAt(row, 0) == null)
             result.setBackground(Color.LIGHT_GRAY);
         else
