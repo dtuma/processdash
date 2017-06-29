@@ -553,25 +553,25 @@ public class TimeCardDialog {
     }
 
     class TimeCardRenderer extends DefaultTableCellRenderer {
-        /** The alternate foreground color to use for expanded rows. */
-        Color altForeground;
+
+        /** Various foreground colors to use. */
+        Color[] foregrounds;
+        private static final int REGULAR = 0, EXPANDED = 1, SELECTED = 2;
+
         /** The alternate background color to use for weekend columns. */
-        Color altBackground;
+        Color weekendBackground;
 
         public TimeCardRenderer() {
-            this.altForeground = mixColors(treeTable.getForeground(),
-                treeTable.getBackground(), 0.5f);
-            this.altBackground = mixColors(treeTable.getSelectionBackground(),
-                treeTable.getBackground(), 0.4f);
+            Color background = treeTable.getBackground();
+            this.foregrounds = new Color[4];
+            this.foregrounds[REGULAR] = treeTable.getForeground();
+            this.foregrounds[EXPANDED] = mixColors(treeTable.getForeground(),
+                background, 0.5f);
+            this.foregrounds[SELECTED] = treeTable.getSelectionForeground();
+            this.foregrounds[EXPANDED + SELECTED] = mixColors(
+                treeTable.getSelectionForeground(), background, 0.5f);
+            this.weekendBackground = new Color(0xE3ECF5);
             setHorizontalAlignment(SwingConstants.RIGHT);
-        }
-
-        private boolean useAltForeground(int row) {
-            return treeTable.getTree().isExpanded(row);
-        }
-
-        private boolean useAltBackground(int col) {
-            return model.isWeekend(col);
         }
 
         public Component getTableCellRendererComponent(JTable table,
@@ -580,14 +580,23 @@ public class TimeCardDialog {
                                                        boolean hasFocus,
                                                        int row,
                                                        int column) {
-            setBackground(useAltBackground(column) ? 
-                    altBackground : table.getBackground());
+            setBackground(isWeekendColumn(column) ? weekendBackground
+                    : table.getBackground());
             Component result = super.getTableCellRendererComponent
                 (table, value, isSelected, hasFocus, row, column);
-            result.setForeground(useAltForeground(row) ?
-                    altForeground : table.getForeground());
+            int fgPos = (isExpandedRow(row) ? EXPANDED : REGULAR)
+                    + (isSelected ? SELECTED : REGULAR);
+            result.setForeground(foregrounds[fgPos]);
 
             return result;
+        }
+
+        private boolean isWeekendColumn(int col) {
+            return model.isWeekend(col);
+        }
+
+        private boolean isExpandedRow(int row) {
+            return treeTable.getTree().isExpanded(row);
         }
     }
 

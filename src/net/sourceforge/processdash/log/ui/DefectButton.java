@@ -42,6 +42,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class DefectButton extends JButton implements ActionListener,
@@ -63,6 +64,8 @@ public class DefectButton extends JButton implements ActionListener,
         if (MacGUIUtils.isMacOSX()) {
             enabled_icon = new PaddedIcon(enabled_icon, 0, 2, 0, 2);
             disabled_icon = new PaddedIcon(disabled_icon, 0, 2, 0, 2);
+        } else if (WindowsGUIUtils.isWindowsLAF()) {
+            setMargin(new Insets(2, 4, 2, 4));
         } else {
             setMargin(new Insets(0, 2, 0, 2));
         }

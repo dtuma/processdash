@@ -63,6 +63,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
@@ -93,6 +94,7 @@ import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.DropDownLabel;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
@@ -360,6 +362,7 @@ public class DefectDialog extends JDialog
         g.fill = GridBagConstraints.BOTH;
         description = new JTextArea();
         description.getDocument().addDocumentListener(this);
+        description.setFont(UIManager.getFont("Table.font"));
         description.setLineWrap(true);
         description.setWrapStyleWord(true);
 
@@ -1117,7 +1120,8 @@ public class DefectDialog extends JDialog
         }
         private JButton makeButton() {
             JButton result = new JButton();
-            result.setMargin(new Insets(0,0,0,0));
+            int pad = WindowsGUIUtils.isWindowsLAF() ? 1 : 0;
+            result.setMargin(new Insets(pad, pad, pad, pad));
             result.setFocusPainted(false);
             result.addActionListener(StartStopButtons.this);
             return result;

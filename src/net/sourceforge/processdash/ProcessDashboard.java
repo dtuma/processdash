@@ -1024,8 +1024,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created percent spent indicator");
 
         DefectButton defect_button = new DefectButton(this);
+        int macAdjust = MacGUIUtils.isMacOSX() ? 2 : 0;
         if (Settings.isReadWrite())
-            addToMainWindow(defect_button, 0);
+            addToMainWindow(defect_button, 0, macAdjust, 2 - macAdjust);
         pt.click("Created defect button");
 
         ScriptButton script_button = new ScriptButton(this);
@@ -1037,7 +1038,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         TaskCommenterButton taskCommenterButton = new TaskCommenterButton(this,
                 activeTaskModel);
-        addToMainWindow(taskCommenterButton, 0);
+        addToMainWindow(taskCommenterButton, 0, 3, 2);
         pt.click("Created task commenter button");
 
         DependencyIndicator dependencyIndicator = new DependencyIndicator(this,

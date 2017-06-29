@@ -56,6 +56,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.icons.ReportsAndToolsIcon;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 /** The scriptButton class activates a browser loaded with the current phase's
@@ -87,7 +88,8 @@ public class ScriptButton extends DropDownButton implements
         PCSH.enableHelp(this, "AccessingScripts");
         PCSH.enableHelpKey(getMenu(), "AccessingScripts");
         int pad = DashboardIconFactory.getStandardIconPad();
-        setMainButtonMargin(new Insets (pad,2,pad,2));
+        int wp = WindowsGUIUtils.isWindowsLAF() ? 2 : 0;
+        setMainButtonMargin(new Insets(pad + wp, 3 + wp, pad + wp, 3 + wp));
         int iconHeight = DashboardIconFactory.getStandardIconSize() - 2 * pad;
         enabled_icon = new ReportsAndToolsIcon(iconHeight);
         getButton().setIcon(padIcon(enabled_icon));
@@ -109,7 +111,7 @@ public class ScriptButton extends DropDownButton implements
 
     private Icon padIcon(Icon icon) {
         if (MacGUIUtils.isMacOSX())
-            return new PaddedIcon(icon, 0, 2, 0, 2);
+            return new PaddedIcon(icon, 0, 4, 1, 4);
         else
             return icon;
     }

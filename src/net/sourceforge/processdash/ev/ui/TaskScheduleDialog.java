@@ -1169,7 +1169,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     Color editableColor, selectedEditableColor;
-    Color expandedColor, automaticColor;
+    Color expandedColor, expandedSelectedColor;
 
     class TaskJTreeTable extends JTreeTable implements TreeModelWillChangeListener,
                                                        TreeModelListener {
@@ -1186,31 +1186,25 @@ public class TaskScheduleDialog implements EVTask.Listener,
             model = m;
             cutList = new BooleanArray();
 
-            editableColor =
-                PaintUtils.mixColors(getBackground(), Color.yellow, 0.6);
-            selectedEditableColor =
-                PaintUtils.mixColors(getSelectionBackground(), editableColor, 0.4);
-            expandedColor =
-                PaintUtils.mixColors(getBackground(), getForeground(), 0.45);
+            editableColor = PaintUtils.mixColors(
+                getBackground(), Color.yellow, 0.6);
+            selectedEditableColor = PaintUtils.mixColors(
+                getSelectionBackground(), editableColor, 0.5);
+            expandedColor = PaintUtils.mixColors(
+                getBackground(), getForeground(), 0.45);
+            expandedSelectedColor = PaintUtils.mixColors(
+                getBackground(), getSelectionForeground(), 0.45);
 
             editable = new TaskTableRenderer(selectedEditableColor,
-                                             editableColor,
-                                             getForeground());
-
+                    editableColor, getForeground(), getSelectionForeground());
             readOnly = new TaskTableRenderer(getSelectionBackground(),
-                                             getBackground(),
-                                             expandedColor);
+                    getBackground(), expandedColor, expandedSelectedColor);
             milestone = new MilestoneCellRenderer(getSelectionBackground(),
-                                             getBackground(),
-                                             expandedColor);
+                    getBackground(), expandedColor, expandedSelectedColor);
             notes = new NoteCellRenderer(getSelectionBackground(),
-                                             getBackground(),
-                                             selectedEditableColor,
-                                             editableColor);
+                    getBackground(), selectedEditableColor, editableColor);
             dependencies = new DependencyCellRenderer(getSelectionBackground(),
-                                             getBackground(),
-                                             selectedEditableColor,
-                                             editableColor);
+                    getBackground(), selectedEditableColor, editableColor);
 
             getColumnModel().getColumn(EVTaskList.NODE_TYPE_COLUMN)
                     .setCellEditor(new NodeTypeEditor());
@@ -1317,8 +1311,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         class TaskTableRenderer extends ShadedTableCellRenderer {
             private Font regular = null, bold = null;
-            public TaskTableRenderer(Color sel, Color desel, Color fg) {
-                super(sel, desel, fg);
+            public TaskTableRenderer(Color sel, Color desel, Color afg,
+                    Color sfg) {
+                super(sel, desel, afg, sfg);
             }
             protected boolean useAltForeground(int row) {
                 return getTree().isExpanded(row);
@@ -1387,8 +1382,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
             private Color activeMilestoneColor, previousMilestoneColor;
             private String checkboxTip;
 
-            public MilestoneCellRenderer(Color sel, Color desel, Color fg) {
-                super(sel, desel, fg);
+            public MilestoneCellRenderer(Color sel, Color desel, Color afg,
+                    Color sfg) {
+                super(sel, desel, afg, sfg);
                 checkedIcon = new PaddedIcon(new ScalableImageIcon(12, //
                         getClass(), "box_checked.png"), 0, 1, 0, 0);
                 uncheckedIcon = new PaddedIcon(new ScalableImageIcon(12, //
@@ -1419,15 +1415,23 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 }
 
                 if (isActiveMilestone) {
+                    cancelSelectionForeground(isSelected);
                     setBackground(activeMilestoneColor);
                     setOpaque(true);
                 } else if (isPreviousMilestone(mVal)) {
+                    cancelSelectionForeground(isSelected);
                     setBackground(previousMilestoneColor);
                     setOpaque(true);
                 }
 
                 setHorizontalAlignment(SwingConstants.LEFT);
                 return result;
+            }
+
+            private void cancelSelectionForeground(boolean isSelected) {
+                if (isSelected
+                        && getForeground().equals(getSelectionForeground()))
+                    setForeground(Color.black);
             }
 
             private boolean isActiveMilestone(MilestoneList mVal) {
@@ -2011,7 +2015,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             Dimension        retDimension = super.getPreferredSize();
 
             if(retDimension != null)
-                retDimension = new Dimension((int) (retDimension.width * 1.1),
+                retDimension = new Dimension((int) (retDimension.width * 1.2),
                                              retDimension.height);
             return retDimension;
         }
@@ -2296,12 +2300,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
             this.model = model;
 
             editable = new ScheduleTableRenderer(selectedEditableColor,
-                                                 editableColor,
-                                                 Color.gray);
+                    editableColor, expandedColor, expandedSelectedColor);
 
             readOnly = new ScheduleTableRenderer(getSelectionBackground(),
-                                                 getBackground(),
-                                                 Color.gray);
+                    getBackground(), expandedColor, expandedSelectedColor);
 
             bold = editable.getFont().deriveFont(Font.BOLD);
             plain = editable.getFont().deriveFont(Font.PLAIN);
@@ -2342,8 +2344,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
 
         class ScheduleTableRenderer extends ShadedTableCellRenderer {
-            public ScheduleTableRenderer(Color sel, Color desel, Color fg) {
-                super(sel, desel, fg);
+            public ScheduleTableRenderer(Color sel, Color desel, Color afg,
+                    Color sfg) {
+                super(sel, desel, afg, sfg);
             }
             protected boolean useAltForeground(int row) {
                 return model.rowIsAutomatic(row);
@@ -2363,7 +2366,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             private Icon noteIcon;
 
             public ScheduleNoteCellRenderer() {
-                super(selectedEditableColor, editableColor, Color.gray);
+                super(selectedEditableColor, editableColor, Color.gray,
+                        Color.gray);
                 noteIcon = HierarchyNoteIcon.WHITE;
             }
 
@@ -2427,6 +2431,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 JTextArea text = new JTextArea();
                 if (value instanceof String)
                     text.setText((String) value);
+                text.setFont(scheduleTable.getFont());
                 text.setCaretPosition(0);
                 text.setLineWrap(true);
                 text.setWrapStyleWord(true);
@@ -2486,14 +2491,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
         /** The color to use in this renderer if the cell is not selected. */
         Color backgroundColor;
         /** The alternate foreground color to use when useAlt returns true. */
-        Color altForeground;
+        Color altForeground, altSelForeground;
         /** The minimum width the cell as to have for all it's content to be visible*/
         double minimumWidth;
 
-        public ShadedTableCellRenderer(Color sel, Color desel, Color fg) {
+        public ShadedTableCellRenderer(Color sel, Color desel, Color altFg,
+                Color altSelFg) {
             selectedBackgroundColor = sel;
             backgroundColor = desel;
-            altForeground = fg;
+            altForeground = altFg;
+            altSelForeground = altSelFg;
         }
 
         protected boolean useAltForeground(int row) { return false; }
@@ -2507,12 +2514,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
             Component result = super.getTableCellRendererComponent
                 (table, value, isSelected, hasFocus, row, column);
             Color bg = null;
-            if (isSelected)
+            if (isSelected) {
+                result.setForeground(useAltForeground(row) ?
+                        altSelForeground : table.getSelectionForeground());
                 result.setBackground(bg = selectedBackgroundColor);
-            else
+            } else {
+                result.setForeground(useAltForeground(row) ?
+                        altForeground : table.getForeground());
                 result.setBackground(bg = backgroundColor);
-            result.setForeground(useAltForeground(row) ?
-                                 altForeground : table.getForeground());
+            }
 
             // This step is necessary because the DefaultTableCellRenderer
             // may have incorrectly set the "opaque" flag.

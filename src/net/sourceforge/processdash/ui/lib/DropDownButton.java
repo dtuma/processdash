@@ -33,7 +33,6 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
@@ -51,7 +50,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
-import javax.swing.border.Border;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -120,9 +118,8 @@ public class DropDownButton extends JPanel {
 
     private void configureNormalGUI() {
         setLayout(new NormalDropDownButtonLayout());
-
-        mainButton.setBorder(new RightChoppedBorder(mainButton.getBorder(), 1));
-        dropDownButton.setMargin(new Insets(1, 1, 1, 1));
+        int hpad = WindowsGUIUtils.isWindowsLAF() ? 1 : 0;
+        dropDownButton.setMargin(new Insets(1, hpad, 1, hpad));
     }
 
     private void configureMacGUI() {
@@ -188,9 +185,6 @@ public class DropDownButton extends JPanel {
                 leftWidget.putClientProperty(MAC_BUTTON_TYPE, getMacButtonType());
                 leftWidget.putClientProperty(MAC_SEGMENT_POSITION, MAC_FIRST_SEGMENT);
                 mainButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_MIDDLE_SEGMENT);
-            } else {
-                leftWidget.setBorder(new RightChoppedBorder(leftWidget
-                        .getBorder(), 1));
             }
         } else {
             if (MacGUIUtils.isMacOSX()) {
@@ -308,40 +302,6 @@ public class DropDownButton extends JPanel {
         }
     }
 
-    /** An adapter that wraps a border object, and chops some number of
-     *  pixels off the right hand side of the border.
-     */
-    private class RightChoppedBorder implements Border {
-        private Border b;
-        private int w;
-
-        public RightChoppedBorder(Border b, int width) {
-            this.b = b;
-            this.w = width;
-        }
-
-        public void paintBorder(Component c,
-                                Graphics g,
-                                int x,
-                                int y,
-                                int width,
-                                int height) {
-            Shape clipping = g.getClip();
-            g.setClip(x, y, width, height);
-            b.paintBorder(c, g, x, y, width + w, height);
-            g.setClip(clipping);
-        }
-
-        public Insets getBorderInsets(Component c) {
-            Insets i = b.getBorderInsets(c);
-            return new Insets(i.top, i.left, i.bottom, i.right-w);
-        }
-
-        public boolean isBorderOpaque() {
-            return b.isBorderOpaque();
-        }
-    }
-
     private class DropDownMenu extends JMenu {
         public void dispatchMouseEvent(MouseEvent e) {
             processMouseEvent(e);
@@ -402,28 +362,29 @@ public class DropDownButton extends JPanel {
             parent.getBounds(bounds);
 
             int lww = getLeftWidgetWidth();
+            int lwo = getLeftWidgetOverlap();
             int ddw = getDropDownButtonWidth();
-            int mainW = bounds.width - ddw - lww;
+            int mainW = bounds.width - ddw - lww + lwo + 1;
 
             if (leftWidget != null)
                 leftWidget.setBounds(0, 0, lww, bounds.height);
-            mainButton.setBounds(lww, 0, mainW, bounds.height);
-            dropDownButton.setBounds(lww + mainW, 0, ddw, bounds.height);
+            mainButton.setBounds(lww - lwo, 0, mainW, bounds.height);
+            dropDownButton.setBounds(lww - lwo + mainW - 1, 0, ddw, bounds.height);
 
             menuBar.setBounds(0, 0, 0, bounds.height);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
             Dimension result = mainButton.getMinimumSize();
-            result.width += getLeftWidgetWidth();
-            result.width += getDropDownButtonWidth();
+            result.width += getLeftWidgetWidth() - getLeftWidgetOverlap();
+            result.width += getDropDownButtonWidth() - 1;
             return result;
         }
 
         public Dimension preferredLayoutSize(Container parent) {
             Dimension result = mainButton.getPreferredSize();
-            result.width += getLeftWidgetWidth();
-            result.width += getDropDownButtonWidth();
+            result.width += getLeftWidgetWidth() - getLeftWidgetOverlap();
+            result.width += getDropDownButtonWidth() - 1;
             return result;
         }
 
@@ -432,6 +393,13 @@ public class DropDownButton extends JPanel {
                 return 0;
             else
                 return leftWidget.getPreferredSize().width;
+        }
+
+        private int getLeftWidgetOverlap() {
+            if (leftWidget instanceof AbstractButton)
+                return 1;
+            else
+                return 0;
         }
 
         private int getDropDownButtonWidth() {

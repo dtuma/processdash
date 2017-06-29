@@ -25,6 +25,8 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -53,6 +55,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ConcatenatedIcon;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -157,9 +160,10 @@ public class PauseButton extends DropDownButton implements ActionListener,
         private AbstractButton playButton;
 
         public ToggleButtonManager() {
+            int pad = WindowsGUIUtils.isWindowsLAF() ? 2 : 0;
             pauseButton = new JToggleButton();
             if (!MacGUIUtils.isMacOSX())
-                pauseButton.setMargin(new Insets(0,0,0,0));
+                pauseButton.setMargin(new Insets(pad, pad, pad, pad));
             pauseButton.setIcon(PauseIcon.black());
             pauseButton.setSelectedIcon(PauseIcon.glowing());
             pauseButton.setDisabledIcon(PauseIcon.disabled());
@@ -168,18 +172,25 @@ public class PauseButton extends DropDownButton implements ActionListener,
             setLeftWidget(pauseButton);
 
             playButton = getButton();
-            if (!MacGUIUtils.isMacOSX()) {
-                playButton.setMargin(new Insets(0,0,0,0));
-                playButton.setUI(new MetalToggleButtonUI() {
-                    Color select = new Color(150, 255, 150);
-                    @Override protected Color getSelectColor() {
-                        return select;
-                    }
-                });
-            }
             playButton.setIcon(PlayIcon.black());
             playButton.setSelectedIcon(PlayIcon.glowing());
             playButton.setDisabledIcon(PlayIcon.disabled());
+            if (!MacGUIUtils.isMacOSX()) {
+                playButton.setMargin(new Insets(pad, pad, pad, pad));
+                if (WindowsGUIUtils.isWindowsLAF()) {
+                    pauseButton.setSelectedIcon(new BackgroundFillIcon(
+                            PauseIcon.glowing(), new Color(0xB8CFE5)));
+                    playButton.setSelectedIcon(new BackgroundFillIcon(
+                            PlayIcon.glowing(), new Color(150, 255, 150)));
+                } else {
+                    playButton.setUI(new MetalToggleButtonUI() {
+                        Color select = new Color(150, 255, 150);
+                        @Override protected Color getSelectColor() {
+                            return select;
+                        }
+                    });
+                }
+            }
             playButton.setFocusPainted(false);
             playButton.addActionListener(this);
 
@@ -354,5 +365,31 @@ public class PauseButton extends DropDownButton implements ActionListener,
         InternalSettings.set("pauseButton.historyList", settingResult);
     }
 
+    private class BackgroundFillIcon implements Icon {
+
+        private Icon delegate;
+
+        private Color fill;
+
+        public BackgroundFillIcon(Icon delegate, Color fill) {
+            this.delegate = delegate;
+            this.fill = fill;
+        }
+
+        public int getIconWidth() {
+            return delegate.getIconWidth();
+        }
+
+        public int getIconHeight() {
+            return delegate.getIconHeight();
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(fill);
+            g.fillRect(2, 2, c.getWidth() - 4, c.getHeight() - 4);
+            delegate.paintIcon(c, g, x, y);
+        }
+
+    }
 
 }
