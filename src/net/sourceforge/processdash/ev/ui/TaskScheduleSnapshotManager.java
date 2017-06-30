@@ -41,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -262,6 +263,7 @@ public class TaskScheduleSnapshotManager extends JPanel {
         JTextField snapshotName = new JTextField(name);
         snapshotName.selectAll();
         JTextArea snapshotComment = new JTextArea(comment, 3, 25);
+        snapshotComment.setFont(UIManager.getFont("Table.font"));
         snapshotComment.setWrapStyleWord(true);
         snapshotComment.setLineWrap(true);
         Object message = new Object[] {

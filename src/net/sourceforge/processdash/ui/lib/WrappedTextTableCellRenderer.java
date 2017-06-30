@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ public class WrappedTextTableCellRenderer extends JTextArea implements
             setText(null);
         else
             setText(text.toString());
+        setFont(table.getFont());
 
         int columnWidth = table.getColumnModel().getColumn(column).getWidth();
         setSize(new Dimension(columnWidth, 1000));
@@ -56,10 +57,13 @@ public class WrappedTextTableCellRenderer extends JTextArea implements
         if (currentHeight != requiredHeight)
             table.setRowHeight(row, requiredHeight);
 
-        if (isSelected)
+        if (isSelected) {
+            setForeground(table.getSelectionForeground());
             setBackground(table.getSelectionBackground());
-        else
+        } else {
+            setForeground(table.getForeground());
             setBackground(table.getBackground());
+        }
 
         return this;
     }

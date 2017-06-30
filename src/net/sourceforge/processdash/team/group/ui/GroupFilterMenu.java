@@ -129,11 +129,11 @@ public class GroupFilterMenu extends JMenu implements UserGroupEditListener {
         @Override
         public void run() {
             getPopupMenu().setVisible(false);
+            MenuSelectionManager.defaultManager().clearSelectedPath();
             UserFilter selectedItem = new UserGroupSelector(
                     SwingUtilities.getWindowAncestor(GroupFilterMenu.this),
                     "Filter_Prompt", showIndividuals).getSelectedItem();
             setSelectedItem(selectedItem);
-            MenuSelectionManager.defaultManager().clearSelectedPath();
         }
 
         @Override

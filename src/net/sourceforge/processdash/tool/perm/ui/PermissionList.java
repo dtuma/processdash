@@ -167,6 +167,9 @@ public class PermissionList extends JTable {
                 Object text, boolean isSelected, boolean hasFocus, int row,
                 int column) {
 
+            super.getTableCellRendererComponent(table, text, isSelected,
+                hasFocus, row, column);
+
             // configure the font and border based on the item type
             if (text instanceof String) {
                 setFont(italicFont);
@@ -176,8 +179,7 @@ public class PermissionList extends JTable {
                 setBorder(bulletBorder);
             }
 
-            return super.getTableCellRendererComponent(table, text, isSelected,
-                hasFocus, row, column);
+            return this;
         }
 
     }

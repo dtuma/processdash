@@ -401,6 +401,13 @@ public class UserGroupSelector {
             return panel;
         }
 
+        public Dimension getPreferredSize() {
+            Dimension size = super.getPreferredSize();
+            if (size != null)
+                size = new Dimension((int) (size.width * 1.2), size.height);
+            return size;
+        }
+
     }
 
 
