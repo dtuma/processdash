@@ -164,7 +164,7 @@ public class TaskScheduleChooser
         new JOptionPaneActionHandler(OK).install(inputField);
 
         Component parentComponent = null;
-        if (parent instanceof Component)
+        if ((parent instanceof Component) && ((Component) parent).isShowing())
             parentComponent = (Component) parent;
 
 
@@ -222,7 +222,7 @@ public class TaskScheduleChooser
                                             String[] taskLists) {
         this.dash = dash;
 
-        if (dash instanceof Frame)
+        if ((dash instanceof Frame) && ((Frame) dash).isShowing())
             dialog = new JDialog((Frame) dash);
         else
             dialog = new JDialog();

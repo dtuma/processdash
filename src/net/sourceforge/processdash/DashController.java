@@ -183,7 +183,6 @@ public class DashController {
 
         // if no path was given, just display a chooser dialog to the user.
         if (path == null || path.length() == 0) {
-            raiseWindowImpl();
             new TaskScheduleChooser(dash);
             return;
         }
@@ -191,7 +190,6 @@ public class DashController {
         List taskLists = EVTaskList.getPreferredTaskListsForPath(dash.data,
                 path);
 
-        raiseWindowImpl();
         if (taskLists.size() == 1)
             TaskScheduleChooser.open(dash, (String) taskLists.get(0));
         else
