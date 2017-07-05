@@ -1081,6 +1081,11 @@ public class TemplateLoader {
         Matcher m = WAR_FILE_PAT.matcher(url);
         if (m.find()) {
             String result = m.group(1);
+            for (String s : WAR_SUFFIXES) {
+                int pos = result.indexOf(s);
+                if (pos != -1)
+                    result = result.substring(0, pos);
+            }
             if (!"/ROOT".equalsIgnoreCase(result))
                 return result;
         }
@@ -1090,6 +1095,7 @@ public class TemplateLoader {
 
     private static final Pattern WAR_FILE_PAT = Pattern.compile(
         "(/[^/]+).war(!/.*)?$", Pattern.CASE_INSENSITIVE);
+    private static final String[] WAR_SUFFIXES = { "$", ".v", "-v" };
 
 
 
