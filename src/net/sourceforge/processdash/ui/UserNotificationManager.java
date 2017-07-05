@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.MenuSelectionManager;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -72,6 +75,8 @@ public class UserNotificationManager {
 
     private long deferUntil = 0;
 
+    private Window parentWindow;
+
     private static final long DEFERRAL_PERIOD = 30 * 60 * 1000; // 30 minutes
 
     private static final Resources resources = Resources
@@ -87,6 +92,13 @@ public class UserNotificationManager {
                     notificationsWindow.showWindow();
             }});
         toFrontTimer.setRepeats(false);
+
+        MenuSelectionManager.defaultManager().addChangeListener( //
+            new ChangeListener() {
+                public void stateChanged(ChangeEvent e) {
+                    maybeShowNotifications(parentWindow);
+                }
+            });
     }
 
     public void addNotification(String message) {
@@ -100,6 +112,7 @@ public class UserNotificationManager {
     public void addNotification(String id, String message, Runnable action) {
         notifications.add(new Notification(id, message, action));
         deferUntil = 0;
+        maybeShowNotifications(parentWindow);
     }
 
     public void removeNotification(String id) {
@@ -108,6 +121,17 @@ public class UserNotificationManager {
     }
 
     public void maybeShowNotifications(Window w) {
+        parentWindow = w;
+        if (w == null || !w.isShowing() || !w.isActive())
+            // don't show notifications if the parent window is not active.
+            return;
+
+        if (MenuSelectionManager.defaultManager().getSelectedPath().length > 0)
+            // don't display the notification window if the user is currently
+            // interacting with a menu, since the change of focus would cause
+            // their menu context to be lost.
+            return;
+
         if (notifications.isEmpty())
             // there are no notifications to show.
             return;
