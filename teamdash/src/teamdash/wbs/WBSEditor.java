@@ -42,6 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
@@ -1829,6 +1832,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean forceReadOnly, String itemHref, String owner) {
 
         LargeFontsHelper.maybeInitialize();
+        CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         try {
             HttpAuthenticator.maybeInitialize(resources.getString("Window.App_Name"));
         } catch (Exception e) {}
