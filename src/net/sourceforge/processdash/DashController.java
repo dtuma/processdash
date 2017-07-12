@@ -24,6 +24,7 @@
 package net.sourceforge.processdash;
 
 import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -42,6 +43,11 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+
+import org.json.simple.JSONObject;
+
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
@@ -120,9 +126,10 @@ public class DashController {
         throw new IOException("Connection not accepted from: " + remoteAddress);
     }
 
-    public static void raiseWindow() {
+    public static String raiseWindow() {
         if (dash != null)
             new WindowRaiser();
+        return getWindowOpenedJson(dash);
     }
 
     /** In Gnome/Linux, a single call to raiseWindowImpl doesn't seem to do the
@@ -136,6 +143,7 @@ public class DashController {
 
         public WindowRaiser() {
             t = new Timer(100, this);
+            t.setInitialDelay(0);
             t.start();
         }
 
@@ -349,6 +357,43 @@ public class DashController {
         out.println("history.back();");
         out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
     }
+
+    public static String getWindowOpenedJson(Object w) {
+        JSONObject window = new JSONObject();
+
+        // store the window title
+        if (w instanceof String)
+            window.put("title", w);
+        else if (w instanceof Frame)
+            window.put("title", ((Frame) w).getTitle());
+
+        if (w instanceof Window) {
+            if (System.getProperty("os.name").contains("Windows")) {
+                // store the Windows HWND pointer, if available
+                try {
+                    Pointer windowPointer = Native.getWindowPointer((Window) w);
+                    if (windowPointer != null)
+                        window.put("id", Pointer.nativeValue(windowPointer));
+                } catch (Throwable t) {
+                }
+            } else {
+                // store the X11 XID, if available
+                try {
+                    long windowID = Native.getWindowID((Window) w);
+                    if (windowID != 0)
+                        window.put("id", windowID);
+                } catch (Throwable t) {
+                }
+            }
+        }
+
+        // build an object and return the JSON
+        JSONObject result = new JSONObject();
+        result.put("window", window);
+        result.put("stat", "ok");
+        return result.toString();
+    }
+
 
     public static Map getTemplates() {
         Prop templates = dash.templates.pget(PropertyKey.ROOT);

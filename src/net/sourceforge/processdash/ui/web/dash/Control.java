@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
-
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
@@ -49,7 +48,9 @@ public class Control extends TinyCGIBase {
     private boolean printNullDocument;
 
     /** Write the CGI header. */
-    protected void writeHeader() {
+    protected void writeHeader() {}
+
+    protected void writeHtmlHeader() {
         out.print("Expires: 0\r\n");
         super.writeHeader();
     }
@@ -73,8 +74,10 @@ public class Control extends TinyCGIBase {
         repairDefectCounts();
         reloadWARs();
 
-        if (printNullDocument)
+        if (printNullDocument) {
+            writeHtmlHeader();
             DashController.printNullDocument(out);
+        }
     }
 
     private boolean shouldForbidRemote() {
@@ -97,7 +100,8 @@ public class Control extends TinyCGIBase {
     }
 
     private void raiseWindow() {
-        if (isTask("raiseWindow")) DashController.raiseWindow();
+        if (isTask("raiseWindow"))
+            printWindowOpenedJson(DashController.raiseWindow());
     }
 
     private void showConsole() {
@@ -141,6 +145,7 @@ public class Control extends TinyCGIBase {
         if (isTask("scrubDataDir")) {
             DashController.scrubDataDirectory();
 
+            writeHtmlHeader();
             out.println("<HTML><HEAD><TITLE>Data Directory Scrubbed</TITLE></HEAD>");
             out.println("<BODY><H1>Data Directory Scrubbed</H1>");
             out.println("The data directory was scrubbed at " + new Date());
@@ -155,6 +160,7 @@ public class Control extends TinyCGIBase {
             ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
             RepairDefectCounts.run(dash, dash.getDirectory());
 
+            writeHtmlHeader();
             out.println("<HTML><HEAD><TITLE>Defect Counts Repaired</TITLE></HEAD>");
             out.println("<BODY><H1>Defect Counts Repaired</H1>");
             out.println("The defect counts were repaired at " + new Date());
@@ -178,6 +184,7 @@ public class Control extends TinyCGIBase {
                         + "no reload was performed.";
             }
 
+            writeHtmlHeader();
             out.println("<html><head><title>" + title + "</title></head>");
             out.println("<body><h1>" + title + "</h1>");
             out.println(message);
@@ -185,6 +192,28 @@ public class Control extends TinyCGIBase {
 
             printNullDocument = false;
         }
+    }
+
+
+    private void printWindowOpenedJson(String json) {
+        String accept = (String) env.get("HTTP_ACCEPT");
+        if (accept == null || json == null)
+            return;
+
+        accept = accept.toLowerCase();
+        int htmlPos = accept.indexOf("html");
+        int jsonPos = accept.indexOf("json");
+        if (jsonPos < 0 || (htmlPos > 0 && jsonPos > htmlPos))
+            return;
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {}
+        out.print("Content-type: application/json; charset="+charset+"\r\n");
+        out.print("Expires: 0\r\n\r\n");
+        out.print(json);
+        out.flush();
+        printNullDocument = false;
     }
 
 
