@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.hist;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
@@ -66,8 +67,15 @@ public abstract class ProjectHistoryBridgedAbstract implements
 
 
     protected void initChanges() throws IOException {
-        // parse the change history file for this WBS
-        changes = new ChangeHistory(parseXml(getChangeHistory())).getEntries();
+        try {
+            // parse the change history file for this WBS
+            changes = new ChangeHistory(parseXml(getChangeHistory()))
+                    .getEntries();
+        } catch (FileNotFoundException fnfe) {
+            // If no change history file is present (because this WBS has never
+            // been edited), initialize a list of no changes
+            changes = new ArrayList<ChangeHistory.Entry>();
+        }
     }
 
     protected abstract InputStream getChangeHistory() throws IOException;
@@ -88,8 +96,10 @@ public abstract class ProjectHistoryBridgedAbstract implements
             return false;
         }
         ZipEntry entry = revisionZip.getEntry("manifest.xml");
-        if (entry == null)
+        if (entry == null) {
+            revisionZip.close();
             return false;
+        }
 
         // parse the manifest from the ZIP file
         if (revisions == null)
