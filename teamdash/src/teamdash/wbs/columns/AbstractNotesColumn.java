@@ -109,11 +109,28 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
     public void setValueAt(Object value, WBSNode node) {
         Object oldValue = getValueAt(node);
         if (!eq(oldValue, value)) {
-            node.setAttribute(valueAttr, value);
+            node.setAttribute(valueAttr, scrub(value));
             node.setAttribute(valueAttr + AUTHOR_SUFFIX, authorName);
             node.setAttribute(valueAttr + TIMESTAMP_SUFFIX,
                 System.currentTimeMillis());
         }
+    }
+
+    private String scrub(Object value) {
+        if (value == null)
+            return null;
+
+        String text = value.toString();
+        StringBuilder buf = null;
+        for (int i = text.length(); i-- > 0;) {
+            char c = text.charAt(i);
+            if (c < ' ' && c != '\t' && c != '\r' && c != '\n') {
+                if (buf == null)
+                    buf = new StringBuilder(text);
+                buf.setCharAt(i, ' ');
+            }
+        }
+        return buf == null ? text : buf.toString();
     }
 
     protected static String getTextAt(WBSNode node, String valueAttr) {
