@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 import net.sourceforge.processdash.ProcessDashboard;
@@ -67,9 +66,12 @@ import net.sourceforge.processdash.tool.probe.ProbeDialog;
 import net.sourceforge.processdash.tool.quicklauncher.OpenDatasetAction;
 import net.sourceforge.processdash.ui.help.DashHelpBroker;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
 
 
-public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
+public class ConfigureButton extends WindowsFlatMenuBar
+        implements ActionListener, HierarchyEditor.Listener {
+
     ProcessDashboard   parent       = null;
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;

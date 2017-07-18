@@ -175,6 +175,7 @@ import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
+import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1033,7 +1034,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         addToMainWindow(script_button, 0);
         pt.click("Created script button");
 
-        hierarchy_menubar = new JMenuBar();
+        hierarchy_menubar = new WindowsFlatMenuBar();
         addToMainWindow(hierarchy_menubar, 1.0);
 
         TaskCommenterButton taskCommenterButton = new TaskCommenterButton(this,
