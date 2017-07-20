@@ -464,6 +464,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         // compute the desired effective path.
         String nodeLocation = tweakLocation(getValue(NODE_LOCATION));
+        if ("/".equals(nodeLocation))
+            nodeLocation = "";
         String nodePath = nodeLocation + "/" + nodeName;
 
         // does a node already exist in the hierarchy with this path?
