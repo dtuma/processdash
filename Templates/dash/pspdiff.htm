@@ -1,42 +1,48 @@
 <!--#server-parsed --><!--#resources bundle="LOCDiff.Form" -->
+<!--#echo defaultEncoding=html #-->
 <html>
 <head><title><!--#echo Title --></title>
-<meta name="Microsoft Theme" content="none">
 </head>
 <body>
 <h1><!--#echo Title --></h1>
 <form ACTION="pspdiff.class" METHOD="POST" ENCTYPE="multipart/form-data">
-<input TYPE="SUBMIT" Name="Compare the Files" Value="<!--#echo Compare_Button -->">&nbsp;&nbsp;&nbsp;<a HREF="pspdiff.class?showOptions" target="diffOptions"><i><!--#echo Options_Prompt --></i></a>&nbsp;<input TYPE="TEXT" SIZE="24" Name="options">
-
 <table BORDER="1">
+
+<tr><td>
+<input type="submit" name="Compare the Files" value="<!--#echo Compare_Button -->">
+
+<i style="margin-left:2cm"><!--#echo Language --></i>
+<select name="language">
+  <option value="" title="<!--#echo Language_Detect_Tip
+       -->"><!--#echo Language_Detect --></option>
+  <!--#foreach name=LANG values=",C,Default,Pascal,Sh,SQL,Cobol," #-->
+    <option value="LANG"<!--#if [/pspdiff-language] eq 'LANG'
+         --> selected<!--#endif-->><!--#echo Language_LANG --></option>
+  <!--#endfor-->
+</select>
+
+<a href="pspdiff.class?showOptions" target="diffOptions" style="margin-left:1em">
+  <i><!--#echo Options --></i></a>
+  <input type="text" size="8" name="options" style="font-family:monospace" 
+      value="<!--#echo [/pspdiff-options] -->">
+</td>
+</tr>
+
 <tr><td BGCOLOR="#32cd32"><font SIZE="+1"><b><!--#echo Initial_File.Label --></b></font>
 <font size="-1"><i><!--#echo var="Initial_File.Explanation_HTML" encoding="none" --></i></font><br>
 <!--#echo Initial_File.Select_Label --> <input TYPE="file" NAME="FILEA" SIZE="40"><br>
 <!--#echo Initial_File.Enter_Text_Label --><br>
-<textarea name="TEXTA" rows="5" cols="60"></textarea></td></tr>
+<textarea name="TEXTA" rows="5" cols="60" style="width:100%"></textarea></td></tr>
 
 <tr><td BGCOLOR="#32cdcc"><font SIZE="+1"><b><!--#echo Modified_File.Label --></b></font>
 <font size="-1"><i><!--#echo var="Modified_File.Explanation_HTML" encoding="none" --></i></font><br>
 <!--#echo Modified_File.Select_Label --> <input TYPE="file" NAME="FILEB" SIZE="40"><br>
 <!--#echo Modified_File.Enter_Text_Label --><br>
-<textarea name="TEXTB" rows="5" cols="60"></textarea></td></tr>
+<textarea name="TEXTB" rows="5" cols="60" style="width:100%"></textarea></td></tr>
 
 </table></form>
 
 <p><a href="pspdiffDialog.class"><!--#echo Open_LOC_Comparer_Dialog --></a></p>
-
-<script LANGUAGE="JavaScript">
-
-if (window.location.search) {
-    document.forms[0].Options.value = unescape(window.location.search.substring(1, 999));
-} else if (document.cookie) {
-    option = document.cookie.match(/pspdiff-options=([^ ]+)/);
-    if (option != null) {
-        document.forms[0].Options.value = unescape(option[1]);
-    }
-}
-
-</script>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
@@ -40,6 +42,7 @@ import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 
@@ -101,7 +104,7 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
                                    getFileContents('A'),
                                    getFileContents('B'),
                                    getParameter("FILEB"),
-                                   getParameter("options"));
+                                   getLocCountingOptions());
 
         printHeader(diff);
         printMetrics(diff);
@@ -124,6 +127,25 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
 
         // nothing found! return the empty string.
         return "";
+    }
+
+    private String getLocCountingOptions() {
+        DataContext data = getDataRepository();
+
+        StringBuilder result = new StringBuilder();
+        String lang = getParameter("language");
+        if (lang != null)
+            data.putValue("/pspdiff-language", StringData.create(lang));
+        if (StringUtils.hasValue(lang))
+            result.append("-lang=").append(lang);
+
+        String options = getParameter("options");
+        if (options != null)
+            data.putValue("/pspdiff-options", StringData.create(options.trim()));
+        if (StringUtils.hasValue(options))
+            result.append(" ").append(options);
+
+        return result.toString().trim();
     }
 
     /** print the HTML header, and initial document info. */
