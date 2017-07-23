@@ -66,6 +66,7 @@ import net.sourceforge.processdash.tool.probe.ProbeDialog;
 import net.sourceforge.processdash.tool.quicklauncher.OpenDatasetAction;
 import net.sourceforge.processdash.ui.help.DashHelpBroker;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.icons.HamburgerIcon;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
 
 
@@ -124,9 +125,12 @@ public class ConfigureButton extends WindowsFlatMenuBar
     }
 
     private void buildPersonalMenu() {
-        JMenu menu = new JMenu(resources.getString("Main_Menu_Name"));
+        JMenu menu = new JMenu();
+        menu.setIcon(new HamburgerIcon());
         add(menu);
         setMinimumSize(getPreferredSize());
+        setBorder(null);
+        setOpaque(false);
 
         BetaVersionSetup.addSubmenu(menu);
 
