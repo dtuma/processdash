@@ -25,20 +25,42 @@ package net.sourceforge.processdash.ui.icons;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 
+import javax.swing.JMenu;
+
 import net.sourceforge.processdash.ui.lib.AbstractPixelAwareRecolorableIcon;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class HamburgerIcon extends AbstractPixelAwareRecolorableIcon {
 
-    private Color fill;
+    private Color fill, altFill;
 
     public HamburgerIcon() {
         width = 18;
         height = 19;
         fill = Color.DARK_GRAY;
+        if (MacGUIUtils.isMacOSX())
+            altFill = new Color(0xf0f0ff);
+    }
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        Color newFill = useAltFill(c) ? altFill : Color.DARK_GRAY;
+        if (newFill != fill) {
+            bufferedWidth = -1;
+            fill = newFill;
+        }
+        super.paintIcon(c, g, x, y);
+    }
+
+    private boolean useAltFill(Component c) {
+        return altFill != null && c instanceof JMenu
+                && (((JMenu) c).isSelected() || ((JMenu) c).isArmed());
     }
 
     @Override
