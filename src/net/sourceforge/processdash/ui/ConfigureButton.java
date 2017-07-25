@@ -24,6 +24,8 @@
 
 package net.sourceforge.processdash.ui;
 
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
@@ -68,6 +70,7 @@ import net.sourceforge.processdash.ui.help.DashHelpBroker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.icons.HamburgerIcon;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 
 
 public class ConfigureButton extends WindowsFlatMenuBar
@@ -127,10 +130,15 @@ public class ConfigureButton extends WindowsFlatMenuBar
     private void buildPersonalMenu() {
         JMenu menu = new JMenu();
         menu.setIcon(new HamburgerIcon());
+        if (WindowsGUIUtils.isWindowsLAF())
+            menu.setMargin(new Insets(1, 1, 1, 1));
         add(menu);
-        setMinimumSize(getPreferredSize());
         setBorder(null);
         setOpaque(false);
+        Dimension d = getPreferredSize();
+        setMinimumSize(d);
+        setPreferredSize(d);
+        setMaximumSize(d);
 
         BetaVersionSetup.addSubmenu(menu);
 

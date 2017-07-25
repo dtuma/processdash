@@ -176,6 +176,7 @@ import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1015,7 +1016,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void buildPersonalUI(ProfTimer pt) {
         getContentPane().setLayout(new GridBagLayout());
 
-        addToMainWindow(configure_button, 0, 2, 2);
+        int winAdjust = WindowsGUIUtils.isWindowsLAF() ? 1 : 0;
+        addToMainWindow(configure_button, 0, 2 + winAdjust, 1);
         if (Settings.isReadWrite())
             addToMainWindow(pause_button, 0);
 

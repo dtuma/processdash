@@ -37,7 +37,7 @@ public class HamburgerIcon extends AbstractPixelAwareRecolorableIcon {
 
     public HamburgerIcon() {
         width = 18;
-        height = 21;
+        height = 19;
         fill = Color.DARK_GRAY;
     }
 
@@ -45,7 +45,7 @@ public class HamburgerIcon extends AbstractPixelAwareRecolorableIcon {
     protected void paintIcon(Graphics2D g2, int width, int height,
             float scale) {
         // compute geometry for the lines in the icon
-        int dim = (height + 2) / 7;
+        int dim = (height + 4) / 7;
         int lineWidth = dim + 1 - (dim & 1);
         float halfLine = lineWidth / 2f;
         int spacing = (height - 3 * lineWidth + 1) / 4;
