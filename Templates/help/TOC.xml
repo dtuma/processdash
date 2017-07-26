@@ -65,7 +65,7 @@
       <tocitem image="PageIcon" target="NoteIndicator" text="Entering Notes"/>
       <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion checkbox"/>
       <tocitem image="PageIcon" target="AddTaskButton" text="Quickly adding tasks"/>
-      <tocitem image="PageIcon" target="ConfigureMenu" text="The 'C' (configuration) menu"/>
+      <tocitem image="PageIcon" target="ConfigureMenu" text="The '&#8801;' (configuration) menu"/>
       <tocitem image="PageIcon" target="UsingTimeLogEditor" text="Editing Time data" />
       <tocitem image="PageIcon" target="UsingDefectLogEditor" text="Editing Defect data"/>
       <tocitem image="PageIcon" target="SystemTray" text="The System Tray Icon"/>

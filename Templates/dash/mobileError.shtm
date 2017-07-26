@@ -36,21 +36,21 @@
 <p>To prepare for use with the mobile app, the Process Dashboard needs to
 modify your data.  Unfortunately, you are currently viewing a ZIP data backup,
 not your "live" data.  Please open your personal dashboard normally, then try
-choosing the "C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+choosing the "&equiv; &rarr; Tools &rarr; Mobile App" menu option again.</p>
 
 <!--#elif readOnly -->
 
 <p>To prepare for use with the mobile app, the Process Dashboard needs to
 modify your data.  Unfortunately, you are currently running the dashboard in
 read-only mode.  Please restart the dashboard in read-write mode, then try
-choosing the "C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+choosing the "&equiv; &rarr; Tools &rarr; Mobile App" menu option again.</p>
 
 <!--#elif hierEditor -->
 
 <p>To prepare for use with the mobile app, the Process Dashboard needs to
 modify your data.  Unfortunately, it cannot do this while the Hierarchy Editor
 window is open.  Please close the Hierarchy Editor, then try choosing the 
-"C &rarr; Tools &rarr; Mobile App" menu option again.</p>
+"&equiv; &rarr; Tools &rarr; Mobile App" menu option again.</p>
 
 <!--#elif noNetwork -->
 
@@ -60,7 +60,7 @@ communicate with the server:</p>
 <pre style="margin-left:1cm"><!--#echo [mobile//Server_URL] --></pre>
 
 <p>Unfortunately, the server could not be reached.  Please check your network
-connection, then try choosing the "C &rarr; Tools &rarr; Mobile App" menu
+connection, then try choosing the "&equiv; &rarr; Tools &rarr; Mobile App" menu
 option again.</p>
 
 <!--#elif pdesMobileDisabled -->
@@ -106,7 +106,7 @@ server can provide your organization.</p>
 <p>If your organization <b>does</b> have a copy of Enterprise Server version
 3.6.0 or higher, ask for help migrating your personal dashboard into the
 server.  Once your data is stored in the server, you will be able to connect
-to the mobile application by choosing the "C &rarr; Tools &rarr; Mobile App"
+to the mobile application by choosing the "&equiv; &rarr; Tools &rarr; Mobile App"
 menu option again.</p>
 
 <h2>Why is the Enterprise Server needed?</h2>
