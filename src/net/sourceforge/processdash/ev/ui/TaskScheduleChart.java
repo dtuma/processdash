@@ -101,7 +101,6 @@ import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
-import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
@@ -462,15 +461,13 @@ public class TaskScheduleChart extends JFrame
 
             JButton revertButton = new JButton(new RevertSettingsAction(item,
                     actions));
-
-            DropDownButton saveButton = new DropDownButton("");
-            saveButton.setRunFirstMenuOption(false);
-            saveButton.getMenu().add(new SaveSettingsAsAction(item, actions));
-            saveButton.getButton().setAction(
-                new SaveSettingsAction(item, actions));
+            JButton saveButton = new JButton(new SaveSettingsAction(item,
+                    actions));
+            JButton saveAsButton = new JButton(new SaveSettingsAsAction(item,
+                    actions));
 
             return BoxUtils.hbox(BoxUtils.GLUE, revertButton, BoxUtils.GLUE,
-                saveButton, BoxUtils.GLUE);
+                saveButton, BoxUtils.GLUE, saveAsButton, BoxUtils.GLUE);
         }
 
     }
