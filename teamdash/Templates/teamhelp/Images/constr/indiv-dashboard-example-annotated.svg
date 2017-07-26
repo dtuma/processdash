@@ -10,7 +10,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="599"
+   width="608"
    height="141"
    id="svg2854"
    sodipodi:version="0.32"
@@ -47,7 +47,7 @@
      inkscape:window-height="851"
      inkscape:window-x="669"
      inkscape:window-y="178"
-     width="599px"
+     width="608px"
      height="141px"
      showgrid="false"
      inkscape:window-maximized="0" />
@@ -76,7 +76,7 @@
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\teamdash\Templates\teamhelp\Images\constr\../indiv-dashboard-example.png"
        xlink:href="../indiv-dashboard-example.png"
-       width="599"
+       width="608"
        height="59"
        id="image2935"
        x="2"
@@ -84,78 +84,78 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="14.918648"
+       x="23.918774"
        y="81.879028"
        id="text2938"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2940"
-         x="14.918648"
+         x="23.918774"
          y="81.879028">Play/Pause button</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="231"
+       x="240.00012"
        y="81.879028"
        id="text2944"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2946"
-         x="231"
+         x="240.00012"
          y="81.879028">Active Task Selector</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="415"
+       x="424.00012"
        y="82.859985"
        id="text2948"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2950"
-         x="415"
+         x="424.00012"
          y="82.859985">Note Indicator</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="400.80591"
+       x="409.80603"
        y="104.03162"
        id="text2952"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2954"
-         x="400.80591"
+         x="409.80603"
          y="104.03162">Dependency Indicator</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="396"
+       x="405.00012"
        y="128.35999"
        id="text2956"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2958"
-         x="396"
+         x="405.00012"
          y="128.35999">Task Completion Checkbox</tspan></text>
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 192.06303,45.262639 C 193.6358,44.289802 192.32632,59.533228 202.54982,59.533228 C 239.28012,59.533228 286.21117,59.533228 286.21117,59.533228 L 294.60061,69.046954 L 303.92221,58.898979 C 303.92221,58.898979 438.25701,59.865143 499.6758,59.533228 C 510.65374,59.468868 509.81303,45.738325 509.81303,45.738325"
+       d="M 201.06316,45.262639 C 202.63593,44.289802 201.32645,59.533228 211.54995,59.533228 C 248.28025,59.533228 295.2113,59.533228 295.2113,59.533228 L 303.60074,69.046954 L 312.92234,58.898979 C 312.92234,58.898979 447.25714,59.865143 508.67593,59.533228 C 519.65387,59.468868 518.81316,45.738325 518.81316,45.738325"
        id="path2960"
        sodipodi:nodetypes="cscccsc" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 527.9639,45.949527 L 506.0361,71.323889"
+       d="M 536.96403,45.949527 L 515.03623,71.323889"
        id="path2972" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 546.98043,45.933001 L 522.90002,91.116696"
+       d="M 555.98056,45.933001 L 531.90015,91.116696"
        id="path2974" />
     <path
        style="fill:none;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 564.98494,45.35407 L 555,111.3"
+       d="M 573.98507,45.35407 L 564.00013,111.3"
        id="path2976" />
     <path
        style="fill:none;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 33.5,70.362183 L 57.5,45"
+       d="M 42.500126,70.362183 L 66.500126,45"
        id="path2980" />
   </g>
 </svg>
