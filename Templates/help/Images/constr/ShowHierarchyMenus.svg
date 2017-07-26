@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="588"
+   width="597"
    height="94"
    id="svg5776"
    sodipodi:version="0.32"
@@ -38,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="94px"
-     width="555px"
+     width="597px"
      inkscape:window-width="1208"
      inkscape:window-height="688"
      inkscape:window-x="410"
@@ -66,36 +66,36 @@
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
-       width="588" />
+       width="597" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="59.344604"
+       x="68.344437"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="59.344604"
+         x="68.344437"
          y="83.810814">Task Overflow Menu</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="297.31943"
+       x="306.31927"
        y="83.810814"
        id="text15251"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15253"
-         x="297.31943"
+         x="306.31927"
          y="83.810814">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 193.57299,38.432226 L 168.12271,71.882511"
+       d="M 202.57282,38.432226 L 177.12254,71.882511"
        id="path15257" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.10595393px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 206.5052,46.690427 C 212.01109,54.399975 216.63947,60.173366 225.56026,60.173366 C 250.59453,60.173366 301.93834,60.126405 354.91314,60.077404 C 357.47148,60.075039 363.57275,65.757217 363.97747,65.465137 C 366.33156,63.76619 370.29068,60.063184 373.32017,60.060391 C 425.02153,60.012739 475.55989,59.968087 502.05524,59.968087 C 511.34346,59.968087 512.23201,53.756752 517.22301,46.768188"
+       d="M 215.50503,46.690427 C 221.01092,54.399975 225.6393,60.173366 234.56009,60.173366 C 259.59436,60.173366 310.93817,60.126405 363.91297,60.077404 C 366.47131,60.075039 372.57258,65.757217 372.9773,65.465137 C 375.33139,63.76619 379.29051,60.063184 382.32,60.060391 C 434.02136,60.012739 484.55972,59.968087 511.05507,59.968087 C 520.34329,59.968087 521.23184,53.756752 526.22284,46.768188"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
   </g>

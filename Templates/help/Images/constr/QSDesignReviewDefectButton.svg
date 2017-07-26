@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="584"
+   width="593"
    height="91"
    id="svg5776"
    sodipodi:version="0.32"
@@ -38,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="91px"
-     width="551px"
+     width="593px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="406"
@@ -77,7 +77,7 @@
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesignReviewDefectButton.png"
        xlink:href="QSDesignReviewDefectButton.png"
-       width="584" />
+       width="593" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 124.86086,47.035111 L 146.6502,68.824447"

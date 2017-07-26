@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="392"
+   width="401"
    height="167"
    id="svg17395"
    sodipodi:version="0.32"
@@ -38,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="162px"
-     width="394px"
+     width="401px"
      inkscape:window-width="870"
      inkscape:window-height="677"
      inkscape:window-x="515"
@@ -66,25 +66,25 @@
        height="143"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToPlayPausePullDownShowMenu.png"
        xlink:href="PointToPlayPausePullDownShowMenu.png"
-       width="392" />
+       width="401" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="18.721088"
+       x="27.720774"
        y="156.4438"
        id="text17413"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan17415"
-         x="18.721088"
+         x="27.720774"
          y="156.4438">Play/Pause button pull-down tab</tspan></text>
     <path
        id="path18304"
-       d="M 77.142857,42.838373 L 34.965986,142.83837"
+       d="M 86.142542,42.838373 L 43.965671,142.83837"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 77.142857,42.838373 L 34.965986,142.83837"
+       d="M 86.142542,42.838373 L 43.965671,142.83837"
        id="path17417" />
   </g>
 </svg>

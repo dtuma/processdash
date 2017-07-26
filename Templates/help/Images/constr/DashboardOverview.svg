@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="607"
+   width="616"
    height="279"
    id="svg2"
    sodipodi:version="0.32"
@@ -38,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="279px"
-     width="607px"
+     width="616px"
      inkscape:window-width="1253"
      inkscape:window-height="688"
      inkscape:window-x="334"
@@ -58,13 +58,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,9)">
+     transform="translate(7,9)">
     <image
        y="-9"
-       x="2"
+       x="-7"
        id="image2042"
        height="59"
-       width="607"
+       width="616"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png" />
     <text
@@ -150,8 +150,8 @@
        d="M 51.856587,48.230262 L 99.64225,226.1658"
        id="path2903" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 15.808756,47.720297 L 70.41532,251.20217"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 11.808756,45.702231 L 66.41532,251.20233"
        id="path2905" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.19257259px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"

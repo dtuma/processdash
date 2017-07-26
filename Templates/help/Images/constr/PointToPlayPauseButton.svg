@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="588"
+   width="597"
    height="96"
    id="svg5776"
    sodipodi:version="0.32"
@@ -38,11 +38,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="96px"
-     width="555px"
+     width="597px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
-     inkscape:window-x="473"
-     inkscape:window-y="133" />
+     inkscape:window-x="488"
+     inkscape:window-y="83" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -66,21 +66,21 @@
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
-       width="588" />
+       width="597" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="48.827049"
+       x="57.842773"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="48.827049"
+         x="57.842773"
          y="83.810814">Play / Pause buttons</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 55.578673,45.807543 L 71.037768,72.58348"
+       d="M 64.594397,45.807543 L 80.053492,72.58348"
        id="path17393" />
   </g>
 </svg>

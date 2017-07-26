@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="607"
+   width="616"
    height="94"
    id="svg5776"
    sodipodi:version="0.32"
@@ -59,7 +59,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,11.03245)">
+     transform="translate(7,11.03245)">
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -73,12 +73,12 @@
          y="79.810814">Task Dependency Indicator</tspan></text>
     <image
        y="-11.03245"
-       x="2"
+       x="-7"
        id="image13000"
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png"
-       width="607" />
+       width="616" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 554.57217,43.035111 L 539.83919,68.553381"

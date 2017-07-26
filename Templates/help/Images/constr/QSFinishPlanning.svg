@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="553"
+   width="562"
    height="96"
    id="svg5776"
    sodipodi:version="0.32"
@@ -38,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="96px"
-     width="517px"
+     width="562px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="503"
@@ -66,21 +66,21 @@
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSFinishPlanning.png"
        xlink:href="QSFinishPlanning.png"
-       width="553" />
+       width="562" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="242.27309"
+       x="251.27293"
        y="81.197044"
        id="text5827"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5829"
-         x="242.27309"
+         x="251.27293"
          y="81.197044">Click the Completion checkbox to finish</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 519.29264,40.30494 L 491.4629,67.134667"
+       d="M 528.29248,40.30494 L 500.46274,67.134667"
        id="path5833" />
   </g>
 </svg>

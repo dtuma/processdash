@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="540"
+   width="549"
    height="96"
    id="svg5776"
    sodipodi:version="0.32"
@@ -34,11 +34,11 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="246.42857"
-     inkscape:cy="67.158093"
+     inkscape:cy="-120.22974"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="96px"
-     width="507px"
+     width="549px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="523"
@@ -66,36 +66,36 @@
        height="59"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesigning.png"
        xlink:href="QSDesigning.png"
-       width="540" />
+       width="549" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="381.57477"
+       x="390.57492"
        y="83.197029"
        id="text5827"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5829"
-         x="381.57477"
+         x="390.57492"
          y="83.197029">Click to complete</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 505.07534,42.357068 L 475.3499,72.082511"
+       d="M 514.0755,42.357068 L 484.35006,72.082511"
        id="path5833" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="35.027306"
+       x="39.027306"
        y="81.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="35.027306"
+         x="39.027306"
          y="81.197029">Timer is running</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 65.578674,45.648895 L 88.595579,68.6658"
+       d="M 69.578674,45.648895 L 92.595579,68.6658"
        id="path5882" />
   </g>
 </svg>
