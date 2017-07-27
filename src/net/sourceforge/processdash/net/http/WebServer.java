@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -458,7 +458,10 @@ public class WebServer implements ContentSource {
             result = new WebAppContextLegacy(u);
         result.setServer(server);
         try {
+            long start = System.currentTimeMillis();
             result.start();
+            long elapsed = System.currentTimeMillis() - start;
+            logger.fine("Started web app " + u + ", took " + elapsed + " ms");
         } catch (Exception e) {
             logger.log(Level.WARNING, "Unable to start web application for '"
                     + u + "'", e);
