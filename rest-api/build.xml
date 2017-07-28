@@ -1,0 +1,85 @@
+<!--
+
+REST API Add-on for the Process Dashboard
+Copyright (C) 2017 Tuma Solutions, LLC
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+Additional permissions also apply; see the README-license.txt
+file in the project root directory for more information.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see http://www.gnu.org/licenses/
+
+The author(s) may be contacted at:
+    processdash@tuma-solutions.com
+    processdash-devel@lists.sourceforge.net
+
+-->
+
+<project default="jar" basedir=".">
+
+  <property environment="env"/>
+  <property file="build.properties"/>  
+
+  <property name="api.version" value="0.1"/>
+  <property name="api.requires" value="2.3+"/>
+
+  <property name="processdash.dir" value=".."/>
+  <property name="processdash.dist" value="${processdash.dir}/dist"/>
+  <property name="pspdash.jar" value="${processdash.dist}/pspdash.jar"/>
+
+  <property name="src" value="src"/>
+  <property name="build" value="antbin"/>
+  <property name="compile.target" value="1.6"/>
+  <property name="debug" value="on"/>
+
+  <property name="dist" value="dist"/>
+  <property name="api.jar" value="${dist}/api.jar"/>
+
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete file="${api.jar}"/>
+  </target>
+
+
+  <target name="compile">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           source="${compile.target}" target="${compile.target}"
+           classpath="${pspdash.jar}" includeAntRuntime="no"/>
+  </target>
+
+
+  <target name="jar" depends="compile">
+    <mkdir dir="${dist}"/>
+    <jar destfile="${api.jar}" duplicate="fail">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="pdashRestApi"/>
+        <attribute name="Dash-Pkg-Version" value="${api.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${api.requires}"/>
+        <attribute name="Dash-Pkg-Name" value="Process Dashboard REST API"/>
+        <attribute name="Specification-Title" value="Process Dashboard REST API"/>
+        <attribute name="Implementation-Title" value="Process Dashboard REST API"/>
+        <attribute name="Specification-Version" value="${api.version}"/>
+        <attribute name="Implementation-Version" value="${api.version}"/>
+        <attribute name="Specification-Vendor" value="Process Dashboard Dev Team"/>
+        <attribute name="Implementation-Vendor" value="Process Dashboard Dev Team"/>
+      </manifest>
+
+      <fileset dir="${build}"/>
+      <fileset dir="." includes="Templates/"/>
+    </jar>
+    <copy file="${api.jar}" todir="${processdash.dist}"/>
+  </target>
+
+</project>
