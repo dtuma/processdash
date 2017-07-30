@@ -76,8 +76,8 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         buildToolbar();
 
-        frame = new JFrame(resources.format("Window_Title_FMT",
-            teamProject.getProjectName()));
+        frame = new JFrame(teamProject.getProjectName() + " - "
+                + resources.getString("Window_Title"));
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -113,6 +113,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
     private ProxyJTable createProxyJTable() {
         ProxyJTable table = new ProxyJTable(proxyModel);
+        table.renderer.setRootNodeName(resources.getString("Root_Name"));
 
         undoList = new UndoList(proxyModel.getWBSModel());
         undoList.setForComponent(table);

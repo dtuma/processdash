@@ -107,8 +107,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
         table.setEditingEnabled(isEditable(teamProject));
         buildToolbar(columnSelector.getAction());
-        frame = new JFrame(teamProject.getProjectName() +
-                           " - Common Team Workflows");
+        frame = new JFrame(teamProject.getProjectName() + " - "
+                + resources.getString("Window_Title"));
         frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -150,6 +150,9 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         WBSJTable table = new WBSJTable(workflowModel,
                 getWorkflowIcons(process.getIconMap()),
                 tweakIconMenu(process.getNodeTypeMenu(), probeListener));
+
+        // configure the renderer for the table
+        table.renderer.setRootNodeName(resources.getString("Root_Name"));
 
         // install the default editor for table data.
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());

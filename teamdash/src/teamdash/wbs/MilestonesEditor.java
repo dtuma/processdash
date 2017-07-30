@@ -87,8 +87,8 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         table = createMilestonesJTable();
         table.setEditingEnabled(isEditable(teamProject));
         buildToolbar();
-        frame = new JFrame(teamProject.getProjectName()
-                + " - Project Milestones");
+        frame = new JFrame(teamProject.getProjectName() + " - "
+                + resources.getString("Window_Title"));
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -135,6 +135,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         TableColumn col;
 
         // customize the display of the "Name" column.
+        table.renderer.setRootNodeName(resources.getString("Root_Name"));
         col = table.getColumnModel().getColumn(
             milestonesModel.findColumn(WBSNodeColumn.COLUMN_ID));
         col.setPreferredWidth(300);

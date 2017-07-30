@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private Map iconMap;
     /** A workflow model for resolving workflow type icons */
     private WorkflowWBSModel workflows;
+    /** An optional override for the name of the root node */
+    private String rootNodeName;
     /** The error message to display as a tooltip for the node's icon */
     private String iconToolTip;
     /** The error message to display as a tooltip for the node name */
@@ -72,6 +74,14 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         setIconTextGap(4);
     }
 
+    public String getRootNodeName() {
+        return rootNodeName;
+    }
+
+    public void setRootNodeName(String rootNodeName) {
+        this.rootNodeName = rootNodeName;
+    }
+
 
     // Implementation of TableCellRenderer interface
 
@@ -87,7 +97,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             return super.getTableCellRendererComponent(table, null, isSelected,
                 hasFocus, row, column);
 
-        String name = node.getName();
+        String name;
+        if (row == 0 && rootNodeName != null)
+            name = rootNodeName;
+        else
+            name = node.getName();
         if (name == null || name.trim().length() == 0) name = "( empty )";
 
         // display completed tasks with a strikethrough font
