@@ -189,7 +189,9 @@ public class WBSJTable extends JTable {
 
         renderer = new WBSNodeRenderer(model, iconMap, workflows);
         setDefaultRenderer(WBSNode.class, renderer);
+        setForeground(Color.black);
         setBackground(Color.white);
+        setSelectionForeground(Color.black);
         setSelectionBackground(new Color(0xb8cfe5));
 
         editor = new WBSNodeEditor(this, model, iconMap, iconMenu, workflows);

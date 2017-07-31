@@ -85,7 +85,9 @@ public class DataJTable extends JTable {
 
         setDefaultRenderer(NumericDataValue.class,
                            new DataTableCellNumericRenderer());
+        setForeground(Color.black);
         setBackground(Color.white);
+        setSelectionForeground(Color.black);
         setSelectionBackground(new Color(0xb8cfe5));
 
         ClipboardBridge clipboardBridge = new ClipboardBridge(this);
