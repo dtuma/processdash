@@ -613,7 +613,7 @@ public class DashController {
 
     /** @since 2.2.3.2 */
     public static boolean assignHierarchyNodeIDs() throws IllegalStateException {
-        PERMISSION.checkPermission();
+        // PERMISSION.checkPermission(); // no longer checked in PD version 2.4
         if (dash.isHierarchyEditorOpen())
             throw new IllegalStateException(
                     "The hierarchy editor is currently open.");
