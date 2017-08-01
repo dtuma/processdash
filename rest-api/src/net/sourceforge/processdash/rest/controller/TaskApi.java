@@ -42,7 +42,7 @@ public class TaskApi {
 
     @GET
     @Path("{taskId}/")
-    public Map getTask(HttpServletRequest req, String taskId) {
+    public Map getTask(String taskId) {
         // retrieve task
         RestTask task = RestTaskService.get().byID(taskId);
         if (task == null)
@@ -75,7 +75,7 @@ public class TaskApi {
             RestTaskService.get().saveCompletionDate(task, completionDate);
 
         // return the modified task entity
-        return getTask(req, taskId);
+        return getTask(taskId);
     }
 
 }

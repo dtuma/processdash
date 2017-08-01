@@ -27,8 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import net.sourceforge.processdash.rest.rs.GET;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.rs.Path;
@@ -40,7 +38,7 @@ import net.sourceforge.processdash.rest.to.RestProject;
 public class ProjectApi {
 
     @GET
-    public Map getProjects(HttpServletRequest req) {
+    public Map getProjects() {
         // retrieve list of projects
         List<RestProject> projects = RestProjectService.get().all();
         Collections.sort(projects);
@@ -52,7 +50,7 @@ public class ProjectApi {
 
     @GET
     @Path("{id}/")
-    public Map getProject(HttpServletRequest req, String projectId) {
+    public Map getProject(String projectId) {
         // retrieve project
         RestProject project = RestProjectService.get().byID(projectId);
         if (project == null)

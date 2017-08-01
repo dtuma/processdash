@@ -85,6 +85,8 @@ public class DispatchServlet extends HttpServlet {
 
         Method method;
 
+        boolean wantsRequest;
+
         Object target;
 
         Set<String> httpMethods;
@@ -136,6 +138,7 @@ public class DispatchServlet extends HttpServlet {
             if (handler.httpMethods == null)
                 // methods with no GET/POST/etc annotation are ignored
                 continue;
+            handler.wantsRequest = methodWantsServletRequest(m);
 
             // build a string representing the desired path
             StringBuilder path = new StringBuilder();
@@ -164,7 +167,7 @@ public class DispatchServlet extends HttpServlet {
         }
     }
 
-    protected Set<String> getHttpMethods(Method m) {
+    private Set<String> getHttpMethods(Method m) {
         Set<String> httpMethods = new HashSet<String>();
         for (Annotation a : m.getAnnotations()) {
             HttpMethod hm = a.annotationType().getAnnotation(HttpMethod.class);
@@ -173,6 +176,12 @@ public class DispatchServlet extends HttpServlet {
         }
         return httpMethods.isEmpty() ? null
                 : Collections.unmodifiableSet(httpMethods);
+    }
+
+    private boolean methodWantsServletRequest(Method m) {
+        Class<?>[] parameterTypes = m.getParameterTypes();
+        return parameterTypes.length > 0
+                && parameterTypes[0].equals(HttpServletRequest.class);
     }
 
 
@@ -206,10 +215,12 @@ public class DispatchServlet extends HttpServlet {
             Matcher matcher, Handler handler) throws IOException {
         // build a parameter list for the method. This is always the servlet
         // request, followed by the path parameters in the order they appeared
-        Object[] args = new Object[matcher.groupCount() + 1];
-        args[0] = req;
+        int off = handler.wantsRequest ? 1 : 0;
+        Object[] args = new Object[matcher.groupCount() + off];
+        if (handler.wantsRequest)
+            args[0] = req;
         for (int i = matcher.groupCount(); i > 0; i--)
-            args[i] = matcher.group(i);
+            args[i - 1 + off] = matcher.group(i);
 
         try {
             // invoke the handler and get the resulting object

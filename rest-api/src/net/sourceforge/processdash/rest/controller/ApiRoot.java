@@ -25,8 +25,6 @@ package net.sourceforge.processdash.rest.controller;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import net.sourceforge.processdash.rest.rs.GET;
 import net.sourceforge.processdash.rest.rs.Path;
 import net.sourceforge.processdash.rest.to.JsonMap;
@@ -36,7 +34,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 public class ApiRoot {
 
     @GET
-    public Map getRootInfo(HttpServletRequest req) {
+    public Map getRootInfo() {
         return new JsonMap() //
                 .set("version", getVersionInfo()) //
                 .set("stat", "ok");
