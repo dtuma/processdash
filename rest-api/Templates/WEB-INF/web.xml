@@ -4,4 +4,21 @@
 
 	<display-name>Process Dashboard REST API</display-name>
 
+	<servlet>
+		<display-name>REST Dispatch Servlet</display-name>
+		<servlet-name>restDispatchServlet</servlet-name>
+		<servlet-class>net.sourceforge.processdash.rest.rs.DispatchServlet</servlet-class>
+		<init-param>
+			<param-name>handlers</param-name>
+			<param-value>
+				net.sourceforge.processdash.rest.controller.ApiRoot
+			</param-value>
+		</init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>restDispatchServlet</servlet-name>
+		<url-pattern>/api/v1/*</url-pattern>
+	</servlet-mapping>
+
 </web-app>
