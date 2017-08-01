@@ -43,6 +43,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import org.json.simple.JSONObject;
 
+import net.sourceforge.processdash.rest.service.RestDashContext;
+
 /**
  * Simplified implementation of a JAX-RS-style mechanism for invoking REST
  * endpoints.
@@ -98,6 +100,7 @@ public class DispatchServlet extends HttpServlet {
             throws IOException {
         if (handlers == null) {
             try {
+                RestDashContext.init(req);
                 handlers = createHandlers();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -217,8 +220,13 @@ public class DispatchServlet extends HttpServlet {
             JSONObject.writeJSONString(result, resp.getWriter());
 
         } catch (Exception e) {
-            e.printStackTrace();
-            resp.sendError(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            if (e.getCause() instanceof HttpException) {
+                HttpException he = (HttpException) e.getCause();
+                resp.sendError(he.getStatusCode());
+            } else {
+                e.printStackTrace();
+                resp.sendError(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            }
         }
     }
 

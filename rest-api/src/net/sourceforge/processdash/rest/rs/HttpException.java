@@ -21,35 +21,25 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.rest.to;
+package net.sourceforge.processdash.rest.rs;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
+import org.eclipse.jetty.http.HttpStatus;
 
-public class JsonMap extends LinkedHashMap {
+public class HttpException extends RuntimeException {
 
-    public JsonMap(Object... values) {
-        for (int i = 0; i < values.length; i += 2)
-            set((String) values[i], values[i + 1]);
+    private int statusCode;
+
+    public HttpException(int statusCode) {
+        this.statusCode = statusCode;
     }
 
-    public JsonMap set(String name, Object value) {
-        if (value instanceof JsonDate)
-            put(name, value);
-        else if (value instanceof Date)
-            put(name, new JsonDate((Date) value));
-        else if (value != null)
-            put(name, value);
-        return this;
+    public int getStatusCode() {
+        return statusCode;
     }
 
-    public <T> T getAttr() {
-        String methodName = new Exception().getStackTrace()[1].getMethodName();
-        if (!methodName.startsWith("get"))
-            throw new IllegalStateException();
-        String attrName = methodName.substring(3, 4).toLowerCase()
-                + methodName.substring(4);
-        return (T) super.get(attrName);
+
+    public static HttpException notFound() {
+        return new HttpException(HttpStatus.NOT_FOUND_404);
     }
 
 }

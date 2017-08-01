@@ -23,33 +23,44 @@
 
 package net.sourceforge.processdash.rest.to;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.TimeZone;
 
-public class JsonMap extends LinkedHashMap {
+import org.json.simple.JSONAware;
 
-    public JsonMap(Object... values) {
-        for (int i = 0; i < values.length; i += 2)
-            set((String) values[i], values[i + 1]);
+public class JsonDate extends Date implements JSONAware {
+
+    public JsonDate(long time) {
+        super(time);
     }
 
-    public JsonMap set(String name, Object value) {
-        if (value instanceof JsonDate)
-            put(name, value);
-        else if (value instanceof Date)
-            put(name, new JsonDate((Date) value));
-        else if (value != null)
-            put(name, value);
-        return this;
+    public JsonDate(Date date) {
+        super(date.getTime());
     }
 
-    public <T> T getAttr() {
-        String methodName = new Exception().getStackTrace()[1].getMethodName();
-        if (!methodName.startsWith("get"))
-            throw new IllegalStateException();
-        String attrName = methodName.substring(3, 4).toLowerCase()
-                + methodName.substring(4);
-        return (T) super.get(attrName);
+    public String toJSONString() {
+        return "\"" + toString() + "\"";
+    }
+
+    @Override
+    public String toString() {
+        synchronized (DATE_FORMATS) {
+            return DATE_FORMATS[0].format(this);
+        }
+    }
+
+    private static final DateFormat[] DATE_FORMATS = {
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm"),
+            new SimpleDateFormat("yyyy-MM-dd") };
+
+    static {
+        DATE_FORMATS[1].setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
 }

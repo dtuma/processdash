@@ -21,35 +21,29 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.rest.to;
+package net.sourceforge.processdash.rest.service;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class JsonMap extends LinkedHashMap {
+import javax.servlet.http.HttpServletRequest;
 
-    public JsonMap(Object... values) {
-        for (int i = 0; i < values.length; i += 2)
-            set((String) values[i], values[i + 1]);
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.net.http.PDashServletUtils;
+import net.sourceforge.processdash.net.http.TinyCGI;
+
+public class RestDashContext {
+
+    private static DashboardContext ctx;
+
+    public static DashboardContext get() {
+        return ctx;
     }
 
-    public JsonMap set(String name, Object value) {
-        if (value instanceof JsonDate)
-            put(name, value);
-        else if (value instanceof Date)
-            put(name, new JsonDate((Date) value));
-        else if (value != null)
-            put(name, value);
-        return this;
-    }
-
-    public <T> T getAttr() {
-        String methodName = new Exception().getStackTrace()[1].getMethodName();
-        if (!methodName.startsWith("get"))
-            throw new IllegalStateException();
-        String attrName = methodName.substring(3, 4).toLowerCase()
-                + methodName.substring(4);
-        return (T) super.get(attrName);
+    public static void init(HttpServletRequest request) {
+        if (ctx == null) {
+            Map env = PDashServletUtils.buildEnvironment(request);
+            ctx = (DashboardContext) env.get(TinyCGI.DASHBOARD_CONTEXT);
+        }
     }
 
 }

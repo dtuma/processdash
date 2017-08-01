@@ -23,33 +23,34 @@
 
 package net.sourceforge.processdash.rest.to;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
+public class RestProject extends JsonMap implements Comparable<RestProject> {
 
-public class JsonMap extends LinkedHashMap {
+    private JsonDate creationDate;
 
-    public JsonMap(Object... values) {
-        for (int i = 0; i < values.length; i += 2)
-            set((String) values[i], values[i + 1]);
+    public RestProject(String id, String name, String fullName) {
+        super("id", id, "name", name, "fullName", fullName);
+        set("creationDate", creationDate = new JsonDate(
+                Long.parseLong(id, Character.MAX_RADIX)));
     }
 
-    public JsonMap set(String name, Object value) {
-        if (value instanceof JsonDate)
-            put(name, value);
-        else if (value instanceof Date)
-            put(name, new JsonDate((Date) value));
-        else if (value != null)
-            put(name, value);
-        return this;
+    public String getId() {
+        return getAttr();
     }
 
-    public <T> T getAttr() {
-        String methodName = new Exception().getStackTrace()[1].getMethodName();
-        if (!methodName.startsWith("get"))
-            throw new IllegalStateException();
-        String attrName = methodName.substring(3, 4).toLowerCase()
-                + methodName.substring(4);
-        return (T) super.get(attrName);
+    public String getName() {
+        return getAttr();
+    }
+
+    public String getFullName() {
+        return getAttr();
+    }
+
+    public JsonDate getCreationDate() {
+        return creationDate;
+    }
+
+    public int compareTo(RestProject that) {
+        return -this.creationDate.compareTo(that.creationDate);
     }
 
 }
