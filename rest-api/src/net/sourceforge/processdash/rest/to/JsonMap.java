@@ -40,16 +40,31 @@ public class JsonMap extends LinkedHashMap {
             put(name, new JsonDate((Date) value));
         else if (value != null)
             put(name, value);
+        else
+            remove(name);
         return this;
     }
 
-    public <T> T getAttr() {
-        String methodName = new Exception().getStackTrace()[1].getMethodName();
-        if (!methodName.startsWith("get"))
+    protected <T> T getAttr() {
+        return (T) super.get(getAttrName("get"));
+    }
+
+    protected boolean getBoolAttr() {
+        return Boolean.TRUE.equals(super.get(getAttrName("is")));
+    }
+
+    protected void setAttr(Object value) {
+        set(getAttrName("set"), value);
+    }
+
+    private String getAttrName(String prefix) {
+        String methodName = new Exception().getStackTrace()[2].getMethodName();
+        if (!methodName.startsWith(prefix))
             throw new IllegalStateException();
-        String attrName = methodName.substring(3, 4).toLowerCase()
-                + methodName.substring(4);
-        return (T) super.get(attrName);
+        int plen = prefix.length();
+        String attrName = methodName.substring(plen, plen + 1).toLowerCase()
+                + methodName.substring(plen + 1);
+        return attrName;
     }
 
 }

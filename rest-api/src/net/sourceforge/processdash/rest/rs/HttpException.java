@@ -33,10 +33,19 @@ public class HttpException extends RuntimeException {
         this.statusCode = statusCode;
     }
 
+    public HttpException causedBy(Throwable t) {
+        initCause(t);
+        return this;
+    }
+
     public int getStatusCode() {
         return statusCode;
     }
 
+
+    public static HttpException badRequest() {
+        return new HttpException(HttpStatus.BAD_REQUEST_400);
+    }
 
     public static HttpException notFound() {
         return new HttpException(HttpStatus.NOT_FOUND_404);

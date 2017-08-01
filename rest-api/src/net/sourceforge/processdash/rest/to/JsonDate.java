@@ -24,11 +24,14 @@
 package net.sourceforge.processdash.rest.to;
 
 import java.text.DateFormat;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 import org.json.simple.JSONAware;
+
+import net.sourceforge.processdash.rest.rs.HttpException;
 
 public class JsonDate extends Date implements JSONAware {
 
@@ -50,6 +53,24 @@ public class JsonDate extends Date implements JSONAware {
             return DATE_FORMATS[0].format(this);
         }
     }
+
+
+    public static JsonDate valueOf(String s) {
+        if (s == null || s.equals("null") || s.trim().length() == 0)
+            return null;
+
+        synchronized (DATE_FORMATS) {
+            for (DateFormat f : DATE_FORMATS) {
+                ParsePosition pos = new ParsePosition(0);
+                Date result = f.parse(s, pos);
+                if (pos.getIndex() == s.length())
+                    return new JsonDate(result);
+            }
+        }
+
+        throw HttpException.badRequest();
+    }
+
 
     private static final DateFormat[] DATE_FORMATS = {
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
