@@ -553,7 +553,7 @@ Authors:
       <zipfileset src="${jcommon.jar}"/>
       <zipfileset src="${jfreechart.jar}" excludes="META-INF/**" />
       <zipfileset src="${kxml.jar}"/>
-      <zipfileset src="${json.jar}"/>
+      <zipfileset src="${json.jar}" excludes="META-INF/**"/>
       <zipfileset src="${image4j.jar}"/>
       <zipfileset src="${swingx.jar}" includes="org/jdesktop/swingx/autocomplete/"/>
       <zipfileset src="${jcalendar.jar}"/>
