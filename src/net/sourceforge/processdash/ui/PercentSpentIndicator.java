@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import javax.swing.JToolTip;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -92,6 +93,8 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
     private CardLayout layout;
 
     private LevelIndicator levelIndicator;
+
+    private Border plainBorder, rolloverBorder;
 
     private String currentTaskPath = null;
     private boolean shouldBeVisible = true;
@@ -151,16 +154,26 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         JLabel label = new JLabel(hourglassIcon);
         add(label, MISSING_ESTIMATE_KEY);
 
+        plainBorder = BorderFactory
+                .createLineBorder(UIManager.getColor("controlDkShadow"));
+        rolloverBorder = BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0xB8CFE5)), plainBorder);
+        setBorder(plainBorder);
+
         if (!Settings.isReadOnly()) {
             addMouseListener(new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
+                    setRollover(false);
                     showEditEstimateDialog();
+                }
+                public void mouseEntered(MouseEvent e) {
+                    setRollover(true);
+                }
+                public void mouseExited(MouseEvent e) {
+                    setRollover(false);
                 }
             });
         }
-
-        setBorder(BorderFactory.createLineBorder(UIManager
-                .getColor("controlDkShadow")));
 
         Dimension d = new Dimension(hourglassIcon.getIconWidth() + 4,
                 hourglassIcon.getIconHeight() + 6);
@@ -170,6 +183,10 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         new ToolTipTimingCustomizer(750, 60000).install(this);
     }
 
+
+    private void setRollover(boolean rollover) {
+        setBorder(rollover ? rolloverBorder : plainBorder);
+    }
 
     public void dataValuesChanged(Vector v) throws RemoteException {
         for (int i = v.size(); i-- > 0;)
