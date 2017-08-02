@@ -39,20 +39,31 @@ import net.sourceforge.processdash.ui.lib.PaintUtils;
 
 public class HierarchyNoteIcon extends AbstractPixelAwareRecolorableIcon {
     
+    private static final Color GLOW = new Color(0xb8cfe5);
+
     public static final HierarchyNoteIcon 
-        WHITE = new HierarchyNoteIcon(Color.white),
-        YELLOW = new HierarchyNoteIcon(new Color(255, 184, 0)),
-        RED = new HierarchyNoteIcon(Color.red);
+        WHITE = new HierarchyNoteIcon(Color.white, null),
+        WHITE_GLOW = new HierarchyNoteIcon(Color.white, GLOW),
+        YELLOW = new HierarchyNoteIcon(new Color(255, 184, 0), null),
+        YELLOW_GLOW = new HierarchyNoteIcon(new Color(255, 184, 0), GLOW),
+        RED = new HierarchyNoteIcon(Color.red, null),
+        RED_GLOW = new HierarchyNoteIcon(Color.red, GLOW);
 
-    private Color fill, edge, text;
+    private Color fill, edge, text, glow;
 
-    public HierarchyNoteIcon(Color fill) {
+    private int pad;
+
+    public HierarchyNoteIcon(Color fill, Color glow) {
         this.fill = fill;
         this.edge = PaintUtils.mixColors(fill, Color.black, 0.5);
         this.text = Color.gray;
+        this.glow = glow;
         this.width = DashboardIconFactory.getStandardIconSize()
                 - 2 * DashboardIconFactory.getStandardIconPad();
         this.height = (int) (0.5 + width * 11 / 15f);
+        this.pad = this.width / 7;
+        this.width += 2 * pad;
+        this.height += 2 * pad;
     }
 
     @Override
@@ -65,9 +76,21 @@ public class HierarchyNoteIcon extends AbstractPixelAwareRecolorableIcon {
     @Override
     protected void paintIcon(Graphics2D g2, int width, int height,
             float scale) {
+        // adjust the geometry to account for glow margin
+        float pad = this.pad * (float) Math.sqrt(scale);
+        float vpad = this.pad * scale;
+        g2.translate(pad, vpad);
+        width -= (int) (2 * pad);
+        height -= (int) (2 * vpad);
+
         // fill the background area and trace its outline
         Shape shape = new RoundRectangle2D.Float(0, 0, width - 1, height - 1,
                 5 * scale, 5 * scale);
+        if (glow != null) {
+            g2.setColor(glow);
+            g2.setStroke(new BasicStroke(1 + 1.5f * pad));
+            g2.draw(shape);
+        }
         g2.setPaint(new GradientPaint(0, 0, fill, width, height, Color.white));
         g2.fill(shape);
         g2.setStroke(new BasicStroke(1));
@@ -77,7 +100,7 @@ public class HierarchyNoteIcon extends AbstractPixelAwareRecolorableIcon {
         // draw text in the center
         int x = (int) (2 * Math.min(scale, 2));
         int y = (int) (3 * scale);
-        int lineSpacing = (int) (2.3 * scale);
+        int lineSpacing = (int) Math.max(2, 2.3 * scale);
         g2.setClip(new RoundRectangle2D.Float(x, x, width - 2 * x,
                 height - 2 * x, 2 * scale, 2 * scale));
         g2.setFont(new Font("Dialog", Font.BOLD, 10).deriveFont(1.9f * scale));

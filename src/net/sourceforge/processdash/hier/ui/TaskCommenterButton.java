@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
@@ -55,10 +54,6 @@ public class TaskCommenterButton extends JButton implements ActionListener,
 
     ProcessDashboard context = null;
     ActiveTaskModel taskModel = null;
-
-    Icon commentPresentIcon = null;
-    Icon commentErrorIcon = null;
-    Icon noCommentIcon = null;
 
     // Will be shown only when there is a conflict for a comment in the current
     //  hierarchy.
@@ -100,12 +95,9 @@ public class TaskCommenterButton extends JButton implements ActionListener,
         editTooltip = resources.getHTML("Edit_Tooltip");
         noCommentTooltip = resources.getHTML("No_Comments_Tooltip");
 
-        commentPresentIcon = HierarchyNoteIcon.YELLOW;
-        commentErrorIcon = HierarchyNoteIcon.RED;
-        noCommentIcon = HierarchyNoteIcon.WHITE;
-
         this.setBorder(BorderFactory.createEmptyBorder());
         this.setFocusPainted(false);
+        this.setRolloverEnabled(true);
         addActionListener(this);
         taskModel.addPropertyChangeListener(this);
         new ToolTipTimingCustomizer().install(this);
@@ -124,7 +116,8 @@ public class TaskCommenterButton extends JButton implements ActionListener,
 
         if (deepestComment == null) {
             toolTipText = new StringBuffer("<html><div>" + noCommentTooltip);
-            setIcon(noCommentIcon);
+            setIcon(HierarchyNoteIcon.WHITE);
+            setRolloverIcon(HierarchyNoteIcon.WHITE_GLOW);
         }
         else {
             toolTipText = new StringBuffer("<html><div width='300'>");
@@ -134,11 +127,13 @@ public class TaskCommenterButton extends JButton implements ActionListener,
                         resources.format("Conflict_Tooltip_FMT",
                                          conflictingCommentAuthor,
                                          taskInConflict.path()));
-                setIcon(commentErrorIcon);
+                setIcon(HierarchyNoteIcon.RED);
+                setRolloverIcon(HierarchyNoteIcon.RED_GLOW);
             }
             else {
                 toolTipText.append(deepestComment + "<hr>" + editTooltip);
-                setIcon(commentPresentIcon);
+                setIcon(HierarchyNoteIcon.YELLOW);
+                setRolloverIcon(HierarchyNoteIcon.YELLOW_GLOW);
             }
         }
 

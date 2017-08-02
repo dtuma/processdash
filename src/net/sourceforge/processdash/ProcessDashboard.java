@@ -1041,7 +1041,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         TaskCommenterButton taskCommenterButton = new TaskCommenterButton(this,
                 activeTaskModel);
-        addToMainWindow(taskCommenterButton, 0, 3, 2);
+        addToMainWindow(taskCommenterButton, 0, 1, 0);
         pt.click("Created task commenter button");
 
         DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
