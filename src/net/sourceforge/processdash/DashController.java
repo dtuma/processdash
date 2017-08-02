@@ -126,10 +126,10 @@ public class DashController {
         throw new IOException("Connection not accepted from: " + remoteAddress);
     }
 
-    public static String raiseWindow() {
+    public static Window raiseWindow() {
         if (dash != null)
             new WindowRaiser();
-        return getWindowOpenedJson(dash);
+        return dash;
     }
 
     /** In Gnome/Linux, a single call to raiseWindowImpl doesn't seem to do the

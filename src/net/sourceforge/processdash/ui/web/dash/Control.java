@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
+import java.awt.Window;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
@@ -195,15 +196,19 @@ public class Control extends TinyCGIBase {
     }
 
 
-    private void printWindowOpenedJson(String json) {
+    private void printWindowOpenedJson(Window window) {
         String accept = (String) env.get("HTTP_ACCEPT");
-        if (accept == null || json == null)
+        if (accept == null || window == null)
             return;
 
         accept = accept.toLowerCase();
         int htmlPos = accept.indexOf("html");
         int jsonPos = accept.indexOf("json");
         if (jsonPos < 0 || (htmlPos > 0 && jsonPos > htmlPos))
+            return;
+
+        String json = DashController.getWindowOpenedJson(window);
+        if (json == null)
             return;
 
         try {
