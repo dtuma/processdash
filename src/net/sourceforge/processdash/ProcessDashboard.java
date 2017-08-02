@@ -75,6 +75,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -1004,12 +1005,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void configureStandardIconSize() {
-        double height = configure_button.getPreferredSize().getHeight();
+        JMenuBar dummyMenuBar = new JMenuBar();
+        dummyMenuBar.add(new JMenu("X"));
         JButton dummy = new JButton();
         if (!MacGUIUtils.isMacOSX())
             dummy.setMargin(new Insets(0,0,0,0));
         Insets buttonInsets = dummy.getBorder().getBorderInsets(dummy);
-        height = height - buttonInsets.top - buttonInsets.bottom;
+        double height = dummyMenuBar.getPreferredSize().getHeight()
+                - buttonInsets.top - buttonInsets.bottom;
         DashboardIconFactory.setStandardIconSize((int) height);
     }
 
