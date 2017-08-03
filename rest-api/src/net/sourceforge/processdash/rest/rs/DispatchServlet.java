@@ -73,6 +73,12 @@ public class DispatchServlet extends HttpServlet {
         handleRestInvocation(req, resp);
     }
 
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        handleRestInvocation(req, resp);
+    }
+
     private void handleRestInvocation(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
         initialize(req, resp);
@@ -192,7 +198,7 @@ public class DispatchServlet extends HttpServlet {
             return;
 
         // look for an appropriate handler, and invoke it
-        String httpMethod = req.getMethod().toUpperCase();
+        String httpMethod = getMethod(req).toUpperCase();
         String pathInfo = req.getPathInfo();
         boolean sawPathMatch = false;
         for (Handler handler : handlers) {
@@ -209,6 +215,21 @@ public class DispatchServlet extends HttpServlet {
         // if no handler was found, send an error response
         resp.sendError(sawPathMatch ? HttpStatus.METHOD_NOT_ALLOWED_405
                 : HttpStatus.NOT_FOUND_404);
+    }
+
+    private String getMethod(HttpServletRequest req) {
+        // check for the presence of an HTTP header override
+        String header = req.getHeader("X-HTTP-Method-Override");
+        if (header != null)
+            return header;
+
+        // check for the presence of a form param override
+        String param = req.getParameter("_method");
+        if (param != null)
+            return param;
+
+        // no override found, return the regular HTTP method
+        return req.getMethod();
     }
 
     private void runHandler(HttpServletRequest req, HttpServletResponse resp,

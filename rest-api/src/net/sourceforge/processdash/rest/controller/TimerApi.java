@@ -34,6 +34,7 @@ import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.rest.rs.GET;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.rs.POST;
+import net.sourceforge.processdash.rest.rs.PUT;
 import net.sourceforge.processdash.rest.rs.Path;
 import net.sourceforge.processdash.rest.service.RestDashContext;
 import net.sourceforge.processdash.rest.service.RestTaskService;
@@ -60,6 +61,7 @@ public class TimerApi {
 
 
     @POST
+    @PUT
     public Map setTimingState(HttpServletRequest req) {
         TimeLoggingModel model = getModel();
 

@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import net.sourceforge.processdash.rest.rs.GET;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.rs.POST;
+import net.sourceforge.processdash.rest.rs.PUT;
 import net.sourceforge.processdash.rest.rs.ParamParser;
 import net.sourceforge.processdash.rest.rs.Path;
 import net.sourceforge.processdash.rest.service.RestTaskService;
@@ -55,6 +56,7 @@ public class TaskApi {
     }
 
     @POST
+    @PUT
     @Path("{taskId}/")
     public Map alterTask(HttpServletRequest req, String taskId) {
         // retrieve posted parameters
