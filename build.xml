@@ -218,13 +218,12 @@ Authors:
   <target name="javahelp-addon" depends="ant-tasks" if="javahelp.jhjar"
           description="Package up the add-on context-sensitive help support">
     <!-- zip up the contents of the add-on -->
-    <mergeJars destfile="${dist}/dashHelp.jar">
+    <jar destfile="${dist}/dashHelp.jar"
+         manifest="${help}/javaHelp-manifest.txt">
       <!-- include the contents of the javahelp distribution -->
-      <jar location="${javahelp.jhjar}"/>
-      <!-- include the add-on package manifest -->
-      <zipfileset dir="${help}" includes="javaHelp-manifest.txt"
-          fullpath="META-INF/PDASH.MF"/>
-    </mergeJars>
+      <zipfileset src="${javahelp.jhjar}" excludes="META-INF/**"/>
+    </jar>
+    <maybeSignJar jar="${dist}/dashHelp.jar" prefix="${dashHelp-signature}"/>
     <copy file="${lib}/dashHelpExt.jar" todir="${dist}"/>
   </target>
 
