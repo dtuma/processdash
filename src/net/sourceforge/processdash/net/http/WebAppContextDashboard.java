@@ -390,6 +390,20 @@ class WebAppContextDashboard extends WebAppContext {
                     return (ignored = true);
             }
 
+            if (sc == HttpServletResponse.SC_METHOD_NOT_ALLOWED) {
+                if (isDefaultServlet())
+                    return (ignored = true);
+            }
+
+            return false;
+        }
+
+        private boolean isDefaultServlet() {
+            for (StackTraceElement stack : new Exception().getStackTrace()) {
+                if (DEFAULT_SERVLET_CLASS.equals(stack.getClassName()))
+                    return true;
+            }
+
             return false;
         }
 
@@ -405,6 +419,12 @@ class WebAppContextDashboard extends WebAppContext {
             // user requested a directory listing, which is forbidden
             HttpServletResponse.SC_FORBIDDEN, };
 
+    /**
+     * The class name of the "default servlet," which handles requests for
+     * otherwise unmatched paths
+     */
+    private static final String DEFAULT_SERVLET_CLASS =
+            "org.eclipse.jetty.servlet.DefaultServlet2";
 
 
     private class PrivilegedInvoker implements InvocationHandler {
