@@ -8,6 +8,142 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.4</h2>
+
+<ul>
+
+<li>The Team Dashboard now includes a comprehensive framework for role-based
+access control:<ul>
+
+    <li>A fine-grained permission hierarchy has been introduced.  This
+        includes permissions for editing particular items (for example, "who
+        is allowed to modify milestones?") and for viewing sensitive data (for
+        example, "who is allowed to view the defect log?").</li>
+
+    <li>A user interface is provided for defining roles, and stating the
+        permissions that each role should be granted.</li>
+
+    <li>Finally, a user interface is provided for listing users and assigning
+        them roles.  When users open the Team Dashboard or Work Breakdown
+        Structure, their actions will be subject to the role-based permissions
+        they have been granted.</li>
+
+     </ul>
+
+The default, out-of-the-box behavior of the Team Dashboard remains unchanged.
+But if teams wish to lock down their Team Dashboard, these new controls make
+that possible.</li>
+
+<li>The Team Dashboard now includes a feature to define groups of users.
+These can be used for many purposes: for example, to describe people from
+different parts of the organization, different project subteams, or different
+engineering disciplines.  Once groups have been defined, reports can be
+filtered to show data from a particular group.</li>
+
+<li>Several improvements have been made to the Work Breakdown Structure
+Editor:<ul>
+
+    <li>The speed and responsiveness of several WBS editing operations
+        (including insert, rename, move up/down, cut/copy/paste, and delete)
+        have been significantly improved for large projects.</li>
+
+    <li>Since 1.14.7, the WBS Editor has provided a filtering function. That
+        filtering function has been enhanced:<ul>
+
+        <li>When a filter is in effect, columns sums now respect the filter.
+            For example, when the "Time" column displays the total time for
+            the project or for a particular subcomponent, the displayed totals
+            will only include time from the visible children that matched the
+            filter.</li>
+
+        <li>Many columns allow you to edit the total value on a parent
+            component, and will automatically scale the values on children to
+            satisfy your change.  When a filter is in effect, this scaling
+            operation will no longer affect rows that were hidden by the
+            filter. (This effectively shields filtered components and tasks
+            from most editing operations.)</li>
+
+        <li>If you have created custom columns in the WBS, you can now filter
+            the WBS based on data entered into those columns.</li>
+
+        <li>Simpler, streamlined controls have been provided for hiding
+            completed tasks, and for narrowing the view to tasks performed by
+            particular individuals.</li>
+
+        <li>A new "Show Related Tasks" option makes it possible to display all
+            of the tasks under components that matched the filter.</li>
+
+        </ul></li>
+
+    <li>The Find operation in the WBS has been extended to search in any
+        column (including custom columns), and a Replace feature has been
+        added as well.</li>
+
+    <li>The WBS provides better autocompletion support for editing labels and
+        custom column values.</li>
+
+    <li>Menus, labels, and messages in the WBS Editor can now be translated to
+        other languages using the Localization Tool.</li>
+
+    </ul></li>
+
+<li>Several improvements have been made to team reports:<ul>
+
+    <li>A "Time Log" section has been added to the Rollup Plan Summary Report
+        in the Team Dashboard.  This makes it possible to export the team time
+        log to Excel, and to see views of the team time log that are filtered
+        by label or group.<br/>
+
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; New teams will see this section
+        right away.  If existing teams have customized the Rollup Plan Summary
+        (by clicking the "Edit this page" icon in the top-right corner of the
+        report), their local customizatons will override the addition of the
+        "Time Log" section to the default report structure. Those teams will
+        need to edit their customized report and add a "Time Log"
+        element.</li>
+
+    <li>In the Gantt chart, you can now click the configuration icon (which
+        appears on the top-right of the chart) and toggle the display of
+        optional "Assigned&nbsp;To" and "Milestone" columns.  These can be
+        especially helpful when printing or taking a screen capture of the
+        Gantt chart.</li>
+
+    <li>If you open a Gantt chart by clicking on a bar in the EV Milestones
+        chart, the Gantt chart will display a line for the milestone commit
+        date.</li>
+
+    </ul></li>
+
+<li>The configuration menu has historically been displayed as the single
+letter &quot;C&quot; to save space.  Now, it uses the 
+&quot;<img src="../../Images/cmenu.png">&quot; icon, an industry-standard
+representation for a menu of advanced and less-commonly-used
+functionality.</li>
+
+<li>In the Team Dashboard, the "File &rarr; Alter Project" menu now includes
+an option to close a project.  This can be helpful if work is ending on a
+given project, and it does not need to be relaunched for an additional
+cycle.</li>
+
+<li>When more than one person is assigned to a task (such as an inspection),
+it is helpful for an individual to know which other people they are
+collaborating with.  Now, this information is readily available from the task
+dependency indicator on the main dashboard toolbar.  It is also displayed in
+the dependency column of the Task &amp; Schedule window and the EV
+Report.</li>
+
+<li>In the Time Card dialog, the columns depicting weekends now have a
+different background color.  This assists with the process of reviewing time
+log data and correcting errors.</li>
+
+<li>The Process Dashboard has been upgraded to be Java-9-ready.</li>
+
+<li>When running in Java 9, the dashboard supports smooth scaling of the user
+interface for HiDPI/Retina displays.</li>
+
+</ul>
+
+
 <h2>Features new in version 2.3</h2>
 
 <ul>
