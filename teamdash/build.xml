@@ -69,6 +69,15 @@ The author(s) may be contacted at:
 
   <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
 
+  <path id="wbs.classpath">
+    <pathelement location="${pspdash.jar}"/>
+    <pathelement location="${swingx.jar}"/>
+    <pathelement location="${poi.jar}"/>
+    <pathelement location="${apple-eawt.jar}"/>
+    <pathelement location="${servlet.jar}"/>
+    <pathelement location="${junit.jar}"/>
+  </path>
+
 
   <!-- if the "noBuild" property is set, set all other noBuild vars too -->
   <target name="-noBuild-init" if="noBuild">
@@ -109,15 +118,7 @@ The author(s) may be contacted at:
     <mkdir dir="${build}"/>
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            source="${compile.target}" target="${compile.target}"
-           includeAntRuntime="no">
-      <classpath>
-        <pathelement location="${pspdash.jar}"/>
-        <pathelement location="${swingx.jar}"/>
-        <pathelement location="${poi.jar}"/>
-        <pathelement location="${apple-eawt.jar}"/>
-        <pathelement location="${servlet.jar}"/>
-        <pathelement location="${junit.jar}"/>
-      </classpath>
+           classpathref="wbs.classpath" includeAntRuntime="no">
     </javac>
   </target>
 
@@ -568,6 +569,23 @@ class dependency has been added in a dashboard class?)
     <signjar jar="${processdash.dist}/${launchProfile.filename}"
           alias="${jnlpSign.alias}" storepass="${jnlpSign.storepass}"/>
   </target>
+
+  <target name="verify16"
+      description="Verify that the main WBS Editor classes rely only upon APIs found in Java 1.6.">
+
+    <property name="16.bootclasspath" value="${java.home.16}/jre/lib/rt.jar"/>
+    <available property="have16home" file="${16.bootclasspath}"/>
+    <fail unless="have16home" message="To test for compatibility with Java 1.6, you must edit build.properties and specify a value for the java.home.16 property."/>
+
+    <delete quiet="true" dir="${build}-verify"/>
+    <mkdir dir="${build}-verify"/>
+    <javac srcdir="${src}" destdir="${build}-verify" source="1.6" target="1.6"
+           classpathref="wbs.classpath" bootclasspath="${16.bootclasspath}"/>
+    <delete quiet="true" dir="${build}-verify"/>
+    <echo message="Congratulations!"/>
+    <echo message="Successfully builds against Java 1.6!"/>
+  </target>
+
 
   <target name="dist" depends="installer-cd"/>
   <target name="dist-all" depends="installer-cd"/>

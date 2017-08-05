@@ -829,30 +829,30 @@ Authors:
   <!-- Create miscellaneous other items                                    -->
   <!-- =================================================================== -->
 
-  <target name="verify15"
+  <target name="verify16"
       depends="init,parser,globParser,translator,lexers"
-      description="Verify that the main dashboard classes rely only upon APIs found in Java 1.5.">
+      description="Verify that the main dashboard classes rely only upon APIs found in Java 1.6.">
 
-    <fail message="Process Dashboard 2.0.13 and above will not run on Java 1.5"/>
-
-    <!-- remaining code left for future reference -->
-    <property name="15.bootclasspath" value="${java.home.15}/jre/lib/rt.jar"/>
-    <available property="have15home" file="${15.bootclasspath}"/>
-    <fail unless="have15home" message="To test for compatibility with Java 1.5, you must edit build.properties and specify a value for the java.home.15 property."/>
+    <property name="16.bootclasspath" value="${java.home.16}/jre/lib/rt.jar"/>
+    <available property="have16home" file="${16.bootclasspath}"/>
+    <fail unless="have16home" message="To test for compatibility with Java 1.6, you must edit build.properties and specify a value for the java.home.16 property."/>
 
     <delete quiet="true" dir="${build}-verify"/>
     <mkdir dir="${build}-verify"/>
-    <javac srcdir="${src}" destdir="${build}-verify"
-           classpathref="build.classpath" source="1.5" target="1.5"
-           bootclasspath="${15.bootclasspath}">
+    <javac srcdir="${src}" destdir="${build}-verify" source="1.7" target="1.7"
+           classpathref="build.classpath">
+      <includesfile name="${lib}/fileset-java-1-7.txt"/>
+    </javac>
+    <javac srcdir="${src}" destdir="${build}-verify" source="1.6" target="1.6"
+           classpathref="build.classpath" bootclasspath="${16.bootclasspath}">
       <include name="net/**/*.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
-      <excludesfile name="${lib}/fileset-java-1-6.txt"/>
+      <excludesfile name="${lib}/fileset-java-1-7.txt"/>
     </javac>
     <delete quiet="true" dir="${build}-verify"/>
     <echo message="Congratulations!"/>
-    <echo message="Successfully builds against Java 1.5!"/>
+    <echo message="Successfully builds against Java 1.6!"/>
   </target>
 
   <target name="verifyCC" depends="jar"

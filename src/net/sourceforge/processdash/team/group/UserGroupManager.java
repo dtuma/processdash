@@ -478,7 +478,7 @@ public abstract class UserGroupManager {
 
         // end the document and close the file
         xml.endTag(null, GROUPS_TAG);
-        xml.ignorableWhitespace(System.lineSeparator());
+        xml.ignorableWhitespace(System.getProperty("line.separator"));
         xml.endDocument();
         out.close();
 

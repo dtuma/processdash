@@ -750,7 +750,7 @@ public class PermissionsManager {
 
             // end the document and close the file
             xml.endTag(null, ROLES_TAG);
-            xml.ignorableWhitespace(System.lineSeparator());
+            xml.ignorableWhitespace(System.getProperty("line.separator"));
             xml.endDocument();
             out.close();
 
@@ -953,7 +953,7 @@ public class PermissionsManager {
 
             // end the document and close the file
             xml.endTag(null, USERS_TAG);
-            xml.ignorableWhitespace(System.lineSeparator());
+            xml.ignorableWhitespace(System.getProperty("line.separator"));
             xml.endDocument();
             out.close();
 

@@ -76,9 +76,9 @@ public class RolesEditor {
     private AbstractAction copyRoleAction, renameRoleAction, deleteRoleAction,
             addPermAction, editPermAction, deletePermAction, revertPermAction;
 
-    private DefaultListModel<Role> roles;
+    private DefaultListModel roles;
 
-    private JList<Role> rolesList;
+    private JList rolesList;
 
     private boolean editable;
 
@@ -299,7 +299,7 @@ public class RolesEditor {
 
             // if they entered a duplicate name, display an error
             for (int i = roles.size(); i-- > 0;) {
-                Role r = roles.get(i);
+                Role r = (Role) roles.get(i);
                 if (r.getName().equalsIgnoreCase(name)) {
                     JOptionPane.showMessageDialog(userInterface,
                         resources.format("Name_Duplicate_FMT", name),
@@ -316,7 +316,7 @@ public class RolesEditor {
 
     private void addRoleToListAndSelect(Role add) {
         for (int i = 0; i < roles.size(); i++) {
-            Role r = roles.get(i);
+            Role r = (Role) roles.get(i);
             if (add.compareTo(r) < 0) {
                 roles.add(i, add);
                 rolesList.setSelectedValue(add, true);
@@ -473,7 +473,7 @@ public class RolesEditor {
         public void valueChanged(ListSelectionEvent e) {
             savePermissionChanges();
 
-            Role selected = rolesList.getSelectedValue();
+            Role selected = (Role) rolesList.getSelectedValue();
             boolean hasSelection = (selected != null);
             boolean isNotStandard = hasSelection //
                     && !STANDARD_ROLE_ID.equals(selected.getId());

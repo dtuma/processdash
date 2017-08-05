@@ -67,7 +67,7 @@ public class GroupPermissionEditor
             groups.add(currentGroup);
 
         // create a combo box for selecting a group
-        JComboBox<UserGroup> cb = new JComboBox<UserGroup>(groups);
+        JComboBox cb = new JComboBox(groups);
         cb.setSelectedItem(currentGroup);
 
         // display a user interface for selecting a group

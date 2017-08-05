@@ -102,7 +102,7 @@ public class WBSFindAction extends AbstractAction {
         }
     };
 
-    private JComboBox<Scope> searchScope;
+    private JComboBox searchScope;
 
     private enum Match {
         Within, Entire;
@@ -111,7 +111,7 @@ public class WBSFindAction extends AbstractAction {
         }
     }
 
-    private JComboBox<Match> matchType;
+    private JComboBox matchType;
 
     private enum Direction {
         Rows, Columns;
@@ -120,7 +120,7 @@ public class WBSFindAction extends AbstractAction {
         }
     };
 
-    private JComboBox<Direction> rowsOrColumns;
+    private JComboBox rowsOrColumns;
 
     private WrappedIcon wrappedIcon;
 
@@ -432,7 +432,7 @@ public class WBSFindAction extends AbstractAction {
     private static final String CANNOT_REPLACE = "";
 
 
-    private static class JComboBoxWithHistory extends JComboBox<String> {
+    private static class JComboBoxWithHistory extends JComboBox {
 
         private JComboBoxWithHistory() {
             super(new HistoryModel(new Vector()));
@@ -447,7 +447,7 @@ public class WBSFindAction extends AbstractAction {
 
     }
 
-    private static class HistoryModel extends DefaultComboBoxModel<String> {
+    private static class HistoryModel extends DefaultComboBoxModel {
 
         Vector<String> objects;
         int maxSize;
