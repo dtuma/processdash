@@ -43,7 +43,7 @@ The author(s) may be contacted at:
   <property name="debug" value="on"/>
 
   <property name="dist" value="dist"/>
-  <property name="api.jar" value="${dist}/api.jar"/>
+  <property name="api.jar" value="${dist}/api-v${api.version}.zip"/>
 
 
   <target name="clean">
