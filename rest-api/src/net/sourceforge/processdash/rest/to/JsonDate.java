@@ -59,6 +59,9 @@ public class JsonDate extends Date implements JSONAware {
         if (s == null || s.equals("null") || s.trim().length() == 0)
             return null;
 
+        if (s.trim().equals("now"))
+            return new JsonDate(System.currentTimeMillis());
+
         synchronized (DATE_FORMATS) {
             for (DateFormat f : DATE_FORMATS) {
                 ParsePosition pos = new ParsePosition(0);
