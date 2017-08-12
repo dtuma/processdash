@@ -41,6 +41,8 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import org.json.simple.JSONObject;
+
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -62,6 +64,7 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
@@ -564,7 +567,10 @@ public class SyncWBS extends TinyCGIBase {
         synch.sync();
         syncTemplates(synch);
 
-        if (synch.getChanges().isEmpty()) {
+        if (isJsonRequest()) {
+            printJsonResponse(synch.getChanges().isEmpty());
+
+        } else if (synch.getChanges().isEmpty()) {
             printChanges(synch.getChanges());
 
         } else if (isTeam == false
@@ -835,6 +841,27 @@ public class SyncWBS extends TinyCGIBase {
 
 
 
+    private void printJsonResponse(boolean upToDate) {
+        JSONObject response = new JSONObject();
+
+        if (upToDate) {
+            JSONObject message = new JSONObject();
+            message.put("title", "Synchronization Complete");
+            message.put("body",
+                "Your personal plan is up to date - no changes were necessary.");
+            response.put("message", message);
+
+        } else {
+            String uri = (String) env.get("SCRIPT_PATH");
+            String url = Browser.mapURL(uri);
+            response.put("redirect", url);
+        }
+
+        response.put("stat", "ok");
+        out.print(response.toString());
+    }
+
+
     /** Print a list of changes made by a synchronization operation.
      */
     private boolean printChanges(List changeList) {
@@ -848,13 +875,13 @@ public class SyncWBS extends TinyCGIBase {
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
         if (changeList.isEmpty()) {
-            out.print("<p>Your hierarchy is up to date - no changes "+
+            out.print("<p>Your personal plan is up to date - no changes " +
                       "were necessary.");
 
             if (parameters.containsKey(TriggerURI.IS_TRIGGERING)) {
                 out.print(TriggerURI.NULL_DOCUMENT_MARKER);
                 JOptionPane.showMessageDialog(getParentComponent(),
-                        "Your hierarchy is up to date - no changes were necessary.",
+                        "Your personal plan is up to date - no changes were necessary.",
                         "Synchronization Complete",
                         JOptionPane.PLAIN_MESSAGE);
             }
