@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2014 Tuma Solutions, LLC
+// Copyright (C) 2004-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -120,6 +120,28 @@ public class HTTPUtils {
         credential = Base64.encodeBytes(credential.getBytes(),
                 Base64.DONT_BREAK_LINES);
         return "Basic " + credential;
+    }
+
+
+    /**
+     * Return true if the given Accept header requests a JSON result
+     * @since 2.4.0.1
+     */
+    public static boolean isJsonRequest(String acceptHeader) {
+        // if no Accept header was offered, JSON was not requested
+        if (acceptHeader == null)
+            return false;
+
+        // if the Accept header does not mention JSON, return false.
+        acceptHeader = acceptHeader.toLowerCase();
+        int jsonPos = acceptHeader.indexOf("json");
+        if (jsonPos < 0)
+            return false;
+
+        // if the Accept header doesn't mention HTML, or if the JSON entry
+        // precedes the HTML entry, return true
+        int htmlPos = acceptHeader.indexOf("html");
+        return (htmlPos < 0 || jsonPos < htmlPos);
     }
 
 

@@ -24,7 +24,6 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 
-import java.awt.Window;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
@@ -101,8 +100,10 @@ public class Control extends TinyCGIBase {
     }
 
     private void raiseWindow() {
-        if (isTask("raiseWindow"))
-            printWindowOpenedJson(DashController.raiseWindow());
+        if (isTask("raiseWindow")) {
+            DashController.raiseWindow();
+            printWindowOpenedJson(getDashboardContext());
+        }
     }
 
     private void showConsole() {
@@ -196,15 +197,8 @@ public class Control extends TinyCGIBase {
     }
 
 
-    private void printWindowOpenedJson(Window window) {
-        String accept = (String) env.get("HTTP_ACCEPT");
-        if (accept == null || window == null)
-            return;
-
-        accept = accept.toLowerCase();
-        int htmlPos = accept.indexOf("html");
-        int jsonPos = accept.indexOf("json");
-        if (jsonPos < 0 || (htmlPos > 0 && jsonPos > htmlPos))
+    private void printWindowOpenedJson(Object window) {
+        if (!isJsonRequest())
             return;
 
         String json = DashController.getWindowOpenedJson(window);
