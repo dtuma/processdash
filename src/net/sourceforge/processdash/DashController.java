@@ -169,8 +169,8 @@ public class DashController {
         dash.configure_button.startTimeLog(key);
     }
 
-    public static void showDefectLogEditor(final String path) {
-        SwingUtilities.invokeLater(new Runnable() {
+    public static Window showDefectLogEditor(final String path) {
+        return WindowTracker.openWindow(new Runnable() {
             public void run() { showDefectLogEditorImpl(path); }});
     }
     private static void showDefectLogEditorImpl(String path) {

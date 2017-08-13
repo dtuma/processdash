@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2016 Tuma Solutions, LLC
+// Copyright (C) 1999-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,6 +103,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -191,6 +192,7 @@ public class DefectLogEditor extends Component implements
         //frame.pack();
         frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.setVisible(true);
+        WindowTracker.windowOpened(frame);
     }
 
     JComponent constructTreePanel() {
@@ -421,6 +423,7 @@ public class DefectLogEditor extends Component implements
             reload();
             frame.setVisible(true);
         }
+        WindowTracker.windowOpened(frame);
     }
 
     public void quit() {
