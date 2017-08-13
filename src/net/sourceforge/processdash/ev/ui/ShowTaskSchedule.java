@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,10 +24,11 @@
 package net.sourceforge.processdash.ev.ui;
 
 
+import java.awt.Window;
 import java.io.IOException;
 
-
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
@@ -35,16 +36,21 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 public class ShowTaskSchedule extends TinyCGIBase {
 
     /** Write the CGI header. */
-    protected void writeHeader() {
-        out.print("Expires: 0\r\n");
-        super.writeHeader();
-    }
+    protected void writeHeader() {}
 
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        DashController.showTaskSchedule(getPrefix());
-        DashController.printNullDocument(out);
+        Window w = DashController.showTaskSchedule(getPrefix());
+
+        out.print("Expires: 0\r\n");
+        if (w != null && isJsonRequest()) {
+            out.print("Content-type: application/json\r\n\r\n");
+            out.print(WindowTracker.getWindowOpenedJson(w));
+        } else {
+            super.writeHeader();
+            DashController.printNullDocument(out);
+        }
     }
 
 }

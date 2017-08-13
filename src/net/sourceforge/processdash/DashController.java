@@ -44,11 +44,6 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import org.json.simple.JSONObject;
-
-import com.sun.jna.Native;
-import com.sun.jna.Pointer;
-
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
@@ -66,6 +61,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.RepairImportDirInstruction;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.util.UUIDFile;
 
 
@@ -182,8 +178,8 @@ public class DashController {
         dash.configure_button.startDefectLog(key);
     }
 
-    public static void showTaskSchedule(final String path) {
-        SwingUtilities.invokeLater(new Runnable() {
+    public static Window showTaskSchedule(final String path) {
+        return WindowTracker.openWindow(new Runnable() {
                 public void run() { showTaskScheduleImpl(path); } } );
     }
     private static void showTaskScheduleImpl(String path) {
@@ -356,47 +352,6 @@ public class DashController {
         out.println("history.back();");
         out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
     }
-
-    public static String getWindowOpenedJson(Object w) {
-        JSONObject window = new JSONObject();
-
-        // store the window title
-        if (w instanceof String)
-            window.put("title", w);
-        else if (w instanceof Frame)
-            window.put("title", ((Frame) w).getTitle());
-
-        if (w instanceof Window) {
-            if (System.getProperty("os.name").contains("Windows")) {
-                // store the Windows HWND pointer, if available
-                try {
-                    Pointer windowPointer = Native.getWindowPointer((Window) w);
-                    if (windowPointer != null)
-                        window.put("id", Pointer.nativeValue(windowPointer));
-                } catch (Throwable t) {
-                }
-            } else {
-                // store the X11 XID, if available
-                try {
-                    long windowID = Native.getWindowID((Window) w);
-                    if (windowID != 0)
-                        window.put("id", windowID);
-                } catch (Throwable t) {
-                }
-            }
-        }
-
-        // if we didn't recognize the parameter type, abort
-        if (window.isEmpty())
-            return null;
-
-        // build an object and return the JSON
-        JSONObject result = new JSONObject();
-        result.put("window", window);
-        result.put("stat", "ok");
-        return result.toString();
-    }
-
 
     public static Map getTemplates() {
         Prop templates = dash.templates.pget(PropertyKey.ROOT);

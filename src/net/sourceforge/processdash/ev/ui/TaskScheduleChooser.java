@@ -67,6 +67,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.MultiWindowCheckboxIcon;
@@ -96,8 +97,8 @@ public class TaskScheduleChooser
         else if (canEdit())
             displayNewTemplateDialog(dash);
         else
-            JOptionPane.showMessageDialog(null,
-                resources.getStrings("No_Schedules_Found.Message"),
+            JOptionPane.showMessageDialog(null, new Object[] { windowTracker(),
+                resources.getStrings("No_Schedules_Found.Message") },
                 resources.getString("No_Schedules_Found.Title"),
                 JOptionPane.PLAIN_MESSAGE);
     }
@@ -170,7 +171,7 @@ public class TaskScheduleChooser
 
         while (true) {
             JOptionPane optionPane = new JOptionPane
-                (new Object[] { message, inputField },
+                (new Object[] { message, inputField, windowTracker() },
                  JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
                  null, options);
             optionPane.createDialog(parentComponent, title).setVisible(true);
@@ -237,6 +238,7 @@ public class TaskScheduleChooser
         promptBox.add(new JLabel(resources.getString("Choose_Window.Prompt")));
         promptBox.add(Box.createHorizontalStrut(100));
         promptBox.add(Box.createHorizontalGlue());
+        promptBox.add(windowTracker());
         promptBox.add(new MultiLabel());
 
         dialog.getContentPane().add(promptBox, BorderLayout.NORTH);
@@ -292,6 +294,10 @@ public class TaskScheduleChooser
         dialog.toFront();
     }
 
+    private static Component windowTracker() {
+        return WindowTracker.dlg();
+    }
+
     /**
      * WindowListener that will remove this object from EVTaskList's
      * save listener list on disposal.
@@ -323,8 +329,8 @@ public class TaskScheduleChooser
             d.show();
         else
             openWindows.put(taskListName,
-                            new TaskScheduleDialog(dash, taskListName,
-                                                   createRollup));
+                d = new TaskScheduleDialog(dash, taskListName, createRollup));
+        WindowTracker.windowOpened(d.frame);
     }
 
     static void close(String taskListName) {

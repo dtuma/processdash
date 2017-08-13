@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.ui.ConsoleWindow;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
@@ -201,7 +202,7 @@ public class Control extends TinyCGIBase {
         if (!isJsonRequest())
             return;
 
-        String json = DashController.getWindowOpenedJson(window);
+        String json = WindowTracker.getWindowOpenedJson(window);
         if (json == null)
             return;
 
