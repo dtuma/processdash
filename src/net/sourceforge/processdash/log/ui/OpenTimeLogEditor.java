@@ -26,6 +26,7 @@ package net.sourceforge.processdash.log.ui;
 import static net.sourceforge.processdash.ui.web.reports.TimeLogReport.PERMISSION;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.io.IOException;
 import java.util.Enumeration;
 
@@ -43,6 +44,7 @@ import net.sourceforge.processdash.log.time.RolledUpTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.team.group.GroupPermission;
 import net.sourceforge.processdash.team.group.UserGroup;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -54,14 +56,27 @@ public class OpenTimeLogEditor extends TinyCGIBase {
         super.doPost();
     }
 
+    @Override
+    protected void writeHeader() {}
+
+    @Override
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
         String type = getParameter("type");
+        Window w = null;
         if ("rollup".equals(type))
             showRollupTimeLog();
         else
-            DashController.showTimeLogEditor(getPrefix());
-        DashController.printNullDocument(out);
+            w = DashController.showTimeLogEditor(getPrefix());
+
+        out.print("Expires: 0\r\n");
+        if (w != null && isJsonRequest()) {
+            out.print("Content-type: application/json\r\n\r\n");
+            out.print(WindowTracker.getWindowOpenedJson(w));
+        } else {
+            super.writeHeader();
+            DashController.printNullDocument(out);
+        }
     }
 
     private void showRollupTimeLog() {

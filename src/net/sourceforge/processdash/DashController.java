@@ -160,8 +160,8 @@ public class DashController {
         dash.toFront();
     }
 
-    public static void showTimeLogEditor(final String path) {
-        SwingUtilities.invokeLater(new Runnable() {
+    public static Window showTimeLogEditor(final String path) {
+        return WindowTracker.openWindow(new Runnable() {
             public void run() { showTimeLogEditorImpl(path); }});
     }
     private static void showTimeLogEditorImpl(String path) {

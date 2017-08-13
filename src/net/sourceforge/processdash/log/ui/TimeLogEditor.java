@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2015 Tuma Solutions, LLC
+// Copyright (C) 1999-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ import net.sourceforge.processdash.log.time.TimeLogListener;
 import net.sourceforge.processdash.log.time.TimeLogTableModel;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
@@ -696,6 +697,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
                 setTimeLog(dashTimeLog.getDeferredTimeLogModifications());
             frame.setVisible(true);
         }
+        WindowTracker.windowOpened(frame);
     }
 
     protected void setTimeLog(TimeLog newTimeLog) {
