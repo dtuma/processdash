@@ -30,7 +30,7 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>  
 
-  <property name="api.version" value="0.1"/> 
+  <property name="api.version" value="0.1.1"/> 
   <property name="api.requires" value="2.4+"/>
 
   <property name="processdash.dir" value=".."/>
@@ -79,6 +79,8 @@ The author(s) may be contacted at:
       <fileset dir="${build}"/>
       <fileset dir="." includes="Templates/"/>
     </jar>
+    <signjar jar="${api.jar}" alias="${api-jar.alias}"
+        storepass="${api-jar.storepass}"/>
     <copy file="${api.jar}" todir="${processdash.dist}"/>
   </target>
 
