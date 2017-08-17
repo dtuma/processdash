@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public class FilterEvXml extends RedactFilterUtils {
             String tag = tags[i].trim();
 
             if (tag.startsWith("<evSchedule "))
-                tag = hashEvScheduleTag(tags[i], tags, i);
+                tag = hashEvScheduleTag(tags[i]);
 
             else if (tag.startsWith("<evSnapshot "))
                 ; // TODO: remap snapshot names, if we ever let the user enter them
@@ -71,27 +71,18 @@ public class FilterEvXml extends RedactFilterUtils {
         }
     }
 
-    private String hashEvScheduleTag(String tag, String[] tags, int pos) {
+    private String hashEvScheduleTag(String tag) {
         if (!hashTaskNames)
             return tag;
-
-        Object nameReplacement = taskListMapper;
-        String tlid = getXmlAttr(tags[pos + 1], "tlid");
-        if (tlid != null)
-            nameReplacement = taskListMapper.hashTaskListId(tlid);
-
-        return replaceXmlAttr(tag, "name", nameReplacement);
+        else
+            return replaceXmlAttr(tag, "name", taskListMapper);
     }
 
     private String hashTaskTag(String tag) {
         if (hashTaskNames) {
             Object nameReplacement = pathMapper;
-            if (getXmlAttr(tag, "flag") != null) {
-                String tid = getXmlAttr(tag, "tid");
-                if (tid != null && tid.startsWith("TL-"))
-                    nameReplacement = taskListMapper.hashTaskListId(tid
-                            .substring(3));
-            }
+            if (getXmlAttr(tag, "flag") != null)
+                nameReplacement = taskListMapper;
             tag = replaceXmlAttr(tag, "name", nameReplacement);
         }
 

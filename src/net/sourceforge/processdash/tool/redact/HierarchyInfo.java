@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -82,10 +82,17 @@ public class HierarchyInfo {
 
     }
 
+    private NameSource projectNames;
+
     private List<Node> nodes;
 
     public HierarchyInfo(RedactFilterData data) throws IOException {
+        projectNames = new NameSource("redactProjectNames");
         buildNodeList(data);
+    }
+
+    public NameSource getProjectNameSource() {
+        return projectNames;
     }
 
     public Node findNodeForDataFile(String dataFile) {
@@ -203,8 +210,10 @@ public class HierarchyInfo {
             if (child.templateId != null
                     && child.templateId.contains("/Master"))
                 newSuffix = "Master Project ";
-            child.newName = newSuffix + child.projectId;
+            child.newName = projectNames.getName(child.projectId,
+                newSuffix + child.projectId);
             child.isPatternedName = true;
+            projectNames.addAssignment(child.origName, child.newName);
         }
     }
 
