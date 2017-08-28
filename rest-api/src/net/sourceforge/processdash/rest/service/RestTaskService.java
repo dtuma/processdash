@@ -25,7 +25,9 @@ package net.sourceforge.processdash.rest.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
@@ -97,9 +99,13 @@ public class RestTaskService {
         return leavesUnder(parent, false);
     }
 
-    public List<RestTask> forProject(RestProject project) {
+    public List<RestTask> forProject(RestProject project,
+            boolean chronological) {
         PropertyKey projectKey = hier.findExistingKey(project.getFullName());
-        return leavesUnder(projectKey, true);
+        List<RestTask> result = leavesUnder(projectKey, true);
+        if (chronological)
+            result = sortTasksChronologically(result, project);
+        return result;
     }
 
     private List<RestTask> leavesUnder(PropertyKey parent,
@@ -127,6 +133,27 @@ public class RestTaskService {
                 enumLeafTasks(result, hier.getChildKey(node, i), false,
                     pruneTeamProjects);
         }
+    }
+
+    private List<RestTask> sortTasksChronologically(List<RestTask> tasks,
+            RestProject project) {
+        List<String> taskOrder = RestTaskListService.get()
+                .getTaskOrder(project);
+        if (taskOrder == null || taskOrder.isEmpty())
+            return tasks;
+
+        Map<String, RestTask> tasksByPath = new LinkedHashMap<String, RestTask>();
+        for (RestTask t : tasks)
+            tasksByPath.put(t.getFullPath(), t);
+
+        List<RestTask> result = new ArrayList<RestTask>(tasks.size());
+        for (String oneTaskPath : taskOrder) {
+            RestTask task = tasksByPath.remove(oneTaskPath);
+            if (task != null)
+                result.add(task);
+        }
+        result.addAll(tasksByPath.values());
+        return result;
     }
 
 

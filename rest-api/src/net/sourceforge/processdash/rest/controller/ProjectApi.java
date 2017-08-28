@@ -74,7 +74,7 @@ public class ProjectApi {
         // get the tasks for this project. load completion date for each task,
         // but clear the redundant "project" attr to reduce the size of the
         // resulting JSON document
-        List<RestTask> tasks = RestTaskService.get().forProject(project);
+        List<RestTask> tasks = RestTaskService.get().forProject(project, true);
         for (RestTask t : tasks) {
             RestTaskService.get().loadData(t,
                 RestTaskService.TASK_COMPLETION_DATE);
