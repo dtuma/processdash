@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.rest.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -36,6 +37,7 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.to.RestProject;
 import net.sourceforge.processdash.rest.to.RestTask;
@@ -154,6 +156,39 @@ public class RestTaskService {
         }
         result.addAll(tasksByPath.values());
         return result;
+    }
+
+
+    public List<RestTask> recentTasks(int maxCount) throws IOException {
+        List<TimeLogEntry> entries = RestTimeLogService.get()
+                .allTimeLogEntries();
+        Map<String, RestTask> results = new LinkedHashMap<String, RestTask>();
+
+        // look through the time log entries, from newest to oldest.
+        for (int i = entries.size(); i-- > 0;) {
+            // get the task path for this time log entry. if we've already seen
+            // this task, skip to the next entry.
+            TimeLogEntry tle = entries.get(i);
+            String path = tle.getPath();
+            if (results.containsKey(path))
+                continue;
+
+            // if the named task doesn't exist, or isn't a leaf node, skip it
+            PropertyKey key = hier.findExistingKey(path);
+            if (key == null || hier.getNumChildren(key) > 0)
+                continue;
+
+            // build a task for this object and add it to our result list
+            RestTask task = byKey(key);
+            if (task != null)
+                results.put(path, task);
+
+            // stop if we've found enough tasks
+            if (results.size() >= maxCount)
+                break;
+        }
+
+        return new ArrayList<RestTask>(results.values());
     }
 
 

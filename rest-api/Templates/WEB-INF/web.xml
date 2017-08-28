@@ -13,6 +13,7 @@
 			<param-value>
 				net.sourceforge.processdash.rest.controller.ApiRoot
 				net.sourceforge.processdash.rest.controller.ProjectApi
+				net.sourceforge.processdash.rest.controller.RecentTasksApi
 				net.sourceforge.processdash.rest.controller.TaskApi
 				net.sourceforge.processdash.rest.controller.TimerApi
 			</param-value>
