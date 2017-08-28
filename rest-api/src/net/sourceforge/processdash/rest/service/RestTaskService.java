@@ -23,13 +23,16 @@
 
 package net.sourceforge.processdash.rest.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.to.RestProject;
@@ -49,52 +52,116 @@ public class RestTaskService {
 
     private DashboardContext ctx;
 
+    private DashHierarchy hier;
+
     private RestProjectService projects;
 
     private RestTaskService() {
         ctx = RestDashContext.get();
+        hier = ctx.getHierarchy();
         projects = RestProjectService.get();
         DashController.assignHierarchyNodeIDs();
     }
 
     public RestTask byID(String nodeID) {
-        return byKey(ctx.getHierarchy().findKeyByNodeID(nodeID));
+        return byKey(hier.findKeyByNodeID(nodeID));
     }
 
     public RestTask byPath(String taskPath) {
-        return byKey(ctx.getHierarchy().findExistingKey(taskPath));
+        return byKey(hier.findExistingKey(taskPath));
     }
 
     public RestTask byKey(PropertyKey key) {
-        String nodeID = ctx.getHierarchy().pget(key).getNodeID();
+        String nodeID = hier.pget(key).getNodeID();
         if (!StringUtils.hasValue(nodeID))
             return null;
 
         String fullPath = key.path();
         RestProject proj = projects.containingPath(fullPath);
+        if (fullPath.equals(proj.getFullName()))
+            return null;
+
         String taskName = fullPath.substring(proj.getFullName().length() + 1);
         return new RestTask(nodeID, taskName, proj);
     }
 
+    public List<RestTask> allLeaves() {
+        return leavesUnder(PropertyKey.ROOT);
+    }
+
+    public List<RestTask> leavesUnder(String parentPath) {
+        return leavesUnder(hier.findExistingKey(parentPath));
+    }
+
+    public List<RestTask> leavesUnder(PropertyKey parent) {
+        return leavesUnder(parent, false);
+    }
+
+    public List<RestTask> forProject(RestProject project) {
+        PropertyKey projectKey = hier.findExistingKey(project.getFullName());
+        return leavesUnder(projectKey, true);
+    }
+
+    private List<RestTask> leavesUnder(PropertyKey parent,
+            boolean pruneTeamProjects) {
+        List<RestTask> result = new ArrayList<RestTask>();
+        if (parent != null)
+            enumLeafTasks(result, parent, true, pruneTeamProjects);
+        return result;
+    }
+
+    private void enumLeafTasks(List<RestTask> result, PropertyKey node,
+            boolean isStartingNode, boolean pruneTeamProjects) {
+        // if pruneTeamProjects is true, and this is a team project, abort
+        if (pruneTeamProjects && !isStartingNode
+                && projects.byPath(node.path()) != null)
+            return;
+
+        int numKids = hier.getNumChildren(node);
+        if (numKids == 0) {
+            RestTask task = byKey(node);
+            if (task != null)
+                result.add(task);
+        } else {
+            for (int i = 0; i < numKids; i++)
+                enumLeafTasks(result, hier.getChildKey(node, i), false,
+                    pruneTeamProjects);
+        }
+    }
+
+
+    public static final int TASK_COMPLETION_DATE = 1;
+
+    public static final int TASK_TIMES = 2;
+
     public RestTask loadData(RestTask task) {
+        return loadData(task, TASK_COMPLETION_DATE + TASK_TIMES);
+    }
+
+    public RestTask loadData(RestTask task, int fieldMask) {
         if (task == null)
             return null;
         String fullPath = task.getFullPath();
+        SimpleData sd;
 
-        // load the task completion date
-        SimpleData sd = ctx.getData().getSimpleValue(fullPath + COMPLETED);
-        if (sd instanceof DateData)
-            task.setCompletionDate(((DateData) sd).getValue());
+        if ((fieldMask & TASK_COMPLETION_DATE) > 0) {
+            // load the task completion date
+            sd = ctx.getData().getSimpleValue(fullPath + COMPLETED);
+            if (sd instanceof DateData)
+                task.setCompletionDate(((DateData) sd).getValue());
+        }
 
-        // load the estimated time for the task
-        sd = ctx.getData().getSimpleValue(fullPath + EST_TIME);
-        if (sd instanceof DoubleData)
-            task.setEstimatedTime(((DoubleData) sd).getDouble());
+        if ((fieldMask & TASK_TIMES) > 0) {
+            // load the estimated time for the task
+            sd = ctx.getData().getSimpleValue(fullPath + EST_TIME);
+            if (sd instanceof DoubleData)
+                task.setEstimatedTime(((DoubleData) sd).getDouble());
 
-        // load the actual time for the task
-        sd = ctx.getData().getSimpleValue(fullPath + ACT_TIME);
-        if (sd instanceof DoubleData)
-            task.setActualTime(((DoubleData) sd).getDouble());
+            // load the actual time for the task
+            sd = ctx.getData().getSimpleValue(fullPath + ACT_TIME);
+            if (sd instanceof DoubleData)
+                task.setActualTime(((DoubleData) sd).getDouble());
+        }
 
         return task;
     }
@@ -125,8 +192,8 @@ public class RestTaskService {
         if (task == null)
             throw HttpException.notFound();
         String path = task.getFullPath();
-        PropertyKey key = ctx.getHierarchy().findExistingKey(path);
-        if (key == null || ctx.getHierarchy().getNumChildren(key) > 0)
+        PropertyKey key = hier.findExistingKey(path);
+        if (key == null || hier.getNumChildren(key) > 0)
             throw HttpException.badRequest();
     }
 

@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.rest.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -78,6 +79,18 @@ public class TaskApi {
 
         // return the modified task entity
         return getTask(taskId);
+    }
+
+    @GET
+    public Map getAllTasks() {
+        // retrieve the list of all tasks in this dashboard
+        List<RestTask> tasks = RestTaskService.get().allLeaves();
+        for (RestTask task : tasks)
+            RestTaskService.get().loadData(task,
+                RestTaskService.TASK_COMPLETION_DATE);
+
+        // build result
+        return new JsonMap("tasks", tasks, "stat", "ok");
     }
 
 }

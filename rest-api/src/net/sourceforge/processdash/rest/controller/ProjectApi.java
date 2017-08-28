@@ -31,8 +31,10 @@ import net.sourceforge.processdash.rest.rs.GET;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.rs.Path;
 import net.sourceforge.processdash.rest.service.RestProjectService;
+import net.sourceforge.processdash.rest.service.RestTaskService;
 import net.sourceforge.processdash.rest.to.JsonMap;
 import net.sourceforge.processdash.rest.to.RestProject;
+import net.sourceforge.processdash.rest.to.RestTask;
 
 @Path("/projects/")
 public class ProjectApi {
@@ -58,6 +60,30 @@ public class ProjectApi {
 
         // build result
         return new JsonMap("project", project, "stat", "ok");
+    }
+
+
+    @GET
+    @Path("{id}/tasks/")
+    public Map getProjectTasks(String projectId) {
+        // retrieve project
+        RestProject project = RestProjectService.get().byID(projectId);
+        if (project == null)
+            throw HttpException.notFound();
+
+        // get the tasks for this project. load completion date for each task,
+        // but clear the redundant "project" attr to reduce the size of the
+        // resulting JSON document
+        List<RestTask> tasks = RestTaskService.get().forProject(project);
+        for (RestTask t : tasks) {
+            RestTaskService.get().loadData(t,
+                RestTaskService.TASK_COMPLETION_DATE);
+            t.remove("project");
+        }
+
+        // build result
+        return new JsonMap("projectTasks", tasks, "forProject", project, //
+                "stat", "ok");
     }
 
 }
