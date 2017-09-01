@@ -31,6 +31,7 @@
 <SCRIPT>
   var contentID = location.search;
   if (contentID == "") { contentID = "?TeamUseOverview"; }
+  if (contentID.endsWith("=")) { contentID = contentID.slice(0, -1); }
 
   document.write('<FRAMESET COLS="200,*">');
   document.write(' <FRAME NAME="toc" SRC="TOC.html'+ contentID +'">');
