@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.rest.to.RestEvent;
@@ -67,6 +68,7 @@ public class RestEventService {
         eventArrivedTimer.setRepeats(false);
 
         listenForTimingEvents();
+        listenForHierarchyEvents();
     }
 
     public List<RestEvent> eventsAfter(long id, long maxWait) {
@@ -108,6 +110,17 @@ public class RestEventService {
             }
         });
     }
+
+    private void listenForHierarchyEvents() {
+        DashboardContext ctx = RestDashContext.get();
+        DashHierarchy hier = ctx.getHierarchy();
+        hier.addHierarchyListener(new DashHierarchy.Listener() {
+            public void hierarchyChanged(DashHierarchy.Event e) {
+                addEvent("HierarchyEvent", new RestEvent("hierarchy"));
+            }
+        });
+    }
+
 
     private void addEvent(String key, RestEvent event) {
         synchronized (events) {
