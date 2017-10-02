@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
@@ -69,6 +70,7 @@ public class RestEventService {
 
         listenForTimingEvents();
         listenForHierarchyEvents();
+        listenForTaskListEvents();
     }
 
     public List<RestEvent> eventsAfter(long id, long maxWait) {
@@ -120,6 +122,19 @@ public class RestEventService {
             }
         });
     }
+
+    private void listenForTaskListEvents() {
+        _taskListSaveListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String taskListName = e.getActionCommand();
+                RestEvent evt = new RestEvent("taskList");
+                evt.put("name", taskListName);
+                addEvent("TaskListEvent/" + taskListName, evt);
+            }
+        };
+        EVTaskList.addTaskListSaveListener(_taskListSaveListener);
+    }
+    private ActionListener _taskListSaveListener;
 
 
     private void addEvent(String key, RestEvent event) {
