@@ -36,6 +36,9 @@ public class ParamParser<T> {
     public static final ParamParser<Integer> INTEGER = new ParamParser(
             Integer.class);
 
+    public static final ParamParser<Long> LONG = new ParamParser(
+            Long.class);
+
     public static final ParamParser<Double> DOUBLE = new ParamParser(
             Double.class);
 
