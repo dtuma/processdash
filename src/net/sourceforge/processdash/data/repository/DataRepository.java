@@ -409,6 +409,15 @@ public class DataRepository implements Repository, DataContext,
          */
         Hashtable activeListeners = null;
 
+        /**
+         * A collection of objects that are listening for changes to any data
+         * element whose name matches a certain PatternList. The listeners are
+         * recorded as pairs, where the first item in a pair (e.g. element with
+         * even list indexes) is a PatternList, and the second item is a
+         * DataListener.
+         */
+        List<Object> patternedListeners;
+
         /** a list of misbehaved data which appears to be circularly defined. */
         Set circularData;
 
@@ -420,10 +429,30 @@ public class DataRepository implements Repository, DataContext,
             super("DataNotifier");
             notifications = new Hashtable();
             activeListeners = new Hashtable();
+            patternedListeners = new ArrayList();
             circularData = Collections.synchronizedSet(new HashSet());
             setPriority(MIN_PRIORITY);
             setDaemon(true);
             start();
+        }
+
+        void addPatternedListener(PatternList p, DataListener dl) {
+            synchronized (patternedListeners) {
+                patternedListeners.add(p);
+                patternedListeners.add(dl);
+            }
+        }
+
+        void removePatternedListener(PatternList p, DataListener dl) {
+            synchronized (patternedListeners) {
+                for (int i = 0; i < patternedListeners.size(); i += 2) {
+                    if (patternedListeners.get(i) == p
+                            && patternedListeners.get(i + 1) == dl) {
+                        patternedListeners.subList(i, i + 2).clear();
+                        break;
+                    }
+                }
+            }
         }
 
 //      public void highPriority() {
@@ -444,6 +473,24 @@ public class DataRepository implements Repository, DataContext,
             if (d == null) return;
 
             List dataListenerList = d.dataListeners;
+
+            boolean isOriginalList = true;
+            synchronized (patternedListeners) {
+                for (int i = 0; i < patternedListeners.size(); i += 2) {
+                    PatternList p = (PatternList) patternedListeners.get(i);
+                    if (p.matches(name)) {
+                        if (isOriginalList) {
+                            List modifiableList = new ArrayList();
+                            if (dataListenerList != null)
+                                modifiableList.addAll(dataListenerList);
+                            dataListenerList = modifiableList;
+                            isOriginalList = false;
+                        }
+                        dataListenerList.add(patternedListeners.get(i + 1));
+                    }
+                }
+            }
+
             if (dataListenerList == null || dataListenerList.isEmpty())
                 return;
 
@@ -3826,6 +3873,16 @@ public class DataRepository implements Repository, DataContext,
         String result = addDataListener(name, dl, notify);
         activeData.put(dl, dataListenerName);
         return result;
+    }
+
+    /** @since 2.4.0.1 */
+    public void addDataListener(PatternList p, DataListener dl) {
+        dataNotifier.addPatternedListener(p, dl);
+    }
+
+    /** @since 2.4.0.1 */
+    public void removeDataListener(PatternList p, DataListener dl) {
+        dataNotifier.removePatternedListener(p, dl);
     }
 
     /** Mark a data element as "undeletable".
