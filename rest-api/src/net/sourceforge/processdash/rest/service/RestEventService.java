@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.rest.service;
 
+import static net.sourceforge.processdash.rest.service.RestTaskService.JSON_ATTR_DATA_NAME_MAP;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -32,15 +34,21 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Vector;
 
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.rest.to.RestEvent;
+import net.sourceforge.processdash.util.PatternList;
 
 public class RestEventService {
 
@@ -71,6 +79,7 @@ public class RestEventService {
         listenForTimingEvents();
         listenForHierarchyEvents();
         listenForTaskListEvents();
+        listenForDataEvents();
     }
 
     public List<RestEvent> eventsAfter(long id, long maxWait) {
@@ -135,6 +144,52 @@ public class RestEventService {
         EVTaskList.addTaskListSaveListener(_taskListSaveListener);
     }
     private ActionListener _taskListSaveListener;
+
+    private void listenForDataEvents() {
+        try {
+            DashboardContext ctx = RestDashContext.get();
+            DataRepository data = ctx.getData();
+            PatternList p = new PatternList();
+            for (String dataNameSuffix : JSON_ATTR_DATA_NAME_MAP.values())
+                p.addLiteralEndsWith(dataNameSuffix);
+            data.addDataListener(p, new DataListener() {
+                public void dataValuesChanged(Vector v) {
+                    for (Object e : v)
+                        handleDataEvent((DataEvent) e);
+                }
+                public void dataValueChanged(DataEvent e) {
+                    handleDataEvent(e);
+                }
+            });
+        } catch (Throwable t) {
+            // earlier versions of the dashboard do not provide the method
+            // to register a data listener for a PatternList. When running
+            // in an earlier version, this will throw a NoSuchMethodError.
+            // Ignore the error, and don't provide these notifications.
+        }
+    }
+
+    private void handleDataEvent(DataEvent e) {
+        String dataName = e.getName();
+        String jsonAttr = getJsonAttrForDataName(dataName);
+        if (jsonAttr == null)
+            return;
+        String taskPath = dataName.substring(0, dataName.lastIndexOf('/'));
+
+        RestEvent evt = new RestEvent("taskData");
+        evt.set("name", jsonAttr);
+        evt.set("task", RestTaskService.get()
+                .loadData(RestTaskService.get().byPath(taskPath)));
+        addEvent("DataEvent/" + dataName, evt);
+    }
+
+    private String getJsonAttrForDataName(String name) {
+        for (Entry<String, String> e : JSON_ATTR_DATA_NAME_MAP.entrySet()) {
+            if (name.endsWith(e.getValue()))
+                return e.getKey();
+        }
+        return null;
+    }
 
 
     private void addEvent(String key, RestEvent event) {

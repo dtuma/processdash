@@ -25,7 +25,9 @@ package net.sourceforge.processdash.rest.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -265,5 +267,20 @@ public class RestTaskService {
     private static final String ACT_TIME = "/Time";
 
     private static final String COMPLETED = "/Completed";
+
+    /*
+     * A map whose keys are the names of JSON attributes in a RestTask, and
+     * whose values are the data name suffixes used to store those attributes in
+     * the repository
+     */
+    static final Map<String, String> JSON_ATTR_DATA_NAME_MAP = getAttrNameMap();
+
+    private static Map<String, String> getAttrNameMap() {
+        Map<String, String> result = new HashMap<String, String>();
+        result.put("estimatedTime", EST_TIME);
+        result.put("actualTime", ACT_TIME);
+        result.put("completionDate", COMPLETED);
+        return Collections.unmodifiableMap(result);
+    }
 
 }
