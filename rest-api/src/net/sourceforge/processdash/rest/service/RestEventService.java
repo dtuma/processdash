@@ -117,7 +117,18 @@ public class RestEventService {
         TimeLoggingModel tlm = timeLog.getTimeLoggingModel();
         tlm.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
-                addEvent("TimeLoggingModelEvent", new RestEvent("timer"));
+                String prop = evt.getPropertyName();
+                if (TimeLoggingModel.PAUSED_PROPERTY.equals(prop)) {
+                    RestEvent event = new RestEvent("timer");
+                    event.put("timing", evt.getOldValue());
+                    addEvent("TimerEvent", event);
+                } else if (TimeLoggingModel.ACTIVE_TASK_PROPERTY.equals(prop)) {
+                    String taskPath = (String) evt.getNewValue();
+                    RestEvent event = new RestEvent("activeTask");
+                    event.put("task", RestTaskService.get().loadData( //
+                        RestTaskService.get().byPath(taskPath)));
+                    addEvent("ActiveTaskEvent", event);
+                }
             }
         });
     }
