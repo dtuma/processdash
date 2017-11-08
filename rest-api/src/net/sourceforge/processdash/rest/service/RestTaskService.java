@@ -85,7 +85,7 @@ public class RestTaskService {
         String fullPath = key.path();
         RestProject proj = projects.containingPath(fullPath);
         if (fullPath.equals(proj.getFullName()))
-            return null;
+            return new RestTask(nodeID, null, proj);
 
         String taskName = fullPath.substring(proj.getFullName().length() + 1);
         return new RestTask(nodeID, taskName, proj);
@@ -130,7 +130,7 @@ public class RestTaskService {
         int numKids = hier.getNumChildren(node);
         if (numKids == 0) {
             RestTask task = byKey(node);
-            if (task != null)
+            if (task != null && task.getFullName() != null)
                 result.add(task);
         } else {
             for (int i = 0; i < numKids; i++)
@@ -255,6 +255,8 @@ public class RestTaskService {
     public void ensureLeaf(RestTask task) {
         if (task == null)
             throw HttpException.notFound();
+        if (task.getFullName() == null)
+            throw HttpException.badRequest();
         String path = task.getFullPath();
         PropertyKey key = hier.findExistingKey(path);
         if (key == null || hier.getNumChildren(key) > 0)

@@ -83,7 +83,11 @@ public class RestTask extends JsonMap {
     }
 
     public String getFullPath() {
-        return getProject().getFullName() + "/" + getFullName();
+        StringBuilder result = new StringBuilder(getProject().getFullName());
+        String taskFullName = getFullName();
+        if (taskFullName != null)
+            result.append("/").append(taskFullName);
+        return result.toString();
     }
 
 }
