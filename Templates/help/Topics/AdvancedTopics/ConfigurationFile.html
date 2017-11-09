@@ -96,6 +96,31 @@ changes to take effect.</p>
  </li>
  <br>
 
+ <li><a name="defectDialogOnTop"></a><strong>userPref.defectDialog.alwaysOnTop</strong><br>
+   Controls whether defect windows should be displayed on top of all other
+   windows, including windows of other applications.<br>
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>userPref.defectDialog.alwaysOnTop = false</td></tr>
+   </table>
+ </li>
+ <br>
+
+ <li><a name="defectDialogOnTop"></a><strong>userPref.defectDialog.useChildWindows</strong><br>
+   Controls whether defect windows should be children of the Process Dashboard
+   toolbar.  When they are child windows, they will be hidden automatically
+   when the toolbar is minimized. Otherwise, they can be shown, hidden, and
+   minimized independently of the main toolbar window.<br>
+
+   <table border=0>
+    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>userPref.defectDialog.useChildWindows = true</td></tr>
+   </table>
+ </li>
+ <br>
+
  <li><a name="defectDialogPhaseMap"></a><strong>defectDialog.phaseMap</strong><br>
    Describes common defect injection/removal patterns.  Each pair is 
    interpreted to mean "Often defects are injected in phase A, and removed in 

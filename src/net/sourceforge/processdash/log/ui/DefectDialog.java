@@ -30,6 +30,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -53,6 +54,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -61,6 +63,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -102,10 +105,11 @@ import net.sourceforge.processdash.util.Stopwatch;
 import net.sourceforge.processdash.util.StringUtils;
 
 
-public class DefectDialog extends JDialog
+public class DefectDialog
     implements ActionListener, DocumentListener, WindowListener
 {
     ProcessDashboard parent;
+    Window window;
     String defectFilename;
     PropertyKey defectPath;
     PropertyKey taskPath;
@@ -150,9 +154,11 @@ public class DefectDialog extends JDialog
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
             PropertyKey defectPath, PropertyKey taskPath, boolean guessDefaults) {
-        super(dash);
+        window = makeWindow(dash);
         setTitle(resources.getString("Window_Title"));
-        PCSH.enableHelpKey(this, "EnteringDefects");
+        PCSH.enableHelpKey(window, "EnteringDefects");
+        if (Settings.getBool("userPref.defectDialog.alwaysOnTop", true))
+            window.setAlwaysOnTop(true);
 
         parent = dash;
         this.defectFilename = defectFilename;
@@ -398,9 +404,6 @@ public class DefectDialog extends JDialog
         g.gridx = 1; layout.setConstraints(CancelButton, g);
         panel.add(CancelButton);
 
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(this);
-
         InputMap inputMap = panel
                 .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, MacGUIUtils
@@ -410,16 +413,45 @@ public class DefectDialog extends JDialog
             "cancelButtonAction");
         panel.getActionMap().put("cancelButtonAction", cancelAction);
 
-        getContentPane().add(panel);
-        pack();
+        ((RootPaneContainer) window).getContentPane().add(panel);
+        window.pack();
         panel.setMinimumSize(panel.getPreferredSize());
-        setVisible(true);
+        window.setVisible(true);
 
         if (guessDefaults && Settings.getBool("defectDialog.autostart", true)
                 && parent.getTimeLoggingModel().isPaused() == false
                 && stopwatchSynchronizer.activeTaskMatches())
             startTimingDefect();
         setDirty(false);
+    }
+
+    private Window makeWindow(ProcessDashboard parent) {
+        boolean useDialog = parent.isShowing() && Settings.getBool( //
+            "userPref.defectDialog.useChildWindows", false);
+        if (useDialog) {
+            JDialog dialog = new JDialog(parent);
+            dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+            dialog.addWindowListener(this);
+            return dialog;
+        } else {
+            JFrame frame = new JFrame();
+            DashboardIconFactory.setWindowIcon(frame);
+            frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            frame.addWindowListener(this);
+            return frame;
+        }
+    }
+
+    public void setTitle(String title) {
+        if (window instanceof JFrame) {
+            ((JFrame) window).setTitle(title);
+        } else {
+            ((JDialog) window).setTitle(title);
+        }
+    }
+
+    public void toFront() {
+        window.toFront();
     }
 
     private void setTextFieldMinSize(JTextField tf) {
@@ -444,7 +476,7 @@ public class DefectDialog extends JDialog
 
         String comparisonKey = defectFilename + defect.number;
         result = (DefectDialog) defectDialogs.get(comparisonKey);
-        if (result != null && result.isDisplayable()) return result;
+        if (result != null && result.window.isDisplayable()) return result;
         if (!create) return null;
 
         result = new DefectDialog(dash, defectFilename, defectPath, defect);
@@ -462,8 +494,7 @@ public class DefectDialog extends JDialog
 
     public void setDirty(boolean dirty) {
         isDirty = dirty;
-        MacGUIUtils.setDirty(this, isDirty);
-        //OKButton.setEnabled(dirty);
+        MacGUIUtils.setDirty((RootPaneContainer) window, isDirty);
     }
 
     public void save() {
@@ -691,7 +722,7 @@ public class DefectDialog extends JDialog
         stopwatchSynchronizer.dispose();
         interruptedDialogs.remove(this); // it might not be there, that's OK
         defectDialogs.remove(comparisonKey());
-        super.dispose();
+        window.dispose();
     }
 
 
@@ -764,7 +795,7 @@ public class DefectDialog extends JDialog
                 return true;
         }
 
-        JOptionPane.showMessageDialog(this,
+        JOptionPane.showMessageDialog(window,
             resources.getStrings("Sequence_Error_Message"),
             resources.getString("Sequence_Error_Title"),
             JOptionPane.ERROR_MESSAGE);
@@ -798,7 +829,7 @@ public class DefectDialog extends JDialog
             return true;
 
         JOptionPane.showMessageDialog
-            (this, resources.getString("Choose_Defect_Type_Message"),
+            (window, resources.getString("Choose_Defect_Type_Message"),
              resources.getString("Choose_Defect_Type_Title"),
              JOptionPane.ERROR_MESSAGE);
 
@@ -817,7 +848,7 @@ public class DefectDialog extends JDialog
     private boolean checkDirty() {
         return (!isDirty ||
                 JOptionPane.showConfirmDialog
-                (this, resources.getString("Confirm_Cancel_Message"),
+                (window, resources.getString("Confirm_Cancel_Message"),
                  resources.getString("Confirm_Cancel_Title"),
                  JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
     }
@@ -963,7 +994,7 @@ public class DefectDialog extends JDialog
             else
                 optionsToDisplay = JOptionPane.YES_NO_CANCEL_OPTION;
 
-            int userChoice = JOptionPane.showConfirmDialog(DefectDialog.this,
+            int userChoice = JOptionPane.showConfirmDialog(window,
                 message, title, optionsToDisplay, JOptionPane.WARNING_MESSAGE);
 
             if (userChoice == JOptionPane.OK_OPTION

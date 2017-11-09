@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2016 Tuma Solutions, LLC
+// Copyright (C) 2015-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,10 +34,14 @@ import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class OpenDefectDialog extends TinyCGIBase {
+
+    @Override
+    protected void writeHeader() {}
 
     @Override
     protected void writeContents() throws IOException {
@@ -49,12 +53,20 @@ public class OpenDefectDialog extends TinyCGIBase {
             throw new TinyCGIException(404, "No defect log found for " + path);
 
         String id = getParameter("id");
+        DefectDialog dlg;
         if (StringUtils.hasValue(id))
-            openExistingDefectDialog(defectLog, id);
+            dlg = openExistingDefectDialog(defectLog, id);
         else
-            openNewDefectDialog(defectLog, path);
+            dlg = openNewDefectDialog(defectLog, path);
 
-        DashController.printNullDocument(out);
+        out.print("Expires: 0\r\n");
+        if (dlg != null && isJsonRequest()) {
+            out.print("Content-type: application/json\r\n\r\n");
+            out.print(WindowTracker.getWindowOpenedJson(dlg.window));
+        } else {
+            super.writeHeader();
+            DashController.printNullDocument(out);
+        }
     }
 
     private String getPath() {
@@ -82,8 +94,8 @@ public class OpenDefectDialog extends TinyCGIBase {
         return defectLog;
     }
 
-    private void openExistingDefectDialog(DefectLogID defectLog, String id)
-            throws TinyCGIException {
+    private DefectDialog openExistingDefectDialog(DefectLogID defectLog,
+            String id) throws TinyCGIException {
         DefectLog log = new DefectLog(defectLog.filename,
                 defectLog.path.path(), getDataRepository());
         Defect defect = log.getDefect(id);
@@ -95,15 +107,18 @@ public class OpenDefectDialog extends TinyCGIBase {
             defectLog.filename, defectLog.path, defect, true);
         dlg.setTitle(defectLog.path.path());
         dlg.toFront();
+        return dlg;
     }
 
-    private void openNewDefectDialog(DefectLogID defectLog, String path) {
+    private DefectDialog openNewDefectDialog(DefectLogID defectLog,
+            String path) {
         ProcessDashboard dash = getDash();
         PropertyKey task = dash.getHierarchy().findClosestKey(path);
         DefectDialog dlg = new DefectDialog(dash, defectLog.filename,
                 defectLog.path, task);
         if (!defectLog.path.equals(dash.getCurrentPhase()))
             dlg.setTitle(defectLog.path.path());
+        return dlg;
     }
 
     private ProcessDashboard getDash() {

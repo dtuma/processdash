@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2013 Tuma Solutions, LLC
+// Copyright (C) 2008-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
 import javax.swing.UIManager;
 
 public class MacGUIUtils {
@@ -67,6 +68,10 @@ public class MacGUIUtils {
 
     public static void setDirty(JDialog dialog, boolean isDirty) {
         setDirty(dialog.getRootPane(), isDirty);
+    }
+
+    public static void setDirty(RootPaneContainer rpc, boolean isDirty) {
+        setDirty(rpc.getRootPane(), isDirty);
     }
 
     private static void setDirty(JComponent comp, boolean isDirty) {
