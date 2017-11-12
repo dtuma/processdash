@@ -40,9 +40,13 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.process.ScriptEnumerator;
+import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.rest.rs.HttpException;
 import net.sourceforge.processdash.rest.to.RestProject;
 import net.sourceforge.processdash.rest.to.RestTask;
+import net.sourceforge.processdash.rest.to.RestTaskScript;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class RestTaskService {
@@ -261,6 +265,24 @@ public class RestTaskService {
         PropertyKey key = hier.findExistingKey(path);
         if (key == null || hier.getNumChildren(key) > 0)
             throw HttpException.badRequest();
+    }
+
+    public List<RestTaskScript> scripts(RestTask task) {
+        List<ScriptID> scripts = ScriptEnumerator.getScripts(ctx,
+            task.getFullPath());
+        if (scripts == null || scripts.isEmpty())
+            return Collections.EMPTY_LIST;
+
+        List<RestTaskScript> result = new ArrayList(scripts.size() - 1);
+        for (int i = 1; i < scripts.size(); i++) {
+            ScriptID script = scripts.get(i);
+            String name = script.getDisplayName();
+            String uri = script.getHref();
+            String path = script.getDataPath();
+            boolean trigger = TriggerURI.isTrigger(uri);
+            result.add(new RestTaskScript(name, uri, path, trigger));
+        }
+        return result;
     }
 
 

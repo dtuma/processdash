@@ -23,6 +23,9 @@
 
 package net.sourceforge.processdash.rest.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,13 +47,19 @@ public class TaskApi {
 
     @GET
     @Path("{taskId}/")
-    public Map getTask(String taskId) {
+    public Map getTask(HttpServletRequest req, String taskId) {
         // retrieve task
         RestTask task = RestTaskService.get().byID(taskId);
         if (task == null)
             throw HttpException.notFound();
-        else
-            RestTaskService.get().loadData(task);
+
+        // load expanded child attributes if requested
+        List<String> expand = getListParam(req, "expand");
+        if (expand.contains("resources"))
+            task.put("resources", RestTaskService.get().scripts(task));
+
+        // load details for the task
+        RestTaskService.get().loadData(task);
 
         // build result
         return new JsonMap("task", task, "stat", "ok");
@@ -78,7 +87,7 @@ public class TaskApi {
             RestTaskService.get().saveCompletionDate(task, completionDate);
 
         // return the modified task entity
-        return getTask(taskId);
+        return getTask(req, taskId);
     }
 
     @GET
@@ -91,6 +100,37 @@ public class TaskApi {
 
         // build result
         return new JsonMap("tasks", tasks, "stat", "ok");
+    }
+
+    @GET
+    @Path("{taskId}/resources/")
+    public Map getTaskScripts(String taskId) {
+        // retrieve task
+        RestTask task = RestTaskService.get().byID(taskId);
+        if (task == null)
+            throw HttpException.notFound();
+
+        // load the scripts for the given task
+        List scripts = RestTaskService.get().scripts(task);
+
+        // build result
+        return new JsonMap("resources", scripts, "stat", "ok");
+    }
+
+
+    private static List<String> getListParam(HttpServletRequest req,
+            String parameterName) {
+        String[] values = req.getParameterValues(parameterName);
+        if (values == null || values.length == 0) {
+            return Collections.EMPTY_LIST;
+        } else if (values.length == 1) {
+            return Arrays.asList(values[0].split(","));
+        } else {
+            List<String> result = new ArrayList<String>();
+            for (String oneValue : values)
+                result.addAll(Arrays.asList(oneValue.split(",")));
+            return result;
+        }
     }
 
 }
