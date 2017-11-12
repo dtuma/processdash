@@ -101,7 +101,7 @@ public class Control extends TinyCGIBase {
     }
 
     private void raiseWindow() {
-        if (isTask("raiseWindow")) {
+        if (isTask("raiseWindow") || isTask("showMainWindow")) {
             DashController.raiseWindow();
             printWindowOpenedJson(getDashboardContext());
         }
