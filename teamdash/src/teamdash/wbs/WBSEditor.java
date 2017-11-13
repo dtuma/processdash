@@ -2181,6 +2181,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         for (String prop : PROPS_TO_PROPAGATE)
             RuntimeUtils.addPropagatedSystemProperty(prop, null);
 
+        try {
+            Integer pause = Integer.getInteger("teamdash.wbs.startupPause");
+            if (pause != null && pause > 0)
+                Thread.sleep(pause.longValue());
+        } catch (InterruptedException ie) {}
+
         String[] locations = args;
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");

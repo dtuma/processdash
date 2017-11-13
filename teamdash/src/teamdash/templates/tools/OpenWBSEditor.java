@@ -25,6 +25,7 @@ package teamdash.templates.tools;
 
 import static net.sourceforge.processdash.tool.bridge.client.TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY;
 
+import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import org.json.simple.JSONObject;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashController;
@@ -92,6 +94,9 @@ public class OpenWBSEditor extends TinyCGIBase {
     protected void writeContents() throws IOException {
         if (parameters.containsKey(JAR_PARAM)) {
             serveJar();
+            return;
+        } else if (parameters.containsKey("err")) {
+            printErrorPage();
             return;
         }
 
@@ -163,20 +168,43 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (!checkEntryCriteria(url, directory))
             return;
 
-        writeHtmlHeader();
         if (launchEditorProcess(url, directory)) {
             // if we successfully opened the WBS, write the null document.
-            DashController.printNullDocument(out);
+            writeNullDocument();
         } else {
-            // if, for some reason, we weren't able to launch the WBS in a new
-            // process, our best bet is to try JNLP instead.  Use an HTML
-            // redirect to point the user to a forced JNLP page.
+            // if we weren't able to find the JRE executable or the JAR, our
+            // best bet is to try JNLP instead. Use an HTML redirect to point
+            // point the user to a forced JNLP page.
+            writeHtmlHeader();
             out.print("<html><head>");
             out.print("<meta http-equiv='Refresh' CONTENT='0;URL=" +
                         "/team/tools/OpenWBSEditor.class?useJNLP&");
             out.print(env.get("QUERY_STRING"));
             out.print("'></head></html>");
         }
+    }
+
+    protected void writeNullDocument() {
+        writeHtmlHeader();
+        if (isJsonRequest()) {
+            out.print(jsonResponse("window", "pid", -1, "title", "WBS Editor"));
+        } else {
+            DashController.printNullDocument(out);
+        }
+    }
+
+    private String jsonResponse(String key, Object... values) {
+        JSONObject result = new JSONObject();
+        if (values.length == 1) {
+            result.put(key, values[0]);
+        } else {
+            JSONObject obj = new JSONObject();
+            for (int i = 0; i < values.length; i += 2)
+                obj.put(values[i], values[i + 1]);
+            result.put(key, obj);
+        }
+        result.put("stat", "ok");
+        return result.toJSONString();
     }
 
     private boolean checkEntryCriteria(String url, String directory) {
@@ -212,8 +240,26 @@ public class OpenWBSEditor extends TinyCGIBase {
         return true;
     }
 
+    private void printErrorPage() {
+        String resKey = getParameter("err");
+        String[] locations = (String[]) parameters.get("location_ALL");
+        printErrorPage(resKey, locations);
+    }
+
     private void printErrorPage(String resKey, String... location) {
         writeHtmlHeader();
+
+        if (isJsonRequest()) {
+            StringBuffer errUri = new StringBuffer();
+            errUri.append("/team/tools/OpenWBSEditor.class");
+            HTMLUtils.appendQuery(errUri, "err", resKey);
+            for (String l : location)
+                HTMLUtils.appendQuery(errUri, "location", l);
+
+            out.print(jsonResponse("redirect", errUri.toString()));
+            return;
+        }
+
         String title = resources.getHTML(resKey + ".Title");
         out.print("<html>\n<head>\n<title>");
         out.print(title);
@@ -287,6 +333,9 @@ public class OpenWBSEditor extends TinyCGIBase {
             result.put("teamdash.wbs.showItem", itemHref);
         if (parameters.containsKey("dumpAndExit"))
             result.put("teamdash.wbs.dumpAndExit", "true");
+        else if (isJsonRequest())
+            result.put("teamdash.wbs.startupPause",
+                Settings.getVal("userPref.wbsEditor.jsonPause", "500"));
 
         return result;
     }
@@ -362,19 +411,28 @@ public class OpenWBSEditor extends TinyCGIBase {
     private static Hashtable editors = new Hashtable();
 
     private boolean launchEditorProcess(String url, String directory) {
-        String[] cmdLine = getProcessCmdLine(url, directory);
+        final String[] cmdLine = getProcessCmdLine(url, directory);
         if (cmdLine == null)
             return false;
+        final int heapSize = getUserChosenHeapMemoryValue(cmdLine);
 
-        try {
-            Process p = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine, null,
-                null, getUserChosenHeapMemoryValue(cmdLine));
-            new OutputConsumer(p).start();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        new Thread() {
+            public void run() {
+                try {
+                    // the execWithAdaptiveHeapSize method waits up to 1500 ms
+                    // to make sure the process is still running. We need to
+                    // get a response back to our client faster than that, so
+                    // we launch the process in an async thread
+                    Process p = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine,
+                        null, null, heapSize);
+                    new OutputConsumer(p).start();
+                } catch (Exception e) {
+                    Toolkit.getDefaultToolkit().beep();
+                    e.printStackTrace();
+                }
+            };
+        }.start();
+        return true;
     }
 
     private String[] getProcessCmdLine(String url, String directory) {
@@ -496,8 +554,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         Runtime.getRuntime().exec(cmdLine);
 
         // if we successfully opened the WBS, write the null document.
-        writeHtmlHeader();
-        DashController.printNullDocument(out);
+        writeNullDocument();
     }
 
     private String getJavaWebStartExecutable() {

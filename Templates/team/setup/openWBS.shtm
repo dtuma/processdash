@@ -26,6 +26,7 @@
 
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="httpAccept" var="HTTP_ACCEPT" -->
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
     <!--#parameter name="reverseSyncURL" var="reverseSyncURI" -->
     <!--#parameter name="processURL" var="processURL" -->

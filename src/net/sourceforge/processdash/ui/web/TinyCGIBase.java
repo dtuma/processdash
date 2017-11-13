@@ -389,8 +389,10 @@ public class TinyCGIBase implements TinyCGI {
      * @since 2.4.0.1
      */
     protected boolean isJsonRequest() {
-        String acceptHeader = (String) env.get("HTTP_ACCEPT");
-        return HTTPUtils.isJsonRequest(acceptHeader);
+        Object acceptHeader = parameters.get("httpAccept");
+        if (!(acceptHeader instanceof String))
+            acceptHeader = env.get("HTTP_ACCEPT");
+        return HTTPUtils.isJsonRequest((String) acceptHeader);
     }
 
 
