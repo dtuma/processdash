@@ -32,14 +32,19 @@ import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
+import org.json.simple.JSONObject;
+
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.RepairDefectCounts;
+import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
@@ -47,6 +52,12 @@ public class Control extends TinyCGIBase {
 
     private String taskName;
     private boolean printNullDocument;
+
+    @Override
+    protected void doPost() throws IOException {
+        parseFormData();
+        writeContents();
+    }
 
     /** Write the CGI header. */
     protected void writeHeader() {}
@@ -74,6 +85,7 @@ public class Control extends TinyCGIBase {
         scrubDataDir();
         repairDefectCounts();
         reloadWARs();
+        runTrigger();
 
         if (printNullDocument) {
             writeHtmlHeader();
@@ -197,18 +209,56 @@ public class Control extends TinyCGIBase {
         }
     }
 
+    private void runTrigger() throws IOException {
+        if (isTask("runTrigger")) {
+            String uri = getParameter("uri");
+            if (!TriggerURI.isTrigger(uri))
+                throw new TinyCGIException(400, "Bad Request");
+
+            // run the requested trigger script, and request JSON output
+            String tUri = HTMLUtils.appendQuery(uri, TriggerURI.IS_TRIGGERING);
+            env.put("HTTP_ACCEPT", "application/json");
+            String response = getTinyWebServer().getRequestAsString(tUri, env)
+                    .trim();
+
+            // some legacy trigger scripts might not be fully JSON compliant.
+            // In that case, we need to generate a JSON response for them.
+            if (response.contains(TriggerURI.NULL_DOCUMENT_MARKER)) {
+                // if the target returned an HTML null document, that means
+                // it ran the trigger successfully, but it hasn't been upgraded
+                // to return JSON. Return a do-nothing JSON trigger response.
+                response = "{\"stat\":\"ok\"}";
+
+            } else if (!response.startsWith("{")) {
+                // if the target returned some other kind of content, we must
+                // follow the trigger contract and open that content in a web
+                // browser. Return a 'redirect' JSON trigger response.
+                JSONObject json = new JSONObject();
+                json.put("redirect", uri);
+                json.put("stat", "ok");
+                response = json.toJSONString();
+            }
+
+            // print the final response
+            printJsonResponse(response);
+        }
+    }
 
     private void printWindowOpenedJson(Object window) {
         if (!isJsonRequest())
             return;
 
         String json = WindowTracker.getWindowOpenedJson(window);
-        if (json == null)
-            return;
+        if (json != null) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+            }
+            printJsonResponse(json);
+        }
+    }
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {}
+    protected void printJsonResponse(String json) {
         out.print("Content-type: application/json; charset="+charset+"\r\n");
         out.print("Expires: 0\r\n\r\n");
         out.print(json);
