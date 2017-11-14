@@ -70,9 +70,16 @@ preferences a category.
               ifPropIsSet="i18n"
               helpId="prefs.i18nLevel" />
 
+    <checkbox id="useJavaLAF"
+              setting="userPref.useSystemLAF"
+              ifPropIsSet="os.windows"
+              inverted="true"
+              requiresRestart="true" />
+
     <checkbox id="useLargeFonts"
               setting="userPref.useLargeFonts"
               unlessPropIsSet="os.mac"
+              disabledIf="userPref.useSystemLAF"
               requiresRestart="true"
               helpId="prefs.largeFonts" />
 

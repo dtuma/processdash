@@ -1202,9 +1202,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } catch (Exception e) {}
         }
 
-        // enable the system look and feel if requested/configured
-        if (Settings.getBool("userPref.useSystemLAF",
-            Settings.getBool("useSystemLAF", false))) {
+        // enable the windows look and feel if requested/configured
+        if ("windows".equals(InternalSettings.getOSPrefix())
+                && Settings.getBool("forceUseSystemLAF",
+                    Settings.getBool("userPref.useSystemLAF", false))) {
             try {
                 String laf = UIManager.getSystemLookAndFeelClassName();
                 UIManager.setLookAndFeel(laf);
