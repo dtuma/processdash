@@ -102,14 +102,6 @@ public class UserNotificationManager {
             });
     }
 
-    public void addNotification(String message) {
-        addNotification(null, message, null);
-    }
-
-    public void addNotification(String message, String uri) {
-        addNotification(null, message, uri);
-    }
-
     public void addNotification(String id, String message, String uri) {
         notifications.add(new Notification(id, message, uri));
         deferUntil = 0;
@@ -119,6 +111,21 @@ public class UserNotificationManager {
     public void removeNotification(String id) {
         if (id != null)
             notifications.removeNotification(id);
+    }
+
+    /** @since 2.4.1 */
+    public List<Notification> getNotifications() {
+        return new ArrayList(notifications.notifications);
+    }
+
+    /** @since 2.4.1 */
+    public void addNotificationListener(TableModelListener l) {
+        notifications.addTableModelListener(l);
+    }
+
+    /** @since 2.4.1 */
+    public void removeNotificationListener(TableModelListener l) {
+        notifications.removeTableModelListener(l);
     }
 
     public void maybeShowNotifications(Window w) {
@@ -163,23 +170,36 @@ public class UserNotificationManager {
             notificationsWindow.handleDefer();
     }
 
-    private class Notification {
+    public class Notification {
         String id;
 
         String message;
 
         String uri;
 
-        public Notification(String id, String message, String uri) {
-            if (message == null)
-                throw new NullPointerException("message cannot be null");
+        private Notification(String id, String message, String uri) {
+            if (id == null || message == null)
+                throw new NullPointerException("id/message cannot be null");
 
             this.id = id;
             this.message = message;
             this.uri = uri;
         }
 
+        public String getId() {
+            return id;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
         public void handle() {
+            removeNotification(id);
             if (uri != null)
                 TriggerURI.handle(uri);
         }
@@ -187,30 +207,13 @@ public class UserNotificationManager {
         public boolean equals(Object obj) {
             if (obj instanceof Notification) {
                 Notification that = (Notification) obj;
-
-                if (this.id != null || that.id != null)
-                    return eq(this.id, that.id);
-
-                return eq(this.message, that.message)
-                        && eq(this.action, that.action);
+                return this.id.equals(that.id);
             }
             return false;
         }
 
-        private boolean eq(Object a, Object b) {
-            if (a == b) return true;
-            if (a == null || b == null) return false;
-            return a.equals(b);
-        }
-
         public int hashCode() {
-            if (id != null)
-                return id.hashCode();
-            int result = 0;
-            if (action != null)
-                result = action.hashCode() << 3;
-            result = result ^ message.hashCode();
-            return result;
+            return id.hashCode();
         }
 
         public String toString() {
