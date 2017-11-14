@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Arrays;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
@@ -38,11 +40,8 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.util.StringUtils;
-
-import org.w3c.dom.Element;
 
 /**
  * This class responds to the SizeMetricApi on behalf of any standard metrics
@@ -266,17 +265,12 @@ public class McfSizeMetricApiHandler implements SizeMetricApiHandler {
             "[TIME]", Long.toString(timestamp.getValue().getTime()));
         if (notificationUri.startsWith("/"))
             notificationUri = notificationUri.substring(1);
-        final String notificationUrl = WebServer.urlEncodePath(projectPrefix)
-                + "//" + notificationUri;
-        Runnable action = new Runnable() {
-            public void run() {
-                Browser.launch(notificationUrl);
-            }
-        };
+        String notificationUrl = WebServer.urlEncodePath(projectPrefix) + "//"
+                + notificationUri;
 
         // register this notification info with the UserNotificationManager
         UserNotificationManager.getInstance().addNotification(notificationId,
-            message, action);
+            message, notificationUrl);
     }
 
 

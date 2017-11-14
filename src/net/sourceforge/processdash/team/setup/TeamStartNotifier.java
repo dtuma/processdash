@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,7 +36,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -156,8 +155,9 @@ public class TeamStartNotifier implements Runnable {
         String notificationId = "joinTeamProject." + projectID;
         String projectName = joinXml.getAttribute(PROJECT_FULL_NAME);
         String message = resources.format("Message_FMT", projectName);
+        String joinUri = WebServer.urlEncodePath(dataPrefix) + "/" + JOIN_URI;
         UserNotificationManager.getInstance().addNotification(notificationId,
-            message, new StartJoinAction(dataPrefix));
+            message, joinUri);
     }
 
     private static void checkAlreadyJoined(DashboardContext ctx,
@@ -178,21 +178,6 @@ public class TeamStartNotifier implements Runnable {
     }
 
     private static class AlreadyJoinedException extends RuntimeException {
-    }
-
-    private static class StartJoinAction implements Runnable {
-
-        private String prefix;
-
-        public StartJoinAction(String dataPrefix) {
-            this.prefix = dataPrefix;
-        }
-
-        public void run() {
-            String uri = WebServer.urlEncodePath(prefix) + "/" + JOIN_URI;
-            Browser.launch(uri);
-        }
-
     }
 
 }

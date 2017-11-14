@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,7 +42,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
-import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 
 /**
@@ -151,7 +150,7 @@ public class SyncScanner implements Runnable {
                     if (fullUri.endsWith("brief"))
                         fullUri = fullUri.substring(0, fullUri.length() - 5);
                     UserNotificationManager.getInstance().addNotification(id,
-                            msg, new LaunchBrowserWindow(fullUri));
+                            msg, fullUri);
                 }
             } catch (IOException e) {
                 String msg = "Encountered exception when trying to see if "
@@ -165,18 +164,6 @@ public class SyncScanner implements Runnable {
                 return false;
             else
                 return response.indexOf(alertIfToken) != -1;
-        }
-    }
-
-    private static class LaunchBrowserWindow implements Runnable {
-        private String uri;
-
-        public LaunchBrowserWindow(String uri) {
-            this.uri = uri;
-        }
-
-        public void run() {
-            Browser.launch(uri);
         }
     }
 

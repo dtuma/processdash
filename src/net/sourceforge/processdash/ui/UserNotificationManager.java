@@ -55,6 +55,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.ui.lib.WrappedTextTableCellRenderer;
 
 public class UserNotificationManager {
@@ -105,12 +106,12 @@ public class UserNotificationManager {
         addNotification(null, message, null);
     }
 
-    public void addNotification(String message, Runnable action) {
-        addNotification(null, message, action);
+    public void addNotification(String message, String uri) {
+        addNotification(null, message, uri);
     }
 
-    public void addNotification(String id, String message, Runnable action) {
-        notifications.add(new Notification(id, message, action));
+    public void addNotification(String id, String message, String uri) {
+        notifications.add(new Notification(id, message, uri));
         deferUntil = 0;
         maybeShowNotifications(parentWindow);
     }
@@ -167,20 +168,20 @@ public class UserNotificationManager {
 
         String message;
 
-        Runnable action;
+        String uri;
 
-        public Notification(String id, String message, Runnable action) {
+        public Notification(String id, String message, String uri) {
             if (message == null)
                 throw new NullPointerException("message cannot be null");
 
             this.id = id;
             this.message = message;
-            this.action = action;
+            this.uri = uri;
         }
 
         public void handle() {
-            if (action != null)
-                new Thread(action).start();
+            if (uri != null)
+                TriggerURI.handle(uri);
         }
 
         public boolean equals(Object obj) {
