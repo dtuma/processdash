@@ -285,6 +285,29 @@ public class RestTaskService {
         return result;
     }
 
+    public void loadChildren(RestTask task, boolean deep) {
+        task.put("children", Collections.EMPTY_LIST);
+        String nodeID = task.getId();
+        PropertyKey key = hier.findKeyByNodeID(nodeID);
+        loadChildren(task, key, deep);
+    }
+
+    private void loadChildren(RestTask task, PropertyKey key, boolean deep) {
+        int numChildren = hier.getNumChildren(key);
+        if (numChildren > 0) {
+            List<RestTask> children = new ArrayList<RestTask>(numChildren);
+            for (int i = 0; i < numChildren; i++) {
+                PropertyKey childKey = hier.getChildKey(key, i);
+                String childID = hier.pget(childKey).getNodeID();
+                RestTask childTask = new RestTask(childID, childKey.name());
+                if (deep)
+                    loadChildren(childTask, childKey, true);
+                children.add(childTask);
+            }
+            task.put("children", children);
+        }
+    }
+
 
     private static final String EST_TIME = "/Estimated Time";
 

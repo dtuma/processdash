@@ -29,6 +29,10 @@ public class RestTask extends JsonMap {
 
     public RestTask() {}
 
+    public RestTask(String id, String name) {
+        super("id", id, "name", name);
+    }
+
     public RestTask(String id, String fullName, RestProject project) {
         super("id", id, "fullName", fullName, "project", project);
     }
@@ -47,6 +51,10 @@ public class RestTask extends JsonMap {
     }
 
     public String getId() {
+        return getAttr();
+    }
+
+    public String getName() {
         return getAttr();
     }
 

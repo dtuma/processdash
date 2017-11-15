@@ -26,6 +26,7 @@ package net.sourceforge.processdash.rest.rs;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -241,7 +242,7 @@ public class DispatchServlet extends HttpServlet {
         if (handler.wantsRequest)
             args[0] = req;
         for (int i = matcher.groupCount(); i > 0; i--)
-            args[i - 1 + off] = matcher.group(i);
+            args[i - 1 + off] = URLDecoder.decode(matcher.group(i), "UTF-8");
 
         try {
             // invoke the handler and get the resulting object

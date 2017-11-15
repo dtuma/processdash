@@ -61,6 +61,12 @@ public class TaskApi {
         // load details for the task
         RestTaskService.get().loadData(task);
 
+        // load children if requested
+        if (expand.contains("descendants"))
+            RestTaskService.get().loadChildren(task, true);
+        else if (expand.contains("children"))
+            RestTaskService.get().loadChildren(task, false);
+
         // build result
         return new JsonMap("task", task, "stat", "ok");
     }
