@@ -180,4 +180,10 @@ public class TeamStartNotifier implements Runnable {
     private static class AlreadyJoinedException extends RuntimeException {
     }
 
+    public static void removeUserNotification(Element joinXml) {
+        String projectID = joinXml.getAttribute(PROJECT_ID);
+        String notificationId = "joinTeamProject." + projectID;
+        UserNotificationManager.getInstance().removeNotification(notificationId);
+    }
+
 }

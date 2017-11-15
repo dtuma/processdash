@@ -41,6 +41,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.UserNotificationManager;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 /**
@@ -267,6 +268,8 @@ public class McfSizeMetricApiHandler implements SizeMetricApiHandler {
             notificationUri = notificationUri.substring(1);
         String notificationUrl = WebServer.urlEncodePath(projectPrefix) + "//"
                 + notificationUri;
+        notificationUrl = HTMLUtils.appendQuery(notificationUrl,
+            "removeNotification", notificationId);
 
         // register this notification info with the UserNotificationManager
         UserNotificationManager.getInstance().addNotification(notificationId,

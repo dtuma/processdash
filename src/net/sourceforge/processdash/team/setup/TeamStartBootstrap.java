@@ -776,6 +776,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             throw ioe;
         }
 
+        TeamStartNotifier.removeUserNotification(joinXml);
         putValue(TEAM_URL, joinXml.getAttribute("Team_URL"));
         putValue(PROJECT_FULL_NAME, joinXml.getAttribute("Project_Full_Name"));
         saveXmlJoiningData(joinXml);
