@@ -38,6 +38,8 @@ import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.Timer;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.repository.DataEvent;
@@ -48,6 +50,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.rest.to.RestEvent;
+import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.util.PatternList;
 
 public class RestEventService {
@@ -80,6 +83,7 @@ public class RestEventService {
         listenForHierarchyEvents();
         listenForTaskListEvents();
         listenForDataEvents();
+        listenForUserNotificationEvents();
     }
 
     public List<RestEvent> eventsAfter(long id, long maxWait) {
@@ -200,6 +204,30 @@ public class RestEventService {
                 return e.getKey();
         }
         return null;
+    }
+
+    private void listenForUserNotificationEvents() {
+        try {
+            UserNotificationManager mgr = UserNotificationManager.getInstance();
+            mgr.addNotificationListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    handleUserNotificationEvent(e);
+                }
+            });
+            if (!mgr.getNotifications().isEmpty())
+                handleUserNotificationEvent(null);
+
+        } catch (Throwable e) {
+            // Earlier versions of the dashboard do not provide the method to
+            // register a listener for changes to notifications. When running
+            // in an earlier version, this will throw a NoSuchMethodError.
+            // Ignore the error, and don't provide these notifications.
+        }
+    }
+
+    private void handleUserNotificationEvent(TableModelEvent e) {
+        RestEvent evt = new RestEvent("notification");
+        addEvent("NotificationEvent", evt);
     }
 
 

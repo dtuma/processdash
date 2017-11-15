@@ -17,6 +17,7 @@
 				net.sourceforge.processdash.rest.controller.RecentTasksApi
 				net.sourceforge.processdash.rest.controller.TaskApi
 				net.sourceforge.processdash.rest.controller.TimerApi
+				net.sourceforge.processdash.rest.controller.UserNotificationApi
 			</param-value>
 		</init-param>
 	</servlet>
