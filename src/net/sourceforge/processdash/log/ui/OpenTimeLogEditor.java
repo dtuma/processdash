@@ -64,10 +64,14 @@ public class OpenTimeLogEditor extends TinyCGIBase {
         DashController.checkIP(env.get("REMOTE_ADDR"));
         String type = getParameter("type");
         Window w = null;
-        if ("rollup".equals(type))
+        if ("rollup".equals(type)) {
             showRollupTimeLog();
-        else
-            w = DashController.showTimeLogEditor(getPrefix());
+        } else {
+            String path = getPrefix();
+            if (path != null && path.length() < 2)
+                path = null;
+            w = DashController.showTimeLogEditor(path);
+        }
 
         out.print("Expires: 0\r\n");
         if (w != null && isJsonRequest()) {

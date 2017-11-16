@@ -38,7 +38,10 @@ public class OpenDefectLogEditor extends TinyCGIBase {
     @Override
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        Window w = DashController.showDefectLogEditor(getPrefix());
+        String path = getPrefix();
+        if (path != null && path.length() < 2)
+            path = null;
+        Window w = DashController.showDefectLogEditor(path);
 
         out.print("Expires: 0\r\n");
         if (w != null && isJsonRequest()) {
