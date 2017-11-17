@@ -284,7 +284,8 @@
     <html ID="size" href="PID/sizeForm.class"
         title="<!--#echo Full_Name --> Size Inventory"/>
     <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"/>
+        title="<!--#echo Full_Name --> Process Script"
+        inPackage="show-PID-process-script"/>
     <html ID="workflow" href="reports/workflowToDate?wait"
         inPackage="tpidw-embedded version 1.5.3"/>
 
@@ -442,7 +443,8 @@
     <html ID="size" href="PID/sizeForm.class"
         title="<!--#echo Full_Name --> Size Inventory"/>
     <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"/>
+        title="<!--#echo Full_Name --> Process Script"
+        inPackage="show-PID-process-script"/>
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
@@ -495,7 +497,8 @@
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
     <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"/>
+        title="<!--#echo Full_Name --> Process Script"
+        inPackage="show-PID-process-script"/>
     <!--#endif enableSubcomponentForms -->
 
 <!--#foreach name=Phase list=Phase_List -->
@@ -542,7 +545,8 @@
     <!-- html ID="sumq" href="PID/quality_summary.shtm"
         title="<!--#echo Full_Name --> Project Quality Summary"/ -->
     <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"/>
+        title="<!--#echo Full_Name --> Process Script"
+        inPackage="show-PID-process-script"/>
     <!--#endif enableSubcomponentForms -->
 
   </template>
@@ -573,7 +577,8 @@
     <html ID="sump" href="PID/plan_summary.shtm"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
     <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"/>
+        title="<!--#echo Full_Name --> Process Script"
+        inPackage="show-PID-process-script"/>
     <!--#endif enableSubcomponentForms -->
 
   </template>
