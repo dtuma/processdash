@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JToolTip;
 import javax.swing.SwingUtilities;
@@ -110,6 +111,12 @@ public class NarrowJMenu extends JMenu {
     }
 
     @Override
+    public void setIcon(Icon defaultIcon) {
+        super.setIcon(defaultIcon);
+        recalcTextTruncation();
+    }
+
+    @Override
     public void setText(String text) {
         super.setText(text);
         recalcTextTruncation();
@@ -134,14 +141,14 @@ public class NarrowJMenu extends JMenu {
 
         getBounds(viewRect);
         Insets insets = getInsets();
-        viewRect.width -= insets.left + insets.top + 2 * getIconTextGap();
+        viewRect.width -= insets.left + insets.right + 2 * getIconTextGap();
 
         String layoutText = getTextToLayout(menuText);
         String fitLayoutText = SwingUtilities.layoutCompoundLabel(
-            getFontMetrics(getFont()), layoutText, null,
+            getFontMetrics(getFont()), layoutText, getIcon(),
             getVerticalAlignment(), getHorizontalAlignment(),
-            getVerticalTextPosition(), getHorizontalTextPosition(), viewRect,
-            iconRect, textRect, 0);
+            getVerticalTextPosition(), getHorizontalTextPosition(), //
+            viewRect, iconRect, textRect, getIconTextGap());
 
         if (fitLayoutText.equals(layoutText)) {
             altTextForPainting = null;
