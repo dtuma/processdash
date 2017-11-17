@@ -562,7 +562,6 @@ public class DefectLogEditor extends Component implements
             dle = getSelectedDefect();
             if (dle != null) {
                 dlg = getDialogForDefect(dle, true);
-                dlg.setTitle(dle.pk.path());
                 dlg.toFront();
             }
 

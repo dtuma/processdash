@@ -81,6 +81,8 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.AbbreviatingPathLabel;
+import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
@@ -97,6 +99,7 @@ import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.DropDownLabel;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -150,12 +153,12 @@ public class DefectDialog
     DefectDialog(ProcessDashboard dash, String defectFilename,
             PropertyKey defectPath, PropertyKey taskPath) {
         this(dash, defectFilename, defectPath, taskPath, true);
+        setTitle(resources.getString("Window_Title.Add"));
     }
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
             PropertyKey defectPath, PropertyKey taskPath, boolean guessDefaults) {
         window = makeWindow(dash);
-        setTitle(resources.getString("Window_Title"));
         PCSH.enableHelpKey(window, "EnteringDefects");
         if (Settings.getBool("userPref.defectDialog.alwaysOnTop", true))
             window.setAlwaysOnTop(true);
@@ -182,9 +185,23 @@ public class DefectDialog
         panel.setBorder(new EmptyBorder(5,5,5,5));
         panel.setLayout(layout);
 
+                                // path header
+        g.gridx = g.gridy = 0;
+        g.gridwidth = 2;
+        g.insets = bottom_margin;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        AbbreviatingPathLabel pl = new AbbreviatingPathLabel(defectPath.path(),
+                HierarchyIcons.getComponentIcon());
+        pl.setRequestedWidth(200);
+        ToolTipTimingCustomizer.INSTANCE.install(pl);
+        layout.setConstraints(pl, g);
+        panel.add(pl);
+
                                 // first row
-        g.gridy = 0;
+        g.gridy = 1;
+        g.gridwidth = 1;
         g.insets = small_margin;
+        g.fill = GridBagConstraints.NONE;
         g.anchor = GridBagConstraints.WEST;
 
         number = new JLabel();
@@ -196,7 +213,7 @@ public class DefectDialog
         panel.add(c);
 
                                 // second row
-        g.gridy = 1;
+        g.gridy = 2;
         g.insets = bottom_right_margin;
         g.anchor = GridBagConstraints.NORTHWEST;
         g.fill = GridBagConstraints.HORIZONTAL;
@@ -219,7 +236,7 @@ public class DefectDialog
         panel.add(fix_date);
 
                                 // third row
-        g.gridy = 2;
+        g.gridy = 3;
         g.insets = small_margin;
         g.anchor = GridBagConstraints.WEST;
         g.weightx = 1;
@@ -235,7 +252,7 @@ public class DefectDialog
         panel.add(c);
 
                                 // fourth row
-        g.gridy = 3;
+        g.gridy = 4;
         g.insets = bottom_right_margin;
         g.fill = GridBagConstraints.HORIZONTAL;
         g.anchor = GridBagConstraints.NORTHWEST;
@@ -346,7 +363,7 @@ public class DefectDialog
         g.gridx = 2;   fixLayout.setConstraints(c, g);
         fixPanel.add(c);
 
-        g.gridx = 0;   g.gridy = 4;  g.gridwidth = 2;
+        g.gridx = 0;   g.gridy = 5;  g.gridwidth = 2;
         g.insets = new Insets(0, 0, 0, 0);
         layout.setConstraints(fixPanel, g);
         panel.add(fixPanel);
@@ -442,7 +459,7 @@ public class DefectDialog
         }
     }
 
-    public void setTitle(String title) {
+    private void setTitle(String title) {
         if (window instanceof JFrame) {
             ((JFrame) window).setTitle(title);
         } else {
@@ -463,6 +480,7 @@ public class DefectDialog
     private DefectDialog(ProcessDashboard dash, String defectFilename,
                          PropertyKey defectPath, Defect defect) {
         this(dash, defectFilename, defectPath, defectPath, false);
+        setTitle(resources.getString("Window_Title.Edit"));
         stopTimingDefect();
         setValues(defect);
         setDirty(false);

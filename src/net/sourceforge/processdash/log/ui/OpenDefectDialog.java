@@ -105,7 +105,6 @@ public class OpenDefectDialog extends TinyCGIBase {
 
         DefectDialog dlg = DefectDialog.getDialogForDefect(getDash(),
             defectLog.filename, defectLog.path, defect, true);
-        dlg.setTitle(defectLog.path.path());
         dlg.toFront();
         return dlg;
     }
@@ -116,8 +115,6 @@ public class OpenDefectDialog extends TinyCGIBase {
         PropertyKey task = dash.getHierarchy().findClosestKey(path);
         DefectDialog dlg = new DefectDialog(dash, defectLog.filename,
                 defectLog.path, task);
-        if (!defectLog.path.equals(dash.getCurrentPhase()))
-            dlg.setTitle(defectLog.path.path());
         return dlg;
     }
 
