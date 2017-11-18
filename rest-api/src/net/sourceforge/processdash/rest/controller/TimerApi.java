@@ -37,6 +37,7 @@ import net.sourceforge.processdash.rest.rs.POST;
 import net.sourceforge.processdash.rest.rs.PUT;
 import net.sourceforge.processdash.rest.rs.Path;
 import net.sourceforge.processdash.rest.service.RestDashContext;
+import net.sourceforge.processdash.rest.service.RestDefectLogService;
 import net.sourceforge.processdash.rest.service.RestTaskService;
 import net.sourceforge.processdash.rest.to.JsonMap;
 import net.sourceforge.processdash.rest.to.RestTask;
@@ -54,6 +55,8 @@ public class TimerApi {
 
         RestTask task = RestTaskService.get().loadData(
             RestTaskService.get().byKey(model.getActiveTaskModel().getNode()));
+        state.put("defectsAllowed",
+            RestDefectLogService.get().defectsAllowed(task));
         state.put("activeTask", task);
 
         return new JsonMap("timer", state, "stat", "ok");
