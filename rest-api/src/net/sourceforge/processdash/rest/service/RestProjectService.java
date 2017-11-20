@@ -56,27 +56,29 @@ public class RestProjectService {
         RestDashContext.get().getHierarchy()
                 .addHierarchyListener(new DashHierarchy.Listener() {
                     public void hierarchyChanged(DashHierarchy.Event e) {
-                        idMap = pathMap = null;
+                        synchronized (RestProjectService.this) {
+                            idMap = pathMap = null;
+                        }
                     }
                 });
     }
 
-    public List<RestProject> all() {
+    public synchronized List<RestProject> all() {
         ensureProjects();
         return new ArrayList<RestProject>(idMap.values());
     }
 
-    public RestProject byID(String projectID) {
+    public synchronized RestProject byID(String projectID) {
         ensureProjects();
         return idMap.get(projectID);
     }
 
-    public RestProject byPath(String projectPath) {
+    public synchronized RestProject byPath(String projectPath) {
         ensureProjects();
         return pathMap.get(projectPath);
     }
 
-    public RestProject containingPath(String taskPath) {
+    public synchronized RestProject containingPath(String taskPath) {
         ensureProjects();
         for (Entry<String, RestProject> e : pathMap.entrySet()) {
             String projectPath = e.getKey();
