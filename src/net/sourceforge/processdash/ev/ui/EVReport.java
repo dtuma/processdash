@@ -1189,7 +1189,7 @@ public class EVReport extends CGIChartBase {
                 out.print("&showLabelFilter");
             if (evModel.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID) != null)
                 out.print("&hasBaseline");
-            out.print("' target='customize' onClick='PdashEV.openCustomizeWindow();'>");
+            out.print("' onclick='return PdashEV.openCustomizeWindow(this.href);'>");
             out.print(HTMLUtils.escapeEntities(resources
                     .getDlgString("Customize")));
             out.print("</a></span></span>");

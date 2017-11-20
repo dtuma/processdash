@@ -24,6 +24,12 @@
 var WFilt = {
 
     init : function() {
+        if (!String.prototype.trim) {
+            String.prototype.trim = function () {
+                return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+            };
+        }
+
         var filterClickEvent = WFilt.filterClick.bindAsEventListener(this);
         var clearFieldEvent = WFilt.clearField.bindAsEventListener(this);
         var matchNumbersFunc = WFilt.matchNumbers.bind(this);
@@ -63,7 +69,7 @@ var WFilt = {
         // register event handlers for outlier checkboxes
         var checkOutliersEvent = this.checkOutliers.bindAsEventListener(this);
         Form.getInputs($("data"), "checkbox", "outlierVal").each(function(e) {
-            e.onchange = checkOutliersEvent;
+            e.onclick = checkOutliersEvent;
         });
 
         // register a key handler to save/close filters
@@ -259,7 +265,7 @@ var WFilt = {
         // build a function which can test to see if a given table cell
         // is included/excluded as appropriate
         return function(td) {
-            var text = (td.textContent || text.innerText).toLowerCase();
+            var text = (td.textContent || td.innerText).toLowerCase();
             if (exclude) {
                 for (var i = 0; i < exclude_.length; i++) {
                     if (exclude_[i] && text.indexOf(exclude_[i]) != -1)

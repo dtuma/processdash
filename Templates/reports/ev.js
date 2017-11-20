@@ -1,10 +1,11 @@
 
 var PdashEV = {
 
-   openCustomizeWindow: function() {
-      var newWind = window.open ('', 'customize',
+   openCustomizeWindow: function(href) {
+      var newWind = window.open (href, 'customize',
             'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=720');
       newWind.focus();
+      return false;
    },
 
    selectSingleChart: function (elem) {

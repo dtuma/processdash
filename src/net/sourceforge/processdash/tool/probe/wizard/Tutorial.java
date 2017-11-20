@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -201,7 +201,7 @@ public class Tutorial extends TinyCGIBase {
     }
     private static String getLink(String url) {
         return "<a href=\"" + url +
-            "\" target='popup' onClick='popup();' class='plain'>";
+            "\" onclick='return popup(this.href);' class='plain'>";
     }
 
     static {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,10 +77,10 @@ public abstract class WizardPage {
         out.println("</title>");
         out.println("<link rel=stylesheet type='text/css' href='"+cssHref+"'>");
         out.println("<script>");
-        out.println("function popup() {");
-        out.println("   var newWin = window.open('','popup'," +
+        out.println("function popup(href) {");
+        out.println("   var newWin = window.open(href,'popup'," +
                     "'width=475,height=330,dependent=1,scrollbars=1');");
-        out.println("   newWin.focus();");
+        out.println("   newWin.focus();   return false;");
         out.println("}");
         out.println("</script>");
         out.print(extraHeaderTags);

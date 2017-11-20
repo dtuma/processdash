@@ -228,6 +228,12 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private static final String SIZE_INIT_TOKEN = "<!-- SIZE_TYPE_INIT -->";
     private static final String SIZE_OPTIONS_TOKEN = "<!-- SIZE_TYPE_OPTIONS -->";
 
+    private String fixWizardLink(String html) {
+        html = StringUtils.findAndReplace(html, "DashSET.wizard();", 
+            "DashSET.wizard(this.href); return false;");
+        return html;
+    }
+
     private String flagInputMismatch(String html) {
         if (isMismatch) {
             html = StringUtils.findAndReplace(html, NO_INPUT_MISMATCH_TOKEN,
@@ -276,6 +282,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             html = markReadOnlyFields(html);
             html = insertLiteralProjectPath(html);
             html = insertSizeTypeData(html);
+            html = fixWizardLink(html);
             html = flagInputMismatch(html);
             out.print(html);
         }

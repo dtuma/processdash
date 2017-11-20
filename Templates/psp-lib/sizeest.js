@@ -26,8 +26,8 @@
 var DashSET = {
 
   wizard:
-  function() {
-    window.open('','wizard',
+  function(href) {
+    window.open(href || '','wizard',
         'width=800,height=600,resizable=yes,scrollbars=yes').focus();
   },
 
