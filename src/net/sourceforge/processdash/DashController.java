@@ -62,6 +62,8 @@ import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.RepairImportDirInstruction;
 import net.sourceforge.processdash.ui.WindowTracker;
+import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
+import net.sourceforge.processdash.ui.systray.WindowHandler;
 import net.sourceforge.processdash.util.UUIDFile;
 
 
@@ -158,6 +160,22 @@ public class DashController {
         dash.setVisible(true);
         dash.windowSizeRequirementsChanged();
         dash.toFront();
+    }
+
+    /** @since 2.4.1 */
+    public static void hideWindow() {
+        PERMISSION.checkPermission();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                hideWindowImpl();
+            }
+        });
+    }
+
+    private static void hideWindowImpl() {
+        InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "false");
+        InternalSettings.set(WindowHandler.MINIMIZE_TO_TRAY_SETTING, "true");
+        dash.setState(Frame.ICONIFIED);
     }
 
     public static Window showTimeLogEditor(final String path) {

@@ -76,6 +76,7 @@ public class Control extends TinyCGIBase {
             DashController.checkIP(env.get("REMOTE_ADDR"));
 
         raiseWindow();
+        hideWindow();
         showConsole();
         setPath();
         startTiming();
@@ -116,6 +117,14 @@ public class Control extends TinyCGIBase {
         if (isTask("raiseWindow") || isTask("showMainWindow")) {
             DashController.raiseWindow();
             printWindowOpenedJson(getDashboardContext());
+        }
+    }
+
+    private void hideWindow() {
+        if (isTask("hideMainWindow")) {
+            DashController.hideWindow();
+            if (isJsonRequest())
+                printJsonResponse("{\"stat\":\"ok\"}");
         }
     }
 
