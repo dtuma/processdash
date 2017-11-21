@@ -178,6 +178,14 @@ public class DashController {
         dash.setState(Frame.ICONIFIED);
     }
 
+    /** @since 2.4.1 */
+    public static Window showFindTaskWindow() {
+        return WindowTracker.openWindow(new Runnable() {
+            public void run() {
+                dash.getChangeTaskAction().actionPerformed(null);
+            }});
+    }
+
     public static Window showTimeLogEditor(final String path) {
         return WindowTracker.openWindow(new Runnable() {
             public void run() { showTimeLogEditorImpl(path); }});

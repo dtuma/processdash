@@ -77,6 +77,7 @@ public class Control extends TinyCGIBase {
 
         raiseWindow();
         hideWindow();
+        showFindTask();
         showConsole();
         setPath();
         startTiming();
@@ -125,6 +126,12 @@ public class Control extends TinyCGIBase {
             DashController.hideWindow();
             if (isJsonRequest())
                 printJsonResponse("{\"stat\":\"ok\"}");
+        }
+    }
+
+    private void showFindTask() {
+        if (isTask("showFindTaskWindow")) {
+            printWindowOpenedJson(DashController.showFindTaskWindow());
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -121,6 +121,7 @@ public class QuickSelectTaskAction extends AbstractAction {
         new JOptionPaneActionHandler().install(selector);
         Object[] message = new Object[] {
                 resources.getString("Choose_Task.Prompt"), selector,
+                WindowTracker.dlg(),
                 new JOptionPaneTweaker.MakeResizable(),
                 new JOptionPaneTweaker.GrabFocus(selector.getFilterTextField()),
                 new JOptionPaneTweaker(50) {
