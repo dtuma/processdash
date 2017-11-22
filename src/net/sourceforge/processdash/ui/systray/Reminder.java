@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,6 +76,8 @@ public class Reminder {
 
     private ProcessDashboard pdash;
 
+    private MessageHandler message;
+
     private PropertyChangeSupport propertyChangeSupport;
 
     // This property change listener stops or restarts the timer if applicable
@@ -93,10 +95,12 @@ public class Reminder {
 
     };
 
-    public Reminder(TrayIcon icon, ProcessDashboard pdash) {
+    public Reminder(TrayIcon icon, ProcessDashboard pdash,
+            MessageHandler message) {
 
         this.icon = icon;
         this.pdash = pdash;
+        this.message = message;
         propertyChangeSupport = new PropertyChangeSupport(this);
 
         ActionListener al = EventHandler.create(ActionListener.class, this,
@@ -193,8 +197,8 @@ public class Reminder {
         String msgBody = Reminder.resource.format(messageKey, windowTitle,
                 pdash.getActiveTaskModel().getPath());
         String msgTitle = Reminder.resource.format("Title_FMT", windowTitle);
-        Reminder.this.icon.displayMessage(msgTitle, msgBody,
-                TrayIcon.MessageType.NONE);
+        message.displayMessage(msgTitle, msgBody, TrayIcon.MessageType.NONE,
+            null);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener pcl) {

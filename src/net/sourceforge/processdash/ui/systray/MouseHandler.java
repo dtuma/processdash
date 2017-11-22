@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,12 +59,14 @@ public class MouseHandler extends MouseAdapter {
 
 
     public MouseHandler(ProcessDashboard pdash, TrayIcon icon,
-            MenuHandler menuHandler, IconImageHandler imageHandler) {
+            MenuHandler menuHandler, IconImageHandler imageHandler,
+            MessageHandler messageHandler) {
         this.timeLoggingModel = pdash.getTimeLoggingModel();
         this.showWindowAction = menuHandler.getShowWindowAction();
         this.playPauseAction = menuHandler.getPlayPauseAction();
         this.changeTaskAction = menuHandler.getChangeTaskAction();
         this.imageHandler = imageHandler;
+        this.popupMessageClickAction = messageHandler;
         this.actionEventHandler = new ActionEventHandler();
 
         ActionListener al = EventHandler.create(ActionListener.class, this,
@@ -76,13 +78,6 @@ public class MouseHandler extends MouseAdapter {
 
         icon.addMouseListener(this);
         icon.addActionListener(actionEventHandler);
-
-        // in the future, we may introduce more sophisticated support, allowing
-        // different actions to be triggered based on the content of the
-        // popup message that the user clicked on.  For now though, keep
-        // things simple and show the dashboard window in response to clicks
-        // on the popup message.
-        this.popupMessageClickAction = this.showWindowAction;
     }
 
 

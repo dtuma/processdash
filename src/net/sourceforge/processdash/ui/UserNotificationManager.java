@@ -74,11 +74,13 @@ public class UserNotificationManager {
 
     private Timer toFrontTimer;
 
+    private Timer deferralTimer;
+
     private long deferUntil = 0;
 
     private Window parentWindow;
 
-    private static final long DEFERRAL_PERIOD = 30 * 60 * 1000; // 30 minutes
+    private static final int DEFERRAL_PERIOD = 30 * 60 * 1000; // 30 minutes
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Notifier");
@@ -93,6 +95,11 @@ public class UserNotificationManager {
                     notificationsWindow.showWindow();
             }});
         toFrontTimer.setRepeats(false);
+
+        deferralTimer = new Timer(DEFERRAL_PERIOD + 2000, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                maybeShowNotifications(parentWindow);
+            }});
 
         MenuSelectionManager.defaultManager().addChangeListener( //
             new ChangeListener() {
@@ -128,23 +135,23 @@ public class UserNotificationManager {
         notifications.removeTableModelListener(l);
     }
 
-    public void maybeShowNotifications(Window w) {
-        parentWindow = w;
-        if (w == null || !w.isShowing() || !w.isActive())
-            // don't show notifications if the parent window is not active.
-            return;
+    /** @since 2.4.1 */
+    public void maybeShowNotifications() {
+        maybeShowNotifications(parentWindow, false);
+    }
 
-        if (MenuSelectionManager.defaultManager().getSelectedPath().length > 0)
-            // don't display the notification window if the user is currently
-            // interacting with a menu, since the change of focus would cause
-            // their menu context to be lost.
-            return;
+    public void maybeShowNotifications(Window w) {
+        maybeShowNotifications(w, true);
+    }
+
+    private void maybeShowNotifications(Window w, boolean requireWindow) {
+        parentWindow = w;
 
         if (notifications.isEmpty())
             // there are no notifications to show.
             return;
 
-        if (notificationsWindow != null && notificationsWindow.isShowing())
+        if (isNotificationsWindowShowing())
             // the notifications window is already being displayed to the user.
             // nothing needs to be done.
             return;
@@ -152,6 +159,20 @@ public class UserNotificationManager {
         if (System.currentTimeMillis() < deferUntil)
             // the user dismissed the notifications window, and a sufficient
             // period of time has not yet elapsed. Wait until later.
+            return;
+
+        if (requireWindow && (w == null || !w.isShowing() || !w.isActive())) {
+            // don't show notifications if the parent window is not active.
+            // instead, fire an event asking the tray icon to display them.
+            notifications.fireTableCellUpdated(0, 0);
+            deferralTimer.restart();
+            return;
+        }
+
+        if (MenuSelectionManager.defaultManager().getSelectedPath().length > 0)
+            // don't display the notification window if the user is currently
+            // interacting with a menu, since the change of focus would cause
+            // their menu context to be lost.
             return;
 
         if (notificationsWindow == null) {
@@ -165,8 +186,13 @@ public class UserNotificationManager {
         toFrontTimer.restart();
     }
 
+    /** @since 2.4.1 */
+    public boolean isNotificationsWindowShowing() {
+        return notificationsWindow != null && notificationsWindow.isShowing();
+    }
+
     public void maybeHideNotifications() {
-        if (notificationsWindow != null && notificationsWindow.isShowing())
+        if (isNotificationsWindowShowing())
             notificationsWindow.handleDefer();
     }
 
@@ -243,6 +269,8 @@ public class UserNotificationManager {
                     break;
                 }
             }
+            if (notifications.isEmpty())
+                deferralTimer.stop();
         }
 
         public void ignore(int row) {
@@ -351,6 +379,7 @@ public class UserNotificationManager {
         }
 
         public void showWindow() {
+            deferralTimer.stop();
             if (!notifications.isEmpty() && table.getSelectedRowCount() == 0)
                 table.setRowSelectionInterval(0, 0);
             setVisible(true);
@@ -381,6 +410,7 @@ public class UserNotificationManager {
         public void dispose() {
             super.dispose();
             deferUntil = System.currentTimeMillis() + DEFERRAL_PERIOD;
+            deferralTimer.restart();
         }
 
         public void mouseClicked(MouseEvent e) {

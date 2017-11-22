@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2017 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -93,6 +93,16 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
     Reminder reminder;
 
     /**
+     * Object to display and handle clicks on pop-up messages
+     */
+    MessageHandler message;
+
+    /**
+     * Object to respond to user notification events
+     */
+    UserNotificationHandler notificationHandler;
+
+    /**
      * Object to observe changes in user settings
      */
     UserSettingHandler userSettingHandler;
@@ -162,12 +172,15 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         this.isVisible = false;
         this.pdash = pdash;
 
-        reminder = new Reminder(icon, pdash);
+        message = new MessageHandler(icon);
+        reminder = new Reminder(icon, pdash, message);
+        notificationHandler = new UserNotificationHandler(message);
         imageHandler = new IconImageHandler(pdash, icon);
         tooltipHandler =  new TooltipHandler(pdash, icon);
         windowHandler = new WindowHandler(pdash, this);
         menuHandler = new MenuHandler(pdash, icon, reminder);
-        mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler);
+        mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler,
+                message);
         userSettingHandler = new UserSettingHandler(this);
     }
 
