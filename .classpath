@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="rest-api/src"/>
+	<classpathentry kind="src" path="teamdash/src"/>
+	<classpathentry kind="src" path="l10n-tool/src"/>
 	<classpathentry kind="src" path="installer/src"/>
 	<classpathentry kind="src" path="test/src"/>
 	<classpathentry kind="src" path="lib/src"/>
-	<classpathentry kind="src" path="l10n-tool/src"/>
-	<classpathentry kind="src" path="teamdash/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/image4j.jar"/>
 	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar" sourcepath="/ANT_HOME/apache-ant-1.7.0-src.zip"/>

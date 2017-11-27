@@ -104,7 +104,8 @@ Authors:
   <property name="libsrc"     value="${lib}/src"/>
   <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
-  <property name="installSrc"  value="${installer}/src"/>
+  <property name="installSrc" value="${installer}/src"/>
+  <property name="rest-api"   value="rest-api"/>
   <property name="basePkg"    value="net/sourceforge/processdash"/>
   <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
 
@@ -330,6 +331,10 @@ Authors:
     <ant dir="${extras.dir}" inheritAll="false">
       <property name="processdash" value="${extras.processdash.dir}"/>
     </ant>
+  </target>
+
+  <target name="rest-addon" depends="jar">
+    <ant dir="${rest-api}" inheritAll="false" />
   </target>
 
   <target name="pkgAssets" depends="compile">
@@ -805,7 +810,7 @@ Authors:
   <!-- =================================================================== -->
   <target name="dist"
       depends="jar,javahelp-addon,import-addon,l10nTool-addon,
-               pspForEng-addon,extras-addon"/>
+               pspForEng-addon,rest-addon,extras-addon"/>
 
   <target name="dist-src">
     <!-- get a list of all files known to version control -->
