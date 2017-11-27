@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.rest.controller;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -68,15 +69,29 @@ public class TimerApi {
     public Map setTimingState(HttpServletRequest req) {
         TimeLoggingModel model = getModel();
 
+        // if the client has requested a change to the active task, oblige
         String activeTaskID = req.getParameter("activeTaskId");
         if (StringUtils.hasValue(activeTaskID)) {
             RestTask task = RestTaskService.get().byID(activeTaskID);
+
+            // clients will often pass the ID of a project root as a way of
+            // requesting that we switch projects. Unfortunately, this doesn't
+            // have the desired effect for the "Other Tasks" pseudo-project.
+            // Detect such a request and handle it specially.
+            if (task != null && "".equals(task.getFullPath())) {
+                List<RestTask> nonProjectTasks = RestTaskService.get()
+                        .forProject(task.getProject(), true);
+                if (!nonProjectTasks.isEmpty())
+                    task = nonProjectTasks.get(0);
+            }
+
             if (task == null)
                 throw HttpException.notFound();
             else
                 model.getActiveTaskModel().setPath(task.getFullPath());
         }
 
+        // if the client has requested a change to the paused state, oblige
         String timing = req.getParameter("timing");
         if ("true".equals(timing))
             model.setPaused(false);
