@@ -429,7 +429,9 @@ public class EVTask implements Cloneable, DataListener {
         if (!XMLUtils.hasValue(value))
             return null;
         String[] items = value.split(",");
-        return new ArrayList<String>(Arrays.asList(items));
+        ArrayList<String> result = new ArrayList<String>(Arrays.asList(items));
+        result.removeAll(Collections.singleton(""));
+        return result;
     }
     protected boolean hasValue(Collection c) {
         return (c != null && c.isEmpty() == false);

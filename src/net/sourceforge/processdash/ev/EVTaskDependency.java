@@ -296,7 +296,7 @@ public class EVTaskDependency implements Cloneable {
         ListData newValue;
         if (currentValue instanceof ListData)
             newValue = (ListData) currentValue;
-        else if (currentValue instanceof StringData)
+        else if (currentValue instanceof StringData && currentValue.test())
             newValue = ((StringData) currentValue).asList();
         else
             newValue = new ListData();
@@ -304,7 +304,7 @@ public class EVTaskDependency implements Cloneable {
         boolean valueChanged = false;
         String[] idList = id.split(",");
         for (int i = 0; i < idList.length; i++) {
-            if (newValue.setAdd(idList[i]))
+            if (idList[i].length() > 0 && newValue.setAdd(idList[i]))
                 valueChanged = true;
         }
         if (valueChanged)
