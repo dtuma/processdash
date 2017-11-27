@@ -1,0 +1,30 @@
+<web-app id="WebApp_ID" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+	<display-name>Process Dashboard REST API</display-name>
+
+	<servlet>
+		<display-name>REST Dispatch Servlet</display-name>
+		<servlet-name>restDispatchServlet</servlet-name>
+		<servlet-class>net.sourceforge.processdash.rest.rs.DispatchServlet</servlet-class>
+		<init-param>
+			<param-name>handlers</param-name>
+			<param-value>
+				net.sourceforge.processdash.rest.controller.ApiRoot
+				net.sourceforge.processdash.rest.controller.EventApi
+				net.sourceforge.processdash.rest.controller.ProjectApi
+				net.sourceforge.processdash.rest.controller.RecentTasksApi
+				net.sourceforge.processdash.rest.controller.TaskApi
+				net.sourceforge.processdash.rest.controller.TimerApi
+				net.sourceforge.processdash.rest.controller.UserNotificationApi
+			</param-value>
+		</init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>restDispatchServlet</servlet-name>
+		<url-pattern>/api/v1/*</url-pattern>
+	</servlet-mapping>
+
+</web-app>
