@@ -95,8 +95,10 @@ public class TaskCommenterButton extends JButton implements ActionListener,
         editTooltip = resources.getHTML("Edit_Tooltip");
         noCommentTooltip = resources.getHTML("No_Comments_Tooltip");
 
+        this.setBorderPainted(false);
         this.setBorder(BorderFactory.createEmptyBorder());
         this.setFocusPainted(false);
+        this.setContentAreaFilled(false);
         this.setRolloverEnabled(true);
         addActionListener(this);
         taskModel.addPropertyChangeListener(this);
