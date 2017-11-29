@@ -316,12 +316,14 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             return PrivacyType.Me;
 
         // see if this team member's username matches the current user
-        Map<String, String> serverInfo = m.getServerIdentityInfoMap();
-        if (currentUserName.equalsIgnoreCase(serverInfo.get("username")))
-            return PrivacyType.Me;
-        if (initialsPolicy == InitialsPolicy.Username
-                && currentUserName.equalsIgnoreCase(initials))
-            return PrivacyType.Me;
+        if (currentUserName != null) {
+            Map<String, String> serverInfo = m.getServerIdentityInfoMap();
+            if (currentUserName.equalsIgnoreCase(serverInfo.get("username")))
+                return PrivacyType.Me;
+            if (initialsPolicy == InitialsPolicy.Username
+                    && currentUserName.equalsIgnoreCase(initials))
+                return PrivacyType.Me;
+        }
 
         // is this team member a person who should always be allowed?
         if (allowTeamMemberIDs != null

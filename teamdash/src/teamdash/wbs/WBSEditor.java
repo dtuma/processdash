@@ -1890,8 +1890,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         try {
+            UserGroupManagerWBS.init(proj);
             if (!isDumpAndExitMode()) {
-                UserGroupManagerWBS.init(proj);
                 WBSPermissionManager.init(workingDirectory, proj);
             }
         } catch (HttpException.Unauthorized he) {
