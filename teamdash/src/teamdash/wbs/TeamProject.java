@@ -27,15 +27,20 @@ import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
@@ -597,16 +602,25 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     protected WBSModel readWBS() {
+        InputStream in = null;
         try {
-            Element xml = openXML(checkEditable(new File(directory,
-                    WBS_FILENAME)));
-            if (xml != null) {
-                WBSModel result = new WBSModel(xml);
-                projectName = result.getRoot().getName();
-                return result;
-            }
+            File file = checkEditable(new File(directory, WBS_FILENAME));
+            in = new BufferedInputStream(new FileInputStream(file));
+            InputSource src = new InputSource(in);
+            src.setEncoding("UTF-8");
 
+            SAXParser p = SAXParserFactory.newInstance().newSAXParser();
+            WBSModel result = new WBSModel(p, src);
+            projectName = result.getRoot().getName();
+            fileModTime = Math.max(fileModTime, file.lastModified());
+            return result;
+
+        } catch (FileNotFoundException fnfe) {
         } catch (Exception e) {
+            System.out.println("Unable to read " + WBS_FILENAME);
+            e.printStackTrace();
+        } finally {
+            FileUtils.safelyClose(in);
         }
 
         System.out.println("No "+WBS_FILENAME+

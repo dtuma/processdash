@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.PatternList;
@@ -101,6 +102,24 @@ public class WBSNode implements Cloneable {
         for (int i = 0;   i < len;   i++)
             setXMLAttribute((Element) nodeAttributes.item(i));
     }
+
+
+
+    /** Create a new WBSNode with information from an XML SAX event. */
+    public WBSNode(WBSModel model, Attributes attributes) {
+        this.wbsModel = model;
+        setName(attributes.getValue(NAME_ATTR));
+        setUniqueID(XMLUtils.getXMLInt(attributes, ID_ATTR));
+        setType(attributes.getValue(TYPE_ATTR));
+        setIndentLevel(XMLUtils.getXMLInt(attributes, INDENT_ATTR));
+        setExpanded(XMLUtils.hasValue(attributes.getValue(EXPAND_ATTR)));
+        setReadOnly(XMLUtils.hasValue(attributes.getValue(READ_ONLY_ATTR)));
+
+        if (this.name == null) this.name = "";
+        if (this.type == null) this.type = "";
+    }
+
+
 
     // Getter/setter methods
 
@@ -301,6 +320,19 @@ public class WBSNode implements Cloneable {
         String name = attrElement.getAttribute(NAME_ATTR).intern();
         String value = attrElement.getAttribute(VALUE_ATTR);
         setAttribute(name, value);
+    }
+
+    /** Extract an attribute name/value pair from the given XML SAX event,
+     * and store it in the attribute map.
+     */
+    protected void setXMLAttribute(Attributes attr) {
+        String name = attr.getValue(NAME_ATTR);
+        if (name == null)
+            return;
+        String value = attr.getValue(VALUE_ATTR);
+        if (value == null)
+            value = "";
+        setAttribute(name.intern(), value);
     }
 
 
@@ -569,7 +601,7 @@ public class WBSNode implements Cloneable {
     private static final String READ_ONLY_ATTR = "readOnly";
     private static final String INDENT_ATTR = "indentLevel";
     private static final String EXPAND_ATTR = "expanded";
-    private static final String ATTR_ELEM_NAME = "attr";
+    protected static final String ATTR_ELEM_NAME = "attr";
     private static final String VALUE_ATTR = "value";
     private static final String SPACES =
         "                                                            ";

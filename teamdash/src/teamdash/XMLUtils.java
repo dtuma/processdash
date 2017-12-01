@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 
@@ -115,6 +116,11 @@ public class XMLUtils {
     public static int getXMLInt(Element e, String attrName) {
         try {
             return Integer.parseInt(e.getAttribute(attrName));
+        } catch (Exception exc) { return -1; }
+    }
+    public static int getXMLInt(Attributes attributes, String attrName) {
+        try {
+            return Integer.parseInt(attributes.getValue(attrName));
         } catch (Exception exc) { return -1; }
     }
     public static Date getXMLDate(Element e, String attrName) {

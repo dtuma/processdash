@@ -43,10 +43,15 @@ import java.util.Set;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
+import javax.xml.parsers.SAXParser;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import net.sourceforge.processdash.util.PatternList;
 
@@ -158,6 +163,16 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public WBSModel(Element e) {
         wbsNodes = new ArrayList();
         loadXML(e);
+        validator = new WBSModelValidator(this);
+        validator.recalc();
+    }
+
+    /** Load a work breakdown structure from the data in the given XML stream.
+     */
+    public WBSModel(SAXParser p, InputSource in)
+            throws IOException, SAXException {
+        wbsNodes = new ArrayList();
+        loadXML(p, in);
         validator = new WBSModelValidator(this);
         validator.recalc();
     }
@@ -1495,6 +1510,30 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         ensureAllIDsAreUnique();
         recalcRows(false);
     }
+
+    protected void loadXML(SAXParser p, InputSource in)
+            throws IOException, SAXException {
+        p.parse(in, new WbsSaxHandler());
+        ensureAllIDsAreUnique();
+        recalcRows(false);
+    }
+
+    private class WbsSaxHandler extends DefaultHandler {
+
+        private WBSNode currentNode;
+
+        @Override
+        public void startElement(String uri, String localName, String qName,
+                Attributes attributes) throws SAXException {
+            if (WBSNode.ELEMENT_NAME.equals(qName)) {
+                currentNode = new WBSNode(WBSModel.this, attributes);
+                addImpl(currentNode);
+            } else if (WBSNode.ATTR_ELEM_NAME.equals(qName)) {
+                currentNode.setXMLAttribute(attributes);
+            }
+        }
+    }
+
 
     public void getAsXML(Writer out) throws IOException {
         out.write("<" + WBS_MODEL_TAG + ">\n");
