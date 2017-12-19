@@ -158,6 +158,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         long mostRecentLocalModTime = getMostRecentLocalModTime();
         downloadFiles(makeGetRequest(DOWNLOAD_ACTION,
             ResourceFilterFactory.LAST_MOD_PARAM, mostRecentLocalModTime));
+        pt.click("downloaded recent changes");
 
         // now make a complete comparison of local-vs-remote changes.
         ResourceCollectionDiff diff = getDiff();

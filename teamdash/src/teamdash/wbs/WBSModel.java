@@ -231,6 +231,22 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
+    /**
+     * Insert a node into the WBS as the last child of another node.
+     */
+    public synchronized void addChild(WBSNode parent, WBSNode child) {
+        int parentPos = getIndexOfNode(parent), destPos;
+        IntList descendants = getDescendantIndexes(parent, parentPos);
+        if (descendants.size() == 0)
+            destPos = parentPos + 1;
+        else
+            destPos = descendants.get(descendants.size() - 1) + 1;
+
+        child.setIndentLevel(parent.getIndentLevel() + 1);
+        wbsNodes.add(destPos, prepareNodeForInsertion(child));
+        recalcRows();
+    }
+
     /** Return the number of nodes in the wbs. */
     public int size() { return wbsNodes.size(); }
 
