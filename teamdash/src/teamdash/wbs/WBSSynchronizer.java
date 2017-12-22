@@ -174,14 +174,20 @@ public class WBSSynchronizer {
         if (createMissingTeamMembers)
             addMissingTeamMembers(exportFiles, datasetIDMap);
 
-        UserGroupManagerWBS.getInstance()
-                .addDatasetIDMappings(finalizeDatasetIdMappings(datasetIDMap));
+        UserGroupManagerWBS groupMgr = UserGroupManagerWBS.getInstance();
+        if (groupMgr != null) {
+            groupMgr.addDatasetIDMappings(
+                finalizeDatasetIdMappings(datasetIDMap));
+        }
 
         wbsRoot.setAttribute(EFFECTIVE_DATE_ATTR, effectiveDate);
         wbsRoot.removeAttribute(SYNC_IN_PROGRESS_ATTR);
 
-        int col = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
-        dataModel.columnChanged(dataModel.getColumn(col));
+        if (dataModel != null) {
+            // ask the data model to recalculate the team time column
+            int col = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
+            dataModel.columnChanged(dataModel.getColumn(col));
+        }
 
         if (needsWbsEvent)
             teamProject.getWBS().fireTableRowsUpdated(0, 0);
@@ -716,6 +722,7 @@ public class WBSSynchronizer {
 
         private TeamMember m;
         private int indivTimeColumn;
+        private String timeAttrName;
         private String syncAttrName;
 
         private void setTeamMember(TeamMember m) {
@@ -723,7 +730,9 @@ public class WBSSynchronizer {
                 this.m = m;
 
                 String columnID = TeamMemberTimeColumn.getColumnID(m);
-                indivTimeColumn = dataModel.findColumn(columnID);
+                indivTimeColumn = dataModel == null ? -1
+                        : dataModel.findColumn(columnID);
+                timeAttrName = TeamMemberTimeColumn.getMemberNodeDataAttrName(m);
                 syncAttrName = getSyncAttrName(columnID);
             }
         }
@@ -740,8 +749,12 @@ public class WBSSynchronizer {
             double lastUserTime = node.getNumericAttribute(syncAttrName);
 
             if (Double.isNaN(lastUserTime) || !eq(newUserTime, lastUserTime)) {
-                dataModel.setValueAt(new Double(newUserTime), node,
-                    indivTimeColumn);
+                if (dataModel != null) {
+                    dataModel.setValueAt(new Double(newUserTime), node,
+                        indivTimeColumn);
+                } else {
+                    node.setNumericAttribute(timeAttrName, newUserTime);
+                }
                 node.setNumericAttribute(syncAttrName, newUserTime);
             }
         }

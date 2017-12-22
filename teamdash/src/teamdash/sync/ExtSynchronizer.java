@@ -43,6 +43,7 @@ import teamdash.wbs.WBSClipSelection;
 import teamdash.wbs.WBSFilenameConstants;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer;
 
 public class ExtSynchronizer {
 
@@ -74,6 +75,7 @@ public class ExtSynchronizer {
     }
 
     public void sync(List<ExtNode> extNodes) {
+        runReverseSync();
         createOrRenameNodes(extNodes);
     }
 
@@ -100,6 +102,15 @@ public class ExtSynchronizer {
             }
         }
         return result;
+    }
+
+
+    private void runReverseSync() {
+        // If PDASH files contain unpublished modifications, apply them. This
+        // will ensure that the estimate sync logic will be working against the
+        // most up-to-date values.
+        WBSSynchronizer reverseSync = new WBSSynchronizer(teamProject, null);
+        reverseSync.run();
     }
 
 
