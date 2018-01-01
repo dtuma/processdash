@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,30 +58,43 @@ public class ExtSynchronizer {
 
     private String extIDAttr;
 
+    private SyncMetadata metadata;
+
     private Map<String, WBSNode> extNodeMap;
+
+    private List<ExtChange> extChangesNeeded;
 
     private Map<String, String> nameChanges;
 
-    private boolean madeChange;
+    private Map<String, String> timeChanges;
+
+    private boolean wbsChanged;
 
     public ExtSynchronizer(TeamProject teamProject, String extSystemName,
-            String extSystemID) {
+            String extSystemID, SyncMetadata metadata) {
         this.teamProject = teamProject;
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
         this.extSystemID = extSystemID;
         this.extIDAttr = this.extSystemID + " ID";
-        this.madeChange = false;
+        this.metadata = metadata;
+        this.wbsChanged = false;
         this.extNodeMap = buildExtNodeMap();
     }
 
     public void sync(List<ExtNode> extNodes) {
+        this.extChangesNeeded = new ArrayList<ExtChange>();
         runReverseSync();
         createOrRenameNodes(extNodes);
+        syncTimeEstimates(extNodes);
     }
 
-    public boolean wasChangeMade() {
-        return madeChange;
+    public boolean wasWbsChanged() {
+        return wbsChanged;
+    }
+
+    public List<ExtChange> getExtChangesNeeded() {
+        return extChangesNeeded;
     }
 
 
@@ -95,7 +109,7 @@ public class ExtSynchronizer {
                     // user has copied a node instead of moving it.)
                     node.removeAttribute(extIDAttr);
                     node.setReadOnly(false);
-                    this.madeChange = true;
+                    this.wbsChanged = true;
                 } else {
                     result.put(oneID, node);
                 }
@@ -148,17 +162,104 @@ public class ExtSynchronizer {
             node.setReadOnly(true);
             wbs.addChild(parent, node);
             extNodeMap.put(extID, node);
-            madeChange = true;
+            wbsChanged = true;
 
         } else if (!extName.equals(node.getName())) {
             // if the WBS node name doesn't match the name in the external
             // system, rename the node in the WBS
             node.setName(extName);
             nameChanges.put(Integer.toString(node.getUniqueID()), extName);
-            madeChange = true;
+            wbsChanged = true;
         }
     }
 
+
+    private void syncTimeEstimates(List<ExtNode> extNodes) {
+        this.timeChanges = new HashMap<String, String>();
+        WBSUtil wbsUtil = new WBSUtil(wbs, timeChanges,
+                teamProject.getTeamMemberList());
+        for (ExtNode extNode : extNodes) {
+            syncTimeEstimate(wbsUtil, extNode);
+        }
+    }
+
+    private void syncTimeEstimate(WBSUtil wbsUtil, ExtNode extNode) {
+        // see if the external system has a time estimate for this node. If
+        // not, make no changes.
+        Double extTime = extNode.getEstimatedHours();
+        if (extTime == null)
+            return;
+
+        // Look up the WBS node corresponding to this external node
+        String extID = extNode.getID();
+        WBSNode node = extNodeMap.get(extID);
+        if (node == null)
+            return;
+
+        // if the user has placed one external node inside another in the WBS,
+        // don't try to sync both time estimates.
+        if (isNestedExtNode(node))
+            return;
+
+        // retrieve the WBS time estimate and the last sync values
+        double wbsTime = wbsUtil.getEstimatedTime(node);
+        double lastSyncTime = metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
+
+        // compare value pairs to identify changes that have been made
+        boolean valuesMatch = eq(extTime, wbsTime);
+        boolean extEdited = !eq(extTime, lastSyncTime);
+        boolean wbsEdited = !eq(wbsTime, lastSyncTime);
+
+        // compare estimates and determine if changes are needed
+        if (valuesMatch) {
+            // the time in the WBS agrees with the external system, so no
+            // changes are needed to the estimates themselves. Update the
+            // tracking metdata if needed.
+            if (!eq(wbsTime, lastSyncTime))
+                metadata.setNum(wbsTime, extID, EST_TIME, LAST_SYNC);
+            metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
+
+        } else if (extEdited) {
+            // the value in the external system has been edited since the last
+            // sync. Copy the new value into the WBS.
+            wbsUtil.changeTimeEstimate(node, wbsTime, extTime);
+            metadata.setNum(extTime, extID, EST_TIME, LAST_SYNC);
+            metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
+            wbsChanged = true;
+
+        } else if (wbsEdited) {
+            // if the value in the WBS has been edited since the last sync, we
+            // need to copy that value back to the external system. Start by
+            // recording a "pending outbound value" in the metadata.
+            metadata.setNum(wbsTime, extID, EST_TIME, OUTBOUND_VALUE);
+
+            // create an object to record the external change that is needed
+            ExtChange change = new ExtChange();
+            change.extNode = extNode;
+            change.attrValues = Collections.singletonMap(EST_TIME,
+                (Object) wbsTime);
+            change.metadata = new SyncMetadata();
+            change.metadata.setNum(wbsTime, extID, EST_TIME, LAST_SYNC);
+            change.metadata.setStr(SyncMetadata.DELETE_METADATA, extID,
+                EST_TIME, OUTBOUND_VALUE);
+            extChangesNeeded.add(change);
+        }
+    }
+
+    private boolean isNestedExtNode(WBSNode node) {
+        // scan the WBS descendants of this node to see if any came from the
+        // external system. If so, we will sync estimates for those children,
+        // but not for this parent.
+        for (WBSNode desc : wbs.getDescendants(node)) {
+            if (desc.getAttribute(extIDAttr) != null)
+                return true;
+        }
+        return false;
+    }
+
+    private boolean eq(double a, double b) {
+        return (Math.abs(a - b) < 0.001);
+    }
 
 
     public void updateProjDump() throws IOException {
@@ -195,11 +296,19 @@ public class ExtSynchronizer {
         List<ProjDumpFilter> result = new ArrayList<ProjDumpFilter>();
         if (!nameChanges.isEmpty())
             result.add(new NodeRenameFilter(nameChanges));
+        if (!timeChanges.isEmpty())
+            result.add(new TimeChangeFilter(timeChanges));
         return result;
     }
 
 
     private static final String INCOMING_PARENT_ID = "incoming";
+
+    private static final String LAST_SYNC = "lastSyncValue";
+
+    private static final String OUTBOUND_VALUE = "pendingOutboundValue";
+
+    private static final String EST_TIME = ExtChange.EST_TIME_ATTR;
 
     static final Logger log = Logger.getLogger(ExtSynchronizer.class.getName());
 

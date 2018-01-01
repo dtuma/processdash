@@ -23,25 +23,31 @@
 
 package teamdash.sync;
 
+import java.util.Map;
+
 /**
- * A generic representation of a node in an external system, that should be
- * synchronized with the WBS.
+ * A change that should be made to an external system to bring it into sync with
+ * the WBS.
  */
-public interface ExtNode {
+public class ExtChange {
 
     /**
-     * @return the unique ID assigned to this node by the external system
+     * The node in the external system which this change applies to.
      */
-    public String getID();
+    public ExtNode extNode;
 
     /**
-     * @return the name of this node in the external system
+     * A list of attribute values that should be changed in the external system.
      */
-    public String getName();
+    public Map<String, Object> attrValues;
 
     /**
-     * @return the estimated hours for this node in the external system
+     * A collection of metadata values that should be recorded after the change
+     * has been successfully applied to the external system.
      */
-    public Double getEstimatedHours();
+    public SyncMetadata metadata;
+
+
+    public static final String EST_TIME_ATTR = "estHours";
 
 }

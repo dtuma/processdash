@@ -23,25 +23,27 @@
 
 package teamdash.sync;
 
-/**
- * A generic representation of a node in an external system, that should be
- * synchronized with the WBS.
- */
-public interface ExtNode {
+import java.util.Map;
 
-    /**
-     * @return the unique ID assigned to this node by the external system
-     */
-    public String getID();
+public class TimeChangeFilter implements ProjDumpFilter {
 
-    /**
-     * @return the name of this node in the external system
-     */
-    public String getName();
+    private Map<String, String> timeChanges;
 
-    /**
-     * @return the estimated hours for this node in the external system
-     */
-    public Double getEstimatedHours();
+    public TimeChangeFilter(Map<String, String> timeChanges) {
+        this.timeChanges = timeChanges;
+    }
+
+    @Override
+    public String filterLine(String line, String nodeID) {
+        String newTimeVal = timeChanges.get(nodeID);
+        if (newTimeVal != null) {
+            // the replaceXmlAttr method does nothing if the named attribute
+            // is not present; thus, we can ask both time attributes to be
+            // replaced, and one will be a no-op.
+            line = FilterUtils.replaceXmlAttr(line, "time", newTimeVal);
+            line = FilterUtils.replaceXmlAttr(line, "deferredTime", newTimeVal);
+        }
+        return line;
+    }
 
 }

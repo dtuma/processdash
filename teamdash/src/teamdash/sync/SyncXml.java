@@ -24,12 +24,17 @@
 package teamdash.sync;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Element;
+import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -62,15 +67,47 @@ public class SyncXml {
         // perform the synchronization operation
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
                 extSystemName, extSystemID, extNodes);
-        coord.run();
+        List<ExtChange> changes = coord.run();
 
         // dispose of resources
         dataTarget.dispose();
+
+        // write external changes
+        writeChanges(changes, args.length > 2 ? args[2] : null);
 
         // display elapsed time
         long end = System.currentTimeMillis();
         long elapsed = end - start;
         ExtSynchronizer.log.fine("Synchronization took " + elapsed + " ms.");
+    }
+
+    public static void writeChanges(List<ExtChange> changes, String outFile)
+            throws IOException {
+        OutputStream out = (outFile == null ? System.out
+                : new FileOutputStream(outFile));
+
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(out, "UTF-8");
+        xml.startDocument("UTF-8", null);
+        xml.startTag(null, "extChanges");
+
+        for (ExtChange c : changes) {
+            xml.startTag(null, "change");
+            xml.attribute(null, "nodeId", c.extNode.getID());
+            xml.attribute(null, "name", c.extNode.getName());
+
+            for (Entry<String, Object> e : c.attrValues.entrySet()) {
+                xml.startTag(null, "attr");
+                xml.attribute(null, "name", e.getKey());
+                xml.attribute(null, "value", e.getValue().toString());
+                xml.endTag(null, "attr");
+            }
+
+            xml.endTag(null, "change");
+        }
+
+        xml.endTag(null, "extChanges");
+        xml.endDocument();
     }
 
 
@@ -90,6 +127,14 @@ public class SyncXml {
         @Override
         public String getName() {
             return xml.getAttribute("name");
+        }
+
+        @Override
+        public Double getEstimatedHours() {
+            if (xml.hasAttribute("estHours"))
+                return XMLUtils.getXMLNum(xml, "estHours");
+            else
+                return null;
         }
     }
 

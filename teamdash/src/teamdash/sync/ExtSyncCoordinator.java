@@ -24,7 +24,9 @@
 package teamdash.sync;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +34,7 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.TeamProject;
@@ -57,24 +60,27 @@ public class ExtSyncCoordinator {
         this.extNodes = extNodes;
     }
 
-    public void run() {
+    public List<ExtChange> run() {
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
+        File metadataFile = new File(dataDir, extSystemID + "-sync-data.txt");
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
+        SyncMetadata metadata;
         try {
             dataTarget.update();
+            metadata = loadMetadata(metadataFile);
         } catch (IOException e1) {
             log.severe(logPrefix + "Could not retrieve current data");
-            return;
+            return Collections.EMPTY_LIST;
         }
         TeamProject teamProject = new QuickTeamProject(dataDir, "");
 
         // perform a trial sync operation
         ExtSynchronizer sync = new ExtSynchronizer(teamProject, extSystemName,
-                extSystemID);
+                extSystemID, metadata);
         sync.sync(extNodes);
-        if (sync.wasChangeMade() == false) {
+        if (sync.wasWbsChanged() == false) {
             // no changes were needed to the WBS
             log.fine(logPrefix + "No WBS changes needed");
 
@@ -93,11 +99,12 @@ public class ExtSyncCoordinator {
                 log.finest(logPrefix + "Refreshing data");
                 dataTarget.update();
                 teamProject.reload();
+                metadata = loadMetadata(metadataFile);
 
                 // run the sync process again
                 log.finest(logPrefix + "Computing changes");
                 sync = new ExtSynchronizer(teamProject, extSystemName,
-                        extSystemID);
+                        extSystemID, metadata);
                 sync.sync(extNodes);
 
                 // save the changes to the WBS
@@ -116,14 +123,44 @@ public class ExtSyncCoordinator {
 
             } catch (Exception e) {
                 log.log(Level.SEVERE, logPrefix + "Encountered error", e);
-                return;
+                return Collections.EMPTY_LIST;
             } finally {
                 log.finest(logPrefix + "Unlocking data");
                 dataTarget.unlock();
             }
         }
 
-        // TODO: reverse sync logic
+        // save the new metadata
+        if (metadata.isChanged()) {
+            try {
+                saveMetadata(metadataFile, metadata);
+            } catch (IOException ioe) {
+                log.log(Level.SEVERE, logPrefix + "Error saving metadata", ioe);
+            }
+        }
+
+        // return the list of reverse sync changes that are needed
+        return sync.getExtChangesNeeded();
+    }
+
+
+    private SyncMetadata loadMetadata(File metadataFile) throws IOException {
+        // FIXME: read metadata from sync-data.pdash file
+        SyncMetadata md = new SyncMetadata();
+        if (metadataFile.isFile()) {
+            FileInputStream in = new FileInputStream(metadataFile);
+            md.load(in);
+            in.close();
+        }
+        return md;
+    }
+
+    private void saveMetadata(File metadataFile, SyncMetadata metadata)
+            throws IOException {
+        // FIXME: write metadata from sync-data.pdash file
+        RobustFileOutputStream out = new RobustFileOutputStream(metadataFile);
+        metadata.store(out, null);
+        out.close();
     }
 
 
