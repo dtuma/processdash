@@ -23,8 +23,12 @@
 
 package teamdash.sync;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -40,6 +44,10 @@ public class SyncMetadata extends Properties {
 
     public boolean isChanged() {
         return changed;
+    }
+
+    public void clearChanged() {
+        changed = false;
     }
 
     public Double getNum(Double defaultValue, String... keyParts) {
@@ -64,6 +72,10 @@ public class SyncMetadata extends Properties {
 
     public void setStr(String newValue, String... keyParts) {
         String attrName = getAttrName(keyParts);
+        setStrImpl(attrName, newValue);
+    }
+
+    private void setStrImpl(String attrName, String newValue) {
         String oldValue = getProperty(attrName);
         if (newValue == null) {
             if (oldValue != null) {
@@ -78,6 +90,29 @@ public class SyncMetadata extends Properties {
 
     private String getAttrName(String... keyParts) {
         return StringUtils.join(Arrays.asList(keyParts), ".");
+    }
+
+    public void applyChanges(SyncMetadata changes) {
+        if (changes != null) {
+            for (Entry<Object, Object> e : changes.entrySet()) {
+                String attrName = (String) e.getKey();
+                String newValue = (String) e.getValue();
+                if (DELETE_METADATA.equals(newValue))
+                    newValue = null;
+                setStrImpl(attrName, newValue);
+            }
+        }
+    }
+
+    public synchronized Enumeration keys() {
+        // return the list of keys in sorted order.  This will cause the logic
+        // in the Properties.store method to store items in sorted order.
+        // (This is something of a hack, since we have no guarantee that
+        // Properties.store() will really call this method...but at least
+        // the Oracle implementation currently does.)
+        ArrayList l = Collections.list(super.keys());
+        Collections.sort(l);
+        return Collections.enumeration(l);
     }
 
 }

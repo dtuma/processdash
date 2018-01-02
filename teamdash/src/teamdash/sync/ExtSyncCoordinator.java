@@ -49,6 +49,10 @@ public class ExtSyncCoordinator {
 
     private List<ExtNode> extNodes;
 
+    private File metadataFile;
+
+    private SyncMetadata metadata;
+
     private static final Logger log = ExtSynchronizer.log;
 
 
@@ -63,13 +67,12 @@ public class ExtSyncCoordinator {
     public List<ExtChange> run() {
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
-        File metadataFile = new File(dataDir, extSystemID + "-sync-data.txt");
+        metadataFile = new File(dataDir, extSystemID + "-sync-data.txt");
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
-        SyncMetadata metadata;
         try {
             dataTarget.update();
-            metadata = loadMetadata(metadataFile);
+            metadata = loadMetadata();
         } catch (IOException e1) {
             log.severe(logPrefix + "Could not retrieve current data");
             return Collections.EMPTY_LIST;
@@ -99,7 +102,7 @@ public class ExtSyncCoordinator {
                 log.finest(logPrefix + "Refreshing data");
                 dataTarget.update();
                 teamProject.reload();
-                metadata = loadMetadata(metadataFile);
+                metadata = loadMetadata();
 
                 // run the sync process again
                 log.finest(logPrefix + "Computing changes");
@@ -131,12 +134,10 @@ public class ExtSyncCoordinator {
         }
 
         // save the new metadata
-        if (metadata.isChanged()) {
-            try {
-                saveMetadata(metadataFile, metadata);
-            } catch (IOException ioe) {
-                log.log(Level.SEVERE, logPrefix + "Error saving metadata", ioe);
-            }
+        try {
+            saveMetadata();
+        } catch (IOException ioe) {
+            log.log(Level.SEVERE, logPrefix + "Error saving metadata", ioe);
         }
 
         // return the list of reverse sync changes that are needed
@@ -144,8 +145,7 @@ public class ExtSyncCoordinator {
     }
 
 
-    private SyncMetadata loadMetadata(File metadataFile) throws IOException {
-        // FIXME: read metadata from sync-data.pdash file
+    private SyncMetadata loadMetadata() throws IOException {
         SyncMetadata md = new SyncMetadata();
         if (metadataFile.isFile()) {
             FileInputStream in = new FileInputStream(metadataFile);
@@ -155,12 +155,18 @@ public class ExtSyncCoordinator {
         return md;
     }
 
-    private void saveMetadata(File metadataFile, SyncMetadata metadata)
-            throws IOException {
-        // FIXME: write metadata from sync-data.pdash file
-        RobustFileOutputStream out = new RobustFileOutputStream(metadataFile);
-        metadata.store(out, null);
-        out.close();
+    public SyncMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void saveMetadata() throws IOException {
+        if (metadata.isChanged()) {
+            RobustFileOutputStream out = new RobustFileOutputStream(
+                    metadataFile);
+            metadata.store(out, null);
+            out.close();
+            metadata.clearChanged();
+        }
     }
 
 
