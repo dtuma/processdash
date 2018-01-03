@@ -76,7 +76,7 @@ public class ExtSynchronizer {
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
         this.extSystemID = extSystemID;
-        this.extIDAttr = this.extSystemID + " ID";
+        this.extIDAttr = EXT_ATTR_PREFIX + extSystemID + " ID";
         this.metadata = metadata;
         this.wbsChanged = false;
         this.extNodeMap = buildExtNodeMap();
@@ -105,10 +105,8 @@ public class ExtSynchronizer {
             if (StringUtils.hasValue(oneID)) {
                 if (result.containsKey(oneID)) {
                     // if the WBS contains two copies of a given external node,
-                    // make the second one "normal." (This assists when the
-                    // user has copied a node instead of moving it.)
-                    node.removeAttribute(extIDAttr);
-                    node.setReadOnly(false);
+                    // make the second one "normal."
+                    ExtSyncUtil.removeExtNodeAttributes(node);
                     this.wbsChanged = true;
                 } else {
                     result.put(oneID, node);
@@ -140,6 +138,7 @@ public class ExtSynchronizer {
         if (result == null) {
             result = new WBSNode(wbs, "Incoming Items from " + extSystemName,
                     TeamProcess.COMPONENT_TYPE, 1, true);
+            result.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
             result.setAttribute(extIDAttr, INCOMING_PARENT_ID);
             wbs.add(result);
         }
@@ -158,6 +157,7 @@ public class ExtSynchronizer {
             // if the node does not exist, create it.
             node = new WBSNode(wbs, extName, TeamProcess.COMPONENT_TYPE, 2,
                     false);
+            node.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
             node.setAttribute(extIDAttr, extID);
             node.setReadOnly(true);
             wbs.addChild(parent, node);
@@ -301,6 +301,8 @@ public class ExtSynchronizer {
         return result;
     }
 
+
+    static final String EXT_ATTR_PREFIX = ExtSyncUtil.EXT_ATTR_PREFIX;
 
     private static final String INCOMING_PARENT_ID = "incoming";
 

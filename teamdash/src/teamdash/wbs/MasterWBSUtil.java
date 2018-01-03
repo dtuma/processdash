@@ -63,6 +63,14 @@ public class MasterWBSUtil {
         return node.getAttribute(MASTER_NODE_ID) != null;
     }
 
+    public static void removeMasterNodeAttrs(WBSNode node) {
+        if (isMasterNode(node)) {
+            node.removeAttribute(MASTER_NODE_ID);
+            node.removeAttribute(MASTER_PARENT_ID);
+            node.setReadOnly(false);
+        }
+    }
+
 
     public static int[] mergeFromMaster(TeamProject proj) {
         ImportDirectory iDir = proj.getMasterProjectDirectory();

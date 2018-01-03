@@ -119,6 +119,7 @@ import teamdash.hist.BlameNodeData;
 import teamdash.hist.ui.BlameAnnotationBorder;
 import teamdash.hist.ui.BlameComponentRepainter;
 import teamdash.hist.ui.BlameSelectionListener;
+import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -1117,7 +1118,7 @@ public class WBSJTable extends JTable {
         }
 
         void insertCopiedNodes(WBSNode beforeNode) {
-            List nodesToInsert = WBSClipSelection
+            List<WBSNode> nodesToInsert = WBSClipSelection
                     .getNodeListFromClipboard(beforeNode);
             if (nodesToInsert == null || nodesToInsert.size() == 0) return;
 
@@ -1131,8 +1132,13 @@ public class WBSJTable extends JTable {
                     cutList = null;
                     return;
                 }
-            } else
+            } else {
                 nodesToInsert = WBSNode.cloneNodeList(nodesToInsert);
+                for (WBSNode n : nodesToInsert) {
+                    MasterWBSUtil.removeMasterNodeAttrs(n);
+                    ExtSyncUtil.removeExtNodeAttributes(n);
+                }
+            }
             cutList = null;
 
             // Generally, we will insert the pasted nodes immediately before
