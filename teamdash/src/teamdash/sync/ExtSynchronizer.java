@@ -31,8 +31,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -63,6 +65,8 @@ public class ExtSynchronizer {
     private Map<String, WBSNode> extNodeMap;
 
     private List<ExtChange> extChangesNeeded;
+
+    private Set<String> newExtNodes;
 
     private Map<String, String> nameChanges;
 
@@ -127,6 +131,7 @@ public class ExtSynchronizer {
 
 
     private void createOrRenameNodes(List<ExtNode> extNodes) {
+        this.newExtNodes = new HashSet<String>();
         this.nameChanges = new HashMap<String, String>();
         WBSNode parent = getIncomingNodeParent();
         for (ExtNode extNode : extNodes)
@@ -162,6 +167,7 @@ public class ExtSynchronizer {
             node.setReadOnly(true);
             wbs.addChild(parent, node);
             extNodeMap.put(extID, node);
+            newExtNodes.add(extID);
             wbsChanged = true;
 
         } else if (!extName.equals(node.getName())) {
@@ -203,7 +209,8 @@ public class ExtSynchronizer {
 
         // retrieve the WBS time estimate and the last sync values
         double wbsTime = wbsUtil.getEstimatedTime(node);
-        double lastSyncTime = metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
+        double lastSyncTime = newExtNodes.contains(extID) ? 0.0
+                : metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
 
         // compare value pairs to identify changes that have been made
         boolean valuesMatch = eq(extTime, wbsTime);
