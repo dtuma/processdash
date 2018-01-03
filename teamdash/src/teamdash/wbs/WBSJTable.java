@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -602,22 +602,12 @@ public class WBSJTable extends JTable {
                 continue;
             if (node.isReadOnly())
                 return true;
-            if (node.isExpanded() == false && containsReadOnlyNode(node))
-                return true;
+            if (node.isExpanded() == false) {
+                for (WBSNode desc : wbsModel.getDescendants(node))
+                    if (desc.isReadOnly())
+                        return true;
+            }
         }
-        return false;
-    }
-
-    private boolean containsReadOnlyNode(WBSNode node) {
-        if (node.isReadOnly())
-            return true;
-
-        WBSNode[] children = wbsModel.getChildren(node);
-        for (int i = 0; i < children.length; i++) {
-            if (containsReadOnlyNode(children[i]))
-                return true;
-        }
-
         return false;
     }
 
@@ -653,6 +643,22 @@ public class WBSJTable extends JTable {
                 return false;
         }
         return true;
+    }
+
+    private boolean containsMasterNode(int[] rows) {
+        for (int i = 0; i < rows.length; i++) {
+            WBSNode node = wbsModel.getNodeForRow(rows[i]);
+            if (node == null)
+                continue;
+            if (MasterWBSUtil.isMasterNode(node))
+                return true;
+            if (node.isExpanded() == false) {
+                for (WBSNode desc : wbsModel.getDescendants(node))
+                    if (MasterWBSUtil.isMasterNode(desc))
+                        return true;
+            }
+        }
+        return false;
     }
 
     private void setSourceIDsForCopyOperation(List nodeList) {
@@ -920,7 +926,7 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
-            if (containsReadOnlyNode(getSelectedRows()))
+            if (containsMasterNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
             UndoList.madeChange(WBSJTable.this, getActionName());
@@ -930,7 +936,7 @@ public class WBSJTable extends JTable {
                     && !disableIndentation
                     && !isFiltered()
                     && notJustRoot(selectedRows)
-                    && !containsReadOnlyNode(selectedRows));
+                    && !containsMasterNode(selectedRows));
         }
     }
     final DemoteAction DEMOTE_ACTION = new DemoteAction();
@@ -947,7 +953,7 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
-            if (containsReadOnlyNode(getSelectedRows()))
+            if (containsMasterNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
             UndoList.madeChange(WBSJTable.this, getActionName());
@@ -957,7 +963,7 @@ public class WBSJTable extends JTable {
                     || disableIndentation
                     || isFiltered()
                     || notJustRoot(selectedRows) == false
-                    || containsReadOnlyNode(selectedRows))
+                    || containsMasterNode(selectedRows))
                 setEnabled(false);
             else {
                 for (int i = selectedRows.length;   i-- > 0; ) {

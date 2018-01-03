@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,11 @@ public class MasterWBSUtil {
     }
 
     public static final WBSNodeComparator NODE_ID_COMPARATOR = new NodeIDComparator();
+
+
+    public static boolean isMasterNode(WBSNode node) {
+        return node.getAttribute(MASTER_NODE_ID) != null;
+    }
 
 
     public static int[] mergeFromMaster(TeamProject proj) {

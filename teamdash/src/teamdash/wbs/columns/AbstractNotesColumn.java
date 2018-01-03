@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.MasterWBSUtil;
 import teamdash.wbs.WBSNode;
 
 public abstract class AbstractNotesColumn extends AbstractDataColumn implements
@@ -103,7 +104,7 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return !node.isReadOnly();
+        return !MasterWBSUtil.isMasterNode(node);
     }
 
     public void setValueAt(Object value, WBSNode node) {

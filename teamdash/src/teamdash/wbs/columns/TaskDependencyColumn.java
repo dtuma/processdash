@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -113,7 +113,7 @@ public class TaskDependencyColumn extends AbstractDataColumn
         TaskDependencyList list = (TaskDependencyList) node
                 .getAttribute(TASK_LIST_ATTR);
         Object result = list;
-        if (node.getIndentLevel() == 0 || node.isReadOnly())
+        if (node.getIndentLevel() == 0 || MasterWBSUtil.isMasterNode(node))
             result = new ReadOnlyValue(result);
         return result;
     }
@@ -121,7 +121,7 @@ public class TaskDependencyColumn extends AbstractDataColumn
     public void setValueAt(Object aValue, WBSNode node) {
         TaskDependencyList list;
 
-        if (node.getIndentLevel() == 0 || node.isReadOnly())
+        if (node.getIndentLevel() == 0 || MasterWBSUtil.isMasterNode(node))
             return;
         else if (aValue instanceof TaskDependencyList || aValue == null)
             list = (TaskDependencyList) aValue;

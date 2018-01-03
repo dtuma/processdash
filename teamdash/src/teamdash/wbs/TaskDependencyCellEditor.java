@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -119,7 +119,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         WBSNode node = wbsModel.getNodeForRow(row);
         if (node.getIndentLevel() == 0)
             this.errMsg = resources.getStrings("Error_Root");
-        else if (node.isReadOnly() || value instanceof ReadOnlyValue)
+        else if (MasterWBSUtil.isMasterNode(node) || value instanceof ReadOnlyValue)
             this.errMsg = resources.getStrings("Error_Read_Only");
         else {
             this.path = wbsModel.getFullName(node);
