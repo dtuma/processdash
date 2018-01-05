@@ -486,9 +486,11 @@ public class StringUtils
     public static final String VAR_START_PAT = "${";
     public static final String VAR_END_PAT = "}";
     public static String interpolate(StringMapper map, String s) {
+        if (s == null)
+            return null;
         int max_nesting = 1000;
         while (max_nesting-- > 0) {
-            int beg = s.indexOf(VAR_START_PAT);
+            int beg = s.lastIndexOf(VAR_START_PAT);
             if (beg == -1) return s;
 
             int end = s.indexOf(VAR_END_PAT, beg);
