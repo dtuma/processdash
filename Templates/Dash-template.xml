@@ -580,6 +580,8 @@ The author(s) may be contacted at:
 
   <scriptSource dataName="User URLs"/>
 
+  <scriptSource dataName="WBS Node URLs"/>
+
   <scriptSource
      class="net.sourceforge.processdash.templates.ui.WebAppScriptSource"/>
 

@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.data;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -93,13 +94,14 @@ public class ListData implements SimpleData {
             o = ((SaveableData) o).getSimpleValue();
         if (o instanceof StringData)
             o = ((StringData) o).asList();
-        if (o instanceof ListData) {
-            ListData l = (ListData) o;
-            for (int i=0;  i<l.size();  i++) {
+        if (o instanceof ListData)
+            o = ((ListData) o).asList();
+        if (o instanceof Collection) {
+            for (Object item : (Collection) o) {
                 if (allowDuplicate)
-                    add(l.get(i));
+                    add(item);
                 else
-                    setAdd(l.get(i));
+                    setAdd(item);
             }
         } else {
             if (allowDuplicate)

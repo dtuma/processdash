@@ -2325,6 +2325,7 @@ public class HierarchySynchronizer {
                 maybeSaveNodeSize(path, node);
                 maybeSaveDependencies(path, node);
                 maybeSaveNote(path, node, nodeID);
+                saveWbsNodeUrls(path, node);
             }
         }
 
@@ -2512,6 +2513,16 @@ public class HierarchySynchronizer {
             }
 
             return result;
+        }
+
+        protected void saveWbsNodeUrls(String path, Element node) {
+            String url = node.getAttribute("url");
+            ListData urlList = null;
+            if (XMLUtils.hasValue(url)) {
+                urlList = new ListData();
+                urlList.addAll(Arrays.asList(url.split("\n")));
+            }
+            forceData(path, "WBS Node URLs", urlList);
         }
 
     }

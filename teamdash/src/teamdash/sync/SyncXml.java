@@ -130,6 +130,11 @@ public class SyncXml {
         }
 
         @Override
+        public String getUrl() {
+            return xml.getAttribute("url");
+        }
+
+        @Override
         public Double getEstimatedHours() {
             if (xml.hasAttribute("estHours"))
                 return XMLUtils.getXMLNum(xml, "estHours");

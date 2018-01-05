@@ -42,6 +42,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
@@ -233,6 +234,9 @@ public class WBSDataWriter {
         if (dataModel == null)
             writeAttr(out, URL_ATTR, (String) node.getAttribute(
                 WorkflowScriptColumn.VALUE_ATTR));
+        else
+            // in regular WBS mode, write the script URLs stored on this node
+            writeAttr(out, URL_ATTR, getScriptURLs(node));
 
         // write attributes specific to this XML tag type
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
@@ -360,6 +364,20 @@ public class WBSDataWriter {
         int result = (milestonesModel == null ? -1 //
                 : MilestoneColumn.getMilestoneID(node, milestonesModel));
         return (result < 0 ? null : Integer.toString(result));
+    }
+
+
+
+    private String getScriptURLs(WBSNode node) {
+        StringBuilder result = new StringBuilder();
+        for (String attr : node.listAttributeNames()) {
+            if (attr.endsWith(" Script URL")) {
+                String url = (String) node.getAttribute(attr);
+                if (StringUtils.hasValue(url))
+                    result.append("\n").append(url);
+            }
+        }
+        return (result.length() == 0 ? null : result.substring(1));
     }
 
 

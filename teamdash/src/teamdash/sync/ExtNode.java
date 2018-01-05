@@ -40,6 +40,13 @@ public interface ExtNode {
     public String getName();
 
     /**
+     * @return the URL to display a web-based view of this node in the external
+     *         system, or null if the external system does not provide such a
+     *         page
+     */
+    public String getUrl();
+
+    /**
      * @return the estimated hours for this node in the external system
      */
     public Double getEstimatedHours();
