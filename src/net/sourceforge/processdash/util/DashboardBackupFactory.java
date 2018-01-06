@@ -167,6 +167,7 @@ public class DashboardBackupFactory {
             m.add("milestones.xml");
             m.add("columns.xml");
             m.add("tabs.xml");
+            m.add("externals.xml");
             m.add("changehistory.xml");
             m.add("user-settings.ini");
             this.includedNames = Collections.unmodifiableSet(m);
