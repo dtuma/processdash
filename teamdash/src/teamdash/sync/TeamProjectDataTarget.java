@@ -38,6 +38,8 @@ public interface TeamProjectDataTarget {
 
     public void saveChanges() throws IOException;
 
+    public void saveSyncData(String syncDataFilename) throws IOException;
+
     public void unlock();
 
     public void dispose();

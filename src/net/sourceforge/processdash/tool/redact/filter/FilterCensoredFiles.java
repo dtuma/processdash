@@ -44,6 +44,7 @@ public class FilterCensoredFiles implements RedactFilter {
     public void afterPropertiesSet() {
         filenamePatterns = new PatternList()
             .addRegexp("^lic[^/]*\\.dat$")
+            .addLiteralEndsWith("-sync.pdash")
             .addLiteralEndsWith("/changehistory.xml")
             .addLiteralEndsWith("/tabs.xml")
             .addLiteralEndsWith("/workflowdump.xml");

@@ -24,10 +24,14 @@
 package teamdash.sync;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Random;
 
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -108,6 +112,20 @@ public class TeamProjectDataTargetFactory {
                 workingDir.flushData();
             } catch (LockFailureException lfe) {
                 throw new IOException(lfe);
+            }
+        }
+
+        @Override
+        public void saveSyncData(String syncFile) throws IOException {
+            if (workingDir instanceof BridgedWorkingDirectory) {
+                URL url = new URL(workingDir.getDescription());
+                File src = new File(getDirectory(), syncFile);
+                InputStream data = new FileInputStream(src);
+                try {
+                    ResourceBridgeClient.uploadSingleFile(url, syncFile, data);
+                } catch (LockFailureException e) {
+                    throw new IOException(e);
+                }
             }
         }
 

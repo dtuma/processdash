@@ -24,7 +24,6 @@
 package teamdash.sync;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.TeamProject;
@@ -49,7 +47,7 @@ public class ExtSyncCoordinator {
 
     private List<ExtNode> extNodes;
 
-    private File metadataFile;
+    private SyncDataFile syncData;
 
     private SyncMetadata metadata;
 
@@ -67,12 +65,12 @@ public class ExtSyncCoordinator {
     public List<ExtChange> run() {
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
-        metadataFile = new File(dataDir, extSystemID + "-sync-data.txt");
+        syncData = new SyncDataFile(dataTarget, extSystemID + "-sync.pdash");
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
         try {
             dataTarget.update();
-            metadata = loadMetadata();
+            metadata = syncData.getMetadata();
         } catch (IOException e1) {
             log.severe(logPrefix + "Could not retrieve current data");
             return Collections.EMPTY_LIST;
@@ -100,9 +98,10 @@ public class ExtSyncCoordinator {
                 // refresh the team project with the latest data, in case it
                 // changed after our retrieval above
                 log.finest(logPrefix + "Refreshing data");
+                syncData.dispose();
                 dataTarget.update();
                 teamProject.reload();
-                metadata = loadMetadata();
+                metadata = syncData.getMetadata();
 
                 // run the sync process again
                 log.finest(logPrefix + "Computing changes");
@@ -145,28 +144,12 @@ public class ExtSyncCoordinator {
     }
 
 
-    private SyncMetadata loadMetadata() throws IOException {
-        SyncMetadata md = new SyncMetadata();
-        if (metadataFile.isFile()) {
-            FileInputStream in = new FileInputStream(metadataFile);
-            md.load(in);
-            in.close();
-        }
-        return md;
-    }
-
     public SyncMetadata getMetadata() {
         return metadata;
     }
 
     public void saveMetadata() throws IOException {
-        if (metadata.isChanged()) {
-            RobustFileOutputStream out = new RobustFileOutputStream(
-                    metadataFile);
-            metadata.store(out, null);
-            out.close();
-            metadata.clearChanged();
-        }
+        syncData.saveChanges();
     }
 
 
