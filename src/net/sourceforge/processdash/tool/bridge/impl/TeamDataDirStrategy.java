@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -90,7 +90,7 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
             if (name.equalsIgnoreCase(TeamServerPointerFile.FILE_NAME))
                 return false; // don't copy around any teamServer file!
 
-            return (name.endsWith("-data.pdash")
+            return (name.endsWith(".pdash")
                     || name.endsWith(".xml")
                     || name.equals("user-settings.ini"));
         }
@@ -103,7 +103,7 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
         public boolean accept(File dir, String name) {
             name = name.toLowerCase();
             return (name.equals("settings.xml")
-                    || name.endsWith("-data.pdash"));
+                    || name.endsWith(".pdash"));
         }
 
     }
