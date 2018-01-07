@@ -417,7 +417,7 @@ public class DataTableModel extends AbstractTableModel {
     public int getRowCount() { return wbsModel.getRowCount(); }
     public int getColumnCount() { return columns.size(); }
 
-    protected DataColumn getColumn(int columnIndex) {
+    public DataColumn getColumn(int columnIndex) {
         return (DataColumn) columns.get(columnIndex);
     }
 

@@ -29,7 +29,11 @@ import teamdash.wbs.WBSNode;
 
 public class ExtSyncUtil {
 
+    public static final String EXT_SPEC_FILE = "externals.xml";
+
     public static final String EXT_SYSTEM_ID_ATTR = "External System ID";
+
+    public static final String INCOMING_PARENT_ID = "incoming";
 
     static final String EXT_ATTR_PREFIX = "Ext-";
 
@@ -44,6 +48,14 @@ public class ExtSyncUtil {
                 EXT_ATTR_PREFIX + extSystemID + " "));
             node.setReadOnly(false);
         }
+    }
+
+    public static String getExtIDAttr(String systemID) {
+        return EXT_ATTR_PREFIX + systemID + " ID";
+    }
+
+    public static String getExtUrlAttr(String systemID) {
+        return EXT_ATTR_PREFIX + systemID + " Script URL";
     }
 
 }

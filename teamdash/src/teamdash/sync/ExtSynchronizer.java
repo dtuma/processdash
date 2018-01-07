@@ -81,7 +81,7 @@ public class ExtSynchronizer {
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
         this.extSystemID = extSystemID;
-        this.extIDAttr = EXT_ATTR_PREFIX + extSystemID + " ID";
+        this.extIDAttr = ExtSyncUtil.getExtIDAttr(extSystemID);
         this.metadata = metadata;
         this.wbsChanged = false;
         this.extNodeMap = buildExtNodeMap();
@@ -141,12 +141,12 @@ public class ExtSynchronizer {
     }
 
     private WBSNode getIncomingNodeParent() {
-        WBSNode result = extNodeMap.get(INCOMING_PARENT_ID);
+        WBSNode result = extNodeMap.get(ExtSyncUtil.INCOMING_PARENT_ID);
         if (result == null) {
             result = new WBSNode(wbs, "Incoming Items from " + extSystemName,
                     TeamProcess.COMPONENT_TYPE, 1, true);
             result.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
-            result.setAttribute(extIDAttr, INCOMING_PARENT_ID);
+            result.setAttribute(extIDAttr, ExtSyncUtil.INCOMING_PARENT_ID);
             wbs.add(result);
         }
         result.setReadOnly(true);
@@ -183,7 +183,7 @@ public class ExtSynchronizer {
 
 
     private void syncURLs(List<ExtNode> extNodes) {
-        String urlAttr = EXT_ATTR_PREFIX + extSystemID + " Script URL";
+        String urlAttr = ExtSyncUtil.getExtUrlAttr(extSystemID);
         for (ExtNode extNode : extNodes) {
             // iterate over each of the external nodes
             WBSNode node = extNodeMap.get(extNode.getID());
@@ -335,8 +335,6 @@ public class ExtSynchronizer {
 
 
     static final String EXT_ATTR_PREFIX = ExtSyncUtil.EXT_ATTR_PREFIX;
-
-    private static final String INCOMING_PARENT_ID = "incoming";
 
     private static final String LAST_SYNC = "lastSyncValue";
 

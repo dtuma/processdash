@@ -322,6 +322,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             model.setExpandedNodeIDs(expandedNodes);
         }
 
+        ExternalSystemManager.createDataColumns(storageDir, data);
+
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 teamProject.getWorkflows(), taskDependencySource);
         tabPanel.setReadOnly(readOnly);

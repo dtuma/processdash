@@ -46,6 +46,7 @@ import org.w3c.dom.Element;
 import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableColumn;
 import teamdash.wbs.DataTableModel;
 
@@ -74,6 +75,13 @@ public class CustomColumnManager {
     }
 
     public void addColumnsToColumnModel(TableColumnModel columnModel) {
+        // add columns for each external system
+        for (int i = 0; i < dataModel.getColumnCount(); i++) {
+            DataColumn col = dataModel.getColumn(i);
+            if (col instanceof ExternalSystemPrimaryColumn)
+                columnModel.addColumn(new DataTableColumn(dataModel, col));
+        }
+        // add the custom columns registered to this WBS
         for (CustomColumn col : customColumns)
             columnModel.addColumn(new DataTableColumn(dataModel, col));
     }
