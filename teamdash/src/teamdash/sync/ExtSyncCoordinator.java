@@ -45,8 +45,6 @@ public class ExtSyncCoordinator {
 
     private String extSystemID;
 
-    private List<ExtNode> extNodes;
-
     private SyncDataFile syncData;
 
     private SyncMetadata metadata;
@@ -55,17 +53,17 @@ public class ExtSyncCoordinator {
 
 
     public ExtSyncCoordinator(TeamProjectDataTarget dataTarget,
-            String extSystemName, String extSystemID, List<ExtNode> extNodes) {
+            String extSystemName, String extSystemID) {
         this.dataTarget = dataTarget;
         this.extSystemName = extSystemName;
         this.extSystemID = extSystemID;
-        this.extNodes = extNodes;
+        this.syncData = new SyncDataFile(dataTarget,
+                extSystemID + "-sync.pdash");
     }
 
-    public List<ExtChange> run() {
+    public List<ExtChange> run(List<ExtNode> extNodes) {
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
-        syncData = new SyncDataFile(dataTarget, extSystemID + "-sync.pdash");
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
         try {

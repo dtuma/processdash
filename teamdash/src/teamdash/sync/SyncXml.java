@@ -66,8 +66,8 @@ public class SyncXml {
 
         // perform the synchronization operation
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                extSystemName, extSystemID, extNodes);
-        List<ExtChange> changes = coord.run();
+                extSystemName, extSystemID);
+        List<ExtChange> changes = coord.run(extNodes);
 
         // dispose of resources
         dataTarget.dispose();
