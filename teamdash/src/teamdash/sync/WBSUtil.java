@@ -30,6 +30,7 @@ import teamdash.team.TeamMemberList;
 import teamdash.wbs.IntList;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.TeamMemberActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -45,6 +46,8 @@ public class WBSUtil {
 
     private String[] indivZeroAttrs;
 
+    private String[] indivActualTimeAttrs;
+
     public WBSUtil(WBSModel wbs, Map<String, String> timeChanges,
             TeamMemberList team) {
         this.wbs = wbs;
@@ -52,6 +55,7 @@ public class WBSUtil {
         this.initials = new String[team.getRowCount()];
         this.indivTimeAttrs = new String[team.getRowCount()];
         this.indivZeroAttrs = new String[team.getRowCount()];
+        this.indivActualTimeAttrs = new String[team.getRowCount()];
         for (int i = team.getRowCount(); i-- > 0;) {
             TeamMember tm = team.get(i);
             initials[i] = tm.getInitials();
@@ -59,6 +63,8 @@ public class WBSUtil {
                     .getMemberNodeDataAttrName(tm);
             indivZeroAttrs[i] = TeamTimeColumn
                     .getMemberAssignedZeroAttrName(tm);
+            indivActualTimeAttrs[i] = TeamMemberActualTimeColumn
+                    .getNodeDataAttrName(tm);
         }
     }
 
@@ -68,6 +74,17 @@ public class WBSUtil {
      */
     public double getEstimatedTime(WBSNode node) {
         return sumAttr(node, TEAM_TIME_ATTR);
+    }
+
+
+    /**
+     * @return the total actual time for a node in the WBS
+     */
+    public double getActualTime(WBSNode node) {
+        double result = 0;
+        for (String attr : indivActualTimeAttrs)
+            result += sumAttr(node, attr);
+        return result;
     }
 
 

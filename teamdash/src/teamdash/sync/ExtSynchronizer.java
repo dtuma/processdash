@@ -29,7 +29,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,7 +91,7 @@ public class ExtSynchronizer {
         runReverseSync();
         createOrRenameNodes(extNodes);
         syncURLs(extNodes);
-        syncTimeEstimates(extNodes);
+        syncTimeValues(extNodes);
     }
 
     public boolean wasWbsChanged() {
@@ -205,12 +204,13 @@ public class ExtSynchronizer {
     }
 
 
-    private void syncTimeEstimates(List<ExtNode> extNodes) {
+    private void syncTimeValues(List<ExtNode> extNodes) {
         this.timeChanges = new HashMap<String, String>();
         WBSUtil wbsUtil = new WBSUtil(wbs, timeChanges,
                 teamProject.getTeamMemberList());
         for (ExtNode extNode : extNodes) {
             syncTimeEstimate(wbsUtil, extNode);
+            syncActualTime(wbsUtil, extNode);
         }
     }
 
@@ -266,15 +266,38 @@ public class ExtSynchronizer {
             metadata.setNum(wbsTime, extID, EST_TIME, OUTBOUND_VALUE);
 
             // create an object to record the external change that is needed
-            ExtChange change = new ExtChange();
-            change.extNode = extNode;
-            change.attrValues = Collections.singletonMap(EST_TIME,
-                (Object) wbsTime);
-            change.metadata = new SyncMetadata();
+            ExtChange change = getExtChange(extNode);
+            change.attrValues.put(EST_TIME, wbsTime);
             change.metadata.setNum(wbsTime, extID, EST_TIME, LAST_SYNC);
             change.metadata.setStr(SyncMetadata.DELETE_METADATA, extID,
                 EST_TIME, OUTBOUND_VALUE);
-            extChangesNeeded.add(change);
+        }
+    }
+
+    private void syncActualTime(WBSUtil wbsUtil, ExtNode extNode) {
+        // see if the external system tracks actual time for this node. If
+        // not, make no changes.
+        Double extTime = extNode.getActualHours();
+        if (extTime == null)
+            return;
+
+        // Look up the WBS node corresponding to this external node
+        String extID = extNode.getID();
+        WBSNode node = extNodeMap.get(extID);
+        if (node == null)
+            return;
+
+        // if the user has placed one external node inside another in the WBS,
+        // don't try to sync both time values.
+        if (isNestedExtNode(node))
+            return;
+
+        // retrieve the WBS actual time 
+        double wbsTime = wbsUtil.getActualTime(node);
+        if (!eq(wbsTime, extTime)) {
+            // create an object to record the external change that is needed
+            ExtChange change = getExtChange(extNode);
+            change.attrValues.put(ExtChange.ACT_TIME_ATTR, wbsTime);
         }
     }
 
@@ -287,6 +310,24 @@ public class ExtSynchronizer {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Find a change object for the given external node, or create an empty
+     * change object if none exists.
+     */
+    private ExtChange getExtChange(ExtNode node) {
+        for (ExtChange existingChange : extChangesNeeded) {
+            if (existingChange.extNode == node)
+                return existingChange;
+        }
+
+        ExtChange newChange = new ExtChange();
+        newChange.extNode = node;
+        newChange.attrValues = new HashMap<String, Object>();
+        newChange.metadata = new SyncMetadata();
+        extChangesNeeded.add(newChange);
+        return newChange;
     }
 
     private boolean eq(double a, double b) {

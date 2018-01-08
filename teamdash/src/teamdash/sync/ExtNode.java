@@ -51,4 +51,9 @@ public interface ExtNode {
      */
     public Double getEstimatedHours();
 
+    /**
+     * @return the actual hours for this node in the external system
+     */
+    public Double getActualHours();
+
 }

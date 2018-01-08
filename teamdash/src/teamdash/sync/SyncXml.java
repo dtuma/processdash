@@ -141,6 +141,11 @@ public class SyncXml {
             else
                 return null;
         }
+
+        @Override
+        public Double getActualHours() {
+            return Double.valueOf(0.0);
+        }
     }
 
 
