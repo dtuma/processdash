@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -146,8 +146,10 @@ public class PhaseColumn extends AbstractDataColumn
             this.row = Integer.MAX_VALUE;
         }
         public synchronized void needEvent(int row) {
-            this.row = Math.min(this.row, row);
-            timer.restart();
+            if (row != -1) {
+                this.row = Math.min(this.row, row);
+                timer.restart();
+            }
         }
         public void actionPerformed(ActionEvent e) {
             int rowNumber;
