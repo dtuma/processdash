@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2017 Tuma Solutions, LLC
+// Copyright (C) 1998-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -159,10 +159,14 @@ public class TemplateLoader {
                 JarSearchResult searchResult = searchJarForTemplates(templates,
                     jarFileURL, data);
 
-                // if this was an MCF JAR, remove its URL from the search path
+                // if this was an MCF JAR or an ignored JAR/ZIP file, remove its
+                // URL from the search path
                 if (searchResult == JarSearchResult.Mcf) {
                     logger.fine("Processed MCF URL " + templateDirURL);
                     mcf_url_list.add(roots.remove(i));
+                } else if (searchResult == JarSearchResult.Ignore) {
+                    logger.fine("Ignoring non-template URL " + templateDirURL);
+                    roots.remove(i);
                 }
                 pt.click("searched jar '" + jarFileURL + "' for templates");
             }
@@ -173,6 +177,12 @@ public class TemplateLoader {
 
         // store the new list of template URLs, stripped of MCF JAR files
         template_url_list = roots.toArray(new URL[roots.size()]);
+
+        // during startup scans, we disable Java's JAR file caching mechanism
+        // to avoid holding open file handles on JAR/ZIP files we don't care
+        // about. Now that we've identified the JAR/ZIPs that are relevant, go
+        // ahead and take advantage of caching to improve performance.
+        avoidJarCaching = false;
 
         generateRollupTemplates(templates, data);
 
@@ -213,7 +223,9 @@ public class TemplateLoader {
             // find and process templates in the jarfile.
             JarSearchResult searchResult = searchJarForTemplates(templates,
                 jarURL, data);
-            if (searchResult != JarSearchResult.None) {
+            if (searchResult == JarSearchResult.Ignore) {
+                return false;
+            } else if (searchResult != JarSearchResult.ContentOnly) {
 
                 // add applicable rollup templates. (This will regenerate
                 // other rollup templates, but that shouldn't hurt anything.)
@@ -339,12 +351,13 @@ public class TemplateLoader {
         }
     }
 
-    private enum JarSearchResult { None, Template, Mcf }
+    private enum JarSearchResult { ContentOnly, Template, Mcf, Ignore }
 
     private static JarSearchResult searchJarForTemplates(
             DashHierarchy templates, String jarURL, DataRepository data) {
 
         boolean foundTemplates = false;
+        boolean foundContent = false;
         try {
             debug("searching for templates in " + jarURL);
 
@@ -370,8 +383,10 @@ public class TemplateLoader {
                 }
 
                 if (startsWithIgnoreCase(filename, TEMPLATE_DIR)) {
+                    foundContent = true;
                     if (filename.lastIndexOf('/') != 9) continue;
                 } else if (startsWithIgnoreCase(filename, WEB_INF_DIR)) {
+                    foundContent = true;
                     if (!filename.equalsIgnoreCase(WEB_INF_XML_FILE)) continue;
                 } else {
                     continue;
@@ -405,7 +420,16 @@ public class TemplateLoader {
             logger.severe("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
         }
-        return foundTemplates ? JarSearchResult.Template : JarSearchResult.None;
+        // let our caller know what type of content we found in this JAR
+        if (foundTemplates)
+            // we found template definitions
+            return JarSearchResult.Template;
+        else if (foundContent)
+            // we found generic template content
+            return JarSearchResult.ContentOnly;
+        else
+            // no template-published content was found
+            return JarSearchResult.Ignore;
     }
 
     private static boolean searchDirForTemplates(DashHierarchy templates,
@@ -654,6 +678,7 @@ public class TemplateLoader {
     }
     private static URL[] template_url_list = null;
     private static List<URL> mcf_url_list = null;
+    private static boolean avoidJarCaching = true;
     //private static final String JARFILE_NAME = "pspdash.jar";
     private static final String TEMPLATE_DIRNAME = "Templates";
     private static final String SEP_TEMPL_DIR =
@@ -1172,6 +1197,8 @@ public class TemplateLoader {
         for (int i = 0;  i < roots.length;  i++) try {
             u = new URL(roots[i], url);
             conn = u.openConnection();
+            if (avoidJarCaching)
+                conn.setUseCaches(false);
             conn.connect();
             result.add(u);
         } catch (IOException ioe) { }
