@@ -36,6 +36,7 @@ import javax.swing.table.TableCellEditor;
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 
 import teamdash.wbs.AbstractWBSModelMerger;
+import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;
@@ -69,9 +70,12 @@ public class PhaseColumn extends AbstractDataColumn
 
     public Object getValueAt(WBSNode node) {
         String workflowType = WorkflowUtil.getWorkflowStepName(node, workflows,
-            false);
-        if (workflowType != null)
-            return workflowType;
+            "/");
+        if (workflowType != null) {
+            int slashPos = workflowType.indexOf('/');
+            String stepName = workflowType.substring(slashPos + 1);
+            return new AnnotatedValue(stepName, workflowType);
+        }
 
         String type = node.getType();
         if (allowedTypes.contains(type))
@@ -92,6 +96,8 @@ public class PhaseColumn extends AbstractDataColumn
                 changeNodeType(node, s);
             else if (allowedTypes.contains(s + " Task"))
                 changeNodeType(node, s + " Task");
+            else if (s.indexOf('/') > 0)
+                setWorkflowNodeType(node, s);
         }
     }
 
@@ -113,6 +119,21 @@ public class PhaseColumn extends AbstractDataColumn
         node.setType(type);
         node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);
         EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
+    }
+
+    private void setWorkflowNodeType(WBSNode node, String stepFullName) {
+        // Look for a workflow step that has the given (slash-separated) name
+        WBSNode step = workflows.getDescendantByName(workflows.getRoot(),
+            stepFullName);
+
+        // if we find a matching workflow step, set this node that that
+        // workflow step type
+        if (step != null && step.getIndentLevel() > 1) {
+            node.setType(step.getType());
+            node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR,
+                Integer.toString(step.getUniqueID()));
+            EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
+        }
     }
 
     public boolean recalculate() { return true; }

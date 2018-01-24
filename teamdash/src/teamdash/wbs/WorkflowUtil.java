@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1002,11 +1002,11 @@ public class WorkflowUtil {
     }
 
     public static String getWorkflowStepName(WBSNode node,
-            WorkflowWBSModel workflows, boolean longName) {
+            WorkflowWBSModel workflows, String parentDelim) {
         if (node == null || workflows == null)
             return null;
         WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
-        return workflows.getStepFullName(workflowNode, longName);
+        return workflows.getStepFullName(workflowNode, parentDelim);
     }
 
     public static String getWorkflowSizeUnits(WBSNode node,

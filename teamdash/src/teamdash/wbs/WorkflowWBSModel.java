@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -113,15 +113,17 @@ public class WorkflowWBSModel extends WBSModel {
      * 
      * @param workflowNode
      *            a step within a workflow inside this model.
-     * @param longName
-     *            true if the result should include the name of the parent
-     *            workflow; false if it should only include the name of the step
+     * @param parentDelim
+     *            null if the result should only include the name of the step
+     *            within the workflow. If non-null, the result will begin with
+     *            the name of the parent workflow, followed by the given
+     *            delimiter.
      */
-    public String getStepFullName(WBSNode workflowNode, boolean longName) {
+    public String getStepFullName(WBSNode workflowNode, String parentDelim) {
         if (workflowNode == null || workflowNode.getIndentLevel() < 2)
             return null;
 
-        if (workflowNode.getIndentLevel() == 2 && !longName)
+        if (workflowNode.getIndentLevel() == 2 && parentDelim == null)
             return workflowNode.getName();
 
         StringBuilder result = new StringBuilder();
@@ -131,8 +133,8 @@ public class WorkflowWBSModel extends WBSModel {
             if (workflowNode == null) {
                 return null;
             } else if (workflowNode.getIndentLevel() < 2) {
-                if (longName)
-                    result.insert(0, ": ").insert(0, workflowNode.getName());
+                if (parentDelim != null)
+                    result.insert(0, parentDelim).insert(0, workflowNode.getName());
                 return result.toString();
             } else {
                 result.insert(0, "/").insert(0, workflowNode.getName());

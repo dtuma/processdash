@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -381,6 +381,25 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         else
             // the given node doesn't exist in our node list.
             return null;
+    }
+
+    public WBSNode getDescendantByName(WBSNode parent, String descName) {
+        if (descName == null || descName.length() == 0)
+            return parent;
+
+        String[] nameParts = descName.split("/", 2);
+        for (WBSNode child : getChildren(parent)) {
+            if (child.getName().equals(nameParts[0])) {
+                if (nameParts.length == 1)
+                    return child;
+
+                WBSNode descendant = getDescendantByName(child, nameParts[1]);
+                if (descendant != null)
+                    return descendant;
+            }
+        }
+
+        return null;
     }
 
     public IntList getChildIndexes(Object n) {
@@ -1006,7 +1025,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return new ArrayList<String>(result);
     }
 
-    private WBSNode getBaseParent(WBSNode node) {
+    public WBSNode getBaseParent(WBSNode node) {
         if (node == null)
             return null;
         else if (node.getIndentLevel() == 1)

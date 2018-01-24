@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -124,7 +124,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             expansionIcon.realIcon = (Icon) ((ErrorValue) iconObj).value;
         } else {
             iconToolTip = WorkflowUtil.getWorkflowStepName(node, workflows,
-                true);
+                ": ");
             if (iconToolTip == null)
                 iconToolTip = wbsModel.filterNodeType(node);
             expansionIcon.realIcon = (Icon) iconObj;
