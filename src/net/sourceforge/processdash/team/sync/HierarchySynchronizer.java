@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -159,6 +159,12 @@ public class HierarchySynchronizer {
      * needed. */
     private boolean whatIfBrief = false;
 
+    /** Should we run with background priority? */
+    private volatile boolean backgroundMode = false;
+
+    /** Do we need to switch from background priority to regular? */
+    private volatile boolean cancelBackgroundMode = false;
+
     /** A list that holds optional debugging data */
     private List<String> debugLogInfo = null;
 
@@ -265,6 +271,19 @@ public class HierarchySynchronizer {
         this.whatIfBrief = whatIfBrief;
         if (whatIfBrief)
             this.whatIfMode = true;
+    }
+
+    public boolean isBackgroundMode() {
+        return backgroundMode;
+    }
+
+    public void setBackgroundMode(boolean backgroundMode) {
+        this.backgroundMode = backgroundMode;
+    }
+
+    private void cancelBackgroundMode() {
+        if (backgroundMode)
+            cancelBackgroundMode = true;
     }
 
     public void enableDebugLogging() {
@@ -926,8 +945,10 @@ public class HierarchySynchronizer {
     public void sync() throws HierarchyAlterationException {
         try {
             if (!whatIfMode) getProjectSyncLock();
+            if (backgroundMode) ThreadThrottler.beginThrottling(0.2);
             doSync();
         } finally {
+            if (backgroundMode) ThreadThrottler.endThrottling();
             releaseProjectSyncLock();
         }
     }
@@ -1847,7 +1868,12 @@ public class HierarchySynchronizer {
     private String sync(SyncWorker worker, String pathPrefix, Element node)
         throws HierarchyAlterationException
     {
-        ThreadThrottler.tick();
+        if (cancelBackgroundMode) {
+            backgroundMode = cancelBackgroundMode = false;
+            ThreadThrottler.endThrottling();
+        } else {
+            ThreadThrottler.tick();
+        }
         if (whatIfBrief && !changes.isEmpty())
             return null;
         String type = node.getTagName();
@@ -3288,19 +3314,23 @@ public class HierarchySynchronizer {
     }
 
 
-    private static Set SYNC_LOCKS = Collections.synchronizedSet(new HashSet());
+    private static Map<String, HierarchySynchronizer> SYNC_LOCKS = Collections
+            .synchronizedMap(new HashMap());
 
     private Object projectSyncLock = null;
 
     private void getProjectSyncLock() {
          while (true) {
              synchronized (SYNC_LOCKS) {
-                 if (SYNC_LOCKS.contains(projectPath)) {
+                 HierarchySynchronizer other = SYNC_LOCKS.get(projectPath);
+                 if (other != null) {
                      try {
+                         if (this.isBackgroundMode() == false)
+                             other.cancelBackgroundMode();
                          SYNC_LOCKS.wait();
                      } catch (InterruptedException e) {}
                  } else {
-                     SYNC_LOCKS.add(projectPath);
+                     SYNC_LOCKS.put(projectPath, this);
                      projectSyncLock = projectPath;
                      return;
                  }

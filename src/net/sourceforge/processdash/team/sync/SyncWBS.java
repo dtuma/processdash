@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -70,7 +70,6 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
-import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
@@ -604,15 +603,10 @@ public class SyncWBS extends TinyCGIBase {
         if (!isTeam)
             loadPermissionData(synch);
 
-        boolean bg = parameters.containsKey(BACKGROUND_PARAM);
-        try {
-            if (bg) ThreadThrottler.beginThrottling(0.2);
-            synch.setWhatIfMode(false);
-            synch.sync();
-            syncTemplates(synch);
-        } finally {
-            if (bg) ThreadThrottler.endThrottling();
-        }
+        synch.setWhatIfMode(false);
+        synch.setBackgroundMode(parameters.containsKey(BACKGROUND_PARAM));
+        synch.sync();
+        syncTemplates(synch);
 
         if (synch.isFollowOnWorkNeeded()) {
             saveChangeList(synch);
