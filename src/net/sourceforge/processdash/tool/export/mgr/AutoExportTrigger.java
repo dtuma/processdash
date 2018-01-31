@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -99,7 +99,8 @@ public class AutoExportTrigger implements Runnable, DashHierarchy.Listener,
 
     // messaged when the hierarchy has been modified
     public void hierarchyChanged(Event e) {
-        scanHierarchy();
+        if (!e.isAdjusting())
+            scanHierarchy();
     }
 
     private void scanHierarchy() {

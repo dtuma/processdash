@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2014 Tuma Solutions, LLC
+// Copyright (C) 2005-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -229,7 +229,7 @@ public class ExportManager extends AbstractManager {
     public CompletionStatus exportDataForPrefix(String prefix) {
         String dataName = DataRepository.createDataName(prefix,
             ExportManager.EXPORT_DATANAME);
-        AbstractInstruction instr = getExportInstructionFromData(dataName);
+        AbstractInstruction instr = getExportInstructionFromData(dataName, true);
         Runnable task = getExporter(instr);
         if (task == null)
             return new CompletionStatus(CompletionStatus.NO_WORK_NEEDED,
@@ -299,7 +299,7 @@ public class ExportManager extends AbstractManager {
             }};
         for (Iterator iter = data.getKeys(null, hints); iter.hasNext();) {
             String name = (String) iter.next();
-            AbstractInstruction instr = getExportInstructionFromData(name);
+            AbstractInstruction instr = getExportInstructionFromData(name, true);
             if (instr != null)
                 result.add(instr);
         }
@@ -307,7 +307,8 @@ public class ExportManager extends AbstractManager {
         return result;
     }
 
-    private AbstractInstruction getExportInstructionFromData(String name) {
+    private AbstractInstruction getExportInstructionFromData(String name,
+            boolean retrieveXmlInstructionData) {
         if (!name.endsWith("/"+EXPORT_DATANAME))
             return null;
         SimpleData dataVal = data.getSimpleValue(name);
@@ -326,7 +327,7 @@ public class ExportManager extends AbstractManager {
 
         String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
         SimpleData instrVal = data.getSimpleValue(instrDataname);
-        if (instrVal != null && instrVal.test())
+        if (retrieveXmlInstructionData && instrVal != null && instrVal.test())
             addXmlDataToInstruction(instr, instrVal.format());
 
         String disableDataname = name + EXPORT_DISABLED_SUFFIX;
@@ -417,7 +418,7 @@ public class ExportManager extends AbstractManager {
     /** @since 2.0.9 */
     public boolean hasEnabledExportTask(String path) {
         AbstractInstruction instr = getExportInstructionFromData(path + "/"
-                + EXPORT_DATANAME);
+                + EXPORT_DATANAME, false);
         return (instr != null && instr.isEnabled());
     }
 

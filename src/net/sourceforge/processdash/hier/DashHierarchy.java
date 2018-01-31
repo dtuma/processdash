@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2016 Tuma Solutions, LLC
+// Copyright (C) 1999-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -487,8 +487,8 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
 
         PropertyKey templateKey = null;
         Prop val = new Prop();
-        val.setDefectLog(e.getAttribute(DEFECTLOG_ATTR));
-        String datafile = e.getAttribute(DATAFILE_ATTR);
+        val.setDefectLog(sawDefectFile(e.getAttribute(DEFECTLOG_ATTR)));
+        String datafile = sawDataFile(e.getAttribute(DATAFILE_ATTR));
         if (!NO_DATAFILE.equals(datafile)) val.setDataFile(datafile);
 
         if (templates != null) {
@@ -785,23 +785,15 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         try {
             dir = new File (dataPath);
         } catch (NullPointerException e) { return ""; }
-        try {
-            if ( !dir.exists() )
-                return getNextDF();
-        } catch (SecurityException e) { return ""; }
-        String [] list;
-        try {
-            list = dir.list();
-        } catch (SecurityException e) { return ""; }
+
+        maybeScanNumberedFiles(dir);
 
         boolean found;
         String aFile;
         do {
             aFile = getNextDF();
-            found = false;
-            for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equalsIgnoreCase (aFile))
-                    found = true;
+            File file = new File(dir, aFile);
+            found = file.exists();
         } while ( found );
         return aFile;
     }
@@ -817,25 +809,71 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         try {
             dir = new File (dataPath);
         } catch (NullPointerException e) { return ""; }
-        try {
-            if ( !dir.exists() )
-                return getNextDL();
-        } catch (SecurityException e) { return ""; }
-        String [] list;
-        try {
-            list = dir.list();
-        } catch (SecurityException e) { return ""; }
+
+        maybeScanNumberedFiles(dir);
 
         boolean found;
         String aFile;
         do {
             aFile = getNextDL();
-            found = false;
-            for (int i = 0; (i < list.length) && !found; i++)
-                if (list[i].equalsIgnoreCase (aFile))
-                    found = true;
+            File file = new File(dir, aFile);
+            found = file.exists();
         } while ( found );
         return aFile;
+    }
+
+
+    private boolean numberedFilesWereScanned = false;
+
+    private void maybeScanNumberedFiles(File dir) {
+        if (numberedFilesWereScanned)
+            return;
+
+        String[] filenames = dir.list();
+        if (filenames != null) {
+            for (String name : filenames) {
+                name = name.toLowerCase();
+                if (name.endsWith(".dat"))
+                    sawDataFile(name);
+                else if (name.endsWith(".def"))
+                    sawDefectFile(name);
+            }
+        }
+        numberedFilesWereScanned = true;
+    }
+
+    private String sawDataFile(String dataFileName) {
+        int fileNumber = getIntFilename(dataFileName);
+        nextDataFileNumber = Math.max(nextDataFileNumber, fileNumber + 1);
+        return dataFileName;
+    }
+
+    private String sawDefectFile(String defectFileName) {
+        int fileNumber = getIntFilename(defectFileName);
+        nextDefectLogNumber = Math.max(nextDefectLogNumber, fileNumber + 1);
+        return defectFileName;
+    }
+
+    /**
+     * If a filename starts with an integer followed by a filename suffix,
+     * return that integer. Otherwise return -1
+     */
+    private static int getIntFilename(String name) {
+        // no value given? return -1
+        if (name == null)
+            return -1;
+
+        // no file suffix present? return -1
+        int pos = name.indexOf('.');
+        if (pos < 1)
+            return -1;
+
+        // strip the suffix and parse the filename as an integer
+        try {
+            return Integer.parseInt(name.substring(0, pos));
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     public boolean hasNodeIDs() {
