@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -66,12 +66,25 @@ public class DashboardSecurityManager extends SecurityManager {
 
     private static final Permission ALL_PERMISSION = new AllPermission();
 
+    private ThreadLocal<Boolean> inHasAllPermissionMethod = //
+            new ThreadLocal<Boolean>();
+
     private boolean hasAllPermission() {
+        // in some versions of the JVM, the logic run by the "checkPermission"
+        // call below will include a call to the checkRead method above (to see
+        // if the current thread is allowed to read the java security policy
+        // file). To avoid infinite recursion, test for that case and abort.
+        if (inHasAllPermissionMethod.get() == Boolean.TRUE)
+            return false;
+
         try {
+            inHasAllPermissionMethod.set(Boolean.TRUE);
             checkPermission(ALL_PERMISSION);
             return true;
         } catch (SecurityException se) {
             return false;
+        } finally {
+            inHasAllPermissionMethod.set(Boolean.FALSE);
         }
     }
 }
