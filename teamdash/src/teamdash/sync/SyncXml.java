@@ -136,16 +136,27 @@ public class SyncXml {
 
         @Override
         public Double getEstimatedHours() {
-            if (xml.hasAttribute("estHours"))
-                return XMLUtils.getXMLNum(xml, "estHours");
-            else
-                return null;
+            return getDoubleAttr("estHours", null);
+        }
+
+        @Override
+        public Double getRemainingHours() {
+            return getDoubleAttr("remHours", null);
         }
 
         @Override
         public Double getActualHours() {
-            return Double.valueOf(0.0);
+            return getDoubleAttr("actHours", ZERO);
         }
+
+        private Double getDoubleAttr(String attrName, Double defaultValue) {
+            if (xml.hasAttribute(attrName))
+                return XMLUtils.getXMLNum(xml, attrName);
+            else
+                return defaultValue;
+        }
+
+        private static final Double ZERO = Double.valueOf(0.0);
     }
 
 

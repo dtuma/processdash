@@ -50,6 +50,8 @@ public class ExtChange {
 
     public static final String EST_TIME_ATTR = "estHours";
 
+    public static final String REM_TIME_ATTR = "remHours";
+
     public static final String ACT_TIME_ATTR = "actHours";
 
 }

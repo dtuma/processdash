@@ -47,9 +47,22 @@ public interface ExtNode {
     public String getUrl();
 
     /**
-     * @return the estimated hours for this node in the external system
+     * @return the total estimated hours for this node in the external system
      */
     public Double getEstimatedHours();
+
+    /**
+     * Some agile planning systems make "remaining work" an explicit metric. In
+     * that case, it may be more reliable than the original estimate.
+     * 
+     * If a particular system prefers "remaining work" over "total estimated
+     * time," it can return a non-null value from this method.
+     * 
+     * @return the estimated hours of remaining work for this node in the
+     *         external system, or null if the external system prefers to
+     *         synchronize the total estimated hours instead.
+     */
+    public Double getRemainingHours();
 
     /**
      * @return the actual hours for this node in the external system
