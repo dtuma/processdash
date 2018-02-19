@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map.Entry;
 
@@ -88,6 +89,17 @@ public class SyncMetadata extends Properties {
         }
     }
 
+    public void discardAttrs(String... initialKeyParts) {
+        String prefix = getAttrName(initialKeyParts) + ".";
+        for (Iterator i = keySet().iterator(); i.hasNext();) {
+            String key = (String) i.next();
+            if (key.startsWith(prefix)) {
+                i.remove();
+                changed = true;
+            }
+        }
+    }
+
     private String getAttrName(String... keyParts) {
         return StringUtils.join(Arrays.asList(keyParts), ".");
     }
@@ -105,7 +117,7 @@ public class SyncMetadata extends Properties {
     }
 
     public synchronized Enumeration keys() {
-        // return the list of keys in sorted order.  This will cause the logic
+        // return the list of keys in sorted order. This will cause the logic
         // in the Properties.store method to store items in sorted order.
         // (This is something of a hack, since we have no guarantee that
         // Properties.store() will really call this method...but at least

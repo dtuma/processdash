@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,11 +29,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
@@ -66,8 +66,6 @@ public class ExtSynchronizer {
 
     private List<ExtChange> extChangesNeeded;
 
-    private Set<String> newExtNodes;
-
     private Map<String, String> nameChanges;
 
     private Map<String, String> timeChanges;
@@ -89,7 +87,7 @@ public class ExtSynchronizer {
     public void sync(List<ExtNode> extNodes) {
         this.extChangesNeeded = new ArrayList<ExtChange>();
         runReverseSync();
-        createOrRenameNodes(extNodes);
+        createRenameAndDeleteNodes(extNodes);
         syncReadOnlyFields(extNodes);
         syncTimeValues(extNodes);
     }
@@ -131,12 +129,23 @@ public class ExtSynchronizer {
     }
 
 
-    private void createOrRenameNodes(List<ExtNode> extNodes) {
-        this.newExtNodes = new HashSet<String>();
+    private void createRenameAndDeleteNodes(List<ExtNode> extNodes) {
+        HashMap<String, WBSNode> oldWbsNodes = new HashMap<String, WBSNode>(
+                extNodeMap);
+        oldWbsNodes.remove(ExtSyncUtil.INCOMING_PARENT_ID);
+
         this.nameChanges = new HashMap<String, String>();
         WBSNode parent = getIncomingNodeParent();
-        for (ExtNode extNode : extNodes)
+        for (ExtNode extNode : extNodes) {
+            oldWbsNodes.remove(extNode.getID());
             createOrRenameNode(extNode, parent);
+        }
+
+        for (Entry<String, WBSNode> e : oldWbsNodes.entrySet()) {
+            String extID = e.getKey();
+            WBSNode oldNode = e.getValue();
+            scrubOrDeleteNode(parent, extID, oldNode);
+        }
     }
 
     private WBSNode getIncomingNodeParent() {
@@ -168,7 +177,7 @@ public class ExtSynchronizer {
             node.setReadOnly(true);
             wbs.addChild(parent, node);
             extNodeMap.put(extID, node);
-            newExtNodes.add(extID);
+            metadata.discardAttrs(extID);
             wbsChanged = true;
 
         } else if (!extName.equals(node.getName())) {
@@ -178,6 +187,24 @@ public class ExtSynchronizer {
             nameChanges.put(Integer.toString(node.getUniqueID()), extName);
             wbsChanged = true;
         }
+    }
+
+    private void scrubOrDeleteNode(WBSNode parent, String extID,
+            WBSNode oldNode) {
+        if (wbs.getParent(oldNode) == parent && wbs.isLeaf(oldNode)) {
+            // if this node is still in the "incoming items" bucket and is
+            // still a leaf, delete it from the WBS entirely.
+            wbs.deleteNodes(Collections.singletonList(oldNode));
+
+        } else {
+            // if this node has been moved out from the "incoming items" bucket,
+            // or if children have been created underneath it, don't delete it.
+            // Instead, turn it back into a "normal" node.
+            ExtSyncUtil.removeExtNodeAttributes(oldNode);
+        }
+
+        metadata.discardAttrs(extID);
+        wbsChanged = true;
     }
 
 
@@ -246,10 +273,8 @@ public class ExtSynchronizer {
         double wbsTime = wbsUtil.getEstimatedTime(node);
         double wbsAct = wbsUtil.getActualTime(node);
         double newRem = Math.max(0, wbsTime - wbsAct);
-        double lastSyncTime = newExtNodes.contains(extID) ? 0.0
-                : metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
-        double lastSyncRem = newExtNodes.contains(extID) ? 0.0
-                : metadata.getNum(0.0, extID, REM_TIME, LAST_SYNC);
+        double lastSyncTime = metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
+        double lastSyncRem = metadata.getNum(0.0, extID, REM_TIME, LAST_SYNC);
 
         // if the user edited the "remaining time" in the external system,
         // propagate that change as needed
