@@ -58,4 +58,8 @@ public class ExtSyncUtil {
         return EXT_ATTR_PREFIX + systemID + " Script URL";
     }
 
+    public static String getExtOwnerAttr(String systemID) {
+        return EXT_ATTR_PREFIX + systemID + " Owner";
+    }
+
 }

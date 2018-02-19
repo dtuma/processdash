@@ -40,6 +40,13 @@ public interface ExtNode {
     public String getName();
 
     /**
+     * @return the (display-friendly) name of the individual who "owns" this
+     *         node in the external system (typically the person the node is
+     *         "assigned to"
+     */
+    public String getOwner();
+
+    /**
      * @return the URL to display a web-based view of this node in the external
      *         system, or null if the external system does not provide such a
      *         page

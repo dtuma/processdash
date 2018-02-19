@@ -32,6 +32,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.columns.ExternalNodeIDColumn;
+import teamdash.wbs.columns.ExternalNodeOwnerColumn;
 
 public class ExternalSystemManager {
 
@@ -55,6 +56,10 @@ public class ExternalSystemManager {
 
                     // create a data column to display the external node ID
                     DataColumn col = new ExternalNodeIDColumn(sysID, sysName);
+                    data.addDataColumn(col);
+
+                    // create a data column to display the external node owner
+                    col = new ExternalNodeOwnerColumn(sysID, sysName);
                     data.addDataColumn(col);
                 }
             }

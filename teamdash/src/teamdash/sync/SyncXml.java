@@ -130,6 +130,11 @@ public class SyncXml {
         }
 
         @Override
+        public String getOwner() {
+            return xml.getAttribute("owner");
+        }
+
+        @Override
         public String getUrl() {
             return xml.getAttribute("url");
         }

@@ -90,7 +90,7 @@ public class ExtSynchronizer {
         this.extChangesNeeded = new ArrayList<ExtChange>();
         runReverseSync();
         createOrRenameNodes(extNodes);
-        syncURLs(extNodes);
+        syncReadOnlyFields(extNodes);
         syncTimeValues(extNodes);
     }
 
@@ -181,25 +181,34 @@ public class ExtSynchronizer {
     }
 
 
-    private void syncURLs(List<ExtNode> extNodes) {
+    private void syncReadOnlyFields(List<ExtNode> extNodes) {
         String urlAttr = ExtSyncUtil.getExtUrlAttr(extSystemID);
+        String ownerAttr = ExtSyncUtil.getExtOwnerAttr(extSystemID);
         for (ExtNode extNode : extNodes) {
             // iterate over each of the external nodes
             WBSNode node = extNodeMap.get(extNode.getID());
             if (node == null)
                 continue;
 
-            // retrieve the external URL for the given node
-            String extUrl = extNode.getUrl();
-            if ("".equals(extUrl))
-                extUrl = null;
+            // save the external URL for the given node
+            saveReadOnlyAttr(node, urlAttr, extNode.getUrl());
 
-            // save the external URL for this node into the WBS
-            Object oldUrl = node.getAttribute(urlAttr);
-            if (!NullSafeObjectUtils.EQ(extUrl, oldUrl)) {
-                node.setAttribute(urlAttr, extUrl);
-                wbsChanged = true;
-            }
+            // save the external owner for the given node
+            saveReadOnlyAttr(node, ownerAttr, extNode.getOwner());
+        }
+    }
+
+    private void saveReadOnlyAttr(WBSNode node, String attrName,
+            Object newValue) {
+        // normalize missing attribute values
+        if ("".equals(newValue))
+            newValue = null;
+
+        // compare the current and incoming value, and change if needed
+        Object oldValue = node.getAttribute(attrName);
+        if (!NullSafeObjectUtils.EQ(newValue, oldValue)) {
+            node.setAttribute(attrName, newValue);
+            wbsChanged = true;
         }
     }
 
