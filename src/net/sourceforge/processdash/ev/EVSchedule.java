@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -699,6 +699,8 @@ public class EVSchedule implements TableModel {
         p.previous = getLast();
         p.note = NOTE_NEEDS_CALC;
         periods.add(p);
+        if (effectiveDate != null && effectiveDate.after(p.endDate))
+            effectivePeriod = periods.size();
     }
 
     protected synchronized void remove(int pos) {
