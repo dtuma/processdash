@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -140,6 +140,7 @@ public class WBSTabPanel extends JLayeredPane implements
     JSplitPane splitPane;
     JToolBar toolBar;
     WBSFindAction findAction;
+    WBSOpenLinkAction openLinkAction;
     JFileChooser fileChooser;
     UndoList undoList;
     ArrayList<TableColumnModel> tableColumnModels = new ArrayList();
@@ -542,6 +543,7 @@ public class WBSTabPanel extends JLayeredPane implements
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
         result.add(findAction);
         result.add(findAction.replaceAction);
+        result.add(openLinkAction);
         result.add(wbsTable.FILTER_ACTION);
 
         Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);
@@ -1094,6 +1096,7 @@ public class WBSTabPanel extends JLayeredPane implements
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
         addToolbarButton(findAction = new WBSFindAction(this));
+        addToolbarButton(openLinkAction = new WBSOpenLinkAction(this));
         addToolbarButton(wbsTable.FILTER_ACTION);
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);
         addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);

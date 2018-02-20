@@ -29,7 +29,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EventObject;
+import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
@@ -45,7 +48,7 @@ import teamdash.wbs.WBSNode;
  * Column which displays the ID of a node from an external system
  */
 public class ExternalNodeIDColumn extends AbstractDataColumn
-        implements ExternalSystemPrimaryColumn, CustomEditedColumn {
+        implements ExternalSystemPrimaryColumn, CustomEditedColumn, LinkSource {
 
     private String idAttr, urlAttr;
 
@@ -82,6 +85,15 @@ public class ExternalNodeIDColumn extends AbstractDataColumn
     @Override
     public void setValueAt(Object aValue, WBSNode node) {
         // do nothing
+    }
+
+    @Override
+    public List<String> getLinks(WBSNode node) {
+        String url = (String) node.getAttribute(urlAttr);
+        if (url == null)
+            return Collections.EMPTY_LIST;
+        else
+            return Arrays.asList(url.split("\n"));
     }
 
     @Override

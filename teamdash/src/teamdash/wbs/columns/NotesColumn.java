@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,11 +23,19 @@
 
 package teamdash.wbs.columns;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map.Entry;
+
+import net.sourceforge.processdash.ui.lib.HTMLMarkup;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.WBSNode;
 
-public class NotesColumn extends AbstractNotesColumn {
+public class NotesColumn extends AbstractNotesColumn implements LinkSource {
 
     /** The ID we use for this column in the data model */
     public static final String COLUMN_ID = "Notes";
@@ -48,6 +56,23 @@ public class NotesColumn extends AbstractNotesColumn {
     @Override
     protected String getEditDialogTitle() {
         return resources.getString("Notes.Edit_Dialog_Title");
+    }
+
+    @Override
+    public List<String> getLinks(WBSNode node) {
+        String text = getTextAt(node);
+        if (!StringUtils.hasValue(text))
+            return Collections.EMPTY_LIST;
+
+        LinkedHashMap<String, String> links = HTMLMarkup.getHyperlinks(text);
+        if (links.isEmpty())
+            return Collections.EMPTY_LIST;
+
+        List<String> result = new ArrayList<String>();
+        for (Entry<String, String> e : links.entrySet()) {
+            result.add(e.getValue() + " " + e.getKey());
+        }
+        return result;
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,9 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
+import net.sourceforge.processdash.ui.icons.ExternalLinkIcon;
 import net.sourceforge.processdash.ui.lib.ColorFilter;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.RecolorableIcon;
 
 import teamdash.wbs.icons.AddColumnIcon;
@@ -196,6 +198,10 @@ public class IconFactory {
 
     public static Icon getFindIcon() {
         return new WBSImageIcon("find.png");
+    }
+
+    public static Icon getExternalLinkIcon() {
+        return new PaddedIcon(new ExternalLinkIcon(), 2, 4, 4, 2);
     }
 
     public static Icon getFilterOnIcon() {
