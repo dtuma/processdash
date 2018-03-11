@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2017 Tuma Solutions, LLC
+// Copyright (C) 2004-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,7 +24,10 @@
 package net.sourceforge.processdash.util;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLConnection;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 public class HTTPUtils {
@@ -146,4 +149,79 @@ public class HTTPUtils {
 
 
     protected static final String CRLF = "\r\n";
+
+    /**
+     * Examine the request headers on a given request, and return true if the
+     * current request appears to be on a different server (host) than its
+     * referrer. (This method does not distinguish between different ports on
+     * the same server.)
+     * 
+     * @param req
+     *            a request to examine
+     * @param additionalAcceptableHosts
+     *            other hosts that are deemed to be "local." If the referrer URL
+     *            matches one of those hosts, this method will return false.
+     *            Entries in this list can be plain host names, host:port
+     *            values, or URLs.
+     * @return false if the referrer is present, and is from the same host as
+     *         the current request, or from a host in the
+     *         additionalAcceptableHosts list. true otherwise
+     */
+    public static boolean isCrossSiteRequest(HttpServletRequest req,
+            String... additionalAcceptableHosts) {
+        // reject null requests
+        if (req == null)
+            return true;
+
+        // identify the host the request came from
+        String source = getHostFromUri(req.getHeader("Origin"));
+        if (source == null)
+            source = getHostFromUri(req.getHeader("Referer"));
+
+        // identify the host the request was sent to
+        String target = getHostFromAuthority(req.getHeader("X-Forwarded-Host"));
+        if (target == null)
+            target = getHostFromAuthority(req.getHeader("Host"));
+
+        // compare the source and the target
+        if (source == null)
+            return true;
+        if (source.equalsIgnoreCase(target))
+            return false;
+
+        // compare the source to the acceptable aliases
+        for (String alias : additionalAcceptableHosts) {
+            // normalize the alias into a hostname
+            if (alias == null)
+                continue;
+            else if (alias.contains("/"))
+                alias = getHostFromUri(alias);
+            else if (alias.contains(":"))
+                alias = getHostFromAuthority(alias);
+
+            // compare the source to the alias
+            if (source.equalsIgnoreCase(alias))
+                return false;
+        }
+
+        // the source doesn't match the target or the acceptable aliases
+        return true;
+    }
+
+    private static String getHostFromUri(String uri) {
+        try {
+            return new URI(uri).getHost();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String getHostFromAuthority(String auth) {
+        if (!StringUtils.hasValue(auth))
+            return null;
+
+        int colonPos = auth.indexOf(':');
+        return (colonPos == -1 ? auth : auth.substring(0, colonPos));
+    }
+
 }

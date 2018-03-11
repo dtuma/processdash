@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,9 @@ public class LocalConnector extends AbstractConnector {
     static final String EXTRA_ENVIRONMENT_KEY = LocalConnector.class.getName()
             + ".extraEnvironment";
 
+    private static final String LOCAL_ORIGIN = "http://"
+            + LocalConnector.class.getName();
+
     private static final Logger LOG = Log.getLogger(LocalConnector.class);
 
     public LocalConnector() {
@@ -69,14 +72,14 @@ public class LocalConnector extends AbstractConnector {
 
         // Identify the effective server name for this request
         Request parentRequest = (conn == null ? null : conn.getRequest());
-        String host = (parentRequest == null ? "localhost:" + port //
-                : parentRequest.getHeader("Host"));
 
         // construct an HTTP request for this data
         StringBuilder requestHeader = new StringBuilder();
-        requestHeader.append("GET ").append(uri).append(" HTTP/1.0\r\n")
-                .append("Host: ").append(host).append("\r\n")
-                .append("Connection: close\r\n")
+        requestHeader.append("GET ").append(uri).append(" HTTP/1.0\r\n");
+        copyHeader(requestHeader, parentRequest, "Host", "localhost:" + port);
+        copyHeader(requestHeader, parentRequest, "Origin", LOCAL_ORIGIN);
+        copyHeader(requestHeader, parentRequest, "Referer", null);
+        requestHeader.append("Connection: close\r\n")
                 .append("Content-Length: 0\r\n\r\n");
 
         // execute the request and retrieve the responses
@@ -86,6 +89,14 @@ public class LocalConnector extends AbstractConnector {
                 parentRequest, false);
         AccessController.doPrivileged(request);
         return request.getResponsesBuffer();
+    }
+
+    private void copyHeader(StringBuilder dest, Request parentRequest,
+            String headerName, String noParentValue) {
+        String value = (parentRequest == null ? noParentValue
+                : parentRequest.getHeader(headerName));
+        if (value != null)
+            dest.append(headerName).append(": ").append(value).append("\r\n");
     }
 
 
