@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2011 Tuma Solutions, LLC
+// Copyright (C) 2003-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,9 @@ package net.sourceforge.processdash.data.applet.js;
 
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.SimpleData;
@@ -35,6 +38,13 @@ import net.sourceforge.processdash.util.StringUtils;
 
 
 abstract class HandleFormAbstract extends TinyCGIBase {
+
+    @Override
+    public void service(InputStream in, OutputStream out, Map env)
+            throws IOException {
+        rejectCrossSiteRequests(env);
+        super.service(in, out, env);
+    }
 
     protected void writeContents() throws IOException {
         String action = getParameter("action");
