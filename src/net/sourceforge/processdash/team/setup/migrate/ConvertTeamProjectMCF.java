@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.sync.SyncWBS;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 /**
@@ -51,6 +52,13 @@ public class ConvertTeamProjectMCF extends TinyCGIBase {
     /** The processID used by the enclosing team project */
     private String processID;
 
+
+    @Override
+    protected void doPost() throws IOException {
+        rejectCrossSiteRequests(env);
+        parseFormData();
+        super.doPost();
+    }
 
     @Override
     protected void writeContents() throws IOException {
@@ -73,7 +81,8 @@ public class ConvertTeamProjectMCF extends TinyCGIBase {
     }
 
     private String handleTeam() throws Exception {
-        if (!parameters.containsKey(CONFIRM_PARAM)) {
+        if (!parameters.containsKey(CONFIRM_PARAM) || !checkPostToken()) {
+            generatePostToken();
             setupProcessConversionOptions();
             return "convertTeamConfirm.shtm";
         } else {
@@ -177,13 +186,17 @@ public class ConvertTeamProjectMCF extends TinyCGIBase {
             return null;
     }
 
+    @Override
+    protected long getPostTokenAgeTimeout() {
+        return 120 * DateUtils.MINUTES;
+    }
+
 
 
     private void sendRedirect(String url) {
         out.write("<html><head>");
-        out.write("<meta http-equiv='Refresh' CONTENT='0;URL=");
-        out.write(url);
-        out.write("'></head><body></body></html>");
+        writeRedirectInstruction(url, 0);
+        out.write("</head><body></body></html>");
     }
 
     private void putStringValue(String name, String value) {
