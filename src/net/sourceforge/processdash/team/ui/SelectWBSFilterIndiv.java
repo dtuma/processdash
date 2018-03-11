@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ public class SelectWBSFilterIndiv extends SelectWBSNode {
 
 
     protected void doPost() throws IOException {
+        rejectCrossSiteRequests(env);
         parseFormData();
 
         // save the new value of the WBS filter

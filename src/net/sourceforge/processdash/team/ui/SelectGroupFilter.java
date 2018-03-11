@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ public class SelectGroupFilter extends TinyCGIBase {
             destUri = (String) env.get("HTTP_REFERER");
 
         if (StringUtils.hasValue(selectedFilter)) {
+            rejectCrossSiteRequests(env);
             applyFilter(projectRoot, selectedFilter, destUri);
         } else {
             String args = "&amp;destUri=" + HTMLUtils.urlEncode(destUri)
