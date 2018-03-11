@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -174,6 +174,13 @@ public final class OpenDocument extends TinyCGIBase {
     private static final Resources resources =
         Resources.getTemplateBundle("dash.file");
 
+
+    @Override
+    public void service(InputStream in, OutputStream out, Map env)
+            throws IOException {
+        rejectCrossSiteRequests(env);
+        super.service(in, out, env);
+    }
 
     protected void writeHeader() {}
 
