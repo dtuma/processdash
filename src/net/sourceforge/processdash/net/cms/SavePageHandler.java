@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2017 Tuma Solutions, LLC
+// Copyright (C) 2006-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,12 +29,14 @@ import java.io.Writer;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 /** Handle a user request to save changes to a page.
  */
 public class SavePageHandler extends EditedPageDataParser implements ActionHandler {
 
     public String service(Writer out, String pageName) throws IOException {
+        TinyCGIBase.rejectCrossSiteRequests(environment);
         if (Settings.isReadOnly()) {
             out.write("Location: /dash/snippets/saveError.shtm?err=Read_Only"
                     + "\r\n\r\n");
