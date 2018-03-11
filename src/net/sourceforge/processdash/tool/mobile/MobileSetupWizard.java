@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ public class MobileSetupWizard extends TinyCGIBase {
     protected void doPost() throws IOException {
         // make certain the request is coming from the local computer
         DashController.checkIP(env.get("REMOTE_ADDR"));
+        rejectCrossSiteRequests(env);
 
         // check for improper operating modes
         if (Settings.isReadOnly()) {
