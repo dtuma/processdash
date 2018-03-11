@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -799,6 +799,7 @@ public class EVReport extends CGIChartBase {
     public void storeCustomizationSettings() throws IOException {
         out.println("<html><head><script>");
         if (parameters.containsKey("OK")) {
+            rejectCrossSiteRequests(env);
             settings.store(CUSTOMIZE_HIDE_BASELINE, true);
             settings.store(CUSTOMIZE_HIDE_PLAN_LINE, true);
             settings.store(CUSTOMIZE_HIDE_REPLAN_LINE, true);
