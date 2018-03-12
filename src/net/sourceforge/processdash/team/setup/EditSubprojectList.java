@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -120,6 +120,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         else if (parameters.containsKey(CANCEL_ACTION))
             writeCloseWindow(false);
         else {
+            rejectCrossSiteRequests(env);
             String handleAction = getParameter(DO_PARAM);
             if (ADD_ACTION.equals(handleAction))
                 doAdd();
