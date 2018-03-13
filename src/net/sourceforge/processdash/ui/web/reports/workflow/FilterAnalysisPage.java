@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.Enactment;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class FilterAnalysisPage extends AnalysisPage {
@@ -162,7 +163,9 @@ public class FilterAnalysisPage extends AnalysisPage {
             p.remove("outlierVal");
 
         // save these properties into the respository
-        saveFilter(req, p);
+        if (!HTTPUtils.isCrossSiteRequest(req)) {
+            saveFilter(req, p);
+        }
 
         // redirect to the previous page the user was viewing
         String lastPage = req.getParameter(LAST_PAGE_PARAM);
