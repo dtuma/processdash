@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +49,6 @@ import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.team.setup.TeamProjectSetupWizard;
@@ -478,59 +476,19 @@ public class DashController {
     }
 
     public static void enableTeamSettings() {
+        PERMISSION.checkPermission();
         if (Settings.isReadOnly())
             return;
 
-        // enable earned value rollups.
-        InternalSettings.set(EV_ROLLUP, "true");
-
         // export more often.
-        InternalSettings.set(EXPORT_TIMES, "*");
-
-        // listen on any address if we aren't already, and if the feature
-        // hasn't been blocked
-        String httpRemote = Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
-        if (!"blocked".equalsIgnoreCase(httpRemote))
-            InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "true");
+        InternalSettings.set(ExportManager.EXPORT_TIMES_SETTING, "*");
 
         // listen on a repeatable port.
-        String port = Settings.getVal(HTTP_PORT);
-        if (port == null) {
-            int portNum = getAvailablePort();
-            InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
-        }
+        InternalSettings.set(ProcessDashboard.HTTP_PORT_SETTING, "3000");
 
         // save settings and flush them to the server.
         flushDirtyData();
     }
-
-    private static int getAvailablePort() {
-        for (int i = 0;   i < PORT_PATTERNS.length;   i++)
-            for (int j = 3;   j < 10;   j++)
-                if (isPortAvailable(PORT_PATTERNS[i]*j))
-                    return PORT_PATTERNS[i]*j;
-        return 3000;
-    }
-
-    private static boolean isPortAvailable(int port) {
-        if (port < 1024) return false;
-        boolean successful = false;
-        try {
-            ServerSocket a = new ServerSocket(port-1);
-            ServerSocket b = new ServerSocket(port);
-            successful = true;
-            a.close();
-            b.close();
-        } catch (IOException ioe) {}
-        return successful;
-    }
-
-    private static final String EV_ROLLUP = "ev.enableRollup";
-    private static final String EXPORT_TIMES =
-        ExportManager.EXPORT_TIMES_SETTING;
-    private static final String HTTP_PORT = ProcessDashboard.HTTP_PORT_SETTING;
-    private static final int[] PORT_PATTERNS = {
-        1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };
 
     public static void scrubDataDirectory() {
         PERMISSION.checkPermission();

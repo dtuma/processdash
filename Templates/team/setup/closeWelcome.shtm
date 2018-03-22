@@ -17,6 +17,8 @@ Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='close'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
 
 <p>When a project is finished or cancelled, your team will often hold
 a retrospective to review project data and collect lessons learned. As

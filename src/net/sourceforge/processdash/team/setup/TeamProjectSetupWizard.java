@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -70,6 +70,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.mcf.MCFManager;
@@ -352,6 +353,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         return hierarchy.getID(key);
     }
 
+    protected String getDefaultPostTokenDataNameSuffix() {
+        return "TPSWizard";
+    }
+
     /** Display the invalid page */
     protected void showInvalidPage() {
         printRedirect(INVALID_URL);
@@ -594,6 +599,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     /** Display the team confirmation page */
     protected void showTeamConfirmPage() {
+        generatePostToken();
         if (ensureTeamValues())
             printRedirect(TEAM_CONFIRM_URL);
     }
@@ -602,6 +608,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
      *  process.
      */
     protected void handleTeamConfirmPage() {
+        if (!checkPostToken()) {
+            showTeamConfirmPage();
+            return;
+        }
+
         // make sure all the required data is present - otherwise abort.
         if (!ensureTeamValues()) return;
 
@@ -1338,10 +1349,23 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private void ensureTeamProjectStub(String path) {
         if (pathNamesTeamProjectStub(path))
             return;
-        else if (DashController.alterTemplateID(path, null, TEAM_STUB_ID))
+        else if (createNewTeamProjectStub(path))
             return;
         else
             throw new WizardError(TEAM_CLOSE_HIERARCHY_URL);
+    }
+
+    private boolean createNewTeamProjectStub(String path) {
+        if (!"POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
+            return false;
+
+        try {
+            rejectCrossSiteRequests(env);
+        } catch (TinyCGIException tge) {
+            return false;
+        }
+
+        return DashController.alterTemplateID(path, null, TEAM_STUB_ID);
     }
 
     private void copyRelaunchValues(String path) {
@@ -1395,7 +1419,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return CLOSE_CANCEL_URL;
 
         // if we see a "confirm" param, attempt to close the project
-        if (parameters.containsKey("confirm")) {
+        if (parameters.containsKey("confirm") && checkPostToken()) {
             try {
                 CloseRelaunchedProjectWbs crpw = new CloseRelaunchedProjectWbs();
                 writeFilesToWbsDir(Collections.singleton(crpw), //
@@ -1411,6 +1435,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
 
         // display the page to begin the project closing operation
+        generatePostToken();
         return CLOSE_WELCOME_URL;
     }
     private String remap(String path) {

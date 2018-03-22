@@ -18,6 +18,8 @@ TD.value { font-family: monospace }
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamConfirm'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
 
 <p>The process dashboard will create a
 <!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
