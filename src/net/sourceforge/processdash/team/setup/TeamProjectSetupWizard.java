@@ -1603,6 +1603,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         checkValidityOfIndivDataValues(false);
 
         // show a page asking the user to enter the data
+        generatePostToken();
         printRedirect(IND_DATA_URL);
     }
 
@@ -2063,6 +2064,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
      * Perform the join process.
      */
     private void performProjectJoin() {
+        if (!checkPostToken()) {
+            startIndivJoin();
+            return;
+        }
+
         // make sure all the required data is present - otherwise abort.
         Map<String, String> joinInfo = getTeamProjectJoinInformation();
         resolveTeamDataDirectory();
