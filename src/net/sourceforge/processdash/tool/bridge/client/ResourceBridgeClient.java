@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2017 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -608,7 +608,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ZipEntry e;
         while ((e = zipIn.getNextEntry()) != null) {
             String name = e.getName();
-            long modTime = e.getTime();
+            long modTime = 0;
+            if (info != null)
+                modTime = info.getLastModified(name);
+            if (modTime <= 0)
+                modTime = e.getTime();
 
             if (ResourceContentStream.MANIFEST_FILENAME.equals(name)) {
                 InputStream infoIn = new ByteArrayInputStream(FileUtils
@@ -642,15 +646,14 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void addFileUploadParams(List params, String resourceName)
             throws IOException {
-        if (addFileToZipUploadStream(params, resourceName))
-            return;
+        if (addFileToZipUploadStream(params, resourceName) == false) {
+            InputStream in = localCollection.getInputStream(resourceName);
+            if (in == null)
+                return;
 
-        InputStream in = localCollection.getInputStream(resourceName);
-        if (in == null)
-            return;
-
-        params.add(resourceName);
-        params.add(in);
+            params.add(resourceName);
+            params.add(in);
+        }
 
         long modTime = localCollection.getLastModified(resourceName);
         if (modTime > 0) {
@@ -915,8 +918,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     /**
      * The version number of the protocol when the server first began supporting
      * ZIP upload content
+     * 
+     * (This was originally 3.6.1; but a bug was present in that initial logic.
+     * We only want to use the corrected logic, which was released in 3.6.9.)
      */
-    private static final String ZIP_UPLOAD_MIN_SERVER_VERSION = "3.6.1";
+    private static final String ZIP_UPLOAD_MIN_SERVER_VERSION = "3.6.9";
 
     private class ZipUploadStream extends PipedInputStream implements Runnable {
 
