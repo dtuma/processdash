@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -60,9 +60,7 @@ public class SyncXml {
             extSystemName = extSystemID;
 
         // parse the node descriptions found in the XML file
-        List<ExtNode> extNodes = new ArrayList<ExtNode>();
-        for (Element n : XMLUtils.getChildElements(xml))
-            extNodes.add(new XmlNode(n));
+        List<ExtNode> extNodes = getExtNodeChildren(xml);
 
         // perform the synchronization operation
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
@@ -79,6 +77,15 @@ public class SyncXml {
         long end = System.currentTimeMillis();
         long elapsed = end - start;
         ExtSynchronizer.log.fine("Synchronization took " + elapsed + " ms.");
+    }
+
+    private static List<ExtNode> getExtNodeChildren(Element xml) {
+        List<ExtNode> extNodes = new ArrayList<ExtNode>();
+        for (Element n : XMLUtils.getChildElements(xml)) {
+            if ("node".equals(n.getTagName()))
+                extNodes.add(new XmlNode(n));
+        }
+        return extNodes;
     }
 
     public static void writeChanges(List<ExtChange> changes, String outFile)
@@ -127,6 +134,11 @@ public class SyncXml {
         @Override
         public String getName() {
             return xml.getAttribute("name");
+        }
+
+        @Override
+        public List<ExtNode> getChildren() {
+            return getExtNodeChildren(xml);
         }
 
         @Override

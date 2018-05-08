@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +64,8 @@ public class ExtSynchronizer {
     private SyncMetadata metadata;
 
     private Map<String, WBSNode> extNodeMap;
+
+    private WBSNode incomingNodeParent;
 
     private List<ExtChange> extChangesNeeded;
 
@@ -135,10 +138,12 @@ public class ExtSynchronizer {
         oldWbsNodes.remove(ExtSyncUtil.INCOMING_PARENT_ID);
 
         this.nameChanges = new HashMap<String, String>();
-        WBSNode parent = getIncomingNodeParent();
+        WBSNode parent = incomingNodeParent = getIncomingNodeParent();
+        WBSNode previousSibling = null;
         for (ExtNode extNode : extNodes) {
-            oldWbsNodes.remove(extNode.getID());
-            createOrRenameNode(extNode, parent);
+            WBSNode node = createOrRenameNode(extNode, parent, previousSibling,
+                oldWbsNodes);
+            previousSibling = node;
         }
 
         for (Entry<String, WBSNode> e : oldWbsNodes.entrySet()) {
@@ -161,10 +166,12 @@ public class ExtSynchronizer {
         return result;
     }
 
-    private void createOrRenameNode(ExtNode extNode, WBSNode parent) {
+    private WBSNode createOrRenameNode(ExtNode extNode, WBSNode parent,
+            WBSNode previousSibling, HashMap<String, WBSNode> oldWbsNodes) {
         // retrieve information about an external node
         String extID = extNode.getID();
         String extName = WBSClipSelection.scrubName(extNode.getName());
+        oldWbsNodes.remove(extID);
 
         // look for the external node in our WBS
         WBSNode node = extNodeMap.get(extID);
@@ -180,13 +187,109 @@ public class ExtSynchronizer {
             metadata.discardAttrs(extID);
             wbsChanged = true;
 
-        } else if (!extName.equals(node.getName())) {
+        } else {
+            // the WBS already contains an item for the given external node.
+
             // if the WBS node name doesn't match the name in the external
             // system, rename the node in the WBS
-            node.setName(extName);
-            nameChanges.put(Integer.toString(node.getUniqueID()), extName);
-            wbsChanged = true;
+            if (!extName.equals(node.getName())) {
+                node.setName(extName);
+                nameChanges.put(Integer.toString(node.getUniqueID()), extName);
+                wbsChanged = true;
+            }
+
+            // if the WBS node has the wrong parent, move it under the right
+            // parent. Note that we skip this change in certain situations:
+            //
+            // 1) If the "target parent" is the "incoming" node. If the user
+            // manually moved this WBS node out from under the "incoming" bucket
+            // in the past, there is no reason to move it back.
+            //
+            // 2) if the WBS node has a parent that didn't come from the
+            // external system. That would imply that the user manually moved it
+            // out from under the external hierarchy in the past (perhaps to
+            // cherry pick items that are relevant to the current project
+            // cycle).
+            //
+            // In other cases, we reparent the WBS node as needed. Note that
+            // this logic should generally only be triggered if nodes got
+            // reparented in the external system. (But it could also run if
+            // users mucked up the WBS ancestry unintentionally.)
+            WBSNode currentParent = wbs.getParent(node);
+            if (currentParent != parent && parent != incomingNodeParent
+                    && isExtNode(currentParent)) {
+                wbs.deleteNodes(Collections.singletonList(node), false);
+                wbs.addChild(parent, node);
+                wbsChanged = true;
+            }
         }
+
+        // move the node up/down if necessary, to preserve sibling order.
+        maybeReorderNodeRelativeToSiblings(parent, node, previousSibling);
+
+        // recurse over children, if any are present
+        WBSNode previousChild = null;
+        for (ExtNode child : getChildren(extNode)) {
+            previousChild = createOrRenameNode(child, node, previousChild,
+                oldWbsNodes);
+        }
+
+        return node;
+    }
+
+    /**
+     * Move the given node up or down relative to its siblings to ensure that if
+     * comes after the desired sibling, and that no other external nodes appear
+     * between the two.
+     * 
+     * The given parent might include non-external nodes that were manually
+     * created by the user. We want to disturb these existing nodes as little as
+     * possible; so this method only moves the target node around, and moves it
+     * the shortest distance needed to ensure that previous sibling constraints
+     * are met.
+     */
+    private void maybeReorderNodeRelativeToSiblings(WBSNode parent,
+            WBSNode node, WBSNode desiredPreviousSibling) {
+        // get the children of the parent node
+        List<WBSNode> children = Arrays.asList(wbs.getChildren(parent));
+
+        // find the ordinal position of the given node under this parent.
+        // if this node isn't under the given parent (because the user
+        // moved it elsewhere), don't perform any reordering.
+        int nodePos = children.indexOf(node);
+        if (nodePos == -1)
+            return;
+
+        // find the ordinal position of the previous sibling. The previous
+        // sibling could be null (if "node" is the first child under this
+        // parent), in which case this will be -1
+        int prevSiblingPos = children.indexOf(desiredPreviousSibling);
+
+        while (nodePos < prevSiblingPos) {
+            // if the node in question comes before its desired previous
+            // sibling, move the node down.
+            wbs.moveNodeDown(node);
+            wbsChanged = true;
+            nodePos++;
+        }
+
+        while (nodePos > prevSiblingPos + 1
+                && isExtNodeBetween(children, prevSiblingPos, nodePos)) {
+            // if the node in question comes after its desired previous
+            // sibling, but there is at least one other external node
+            // between the two, move the node up.
+            wbs.moveNodeUp(node);
+            wbsChanged = true;
+            nodePos--;
+        }
+    }
+
+    private boolean isExtNodeBetween(List<WBSNode> nodes, int posA, int posB) {
+        for (int i = posA + 1; i < posB; i++) {
+            if (isExtNode(nodes.get(i)))
+                return true;
+        }
+        return false;
     }
 
     private void scrubOrDeleteNode(WBSNode parent, String extID,
@@ -222,6 +325,9 @@ public class ExtSynchronizer {
 
             // save the external owner for the given node
             saveReadOnlyAttr(node, ownerAttr, extNode.getOwner());
+
+            // recurse over children
+            syncReadOnlyFields(getChildren(extNode));
         }
     }
 
@@ -244,9 +350,16 @@ public class ExtSynchronizer {
         this.timeChanges = new HashMap<String, String>();
         WBSUtil wbsUtil = new WBSUtil(wbs, timeChanges,
                 teamProject.getTeamMemberList());
+        syncTimeValues(extNodes, wbsUtil);
+    }
+
+    private void syncTimeValues(List<ExtNode> extNodes, WBSUtil wbsUtil) {
         for (ExtNode extNode : extNodes) {
             syncTimeEstimate(wbsUtil, extNode);
             syncActualTime(wbsUtil, extNode);
+
+            // recurse over children
+            syncTimeValues(getChildren(extNode), wbsUtil);
         }
     }
 
@@ -405,10 +518,20 @@ public class ExtSynchronizer {
         // external system. If so, we will sync estimates for those children,
         // but not for this parent.
         for (WBSNode desc : wbs.getDescendants(node)) {
-            if (desc.getAttribute(extIDAttr) != null)
+            if (isExtNode(desc))
                 return true;
         }
         return false;
+    }
+
+    private boolean isExtNode(WBSNode node) {
+        String extID = (String) node.getAttribute(extIDAttr);
+        return StringUtils.hasValue(extID);
+    }
+
+    private List<ExtNode> getChildren(ExtNode node) {
+        List<ExtNode> result = node.getChildren();
+        return (result == null ? Collections.EMPTY_LIST : result);
     }
 
     /**

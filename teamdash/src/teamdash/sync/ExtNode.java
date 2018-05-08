@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package teamdash.sync;
 
+import java.util.List;
+
 /**
  * A generic representation of a node in an external system, that should be
  * synchronized with the WBS.
@@ -38,6 +40,11 @@ public interface ExtNode {
      * @return the name of this node in the external system
      */
     public String getName();
+
+    /**
+     * @return a list of the children of this node, in the external system
+     */
+    public List<ExtNode> getChildren();
 
     /**
      * @return the (display-friendly) name of the individual who "owns" this
