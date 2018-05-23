@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -137,6 +137,8 @@ public class TextPreprocessingHandlerServlet extends HttpServlet {
                 data.getSubcontext(prefix), env);
         if (contentType != null && contentType.indexOf("html") != -1)
             p.setDefaultEchoEncoding("html");
+        else
+            p.setEchoBareParams(false);
         content = p.preprocess(content);
         byte[] resultBytes = content.getBytes("utf-8");
 

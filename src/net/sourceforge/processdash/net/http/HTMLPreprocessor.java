@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -71,6 +71,7 @@ public class HTMLPreprocessor {
     PropertyKeyHierarchy props;
     Map env, params;
     String prefix;
+    boolean echoBareParams = true;
     String defaultEchoEncoding = null;
     LinkedList resources;
 
@@ -295,6 +296,14 @@ public class HTMLPreprocessor {
 
     /** Get the effective text specified by an echo-like directive */
     private String getEchoText(DirectiveMatch echo) {
+        // Determine the requested encoding(s) for this directive
+        updateEchoPrefs(echo);
+        String encodings = echo.getAttribute("encoding");
+        if (encodings == null)
+            encodings = defaultEchoEncoding;
+        boolean bareParamsOK = echoBareParams && (encodings != null
+                && !encodings.equalsIgnoreCase("none"));
+
         String value;
         // Was an explicit value specified? (This is used for performing
         // encodings on strings, and is especially useful when the string
@@ -306,7 +315,7 @@ public class HTMLPreprocessor {
             // string value.
             String var = echo.getAttribute("var");
             if (isNull(var)) var = echo.contents.trim();
-            value = (isNull(var) ? "" : getString(var));
+            value = (isNull(var) ? "" : getString(var, bareParamsOK));
         }
 
         if (!isNull(echo.getAttribute("arg0"))) {
@@ -319,7 +328,7 @@ public class HTMLPreprocessor {
                 if (arg.startsWith("'"))
                     arg = cleanup(arg);
                 else
-                    arg = getString(arg);
+                    arg = getString(arg, bareParamsOK);
                 args.add(arg);
                 argNum++;
             }
@@ -331,14 +340,26 @@ public class HTMLPreprocessor {
         }
 
         // Apply the requested encoding(s)
-        String encodings = echo.getAttribute("defaultEncoding");
-        if (encodings != null) defaultEchoEncoding = encodings;
-        encodings = echo.getAttribute("encoding");
-        if (encodings == null) encodings = defaultEchoEncoding;
-
         String context = (String) env.get("REQUEST_URI");
         value = applyEncodings(value, encodings, context);
         return value;
+    }
+    private void updateEchoPrefs(DirectiveMatch echo) {
+        // update the parameter echoing flag
+        String newEchoBareParams = echo.getAttribute("bareParams");
+        if ("true".equalsIgnoreCase(newEchoBareParams))
+            echoBareParams = true;
+        else if (newEchoBareParams != null)
+            echoBareParams = false;
+
+        // update the default echo encoding
+        String newDefaultEncoding = echo.getAttribute("defaultEncoding");
+        if (newDefaultEncoding != null)
+            defaultEchoEncoding = newDefaultEncoding;
+    }
+    /** @since 2.4.3 */
+    public void setEchoBareParams(boolean echoParams) {
+        this.echoBareParams = echoParams;
     }
     public void setDefaultEchoEncoding(String enc) {
         defaultEchoEncoding = enc;
@@ -723,7 +744,7 @@ public class HTMLPreprocessor {
                 if (!isNull(symbolName))
                     test = (symbolName.startsWith("[") ?
                             testDataElem(symbolName, checkDefined) :
-                            !isNull(getString(symbolName)));
+                            !isNull(getString(symbolName, true)));
                 if (reverse)
                     test = !test;
             }
@@ -762,7 +783,7 @@ public class HTMLPreprocessor {
             if (t.startsWith("'")) return cleanup(t);
             t = cleanup(t);
             if (volatileVariables.contains(t)) containsVolatileVar = true;
-            return getString(cleanup(t));
+            return getString(cleanup(t), true);
         }
         private boolean eq(String l, String r) {
             if (l == null && r == null) return true;
@@ -1171,12 +1192,17 @@ public class HTMLPreprocessor {
      *
      * If no string is found by that name, will return an empty string.
      */
-    private String getString(String name) {
+    private String getString(String name, boolean allowBareParams) {
         if (name.startsWith("[")) {
             // listName names a data element
             name = trimDelim(name);
             SimpleData d = getSimpleValue(name);
             return (d == null ? "" : d.format());
+        } else if (name.startsWith("(")) {
+            // name names a parameter value (@since 2.4.3)
+            name = trimDelim(name);
+            Object result = params.get(name);
+            return (result == null ? "" : result.toString());
         } else if ("_UNIQUE_".equals(name)) {
             return Long.toString(uniqueNumber++);
         } else {
@@ -1185,9 +1211,11 @@ public class HTMLPreprocessor {
             if (result instanceof String) return (String) result;
 
                                 // look for a parameter value.
-            result = params.get(name);
-            if (result instanceof String) return (String) result;
-            if (result != null) return result.toString();
+            if (allowBareParams || volatileVariables.contains(name)) {
+                result = params.get(name);
+                if (result instanceof String) return (String) result;
+                if (result != null) return result.toString();
+            }
 
                                 // look for a resource value.
             result = getResource(name);
