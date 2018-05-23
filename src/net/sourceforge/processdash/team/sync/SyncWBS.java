@@ -544,7 +544,7 @@ public class SyncWBS extends TinyCGIBase {
     private void printMigrationRedirect() {
         out.write("<!-- SYNC-IS-NEEDED -->");
         out.write("<html><head>");
-        printRedirectInstruction("migrateIndivConfirm.shtm", 0);
+        printRedirectInstruction("migrate", 0);
         out.write("</head><body></body></html>");
     }
 
@@ -1078,15 +1078,7 @@ public class SyncWBS extends TinyCGIBase {
     }
 
     private void printRedirectInstruction(String url, int delay) {
-        try {
-            writeRedirectInstruction(url, delay);
-        } catch (Error e) {
-            // if the user is not running PD 1.14.3 or higher, the method
-            // above will not exist and an error will be thrown. Fall back
-            // and write an old-style meta-redirect instruction instead.
-            out.write("<meta http-equiv=\"Refresh\" content=\"" + delay
-                    + ";URL=" + url + "\">");
-        }
+        writeRedirectInstruction(url, delay);
     }
 
     public static final String MASTER_ROOT = "/MasterRoot";

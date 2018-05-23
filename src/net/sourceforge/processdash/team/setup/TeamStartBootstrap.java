@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
@@ -591,8 +592,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             return null;
 
         else if (pathNamesTeamProjectStub(projectPath)
-                || DashController.alterTemplateID(projectPath, null,
-                    TEAM_STUB_ID)) {
+                || createNewTeamProjectStub(projectPath)) {
             // if the name/location points to a stub, or if we were able to
             // create a stub, store values and return the path.
             String processId = getValue(TEAM_PID);
@@ -607,6 +607,19 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // Display an error message and exit.
         printRedirect(NODE_ERR_URL);
         return null;
+    }
+
+    private boolean createNewTeamProjectStub(String path) {
+        if (!"POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
+            return false;
+
+        try {
+            rejectCrossSiteRequests(env);
+        } catch (TinyCGIException tge) {
+            return false;
+        }
+
+        return DashController.alterTemplateID(path, null, TEAM_STUB_ID);
     }
 
     /** Get a list of all the team processes installed in the dashboard.
@@ -845,9 +858,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (!Settings.isPersonalMode()) {
             // This is a Team Dashboard, but it just received a joining request.
             // This probably means that we are incorrectly listening on port
-            // 2468.  Enable team settings to fix the problem for the future,
-            // then display an error page asking the user to restart.
-            DashController.enableTeamSettings();
+            // 2468.  Fix the port for the future, then display an error page
+            // asking the user to restart.
             InternalSettings.set("http.port", "3000");
             printRedirect(JOIN_TEAM_ERROR_URL);
 

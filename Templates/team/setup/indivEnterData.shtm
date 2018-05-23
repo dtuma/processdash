@@ -79,6 +79,8 @@ you would like to use, click the button to join this team project.</p>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='indivEnterData'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
 
 <table>
 

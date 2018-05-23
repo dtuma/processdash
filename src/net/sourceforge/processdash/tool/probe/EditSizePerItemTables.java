@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2012 Tuma Solutions, LLC
+// Copyright (C) 2009-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,6 +64,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
 
     protected void doPost() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
+        rejectCrossSiteRequests(env);
 
         parseFormData();
         if (parameters.containsKey(SAVE) && Settings.isReadWrite()) {

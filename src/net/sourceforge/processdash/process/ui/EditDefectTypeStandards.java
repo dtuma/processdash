@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2017 Tuma Solutions, LLC
+// Copyright (C) 2003-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,7 @@ public class EditDefectTypeStandards extends TinyCGIBase {
 
     protected void doPost() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
+        rejectCrossSiteRequests(env);
 
         boolean canEdit = canEdit();
 
@@ -153,10 +154,10 @@ public class EditDefectTypeStandards extends TinyCGIBase {
     }
 
     protected void showStandard(String name) throws IOException {
-        out.print("<html><head><meta http-equiv='Refresh' "+
-                  "CONTENT='0;URL=../reports/dts.class?name=");
-        out.print(HTMLUtils.urlEncode(name));
-        out.print("'></head><body>&nbsp;</body></html>");
+        out.print("<html><head>");
+        String uri = "../reports/dts.class?name=" + HTMLUtils.urlEncode(name);
+        writeRedirectInstruction(uri, 0);
+        out.print("</head><body>&nbsp;</body></html>");
     }
 
 

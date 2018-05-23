@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 
 public class ConfigureAnalysisPage extends AnalysisPage {
 
@@ -125,7 +126,8 @@ public class ConfigureAnalysisPage extends AnalysisPage {
             throws ServletException, IOException {
 
         // if the user pressed the "save" button, save their choices
-        if (req.getParameter("save") != null) {
+        if (req.getParameter("save") != null
+                && !HTTPUtils.isCrossSiteRequest(req)) {
             saveSizeUnits(req, req.getParameter("sizeUnit"));
         }
 

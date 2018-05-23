@@ -70,9 +70,11 @@ right away for help.</p>
 <p>If you are ready to begin the <!--#echo operation --> process,
 click the "Continue" button below.</p>
 
-<form action="migrate">
+<form action="migrate" method="POST">
 
 <input type="submit" name="run" value="Continue">
+<input type="hidden" name="__POST_TOKEN"
+       value="<!--#echo var=[POST_TOKEN//DEFAULT] -->">
 
 </form>
 

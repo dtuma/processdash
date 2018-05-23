@@ -12,6 +12,8 @@
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='indivTryJoin'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
 
 <p>To join the team project, this wizard will need to modify your
 hierarchy.  Unfortunately, this wizard cannot modify the hierarchy

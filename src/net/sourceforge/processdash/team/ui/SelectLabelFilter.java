@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -139,6 +139,7 @@ public class SelectLabelFilter extends SelectWBSNode {
 
 
     protected void doPost() throws IOException {
+        rejectCrossSiteRequests(env);
         PropertyKey projectRootKey = getStartingKey();
         String projectRoot = projectRootKey.path();
         String dataName = DataRepository.createDataName(projectRoot,

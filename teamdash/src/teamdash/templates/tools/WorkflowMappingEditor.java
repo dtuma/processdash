@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.PDashServletUtils;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.templates.tools.WorkflowMappingManager.Workflow;
@@ -174,8 +175,12 @@ public class WorkflowMappingEditor extends HttpServlet {
     private void maybeSaveMappingChanges(HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
 
-        // save the changed phase data if requested
-        if (hasParam(req, "save") && hasPermission()) {
+        if (HTTPUtils.isCrossSiteRequest(req)) {
+            resp.sendError(400, "Cross-site request rejected");
+            return;
+
+        } else if (hasParam(req, "save") && hasPermission()) {
+            // save the changed phase data if requested
             Map<String, String> changes = getChangedPhaseMappings(req);
             if (changes != null) {
                 // get the workflow mapping business object

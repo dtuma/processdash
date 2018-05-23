@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2014 Tuma Solutions, LLC
+// Copyright (C) 2011-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ public class HandleFormAjax extends HandleFormAbstract {
     }
 
     protected void doGet() {
+        writeHeader();
         writeCSRFFence();
     }
 

@@ -1,14 +1,20 @@
 <html><!--#do-not-translate-->
 <head>
 <title>Converting Team Project</title>
-<meta http-equiv='Refresh'
-      CONTENT='0;URL=convert?run&PID=<!--#echo var=PID encoding=url -->'>
 </head>
 <body>
 
 <h1>Converting Team Project...</h1>
 
 Please wait.
+
+<form action='convert' method='POST' name='run'>
+<input type='hidden' name='run' value='t'>
+<input type='hidden' name='PID' value='<!--#echo var=PID -->'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//DEFAULT] -->'>
+</form>
+<script> document.forms['run'].submit(); </script>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,7 @@ public class Wizard extends TinyCGIBase {
 
     /** Handle data posted from one of the wizard pages */
     protected void doPost() throws IOException {
+        rejectCrossSiteRequests(env);
         parseFormData();
 
         String pageKey = getParameter(Wizard.PAGE);

@@ -2,7 +2,6 @@
 <head>
 <title>Moving <!--#echo [move//Team] --> Project...</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
-<meta http-equiv="Refresh" content="1;URL=move?page=confirm">
 <style>
 pre      { margin-left: 1cm }
 </style>
@@ -25,6 +24,13 @@ directory:</p>
 </pre>
 
 <p>Please wait.</p>
+
+<form action='move' method='POST' name='run'>
+<input type='hidden' name='page' value='confirm'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//DEFAULT] -->'>
+</form>
+<script> document.forms['run'].submit(); </script>
 
 </form>
 </body>

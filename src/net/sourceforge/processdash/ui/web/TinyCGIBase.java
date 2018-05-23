@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +57,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.net.http.LocalConnector;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -81,6 +83,8 @@ public class TinyCGIBase implements TinyCGI {
     protected String charset = getDefaultCharset();
     /** @since 1.13.0.6 */
     protected String requestCharset = null;
+    private static final Logger log = Logger
+            .getLogger(TinyCGIBase.class.getName());
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
@@ -397,6 +401,22 @@ public class TinyCGIBase implements TinyCGI {
 
 
     /**
+     * @throws TinyCGIException
+     *             if the current request is a cross-site request
+     * @since 2.4.3
+     */
+    public static void rejectCrossSiteRequests(Map env)
+            throws TinyCGIException {
+        HttpServletRequest req = (HttpServletRequest) env
+                .get(HttpServletRequest.class);
+        if (HTTPUtils.isCrossSiteRequest(req, LocalConnector.class.getName()))
+            throw new TinyCGIException(400, "Cross-site request rejected");
+        else
+            log.finer("Valid same-origin request " + env.get("SCRIPT_PATH"));
+    }
+
+
+    /**
      * Generate a new, unique token and save it in the data repository.
      * 
      * @since 1.14.0.1
@@ -527,6 +547,7 @@ public class TinyCGIBase implements TinyCGI {
         if (! "POST".equalsIgnoreCase(method))
             return false;
 
+        log.finer("Checking post token " + env.get("SCRIPT_PATH"));
         String storedToken = getPostToken(dataNameSuffix);
         String postedToken = getParameter(postParamName);
         return (storedToken != null && storedToken.equals(postedToken));
@@ -545,7 +566,7 @@ public class TinyCGIBase implements TinyCGI {
     }
 
     private String getPostTokenDataName(String suffix) {
-        return getPrefix() + "//POST_TOKEN//" + suffix.replace('.', ' ');
+        return getPrefix() + "/POST_TOKEN//" + suffix.replace('.', ' ');
     }
 
 

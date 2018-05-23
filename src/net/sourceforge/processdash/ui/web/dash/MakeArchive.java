@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2010 Tuma Solutions, LLC
+// Copyright (C) 2003-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
+        rejectCrossSiteRequests(env);
         super.service(in, out, env);
         if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
             parseFormData();
@@ -88,14 +89,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
 
         out.print("<html><head><title>\n");
         out.print(resources.getHTML("Title"));
-        out.print("</title>\n<meta http-equiv='Refresh' "+
-                  "content='1;URL=");
-        out.print(url);
-        if (parameters.containsKey("out")) {
-            out.print("&out=");
-            out.print(HTMLUtils.urlEncode(getParameter("out")));
-        }
-        out.print("'>\n</head><body><h1>");
+        out.print("</title></head>\n<body><h1>");
         out.print(resources.getHTML("Title"));
         out.print("</h1>\n<p>");
         out.print(resources.getHTML("Wait_Message"));
@@ -109,7 +103,17 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         writeFileTypeOption("MIME", url);
         writeFileTypeOption("ZIP", url);
         writeFileTypeOption("JAR", url);
-        out.print("</ul>\n</body></html>\n");
+        out.print("</ul>\n");
+
+        out.print("<form action='archive.class' method='GET' name='run'>\n");
+        writeHidden("run", "t");
+        writeHidden("uri", uri);
+        writeHidden("filename", filename);
+        writeHidden("out", getParameter("out"));
+        out.print("</form>\n");
+        out.print("<script> document.forms['run'].submit(); </script>\n");
+
+        out.print("</body></html>\n");
     }
 
     private void writeFileTypeOption(String type, String url) {
@@ -122,6 +126,16 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         out.print("</a> ");
         out.print(resources.getHTML("HTMLArchive.Output."+type+".Description"));
         out.print("</li>\n");
+    }
+
+    private void writeHidden(String name, String value) {
+        if (value != null) {
+            out.print("<input type='hidden' name='");
+            out.print(name);
+            out.print("' value='");
+            out.print(HTMLUtils.escapeEntities(value));
+            out.print("'>\n");
+        }
     }
 
     private String getFilename(String uri) {

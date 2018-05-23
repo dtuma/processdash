@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -96,6 +96,7 @@ public class MoveProjectWizard extends TinyCGIBase {
 
     public void service(InputStream in, OutputStream out, Map env)
             throws IOException {
+        rejectCrossSiteRequests(env);
         super.service(in, out, env);
 
         try {
@@ -294,10 +295,16 @@ public class MoveProjectWizard extends TinyCGIBase {
 
 
     private void showConfirmPage() {
+        generatePostToken();
         printRedirect(CONFIRM_URI);
     }
 
     private void handleConfirmPage() throws MoveProjectException {
+        if (!checkPostToken()) {
+            showConfirmPage();
+            return;
+        }
+
         String oldTeamDir = getStringValue(CURRENT_TEAM_DIR);
         String newTeamDir = getStringValue(TEAM_DIR);
         if (!hasValue(oldTeamDir) || !hasValue(newTeamDir)) {
