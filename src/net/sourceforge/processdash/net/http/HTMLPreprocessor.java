@@ -72,6 +72,7 @@ public class HTMLPreprocessor {
     Map env, params;
     String prefix;
     boolean echoBareParams = true;
+    boolean foreachParams = true;
     String defaultEchoEncoding = null;
     LinkedList resources;
 
@@ -1148,6 +1149,7 @@ public class HTMLPreprocessor {
             if (d instanceof SimpleData) {
                 ListData result = new ListData();
                 result.add(d.format());
+                return result;
             }
             return EMPTY_LIST;
         } else {
@@ -1158,6 +1160,11 @@ public class HTMLPreprocessor {
             Object envVal = env.get(listName);
             if (envVal instanceof String) {
                 result.add((String) envVal);
+                return result;
+            }
+                                // if this file doesn't want us to iterate
+                                // over params, abort
+            if (foreachParams == false) {
                 return result;
             }
                                 // look for a parameter value.
@@ -1180,6 +1187,9 @@ public class HTMLPreprocessor {
 
             return result;
         }
+    }
+    public void setForeachParams(boolean foreachParams) {
+        this.foreachParams = foreachParams;
     }
     private static ListData EMPTY_LIST = new ListData();
 

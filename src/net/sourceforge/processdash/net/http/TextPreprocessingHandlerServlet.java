@@ -135,6 +135,7 @@ public class TextPreprocessingHandlerServlet extends HttpServlet {
         String prefix = (String) env.get("PATH_TRANSLATED");
         HTMLPreprocessor p = new HTMLPreprocessor(webServer,
                 data.getSubcontext(prefix), env);
+        p.setForeachParams(false);
         if (contentType != null && contentType.indexOf("html") != -1)
             p.setDefaultEchoEncoding("html");
         else
