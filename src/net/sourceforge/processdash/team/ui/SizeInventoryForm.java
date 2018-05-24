@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,12 +24,14 @@
 package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -125,12 +127,17 @@ public class SizeInventoryForm extends TinyCGIBase {
 
             boolean addExtra =
                 subPath.equals(parameters.get(EXTRA_ROWS_PARAM));
-            boolean hasRows =
-                findAndAppendObjectNumbers(url, fullPath, addExtra);
+            StringBuffer rowNums = new StringBuffer();
+            findAndAppendObjectNumbers(url, rowNums, fullPath, addExtra);
 
-            if (hasRows) {
+            if (rowNums.length() > 0) {
+                Object replacements = Collections.singletonMap("#####",
+                    rowNums.substring(1));
                 byte[] text =
-                    getTinyWebServer().getRequest(url.toString(), true);
+                        getTinyWebServer().getRequest(url.toString(), true,
+                            Collections.singletonMap(
+                                HTMLPreprocessor.REPLACEMENTS_PARAM,
+                                replacements));
                 outStream.write(text);
                 outStream.flush();
             }
@@ -193,11 +200,9 @@ public class SizeInventoryForm extends TinyCGIBase {
 
 
 
-    protected boolean findAndAppendObjectNumbers
-        (StringBuffer url, String fullPath, boolean addExtraRows)
+    protected void findAndAppendObjectNumbers(StringBuffer url,
+            StringBuffer rowNums, String fullPath, boolean addExtraRows)
     {
-        boolean addedNumber = false;
-
         DataRepository data = getDataRepository();
         int rowNum, lastPopulatedRow, i;
         rowNum = lastPopulatedRow = -1;
@@ -210,8 +215,7 @@ public class SizeInventoryForm extends TinyCGIBase {
                 dataName = DataRepository.createDataName(fullPath, dataName);
                 if (data.getValue(dataName) != null) {
                     lastPopulatedRow = rowNum;
-                    url.append("&n=").append(String.valueOf(rowNum));
-                    addedNumber = true;
+                    rowNums.append(",").append(String.valueOf(rowNum));
 
                     if (highlightTimestamp > 0) {
                         String rowPrefix = DataRepository.chopPath(dataName);
@@ -230,12 +234,9 @@ public class SizeInventoryForm extends TinyCGIBase {
         }
 
         if (addExtraRows) {
-            addedNumber = true;
             for (i = NUM_EXTRA_ROWS;   i-- > 0; )
-                url.append("&n=").append(String.valueOf(++lastPopulatedRow));
+                rowNums.append(",").append(String.valueOf(++lastPopulatedRow));
         }
-
-        return addedNumber;
     }
 
     private static final int abs(int x) {
