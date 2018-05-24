@@ -439,7 +439,7 @@ Authors:
       <path path="Templates/team/setup"/>
     </pathconvert>
     <pathconvert property=".filelist" pathsep="," dirsep="/">
-      <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif" excludes="*sizeForm*"/>
+      <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif"/>
       <map from="${.filelistbasedir}/" to="" />
     </pathconvert>
     <echo message="&lt;!--#set var='Wizard_File_List' value='LIST=,${.filelist},' --&gt;&#13;&#10;"

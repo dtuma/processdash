@@ -224,9 +224,8 @@
     <!--#endfor-->
 
     <!-- Files for the size inventory form -->
-    <file in="/team/setup/sizeForm.class.link" encoding="none" 
-          out="sizeForm.class.link"/>
-    <file in="/team/setup/sizeForm.shtm" encoding="html" 
+    <file in="sizeForm.class.link" encoding="none"/>
+    <file in="sizeForm.htm" encoding="html"
           out="sizeForm.shtm"/>
 
     <!-- write process metadata for use by the export logic. -->
