@@ -1,6 +1,6 @@
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2018 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -455,9 +455,11 @@
 <TD ALIGN=LEFT VALIGN=TOP>&nbsp;</TD>
 
 <!--#if defined [Defect Density]-->
+    <!--#set var='aggrSizeMetricNameAbbr' inline='t' #-->
+        <!--#echo [AGGR_SIZE_METRIC_NAME_ABBR] --><!--#endset#-->
     <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
         ALIGN=CENTER VALIGN=BOTTOM><!--#echo var="Density_Header__HTML_FMT"
-	arg0="[AGGR_SIZE_METRIC_NAME_ABBR]" encoding="none" --></TD>
+        arg0="aggrSizeMetricNameAbbr" encoding="none" --></TD>
     <TD>&nbsp;</TD>
 <!--#endif [Defect Density]-->
 
@@ -465,9 +467,11 @@
     ALIGN=CENTER><!--#echo var="Removal_Rate_Header_HTML"
     encoding="none" --></TD>
 <TD>&nbsp;</TD>
+<!--#set var='lastFailurePhase' inline='t' #-->
+    <!--#echo [Last_Failure_Phase] --><!--#endset#-->
 <TD <!--#if rollup -->COLSPAN=2<!--#else-->COLSPAN=3<!--#endif-->
     ALIGN=CENTER><!--#echo var="Removal_Leverage_Header_HTML_FMT"
-	arg0="[Last_Failure_Phase]" encoding="none" --></TD>
+    arg0="lastFailurePhase" encoding="none" --></TD>
 </TR>
 
 <TR>

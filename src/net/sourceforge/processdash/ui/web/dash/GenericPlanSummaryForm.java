@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2011 Tuma Solutions, LLC
+// Copyright (C) 2003-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,8 +28,6 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -68,13 +66,6 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
         }
         HTMLUtils.appendQuery(uri, "Unit", unit);
         HTMLUtils.appendQuery(uri, "Units", units);
-
-        DashHierarchy props = getPSPProperties();
-        PropertyKey self = props.findExistingKey(getPrefix());
-        int numPhases = props.getNumChildren(self);
-        for (int i = 0;  i < numPhases;  i++)
-            HTMLUtils.appendQuery(uri, "Phases",
-                props.getChildKey(self, i).name());
 
         String text = getRequestAsString(uri.toString());
         out.write(text);

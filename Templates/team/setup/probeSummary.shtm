@@ -195,7 +195,7 @@
 <th>Actual</th>
 </tr>
 
-<!--#foreach name=Phase list=phases -->
+<!--#foreach name=Phase list=[Workflow//Phase_Nums] -->
 
 <tr><td><!--#echo Phase_Rel_Path --></td>
 <!--#if Phase_Orphan #-->

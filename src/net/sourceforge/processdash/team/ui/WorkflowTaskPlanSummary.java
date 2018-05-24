@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         Map<String, ListData> coqLists = new HashMap();
         for (String coqType : COQ_TYPES)
             coqLists.put(coqType, new ListData());
+        ListData phaseNums = new ListData();
 
         int phaseNum = 0;
         for (Entry<String, String> e : tasks.entrySet()) {
@@ -80,14 +81,13 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             if (nodeType != TaskNodeType.Parent
                     || hasOrphanedTime(data, taskPath)) {
                 String shortName = taskPath.substring(rootPath.length() + 1);
-                HTMLUtils.appendQuery(uri, "phases", Integer.toString(phaseNum));
                 HTMLUtils.appendQuery(uri, phaseNum + "_Rel_Path", shortName);
                 HTMLUtils.appendQuery(uri, phaseNum + "_Abs_Path", taskPath);
                 if (nodeType == TaskNodeType.Parent) {
                     orphanedTimePaths.add(taskPath);
                     HTMLUtils.appendQuery(uri, phaseNum + "_Orphan", "t");
                 }
-                phaseNum++;
+                phaseNums.add(Integer.toString(phaseNum++));
             }
 
             String phaseID = e.getValue();
@@ -109,6 +109,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         for (String coqType : COQ_TYPES)
             data.putValue("Workflow_Task_Paths/" + coqType,
                 coqLists.get(coqType));
+        data.putValue("Workflow//Phase_Nums", phaseNums);
 
         String html = getRequestAsString(uri.toString());
         writeHeader();

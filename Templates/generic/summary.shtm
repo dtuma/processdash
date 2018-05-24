@@ -223,12 +223,12 @@
 <TD ALIGN=CENTER><B>Actual %</B></TD>
 </TR>
 
-<!--#foreach name=Phase list=Phases -->
+<!--#foreach name=Phase list=[Phase_List] -->
 <TR>
 <TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Estimated Time"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Time"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Estimated Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Time"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/%/Time"></TD>
 </TR>
 <!--#endfor-->
 
@@ -276,13 +276,13 @@
 <TD></TD>
 </TR>
 
-<!--#foreach name=Phase list=Phases -->
+<!--#foreach name=Phase list=[Phase_List] -->
 <TR>
 <TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
 <TD></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Injected"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Injected per Hour"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/%/Defects Injected"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Defects Injected per Hour"></TD>
 </TR>
 <!--#endfor-->
 
@@ -304,13 +304,13 @@
 <TD ALIGN=CENTER><B><!--#echo Removal_Rate --></B></TD>
 </TR>
 
-<!--#foreach name=Phase list=Phases -->
+<!--#foreach name=Phase list=[Phase_List] -->
 <TR>
 <TD>&nbsp;&nbsp;<!--#echo value="Phase" encoding="translate,html" --></TD>
 <TD></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/%/Defects Removed"></TD>
-<TD><INPUT TYPE=text SIZE=7 NAME="Phase/Defects Removed per Hour"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/%/Defects Removed"></TD>
+<TD><INPUT TYPE=text SIZE=7 NAME="<!--#echo value='Phase' -->/Defects Removed per Hour"></TD>
 </TR>
 <!--#endfor-->
 
