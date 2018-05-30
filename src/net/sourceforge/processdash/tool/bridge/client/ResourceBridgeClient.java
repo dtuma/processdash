@@ -35,7 +35,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -790,6 +794,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             userId = userId.substring(0, 14) + "*";
 
         ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
+        setRequestToken(request.getConnection());
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
         maybeSetParameter(request, EXTRA_INFO_PARAM, userName);
@@ -980,6 +985,28 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             zipOut.finish();
             zipOut.close();
         }
+    }
+
+    /**
+     * @since 2.4.3
+     */
+    public static void setRequestToken(URLConnection conn) {
+        String token = getRequestTokenFromCookie(conn);
+        if (token != null)
+            conn.setRequestProperty(REQUEST_TOKEN_HEADER, token);
+    }
+
+    private static String getRequestTokenFromCookie(URLConnection conn) {
+        try {
+            URI requestUri = conn.getURL().toURI();
+            CookieManager cm = (CookieManager) CookieHandler.getDefault();
+            for (HttpCookie c : cm.getCookieStore().get(requestUri)) {
+                if (REQUEST_TOKEN_COOKIE.equals(c.getName()))
+                    return c.getValue();
+            }
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     /**

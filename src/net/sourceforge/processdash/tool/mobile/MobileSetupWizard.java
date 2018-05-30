@@ -34,6 +34,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
@@ -140,6 +141,7 @@ public class MobileSetupWizard extends TinyCGIBase {
             "application/x-www-form-urlencoded");
         conn.setRequestProperty("Content-Length",
             Integer.toString(query.length()));
+        ResourceBridgeClient.setRequestToken(conn);
         OutputStream out = conn.getOutputStream();
         out.write(query.getBytes("UTF-8"));
         out.close();

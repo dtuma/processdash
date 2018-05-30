@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -198,6 +198,21 @@ public interface ResourceBridgeConstants {
      * ID for the collection to be created.
      */
     String NEW_COLLECTION_ID_PARAM = "newCollectionId";
+
+    /**
+     * name of a cookie for passing a token used with state-changing requests
+     */
+    String REQUEST_TOKEN_COOKIE = "processDashboardRequestToken";
+
+    /**
+     * name of a parameter sent by the client with state-changing requests
+     */
+    String REQUEST_TOKEN_PARAM = REQUEST_TOKEN_COOKIE;
+
+    /**
+     * name of a header sent by the client with state-changing requests
+     */
+    String REQUEST_TOKEN_HEADER = "X-Process-Dashboard-Request-Token";
 
     /**
      * After a successful lock action, this HTTP response header will contain a
