@@ -61,6 +61,8 @@ The author(s) may be contacted at:
   <property name="teamhelp.images" value="${teamhelp}/Images"/>
   <property name="teamhelp.imgsrc" value="${teamhelp}/Images/constr"/>
 
+  <property file="${processdash.lib}/version.properties"/>
+
   <property name="src" value="src"/>
   <property name="build" value="antbin"/>
   <property name="compile.target" value="1.6"/>
@@ -395,12 +397,15 @@ class dependency has been added in a dashboard class?)
         <attribute name="Specification-Title" value="Work Breakdown Structure Editor"/>
         <attribute name="Implementation-Title" value="Work Breakdown Structure Editor"/>
         <attribute name="Specification-Version" value="${teamtools.version}"/>
-	<attribute name="Implementation-Version" value="${teamtools.version}"/>
+        <attribute name="Implementation-Version" value="${teamtools.version}"/>
         <attribute name="Specification-Vendor" value="Process Dashboard Dev Team"/>
         <attribute name="Implementation-Vendor" value="Process Dashboard Dev Team"/>
         <attribute name="Application-Name"
                    value="Work Breakdown Structure Editor"/>
         <attribute name="Permissions" value="all-permissions"/>
+        <section name="net/sourceforge/processdash/tool/bridge/client/">
+    	    <attribute name="Implementation-Version" value="${dashboard.version}"/>
+        </section>
       </manifest>
 
       <!-- include the compiled files -->

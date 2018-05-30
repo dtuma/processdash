@@ -77,7 +77,7 @@ import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class ResourceBridgeClient implements ResourceBridgeConstants {
 
-    static final String CLIENT_VERSION = "1.0";
+    static final String CLIENT_VERSION = getClientVersionNumber();
 
     ResourceCollection localCollection;
 
@@ -980,6 +980,21 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             zipOut.finish();
             zipOut.close();
         }
+    }
+
+    /**
+     * This method was added in version 2.4.3, to return the real version of the
+     * Process Dashboard software. Previous versions of the dashboard would
+     * always use "1.0" as the version number for the client bridge.
+     */
+    private static String getClientVersionNumber() {
+        String result = null;
+        try {
+            result = ResourceBridgeClient.class.getPackage()
+                    .getImplementationVersion();
+        } catch (Exception e) {
+        }
+        return (result == null ? "9999" : result);
     }
 
 }
