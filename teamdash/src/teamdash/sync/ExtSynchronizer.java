@@ -234,7 +234,18 @@ public class ExtSynchronizer {
                 oldWbsNodes);
         }
 
-        return node;
+        // our calling logic uses the return value from this method to track
+        // the "previous sibling" of the target parent, for ordering purposes.
+        if (wbs.getParent(node) == parent) {
+            // If the node we just created/updated is under the target parent,
+            // return it so the next sibling can be placed after it.
+            return node;
+        } else {
+            // But if this node is under a different parent (because the user
+            // moved it), tell our caller to place subsequent children after
+            // the previous sibling it gave us.
+            return previousSibling;
+        }
     }
 
     /**
