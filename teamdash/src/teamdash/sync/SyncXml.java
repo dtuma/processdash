@@ -38,7 +38,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
-public class SyncXml {
+public class SyncXml implements SyncXmlConstants {
 
     public static void main(String[] args) throws Exception {
         // retrieve the command-line arguments for the application
@@ -54,8 +54,8 @@ public class SyncXml {
         // read the given XML file
         Element xml = XMLUtils.parse(new FileInputStream(xmlFile))
                 .getDocumentElement();
-        String extSystemID = xml.getAttribute("extSystemID");
-        String extSystemName = xml.getAttribute("extSystemName");
+        String extSystemID = xml.getAttribute(SYSTEM_ID_ATTR);
+        String extSystemName = xml.getAttribute(SYSTEM_NAME_ATTR);
         if (!XMLUtils.hasValue(extSystemName))
             extSystemName = extSystemID;
 
@@ -82,7 +82,7 @@ public class SyncXml {
     private static List<ExtNode> getExtNodeChildren(Element xml) {
         List<ExtNode> extNodes = new ArrayList<ExtNode>();
         for (Element n : XMLUtils.getChildElements(xml)) {
-            if ("node".equals(n.getTagName()))
+            if (NODE_TAG.equals(n.getTagName()))
                 extNodes.add(new XmlNode(n));
         }
         return extNodes;
@@ -94,27 +94,75 @@ public class SyncXml {
                 : new FileOutputStream(outFile));
 
         XmlSerializer xml = XMLUtils.getXmlSerializer(true);
-        xml.setOutput(out, "UTF-8");
-        xml.startDocument("UTF-8", null);
-        xml.startTag(null, "extChanges");
+        xml.setOutput(out, ENCODING);
+        xml.startDocument(ENCODING, null);
+        xml.startTag(null, CHANGES_TAG);
 
         for (ExtChange c : changes) {
-            xml.startTag(null, "change");
-            xml.attribute(null, "nodeId", c.extNode.getID());
-            xml.attribute(null, "name", c.extNode.getName());
+            xml.startTag(null, CHANGE_TAG);
+            xml.attribute(null, CHANGE_NODE_ID_ATTR, c.extNode.getID());
+            xml.attribute(null, NODE_NAME_ATTR, c.extNode.getName());
 
             for (Entry<String, Object> e : c.attrValues.entrySet()) {
-                xml.startTag(null, "attr");
-                xml.attribute(null, "name", e.getKey());
-                xml.attribute(null, "value", e.getValue().toString());
-                xml.endTag(null, "attr");
+                xml.startTag(null, ATTR_CHANGE_TAG);
+                xml.attribute(null, ATTR_CHANGE_NAME_ATTR, e.getKey());
+                xml.attribute(null, ATTR_CHANGE_VALUE_ATTR,
+                    e.getValue().toString());
+                xml.endTag(null, ATTR_CHANGE_TAG);
             }
 
-            xml.endTag(null, "change");
+            xml.endTag(null, CHANGE_TAG);
         }
 
-        xml.endTag(null, "extChanges");
+        xml.endTag(null, CHANGES_TAG);
         xml.endDocument();
+
+        if (outFile != null) {
+            out.flush();
+            out.close();
+        }
+    }
+
+
+    public static void writeExtNodes(OutputStream out, String extSystemID,
+            String extSystemName, List<ExtNode> nodes) throws IOException {
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(out, ENCODING);
+        xml.startDocument(ENCODING, null);
+        xml.startTag(null, EXT_NODES_TAG);
+        writeAttr(xml, SYSTEM_ID_ATTR, extSystemID);
+        writeAttr(xml, SYSTEM_NAME_ATTR, extSystemName);
+
+        writeExtNodeList(xml, nodes);
+
+        xml.endTag(null, EXT_NODES_TAG);
+        xml.endDocument();
+    }
+
+    private static void writeExtNodeList(XmlSerializer xml, List<ExtNode> nodes)
+            throws IOException {
+        if (nodes != null) {
+            for (ExtNode n : nodes) {
+                xml.startTag(null, NODE_TAG);
+                writeAttr(xml, NODE_ID_ATTR, n.getID());
+                writeAttr(xml, NODE_NAME_ATTR, n.getName());
+                writeAttr(xml, OWNER_ATTR, n.getOwner());
+                writeAttr(xml, URL_ATTR, n.getUrl());
+                writeAttr(xml, EST_HOURS_ATTR, n.getEstimatedHours());
+                writeAttr(xml, REM_HOURS_ATTR, n.getRemainingHours());
+                writeAttr(xml, ACT_HOURS_ATTR, n.getActualHours());
+
+                writeExtNodeList(xml, n.getChildren());
+
+                xml.endTag(null, NODE_TAG);
+            }
+        }
+    }
+
+    private static void writeAttr(XmlSerializer xml, String attrName,
+            Object attrValue) throws IOException {
+        if (attrValue != null)
+            xml.attribute(null, attrName, attrValue.toString());
     }
 
 
@@ -128,12 +176,12 @@ public class SyncXml {
 
         @Override
         public String getID() {
-            return xml.getAttribute("id");
+            return xml.getAttribute(NODE_ID_ATTR);
         }
 
         @Override
         public String getName() {
-            return xml.getAttribute("name");
+            return xml.getAttribute(NODE_NAME_ATTR);
         }
 
         @Override
@@ -143,27 +191,27 @@ public class SyncXml {
 
         @Override
         public String getOwner() {
-            return xml.getAttribute("owner");
+            return xml.getAttribute(OWNER_ATTR);
         }
 
         @Override
         public String getUrl() {
-            return xml.getAttribute("url");
+            return xml.getAttribute(URL_ATTR);
         }
 
         @Override
         public Double getEstimatedHours() {
-            return getDoubleAttr("estHours", null);
+            return getDoubleAttr(EST_HOURS_ATTR, null);
         }
 
         @Override
         public Double getRemainingHours() {
-            return getDoubleAttr("remHours", null);
+            return getDoubleAttr(REM_HOURS_ATTR, null);
         }
 
         @Override
         public Double getActualHours() {
-            return getDoubleAttr("actHours", ZERO);
+            return getDoubleAttr(ACT_HOURS_ATTR, ZERO);
         }
 
         private Double getDoubleAttr(String attrName, Double defaultValue) {

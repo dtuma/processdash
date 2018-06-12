@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package teamdash.sync;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -51,6 +52,8 @@ public class ExtSyncCoordinator {
 
     private static final Logger log = ExtSynchronizer.log;
 
+    private static final Logger debug = ExtSynchronizer.debug;
+
 
     public ExtSyncCoordinator(TeamProjectDataTarget dataTarget,
             String extSystemName, String extSystemID) {
@@ -62,6 +65,10 @@ public class ExtSyncCoordinator {
     }
 
     public List<ExtChange> run(List<ExtNode> extNodes) {
+        // write the external nodes to the log if requested
+        if (debug.isLoggable(Level.FINEST))
+            debugWriteExtNodes(extNodes);
+
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
@@ -89,26 +96,26 @@ public class ExtSyncCoordinator {
 
             try {
                 // lock the WBS dir so we can make the changes atomically
-                log.finest(logPrefix + "Locking data");
+                log.finer(logPrefix + "Locking data");
                 String agentName = extSystemName + " Synchronizer";
                 dataTarget.lock(agentName);
 
                 // refresh the team project with the latest data, in case it
                 // changed after our retrieval above
-                log.finest(logPrefix + "Refreshing data");
+                log.finer(logPrefix + "Refreshing data");
                 syncData.dispose();
                 dataTarget.update();
                 teamProject.reload();
                 metadata = syncData.getMetadata();
 
                 // run the sync process again
-                log.finest(logPrefix + "Computing changes");
+                log.finer(logPrefix + "Computing changes");
                 sync = new ExtSynchronizer(teamProject, extSystemName,
                         extSystemID, metadata);
                 sync.sync(extNodes);
 
                 // save the changes to the WBS
-                log.finest(logPrefix + "Saving changes");
+                log.finer(logPrefix + "Saving changes");
                 teamProject.save();
                 sync.updateProjDump();
 
@@ -118,14 +125,14 @@ public class ExtSyncCoordinator {
                 changeHistory.write(dataDir);
 
                 // flush changes to the working directory
-                log.finest(logPrefix + "Publishing changes");
+                log.finer(logPrefix + "Publishing changes");
                 dataTarget.saveChanges();
 
             } catch (Exception e) {
                 log.log(Level.SEVERE, logPrefix + "Encountered error", e);
                 return Collections.EMPTY_LIST;
             } finally {
-                log.finest(logPrefix + "Unlocking data");
+                log.finer(logPrefix + "Unlocking data");
                 dataTarget.unlock();
             }
         }
@@ -139,6 +146,16 @@ public class ExtSyncCoordinator {
 
         // return the list of reverse sync changes that are needed
         return sync.getExtChangesNeeded();
+    }
+
+    private void debugWriteExtNodes(List<ExtNode> extNodes) {
+        try {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            SyncXml.writeExtNodes(buf, extSystemID, extSystemName, extNodes);
+            debug.finest(buf.toString(SyncXmlConstants.ENCODING));
+        } catch (IOException ioe) {
+            // can't happen
+        }
     }
 
 

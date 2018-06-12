@@ -609,4 +609,7 @@ public class ExtSynchronizer {
 
     static final Logger log = Logger.getLogger(ExtSynchronizer.class.getName());
 
+    static final Logger debug = Logger
+            .getLogger("debug." + ExtSynchronizer.class.getName());
+
 }
