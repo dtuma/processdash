@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2017 Tuma Solutions, LLC
+// Copyright (C) 1998-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -132,6 +132,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.TamperException;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
@@ -877,9 +878,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // retrieve the location of the working directory
         String location = workingDirectory.getDescription();
 
+        // retrieve the owner of this dataset
+        String owner = getDatasetOwner();
+
         try {
             boolean isTeam = Settings.isTeamMode();
             datasetRegistration = RecentDatasets.register(location, isTeam);
+            if (StringUtils.hasValue(windowTitle))
+                datasetRegistration.put(RecentDatasets.DATASET_NAME, windowTitle);
+            if (StringUtils.hasValue(owner))
+                datasetRegistration.put(RecentDatasets.DATASET_OWNER, owner);
             datasetRegistrationElapsedTimestamp = System.currentTimeMillis();
         } catch (Throwable t) {}
     }
@@ -1317,7 +1325,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void tryToLockDataForWriting() {
-        String lockOwnerName = getOwnerName();
+        String lockOwnerName = getLockOwnerName();
         String otherUser = null;
         try {
             workingDirectory.acquireWriteLock(lockMessageHandler,
@@ -1362,7 +1370,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
      * a team leader might be opening an individual's data, or anyone might
      * be opening a shared team dashboard instance.
      */
-    private String getOwnerName() {
+    private String getLockOwnerName() {
         // check the preferences node for this class first.
         Preferences prefs = Preferences
                 .userNodeForPackage(ProcessDashboard.class);
@@ -1570,6 +1578,13 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String result = getOwnerName(data);
         if (!StringUtils.hasValue(result))
             result = Settings.getVal(WINDOW_TITLE_SETTING);
+        return result;
+    }
+    private String getDatasetOwner() {
+        String result = System.getProperty( //
+            TeamDataConstants.DATASET_OWNER_FULLNAME_SYSPROP);
+        if (!StringUtils.hasValue(result))
+            result = getOwnerName(data);
         return result;
     }
     public static String getOwnerName(DataRepository data) {
