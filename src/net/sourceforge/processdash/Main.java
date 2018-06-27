@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 
 package net.sourceforge.processdash;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -32,6 +31,8 @@ import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
+
+import net.sourceforge.processdash.tool.launcher.jnlp.JnlpUtil;
 
 /**
  * This class verifies that JRE version is supported before reflectively
@@ -91,25 +92,23 @@ public class Main {
         try {
             // check for class existence
             // this may throw ClassNotFoundException
-            Class clazz = Class
-                    .forName("net.sourceforge.processdash.ProcessDashboard");
+            String mainClassName = getMainClassName(args);
+            Class clazz = Class.forName(mainClassName);
             // reflectively invoke main method to
             Method main = clazz.getMethod("main",
                 new Class[] { String[].class });
             main.invoke(clazz, new Object[] { args });
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String getMainClassName(String[] args) {
+        if (JnlpUtil.isSingleJnlpArg(args))
+            return "net.sourceforge.processdash.tool.launcher.jnlp.JnlpDatasetLauncher";
+        else
+            return "net.sourceforge.processdash.ProcessDashboard";
     }
 
     /**

@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2013 Tuma Solutions, LLC
+// Copyright (C) 2009-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,7 +33,6 @@ import java.awt.event.FocusListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -175,9 +174,9 @@ public class ExceptionDialog {
         List result = new ArrayList();
         for (Object o : contents) {
             if (o instanceof Object[])
-                o = Arrays.asList((Object[]) o);
-            if (o instanceof Collection)
-                result.addAll((Collection) o);
+                result.addAll(flattenContents((Object[]) o));
+            else if (o instanceof Collection)
+                result.addAll(flattenContents(((Collection) o).toArray()));
             else
                 result.add(o);
         }

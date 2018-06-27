@@ -126,6 +126,7 @@ Authors:
   <property name="colt.jar"       value="${lib}/colt.jar"/>
   <property name="jna.jar"        value="${lib}/jna-3.3.0.jar"/>
   <property name="keyring.jar"    value="${lib}/keyring-lib.jar"/>
+  <property name="pdes-jnlp-api.jar" value="${lib}/pdes-jnlp-api.jar"/>
   <property name="tamper.jar"     value="${lib}/tamper-deterrent.jar"/>
   <property name="apple-eawt.jar" value="${lib}/com-apple-eawt.jar"/>
   <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
@@ -159,6 +160,7 @@ Authors:
     <pathelement location="${datatips.jar}"/>
     <pathelement location="${jna.jar}"/>
     <pathelement location="${keyring.jar}"/>
+    <pathelement location="${pdes-jnlp-api.jar}"/>
     <pathelement location="${apple-eawt.jar}"/>
     <pathelement location="${ws-commons.jar}"/>
     <pathelement location="${xmlrpc-cli.jar}"/>
@@ -563,6 +565,7 @@ Authors:
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${jna.jar}"/>
       <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
+      <zipfileset src="${pdes-jnlp-api.jar}" excludes="META-INF/**" />
       <zipfileset src="${tamper.jar}" includes="com/ META-INF/services/"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
