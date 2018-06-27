@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2017 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -123,6 +123,7 @@ public class HttpAuthenticator extends Authenticator {
 
         // only handle Data Bridge requests (no support for non-PDES servers)
         if (getRequestingURL().toString().indexOf("/DataBridge/") == -1
+                && getRequestingURL().toString().indexOf("/api/datasets") == -1
                 && getRequestingURL().toString().indexOf("/api/v1/") == -1)
             return null;
 
@@ -322,11 +323,11 @@ public class HttpAuthenticator extends Authenticator {
     }
 
     private String getBaseURL(String result) {
-        int baseEndPos = result.indexOf("DataBridge");
+        int baseEndPos = result.indexOf("/DataBridge");
         if (baseEndPos == -1)
-            baseEndPos = result.indexOf("api/v1");
+            baseEndPos = result.indexOf("/api/");
         if (baseEndPos != -1)
-            result = result.substring(0, baseEndPos);
+            result = result.substring(0, baseEndPos + 1);
         return result;
     }
 
