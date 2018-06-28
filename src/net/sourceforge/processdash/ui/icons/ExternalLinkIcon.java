@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,7 +36,11 @@ public class ExternalLinkIcon extends AbstractPixelAwareRecolorableIcon {
     private Color color;
 
     public ExternalLinkIcon() {
-        this.color = Color.darkGray;
+        this(Color.darkGray);
+    }
+
+    public ExternalLinkIcon(Color color) {
+        this.color = color;
         this.width = this.height = 10;
         this.antialias = false;
     }
