@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.tool.launcher.pdes;
 
+import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -141,5 +142,17 @@ public class PDESUtil {
     public static String getAutoUserDatasetID(String username) {
         return "AUTOUSER-" + username;
     }
+
+
+
+    /**
+     * Retrieve an object for saving PDES-related user preferences
+     */
+    public static Preferences getPdesPrefs() {
+        return Preferences.userRoot()
+                .node("net/sourceforge/processdash/userPrefs/pdes");
+    }
+
+    public static final String DEFAULT_SERVER_PREF = "defaultServer";
 
 }

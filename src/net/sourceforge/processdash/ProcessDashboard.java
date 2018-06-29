@@ -2075,7 +2075,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 title = args[i];
         }
 
-        CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+        if (CookieHandler.getDefault() == null)
+            CookieHandler.setDefault(
+                new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         HttpAuthenticator.maybeInitialize(title);
         MacGUIUtils.tweakLookAndFeel();
 

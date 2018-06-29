@@ -74,7 +74,7 @@ public class RecentDatasets {
     }
 
 
-    private static MRUPreferencesList list() {
+    public static MRUPreferencesList list() {
         Preferences p = Preferences.userNodeForPackage(RecentDatasets.class)
                 .node("recentDatasets");
         return new MRUPreferencesList(p, 100);
