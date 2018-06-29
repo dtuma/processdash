@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,69 +21,75 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.bridge.impl;
+package net.sourceforge.processdash.tool.launcher.jnlp;
 
 import java.io.File;
-import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Document;
+import java.util.List;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
-import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
+import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
+import net.sourceforge.processdash.tool.launcher.pdes.PDESUtil;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.util.RuntimeUtils;
-import net.sourceforge.processdash.util.XMLUtils;
 
 public class JnlpRelauncher {
 
     /**
-     * Examine the working directory to see if it represents a filesystem
+     * Examine the given location to see if it represents a filesystem
      * directory that has been migrated into an enterprise server. If so, try
-     * relaunching the dataset via Java Web Start.
+     * relaunching the dataset with the dashboard's JNLP handling logic.
      * 
-     * @param workingDir
-     *            the working directory for a Process Dashboard dataset
+     * @param location
+     *            the location of a Process Dashboard dataset
      * @return true if the dataset was relaunched via JNLP, false otherwise
      */
-    public static boolean maybeRelaunch(WorkingDirectory workingDir) {
-        if (workingDir instanceof BridgedWorkingDirectory) {
-            try {
-                return maybeRelaunchImpl((BridgedWorkingDirectory) workingDir);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    public static boolean maybeRelaunch(String location) {
+        try {
+            return maybeRelaunchImpl(location);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
 
-    private static boolean maybeRelaunchImpl(BridgedWorkingDirectory bwd)
+    private static boolean maybeRelaunchImpl(String location)
             throws Exception {
+        // if no location was provided, use the current directory.
+        if (location == null)
+            location = System.getProperty("user.dir");
+        if (location == null)
+            return false;
+
+        // if the location is already a URL, there is no need to relaunch
+        if (TeamServerSelector.isUrlFormat(location))
+            return false;
+
         // check to see if the user has disabled relaunching.
         if (isDisabled())
             return false;
 
-        // Only consider a JNLP restart if our BridgedWorkingDirectory was
-        // constructed for a local filesystem directory that has been migrated
-        // into the server.
-        if (hasMigratedTargetDirectory(bwd) == false)
+        // Only consider a JNLP restart if our target location is a local
+        // filesystem directory that has been migrated into a server.
+        File dir = new File(location);
+        if (isMigratedTargetDirectory(dir) == false)
             return false;
 
         // Retrieve a URL to the appropriate JNLP file. If this working
         // directory is not available via JNLP, abort.
-        String jnlpUrl = getJnlpURL(bwd);
+        String jnlpUrl = getJnlpURL(dir);
         if (jnlpUrl == null)
             return false;
 
-        // Get the path to the java web start executable
-        String javawsExecutable = getWebStartExecutable();
-        if (javawsExecutable == null)
+        // Get the path to our JAR 
+        File classpath = RuntimeUtils.getClasspathFile(JnlpDatasetLauncher.class);
+        if (classpath == null)
             return false;
 
-        // launch Java Web Start and check to ensure that it was successful.
-        return relaunch(javawsExecutable, jnlpUrl);
+        // relaunch the app and return true if it completes without exception
+        relaunch(classpath, jnlpUrl);
+        return true;
     }
 
 
@@ -113,18 +119,12 @@ public class JnlpRelauncher {
 
 
     /**
-     * Return true if the given working directory was constructed for a local
-     * filesystem directory that has been migrated into a server.
+     * Return true if the given directory is a local filesystem directory that
+     * has been migrated into a server.
      */
-    private static boolean hasMigratedTargetDirectory(
-            BridgedWorkingDirectory bwd) {
-
-        // When the dashboard is launched from a legacy shortcut, the
-        // targetDirectory property will point to that legacy shortcut's data
-        // directory. (If the target directory is null, there is a high
-        // probability that we were already launched via JNLP.)
-        File targetDirectory = bwd.getTargetDirectory();
-        if (targetDirectory == null)
+    private static boolean isMigratedTargetDirectory(File targetDirectory) {
+        // if the directory does not exist, abort
+        if (targetDirectory == null || !targetDirectory.isDirectory())
             return false;
 
         // check to see if the target directory contains a marker file
@@ -136,91 +136,44 @@ public class JnlpRelauncher {
 
 
     /**
-     * Construct a URL that points to a valid JNLP file for this working
-     * directory. If this working directory is not accessible via a JNLP URL,
-     * returns null.
+     * If the given directory was migrated into a server, return a JNLP URL to
+     * that dataset. If not, return null.
      */
-    private static String getJnlpURL(BridgedWorkingDirectory bwd) {
-        // Look at the description of the working directory. For bridged
-        // directories, this should be the URL of the data collection. Match
-        // this against the typical pattern we expect for data collection URLs.
-        // if it doesn't match, do nothing.
-        String datasetUrl = bwd.getDescription();
-        Matcher m = DATA_BRIDGE_PAT.matcher(datasetUrl);
-        if (!m.matches())
+    private static String getJnlpURL(File dir) {
+        // look for a teamServer.xml file in the given directory. A directory
+        // that has been migrated should have a pointer file with one entry.
+        TeamServerPointerFile pointerFile = new TeamServerPointerFile(dir);
+        List<String> urls = pointerFile.getInstanceURLs();
+        if (urls.size() != 1)
             return null;
 
-        // Use PDES naming conventions to construct a URL where we think the
-        // JNLP file should be published. Try retrieving that URL, and make
-        // certain it represents a JNLP XML file.
-        //
-        // Of course, this implies that we will not relaunch over JNLP if we
-        // are offline and the server is unreachable. Although it could be
-        // desirable to relaunch over JNLP in that situation if the dataset is
-        // marked for offline use, that can't be guaranteed to work reliably.
-        String jnlpUrl = m.group(1) + "pub/LaunchDataset" + m.group(3)
-                + ".jnlp";
-        try {
-            URL testUrl = new URL(jnlpUrl);
-            Document xml = XMLUtils.parse(testUrl.openStream());
-            if ("jnlp".equals(xml.getDocumentElement().getTagName()))
-                return jnlpUrl;
-        } catch (Exception e) {
-        }
-        return null;
-    }
-
-    private static final Pattern DATA_BRIDGE_PAT = Pattern
-            .compile("(http.*/)(DataBridge)(/INST-.*)");
-
-
-    /**
-     * Return the path the the java web start executable, or null if it cannot
-     * be found.
-     */
-    private static final String getWebStartExecutable() {
-        // get the path the to the main java executable.
-        String java = RuntimeUtils.getJreExecutable();
-        if (java == null)
-            return null;
-
-        // replace the word "java" with the word "javaws"
-        int pos = java.lastIndexOf("java") + 4;
-        if (pos < 4)
-            return null;
-        String javaws = java.substring(0, pos) + "ws" + java.substring(pos);
-
-        // check to see if the file exists and is executable.
-        File f = new File(javaws);
-        if (f.isFile())
-            return javaws;
-        else
-            return null;
+        // compute the URL of the JNLP file, based on the data bridge URL
+        String dataBridgeUrl = urls.get(0);
+        return PDESUtil.getJnlpUrl(dataBridgeUrl, false);
     }
 
 
     /**
-     * Launch a Java Web Start process for a given URL.
+     * Launch a Java process for a given JNLP URL.
      */
-    protected static boolean relaunch(String javawsExecutable, String jnlpUrl)
+    protected static void relaunch(File classpath, String jnlpUrl)
             throws Exception {
         System.out.println("Relaunching via Java Web Start URL " + jnlpUrl);
         long start = System.currentTimeMillis();
 
-        // launch the web start process and wait for it to finish.
-        String[] cmd = new String[] { javawsExecutable, "-Xnosplash", jnlpUrl };
-        Process process = Runtime.getRuntime().exec(cmd);
-        int exitStatus = RuntimeUtils.doWaitFor(process);
+        // fork a child process to open the given URL
+        String[] cmd = new String[] { RuntimeUtils.getJreExecutable(), //
+                "-cp", classpath.getAbsolutePath(),
+                JnlpDatasetLauncher.class.getName(), jnlpUrl };
+        Process p = Runtime.getRuntime().exec(cmd, null, null);
+        RuntimeUtils.discardOutput(p);
 
-        // The process might return immediately; if it does, wait a few seconds
-        // so our splash screen remains visible until the splash screen of the
+        // The process might take a moment to start. wait a few seconds so our
+        // splash screen remains visible until the splash screen of the
         // replacement process can appear.
         long elapsed = System.currentTimeMillis() - start;
         if (elapsed < 2900)
             Thread.sleep(2900 - elapsed);
-
-        // check the exit status of the web start process.
-        return (exitStatus == 0);
     }
 
 }

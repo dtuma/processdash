@@ -749,8 +749,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void configureWorkingDirectory(String location) {
         workingDirectory = WorkingDirectoryFactory.getInstance().get(
             location, WorkingDirectoryFactory.PURPOSE_DASHBOARD);
-        if (JnlpRelauncher.maybeRelaunch(workingDirectory))
-            System.exit(0);
 
         String locationDescr = workingDirectory.getDescription();
 
@@ -2074,6 +2072,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             else
                 title = args[i];
         }
+
+        if (JnlpRelauncher.maybeRelaunch(location))
+            System.exit(0);
 
         if (CookieHandler.getDefault() == null)
             CookieHandler.setDefault(
