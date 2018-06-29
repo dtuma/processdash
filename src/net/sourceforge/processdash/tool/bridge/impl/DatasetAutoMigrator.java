@@ -298,6 +298,7 @@ public class DatasetAutoMigrator {
                     break;
                 }
             }
+            in.close();
         } catch (Exception e) {
         }
     }
@@ -471,7 +472,7 @@ public class DatasetAutoMigrator {
             "timelog.xml" };
 
     // a file we write to the source directory to indicate it has been migrated
-    static final String MARKER_FILE = "00-This-Directory-is-Obsolete.txt";
+    public static final String MARKER_FILE = "00-This-Directory-is-Obsolete.txt";
 
     // pspdash.ini setting to record the fact that we've migrated data into
     // this working directory
