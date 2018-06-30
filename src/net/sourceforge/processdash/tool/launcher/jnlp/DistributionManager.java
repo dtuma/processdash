@@ -28,6 +28,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -38,6 +42,7 @@ import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 
 import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
 import com.tuma_solutions.teamserver.jnlp.client.JnlpPackagingConstants;
@@ -46,7 +51,7 @@ public class DistributionManager implements JnlpPackagingConstants {
 
     private static final String DISTRIB_DIR_FILENAME = "distrib";
 
-    static final String TARGET_JARFILE = "pspdash.jar";
+    public static final String TARGET_JARFILE = "pspdash.jar";
 
     static final String USAGE_LOG_FILENAME = "lastUse.txt";
 
@@ -100,6 +105,81 @@ public class DistributionManager implements JnlpPackagingConstants {
             return null;
         }
     }
+
+
+    /**
+     * Get the directory for the most recently used distribution on the computer
+     * 
+     * @param minVersion
+     *            the minimum version of a profile required, or null if any
+     *            version is acceptable
+     * @return the most recently used distribution that meets the version
+     *         requirement, or null if none was found
+     */
+    public static File getMostRecentlyUsedDistribution(String minVersion)
+            throws IOException {
+        List<File> distributions = getExistingDistributions(minVersion);
+        if (distributions.isEmpty())
+            return null;
+
+        File result = distributions.get(0);
+        touchDirectory(result);
+        return result;
+    }
+
+
+    /**
+     * Get a list of the directories holding locally cached distributions,
+     * ordered with most recently used distributions first
+     * 
+     * @param minVersion
+     *            the minimum version of a profile required, or null if any
+     *            version is acceptable
+     */
+    public static List<File> getExistingDistributions(String minVersion)
+            throws IOException {
+        // if the distrib directory doesn't exist, return
+        File[] files = getDistribDirectory().listFiles();
+        if (files == null || files.length == 0)
+            return Collections.EMPTY_LIST;
+
+        // gather up the profiles in a map, sorted by usage date
+        TreeMap<Long, File> profiles = new TreeMap<Long, File>();
+        for (File f : files) {
+            // ignore plain files in the distrib directory
+            if (!f.isDirectory())
+                continue;
+
+            // only examine directories that contain a pspdash.jar file. (Other
+            // directories are process assets.)
+            File targetJar = new File(f, TARGET_JARFILE);
+            if (!targetJar.isFile())
+                continue;
+
+            // if a min version was requested, check it
+            if (minVersion != null) {
+                Matcher m = LAUNCH_PROFILE_DIR_NAME_PAT.matcher(f.getName());
+                if (!m.matches())
+                    continue;
+                String version = m.group(2);
+                if (VersionUtils.compareVersions(version, minVersion) < 0)
+                    continue;
+            }
+
+            // get the timestamp and add it to our result
+            File usageFile = new File(f, USAGE_LOG_FILENAME);
+            profiles.put(usageFile.lastModified(), f);
+        }
+
+        // build a list of the results, and reverse it to put the most recently
+        // used profiles first
+        List<File> result = new ArrayList<File>(profiles.values());
+        Collections.reverse(result);
+        return result;
+    }
+
+    private static final Pattern LAUNCH_PROFILE_DIR_NAME_PAT = Pattern
+            .compile("(.+)-([0-9\\.ab]+)-([a-z0-9]+)");
 
 
     /**

@@ -26,9 +26,6 @@ package net.sourceforge.processdash.tool.launcher.jnlp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +42,7 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
-import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.Bootstrap;
 
 import com.tuma_solutions.teamserver.jnlp.client.JnlpClientConstants;
 
@@ -276,31 +273,10 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         // get the arguments that should be passed to the main() function
         String[] args = argv.toArray(new String[argv.size()]);
 
-        // create a classloader and load the main ProcessDashboard class
+        // launch the main ProcessDashboard class in the given distribution
         File targetJarFile = new File(distrDir,
                 DistributionManager.TARGET_JARFILE);
-        ClassLoader cl = getAppClassLoader(targetJarFile);
-        Class clazz = Class.forName(PDASH_MAIN_CLASS, true, cl);
-        Method main = clazz.getMethod("main", new Class[] { String[].class });
-
-        // reflectively invoke main method to start the application
-        main.invoke(clazz, new Object[] { args });
-    }
-
-    private ClassLoader getAppClassLoader(File targetJarFile)
-            throws IOException {
-        // see if we're already running from the indicated JAR. If so, there
-        // is no need to create a new class loader.
-        File selfClasspath = RuntimeUtils.getClasspathFile(getClass());
-        if (targetJarFile.equals(selfClasspath))
-            return getClass().getClassLoader();
-
-        // make a new class loader to read data from the given JAR
-        ClassLoader cl = new URLClassLoader(
-                new URL[] { targetJarFile.toURI().toURL() },
-                JnlpDatasetLauncher.class.getClassLoader().getParent());
-        Thread.currentThread().setContextClassLoader(cl);
-        return cl;
+        Bootstrap.launchMain(targetJarFile, PDASH_MAIN_CLASS, args);
     }
 
 

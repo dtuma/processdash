@@ -327,12 +327,12 @@ Authors:
 
   <target name="launcher-jar" depends="compile">
     <classfileset id="launcherClasses" dir="${build}">
-      <root classname="net.sourceforge.processdash.tool.launcher.Main"/>
+      <root classname="net.sourceforge.processdash.tool.launcher.Scanner"/>
     </classfileset>
 
     <jar destfile="dist/launcher.jar" duplicate="fail">
       <manifest>
-        <attribute name="Main-Class" value="net.sourceforge.processdash.tool.launcher.Main"/>
+        <attribute name="Main-Class" value="net.sourceforge.processdash.tool.launcher.Scanner"/>
         <attribute name="SplashScreen-Image"
                    value="net/sourceforge/processdash/ui/splash-native.png"/>
         <attribute name="Implementation-Title" value="Process Dashboard Launcher"/>
