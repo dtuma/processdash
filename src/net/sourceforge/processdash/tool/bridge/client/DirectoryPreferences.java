@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 import java.io.IOException;
 
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
 public class DirectoryPreferences {
@@ -110,7 +111,7 @@ public class DirectoryPreferences {
 
 
     private static File getDataDirectoryParent() {
-        if (TeamServerSelector.isHistoricalModeEnabled()) {
+        if (HistoricalMode.isHistoricalModeEnabled()) {
             synchronized (DirectoryPreferences.class) {
                 try {
                     if (HISTORICAL_DATA_DIR == null)
@@ -125,5 +126,17 @@ public class DirectoryPreferences {
     }
 
     private static File HISTORICAL_DATA_DIR = null;
+
+
+
+    public static File getLocalCacheDir(String url) {
+        return new File(getMasterWorkingDirectory(), getWorkingIdForUrl(url));
+    }
+
+    static String getWorkingIdForUrl(String url) {
+        if (url.startsWith("https"))
+            url = "http" + url.substring(5);
+        return FileUtils.makeSafeIdentifier(url);
+    }
 
 }

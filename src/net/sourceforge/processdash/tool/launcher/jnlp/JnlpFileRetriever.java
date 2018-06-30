@@ -38,7 +38,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -186,7 +186,7 @@ class JnlpFileRetriever {
             return null;
 
         // compute the path of the file where the JNLP file should be cached
-        File cacheDir = BridgedWorkingDirectory.getLocalCacheDir(dataUrl);
+        File cacheDir = DirectoryPreferences.getLocalCacheDir(dataUrl);
         File metadataDir = new File(cacheDir, "metadata");
         File cacheFile = new File(metadataDir, "launchData.txt");
 

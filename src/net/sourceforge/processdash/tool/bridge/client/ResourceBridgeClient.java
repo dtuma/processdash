@@ -81,7 +81,7 @@ import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class ResourceBridgeClient implements ResourceBridgeConstants {
 
-    static final String CLIENT_VERSION = getClientVersionNumber();
+    private static final String CLIENT_VERSION = TeamServerSelector.CLIENT_VERSION;
 
     ResourceCollection localCollection;
 
@@ -116,7 +116,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.syncDownOnlyFiles = syncDownOnlyFiles;
         this.userId = getUserId();
         this.effectiveDate = System
-                .getProperty(TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY);
+                .getProperty(HistoricalMode.DATA_EFFECTIVE_DATE_PROPERTY);
         this.offlineLockStatus = OfflineLockStatus.NotLocked;
     }
 
@@ -785,7 +785,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             Object... params) throws IOException,
             LockFailureException {
 
-        if (TeamServerSelector.isHistoricalModeEnabled())
+        if (HistoricalMode.isHistoricalModeEnabled())
             throw new IOException("Changes are not allowed in historical mode");
 
         if (userId == null)
@@ -1007,21 +1007,6 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         } catch (Exception e) {
         }
         return null;
-    }
-
-    /**
-     * This method was added in version 2.4.3, to return the real version of the
-     * Process Dashboard software. Previous versions of the dashboard would
-     * always use "1.0" as the version number for the client bridge.
-     */
-    private static String getClientVersionNumber() {
-        String result = null;
-        try {
-            result = ResourceBridgeClient.class.getPackage()
-                    .getImplementationVersion();
-        } catch (Exception e) {
-        }
-        return (result == null ? "9999" : result);
     }
 
 }

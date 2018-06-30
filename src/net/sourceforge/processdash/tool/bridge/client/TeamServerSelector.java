@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,8 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.text.DateFormat;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +44,6 @@ public class TeamServerSelector {
 
     public static final String DISABLE_TEAM_SERVER_PROPERTY =
         TeamServerSelector.class.getName() + ".disabled";
-
-    public static final String DATA_EFFECTIVE_DATE_PROPERTY =
-        TeamServerSelector.class.getName() + ".effectiveDate";
 
     public static final String DEFAULT_TEAM_SERVER_PROPERTY =
         TeamServerSelector.class.getName() + ".defaultURL";
@@ -67,35 +62,6 @@ public class TeamServerSelector {
      */
     public static boolean isTeamServerUseDisabled() {
         return Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY);
-    }
-
-    /**
-     * Test whether the current process is operating in "historical mode,"
-     * displaying data from some point in the past.
-     */
-    public static boolean isHistoricalModeEnabled() {
-        return System.getProperty(DATA_EFFECTIVE_DATE_PROPERTY) != null;
-    }
-
-    /**
-     * Return a human-readable string describing the effective date of the
-     * historical data being displayed by the current process, or null if this
-     * process is not in historical mode.
-     */
-    public static String getHistoricalDateStr() {
-        String ts = System.getProperty(DATA_EFFECTIVE_DATE_PROPERTY);
-        if (ts == null)
-            return null;
-
-        DateFormat fmt;
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(Long.parseLong(ts));
-        if (c.get(Calendar.HOUR_OF_DAY) > 22)
-            fmt = DateFormat.getDateInstance(DateFormat.MEDIUM);
-        else
-            fmt = DateFormat.getDateTimeInstance(DateFormat.MEDIUM,
-                DateFormat.SHORT);
-        return fmt.format(c.getTime());
     }
 
     /**
@@ -135,7 +101,7 @@ public class TeamServerSelector {
         if (isTeamServerUseDisabled())
             return;  // team server use is disabled
 
-        if (!(wd instanceof BridgedWorkingDirectory))
+        if (!wd.getClass().getName().endsWith(".BridgedWorkingDirectory"))
             return; // working directory is not bridged to a server
 
         if (isDefaultTeamServerConfigured())
@@ -441,8 +407,7 @@ public class TeamServerSelector {
                 ResourceBridgeConstants.ACTION_PARAM,
                 ResourceBridgeConstants.SESSION_START_INQUIRY);
             HTMLUtils.appendQuery(requestURL,
-                ResourceBridgeConstants.VERSION_PARAM,
-                ResourceBridgeClient.CLIENT_VERSION);
+                ResourceBridgeConstants.VERSION_PARAM, CLIENT_VERSION);
 
             // make a connection to the server and verify that we get a valid
             // response back.
@@ -503,4 +468,22 @@ public class TeamServerSelector {
             requiredVersion = desiredVersion;
         return requiredVersion;
     }
+
+    /**
+     * This method was added in version 2.4.3, to return the real version of the
+     * Process Dashboard software. Previous versions of the dashboard would
+     * always use "1.0" as the version number for the client bridge.
+     */
+    private static String getClientVersionNumber() {
+        String result = null;
+        try {
+            result = TeamServerSelector.class.getPackage()
+                    .getImplementationVersion();
+        } catch (Exception e) {
+        }
+        return (result == null ? "9999" : result);
+    }
+
+    static final String CLIENT_VERSION = getClientVersionNumber();
+
 }

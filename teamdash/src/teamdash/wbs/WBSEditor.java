@@ -102,6 +102,7 @@ import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
@@ -445,8 +446,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         else
             windowTitle = teamProject.getProjectName();
         windowTitle += " - " + resources.getString("Window.Title_Suffix");
-        if (TeamServerSelector.isHistoricalModeEnabled())
-            windowTitle += " @ " + TeamServerSelector.getHistoricalDateStr();
+        if (HistoricalMode.isHistoricalModeEnabled())
+            windowTitle += " @ " + HistoricalMode.getHistoricalDateStr();
         else if (teamProject.isReadOnly())
             windowTitle += " " + resources.getString("Window.Read_Only");
 
@@ -2192,7 +2193,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         String indivInitials = System.getProperty("teamdash.wbs.indivInitials");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly")
-                || TeamServerSelector.isHistoricalModeEnabled();
+                || HistoricalMode.isHistoricalModeEnabled();
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String itemHref = System.getProperty("teamdash.wbs.showItem");
         String owner = System.getProperty("teamdash.wbs.owner");

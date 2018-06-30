@@ -142,6 +142,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
+import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -1139,8 +1140,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             title = Settings.getVal(WINDOW_TITLE_SETTING);
 
             // possibly apply the historical or read-only modifier
-            if (TeamServerSelector.isHistoricalModeEnabled())
-                title += " @ " + TeamServerSelector.getHistoricalDateStr();
+            if (HistoricalMode.isHistoricalModeEnabled())
+                title += " @ " + HistoricalMode.getHistoricalDateStr();
             else if (Settings.isReadOnly())
                 title = resources.format("ReadOnly.Title_FMT", title);
         }
@@ -1268,12 +1269,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void maybeSetupHistoricalMode() {
-        if (TeamServerSelector.isHistoricalModeEnabled()) {
+        if (HistoricalMode.isHistoricalModeEnabled()) {
             // if we are viewing historical PDES data, turn on the
             // read only flag and register the effective date.
             InternalSettings.setReadOnly(true);
             InternalSettings.set(EVCalculator.FIXED_EFFECTIVE_DATE_SETTING, //
-                System.getProperty(TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY));
+                System.getProperty(HistoricalMode.DATA_EFFECTIVE_DATE_PROPERTY));
         }
     }
 
