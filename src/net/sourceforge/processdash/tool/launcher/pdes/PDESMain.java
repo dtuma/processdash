@@ -23,9 +23,6 @@
 
 package net.sourceforge.processdash.tool.launcher.pdes;
 
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,8 +47,6 @@ public class PDESMain {
         }
 
         // initialize the authentication logic
-        CookieHandler
-                .setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         Resources r = Resources.getDashBundle("Launcher");
         String title = r.getString("Process_Dashboard");
         HttpAuthenticator.maybeInitialize(title);

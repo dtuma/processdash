@@ -30,6 +30,9 @@ import java.awt.Frame;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.PasswordAuthentication;
 import java.util.prefs.Preferences;
 
@@ -89,6 +92,12 @@ public class HttpAuthenticator extends Authenticator {
     private static final String REMEMBER_ME_SETTING_NAME = SETTING_PREFIX
             + "rememberMeDays";
 
+    private static final String LAST_URL_SETTING_NAME = SETTING_PREFIX
+            + "lastUrl";
+
+    private static final String LAST_USERNAME_SETTING_NAME = SETTING_PREFIX
+            + "lastUsername";
+
     private static final String LAST_USERNAME = "lastUsername";
 
     private static final String REMEMBER_ME_UNTIL = "rememberUntil";
@@ -102,6 +111,12 @@ public class HttpAuthenticator extends Authenticator {
         this.resources = Resources.getDashBundle("Authentication.Password");
         this.title = title;
         this.state = State.Initial;
+        this.lastUrl = System.getProperty(LAST_URL_SETTING_NAME);
+        this.lastUsername = System.getProperty(LAST_USERNAME_SETTING_NAME);
+
+        if (CookieHandler.getDefault() == null)
+            CookieHandler.setDefault(
+                new CookieManager(null, CookiePolicy.ACCEPT_ALL));
 
         if (Keyring.isPersistent()) {
             try {
@@ -218,9 +233,7 @@ public class HttpAuthenticator extends Authenticator {
         }
 
         // record metadata about this password request
-        lastUrl = getEffectiveURL();
-        lastTimestamp = System.currentTimeMillis();
-        lastUsername = username.getText().trim();
+        setLastValues(getEffectiveURL(), username.getText().trim());
         prefs.put(prefsKey(LAST_USERNAME), lastUsername);
 
         if (userChoice[0] == JOptionPane.OK_OPTION) {
@@ -242,9 +255,8 @@ public class HttpAuthenticator extends Authenticator {
             // if this operation is not a retry, reset to initial state.
             if (lastUrl == null || !getBaseURL().equals(getBaseURL(lastUrl)))
                 lastPassword = null;
-            lastUrl = getEffectiveURL();
-            lastTimestamp = System.currentTimeMillis();
-            lastUsername = prefs.get(prefsKey(LAST_USERNAME), null);
+            setLastValues(getEffectiveURL(),
+                prefs.get(prefsKey(LAST_USERNAME), null));
             state = State.Initial;
         }
 
@@ -261,6 +273,16 @@ public class HttpAuthenticator extends Authenticator {
 
         long retryDelay = System.currentTimeMillis() - lastTimestamp;
         return retryDelay < 15 * DateUtils.SECONDS;
+    }
+
+    private void setLastValues(String url, String username) {
+        lastUrl = url;
+        lastTimestamp = System.currentTimeMillis();
+        lastUsername = username;
+        if (lastUrl != null)
+            System.setProperty(LAST_URL_SETTING_NAME, lastUrl);
+        if (lastUsername != null)
+            System.setProperty(LAST_USERNAME_SETTING_NAME, lastUsername);
     }
 
     private char[] getPasswordFromKeyring(String username) {
