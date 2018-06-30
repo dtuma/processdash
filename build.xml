@@ -325,6 +325,50 @@ Authors:
     </jar>
   </target>
 
+  <target name="launcher-jar" depends="compile">
+    <classfileset id="launcherClasses" dir="${build}">
+      <root classname="net.sourceforge.processdash.tool.launcher.Main"/>
+    </classfileset>
+
+    <jar destfile="dist/launcher.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class" value="net.sourceforge.processdash.tool.launcher.Main"/>
+        <attribute name="SplashScreen-Image"
+                   value="net/sourceforge/processdash/ui/splash-native.png"/>
+        <attribute name="Implementation-Title" value="Process Dashboard Launcher"/>
+        <attribute name="Implementation-Version" value="${dashboard.version}"/>
+        <attribute name="Implementation-Vendor" value="Process Dashboard Dev Team"/>
+      </manifest>
+
+      <!-- include the classes needed by the launcher -->
+      <fileset refid="launcherClasses"/>
+
+      <!-- include nonclass resources we use -->
+      <fileset dir=".">
+        <include name="Templates/resources/(Resources)*"/>
+        <include name="Templates/resources/Authentication*"/>
+        <include name="Templates/resources/Launcher*"/>
+        <include name="Templates/resources/ProcessDashboard*"/>
+      </fileset>
+      <fileset dir="${src}">
+        <include name="net/sourceforge/processdash/ui/dashicon.ico"/>
+        <include name="net/sourceforge/processdash/ui/teamicon.ico"/>
+        <include name="net/sourceforge/processdash/ui/splash.png"/>
+        <include name="net/sourceforge/processdash/ui/splash-native.png"/>
+      </fileset>
+
+      <!-- include the contents of the libraries used by the launcher -->
+      <zipfileset src="${image4j.jar}"/>
+      <zipfileset src="${jna.jar}"/>
+      <zipfileset src="${json.jar}" excludes="META-INF/**"/>
+      <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
+      <zipfileset src="${kxml.jar}"/>
+      <zipfileset src="${pdes-jnlp-api.jar}" excludes="META-INF/**" />
+    </jar>
+
+    <maybeSignJar jar="${dist}/launcher.jar" prefix="${pspdash-signature}"/>
+  </target>
+
   <target name="extras-addon" depends="compile" if="extras.dir"
           unless="extras.skip">
     <pathconvert property="extras.processdash.dir" dirSep="/">

@@ -213,7 +213,7 @@ public class Resources extends ResourceBundle implements StringMapper {
 
         } catch (Throwable t) {}
 
-        return Resources.class.getClassLoader();
+        return new SafeTemplateClassLoader();
     }
 
     private static final boolean TIME_LOADING = false;
