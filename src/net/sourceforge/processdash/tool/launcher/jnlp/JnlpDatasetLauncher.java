@@ -173,6 +173,15 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                 showStartupErrorAndExitT(getRes("Not_Installed.Title"),
                     getResArr("Not_Installed.Message"));
 
+        } else if (USE_DEFAULT_DISTRIB_FLAG.equals(arg)) {
+            try {
+                distrDir = DistributionManager
+                        .getMostRecentlyUsedDistribution(null);
+            } catch (IOException ioe) {
+            }
+            if (distrDir == null)
+                handleJnlpArg(USE_INSTALLED_DISTRIB_FLAG);
+
         } else if (arg.startsWith(NAME_PREFIX)) {
             appName = arg.substring(NAME_PREFIX.length());
 
