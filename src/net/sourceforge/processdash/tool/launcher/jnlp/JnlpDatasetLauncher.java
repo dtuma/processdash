@@ -43,6 +43,7 @@ import org.w3c.dom.NodeList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.util.Bootstrap;
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 import com.tuma_solutions.teamserver.jnlp.client.JnlpClientConstants;
 
@@ -71,6 +72,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
     private Element xml;
 
+    private boolean isMac;
+
     private AssetManager assetManager;
 
     private File distrDir;
@@ -78,6 +81,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     private String dataLocation;
 
     private String appName;
+
+    private String appIcon;
 
     private Map<String, String> systemProperties;
 
@@ -130,6 +135,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      * set starting values for fields in this object
      */
     private void initializeFields() throws IOException {
+        isMac = System.getProperty("os.name").toLowerCase()
+                .startsWith("mac os x");
         assetManager = new AssetManager();
         dataLocation = "unspecified";
         systemProperties = new HashMap<String, String>();
@@ -184,6 +191,9 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
         } else if (arg.startsWith(NAME_PREFIX)) {
             appName = arg.substring(NAME_PREFIX.length());
+
+        } else if (arg.startsWith(ICON_PREFIX)) {
+            appIcon = arg.substring(ICON_PREFIX.length());
 
         } else if (arg.startsWith(PROCESS_ASSET_PREFIX)) {
             String assetSpec = arg.substring(PROCESS_ASSET_PREFIX.length());
@@ -252,6 +262,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      */
     private void finalizePropertiesAndCommandLine() {
         // record the application name
+        if (isMac && appName == null)
+            appName = res.getString("Process_Dashboard");
         if (appName != null)
             argv.add(appName);
 
@@ -274,6 +286,56 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      * Launch the application, using the arguments and distribution we've set
      */
     private void launchApp() throws Exception {
+        if (shouldFork())
+            launchAppInNewProcess();
+        else
+            launchAppInCurrentProcess();
+    }
+
+    private boolean shouldFork() {
+        // Mac OS X only runs a single instance of an application at a time.
+        // as a result, we must fork and allow the parent process to exit, or
+        // the parent process will prevent future datasets from launching.
+        return isMac;
+    }
+
+    private void launchAppInNewProcess() throws Exception {
+        // build a command line for the subprocess
+        List<String> cmdLine = new ArrayList<String>();
+
+        // add all system properties
+        for (Entry<String, String> e : systemProperties.entrySet())
+            cmdLine.add("-D" + e.getKey() + "=" + e.getValue());
+
+        // add Mac OS X special args
+        if (isMac) {
+            cmdLine.add("-Xdock:name=" + appName);
+            File self = RuntimeUtils.getClasspathFile(getClass());
+            if (self != null && appIcon != null) {
+                File dir = self.getParentFile();
+                File icon = new File(dir, appIcon + ".icns");
+                if (!icon.isFile())
+                    icon = new File(dir.getParentFile(), appIcon + ".icns");
+                if (icon.isFile())
+                    cmdLine.add("-Xdock:icon=" + icon.getAbsolutePath());
+            }
+        }
+
+        // add the JAR argument
+        File targetJarFile = new File(distrDir,
+                DistributionManager.TARGET_JARFILE);
+        cmdLine.add("-jar");
+        cmdLine.add(targetJarFile.getAbsolutePath());
+
+        // add all remaining arguments
+        cmdLine.addAll(argv);
+
+        // launch the app in a new process
+        String[] cmdArray = cmdLine.toArray(new String[cmdLine.size()]);
+        RuntimeUtils.execWithAdaptiveHeapSize(cmdArray, null, null);
+    }
+
+    private void launchAppInCurrentProcess() throws Exception {
         // store all of the system property settings
         for (Entry<String, String> e : systemProperties.entrySet()) {
             System.setProperty(e.getKey(), e.getValue());
