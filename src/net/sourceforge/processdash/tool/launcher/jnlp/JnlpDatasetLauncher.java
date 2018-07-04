@@ -60,6 +60,10 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
             // launch the dataset for the given source
             new JnlpDatasetLauncher(source);
 
+        } catch (BadJnlpFile b) {
+            showStartupErrorAndExit(getRes("Launch_Error.Bad_JNLP"),
+                "      " + source);
+
         } catch (Exception e) {
             // display a dialog for unexpected exceptions
             ExceptionDialog.showWithSubdialog(null,
@@ -138,7 +142,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         isMac = System.getProperty("os.name").toLowerCase()
                 .startsWith("mac os x");
         assetManager = new AssetManager();
-        dataLocation = "unspecified";
+        dataLocation = null;
         systemProperties = new HashMap<String, String>();
         argv = new ArrayList<String>();
     }
@@ -171,6 +175,10 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                 handleCommandLineArg(arg);
             }
         }
+
+        // check to make sure we saw a valid data location argument
+        if (dataLocation == null)
+            throw new BadJnlpFile("No data location was provided");
     }
 
     private void handleJnlpArg(String arg) {
@@ -238,8 +246,12 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         if (distrDir == null) {
             String launchProfileUrl = getTag(true, "resources", "extension")
                     .getAttribute("href");
-            distrDir = DistributionManager
-                    .findExistingDistribution(launchProfileUrl);
+            try {
+                distrDir = DistributionManager
+                        .findExistingDistribution(launchProfileUrl);
+            } catch (IllegalArgumentException iae) {
+                throw new BadJnlpFile(iae.getMessage());
+            }
             if (distrDir == null)
                 assetManager.addLaunchProfile(launchProfileUrl);
         }
@@ -353,12 +365,13 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     // Utility methods
     //
 
-    private void showStartupErrorAndExit(Object... message) {
+    private static void showStartupErrorAndExit(Object... message) {
         String title = getRes("Launch_Error.Title");
         showStartupErrorAndExitT(title, message);
     }
 
-    private void showStartupErrorAndExitT(String title, Object... message) {
+    private static void showStartupErrorAndExitT(String title,
+            Object... message) {
         JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.ERROR_MESSAGE);
         System.exit(1);

@@ -200,12 +200,16 @@ public class DistributionManager implements JnlpPackagingConstants {
      *            JNLP file
      * @return a directory containing a previously extracted distribution with
      *         the same content hash as the one named by the URL
+     * @throws IllegalArgumentException
+     *             if the URL is not a launch profile URL
      */
-    static File findExistingDistribution(String launchProfileUrl) {
+    static File findExistingDistribution(String launchProfileUrl)
+            throws IllegalArgumentException {
         // extract the content hash from the launch profile URL
         Matcher m = LAUNCH_PROFILE_URL_PAT.matcher(launchProfileUrl);
         if (!m.find())
-            return null;
+            throw new IllegalArgumentException(
+                    "Not a launch profile URL: " + launchProfileUrl);
         String contentHashSuffix = m.group(2);
 
         // scan the distributions on this computer, looking for one with the
