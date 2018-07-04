@@ -21,16 +21,28 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.launcher;
+package net.sourceforge.processdash.tool.launcher.ui;
 
-import net.sourceforge.processdash.tool.launcher.pdes.PDESMain;
-import net.sourceforge.processdash.tool.launcher.ui.LookAndFeelUtil;
+import java.util.prefs.Preferences;
 
-public class Main {
+import javax.swing.UIManager;
 
-    public static void main(String[] args) {
-        LookAndFeelUtil.setDefaultLAF();
-        PDESMain.main(args);
+public class LookAndFeelUtil {
+
+    public static void setDefaultLAF() {
+        try {
+            // keep this logic in sync with the ProcessDashboard class
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("windows")) {
+                Preferences prefs = Preferences.userRoot()
+                        .node("net/sourceforge/processdash/userPrefs");
+                if (prefs.getBoolean("useSystemLAF", false)) {
+                    String laf = UIManager.getSystemLookAndFeelClassName();
+                    UIManager.setLookAndFeel(laf);
+                }
+            }
+        } catch (Exception e) {
+        }
     }
 
 }

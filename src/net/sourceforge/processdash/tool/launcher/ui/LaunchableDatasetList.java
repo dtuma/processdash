@@ -181,11 +181,13 @@ public class LaunchableDatasetList extends JList {
      */
     private class DatasetRenderer extends DefaultListCellRenderer {
 
-        private Icon team, personal, link, linkLight;
+        private Icon team, personal, link, linkLight, linkSelected;
 
         private Font font;
 
         private int currentlyPaintingRow;
+
+        private boolean currentPaintingSelectedRow;
 
         public DatasetRenderer() {
             int iconSize = new JLabel("X").getPreferredSize().height;
@@ -193,6 +195,7 @@ public class LaunchableDatasetList extends JList {
             personal = getIcon("dashicon.ico", iconSize);
             link = new ExternalLinkIcon();
             linkLight = new ExternalLinkIcon(new Color(200, 200, 200));
+            linkSelected = new ExternalLinkIcon(getSelectionForeground());
             font = LaunchableDatasetList.this.getFont().deriveFont(Font.PLAIN);
             LaunchableDatasetList.this.setFixedCellHeight(iconSize + 4);
         }
@@ -202,6 +205,7 @@ public class LaunchableDatasetList extends JList {
                 Object value, int index, boolean isSelected,
                 boolean cellHasFocus) {
             this.currentlyPaintingRow = index;
+            this.currentPaintingSelectedRow = isSelected;
             LaunchableDataset d = (LaunchableDataset) value;
             super.getListCellRendererComponent(list, d.getName(), index,
                 isSelected, cellHasFocus);
@@ -230,7 +234,8 @@ public class LaunchableDatasetList extends JList {
 
             if (currentlyPaintingRow == mouseOverRow) {
                 int linkPad = (getHeight() - link.getIconHeight()) / 2;
-                Icon icon = (mouseOverLinkIcon ? link : linkLight);
+                Icon icon = (mouseOverLinkIcon == false ? linkLight
+                        : (currentPaintingSelectedRow ? linkSelected : link));
                 icon.paintIcon(this, g,
                     getWidth() - link.getIconWidth() - linkPad, linkPad);
             }
