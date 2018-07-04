@@ -73,8 +73,8 @@ class AssetManager {
 
     private DownloadSplashScreen splashScreen;
 
-    AssetManager() throws IOException {
-        distribDir = DistributionManager.getDistribDirectory();
+    AssetManager() {
+        distribDir = DistributionManager.getDistribDirectory(true);
         assets = new ArrayList<Asset>();
     }
 

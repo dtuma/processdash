@@ -116,8 +116,7 @@ public class DistributionManager implements JnlpPackagingConstants {
      * @return the most recently used distribution that meets the version
      *         requirement, or null if none was found
      */
-    public static File getMostRecentlyUsedDistribution(String minVersion)
-            throws IOException {
+    public static File getMostRecentlyUsedDistribution(String minVersion) {
         List<File> distributions = getExistingDistributions(minVersion);
         if (distributions.isEmpty())
             return null;
@@ -136,39 +135,39 @@ public class DistributionManager implements JnlpPackagingConstants {
      *            the minimum version of a profile required, or null if any
      *            version is acceptable
      */
-    public static List<File> getExistingDistributions(String minVersion)
-            throws IOException {
-        // if the distrib directory doesn't exist, return
-        File[] files = getDistribDirectory().listFiles();
-        if (files == null || files.length == 0)
-            return Collections.EMPTY_LIST;
-
+    public static List<File> getExistingDistributions(String minVersion) {
         // gather up the profiles in a map, sorted by usage date
         TreeMap<Long, File> profiles = new TreeMap<Long, File>();
-        for (File f : files) {
-            // ignore plain files in the distrib directory
-            if (!f.isDirectory())
+        for (boolean local : LOCAL) {
+            File[] files = getDistribDirectory(local).listFiles();
+            if (files == null || files.length == 0)
                 continue;
 
-            // only examine directories that contain a pspdash.jar file. (Other
-            // directories are process assets.)
-            File targetJar = new File(f, TARGET_JARFILE);
-            if (!targetJar.isFile())
-                continue;
+            for (File f : files) {
+                // ignore plain files in the distrib directory
+                if (!f.isDirectory())
+                    continue;
 
-            // if a min version was requested, check it
-            if (minVersion != null) {
-                Matcher m = LAUNCH_PROFILE_DIR_NAME_PAT.matcher(f.getName());
-                if (!m.matches())
+                // only examine directories that contain a pspdash.jar file.
+                // (Other directories are process assets.)
+                File targetJar = new File(f, TARGET_JARFILE);
+                if (!targetJar.isFile())
                     continue;
-                String version = m.group(2);
-                if (VersionUtils.compareVersions(version, minVersion) < 0)
-                    continue;
+
+                // if a min version was requested, check it
+                if (minVersion != null) {
+                    Matcher m = LAUNCH_PROFILE_DIR_NAME_PAT.matcher(f.getName());
+                    if (!m.matches())
+                        continue;
+                    String version = m.group(2);
+                    if (VersionUtils.compareVersions(version, minVersion) < 0)
+                        continue;
+                }
+
+                // get the timestamp and add it to our result
+                File usageFile = new File(f, USAGE_LOG_FILENAME);
+                profiles.put(usageFile.lastModified(), f);
             }
-
-            // get the timestamp and add it to our result
-            File usageFile = new File(f, USAGE_LOG_FILENAME);
-            profiles.put(usageFile.lastModified(), f);
         }
 
         // build a list of the results, and reverse it to put the most recently
@@ -202,8 +201,7 @@ public class DistributionManager implements JnlpPackagingConstants {
      * @return a directory containing a previously extracted distribution with
      *         the same content hash as the one named by the URL
      */
-    static File findExistingDistribution(String launchProfileUrl)
-            throws IOException {
+    static File findExistingDistribution(String launchProfileUrl) {
         // extract the content hash from the launch profile URL
         Matcher m = LAUNCH_PROFILE_URL_PAT.matcher(launchProfileUrl);
         if (!m.find())
@@ -213,22 +211,25 @@ public class DistributionManager implements JnlpPackagingConstants {
         // scan the distributions on this computer, looking for one with the
         // correct content hash. Clean up unused distributions in the process
         long cutoffAge = System.currentTimeMillis() - 40 * DAY_MILLIS;
-        File[] files = getDistribDirectory().listFiles();
         File result = null;
-        if (files != null) {
-            for (File f : files) {
-                if (!f.isDirectory()) {
-                    // ignore plain files in the distrib directory
+        for (boolean local : LOCAL) {
+            File[] files = getDistribDirectory(local).listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (!f.isDirectory()) {
+                        // ignore plain files in the distrib directory
 
-                } else if (f.getName().endsWith(contentHashSuffix)
-                        && distributionExists(f, VERIFY_EXISTING_TARGET_JAR)) {
-                    // if we find the desired profile, save it
-                    result = f;
-                    touchDirectory(result);
+                    } else if (f.getName().endsWith(contentHashSuffix)
+                            && result == null
+                            && distributionExists(f, VERIFY_EXISTING_TARGET_JAR)) {
+                        // if we find the desired profile, save it
+                        result = f;
+                        touchDirectory(result);
 
-                } else {
-                    // consider other profiles for cleanup
-                    maybeCleanupDirectory(f, cutoffAge);
+                    } else {
+                        // consider other profiles for cleanup
+                        maybeCleanupDirectory(f, cutoffAge);
+                    }
                 }
             }
         }
@@ -258,7 +259,7 @@ public class DistributionManager implements JnlpPackagingConstants {
         checkPackageFormat(manifest);
         String distrDirectoryName = getDistrDirName(manifest);
 
-        File distribDir = getDistribDirectory();
+        File distribDir = getDistribDirectory(true);
         File destDir = new File(distribDir, distrDirectoryName);
         extractDistribution(resourceUrl, destDir, in);
 
@@ -267,10 +268,10 @@ public class DistributionManager implements JnlpPackagingConstants {
         return destDir;
     }
 
-    static File getDistribDirectory() throws IOException {
-        File applicationDir = DirectoryPreferences.getApplicationDirectory();
-        checkApplicationDir(applicationDir);
-        File distribDir = new File(applicationDir, DISTRIB_DIR_FILENAME);
+    static File getDistribDirectory(boolean local) {
+        File appDir = DirectoryPreferences.getApplicationDirectory(local);
+        checkApplicationDir(appDir);
+        File distribDir = new File(appDir, DISTRIB_DIR_FILENAME);
         return distribDir;
     }
 
@@ -298,12 +299,12 @@ public class DistributionManager implements JnlpPackagingConstants {
     // that is allowed: the path must contain either "Process Dashboard"
     // or ".processdash". (The intent is to prevent malicious reconfiguration
     // of the application directory as a means of overwriting system files.)
-    private static void checkApplicationDir(File dir) throws IOException {
+    private static void checkApplicationDir(File dir) {
         String path = dir.getAbsolutePath().toLowerCase();
         if (path.contains("process dashboard") || path.contains(".processdash"))
             return;
         else
-            throw new IOException("Incorrect configuration for Process"
+            throw new RuntimeException("Incorrect configuration for Process"
                     + " Dashboard application directory");
     }
 
@@ -451,6 +452,8 @@ public class DistributionManager implements JnlpPackagingConstants {
                 return false;
         return true;
     }
+
+    private static final boolean LOCAL[] = { true, false };
 
     private static final long DAY_MILLIS = 24L /*hours*/ * 60 /*minutes*/
             * 60 /*seconds*/ * 1000; /*millis*/

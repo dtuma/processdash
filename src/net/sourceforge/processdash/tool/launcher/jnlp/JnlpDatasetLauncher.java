@@ -134,7 +134,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     /**
      * set starting values for fields in this object
      */
-    private void initializeFields() throws IOException {
+    private void initializeFields() {
         isMac = System.getProperty("os.name").toLowerCase()
                 .startsWith("mac os x");
         assetManager = new AssetManager();
@@ -181,11 +181,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                     getResArr("Not_Installed.Message"));
 
         } else if (USE_DEFAULT_DISTRIB_FLAG.equals(arg)) {
-            try {
-                distrDir = DistributionManager
-                        .getMostRecentlyUsedDistribution(null);
-            } catch (IOException ioe) {
-            }
+            distrDir = DistributionManager
+                    .getMostRecentlyUsedDistribution(null);
             if (distrDir == null)
                 handleJnlpArg(USE_INSTALLED_DISTRIB_FLAG);
 

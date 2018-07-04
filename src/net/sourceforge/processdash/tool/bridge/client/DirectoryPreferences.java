@@ -39,10 +39,34 @@ public class DirectoryPreferences {
 
 
     public static File getApplicationDirectory() {
+        // legacy semantics for backwards compatibility
+        return getApplicationDirectory(false);
+    }
+
+
+    /**
+     * Get the base storage directory for the application
+     * 
+     * @param workstationLocal
+     *            <tt>true</tt> if this method should favor a directory that is
+     *            only cached on the current computer; <tt>false</tt> if it
+     *            should favor a directory that follows the user when they log
+     *            on to various workstations. (Some operating systems will not
+     *            discriminate between the two, and will return the same value.)
+     * @since 2.4.3
+     */
+    public static File getApplicationDirectory(boolean workstationLocal) {
         // check for a specific value, supplied by a system property
         String hardcodedResult = System.getProperty(APPLICATION_DIR_PROPERTY);
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
             return new File(hardcodedResult);
+
+        if (workstationLocal) {
+            // check Windows environment variable
+            String envDir = System.getenv("LOCALAPPDATA");
+            if (envDir != null && envDir.length() > 0)
+                return new File(envDir, "Process Dashboard");
+        }
 
         // check for a value specified through the APPDATA environment variable.
         // This is useful on Windows
@@ -88,7 +112,7 @@ public class DirectoryPreferences {
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
             result = new File(hardcodedResult);
         else
-            result = new File(getDataDirectoryParent(), "working");
+            result = new File(getDataDirectoryParent(false), "working");
 
         result.mkdirs();
         return result;
@@ -103,14 +127,14 @@ public class DirectoryPreferences {
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
             result = new File(hardcodedResult);
         else
-            result = new File(getDataDirectoryParent(), "import");
+            result = new File(getDataDirectoryParent(true), "import");
 
         result.mkdirs();
         return result;
     }
 
 
-    private static File getDataDirectoryParent() {
+    private static File getDataDirectoryParent(boolean workstationLocal) {
         if (HistoricalMode.isHistoricalModeEnabled()) {
             synchronized (DirectoryPreferences.class) {
                 try {
@@ -122,7 +146,7 @@ public class DirectoryPreferences {
                 } catch (IOException ioe) {}
             }
         }
-        return getApplicationDirectory();
+        return getApplicationDirectory(workstationLocal);
     }
 
     private static File HISTORICAL_DATA_DIR = null;
