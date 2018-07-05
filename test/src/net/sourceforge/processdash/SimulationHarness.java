@@ -32,8 +32,7 @@ public class SimulationHarness {
      */
     public SimulationHarness(File dataDirectory) {
         this.dataDirectory = dataDirectory;
-        System.setProperty("user.dir", dataDirectory.toString());
-        ProcessDashboard.main(new String[0]);
+        ProcessDashboard.main(new String[] { "-location=" + dataDirectory });
         dashboard = DashController.dash;
     }
 

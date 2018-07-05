@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,12 +64,16 @@ public class InternalSettings extends Settings {
               .getLogger(InternalSettings.class.getName());
 
     public static void initialize(String settingsFilename) throws IOException {
+        String cwd  = System.getProperty("user.dir");
+        initialize(cwd, settingsFilename);
+    }
+
+    public static void initialize(String cwd, String settingsFilename)
+            throws IOException {
         checkPermission("initialize");
 
         if (settings != null)
             return;
-
-        String cwd  = System.getProperty("user.dir");
 
         InputStream in;
 

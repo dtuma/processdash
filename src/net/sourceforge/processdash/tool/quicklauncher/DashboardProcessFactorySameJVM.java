@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,8 +45,7 @@ public class DashboardProcessFactorySameJVM extends DashboardProcessFactory {
 
         processVmArgs(this.vmArgs);
         processVmArgs(extraVmArgs);
-        System.setProperty("user.dir", pspdataDir.toString());
-        ProcessDashboard.main(getArgv(extraArgs));
+        ProcessDashboard.main(getArgv(pspdataDir, extraArgs));
 
         return null;
     }
@@ -70,11 +69,17 @@ public class DashboardProcessFactorySameJVM extends DashboardProcessFactory {
     private static final Pattern SYS_PROP_PATTERN = Pattern
             .compile("-D([^=]+)=(.*)");
 
-    private String[] getArgv(List extraArgs) {
+    private String[] getArgv(File pspdataDir, List extraArgs) {
+        String locationArg = "-location=" + pspdataDir;
         if (extraArgs == null || extraArgs.isEmpty())
-            return new String[0];
-        else
-            return (String[]) extraArgs.toArray(new String[extraArgs.size()]);
+            return new String[] { locationArg };
+
+        int argLen = extraArgs.size();
+        String[] result = new String[argLen + 1];
+        result[0] = locationArg;
+        for (int i = 0; i < argLen; i++)
+            result[i + 1] = (String) extraArgs.get(i);
+        return result;
     }
 
     @Override

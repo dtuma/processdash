@@ -269,15 +269,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // load app defaults and user settings.
         try {
-            InternalSettings.initialize("");
+            InternalSettings.initialize(
+                workingDirectory.getDirectory().getPath(), "");
         } catch (Exception e) {
             logErr("Unable to read settings file", e);
             displayStartupIOError("Errors.Read_File_Error.Settings_File",
                     e.getMessage(), e);
             System.exit(0);
         }
-        propertiesFile = Settings.getFile("stateFile");
-        File prop_file = new File(propertiesFile);
+        File prop_file = new File(workingDirectory.getDirectory(),
+                DEFAULT_PROP_FILE);
         try {
             prop_file = prop_file.getCanonicalFile();
         } catch (IOException ioe) {}
@@ -785,6 +786,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // team server URL as the "default team server."
         TeamServerSelector.maybeSetDefaultTeamServerUrl(workingDirectory);
 
+        // Note: the code below has no effect in Java 11 and later. Application
+        // logic has been updated to stop relying on the value of the current
+        // working directory. The lines below are being left in place in case
+        // any changes have been missed.
         File cwd = workingDirectory.getDirectory();
         System.setProperty("user.dir", cwd.getAbsolutePath());
     }
