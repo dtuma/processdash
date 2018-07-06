@@ -99,7 +99,7 @@ public class DistributionManager implements JnlpPackagingConstants {
         String osName = System.getProperty("os.name").toLowerCase();
         if (osName.indexOf("windows") != -1) {
             return "C:\\Program Files\\Process Dashboard";
-        } else if (osName.startsWith("mac os x")) {
+        } else if (osName.indexOf("os x") != -1) {
             return "/Library/Process Dashboard";
         } else {
             return null;

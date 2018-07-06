@@ -82,7 +82,7 @@ public class DirectoryPreferences {
         String subdir;
 
         String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.startsWith("mac"))
+        if (osName.contains("os x"))
             subdir = "Library/Process Dashboard";
         else if (osName.startsWith("win"))
             subdir = "Application Data\\Process Dashboard";

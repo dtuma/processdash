@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -121,7 +122,7 @@ public class OpenLocalizationToolAction extends AbstractAction {
         cmd.add("-D" + PROPERTY_HELP_URL + "=" + helpURL);
 
         // set a reasonable application menu name on Mac OS X
-        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+        if (MacGUIUtils.isMacOSX())
             cmd.add("-Xdock:name="
                     + resources.getString("Menu.Localization_Tool"));
 

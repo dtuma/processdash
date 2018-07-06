@@ -61,6 +61,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -457,7 +458,7 @@ public class OpenWBSEditor extends TinyCGIBase {
             cmd.add("-D" + DATA_EFFECTIVE_DATE_PROPERTY + "=" + dataEffDate);
 
         // set a reasonable application menu name on Mac OS X
-        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+        if (MacGUIUtils.isMacOSX())
             cmd.add("-Xdock:name=WBS Editor");
 
         Map<String, String> props = getLaunchProperties(url);

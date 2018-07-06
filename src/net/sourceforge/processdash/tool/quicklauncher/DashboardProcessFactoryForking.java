@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2014 Tuma Solutions, LLC
+// Copyright (C) 2006-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
@@ -60,7 +61,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
         // for instances launched on Mac OS X, set the name to display in the
         // dock/application menu
-        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+        if (MacGUIUtils.isMacOSX())
             addVmArg("-Xdock:name="
                     + resources.getString("/ProcessDashboard:Window_Title"));
     }

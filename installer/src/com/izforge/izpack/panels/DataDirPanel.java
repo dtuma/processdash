@@ -2,7 +2,7 @@
  *  $Id$
  *  IzPack
  *  Copyright (C) 2001-2003 Julien Ponge
- *  Changes Copyright (C) 2003-2011 David Tuma
+ *  Changes Copyright (C) 2003-2018 David Tuma
  *
  *  File :               DataDirPanel.java
  *  Description :        A panel to select the personal data directory.
@@ -179,11 +179,8 @@ public class DataDirPanel extends IzPanel implements ActionListener,
             if (os.regionMatches(true, 0, "windows", 0, 7))
                 in = parent.getResource("DataDirPanel.dir.windows");
 
-            else if (os.regionMatches(true, 0, "mac os x", 0, 8))
+            else if (os.contains("OS X"))
                 in = parent.getResource("DataDirPanel.dir.macosx");
-
-            else if (os.regionMatches(true, 0, "mac", 0, 3))
-                in = parent.getResource("DataDirPanel.dir.mac");
 
             else
             {

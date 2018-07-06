@@ -139,8 +139,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      * set starting values for fields in this object
      */
     private void initializeFields() {
-        isMac = System.getProperty("os.name").toLowerCase()
-                .startsWith("mac os x");
+        isMac = System.getProperty("os.name").contains("OS X");
         assetManager = new AssetManager();
         dataLocation = null;
         systemProperties = new HashMap<String, String>();

@@ -174,7 +174,7 @@ public class InternalSettings extends Settings {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("windows") != -1)
             return "windows";
-        else if (os.startsWith("mac"))
+        else if (os.indexOf("os x") != -1)
             return "mac";
         else if (os.indexOf("linux") != -1)
             return "linux";
