@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.launcher.pdes;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -111,7 +112,7 @@ public class PDESDatasetChooser extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         // if we weren't given any known servers, prompt for one immediately
-        maybePromptForNewServerUrl();
+        maybePromptForNewServerUrl(null);
 
         if (getNumServers() == 1) {
             // if we only have one server in the list, load its datasets
@@ -190,7 +191,7 @@ public class PDESDatasetChooser extends JPanel {
      * Reload the list of datasets based on the current server selection
      */
     private void refreshDatasetList() {
-        maybePromptForNewServerUrl();
+        maybePromptForNewServerUrl(scrollPane);
         scrollPane.setViewportView(loadingLabel);
         list.setData(Collections.EMPTY_LIST);
         new DatasetListLoader().start();
@@ -201,14 +202,14 @@ public class PDESDatasetChooser extends JPanel {
      * If the user has chosen the "Other Datasets..." item, prompt them to enter
      * a new server URL. If they do, add that URL to the list and select it.
      */
-    private void maybePromptForNewServerUrl() {
+    private void maybePromptForNewServerUrl(Component parent) {
         // if the user has selected a real server, do nothing
         ServerUrl s = (ServerUrl) serverSelector.getSelectedItem();
         if (s != null && s.baseUrl != null)
             return;
 
         // ask the user to enter the URL of the new server.
-        String newUrl = promptForServerUrl();
+        String newUrl = promptForServerUrl(parent);
         if (newUrl != null) {
             // create a new server, add it to the list, and select it
             serverUrls.insertElementAt(new ServerUrl(newUrl), 0);
@@ -221,26 +222,27 @@ public class PDESDatasetChooser extends JPanel {
         }
     }
 
-    private String promptForServerUrl() {
+    private String promptForServerUrl(Component parent) {
         // create user interface components
         String title = res.getString("Enter_Url.Title");
         String prompt = res.getString("Enter_Url.Message");
         JTextField url = new JTextField();
         Object[] message = new Object[] { prompt, url,
-                new JOptionPaneTweaker.GrabFocus(url) };
+                new JOptionPaneTweaker.GrabFocus(url),
+                new JOptionPaneTweaker.ToFront() };
 
         while (true) {
             // prompt the user to enter a URL
             url.selectAll();
-            int userChoice = JOptionPane.showConfirmDialog(null, message, title,
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            int userChoice = JOptionPane.showConfirmDialog(parent, message,
+                title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (userChoice != JOptionPane.OK_OPTION)
                 return null;
 
             // if the user did not enter a value, admonish them
             String urlText = url.getText().trim();
             if (urlText.length() == 0) {
-                showErrorMessage("Error.Url_Missing");
+                showErrorMessage(parent, "Error.Url_Missing");
                 continue;
             }
 
@@ -266,12 +268,12 @@ public class PDESDatasetChooser extends JPanel {
 
                 // if we were able to connect without error, but the given
                 // server isn't a PDES, display an appropriate message
-                showErrorMessage("Error.Not_PDES");
+                showErrorMessage(parent, "Error.Not_PDES");
 
             } catch (Exception e) {
                 // if we encountered an error while attempting to open the URL,
                 // display a message that the given URL could not be reached
-                showErrorMessage("Error.Server_Unreachable");
+                showErrorMessage(parent, "Error.Server_Unreachable");
             }
         }
     }
@@ -299,8 +301,10 @@ public class PDESDatasetChooser extends JPanel {
         }
     }
 
-    private void showErrorMessage(String key) {
-        JOptionPane.showMessageDialog(null, res.getStrings(key),
+    private void showErrorMessage(Component parent, String key) {
+        Object message = new Object[] { res.getStrings(key),
+                new JOptionPaneTweaker.ToFront() };
+        JOptionPane.showMessageDialog(parent, message,
             res.getString("Error.Title"), JOptionPane.ERROR_MESSAGE);
     }
 
@@ -415,7 +419,7 @@ public class PDESDatasetChooser extends JPanel {
             PDESDatasetChooser.this.error = this.error;
             if (error instanceof HttpException.Unauthorized) {
                 scrollPane.setViewportView(new JLabel(" "));
-                showErrorMessage("Error.Unauthorized");
+                showErrorMessage(scrollPane, "Error.Unauthorized");
             } else {
                 if (errorLabel == null)
                     errorLabel = buildErrorLabel();

@@ -173,6 +173,7 @@ import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
@@ -1316,7 +1317,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             Object[] message = new Object[] {
                     res.getString(resKey).split("\n"),
                     readOnlyOption, readWriteOption };
-            JOptionPane.showMessageDialog(hideSS(), message, title,
+            JOptionPane.showMessageDialog(hideSS(), ssFront(message), title,
                     JOptionPane.QUESTION_MESSAGE);
             if (readOnlyOption.isSelected())
                 InternalSettings.setReadOnly(true);
@@ -1354,10 +1355,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (!StringUtils.hasValue(otherUser))
             otherUser = r.getString("Errors.Concurrent_Use_Someone_Else");
         String title = r.getString("Errors.Concurrent_Use_Title");
-        String message = MessageFormat.format(r
-                .getString("Errors.Concurrent_Use_Message2_FMT"), otherUser);
+        String[] message = MessageFormat.format(r
+                .getString("Errors.Concurrent_Use_Message2_FMT"), otherUser)
+                .split("\n");
 
-        if (JOptionPane.showConfirmDialog(hideSS(), message.split("\n"), title,
+        if (JOptionPane.showConfirmDialog(hideSS(), ssFront(message), title,
             JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             InternalSettings.setReadOnly(true);
         } else {
@@ -1399,8 +1401,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     .getBundle("Templates.resources.ProcessDashboard");
             String title = res.getString("Enter_Name_Dialog.Title");
             String message = res.getString("Enter_Name_Dialog.Prompt");
-            result = JOptionPane.showInputDialog(hideSS(), message, title,
-                JOptionPane.PLAIN_MESSAGE);
+            result = JOptionPane.showInputDialog(hideSS(), ssFront(message),
+                title, JOptionPane.PLAIN_MESSAGE);
             if (result != null) {
                 prefs.put("ownerName", result);
                 return result;
@@ -1466,9 +1468,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             }
         }
 
-        int userResponse = JOptionPane.showConfirmDialog(hideSS(), message,
-                title, JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.ERROR_MESSAGE);
+        int userResponse = JOptionPane.showConfirmDialog(hideSS(),
+            ssFront(message), title, JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.ERROR_MESSAGE);
         if (userResponse == JOptionPane.OK_OPTION) {
             InternalSettings.setReadOnly(true);
         } else {
@@ -1483,7 +1485,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String title = resources.getString("Errors.Data_Sharing_Violation_Title");
         String[] message = resources.formatStrings(
             "Errors.Data_Sharing_Violation_Message_FMT", location);
-        JOptionPane.showMessageDialog(hideSS(), message, title,
+        JOptionPane.showMessageDialog(hideSS(), ssFront(message), title,
             JOptionPane.ERROR_MESSAGE);
     }
 
@@ -1504,7 +1506,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Resources res = Resources.getDashBundle(bundleName);
         String title = res.getString("Title");
         Object message = res.getStrings("Message");
-        JOptionPane.showMessageDialog(hideSS(), message, title,
+        JOptionPane.showMessageDialog(hideSS(), ssFront(message), title,
             JOptionPane.ERROR_MESSAGE);
     }
 
@@ -1962,10 +1964,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // will truly bury the splash screen behind all other open windows
         // for all other applications.
         String osName = System.getProperty("os.name").toLowerCase();
-        if (!osName.contains("windows") && !osName.contains("mac os"))
+        if (!osName.contains("windows") && !osName.contains("os x"))
             if (ss != null)
                 ss.toBack();
         return ss;
+    }
+
+    private static Object ssFront(Object message) {
+        // On Mac OS X, JOptionPane dialogs sometimes appear behind the splash
+        // screen. To prevent this, we add a "to front" handler.
+        if (MacGUIUtils.isMacOSX())
+            return new Object[] { message, new JOptionPaneTweaker.ToFront() };
+        else
+            return message;
     }
 
     private void maybeNotifyOpened() {
@@ -2080,6 +2091,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             System.exit(0);
 
         HttpAuthenticator.maybeInitialize(title);
+        HttpAuthenticator.setParentComponent(ss);
         MacGUIUtils.tweakLookAndFeel();
 
         ProcessDashboard dash = new ProcessDashboard(location, title);

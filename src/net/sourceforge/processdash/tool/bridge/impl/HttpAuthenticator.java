@@ -213,7 +213,8 @@ public class HttpAuthenticator extends Authenticator {
                 BoxUtils.hbox(15, usernameLabel, 5, username),
                 BoxUtils.hbox(15, passwordLabel, 5, password),
                 BoxUtils.hbox(BoxUtils.GLUE, rememberMe),
-                new JOptionPaneTweaker.GrabFocus(focus) };
+                new JOptionPaneTweaker.GrabFocus(focus),
+                new JOptionPaneTweaker.ToFront() };
         final int[] userChoice = new int[1];
 
         try {
@@ -373,7 +374,7 @@ public class HttpAuthenticator extends Authenticator {
     }
 
     public static void setParentComponent(Component c) {
-        if (INSTANCE != null && INSTANCE.parentComponent == null) {
+        if (INSTANCE != null) {
             INSTANCE.parentComponent = c;
             if (c instanceof Frame)
                 INSTANCE.title = ((Frame) c).getTitle();

@@ -42,6 +42,7 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.Bootstrap;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
@@ -373,6 +374,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
     private static void showStartupErrorAndExitT(String title,
             Object... message) {
+        message = new Object[] { message, new JOptionPaneTweaker.ToFront() };
         JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.ERROR_MESSAGE);
         System.exit(1);

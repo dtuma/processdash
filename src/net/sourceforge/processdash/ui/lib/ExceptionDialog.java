@@ -156,6 +156,7 @@ public class ExceptionDialog {
                 items.add(o);
             }
         }
+        items.add(new JOptionPaneTweaker.ToFront());
 
         if (sawCopyLink && !sawThrowable)
             throw new IllegalArgumentException(
