@@ -197,7 +197,9 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
             appName = arg.substring(NAME_PREFIX.length());
 
         } else if (arg.startsWith(ICON_PREFIX)) {
-            appIcon = arg.substring(ICON_PREFIX.length());
+            String icon = arg.substring(ICON_PREFIX.length());
+            appIcon = ("personal".equalsIgnoreCase(icon) ? "dashicon"
+                    : "teamicon");
 
         } else if (arg.startsWith(PROCESS_ASSET_PREFIX)) {
             String assetSpec = arg.substring(PROCESS_ASSET_PREFIX.length());

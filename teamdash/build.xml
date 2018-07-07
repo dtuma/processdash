@@ -39,6 +39,7 @@ The author(s) may be contacted at:
   <property name="processdash.bin" value="${processdash.dir}/antbin"/>
   <property name="processdash.dist" value="${processdash.dir}/dist"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
+  <property name="installer.files" value="${processdash.dir}/installer/files"/>
   <property name="xmlpull.jar" value="${processdash.lib}/kxml-2.2.1-mod.jar"/>
   <property name="jcalendar.jar" value="${processdash.lib}/jcalendar-1.3.2.jar"/>
   <property name="jna.jar" value="${processdash.lib}/jna-3.3.0.jar"/>
@@ -570,6 +571,7 @@ class dependency has been added in a dashboard class?)
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
       <fileset dir="${processdash.dist}"
           includes="TeamTools.jar ${launchProfile.files}"/>
+      <fileset dir="${installer.files}" includes="dashicon.* teamicon.*"/>
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
