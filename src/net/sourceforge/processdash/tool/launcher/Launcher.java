@@ -23,22 +23,22 @@
 
 package net.sourceforge.processdash.tool.launcher;
 
-import net.sourceforge.processdash.tool.launcher.macosx.LauncherMacOSX;
-import net.sourceforge.processdash.tool.launcher.pdes.PDESMain;
-import net.sourceforge.processdash.tool.launcher.ui.LookAndFeelUtil;
+import net.sourceforge.processdash.tool.launcher.jnlp.JnlpDatasetLauncher;
+import net.sourceforge.processdash.tool.launcher.jnlp.JnlpUtil;
 
-public class Main {
+public class Launcher {
 
-    public static void main(String[] args) {
-        // check to see if we were launched to open a specific file or files
-        if (LauncherMacOSX.setupOnMacAndCheckForStartupFileOpen())
-            return;
-        else if (Launcher.launch(args))
-            return;
+    public static boolean launch(String... items) {
+        boolean sawLaunchable = false;
 
-        // if we weren't launched to open specific files, display the GUI
-        LookAndFeelUtil.setDefaultLAF();
-        PDESMain.main(args);
+        for (String item : items) {
+            if (JnlpUtil.isJnlpFilename(item)) {
+                JnlpDatasetLauncher.launch(item);
+                sawLaunchable = true;
+            }
+        }
+
+        return sawLaunchable;
     }
 
 }

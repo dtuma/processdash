@@ -328,6 +328,8 @@ Authors:
   <target name="launcher-jar" depends="compile">
     <classfileset id="launcherClasses" dir="${build}">
       <root classname="net.sourceforge.processdash.tool.launcher.Scanner"/>
+      <root classname="net.sourceforge.processdash.tool.launcher.macosx.LauncherMacOSXHelper"/>
+      <root classname="net.sourceforge.processdash.tool.launcher.macosx.LauncherMacOSXHelperJava9"/>
     </classfileset>
 
     <jar destfile="dist/launcher.jar" duplicate="fail">
