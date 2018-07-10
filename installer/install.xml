@@ -247,7 +247,7 @@
 
             <!-- Create Quick Launcher application on Mac OS X --> 
             <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
-                  dir="files/launcher_app" override="true">
+                  dir="files/quick_launcher_app" override="true">
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
@@ -333,7 +333,7 @@
 
             <!-- Create Quick Launcher application on Mac OS X --> 
             <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
-                  dir="files/launcher_app" override="true">
+                  dir="files/quick_launcher_app" override="true">
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
