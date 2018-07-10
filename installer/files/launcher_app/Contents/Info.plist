@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+                       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleName</key>
+    <string>Process Dashboard</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleGetInfoString</key>
+    <string>1.0</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <string>false</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleExecutable</key>
+    <string>Process Dashboard</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleIconFile</key>
+    <string>dashicon.icns</string>
+
+    <key>CFBundleDocumentTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeName</key>
+        <string>Process Dashboard Shortcut</string>
+        <key>CFBundleTypeIconFile</key>
+        <string>dashicon.icns</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSHandlerRank</key>
+        <string>Owner</string>
+        <key>LSItemContentTypes</key>
+        <array>
+            <string>net.sourceforge.processdash.pdlnk</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleTypeName</key>
+        <string>Team Dashboard Shortcut</string>
+        <key>CFBundleTypeIconFile</key>
+        <string>teamicon.icns</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSHandlerRank</key>
+        <string>Owner</string>
+        <key>LSItemContentTypes</key>
+        <array>
+            <string>net.sourceforge.processdash.tdlnk</string>
+        </array>
+      </dict>
+    </array>
+
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+      <dict>
+        <key>UTTypeConformsTo</key>
+        <array>
+            <string>public.data</string>
+        </array>
+        <key>UTTypeDescription</key>
+        <string>Process Dashboard Shortcut</string>
+        <key>UTTypeIdentifier</key>
+        <string>net.sourceforge.processdash.pdlnk</string>
+        <key>UTTypeTagSpecification</key>
+        <dict>
+            <key>public.filename-extension</key>
+            <string>pdlnk</string>
+            <key>public.mime-type</key>
+            <string>application/x-processdash-personal-shortcut</string>
+        </dict>
+      </dict>
+      <dict>
+        <key>UTTypeConformsTo</key>
+        <array>
+            <string>public.data</string>
+        </array>
+        <key>UTTypeDescription</key>
+        <string>Team Dashboard Shortcut</string>
+        <key>UTTypeIdentifier</key>
+        <string>net.sourceforge.processdash.tdlnk</string>
+        <key>UTTypeTagSpecification</key>
+        <dict>
+            <key>public.filename-extension</key>
+            <string>tdlnk</string>
+            <key>public.mime-type</key>
+            <string>application/x-processdash-team-shortcut</string>
+        </dict>
+      </dict>
+    </array>
+
+    <key>JavaX</key>
+    <dict>
+      <key>MainClass</key>
+      <string>net.sourceforge.processdash.tool.launcher.Scanner</string>
+      <key>JVMVersion</key>
+      <string>1.6+</string>
+      <key>ClassPath</key>
+      <array>
+        <string>$JAVAROOT/launcher.jar</string>
+      </array>
+    </dict>
+  </dict>
+</plist>
