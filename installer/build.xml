@@ -64,7 +64,7 @@ Authors:
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
-    <property name="launcher.exe" value="QuickLauncher.exe" />
+    <property name="quick-launcher.exe" value="QuickLauncher.exe" />
     <property name="uninstaller.exe" value="uninstaller.exe" />
 
     <!-- the the IZPACK home directory -->
@@ -140,8 +140,8 @@ Authors:
             unless="windowsExe.upToDate">
         <launch4j configFile="files/dashboard-launch4j-config.xml"
             outfile="${dist}/${dashboard.exe}"/>
-        <launch4j configFile="files/launcher-launch4j-config.xml"
-            outfile="${dist}/${launcher.exe}"/>
+        <launch4j configFile="files/quick-launcher-launch4j-config.xml"
+            outfile="${dist}/${quick-launcher.exe}"/>
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
             outfile="${dist}/${uninstaller.exe}"/>
         <echo file="files/dashboard-launch4j.ini"
