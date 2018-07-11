@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Version=1.0
+Name=Process Dashboard
+Comment=Plan and track projects using high-maturity techniques
+Icon=processdash-dashicon
+Categories=Development;Office;
+MimeType=application/x-processdash-personal-shortcut;application/x-processdash-team-shortcut;
+Terminal=false
+Exec="%{INSTALL_PATH}/processdash-launcher.sh" %U

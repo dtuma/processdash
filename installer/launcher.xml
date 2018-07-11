@@ -1,0 +1,76 @@
+<installation version="1.0">
+
+    <info>
+        <appname>Process Dashboard Server Launcher</appname>
+        <appversion>@version@</appversion>
+        <authors>
+            <author email="processdash@tuma-solutions.com" name="David Tuma"/>
+        </authors>
+        <url>http://www.tuma-solutions.com/</url>
+        <javaversion>1.6</javaversion>
+    </info>
+
+    <conditions>
+        <condition type="java" id="isUnix">
+            <java>
+                <class>com.izforge.izpack.util.OsVersion</class>
+                <field>IS_UNIX</field>
+             </java>
+             <returnvalue type="boolean">true</returnvalue>
+        </condition>
+    </conditions>
+
+    <guiprefs height="480" resizable="yes" width="640"/>
+
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+
+    <!-- The resources needed by the various panels -->
+    <resources>
+        <res src="files/DashInfo.html" id="HTMLInfoPanel.info"/>
+        <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
+    </resources>
+
+    <!-- The panels to display -->
+    <panels>
+        <panel classname="HelloPanel">
+            <actions>
+                <action stage="preactivate"
+                    classname="net.sourceforge.processdash.tool.launcher.installer.LauncherPreInstallAction"/>
+            </actions>
+        </panel>
+        <panel classname="HTMLInfoPanel"/>
+        <panel classname="HTMLLicencePanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="SimpleFinishPanel"/>
+    </panels>
+
+    <!-- The custom java code to add -->
+    <jar src="files/izpack-launcher.jar"/>
+
+    <!-- The list of packages the user can install -->
+    <packs>
+        <pack name="launcher" id="launcher" required="yes">
+            <description>Process Dashboard Server Launcher</description>
+
+            <!-- files used on all platforms -->
+            <file targetdir="$INSTALL_PATH" override="true" src="../dist/launcher.jar"/>
+
+            <!-- files needed on Unix -->
+            <fileset dir="files" targetdir="$INSTALL_PATH" override="true" condition="isUnix">
+                 <include name="dashicon.png"/>
+                 <include name="teamicon.png"/>
+                 <include name="processdash-launcher*"/>
+            </fileset>
+            <parsable targetfile="$INSTALL_PATH/processdash-launcher.desktop"
+                  type="shell" condition="isUnix"/>
+            <executable targetfile="$INSTALL_PATH/processdash-launcher-setup.sh"
+                  stage="postinstall" condition="isUnix" />
+            <executable targetfile="$INSTALL_PATH/processdash-launcher-uninstall.sh"
+                  stage="uninstall" condition="isUnix" />
+
+        </pack>
+    </packs>
+
+</installation>

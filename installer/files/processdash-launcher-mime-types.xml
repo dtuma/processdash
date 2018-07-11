@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+
+  <mime-type type="application/x-processdash-personal-shortcut">
+    <comment>Process Dashboard Shortcut</comment>
+    <glob pattern="*.pdlnk"/>
+  </mime-type>
+
+  <mime-type type="application/x-processdash-team-shortcut">
+    <comment>Team Dashboard Shortcut</comment>
+    <glob pattern="*.tdlnk"/>
+  </mime-type>
+
+</mime-info>
