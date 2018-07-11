@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <errTitle>Process Dashboard Launcher Installer</errTitle>
+  <manifest>launcher-installer-launch4j-manifest.xml</manifest>
+  <icon>dashicon.ico</icon>
+  <jre>
+    <minVersion>1.6.0</minVersion>
+  </jre>
+</launch4jConfig>

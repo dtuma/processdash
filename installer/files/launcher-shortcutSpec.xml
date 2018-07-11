@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<shortcuts>
+
+  <programGroup defaultName="Process Dashboard Server" location="applications"/>
+  <skipIfNotSupported/>
+  <defaultCurrentUser/>
+  
+  <shortcut
+     name="Process  Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="$INSTALL_PATH\Launcher.exe"
+     description="Process Dashboard Server Launcher"
+     initialState="normal"/>
+  
+</shortcuts>

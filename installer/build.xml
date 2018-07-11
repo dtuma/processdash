@@ -64,6 +64,7 @@ Authors:
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
+    <property name="launcher.exe" value="Launcher.exe" />
     <property name="quick-launcher.exe" value="QuickLauncher.exe" />
     <property name="uninstaller.exe" value="uninstaller.exe" />
 
@@ -140,6 +141,8 @@ Authors:
             unless="windowsExe.upToDate">
         <launch4j configFile="files/dashboard-launch4j-config.xml"
             outfile="${dist}/${dashboard.exe}"/>
+        <launch4j configFile="files/launcher-launch4j-config.xml"
+            outfile="${dist}/${launcher.exe}"/>
         <launch4j configFile="files/quick-launcher-launch4j-config.xml"
             outfile="${dist}/${quick-launcher.exe}"/>
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
@@ -414,6 +417,7 @@ pdash-install-${qualifier}-${dashboard-version}.jar
         <antcall target="-izpack">
             <param name="izpack.input" value="launcher_.xml"/>
             <param name="izpack.output" value="pdash-install-launcher-${dashboard-version}"/>
+            <param name="launch4j.config" value="files/launcher-installer-launch4j-config.xml"/>
         </antcall>
 
         <delete quiet="true" file="launcher_.xml"/>

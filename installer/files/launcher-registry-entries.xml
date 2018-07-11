@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<registry>
+  <pack name="launcher">
+
+    <!-- register the .pdlnk filename extension -->
+    <value root="HKCU" keypath="Software\Classes\.pdlnk"
+        name="" string="ProcessDashboard.PersonalShortcut"/>
+
+    <!-- define the Personal Shortcut mime type -->
+    <value root="HKCU" keypath="Software\Classes\MIME\Database\Content Type\application/x-processdash-personal-shortcut"
+        name="Extension" string=".pdlnk"/>
+
+    <!-- define the Personal Shortcut file type -->
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.PersonalShortcut"
+        name="" string="Process Dashboard Shortcut"/>
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.PersonalShortcut\DefaultIcon"
+        name="" string="$INSTALL_PATH\dashicon.ico"/>
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.PersonalShortcut\shell\open\command"
+        name="" string="&quot;$INSTALL_PATH\Launcher.exe&quot; &quot;%1&quot;"/>
+
+
+    <!-- register the .tdlnk filename extension -->
+    <value root="HKCU" keypath="Software\Classes\.tdlnk"
+        name="" string="ProcessDashboard.TeamShortcut"/>
+
+    <!-- define the Team Shortcut mime type -->
+    <value root="HKCU" keypath="Software\Classes\MIME\Database\Content Type\application/x-processdash-team-shortcut"
+        name="Extension" string=".tdlnk"/>
+
+    <!-- define the Team Shortcut file type -->
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.TeamShortcut"
+        name="" string="Team Dashboard Shortcut"/>
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.TeamShortcut\DefaultIcon"
+        name="" string="$INSTALL_PATH\teamicon.ico"/>
+    <value root="HKCU" keypath="Software\Classes\ProcessDashboard.TeamShortcut\shell\open\command"
+        name="" string="&quot;$INSTALL_PATH\Launcher.exe&quot; &quot;%1&quot;"/>
+
+  </pack>
+</registry>
