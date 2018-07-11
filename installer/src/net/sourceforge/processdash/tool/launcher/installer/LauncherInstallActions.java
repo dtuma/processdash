@@ -23,27 +23,27 @@
 
 package net.sourceforge.processdash.tool.launcher.installer;
 
-import java.io.File;
-
+import com.izforge.izpack.event.SimpleInstallerListener;
 import com.izforge.izpack.installer.AutomatedInstallData;
-import com.izforge.izpack.installer.PanelAction;
 import com.izforge.izpack.installer.PanelActionConfiguration;
 import com.izforge.izpack.installer.ScriptParser;
-import com.izforge.izpack.util.AbstractUIHandler;
+import com.izforge.izpack.util.AbstractUIProgressHandler;
 import com.izforge.izpack.util.os.RegistryDefaultHandler;
 import com.izforge.izpack.util.os.RegistryHandler;
 
-import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
-
-public class LauncherPreInstallAction implements PanelAction {
+public class LauncherInstallActions extends SimpleInstallerListener {
 
     private AutomatedInstallData installdata;
 
     public void initialize(PanelActionConfiguration configuration) {}
 
-    public void executeAction(AutomatedInstallData installdata,
-            AbstractUIHandler handler) {
+
+    @Override
+    public void beforePacks(AutomatedInstallData installdata, Integer npacks,
+            AbstractUIProgressHandler handler) throws Exception {
         this.installdata = installdata;
+        System.out.println("[ Launcher version: "
+                + installdata.getVariable(ScriptParser.APP_VER) + " ]");
         setUninstallationRegistryName();
         setDefaultInstallDir();
         setShortcutPrefs();
@@ -64,16 +64,24 @@ public class LauncherPreInstallAction implements PanelAction {
     }
 
     private void setDefaultInstallDir() {
-        File appDir = DirectoryPreferences.getApplicationDirectory(true);
-        File instDir = new File(appDir, "install");
-        File launcherDir = new File(instDir, "launcher");
-        installdata.setVariable(ScriptParser.INSTALL_PATH,
-            launcherDir.getAbsolutePath());
+        String path = LauncherInstallerPaths.getDefaultInstallationPath();
+        System.out.println("[ Launcher installation path: " + path + " ]");
+        installdata.setVariable(ScriptParser.INSTALL_PATH, path);
     }
 
     private void setShortcutPrefs() {
         // create shortcuts on the desktop by default
         installdata.setVariable("DesktopShortcutCheckboxEnabled", "true");
+    }
+
+
+    @Override
+    public void afterPacks(AutomatedInstallData installdata,
+            AbstractUIProgressHandler handler) throws Exception {
+        if (installdata.installSuccess) {
+            LauncherInstallerPaths.setInstallatedPath(
+                installdata.getVariable(ScriptParser.INSTALL_PATH));
+        }
     }
 
 }

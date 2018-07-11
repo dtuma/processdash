@@ -21,6 +21,7 @@
     </conditions>
 
     <listeners>
+        <listener installer="net.sourceforge.processdash.tool.launcher.installer.LauncherInstallActions"/>
         <listener installer="RegistryInstallerListener"
             uninstaller="RegistryUninstallerListener" >
             <os family="windows"/>
@@ -44,12 +45,7 @@
 
     <!-- The panels to display -->
     <panels>
-        <panel classname="HelloPanel">
-            <actions>
-                <action stage="preactivate"
-                    classname="net.sourceforge.processdash.tool.launcher.installer.LauncherPreInstallAction"/>
-            </actions>
-        </panel>
+        <panel classname="HelloPanel"/>
         <panel classname="HTMLInfoPanel"/>
         <panel classname="HTMLLicencePanel"/>
         <panel classname="InstallPanel"/>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<AutomatedInstallation langpack="eng">
+    <com.izforge.izpack.panels.HelloPanel id="UNKNOWN (com.izforge.izpack.panels.HelloPanel)"/>
+    <com.izforge.izpack.panels.HTMLInfoPanel id="UNKNOWN (com.izforge.izpack.panels.HTMLInfoPanel)"/>
+    <com.izforge.izpack.panels.HTMLLicencePanel id="UNKNOWN (com.izforge.izpack.panels.HTMLLicencePanel)"/>
+    <com.izforge.izpack.panels.InstallPanel id="UNKNOWN (com.izforge.izpack.panels.InstallPanel)"/>
+    <com.izforge.izpack.panels.ShortcutPanel id="UNKNOWN (com.izforge.izpack.panels.ShortcutPanel)">
+        <programGroup name="Process Dashboard Server"/>
+        <shortcut KdeSubstUID="false" categories="" commandLine="" createForAll="false" description="Process Dashboard Server Launcher" encoding="" group="false" icon="" iconIndex="0" initialState="1" mimetype="" name="Process  Dashboard" target="$INSTALL_DIR\Launcher.exe" terminal="" terminalOptions="" tryexec="" type="3" url="" usertype="0" workingDirectory=""/>
+        <shortcut KdeSubstUID="false" categories="" commandLine="" createForAll="false" description="Process Dashboard Server Launcher" encoding="" group="true"  icon="" iconIndex="0" initialState="1" mimetype="" name="Process  Dashboard" target="$INSTALL_DIR\Launcher.exe" terminal="" terminalOptions="" tryexec="" type="1" url="" usertype="0" workingDirectory=""/>
+    </com.izforge.izpack.panels.ShortcutPanel>
+    <com.izforge.izpack.panels.FinishPanel id="UNKNOWN (com.izforge.izpack.panels.FinishPanel)"/>
+</AutomatedInstallation>

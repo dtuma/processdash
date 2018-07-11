@@ -120,9 +120,16 @@ Authors:
                 includes="net/sourceforge/processdash/util/RuntimeUtils*"/>
         </jar>
         <jar destfile="${izpack-launcher.jar}" duplicate="fail"
-             basedir="${custom-src}" includes="net/sourceforge/processdash/**/*.class">
-            <zipfileset src="${pspdash.jar}"
-                includes="net/sourceforge/processdash/tool/bridge/client/DirectoryPreferences*"/>
+             basedir="${custom-src}" excludes="**/*.java"
+             includes="net/sourceforge/processdash/**">
+            <zipfileset src="${pspdash.jar}">
+                <include name="net/sourceforge/processdash/tool/bridge/client/DirectoryPreferences*"/>
+                <include name="net/sourceforge/processdash/util/FileUtils*"/>
+                <include name="net/sourceforge/processdash/util/RobustFileOutputStream*"/>
+                <include name="net/sourceforge/processdash/util/RuntimeUtils*"/>
+                <include name="net/sourceforge/processdash/util/StringMapper*"/>
+                <include name="net/sourceforge/processdash/util/StringUtils*"/>
+            </zipfileset>
         </jar>
     </target>
     <target name="-izpack-custom-depend">
