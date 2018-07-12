@@ -49,6 +49,7 @@
         <res src="files/launcher-shortcutSpec.xml" id="Win_shortcutSpec.xml"/>
         <res src="files/launcher-shortcutSpec.xml" id="Win_NT_shortcutSpec.xml"/>
         <res src="files/launcher-registry-entries.xml" id="RegistrySpec.xml"/>
+        <res src="files/launcher-installer-url.txt" id="DefaultServerURL.txt"/>
     </resources>
 
     <!-- The panels to display -->

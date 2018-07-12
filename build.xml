@@ -105,6 +105,7 @@ Authors:
   <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
   <property name="installSrc" value="${installer}/src"/>
+  <property name="launcherUrl.file" value="${installer}/files/launcher-installer-url.txt"/>
   <property name="rest-api"   value="rest-api"/>
   <property name="basePkg"    value="net/sourceforge/processdash"/>
   <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
@@ -371,15 +372,19 @@ Authors:
     <maybeSignJar jar="${dist}/launcher.jar" prefix="${pspdash-signature}"/>
   </target>
 
-  <target name="launcher-installer" depends="ant-tasks">
+  <target name="launcher-installer" depends="ant-tasks,launcher-jar">
+    <!-- configure/reset the server URL placed in the installer -->
+    <property name="launcher-server-url" value="-"/>
+    <echo message="${launcher-server-url}" file="${launcherUrl.file}" encoding="UTF-8"/>
+
     <!-- ask the installer build to create a JAR for installing the launcher -->
-    <ant antfile="${installer}/build.xml" target="launcher-jar" inheritAll="false"/>
+    <property name="launcher-filename" value="pdash_install-launcher-${dashboard-version}"/>
+    <ant antfile="${installer}/build.xml" target="launcher-jar" inheritAll="false">
+      <property name="launcher-filename" value="${launcher-filename}"/>
+    </ant>
 
     <!-- enhance that JAR with items that make it a dashboard add-on -->
-    <property name="pil.jar"
-        value="${dist}/pdash_install-launcher-${dashboard-version}.jar"/>
-    <available file="${pil.jar}" property="pil.exists"/>
-    <fail unless="pil.exists"/>
+    <property name="pil.jar" value="${dist}/${launcher-filename}.jar"/>
     <move file="${pil.jar}" tofile="${pil.jar}-tmp"/>
     <jar destfile="${pil.jar}">
       <manifest>
@@ -396,10 +401,24 @@ Authors:
     <maybeSignJar jar="${pil.jar}" prefix="${pspdash-signature}"/>
 
     <!-- ask the installer build to create an EXE from the enhanced JAR -->
-    <ant antfile="${installer}/build.xml" target="launcher-exe" inheritAll="false"/>
+    <ant antfile="${installer}/build.xml" target="launcher-exe" inheritAll="false">
+      <property name="launcher-filename" value="${launcher-filename}"/>
+    </ant>
   </target>
 
-  <target name="launcher" depends="launcher-jar,launcher-installer"/>
+  <target name="launcher-custom">
+    <!-- build the launcher with custom name and URL -->
+    <antcall target="launcher-installer">
+      <param name="launcher-server-url" value="${launcher-customer-url}"/>
+      <param name="launcher-filename"
+          value="pdash_install-launcher-${launcher-customer-name}-${dashboard-version}"/>
+    </antcall>
+    <!-- reset the server URL file to its non-custom default -->
+    <echo message="-" file="${launcherUrl.file}"/>
+    <echo message="**** Built launcher with custom URL ${launcher-customer-url}"/>
+  </target>
+
+  <target name="launcher" depends="launcher-installer"/>
 
   <target name="extras-addon" depends="compile" if="extras.dir"
           unless="extras.skip">

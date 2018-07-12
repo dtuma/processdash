@@ -128,6 +128,7 @@ Authors:
              includes="net/sourceforge/processdash/**">
             <zipfileset src="${pspdash.jar}">
                 <include name="net/sourceforge/processdash/tool/bridge/client/DirectoryPreferences*"/>
+                <include name="net/sourceforge/processdash/tool/launcher/pdes/PDESUtil*"/>
                 <include name="net/sourceforge/processdash/util/FileUtils*"/>
                 <include name="net/sourceforge/processdash/util/RobustFileOutputStream*"/>
                 <include name="net/sourceforge/processdash/util/RuntimeUtils*"/>
@@ -418,7 +419,11 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 
     <target name="launcher" depends="launcher-jar,launcher-exe"/>
 
-    <target name="launcher-jar" depends="init"
+    <target name="-launcher-setup" depends="init">
+        <property name="launcher-filename" value="pdash_install-launcher-${dashboard-version}"/>
+    </target>
+
+    <target name="launcher-jar" depends="-launcher-setup"
         description="build a JAR installer for the launcher app">
 
         <!-- configure the version number of the dashboard -->
@@ -429,17 +434,17 @@ pdash-install-${qualifier}-${dashboard-version}.jar
         <!-- run izpack to build the installer -->
         <antcall target="-izpack.jar">
             <param name="izpack.input" value="launcher_.xml"/>
-            <param name="izpack.output" value="pdash_install-launcher-${dashboard-version}"/>
+            <param name="izpack.output" value="${launcher-filename}"/>
         </antcall>
 
         <delete quiet="true" file="launcher_.xml"/>
     </target>
 
-    <target name="launcher-exe" depends="init"
+    <target name="launcher-exe" depends="-launcher-setup"
         description="build an EXE installer for the launcher app">
 
         <antcall target="-izpack.exe">
-            <param name="izpack.output" value="pdash_install-launcher-${dashboard-version}"/>
+            <param name="izpack.output" value="${launcher-filename}"/>
             <param name="launch4j.config" value="files/launcher-installer-launch4j-config.xml"/>
         </antcall>
     </target>

@@ -26,10 +26,13 @@ package net.sourceforge.processdash.tool.launcher.installer;
 import com.izforge.izpack.event.SimpleInstallerListener;
 import com.izforge.izpack.installer.AutomatedInstallData;
 import com.izforge.izpack.installer.PanelActionConfiguration;
+import com.izforge.izpack.installer.ResourceManager;
 import com.izforge.izpack.installer.ScriptParser;
 import com.izforge.izpack.util.AbstractUIProgressHandler;
 import com.izforge.izpack.util.os.RegistryDefaultHandler;
 import com.izforge.izpack.util.os.RegistryHandler;
+
+import net.sourceforge.processdash.tool.launcher.pdes.PDESUtil;
 
 public class LauncherInstallActions extends SimpleInstallerListener {
 
@@ -56,6 +59,7 @@ public class LauncherInstallActions extends SimpleInstallerListener {
         setUninstallationRegistryName();
         setDefaultInstallDir();
         setShortcutPrefs();
+        saveDefaultServerURL();
     }
 
 
@@ -98,6 +102,24 @@ public class LauncherInstallActions extends SimpleInstallerListener {
     private void setShortcutPrefs() {
         // create shortcuts on the desktop by default
         installdata.setVariable("DesktopShortcutCheckboxEnabled", "true");
+    }
+
+
+    private void saveDefaultServerURL() {
+        try {
+            // see if an HTTP URL has been configured in this installer
+            String url = ResourceManager.getInstance().getTextResource( //
+                "DefaultServerURL.txt", "UTF-8").trim();
+            if (url.startsWith("http")) {
+                // if one was found, register it as the default PDES URL for
+                // this individual
+                url = PDESUtil.getBaseUrl(url);
+                System.out.println("[ Default server URL: " + url + " ]");
+                PDESUtil.getPdesPrefs().put(PDESUtil.DEFAULT_SERVER_PREF, url);
+            }
+
+        } catch (Exception e) {
+        }
     }
 
 
