@@ -33,6 +33,15 @@ import com.izforge.izpack.util.os.RegistryHandler;
 
 public class LauncherInstallActions extends SimpleInstallerListener {
 
+    private static final String OS_NAME = System.getProperty("os.name");
+
+    public static final boolean IS_WINDOWS = OS_NAME.contains("Windows");
+
+    public static final boolean IS_MAC = OS_NAME.contains("OS X");
+
+    public static final boolean IS_UNIX = !IS_WINDOWS && !IS_MAC;
+
+
     private AutomatedInstallData installdata;
 
     public void initialize(PanelActionConfiguration configuration) {}
@@ -49,6 +58,7 @@ public class LauncherInstallActions extends SimpleInstallerListener {
         setShortcutPrefs();
     }
 
+
     private void setUninstallationRegistryName() {
         // By default, the uninstaller will use the version number of the
         // application when registering for uninstallation. But we allow
@@ -63,11 +73,27 @@ public class LauncherInstallActions extends SimpleInstallerListener {
         }
     }
 
+
     private void setDefaultInstallDir() {
-        String path = LauncherInstallerPaths.getDefaultInstallationPath();
-        System.out.println("[ Launcher installation path: " + path + " ]");
-        installdata.setVariable(ScriptParser.INSTALL_PATH, path);
+        if (IS_MAC) {
+            String path = MAC_APPLICATIONS_DIR + "/" + MAC_APP_NAME + ".app";
+            installdata.setVariable(ScriptParser.INSTALL_PATH, path);
+            installdata.setVariable(JAR_INSTALL_PATH,
+                path + "/Contents/Resources/Java");
+        } else {
+            String path = LauncherInstallerPaths.getDefaultInstallationPath();
+            System.out.println("[ Launcher installation path: " + path + " ]");
+            installdata.setVariable(ScriptParser.INSTALL_PATH, path);
+            installdata.setVariable(JAR_INSTALL_PATH, path);
+        }
     }
+
+    private static final String MAC_APPLICATIONS_DIR = "/Applications";
+
+    private static final String MAC_APP_NAME = "Process Dashboard Launcher";
+
+    private static final String JAR_INSTALL_PATH = "JAR_INSTALL_PATH";
+
 
     private void setShortcutPrefs() {
         // create shortcuts on the desktop by default

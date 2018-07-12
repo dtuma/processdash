@@ -7,14 +7,22 @@
             <author email="processdash@tuma-solutions.com" name="David Tuma"/>
         </authors>
         <url>http://www.tuma-solutions.com/</url>
+        <uninstaller condition="!isMac"/>
         <javaversion>1.6</javaversion>
     </info>
 
     <conditions>
         <condition type="java" id="isUnix">
             <java>
-                <class>com.izforge.izpack.util.OsVersion</class>
+                <class>net.sourceforge.processdash.tool.launcher.installer.LauncherInstallActions</class>
                 <field>IS_UNIX</field>
+             </java>
+             <returnvalue type="boolean">true</returnvalue>
+        </condition>
+        <condition type="java" id="isMac">
+            <java>
+                <class>net.sourceforge.processdash.tool.launcher.installer.LauncherInstallActions</class>
+                <field>IS_MAC</field>
              </java>
              <returnvalue type="boolean">true</returnvalue>
         </condition>
@@ -68,7 +76,7 @@
             <description>Process Dashboard Server Launcher</description>
 
             <!-- files used on all platforms -->
-            <file targetdir="$INSTALL_PATH" override="true" src="../dist/launcher.jar"/>
+            <file targetdir="$JAR_INSTALL_PATH" override="true" src="../dist/launcher.jar"/>
 
             <!-- files needed on Windows -->
             <file targetdir="$INSTALL_PATH" override="true" os="windows"
@@ -90,6 +98,15 @@
                   stage="postinstall" condition="isUnix" />
             <executable targetfile="$INSTALL_PATH/processdash-launcher-uninstall.sh"
                   stage="uninstall" condition="isUnix" />
+
+            <!-- files needed on Mac OS X -->
+            <fileset targetdir="$INSTALL_PATH" override="true" condition="isMac"
+                  dir="files/launcher_app" includes="Contents/"/>
+            <executable stage="never" condition="isMac"
+                  targetfile="$INSTALL_PATH/Contents/MacOS/Process Dashboard"/>
+            <executable targetfile="/usr/bin/touch" stage="postinstall" condition="isMac">
+                 <args><arg value="$INSTALL_PATH"/></args>
+            </executable>
 
         </pack>
     </packs>
