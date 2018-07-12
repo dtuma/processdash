@@ -114,11 +114,15 @@ Authors:
                 <pathelement location="${pspdash.jar}"/>
             </classpath>
         </javac>
+
+        <!-- build a JAR of custom classes used by the regular installer -->
         <jar destfile="${izpack-custom.jar}" duplicate="fail"
              basedir="${custom-src}" includes="com/izforge/izpack/**/*.class">
             <zipfileset src="${pspdash.jar}"
                 includes="net/sourceforge/processdash/util/RuntimeUtils*"/>
         </jar>
+
+        <!-- build a JAR of classes and files used by the launcher installer -->
         <jar destfile="${izpack-launcher.jar}" duplicate="fail"
              basedir="${custom-src}" excludes="**/*.java"
              includes="net/sourceforge/processdash/**">
@@ -412,8 +416,10 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 
 
 
-    <target name="launcher" depends="init"
-        description="build an installer for the launcher app">
+    <target name="launcher" depends="launcher-jar,launcher-exe"/>
+
+    <target name="launcher-jar" depends="init"
+        description="build a JAR installer for the launcher app">
 
         <!-- configure the version number of the dashboard -->
         <copy file="launcher.xml" tofile="launcher_.xml"/>
@@ -421,13 +427,21 @@ pdash-install-${qualifier}-${dashboard-version}.jar
                  value="${dashboard.version}"/>
 
         <!-- run izpack to build the installer -->
-        <antcall target="-izpack">
+        <antcall target="-izpack.jar">
             <param name="izpack.input" value="launcher_.xml"/>
-            <param name="izpack.output" value="pdash-install-launcher-${dashboard-version}"/>
-            <param name="launch4j.config" value="files/launcher-installer-launch4j-config.xml"/>
+            <param name="izpack.output" value="pdash_install-launcher-${dashboard-version}"/>
         </antcall>
 
         <delete quiet="true" file="launcher_.xml"/>
+    </target>
+
+    <target name="launcher-exe" depends="init"
+        description="build an EXE installer for the launcher app">
+
+        <antcall target="-izpack.exe">
+            <param name="izpack.output" value="pdash_install-launcher-${dashboard-version}"/>
+            <param name="launch4j.config" value="files/launcher-installer-launch4j-config.xml"/>
+        </antcall>
     </target>
 
 

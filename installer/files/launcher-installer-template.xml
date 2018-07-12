@@ -1,0 +1,8 @@
+<?xml version='1.0'?>
+
+<dashboard-process-template>
+
+  <background-task ordinal="9000" runAtStartup="true" whenDefault="-1"
+      class="net.sourceforge.processdash.tool.launcher.installer.SilentInstaller"/>
+
+</dashboard-process-template>

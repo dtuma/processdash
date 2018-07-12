@@ -35,7 +35,14 @@ import java.io.Writer;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
-public class SilentInstaller {
+public class SilentInstaller implements Runnable {
+
+    @Override
+    public void run() {
+        if (LauncherInstallerPaths.getInstalledPath() == null)
+            install();
+    }
+
 
     public static void main(String[] args) {
         install();

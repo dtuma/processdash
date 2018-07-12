@@ -371,6 +371,36 @@ Authors:
     <maybeSignJar jar="${dist}/launcher.jar" prefix="${pspdash-signature}"/>
   </target>
 
+  <target name="launcher-installer" depends="ant-tasks">
+    <!-- ask the installer build to create a JAR for installing the launcher -->
+    <ant antfile="${installer}/build.xml" target="launcher-jar" inheritAll="false"/>
+
+    <!-- enhance that JAR with items that make it a dashboard add-on -->
+    <property name="pil.jar"
+        value="${dist}/pdash_install-launcher-${dashboard-version}.jar"/>
+    <available file="${pil.jar}" property="pil.exists"/>
+    <fail unless="pil.exists"/>
+    <move file="${pil.jar}" tofile="${pil.jar}-tmp"/>
+    <jar destfile="${pil.jar}">
+      <manifest>
+        <attribute name="Main-Class" value="net.sourceforge.processdash.tool.launcher.installer.Main"/>
+        <attribute name="Dash-Pkg-ID" value="pdes-installer-launcher"/>
+        <attribute name="Dash-Pkg-Version" value="${dashboard.version}"/>
+        <attribute name="Dash-Pkg-Name" value="PDES Launcher Auto Installer"/>
+      </manifest>
+      <zipfileset src="${pil.jar}-tmp" excludes="META-INF/**"/>
+      <zipfileset file="${installer}/files/launcher-installer-template.xml"
+          prefix="Templates"/>
+    </jar>
+    <delete file="${pil.jar}-tmp"/>
+    <maybeSignJar jar="${pil.jar}" prefix="${pspdash-signature}"/>
+
+    <!-- ask the installer build to create an EXE from the enhanced JAR -->
+    <ant antfile="${installer}/build.xml" target="launcher-exe" inheritAll="false"/>
+  </target>
+
+  <target name="launcher" depends="launcher-jar,launcher-installer"/>
+
   <target name="extras-addon" depends="compile" if="extras.dir"
           unless="extras.skip">
     <pathconvert property="extras.processdash.dir" dirSep="/">
