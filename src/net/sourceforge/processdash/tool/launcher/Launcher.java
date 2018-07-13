@@ -41,4 +41,26 @@ public class Launcher {
         return sawLaunchable;
     }
 
+
+    private static final String CURRENT_PROCESS_USED_PROP = //
+            Launcher.class.getName() + ".currentProcessUsedForLaunch";
+
+    public synchronized static boolean currentProcessHasBeenUsedForLaunch() {
+        return System.getProperty(CURRENT_PROCESS_USED_PROP) != null;
+    }
+
+    public synchronized static boolean requestPermissionToLaunchInProcess() {
+        // only one requestor can launch per process. If a previous caller has
+        // already obtained that permission, deny it to the current caller.
+        if (currentProcessHasBeenUsedForLaunch())
+            return false;
+
+        // if no one has requested yet, grant the permission to our caller, and
+        // set the flag so others will have to launch separately. We store this
+        // in a system property (rather than a private class variable) to guard
+        // against the case where this class is reloaded in another classloader.
+        System.setProperty(CURRENT_PROCESS_USED_PROP, "true");
+        return true;
+    }
+
 }

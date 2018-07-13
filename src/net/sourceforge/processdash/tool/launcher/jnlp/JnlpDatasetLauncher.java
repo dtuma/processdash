@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.launcher.Launcher;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.Bootstrap;
@@ -307,7 +308,12 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         // Mac OS X only runs a single instance of an application at a time.
         // as a result, we must fork and allow the parent process to exit, or
         // the parent process will prevent future datasets from launching.
-        return isMac;
+        if (isMac)
+            return true;
+
+        // otherwise, we fork if the launcher doesn't grant us permission to
+        // run in the current process.
+        return Launcher.requestPermissionToLaunchInProcess() == false;
     }
 
     private void launchAppInNewProcess() throws Exception {
@@ -358,7 +364,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         // launch the main ProcessDashboard class in the given distribution
         File targetJarFile = new File(distrDir,
                 DistributionManager.TARGET_JARFILE);
-        Bootstrap.launchMain(targetJarFile, PDASH_MAIN_CLASS, args);
+        Bootstrap.createMainThread(targetJarFile, PDASH_MAIN_CLASS, args)
+                .start();
     }
 
 
