@@ -151,13 +151,14 @@ public class DatasetsApi {
                 ? Type.Team : Type.Personal;
 
         // compute URLs for this dataset
-        boolean thirdParty = !currentUser.equalsIgnoreCase(owner);
+        boolean thirdParty = !currentUser.equalsIgnoreCase(owner)
+                && type == Type.Personal;
         String jnlpUrl = PDESUtil.getJnlpUrl(baseUrl, datasetID, thirdParty);
         String detailsUrl = PDESUtil.getViewUrl(baseUrl, datasetID);
 
         // create a dataset object and return it
         LaunchableDataset d = new LaunchableDataset(name, type, jnlpUrl,
-                detailsUrl, owner);
+                detailsUrl, owner, thirdParty);
         return d;
     }
 
@@ -166,8 +167,7 @@ public class DatasetsApi {
         // look for a personal dataset belonging to the current user. If one is
         // already present, do nothing.
         for (LaunchableDataset dataset : datasets) {
-            if (dataset.isPersonal()
-                    && currentUser.equalsIgnoreCase(dataset.getOwner()))
+            if (dataset.isPersonal() && !dataset.isThirdParty())
                 return;
         }
 
@@ -175,7 +175,7 @@ public class DatasetsApi {
         String datasetID = PDESUtil.getAutoUserDatasetID(currentUser);
         LaunchableDataset d = new LaunchableDataset("Process Dashboard",
                 Type.Personal, PDESUtil.getJnlpUrl(baseUrl, datasetID, false),
-                PDESUtil.getViewUrl(baseUrl, datasetID), currentUser);
+                PDESUtil.getViewUrl(baseUrl, datasetID), currentUser, false);
         datasets.add(0, d);
     }
 

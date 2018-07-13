@@ -28,11 +28,19 @@ import net.sourceforge.processdash.tool.launcher.jnlp.JnlpUtil;
 
 public class Launcher {
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     public static boolean launch(String... items) {
         boolean sawLaunchable = false;
 
         for (String item : items) {
-            if (JnlpUtil.isJnlpFilename(item)) {
+            if (PersonalDatasetLauncher.isAutoPersonalDataset(item)) {
+                PersonalDatasetLauncher.launch();
+                sawLaunchable = true;
+
+            } else if (JnlpUtil.isJnlpFilename(item)) {
                 JnlpDatasetLauncher.launch(item);
                 sawLaunchable = true;
             }

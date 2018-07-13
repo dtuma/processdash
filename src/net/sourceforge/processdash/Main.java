@@ -106,7 +106,7 @@ public class Main {
 
     private static String getMainClassName(String[] args) {
         if (JnlpUtil.isSingleJnlpArg(args))
-            return "net.sourceforge.processdash.tool.launcher.jnlp.JnlpDatasetLauncher";
+            return "net.sourceforge.processdash.tool.launcher.Launcher";
         else
             return "net.sourceforge.processdash.ProcessDashboard";
     }

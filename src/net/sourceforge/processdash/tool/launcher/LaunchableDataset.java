@@ -39,13 +39,16 @@ public class LaunchableDataset {
 
     private String owner;
 
+    private boolean thirdParty;
+
     public LaunchableDataset(String name, Type type, String location,
-            String detailsUrl, String owner) {
+            String detailsUrl, String owner, boolean thirdParty) {
         this.name = name;
         this.type = type;
         this.location = location;
         this.detailsUrl = detailsUrl;
         this.owner = owner;
+        this.thirdParty = thirdParty;
     }
 
     public String getName() {
@@ -76,6 +79,10 @@ public class LaunchableDataset {
         return owner;
     }
 
+    public boolean isThirdParty() {
+        return thirdParty;
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
@@ -86,6 +93,7 @@ public class LaunchableDataset {
         if (detailsUrl != null)
             result.append("', details='").append(detailsUrl);
         result.append("', owner='").append(owner);
+        result.append("', thirdParty='").append(thirdParty);
         result.append("']");
         return result.toString();
     }

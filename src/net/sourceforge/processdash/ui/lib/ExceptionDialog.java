@@ -133,10 +133,12 @@ public class ExceptionDialog {
         boolean sawCopyLink = false;
         for (Object o : flattenContents(contents)) {
             if (o instanceof Throwable) {
-                if (sawThrowable)
+                if (sawThrowable) {
                     textArea.append(DELIMITER);
-                else if (subdialogHandler == null)
+                } else if (subdialogHandler == null) {
                     items.add(scrollPane);
+                    items.add(new JOptionPaneTweaker.MakeResizable());
+                }
 
                 textArea.append(getStackTrace((Throwable) o));
                 textArea.setCaretPosition(0);
@@ -210,7 +212,8 @@ public class ExceptionDialog {
         }
 
         public void actionPerformed(ActionEvent e) {
-            ExceptionDialog.show(null, title, throwableInfo);
+            ExceptionDialog.show(null, title, throwableInfo,
+                new JOptionPaneTweaker.MakeResizable());
         }
 
     }

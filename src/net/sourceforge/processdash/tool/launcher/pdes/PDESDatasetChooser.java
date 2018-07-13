@@ -222,7 +222,7 @@ public class PDESDatasetChooser extends JPanel {
         }
     }
 
-    private String promptForServerUrl(Component parent) {
+    static String promptForServerUrl(Component parent) {
         // create user interface components
         String title = res.getString("Enter_Url.Title");
         String prompt = res.getString("Enter_Url.Message");
@@ -278,7 +278,7 @@ public class PDESDatasetChooser extends JPanel {
         }
     }
 
-    private boolean isPdesUrl(String baseUrl, boolean swallowException)
+    private static boolean isPdesUrl(String baseUrl, boolean swallowException)
             throws Exception {
         try {
             // try connecting to a URL we expect to find on the PDES server
@@ -301,7 +301,7 @@ public class PDESDatasetChooser extends JPanel {
         }
     }
 
-    private void showErrorMessage(Component parent, String key) {
+    static void showErrorMessage(Component parent, String key) {
         Object message = new Object[] { res.getStrings(key),
                 new JOptionPaneTweaker.ToFront() };
         JOptionPane.showMessageDialog(parent, message,
