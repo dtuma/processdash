@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.launcher.jnlp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -128,11 +129,24 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
     private void getJnlpXmlFromFile(String file) throws IOException {
         try {
-            xml = JnlpFileRetriever.open(new File(file));
+            xml = JnlpFileRetriever.open(getFileForArg(file));
 
         } catch (FileNotFoundException fnfe) {
             showStartupErrorAndExit(getRes("Launch_Error.Cannot_Read_File"),
                 "      " + file);
+        }
+    }
+
+    private File getFileForArg(String arg) throws FileNotFoundException {
+        try {
+            if (arg.startsWith("file:"))
+                return new File(new URI(arg));
+            else
+                return new File(arg);
+
+        } catch (Exception e) {
+            throw (FileNotFoundException) new FileNotFoundException(arg)
+                    .initCause(e);
         }
     }
 
