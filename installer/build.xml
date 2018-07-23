@@ -57,12 +57,15 @@ Authors:
 
 <project default="dist" basedir=".">
 
+    <property environment="env"/>
+
     <property name="processdash" value=".."/>
     <property file="${processdash}/build.properties"/>
     <property file="${processdash}/lib/version.properties"/>
 
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
+    <property name="jsign.dir" location="${launch4j.dir}/jsign" />
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
     <property name="launcher.exe" value="Launcher.exe" />
     <property name="quick-launcher.exe" value="QuickLauncher.exe" />
@@ -151,14 +154,31 @@ Authors:
     <target name="windows-exe" depends="init,-windows-exe-depend"
             description="build windows executables to launch the dashboard"
             unless="windowsExe.upToDate">
+        <!-- build and sign the dashboard exe -->
         <launch4j configFile="files/dashboard-launch4j-config.xml"
             outfile="${dist}/${dashboard.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${dashboard.exe}"/>
+        </antcall>
+        <!-- build and sign the launcher exe -->
         <launch4j configFile="files/launcher-launch4j-config.xml"
             outfile="${dist}/${launcher.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${launcher.exe}"/>
+        </antcall>
+        <!-- build and sign the quick launcher exe -->
         <launch4j configFile="files/quick-launcher-launch4j-config.xml"
             outfile="${dist}/${quick-launcher.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${quick-launcher.exe}"/>
+        </antcall>
+        <!-- build and sign the uninstaller exe -->
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
             outfile="${dist}/${uninstaller.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${uninstaller.exe}"/>
+        </antcall>
+        <!-- create a default launch4j ini file for the dashboard -->
         <echo file="files/dashboard-launch4j.ini"
             ># Process Dashboard JVM arguments&#13;&#10;-Xmx&#36;{MAX_MEMORY}m&#13;&#10;</echo>
     </target>
@@ -167,6 +187,19 @@ Authors:
             targetfile="${dist}/${dashboard.exe}">
             <srcfiles dir="files" includes="*-launch4j-config.xml"/>
         </uptodate>
+    </target>
+
+    <target name="maybe-sign-exe" if="sign-exe.alias">
+        <exec executable="${launch4j.dir}\sign4j\sign4j.exe">
+            <arg value="${java.home}\bin\java.exe"/>
+            <arg value="-jar"/> <arg value="${jsign.dir}/jsign-2.0.jar"/>
+            <arg value="--keystore"/> <arg value="${sign-exe.keystore}"/>
+            <arg value="--storepass"/> <arg value="${sign-exe.storepass}"/>
+            <arg value="--alias"/> <arg value="${sign-exe.alias}"/>
+            <arg value="--tsaurl"/> <arg value="${sign-exe.tsaurl}"/>
+            <arg value="--url"/> <arg value="http://www.processdash.com/"/>
+            <arg value="${sign-exe.file}"/>
+        </exec>
     </target>
 
 
@@ -238,6 +271,9 @@ Authors:
         <launch4j configFile="${launch4j.config}"
             jar="${dist}/${izpack.output}.jar"
             outfile="${dist}/${izpack.output}.exe"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${izpack.output}.exe"/>
+        </antcall>
     </target>
 
     <target name="offline" depends="init,install-reg.xml"
