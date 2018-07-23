@@ -100,6 +100,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         initializeFields();
         parseArguments();
         retrieveAssetsAndLaunchProfile();
+        checkLicenseConsent();
         finalizePropertiesAndCommandLine();
         launchApp();
     }
@@ -280,6 +281,16 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         if (distrDir == null) {
             distrDir = assetManager.getDownloadedLaunchProfileDir();
         }
+    }
+
+
+    /**
+     * check for license consent if needed
+     */
+    private void checkLicenseConsent() {
+        ConsentHandler ch = new ConsentHandler(distrDir);
+        if (ch.consentIsOK() == false)
+            System.exit(0);
     }
 
 
