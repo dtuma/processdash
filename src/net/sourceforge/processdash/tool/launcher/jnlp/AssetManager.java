@@ -479,7 +479,7 @@ class AssetManager {
                 Character.MAX_RADIX);
 
             File tmpDir = new File(distribDir, randomName);
-            tmpDir.mkdir();
+            tmpDir.mkdirs();
 
             OutputStream out = new XorOutputStream(new BufferedOutputStream(
                     new FileOutputStream(new File(tmpDir, targetFilename))),
