@@ -128,7 +128,8 @@ public class LauncherInstallActions extends SimpleInstallerListener {
             AbstractUIProgressHandler handler) throws Exception {
         if (installdata.installSuccess) {
             LauncherInstallerPaths.setInstallatedPath(
-                installdata.getVariable(ScriptParser.INSTALL_PATH));
+                installdata.getVariable(ScriptParser.INSTALL_PATH),
+                installdata.getVariable(ScriptParser.APP_VER));
         }
     }
 

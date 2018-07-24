@@ -39,12 +39,18 @@ class LauncherInstallerPaths {
         return launcherDir.getAbsolutePath();
     }
 
-    static void setInstallatedPath(String path) {
-        getPrefs().put(ScriptParser.INSTALL_PATH, path);
+    static void setInstallatedPath(String path, String version) {
+        Preferences prefs = getPrefs();
+        prefs.put(ScriptParser.INSTALL_PATH, path);
+        prefs.put(ScriptParser.APP_VER, version);
     }
 
     static String getInstalledPath() {
         return getPrefs().get(ScriptParser.INSTALL_PATH, null);
+    }
+
+    static String getInstalledVersion() {
+        return getPrefs().get(ScriptParser.APP_VER, null);
     }
 
     static Preferences getPrefs() {
