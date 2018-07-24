@@ -406,9 +406,29 @@ Authors:
     </ant>
   </target>
 
+  <target name="launcher-profile" depends="launcher-installer">
+    <!-- create a launch profile package containing launcher installers -->
+    <property file="teamdash/build.properties"/>
+    <property name="launcher-profile-name"
+          value="PDES Dataset Launcher ${dashboard.version}"/>
+    <packageLaunchProfile profilename="${launcher-profile-name}"
+          profileid="pdes-launcher"
+          profileversion="${dashboard.version}"
+          requireserver="3.6.10"
+          compress="false"
+          signingprefix="profileSign"
+          destfile="${dist}/${launcher-filename}.zip">
+      <fileset dir="${dist}">
+        <include name="${launcher-filename}.exe"/>
+        <include name="${launcher-filename}.jar"/>
+      </fileset>
+    </packageLaunchProfile>
+    <maybeSignJar jar="${dist}/${launcher-filename}.zip" prefix="profileSign"/>
+  </target>
+
   <target name="launcher-custom">
     <!-- build the launcher with custom name and URL -->
-    <antcall target="launcher-installer">
+    <antcall target="launcher-profile">
       <param name="launcher-server-url" value="${launcher-customer-url}"/>
       <param name="launcher-filename"
           value="pdash_install-launcher-${launcher-customer-name}-${dashboard-version}"/>

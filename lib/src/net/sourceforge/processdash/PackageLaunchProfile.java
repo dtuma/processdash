@@ -64,6 +64,8 @@ public class PackageLaunchProfile extends Task {
 
     private File destfile;
 
+    private boolean compress = true;
+
     private String signingprefix;
 
     private List<FileSet> filesets = new ArrayList<FileSet>();
@@ -91,6 +93,10 @@ public class PackageLaunchProfile extends Task {
 
     public void setDestfile(File destfile) {
         this.destfile = destfile;
+    }
+
+    public void setCompress(boolean compress) {
+        this.compress = compress;
     }
 
     public void setSigningprefix(String signingprefix) {
@@ -155,6 +161,7 @@ public class PackageLaunchProfile extends Task {
         Jar jar = new Jar();
         jar.bindToOwner(this);
         jar.addConfiguredManifest(mf);
+        jar.setCompress(compress);
         for (FileSet fs : filesets)
             jar.addFileset(fs);
 
