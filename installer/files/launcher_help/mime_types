@@ -1,0 +1,10 @@
+# content types for HTML and embedded images
+.html=text/html
+.jpg=image/jpeg
+.png=image/png
+
+
+# content types for installer executables
+.jar=application/x-java-archive
+.exe=application/vnd.microsoft.portable-executable
+.dmg=application/x-apple-diskimage

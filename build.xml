@@ -418,6 +418,8 @@ Authors:
           compress="false"
           signingprefix="profileSign"
           destfile="${dist}/${launcher-filename}.zip">
+      <fileset dir="installer/files/launcher_help" includes="mime_types"/>
+      <fileset dir="installer/files/launcher_help" includes="*.*"/>
       <fileset dir="${dist}">
         <include name="${launcher-filename}.exe"/>
         <include name="${launcher-filename}.jar"/>
