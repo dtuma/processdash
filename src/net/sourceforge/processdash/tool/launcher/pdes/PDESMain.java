@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.launcher.pdes;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,6 +38,9 @@ import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.launcher.LaunchableDataset;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpDatasetLauncher;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpUtil;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class PDESMain {
 
@@ -101,8 +106,42 @@ public class PDESMain {
                 result.add(PDESUtil.getBaseUrl(url));
         }
 
+        // if a URL has been configured in a bundled file, use it
+        String bundleUrl = getUrlFromMacApplicationBundle();
+        if (bundleUrl != null)
+            result.add(PDESUtil.getBaseUrl(bundleUrl));
+
         // build a list of the resulting server URLs
         return new ArrayList<String>(result);
+    }
+
+    private static String getUrlFromMacApplicationBundle() {
+        if (!MacGUIUtils.isMacOSX())
+            return null;
+
+        try {
+            // find the JAR file containing these classes
+            File self = RuntimeUtils.getClasspathFile(PDESMain.class);
+            if (self == null)
+                return null;
+
+            // look in the grandparent dir for a server pref file
+            File dir = self.getParentFile().getParentFile();
+            File f = new File(dir, PDESUtil.DEFAULT_SERVER_PREF + ".txt");
+            if (!f.isFile())
+                return null;
+
+            // read the data from the file
+            byte[] data = FileUtils.slurpContents(new FileInputStream(f), true);
+            String url = new String(data, "UTF-8").trim();
+            if (url.startsWith("http"))
+                return url;
+
+        } catch (Exception e) {
+        }
+
+        // abort if there were problems or if the file did not contain a URL
+        return null;
     }
 
 }
