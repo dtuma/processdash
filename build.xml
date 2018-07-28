@@ -372,7 +372,7 @@ Authors:
     <maybeSignJar jar="${dist}/launcher.jar" prefix="${pspdash-signature}"/>
   </target>
 
-  <target name="launcher-installer" depends="ant-tasks,launcher-jar">
+  <target name="launcher-installer" depends="ant-tasks">
     <!-- configure/reset the server URL placed in the installer -->
     <property name="launcher-server-url" value="-"/>
     <echo message="${launcher-server-url}" file="${launcherUrl.file}" encoding="UTF-8"/>
@@ -399,14 +399,18 @@ Authors:
     </jar>
     <delete file="${pil.jar}-tmp"/>
     <maybeSignJar jar="${pil.jar}" prefix="${pspdash-signature}"/>
+  </target>
 
-    <!-- ask the installer build to create an EXE from the enhanced JAR -->
-    <ant antfile="${installer}/build.xml" target="launcher-exe" inheritAll="false">
+  <target name="launcher-installer-os" depends="launcher-installer">
+    <!-- ask the installer build to create an EXE/DMG from the enhanced JAR -->
+    <ant antfile="${installer}/build.xml" inheritAll="false">
       <property name="launcher-filename" value="${launcher-filename}"/>
+      <target name="launcher-exe"/>
+      <target name="launcher-dmg"/>
     </ant>
   </target>
 
-  <target name="launcher-profile" depends="launcher-installer">
+  <target name="launcher-profile" depends="launcher-installer-os">
     <!-- create a launch profile package containing launcher installers -->
     <property file="teamdash/build.properties"/>
     <property name="launcher-profile-name"
@@ -423,6 +427,7 @@ Authors:
       <fileset dir="${dist}">
         <include name="${launcher-filename}.exe"/>
         <include name="${launcher-filename}.jar"/>
+        <include name="${launcher-filename}.dmg"/>
       </fileset>
     </packageLaunchProfile>
     <maybeSignJar jar="${dist}/${launcher-filename}.zip" prefix="profileSign"/>
@@ -948,7 +953,7 @@ Authors:
     </zip>
   </target>
 
-  <target name="dist-all" depends="dist,dist-src,installer"/>
+  <target name="dist-all" depends="dist,dist-src,launcher-jar,launcher-installer,installer"/>
 
   <!-- =================================================================== -->
   <!-- Create miscellaneous other items                                    -->

@@ -485,6 +485,34 @@ pdash-install-${qualifier}-${dashboard-version}.jar
         </antcall>
     </target>
 
+    <target name="launcher-dmg" depends="-launcher-setup" if="dmg.server"
+        description="build a DMG installer for the launcher app">
+        <!-- delete any existing DMG file -->
+        <delete file="${dist}/${launcher-filename}.dmg" quiet="true"/>
+        <!-- copy the launcher.jar file into place on the server -->
+        <exec executable="scp" dir="${dist}">
+            <arg value="launcher.jar"/>
+            <arg value="${dmg.server}:${dmg.appPath}/Contents/Resources/Java/launcher.jar"/>
+        </exec>
+        <!-- copy the PDES URL config file into place on the server -->
+        <exec executable="scp" dir="${files.dir}">
+            <arg value="launcher-installer-url.txt"/>
+            <arg value="${dmg.server}:${dmg.appPath}/Contents/Resources/defaultServer.txt"/>
+        </exec>
+        <!-- ssh to the server and run the build script -->
+        <exec executable="ssh">
+            <arg value="${dmg.server}"/>
+            <arg value="${dmg.buildScript}"/>
+        </exec>
+        <!-- download the DMG that was created -->
+        <exec executable="scp" dir="${dist}">
+            <arg value="${dmg.server}:${dmg.outFileName}"/>
+            <arg value="${launcher-filename}.dmg"/>
+        </exec>
+        <available file="${dist}/${launcher-filename}.dmg" property="dmgOK"/>
+        <fail unless="dmgOK" message="DMG creation failed"/>
+    </target>
+
 
 
     <target name="clean" depends="izpack-custom-clean">
