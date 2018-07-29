@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2017 Tuma Solutions, LLC
+// Copyright (C) 2006-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.tool.launcher.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -74,6 +75,7 @@ public class QuickLauncher {
             fileToLaunch = args[0];
 
         LargeFontsHelper.maybeInitialize();
+        LookAndFeelUtil.setDefaultLAF();
         new QuickLauncher(fileToLaunch);
     }
 

@@ -76,7 +76,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
-import javax.swing.UIManager;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -155,6 +154,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
+import net.sourceforge.processdash.tool.launcher.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.ui.AlwaysOnTopManager;
@@ -1213,15 +1213,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         // enable the windows look and feel if requested/configured
-        if ("windows".equals(InternalSettings.getOSPrefix())
-                && Settings.getBool("forceUseSystemLAF",
-                    Settings.getBool("userPref.useSystemLAF", false))) {
-            try {
-                String laf = UIManager.getSystemLookAndFeelClassName();
-                UIManager.setLookAndFeel(laf);
-                RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf", laf);
-            } catch (Exception e) {}
-        }
+        LookAndFeelUtil.setDefaultLAF();
 
         // potentially reset locale-specific defaults based on user settings
         String altTimeZone = Settings.getVal("timezone");

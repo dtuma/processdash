@@ -27,18 +27,21 @@ import java.util.prefs.Preferences;
 
 import javax.swing.UIManager;
 
+import net.sourceforge.processdash.util.RuntimeUtils;
+
 public class LookAndFeelUtil {
 
     public static void setDefaultLAF() {
         try {
-            // keep this logic in sync with the ProcessDashboard class
             String os = System.getProperty("os.name").toLowerCase();
             if (os.contains("windows")) {
                 Preferences prefs = Preferences.userRoot()
                         .node("net/sourceforge/processdash/userPrefs");
-                if (prefs.getBoolean("useSystemLAF", false)) {
+                if (prefs.getBoolean("useSystemLAF", true)) {
                     String laf = UIManager.getSystemLookAndFeelClassName();
                     UIManager.setLookAndFeel(laf);
+                    RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf",
+                        laf);
                 }
             }
         } catch (Exception e) {

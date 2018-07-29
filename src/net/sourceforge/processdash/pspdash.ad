@@ -219,7 +219,7 @@ os-windows.systemTray.tooltipMaxLen=127
 
 reminder.disabled=true
 
-#os-windows.userPref.useSystemLAF=true
+os-windows.userPref.useSystemLAF=true
 
 os-mac.mainWindow.paddingRight=6
 os-mac.datatips.disabled=true
