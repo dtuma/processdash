@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,11 +41,13 @@ import java.security.PrivilegedExceptionAction;
 
 
 public abstract class AbstractRecolorableIcon
-        implements RecolorableIcon, Cloneable {
+        implements RecolorableIcon, ZoomLevelCapable, Cloneable {
 
     protected int width, height;
 
     protected boolean antialias, strokePure;
+
+    protected ZoomLevel zoom;
 
     protected AbstractRecolorableIcon() {
         width = height = 16;
@@ -53,14 +55,24 @@ public abstract class AbstractRecolorableIcon
         strokePure = false;
     }
 
+    public void setZoom(ZoomLevel zoom) {
+        this.zoom = zoom;
+    }
+
     @Override
     public int getIconWidth() {
-        return width;
+        if (zoom == null)
+            return width;
+        else
+            return (int) (width * zoom.getZoomLevel() + 0.5);
     }
 
     @Override
     public int getIconHeight() {
-        return height;
+        if (zoom == null)
+            return height;
+        else
+            return (int) (height * zoom.getZoomLevel() + 0.5);
     }
 
     @Override
@@ -74,6 +86,8 @@ public abstract class AbstractRecolorableIcon
             g2.setRenderingHint(KEY_STROKE_CONTROL,
                 RenderingHints.VALUE_STROKE_PURE);
         g2.translate(x, y);
+        if (zoom != null && zoom.getZoomLevel() != 1.0)
+            g2.scale(zoom.getZoomLevel(), zoom.getZoomLevel());
 
         paintIcon(g2, g2.getClip(), (float) g2.getTransform().getScaleX());
     }

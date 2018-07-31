@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,9 +52,11 @@ import javax.swing.ImageIcon;
  * scaling factor in effect and choose the best image to display, automatically
  * resizing the image if necessary.
  */
-public class ScalableImageIcon implements RecolorableIcon {
+public class ScalableImageIcon implements RecolorableIcon, ZoomLevelCapable {
 
     private int width, height;
+
+    private ZoomLevel zoom;
 
     private ImageIcon[] delegates;
 
@@ -114,20 +116,33 @@ public class ScalableImageIcon implements RecolorableIcon {
     }
 
     @Override
+    public void setZoom(ZoomLevel zoom) {
+        this.zoom = zoom;
+    }
+
+    @Override
     public int getIconWidth() {
-        return width;
+        if (zoom == null)
+            return width;
+        else
+            return (int) (width * zoom.getZoomLevel() + 0.5);
     }
 
     @Override
     public int getIconHeight() {
-        return height;
+        if (zoom == null)
+            return height;
+        else
+            return (int) (height * zoom.getZoomLevel() + 0.5);
     }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
-        Graphics2D g2 = (Graphics2D) g;
-        AffineTransform t = g2.getTransform();
+        Graphics2D g2 = (Graphics2D) g.create();
         g2.translate(x, y);
+        if (zoom != null && zoom.getZoomLevel() != 1.0)
+            g2.scale(zoom.getZoomLevel(), zoom.getZoomLevel());
+        AffineTransform t = g2.getTransform();
 
         int desiredWidth = (int) (t.getScaleX() * width);
         int desiredHeight = (int) (t.getScaleY() * height);
@@ -140,8 +155,6 @@ public class ScalableImageIcon implements RecolorableIcon {
 
         g2.scale(1 / t.getScaleX(), 1 / t.getScaleY());
         scaledImage.paintIcon(c, g2, 0, 0);
-
-        g2.setTransform(t);
     }
 
     private ImageIcon getScaledIcon(int desiredWidth, int desiredHeight) {
@@ -191,6 +204,7 @@ public class ScalableImageIcon implements RecolorableIcon {
         if (filtLen > 0)
             System.arraycopy(this.filters, 0, result.filters, 0, filtLen);
         result.filters[filtLen] = filter;
+        result.zoom = zoom;
         return result;
     }
 

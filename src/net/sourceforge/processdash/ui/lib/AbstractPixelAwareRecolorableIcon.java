@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,10 @@ public abstract class AbstractPixelAwareRecolorableIcon
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         Graphics2D g2 = (Graphics2D) g.create();
+        g2.translate(x, y);
+        if (zoom != null && zoom.getZoomLevel() != 1.0)
+            g2.scale(zoom.getZoomLevel(), zoom.getZoomLevel());
+
         AffineTransform t = g2.getTransform();
         int pixelWidth = (int) (this.width * t.getScaleX());
         int pixelHeight = (int) (this.height * t.getScaleY());
@@ -63,7 +67,6 @@ public abstract class AbstractPixelAwareRecolorableIcon
             bufferedHeight = pixelHeight;
         }
 
-        g2.translate(x, y);
         g2.scale(1 / t.getScaleX(), 1 / t.getScaleY());
         g2.drawImage(buffered, 0, 0, null);
     }
