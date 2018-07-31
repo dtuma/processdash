@@ -93,6 +93,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -187,6 +188,9 @@ public class WBSJTable extends JTable {
         else
             setRowHeight(getRowHeight() + 3);
         buildCustomActionMaps();
+
+        WBSZoom.get().manage(this, "font", "rowHeight");
+        WBSZoom.get().manage(getTableHeader(), "font");
 
         renderer = new WBSNodeRenderer(model, iconMap, workflows);
         setDefaultRenderer(WBSNode.class, renderer);
@@ -399,6 +403,34 @@ public class WBSJTable extends JTable {
             return null;
         else
             return blameData.get(node.getTreeNodeID());
+    }
+
+    @Override
+    public void setFont(Font font) {
+        super.setFont(font);
+        Component editor = getEditorComponent();
+        if (editor != null)
+            editor.setFont(font);
+    }
+
+    @Override
+    public void setRowHeight(int rowHeight) {
+        super.setRowHeight(rowHeight);
+
+        // row height changes typically indicate a zooming operation. Notify the
+        // WBS node renderer/editor so they can recalculate their geometry.
+        if (renderer != null)
+            renderer.updateGeometry();
+        if (editor != null)
+            editor.updateGeometry();
+    }
+
+    @Override
+    public Component prepareEditor(TableCellEditor editor, int row,
+            int column) {
+        Component result = super.prepareEditor(editor, row, column);
+        result.setFont(getFont());
+        return result;
     }
 
     @Override
@@ -2252,27 +2284,18 @@ public class WBSJTable extends JTable {
             int row = rowAtPoint(p);
             if (!wbsModel.isCellEditable(row, column)) return null;
 
-            // find the node that the cursor is over.
-            WBSNode overNode = wbsModel.getNodeForRow(row);
-            if (overNode == null) return null;
-
-            // calculate x relative to the table cell origin.
-            Rectangle r = getCellRect(row, column, true);
-            int ourXPos = p.x - r.x;
-
-            // translate the x position according to the indentation level of
-            // clicked node, and determine which part of the node was clicked.
-            int indentLevel = overNode.getIndentLevel();
-            int xDelta = ourXPos - indentLevel * WBSNodeRenderer.ICON_HORIZ_SPACING;
-            if (xDelta <= 0)
-                return null;
-            else if (xDelta < WBSNodeRenderer.ICON_HORIZ_SPACING)
-                return (wbsModel.isNodeTypeEditable(overNode)
-                        ? handCursor : null);
-            else if (xDelta > WBSNodeRenderer.ICON_HORIZ_SPACING + 4)
+            // ask the WBSNodeEditor to tell us which item the mouse is over
+            switch (editor.getMouseOverRegion(p)) {
+            case WBSNodeEditor.CLICKED_TEXT:
                 return textCursor;
-            else
-                return null;
+
+            case WBSNodeEditor.CLICKED_ICON:
+                WBSNode overNode = wbsModel.getNodeForRow(row);
+                if (overNode != null && wbsModel.isNodeTypeEditable(overNode))
+                    return handCursor;
+            }
+
+            return null;
         }
     }
     final MotionListener MOTION_LISTENER = new MotionListener();

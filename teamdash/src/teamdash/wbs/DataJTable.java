@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
@@ -77,7 +78,7 @@ public class DataJTable extends JTable {
     private Action copyAction;
     private Action pasteAction;
 
-    public DataJTable(DataTableModel model) {
+    public DataJTable(DataTableModel model, int rowHeight) {
         super(model);
 
         setDefaultEditor  (Object.class, new DefaultCellEditor(new JTextField()));
@@ -89,6 +90,10 @@ public class DataJTable extends JTable {
         setBackground(Color.white);
         setSelectionForeground(Color.black);
         setSelectionBackground(new Color(0xb8cfe5));
+
+        setRowHeight(rowHeight);
+        WBSZoom.get().manage(this, "font", "rowHeight");
+        WBSZoom.get().manage(getTableHeader(), "font");
 
         ClipboardBridge clipboardBridge = new ClipboardBridge(this);
 
@@ -151,12 +156,22 @@ public class DataJTable extends JTable {
     }
 
     @Override
+    public void setFont(Font font) {
+        super.setFont(font);
+        Component editor = getEditorComponent();
+        if (editor != null)
+            editor.setFont(font);
+    }
+
+    @Override
     public Component prepareEditor(TableCellEditor editor, int row, int column) {
         unwrapQueriedValues = true;
         Component result = super.prepareEditor(editor, row, column);
         unwrapQueriedValues = false;
 
         if (result != null) {
+            // set the font to match the table
+            result.setFont(DataJTable.this.getFont());
             // save the value we are editing for undo purposes
             valueBeforeEditing = editor.getCellEditorValue();
             // register ourselves with the UndoList

@@ -39,6 +39,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
+import teamdash.wbs.icons.ExpansionToggleIcon;
 
 /** Custom table cell renderer for WBSNodes.
  */
@@ -69,6 +70,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         this.iconMap = iconMap;
         this.workflows = workflows;
         setIconTextGap(4);
+        updateGeometry();
     }
 
     public String getRootNodeName() {
@@ -194,13 +196,17 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
 
 
-
-    /** The fixed size (width and height) of icons used by this component */
-    static final int ICON_SIZE   = 16;
     /** The amount of padding to add to the icon when displaying. */
     static final int ICON_MARGIN = 1;
+
     /** The resulting horizontal spacing for each indentation level. */
-    static final int ICON_HORIZ_SPACING = ICON_SIZE + ICON_MARGIN;
+    private int ICON_HORIZ_SPACING;
+
+    void updateGeometry() {
+        Icon i = (Icon) iconMap.get(null);
+        ICON_HORIZ_SPACING = i.getIconWidth() + ICON_MARGIN;
+    }
+
 
 
     /** An icon for display to the left of a wbs node.
@@ -228,11 +234,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
             // paint the plus/minus sign if appropriate
             if (indentationLevel > 0 && isLeaf == false) {
-                int topMargin = (realIconHeight - 9 + 1) / 2;
                 Icon i = (isExpanded ? MINUS_ICON : PLUS_ICON);
-                i.paintIcon(c, g,
-                            x + (indentationLevel-1)*ICON_HORIZ_SPACING + 4,
-                            y+topMargin);
+                int topMargin = (realIconHeight - i.getIconHeight() + 1) / 2;
+                int leftMargin = (indentationLevel - 1) * ICON_HORIZ_SPACING
+                        + (ICON_HORIZ_SPACING - i.getIconWidth()) / 2;
+                i.paintIcon(c, g, x + leftMargin, y + topMargin);
             }
 
             // paint the real icon
@@ -250,10 +256,10 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     }
 
     /** static shared instance of a MinusIcon */
-    static Icon MINUS_ICON = IconFactory.getMinusIcon();
+    static Icon MINUS_ICON = WBSZoom.icon(new ExpansionToggleIcon(false));
 
     /** static shared instance of a PlusIcon */
-    static Icon PLUS_ICON = IconFactory.getPlusIcon();
+    static Icon PLUS_ICON = WBSZoom.icon(new ExpansionToggleIcon(true));
 
     private static Color ERROR_NOTE_BACKGROUND = new Color(255, 200, 200);
     private static Color ERROR_NOTE_SELECTED_BACKGROUND = new Color(216, 175, 194);

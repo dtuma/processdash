@@ -990,12 +990,11 @@ public class WBSTabPanel extends JLayeredPane implements
         wbsTable.checkForActualDataOnDelete = true;
         wbsTable.dataModel = data;
         // create the table to display hierarchy data
-        dataTable = new DataJTable(data);
-        // link the tables together so they have the same scrolling behavior,
-        // selection model, and row height.
+        dataTable = new DataJTable(data, wbsTable.getRowHeight());
+        // link the tables together so they have the same scrolling behavior
+        // and selection model
         wbsTable.setScrollableDelegate(dataTable);
         wbsTable.setSelectionModel(dataTable.getSelectionModel());
-        dataTable.setRowHeight(wbsTable.getRowHeight());
     }
 
     /** Create and install the splitter component. */

@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ public class ProxyBucketIcon extends AbstractRecolorableIcon {
 
     public ProxyBucketIcon(int height) {
         this.height = height;
+        this.width = 4 * (height + 3) / 5;
         this.fill = new Color(230, 173, 124);
         this.line = Color.black;
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package teamdash.wbs;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -337,6 +339,11 @@ public class TeamProcess {
             iconMap.put(productName, icon);
         }
 
+        // register all icons for zoom-level awareness
+        for (Object icon : iconMap.values()) {
+            WBSZoom.icon(icon);
+        }
+
         // make the icon map immutable.
         iconMap = Collections.unmodifiableMap(iconMap);
     }
@@ -388,9 +395,9 @@ public class TeamProcess {
     /** Build a menu containing all the valid node types.
      */
     private JMenu buildMenu() {
-        JMenu taskSubmenu = new JMenu("Tasks");
+        JMenu taskSubmenu = new NodeTypeMenu("Tasks");
 
-        JMenu nodeTypeMenu = new JMenu();
+        JMenu nodeTypeMenu = new NodeTypeMenu();
         nodeTypeMenu.add(taskSubmenu);
         nodeTypeMenu.addSeparator();
         nodeTypeMenu.add(new JMenuItem(COMPONENT_TYPE));
@@ -404,14 +411,32 @@ public class TeamProcess {
         Iterator i = phases.iterator();
         while (i.hasNext()) {
             if (taskSubmenu.getItemCount() >= 15) {
-                JMenu moreTaskMenu = new JMenu("More...");
+                JMenu moreTaskMenu = new NodeTypeMenu("More...");
                 taskSubmenu.add(moreTaskMenu, 0);
                 taskSubmenu = moreTaskMenu;
             }
             taskSubmenu.add(new JMenuItem(i.next() + " Task"));
         }
 
+        WBSZoom.get().manage(nodeTypeMenu, "font");
         return nodeTypeMenu;
+    }
+
+    public static class NodeTypeMenu extends JMenu {
+        
+        public NodeTypeMenu() {}
+
+        public NodeTypeMenu(String text) { super(text); }
+
+        @Override
+        public void setFont(Font font) {
+            super.setFont(font);
+            for (int i = getMenuComponentCount(); i-- > 0;) {
+                Component c = getMenuComponent(i);
+                if (c instanceof JMenu || c instanceof JMenuItem)
+                    c.setFont(font);
+            }
+        }
     }
 
     /** Return a list of node types that the user can choose from when selecting

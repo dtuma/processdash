@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -113,6 +113,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(800 + optColumnWidth, 400);
+        WBSZoom.get().manage(frame, "size~");
         frame.setVisible(true);
     }
 
@@ -168,7 +169,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         Map result = new HashMap(processIconMap);
         // change the "project" icon to a special value for common workflows
         result.put(TeamProcess.PROJECT_TYPE,
-            IconFactory.getCommonWorkflowsIcon());
+            WBSZoom.icon(IconFactory.getCommonWorkflowsIcon()));
         // replace each of the "task" icons with the correponsponding
         // "workflow task" icon.
         for (Map.Entry<String, Icon> e : processIconMap.entrySet()) {
@@ -187,6 +188,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             ActionListener probeListener) {
         // create a new menu item for the PROBE task type.
         JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
+        probeItem.setFont(iconMenu.getFont());
         probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
         if (probeListener != null)
             probeItem.addActionListener(probeListener);

@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2017 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultCellEditor;
@@ -42,21 +43,30 @@ import teamdash.wbs.columns.ProxySizeColumn;
 public class ProxyJTable extends WBSJTable {
 
     public ProxyJTable(ProxyDataModel model) {
-        super(model, new HashMap(), new JMenu());
+        super(model, makeIconMap(), new JMenu());
 
-        buildIconMap();
         customizeColumns();
         tweakBehaviors();
     }
 
-    private void buildIconMap() {
-        iconMap.put(ProxyWBSModel.PROXY_LIST_TYPE,
-            IconFactory.getProxyListIcon());
-        iconMap.put(ProxyWBSModel.PROXY_TYPE, IconFactory.getProxyTableIcon());
-        iconMap.put(ProxyWBSModel.BUCKET_TYPE,
-            IconFactory.getProxyBucketIcon(getRowHeight()));
-        iconMap.put(null, IconFactory.getModifiedIcon(
-            HierarchyIcons.getComponentIcon(), IconFactory.ERROR_ICON));
+    private static Map makeIconMap() {
+        Map result = new HashMap();
+        result.put(ProxyWBSModel.PROXY_LIST_TYPE,
+            WBSZoom.icon(IconFactory.getProxyListIcon()));
+        result.put(ProxyWBSModel.PROXY_TYPE,
+            WBSZoom.icon(IconFactory.getProxyTableIcon()));
+        result.put(null, WBSZoom.icon(IconFactory.getModifiedIcon(
+            HierarchyIcons.getComponentIcon(), IconFactory.ERROR_ICON)));
+        return result;
+    }
+
+    @Override
+    public void setRowHeight(int rowHeight) {
+        super.setRowHeight(rowHeight);
+        if (iconMap != null) {
+            iconMap.put(ProxyWBSModel.BUCKET_TYPE,
+                IconFactory.getProxyBucketIcon(rowHeight));
+        }
     }
 
     private void customizeColumns() {

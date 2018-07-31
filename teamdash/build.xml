@@ -332,6 +332,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.ScalableImageIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
       <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ZoomManager"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.util.DateUtils"/>
       <root classname="net.sourceforge.processdash.util.Diff"/>

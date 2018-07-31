@@ -115,6 +115,8 @@ public class WBSNodeEditor extends AbstractCellEditor
             this.iconMenu = configureMenu(iconMenu, iconMap);
 
         this.editorComponent = new EditorComponent();
+
+        updateGeometry();
     }
 
 
@@ -339,11 +341,11 @@ public class WBSNodeEditor extends AbstractCellEditor
 
 
     // constants returned by the getClickedItem method.
-    private static final int CLICKED_NONE = 0;
-    private static final int CLICKED_WHITESPACE = 1;
-    private static final int CLICKED_EXPANDER = 2;
-    private static final int CLICKED_ICON = 3;
-    private static final int CLICKED_TEXT = 4;
+    static final int CLICKED_NONE = 0;
+    static final int CLICKED_WHITESPACE = 1;
+    static final int CLICKED_EXPANDER = 2;
+    static final int CLICKED_ICON = 3;
+    static final int CLICKED_TEXT = 4;
 
     /** Check the event; if it is a mouse click, determine what node the user
      * clicked on, and what part of that node they clicked.
@@ -352,11 +354,17 @@ public class WBSNodeEditor extends AbstractCellEditor
         if (!(e instanceof MouseEvent)) {
             clickedNode = null;
             return CLICKED_NONE;
+        } else {
+            return getNodeRegion(((MouseEvent) e).getPoint(), true);
         }
+    }
 
+    int getMouseOverRegion(Point p) {
+        return getNodeRegion(p, false);
+    }
+
+    private int getNodeRegion(Point p, boolean storeClickedNode) {
         // determine what row/column they clicked, and get its bounding rect
-        MouseEvent me = (MouseEvent) e;
-        Point p = me.getPoint();
         int columnNumber = table.columnAtPoint(p);
         int rowNumber = table.rowAtPoint(p);
         Rectangle r = table.getCellRect(rowNumber, columnNumber, true);
@@ -364,17 +372,19 @@ public class WBSNodeEditor extends AbstractCellEditor
         int ourXPos = p.x - r.x;
 
         // determine which WBSNode the user clicked on.
-        clickedNode = wbsModel.getNodeForRow(rowNumber);
-        if (clickedNode == null) return CLICKED_NONE;
+        WBSNode node = wbsModel.getNodeForRow(rowNumber);
+        if (storeClickedNode)
+            this.clickedNode = node;
+        if (node == null) return CLICKED_NONE;
 
         // translate the x position according to the indentation level of
         // clicked node, and determine which part of the node was clicked.
-        int xDelta = ourXPos - clickedNode.getIndentLevel() * HORIZ_SPACING;
+        int xDelta = ourXPos - node.getIndentLevel() * HORIZ_SPACING;
         if (xDelta > HORIZ_SPACING)
             return CLICKED_TEXT;
         else if (xDelta > 0)
             return CLICKED_ICON;
-        else if (xDelta > -HORIZ_SPACING && !wbsModel.isLeaf(clickedNode))
+        else if (xDelta > -HORIZ_SPACING && !wbsModel.isLeaf(node))
             return CLICKED_EXPANDER;
         else
             return CLICKED_WHITESPACE;
@@ -382,9 +392,13 @@ public class WBSNodeEditor extends AbstractCellEditor
     /** The last node the user clicked on */
     private WBSNode clickedNode = null;
 
-    /** Convenience declaration */
-    private static final int HORIZ_SPACING =
-        WBSNodeRenderer.ICON_HORIZ_SPACING;
+    private int HORIZ_SPACING;
+
+    void updateGeometry() {
+        Icon i = (Icon) iconMap.get(null);
+        HORIZ_SPACING = i.getIconWidth() + WBSNodeRenderer.ICON_MARGIN;
+        updateIconAppearance();
+    }
 
 
     /** Create a default icon menu if none was provided. */
@@ -526,6 +540,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             nodeTypeEditable = wbsModel.isNodeTypeEditable(editingNode)
                 && !editingNode.isReadOnly();
             textField.setEnabled(!editingNode.isReadOnly());
+            textField.setFont(table.getFont());
             if (iconObj instanceof ErrorValue) {
                 iconToolTip = ((ErrorValue) iconObj).error;
                 nodeIcon = (Icon) ((ErrorValue) iconObj).value;
@@ -566,7 +581,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             menuBar.setBounds(left, 0, 0, cSize.height);
 
             iconListener.setLocation(left, 0);
-            iconListener.setBounds(left, 0, 16, cSize.height);
+            iconListener.setBounds(left, 0, HORIZ_SPACING, cSize.height);
 
             left += HORIZ_SPACING + 4;
             textField.setLocation(left, 0);
@@ -597,7 +612,8 @@ public class WBSNodeEditor extends AbstractCellEditor
                 Icon i = (isExpanded
                           ? WBSNodeRenderer.MINUS_ICON
                           : WBSNodeRenderer.PLUS_ICON);
-                paintIcon(g, i, size, (indentationLevel-1)*HORIZ_SPACING + 5);
+                paintIcon(g, i, size, (indentationLevel - 1) * HORIZ_SPACING
+                        + (HORIZ_SPACING - i.getIconWidth()) / 2 + 1);
             }
 
             // paint the icon for this node.
@@ -606,7 +622,8 @@ public class WBSNodeEditor extends AbstractCellEditor
 
         /** paint an icon within this component, vertically centered */
         private void paintIcon(Graphics g, Icon i, Dimension size, int x) {
-            int yLoc = (size.height - i.getIconHeight() + 1) / 2;
+            int adj = 1 - size.height & 1;
+            int yLoc = (size.height - i.getIconHeight() + adj) / 2;
             if (yLoc < 0) yLoc = 0;
             i.paintIcon(this, g, x, yLoc);
         }

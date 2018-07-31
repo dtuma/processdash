@@ -27,13 +27,32 @@ import java.awt.Font;
 
 import javax.swing.JTable;
 
-public class TableFontHandler {
+import net.sourceforge.processdash.ui.lib.ZoomManager;
+
+public class TableFontHandler extends ZoomManager.FontType {
 
     private static final String BOLD = TableFontHandler.class.getName()
             + ".BOLD";
 
     private static final String ITALIC = TableFontHandler.class.getName()
             + ".ITALIC";
+
+    @Override
+    public boolean matches(Object target, String propertyName, Object value) {
+        return (target instanceof JTable && value instanceof Font);
+    }
+
+    @Override
+    public Font zoom(Object target, String propertyName, Font baseValue,
+            double zoom) {
+        // discard the cached bold/italic fonts
+        JTable table = (JTable) target;
+        table.putClientProperty(BOLD, null);
+        table.putClientProperty(ITALIC, null);
+
+        // scale the font based on the zoom level
+        return super.zoom(target, propertyName, baseValue, zoom);
+    }
 
     public static Font getBold(JTable t) {
         return getCachedFont(t, BOLD, Font.BOLD);
