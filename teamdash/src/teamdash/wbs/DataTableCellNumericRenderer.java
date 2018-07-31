@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 
 import javax.swing.JComponent;
 import javax.swing.JTable;
@@ -47,8 +46,6 @@ public class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
         //this.setFont()
         setHorizontalAlignment(JTextField.RIGHT);
     }
-
-    private Font regular = null, bold = null;
 
     public Component getTableCellRendererComponent(JTable table,
                                                    Object value,
@@ -79,8 +76,8 @@ public class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
             (getForegroundColor(errorMsg, errorColor, readOnly));
 
         // use a bold font for erroneous values.
-        Font f = getFont(errorMsg != null, result);
-        if (f != null) result.setFont(f);
+        result.setFont(errorMsg == null ? table.getFont()
+                : TableFontHandler.getBold(table));
 
         if (result instanceof JComponent)
             // set or remove a descriptive tooltip
@@ -102,18 +99,6 @@ public class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
             return errorColor;
         else
             return (readOnly ? Color.gray : Color.black);
-    }
-
-
-    /** construct, cache, and return bold and normal fonts */
-    protected Font getFont(boolean bold, Component c) {
-        if (this.regular == null) {
-            Font base = c.getFont();
-            if (base == null) return null;
-            this.regular = base.deriveFont(Font.PLAIN);
-            this.bold    = base.deriveFont(Font.BOLD);
-        }
-        return (bold ? this.bold : this.regular);
     }
 
 }

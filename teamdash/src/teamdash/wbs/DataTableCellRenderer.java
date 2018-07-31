@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,11 +24,12 @@
 
 package teamdash.wbs;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.Font;
-import java.awt.Component;
 import java.awt.Color;
+import java.awt.Component;
+
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /** Default renderer for displaying values in a {@link DataTableModel}.
  *
@@ -41,8 +42,6 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
     public DataTableCellRenderer() {
         //this.setFont()
     }
-
-    private Font regular = null, bold = null;
 
     public Component getTableCellRendererComponent(JTable table,
                                                    Object value,
@@ -79,8 +78,8 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
         result.setForeground(getForegroundColor(errorValue, readOnly));
 
         // use a bold font for erroneous values.
-        Font f = getFont(errorValue != null, result);
-        if (f != null) result.setFont(f);
+        result.setFont(errorValue == null ? table.getFont()
+                : TableFontHandler.getBold(table));
 
         if (result instanceof JComponent)
             // set or remove a descriptive tooltip
@@ -106,17 +105,6 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
         case ErrorValue.INFO: return Color.blue;
         }
         return Color.black;
-    }
-
-    /** construct, cache, and return bold and normal fonts */
-    protected Font getFont(boolean bold, Component c) {
-        if (this.regular == null) {
-            Font base = c.getFont();
-            if (base == null) return null;
-            this.regular = base.deriveFont(Font.PLAIN);
-            this.bold    = base.deriveFont(Font.BOLD);
-        }
-        return (bold ? this.bold : this.regular);
     }
 
 }

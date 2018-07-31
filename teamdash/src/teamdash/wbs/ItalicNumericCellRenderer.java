@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,8 +39,6 @@ import javax.swing.JTable;
  */
 public class ItalicNumericCellRenderer extends DataTableCellNumericRenderer {
 
-
-    private Font italic = null;
     private Set<String> messagesToItalicize;
 
     public ItalicNumericCellRenderer(String... messageToItalicize) {
@@ -64,20 +61,10 @@ public class ItalicNumericCellRenderer extends DataTableCellNumericRenderer {
         if (num != null && num.errorMessage != null &&
                 messagesToItalicize.contains(num.errorMessage)) {
             result.setForeground(Color.black);
-            result.setFont(getItalicFont(result));
+            result.setFont(TableFontHandler.getItalic(table));
         }
 
         return result;
     }
 
-    /** Create and cache an appropriate italic font. */
-    protected Font getItalicFont(Component c) {
-        if (italic == null) {
-            Font regular = super.getFont(false, c);
-            if (regular != null)
-                 italic = regular.deriveFont(Font.ITALIC);
-        }
-
-        return italic;
-    }
 }

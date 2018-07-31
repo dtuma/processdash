@@ -26,7 +26,6 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.util.Map;
@@ -59,8 +58,6 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private String nameError;
     /** Text to display as the normal tooltip for the node name */
     private String nameToolTip;
-    /** Fonts used in the display of the node name */
-    private Font regular = null, bold = null;
     /** The icon displayed for this node */
     private ExpansionIcon expansionIcon = new ExpansionIcon();
 
@@ -137,11 +134,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         nameError = WBSModelValidator.getNodeNameError(node);
         if (nameError != null) {
             // if the node name is in error, print it in bold red text
-            result.setFont(getFont(true, result));
+            result.setFont(TableFontHandler.getBold(table));
             result.setForeground(Color.red);
             nameToolTip = null;
         } else {
-            result.setFont(getFont(false, result));
+            result.setFont(table.getFont());
             result.setForeground(node.isReadOnly() ? Color.gray : Color.black);
             String errorNotesTip = ErrorNotesColumn.getTooltipAt(node, false);
             if (errorNotesTip != null) {
@@ -195,18 +192,6 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             return nameToolTip;
     }
 
-
-    /** Compute a bold or plain version of component <code>c</code>'s current
-     * font */
-    protected Font getFont(boolean bold, Component c) {
-        if (this.regular == null) {
-            Font base = c.getFont();
-            if (base == null) return null;
-            this.regular = base.deriveFont(Font.PLAIN);
-            this.bold    = base.deriveFont(Font.BOLD);
-        }
-        return (bold ? this.bold : this.regular);
-    }
 
 
 
