@@ -44,6 +44,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.ColorCellEditor;
@@ -80,7 +81,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
 
 
     public MilestonesEditor(TeamProject teamProject,
-            MilestonesDataModel milestonesModel) {
+            MilestonesDataModel milestonesModel, GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.milestonesModel = milestonesModel;
         this.milestonesModel.setEditingEnabled(isEditable(teamProject));
@@ -94,6 +95,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
         WBSZoom.get().manage(frame, "size~");
+        guiPrefs.load("milestoneWindow", frame);
     }
 
     public static boolean isEditable(TeamProject teamProject) {

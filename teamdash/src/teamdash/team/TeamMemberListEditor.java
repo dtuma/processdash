@@ -45,6 +45,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.SaveListener;
@@ -74,7 +75,7 @@ public class TeamMemberListEditor implements WindowListener,
 
 
     public TeamMemberListEditor(String projectName, TeamMemberList teamList,
-            String initialsPolicy) {
+            String initialsPolicy, GuiPrefs guiPrefs) {
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.setInitialsPolicyName(initialsPolicy);
         teamMemberList.addTableModelListener(this);
@@ -94,6 +95,7 @@ public class TeamMemberListEditor implements WindowListener,
         frame.addWindowListener(this);
         frame.setSize(700, 200);
         WBSZoom.get().manage(frame, "size~");
+        guiPrefs.load("teamListWindow", frame);
     }
 
     public void show() {

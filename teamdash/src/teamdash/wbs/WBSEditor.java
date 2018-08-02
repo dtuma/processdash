@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -440,6 +440,14 @@ public class WBSEditor implements WindowListener, SaveListener,
             }
         }
 
+        // try restoring the zoom level from the previous editing session for
+        // this WBS. If no saved level is found, restore a global default.
+        if (!guiPrefs.load("wbsZoom", WBSZoom.get(), "zoomLevel")) {
+            double zoom = getGlobalPrefs().getDouble("wbsZoomLevel", -1);
+            if (zoom > 0)
+                WBSZoom.get().setZoomLevel(zoom);
+        }
+
         String windowTitle;
         if (workingDirectory instanceof CompressedWorkingDirectory)
             windowTitle = workingDirectory.getDescription();
@@ -459,6 +467,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(this);
         frame.pack();
+
+        // try loading the previous size/location of the window. If no saved
+        // data is found from any prior session, maximize the window by default.
+        if (!guiPrefs.load("wbsWindow", frame))
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void acquireLock(String owner) throws LockFailureException {
@@ -761,7 +774,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public void show() {
         frame.setVisible(true);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     public String handleMessage(LockMessage lockMessage) {
@@ -805,7 +817,6 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void raiseWindow() {
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
         frame.toFront();
     }
@@ -826,7 +837,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamListEditor = new TeamMemberListEditor(
                     teamProject.getProjectName(),
                     teamProject.getTeamMemberList(),
-                    teamProject.getUserSetting(INITIALS_POLICY_SETTING));
+                    teamProject.getUserSetting(INITIALS_POLICY_SETTING),
+                    guiPrefs);
             teamListEditor.addSaveListener(this);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.TeamList,
@@ -1000,7 +1012,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (workflowEditor != null)
             workflowEditor.show();
         else {
-            workflowEditor = new WorkflowEditor(teamProject);
+            workflowEditor = new WorkflowEditor(teamProject, guiPrefs);
             workflowEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null) {
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Workflows,
@@ -1015,7 +1027,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (proxyEditor != null)
             proxyEditor.show();
         else {
-            proxyEditor = new ProxyEditor(teamProject, proxyModel);
+            proxyEditor = new ProxyEditor(teamProject, proxyModel, guiPrefs);
             proxyEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Proxies,
@@ -1028,7 +1040,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (milestonesEditor != null)
             milestonesEditor.show();
         else {
-            milestonesEditor = new MilestonesEditor(teamProject, milestonesModel);
+            milestonesEditor = new MilestonesEditor(teamProject,
+                    milestonesModel, guiPrefs);
             milestonesEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Milestones,
@@ -1794,6 +1807,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             // Set expanded nodes preference
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
             setExpandedNodesPref(expandedNodes);
+            getGlobalPrefs().putDouble("wbsZoomLevel",
+                WBSZoom.get().getZoomLevel());
             guiPrefs.saveAll();
 
             shutDown();
@@ -2123,6 +2138,12 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void setExpandedNodesPref(Set value) {
         PreferencesUtils.putCLOB(guiPrefs.node("expandedNodes"), "list",
                 StringUtils.join(value, ","));
+    }
+
+    public static Preferences getGlobalPrefs() {
+        return Preferences.userRoot()
+                .node(WBSEditor.class.getName().replace('.', '/'))
+                .node("000_global");
     }
 
     private static boolean isDumpAndExitMode() {

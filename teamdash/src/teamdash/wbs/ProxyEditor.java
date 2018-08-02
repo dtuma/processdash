@@ -38,6 +38,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
@@ -66,7 +67,8 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
             .getDashBundle("WBSEditor.Proxies");
 
 
-    public ProxyEditor(TeamProject teamProject, ProxyDataModel proxyModel) {
+    public ProxyEditor(TeamProject teamProject, ProxyDataModel proxyModel,
+            GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.proxyModel = proxyModel;
         this.proxyModel.setEditingEnabled(isEditable(teamProject));
@@ -83,6 +85,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
         WBSZoom.get().manage(frame, "size~");
+        guiPrefs.load("proxyWindow", frame);
     }
 
     public static boolean isEditable(TeamProject teamProject) {

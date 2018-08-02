@@ -55,6 +55,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
@@ -89,7 +90,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             .getDashBundle("WBSEditor.Workflows");
 
 
-    public WorkflowEditor(TeamProject teamProject) {
+    public WorkflowEditor(TeamProject teamProject, GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
@@ -114,6 +115,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(800 + optColumnWidth, 400);
         WBSZoom.get().manage(frame, "size~");
+        guiPrefs.load("workflowWindow", frame);
         frame.setVisible(true);
     }
 
