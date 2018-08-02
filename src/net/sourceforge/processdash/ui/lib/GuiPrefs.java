@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,9 @@ package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Dimension;
 import java.awt.Window;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -412,6 +415,39 @@ public class GuiPrefs {
     }
 
 
+    /**
+     * Register an object so some list of properties will be saved when the
+     * {@link #saveAll()} method is called, and restore any values that were
+     * saved for those properties of this object in the past.
+     * 
+     * @param objectId
+     *            a unique ID for this object; if a {@link GuiPrefs} object is
+     *            managing state for several objects, each one should have a
+     *            different id.
+     * @param target
+     *            the object to register
+     * @param propertyNames
+     *            the names of properties which should be saved and restored
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.4.4
+     */
+    public boolean load(String objectId, Object target,
+            String... propertyNames) {
+        boolean result = false;
+        for (String propertyName : propertyNames) {
+            try {
+                RegisteredProperty rp = new RegisteredProperty(objectId, target,
+                        propertyName);
+                result = load(rp) || result;
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+
     private boolean load(RegisteredItem item) {
         try {
             return item.load();
@@ -453,6 +489,7 @@ public class GuiPrefs {
         }
     }
 
+
     private class RegisteredWindow extends RegisteredItem {
         Window w;
         Dimension orig;
@@ -486,6 +523,7 @@ public class GuiPrefs {
             putInt("height", w.getHeight());
         }
     }
+
 
     private class RegisteredTable extends RegisteredItem {
         TableColumnModel cols;
@@ -634,8 +672,7 @@ public class GuiPrefs {
             if (pref == null) {
                 return false;
             } else {
-                comboBoxModel.setSelectedItem(pref.equals("<<null>>") ? null
-                        : pref);
+                comboBoxModel.setSelectedItem(pref.equals(NULL) ? null : pref);
                 return true;
             }
         }
@@ -648,7 +685,7 @@ public class GuiPrefs {
         @Override
         void save() {
             Object value = comboBoxModel.getSelectedItem();
-            putString("value", value == null ? "<<null>>" : value.toString());
+            putString("value", value == null ? NULL : value.toString());
         }
 
     }
@@ -686,6 +723,7 @@ public class GuiPrefs {
         }
 
     }
+
 
     private class RegisteredTabbedPane extends RegisteredItem {
         JTabbedPane tabbedPane;
@@ -730,5 +768,86 @@ public class GuiPrefs {
         }
 
     }
+
+
+    private class RegisteredProperty extends RegisteredItem {
+        Object target;
+        String propertyName;
+        Method readMethod, writeMethod;
+        Constructor valueConstructor;
+        Object orig;
+
+        public RegisteredProperty(String id, Object target, String propertyName)
+                throws Exception {
+            super(id);
+
+            // the "registeredItems" map stores all items that have been
+            // registered with this GuiPrefs object, with their unique ID as the
+            // key in the map. Since we can manage multiple properties for a
+            // single target object, we need to store with a qualified ID.
+            registeredItems.remove(id);
+            registeredItems.put(id + "." + propertyName, this);
+
+            this.target = target;
+            this.propertyName = propertyName;
+
+            PropertyDescriptor prop = new PropertyDescriptor(propertyName,
+                    target.getClass());
+            this.readMethod = prop.getReadMethod();
+            this.writeMethod = prop.getWriteMethod();
+            this.valueConstructor = unwrapPrimitive(prop.getPropertyType())
+                    .getConstructor(String.class);
+            this.orig = readMethod.invoke(target);
+        }
+
+        private Class unwrapPrimitive(Class c) {
+            if (c == Boolean.TYPE) return Boolean.class;
+            if (c == Byte.TYPE) return Byte.class;
+            if (c == Short.TYPE) return Short.class;
+            if (c == Integer.TYPE) return Integer.class;
+            if (c == Long.TYPE) return Long.TYPE;
+            if (c == Float.TYPE) return Float.class;
+            if (c == Double.TYPE) return Double.class;
+            return c;
+        }
+
+        @Override
+        boolean load() {
+            try {
+                String valueStr = getString(propertyName);
+                if (valueStr == null)
+                    return false;
+
+                Object parsedValue = (NULL.equals(valueStr) ? null
+                        : valueConstructor.newInstance(valueStr));
+                writeMethod.invoke(target, parsedValue);
+                return true;
+
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        @Override
+        void reset() {
+            try {
+                writeMethod.invoke(target, orig);
+            } catch (Exception e) {
+            }
+        }
+
+        @Override
+        void save() {
+            try {
+                Object value = readMethod.invoke(target);
+                String saveStr = (value == null ? NULL : value.toString());
+                putString(propertyName, saveStr);
+            } catch (Exception e) {
+            }
+        }
+
+    }
+
+    private static final String NULL = "<<null>>";
 
 }
