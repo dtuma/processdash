@@ -23,7 +23,10 @@
 
 package net.sourceforge.processdash.ui.lib;
 
-import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
@@ -492,35 +495,68 @@ public class GuiPrefs {
 
     private class RegisteredWindow extends RegisteredItem {
         Window w;
-        Dimension orig;
+        Rectangle orig;
 
         public RegisteredWindow(String id, Window w) {
             super(id);
             this.w = w;
-            this.orig = w.getSize();
+            this.orig = w.getBounds();
         }
 
         @Override
         boolean load() {
             int width = getInt("width");
             int height = getInt("height");
-            if (width > 0 && height > 0) {
-                w.setSize(width, height);
-                return true;
-            } else {
+            int x = getInt("x");
+            int y = getInt("y");
+
+            if (width <= 0 || height <= 0)
                 return false;
-            }
+
+            w.setSize(width, height);
+            if (isOnScreen(x, y))
+                w.setLocation(x, y);
+            return true;
         }
 
         @Override
         void reset() {
-            w.setSize(orig);
+            w.setSize(orig.width, orig.height);
+            if (isOnScreen(orig.x, orig.y))
+                w.setLocation(orig.x, orig.y);
+        }
+
+        private boolean isOnScreen(int x, int y) {
+            // if no saved location was found, return false
+            if (x == -1 && y == -1)
+                return false;
+
+            // look at the current screens in a (potentially) multi-monitor
+            // setup, and see if the given point is contained by one of them
+            try {
+                GraphicsDevice[] devices = GraphicsEnvironment
+                        .getLocalGraphicsEnvironment().getScreenDevices();
+                for (GraphicsDevice d : devices) {
+                    for (GraphicsConfiguration c : d.getConfigurations()) {
+                        if (c.getBounds().contains(x, y))
+                            return true;
+                    }
+                }
+            } catch (Exception e) {}
+
+            // the saved point probably came from a secondary monitor that is
+            // not currently attached. We don't want to position the window
+            // off-screen, so return false.
+            return false;
         }
 
         @Override
         void save() {
-            putInt("width", w.getWidth());
-            putInt("height", w.getHeight());
+            Rectangle b = w.getBounds();
+            putInt("width", b.width);
+            putInt("height", b.height);
+            putInt("x", b.x);
+            putInt("y", b.y);
         }
     }
 
