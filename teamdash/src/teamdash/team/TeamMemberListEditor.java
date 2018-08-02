@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.SaveListener;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.wbs.WBSZoom;
 
 
 /** A graphical user interface for editing the list of team members.
@@ -92,6 +93,7 @@ public class TeamMemberListEditor implements WindowListener,
 
         frame.addWindowListener(this);
         frame.setSize(700, 200);
+        WBSZoom.get().manage(frame, "size~");
     }
 
     public void show() {

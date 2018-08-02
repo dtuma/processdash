@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2017 Tuma Solutions, LLC
+// Copyright (C) 2010-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.team;
 import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,6 +40,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.InputMap;
@@ -57,6 +59,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.team.TeamMemberList.InitialsPolicy;
+import teamdash.wbs.WBSZoom;
 
 public class PersonCellEditor extends DefaultCellEditor {
 
@@ -90,8 +93,8 @@ public class PersonCellEditor extends DefaultCellEditor {
         super(f);
         this.textField = f;
 
-        personIcon = new ScalableImageIcon(12, PersonCellRenderer.class,
-                "person-large.png", "person.png");
+        personIcon = WBSZoom.icon(new ScalableImageIcon(12,
+                PersonCellRenderer.class, "person-large.png", "person.png"));
         lookupButton = new JButton(personIcon);
         lookupButton.setBorder(BorderFactory.createEtchedBorder());
         lookupButton.addActionListener(EventHandler.create(
@@ -110,7 +113,12 @@ public class PersonCellEditor extends DefaultCellEditor {
             ActionListener.class, this, "dispatchKeyEvent"));
         this.dispatchKeyEvent.setRepeats(false);
 
-        editorPanel = Box.createHorizontalBox();
+        editorPanel = new Box(BoxLayout.X_AXIS) {
+            @Override
+            public void setFont(Font f) {
+                textField.setFont(f);
+            }
+        };
         editorPanel.add(lookupButton);
         editorPanel.add(f);
     }

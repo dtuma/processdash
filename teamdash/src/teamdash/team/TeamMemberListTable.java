@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,9 +39,8 @@ import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -71,8 +70,10 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -89,6 +90,9 @@ import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.wbs.TableFontHandler;
+import teamdash.wbs.WBSZoom;
+
 
 
 /**
@@ -96,6 +100,12 @@ import net.sourceforge.processdash.util.StringUtils;
  * members and their weekly schedules
  */
 public class TeamMemberListTable extends JTable {
+
+    /** Object to draw the header over the schedule portion of the table */
+    DateHeaderRenderer dateHeaderRenderer;
+
+    /** Object to draw table cells in the schedule portion of the table */
+    WeekDataRenderer weekRenderer;
 
     /**
      * Object to support the dragging of "Start" and "End" tokens in the
@@ -121,6 +131,11 @@ public class TeamMemberListTable extends JTable {
     /** Color for unmodifiable table cells */
     Color unmodifiableCellBackground;
 
+    /** Object to handle changes to the table size */
+    private ResizeHandler resizeHandler;
+
+    /** Current zoom level for all user interface components */
+    double zoom = 1.0;
 
     /**
      * Create a table for editing the given {@link TeamMemberList}
@@ -144,7 +159,7 @@ public class TeamMemberListTable extends JTable {
 
         // Set up renderer and editor for the weekly columns.
         NumberFormat hoursFormatter = createHoursFormatter();
-        WeekDataRenderer weekRenderer = new WeekDataRenderer(hoursFormatter);
+        weekRenderer = new WeekDataRenderer(hoursFormatter);
         setDefaultRenderer(Double.class, weekRenderer);
         setDefaultRenderer(WeekData.class, weekRenderer);
         setDefaultEditor(WeekData.class, new WeekDataEditor(hoursFormatter));
@@ -153,11 +168,35 @@ public class TeamMemberListTable extends JTable {
         dateScrollingHandler = new DateScrollingHandler();
         customizationHyperlink = createCustomizationHyperlink();
         unmodifiableCellBackground = UIManager.getColor("control");
+        resizeHandler = new ResizeHandler();
         setTransferHandler(new TransferSupport());
         setDragEnabled(true);
         createButtons();
         setupTableColumnHeader();
-        setupResizeHandler();
+        WBSZoom.get().manage(this, "font", "rowHeight", "zoom");
+    }
+
+
+    public double getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(double zoom) {
+        this.zoom = zoom;
+
+        // let the resize handler know that a zoom is underway
+        resizeHandler.zoomNotify();
+
+        // scale the column widths to match the new zoom level
+        zoomColumnWidths();
+
+        // resize the icons on the date scroller buttons. The buttons themselves
+        // will be repositioned soon, when the overall table size is zoomed
+        createScrollerButtonIcons();
+    }
+
+    private int zoomSize(int width) {
+        return (int) (width * zoom + 0.5);
     }
 
 
@@ -204,6 +243,7 @@ public class TeamMemberListTable extends JTable {
     /** Select all text when the user begins editing a cell */
     public Component prepareEditor(TableCellEditor editor, int row, int column) {
         Component result = super.prepareEditor(editor, row, column);
+        result.setFont(getFont());
 
         if (result instanceof JTextComponent)
             ((JTextComponent) result).selectAll();
@@ -226,6 +266,16 @@ public class TeamMemberListTable extends JTable {
         }
 
         return result;
+    }
+
+    @Override
+    public void setFont(Font font) {
+        super.setFont(font);
+        Component editor = getEditorComponent();
+        if (editor != null)
+            editor.setFont(font);
+        if (weekRenderer != null)
+            weekRenderer.updateFonts(font);
     }
 
 
@@ -270,6 +320,8 @@ public class TeamMemberListTable extends JTable {
         scrollDatesLaterButton.setToolTipText(resources.getString("Scroll_Right"));
         scrollDatesLaterButton.addActionListener((ActionListener) EventHandler
                 .create(ActionListener.class, this, "scrollDatesLater"));
+
+        createScrollerButtonIcons();
     }
 
     /** Create a single scroller button (but don't set its icon yet) */
@@ -286,6 +338,9 @@ public class TeamMemberListTable extends JTable {
 
     /** Create and configure the column header for the table */
     private void setupTableColumnHeader() {
+        // scale the table header along with the global zoom settings
+        WBSZoom.get().manage(getTableHeader(), "font");
+
         // do not allow columns to be reordered. (That wouldn't make sense for
         // our weekly data columns, which appear in chronological order.
         getTableHeader().setReorderingAllowed(false);
@@ -302,24 +357,88 @@ public class TeamMemberListTable extends JTable {
 
         // install a DateHeaderRenderer for all remaining columns, and
         // configure the height of the regular renderer to match.
-        DateHeaderRenderer dateHeaderRenderer = new DateHeaderRenderer(this);
+        dateHeaderRenderer = new DateHeaderRenderer(this);
         getTableHeader().setDefaultRenderer(dateHeaderRenderer);
-        if (plainRenderer instanceof JComponent) {
-            JComponent jc = (JComponent) plainRenderer;
-            jc.setPreferredSize(dateHeaderRenderer.getPreferredSize());
-        }
+
+        // ask the week renderer to compute its fonts; this will set fonts on
+        // the date header as well.
+        weekRenderer.updateFonts(getFont());
+    }
+
+
+
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+
+        // when the table size changes, alert the resize handler. We perform
+        // this check by overriding setBounds() instead of registering a
+        // ComponentListener, because componentResize events are delivered
+        // lazily. That lag causes a undesirably visible delay in the
+        // repositioning of the scroller buttons.
+        if (resizeHandler != null)
+            resizeHandler.checkSize(width);
     }
 
     /**
-     * Install a handler that will reconfigure the number of weekly data columns
+     * A handler that will reconfigure the number of weekly data columns
      * whenever the size of the table changes.
      */
-    private void setupResizeHandler() {
-        addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent e) {
-                recreateWeekColumnsToFit();
+    private class ResizeHandler implements ActionListener {
+
+        private Timer manualResizeTimer, zoomResizeTimer;
+
+        private long lastZoomTime = -1;
+
+        private int lastWidth = -1;
+
+        public ResizeHandler() {
+            manualResizeTimer = new Timer(10, this);
+            manualResizeTimer.setRepeats(false);
+            zoomResizeTimer = new Timer(100, this);
+            zoomResizeTimer.setRepeats(false);
+        }
+
+        void zoomNotify() {
+            lastZoomTime = System.currentTimeMillis();
+        }
+
+        void checkSize(int newWidth) {
+            // see if we were recently notified about a zooming operation
+            long zoomAge = System.currentTimeMillis() - lastZoomTime;
+            boolean isZooming = (zoomAge < 100);
+
+            if (lastWidth != newWidth || isZooming) {
+                lastWidth = newWidth;
+                repositionHeaderDecorations(newWidth,
+                    getTeamMemberList().getNumWeekColumns());
+
+                if (isZooming) {
+                    // zooming operations often occur in rapid succession,
+                    // changing the size many times a second. Since the entire
+                    // UI is scaling proportionally, we do not expect the number
+                    // of week columns to change. Unfortunately, since the
+                    // internal-component zooming and external-component
+                    // resizing are decoupled, the two can momentarily be out
+                    // of sync, leading to a transient mistake in the
+                    // calculation for the number of week columns. To avoid
+                    // that, we use a timer to defer the check until we see a
+                    // pause in the zooming.
+                    manualResizeTimer.stop();
+                    zoomResizeTimer.restart();
+                } else {
+                    // if we are not in a zooming operation, the user is
+                    // resizing the window. Check right away to see if the
+                    // number of week columns should change.
+                    zoomResizeTimer.stop();
+                    manualResizeTimer.restart();
+                }
             }
-        });
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            recreateWeekColumnsToFit();
+        }
     }
 
     /**
@@ -333,17 +452,15 @@ public class TeamMemberListTable extends JTable {
         // compute the amount of space allocated to the weekly columns.
         // first, get the width of the entire table
         int tableWidth = getWidth();
-        int width = tableWidth;
-        // next, subtract out the width of the initial, fixed columns.
+        // then, subtract out the width of the grippy column.
+        int width = tableWidth - GRIPPY_WIDTH - getIntercellSpacing().width;
+        // next, remove the zoom scaling to work with nominal widths
+        width = (int) (width / zoom);
+        // finally, subtract out the width of the initial, fixed columns.
         for (int i = COL_WIDTHS.length; i-- > 0;)
             width = width - COL_WIDTHS[i];
-        // then, subtract out the width of the grippy column.
-        width = width - GRIPPY_WIDTH - getIntercellSpacing().width;
-
+        // and see how many weeks we can fit in the the remaining space
         int numWeekColumns = Math.max(0, width / WEEK_COL_WIDTH);
-        int extraWidth = width - (numWeekColumns * WEEK_COL_WIDTH);
-        TableColumn firstCol = tcm.getColumn(0);
-        firstCol.setWidth(COL_WIDTHS[0] + extraWidth);
 
         int existingNumWeekColumns = teamList.getNumWeekColumns();
         if (existingNumWeekColumns != numWeekColumns) {
@@ -360,9 +477,9 @@ public class TeamMemberListTable extends JTable {
                 tcm.addColumn(createWeekColumn(colIdx++));
             // add a grippy column at the end.
             tcm.addColumn(createGrippyColumn(colIdx));
+            // move the header decorations based on the new number of columns
+            repositionHeaderDecorations(tableWidth, numWeekColumns);
         }
-
-        repositionHeaderDecorations(tableWidth, numWeekColumns);
     }
 
     /** convenience method: remove the last column in a table column model */
@@ -381,13 +498,35 @@ public class TeamMemberListTable extends JTable {
     /** Create a table column for the final "grippy" column */
     private TableColumn createGrippyColumn(int idx) {
         TableColumn result = new TableColumn(idx);
-        fixWidth(result, GRIPPY_WIDTH + getIntercellSpacing().width);
+        fixWidth_(result, GRIPPY_WIDTH + getIntercellSpacing().width);
         result.setCellRenderer(new GrippyRenderer());
         return result;
     }
 
-    /** Force a table column to be unresizable, with a specific width */
+    /** Update column widths based on the current zoom level */
+    private void zoomColumnWidths() {
+        int numCols = getColumnModel().getColumnCount();
+
+        // do not resize the final (grippy) column. Also, do not alter the
+        // width of the initial name column: its size will be auto-calculated
+        // by the table column manager.
+        for (int i = numCols - 1; i-- > 1;) {
+            int width = (i < COL_WIDTHS.length ? COL_WIDTHS[i]
+                    : WEEK_COL_WIDTH);
+            fixWidth(getColumnModel().getColumn(i), width);
+        }
+    }
+
+    /**
+     * Force a table column to be unresizable, with a specific width. The given
+     * width will be automatically zoomed if needed.
+     */
     private void fixWidth(TableColumn column, int width) {
+        fixWidth_(column, zoomSize(width));
+    }
+
+    /** Force a table column to be unresizable, with a specific width */
+    private void fixWidth_(TableColumn column, int width) {
         column.setMaxWidth(width);
         column.setMinWidth(width);
         column.setPreferredWidth(width);
@@ -415,15 +554,16 @@ public class TeamMemberListTable extends JTable {
         } else {
             // position the scroll later button over the last week column.
             int x = tableWidth - GRIPPY_WIDTH - getIntercellSpacing().width;
+            int sbp = zoomSize(SCROLL_BUTTON_PADDING);
             scrollDatesLaterButton.setVisible(true);
-            scrollDatesLaterButton.setLocation(x - SCROLL_BUTTON_PADDING
-                    - scrollDatesLaterButton.getWidth(), SCROLL_BUTTON_PADDING);
+            scrollDatesLaterButton.setLocation(
+                x - sbp - scrollDatesLaterButton.getWidth(), sbp);
 
             // position the "scroll earlier button" over the first week column.
-            x = x - numWeekColumns * WEEK_COL_WIDTH;
+            int weekWidth = zoomSize(WEEK_COL_WIDTH);
+            x = x - numWeekColumns * weekWidth;
             scrollDatesEarlierButton.setVisible(true);
-            scrollDatesEarlierButton.setLocation(x + SCROLL_BUTTON_PADDING,
-                SCROLL_BUTTON_PADDING);
+            scrollDatesEarlierButton.setLocation(x + sbp, sbp);
 
             // position the customization hyperlink over the first weekly
             // dividing line, if one exists.
@@ -431,7 +571,8 @@ public class TeamMemberListTable extends JTable {
                 customizationHyperlink.setVisible(false);
             } else {
                 customizationHyperlink.setVisible(true);
-                customizationHyperlink.setLocation(x + WEEK_COL_WIDTH / 2, 1);
+                customizationHyperlink.setSize(weekWidth, getRowHeight());
+                customizationHyperlink.setLocation(x + weekWidth / 2, 1);
             }
         }
     }
@@ -441,15 +582,18 @@ public class TeamMemberListTable extends JTable {
      * space alloted to the table header.
      */
     private void createScrollerButtonIcons() {
-        int headerHeight = getTableHeader().getHeight();
+        int headerHeight = (int) (getRowHeight() * 1.5);
         if (headerHeight < 10)
             return;
 
-        int buttonWidth = (WEEK_COL_WIDTH - SCROLL_BUTTON_PADDING * 3 - 1) / 2;
-        int buttonHeight = headerHeight - SCROLL_BUTTON_PADDING * 2 - 1;
+        int buttonWidth = zoomSize(
+            WEEK_COL_WIDTH - SCROLL_BUTTON_PADDING * 3 - 1) / 2;
+        int buttonHeight = headerHeight - zoomSize(SCROLL_BUTTON_PADDING * 2)
+                - 1;
         Dimension buttonSize = new Dimension(buttonWidth, buttonHeight);
-        int iconWidth = buttonWidth - 6;
-        int iconHeight = buttonHeight - 6;
+        int gap = Math.max(6,  zoomSize(6));
+        int iconWidth = buttonWidth - gap;
+        int iconHeight = buttonHeight - gap;
 
         scrollDatesEarlierButton.setIcon(new TriangleIcon(true, iconWidth,
                 iconHeight));
@@ -465,6 +609,8 @@ public class TeamMemberListTable extends JTable {
      * date column label
      */
     void updateCustomizationHyperlinkText() {
+        if (getColumnCount() < TeamMemberList.FIRST_WEEK_COLUMN + 2)
+            return;
         String text = getColumnName(TeamMemberList.FIRST_WEEK_COLUMN + 1);
         String html = "<html><font color='blue'><u>" + text
                 + "</u></font></html>";
@@ -582,17 +728,17 @@ public class TeamMemberListTable extends JTable {
 
         JComponent outsideSchedule;
 
+        JLabel startLabel;
+
         JComponent startCell;
+
+        JLabel endLabel;
 
         JComponent endCell;
 
         JComponent censored;
         
         JComponent uncertain;
-
-        Font regularFont;
-
-        Font italicFont;
 
         Color unmodifiableCellBackground;
 
@@ -601,31 +747,25 @@ public class TeamMemberListTable extends JTable {
             setHorizontalAlignment(CENTER);
 
             unmodifiableCellBackground = UIManager.getColor("control");
-            regularFont = TeamMemberListTable.this.getFont();
-            italicFont = regularFont.deriveFont(Font.ITALIC);
-            Font smallFont = regularFont
-                    .deriveFont(Math.min(10, regularFont.getSize2D() - 2));
 
             outsideSchedule = new JPanel();
 
-            JLabel startLabel = new JLabel(resources.getString("Start"),
+            startLabel = new JLabel(resources.getString("Start"),
                     new ArrowIcon(false), RIGHT);
             startLabel.setHorizontalTextPosition(LEFT);
             startLabel.setVerticalTextPosition(CENTER);
             startLabel.setIconTextGap(0);
             startLabel.setBackground(unmodifiableCellBackground);
-            startLabel.setFont(smallFont);
             startCell = new JPanel(new BorderLayout());
             startCell.setOpaque(true);
             startCell.add(startLabel, BorderLayout.CENTER);
             startCell.add(makeGrippy(), BorderLayout.EAST);
             startCell.setToolTipText(resources.getString("Start_Tooltip"));
 
-            JLabel endLabel = new JLabel(resources.getString("Stop"),
+            endLabel = new JLabel(resources.getString("Stop"),
                     new ArrowIcon(true), LEFT);
             endLabel.setIconTextGap(0);
             endLabel.setBackground(unmodifiableCellBackground);
-            endLabel.setFont(smallFont);
             endCell = new JPanel(new BorderLayout());
             endCell.setOpaque(true);
             endCell.add(endLabel, BorderLayout.CENTER);
@@ -643,12 +783,31 @@ public class TeamMemberListTable extends JTable {
 
         private JLabel makeCensoredLabel() {
             JLabel result = new JLabel("*", CENTER);
-            result.setFont(italicFont);
             result.setBackground(unmodifiableCellBackground);
             result.setOpaque(true);
-            result.setBorder(BorderFactory
-                    .createEmptyBorder(italicFont.getSize() / 3, 0, 0, 0));
             return result;
+        }
+
+        void updateFonts(Font regularFont) {
+            float fontSize = regularFont.getSize2D();
+            float smallSize = Math.min(fontSize - 2, fontSize * 0.8f);
+            Font smallFont = regularFont.deriveFont(smallSize);
+            startLabel.setFont(smallFont);
+            endLabel.setFont(smallFont);
+
+            customizationHyperlink.setFont(smallFont);
+            dateHeaderRenderer.font = smallFont;
+            dateHeaderRenderer.fontMetrics = TeamMemberListTable.this
+                    .getFontMetrics(smallFont);
+
+            Font italic = TableFontHandler.getItalic(TeamMemberListTable.this);
+            censored.setFont(italic);
+            uncertain.setFont(italic);
+
+            Border border = BorderFactory
+                    .createEmptyBorder(italic.getSize() / 3, 0, 0, 0);
+            censored.setBorder(border);
+            uncertain.setBorder(border);
         }
 
 
@@ -657,7 +816,7 @@ public class TeamMemberListTable extends JTable {
                 int column) {
             Component component = this;
 
-            Font f = regularFont;
+            Font f = table.getFont();
             double time = 0;
             if (value instanceof WeekData) {
                 WeekData week = (WeekData) value;
@@ -672,7 +831,7 @@ public class TeamMemberListTable extends JTable {
                     component = endCell;
                     break;
                 case WeekData.TYPE_DEFAULT:
-                    f = italicFont;
+                    f = TableFontHandler.getItalic(table);
                     // continue through to next block
                 default:
                     time = week.getHours();
@@ -861,8 +1020,6 @@ public class TeamMemberListTable extends JTable {
     private class DateHeaderRenderer extends JPanel implements
             TableCellRenderer {
 
-        private Dimension prefSize = new Dimension(10, 30);
-
         private JTable table;
 
         private Font font;
@@ -873,13 +1030,7 @@ public class TeamMemberListTable extends JTable {
 
         public DateHeaderRenderer(JTable t) {
             this.table = t;
-            this.font = t.getFont();
-            this.font = font.deriveFont(font.getSize() - 2.0f);
-            this.fontMetrics = t.getFontMetrics(font);
-            this.prefSize = new Dimension(10, (int) (t.getRowHeight() * 1.5));
-
             setBackground(t.getBackground());
-            customizationHyperlink.setFont(font);
         }
 
         public Component getTableCellRendererComponent(JTable table,
@@ -890,12 +1041,13 @@ public class TeamMemberListTable extends JTable {
         }
 
         public Dimension getPreferredSize() {
-            return prefSize;
+            return new Dimension(10, (int) (table.getRowHeight() * 1.5));
         }
 
         public void paint(Graphics g) {
             super.paint(g);
             boolean isFirstWeek = (column == TeamMemberList.FIRST_WEEK_COLUMN);
+            boolean isWeek2 = (column == TeamMemberList.FIRST_WEEK_COLUMN + 1);
             boolean isLastWeek = (column + 2 == getColumnCount());
             boolean isGrippy = (column + 1 == getColumnCount());
 
@@ -914,9 +1066,9 @@ public class TeamMemberListTable extends JTable {
 
             g.setColor(table.getForeground());
             g.setFont(font);
-            if (!isFirstWeek && !isGrippy)
+            if (!isFirstWeek && !isWeek2 && !isGrippy)
                 drawLabelAt(g, 0, getColumnName(column));
-            if (!isLastWeek && !isGrippy)
+            if (!isFirstWeek && !isLastWeek && !isGrippy)
                 drawLabelAt(g, width, getColumnName(column + 1));
         }
 
