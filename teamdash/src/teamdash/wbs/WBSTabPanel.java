@@ -120,6 +120,7 @@ public class WBSTabPanel extends JLayeredPane implements
     /** The order in which the Actions should appear in the Edit menu. */
     private static final List<String> editMenuActionOrder =
         Arrays.asList(UndoList.UNDO_ACTION_CATEGORY_UNDO_REDO,
+                      WBSZoomAction.WBS_ACTION_CATEGORY_ZOOM,
                       WBSJTable.WBS_ACTION_CATEGORY_CLIPBOARD,
                       DataJTable.DATA_ACTION_CATEGORY_CLIPBOARD,
                       WBSJTable.WBS_ACTION_CATEGORY_INDENT,
@@ -139,6 +140,7 @@ public class WBSTabPanel extends JLayeredPane implements
     JTabbedPane tabbedPane;
     JSplitPane splitPane;
     JToolBar toolBar;
+    WBSZoomAction zoomAction;
     WBSFindAction findAction;
     WBSOpenLinkAction openLinkAction;
     JFileChooser fileChooser;
@@ -539,6 +541,7 @@ public class WBSTabPanel extends JLayeredPane implements
 
         result.add(undoList.getUndoAction());
         result.add(undoList.getRedoAction());
+        result.add(zoomAction);
         result.addAll(Arrays.asList(wbsTable.getEditingActions()));
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
         result.add(findAction);
@@ -1095,6 +1098,7 @@ public class WBSTabPanel extends JLayeredPane implements
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
         addToolbarButton(findAction = new WBSFindAction(this));
+        addToolbarButton(zoomAction = new WBSZoomAction(this));
         addToolbarButton(openLinkAction = new WBSOpenLinkAction(this));
         addToolbarButton(wbsTable.FILTER_ACTION);
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);

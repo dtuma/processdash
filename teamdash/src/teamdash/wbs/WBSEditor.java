@@ -1104,9 +1104,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu(resources.getString("Edit.Menu"));
         result.setMnemonic('E');
         for (int i = 0;   i < editingActions.length;   i++) {
-            if (editingActions[i].getValue(Action.NAME) != null)
-                result.add(makeMenuItem(editingActions[i]));
-            if (i == 1) result.addSeparator();
+            Action action = editingActions[i];
+            if (action instanceof WBSZoomAction) {
+                result.add(((WBSZoomAction) action).getZoomMenu(true));
+                result.addSeparator();
+            } else if (action.getValue(Action.NAME) != null) {
+                result.add(makeMenuItem(action));
+            }
         }
 
         if (!readOnly && isNotZipWorkingDirectory()) {

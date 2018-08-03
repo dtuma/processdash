@@ -332,7 +332,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.ScalableImageIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
       <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
-      <root classname="net.sourceforge.processdash.ui.lib.ZoomManager"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ZoomAction"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.util.DateUtils"/>
       <root classname="net.sourceforge.processdash.util.Diff"/>
@@ -365,7 +365,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 156) {
+        if (classCount > 158) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
