@@ -37,6 +37,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JTable;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
@@ -413,6 +416,7 @@ public class ZoomManager implements ZoomLevel {
             new FontType(), //
             new DimensionType(1, 1), //
             new WindowSizeType(), //
+            new TableRowHeightType(), //
     };
 
 
@@ -574,5 +578,100 @@ public class ZoomManager implements ZoomLevel {
             return new Dimension(newWidth, newHeight);
         }
     }
+
+
+    /** Handler that manages table scrolling while changing row height */
+    public static class TableRowHeightType extends IntType {
+
+        public TableRowHeightType() {
+            super(2, Integer.MAX_VALUE);
+        }
+
+        public boolean matches(Object target, String propName, Object value) {
+            return target instanceof JTable && propName.equals("rowHeight");
+        }
+
+        public Integer zoom(Object target, String prop, Integer base,
+                double zoom) {
+            // ask the superclass what the new row height should be
+            Integer newRowHeight = super.zoom(target, prop, base, zoom);
+
+            // see if row scrolling is disabled for this table
+            JTable table = (JTable) target;
+            if (table.getClientProperty(DISABLE_TABLE_SCROLL_LOCK) != null)
+                return newRowHeight;
+
+            // look for an enclosing viewport that will handle scrolling
+            JViewport viewport = (JViewport) SwingUtilities
+                    .getAncestorOfClass(JViewport.class, table);
+            if (viewport == null)
+                return newRowHeight;
+
+            // get an object to scroll the table in the near future (after the
+            // row height changes)
+            DeferredScroller deferredScroller = (DeferredScroller) table
+                    .getClientProperty(DeferredScroller.class);
+            if (deferredScroller == null) {
+                table.putClientProperty(DeferredScroller.class,
+                    deferredScroller = new DeferredScroller());
+            }
+
+            // see what part of the table is currently visible/showing
+            deferredScroller.viewport = viewport;
+            Rectangle viewRect = viewport.getViewRect();
+            double height = viewRect.getHeight();
+
+            // identify an "anchor" point on the screen that should remain
+            // stationary. if the selected table row is currently visible on
+            // screen, use that as the anchor point. Otherwise, keep the row
+            // currently in the center of the view stationary.
+            double anchorPercent = 0.5;
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow != -1) {
+                Rectangle selRect = table.getCellRect(selectedRow, 0, false);
+                double selY = selRect.getCenterY();
+                double selAnchorPercent = (selY - viewRect.getMinY()) / height;
+                if (0 < selAnchorPercent && selAnchorPercent < 1)
+                    anchorPercent = selAnchorPercent;
+            }
+
+            // compute the new scroll location of the viewport that will keep
+            // the anchor point stationary
+            double anchorDelta = height * anchorPercent;
+            double anchorY = viewRect.getMinY() + anchorDelta;
+            double currRowHeight = table.getRowHeight();
+            double changeRatio = newRowHeight / currRowHeight;
+            double newAnchorY = anchorY * changeRatio;
+            deferredScroller.newTopY = (int) (newAnchorY - anchorDelta + 0.5);
+
+            // set the new location immediately if possible; otherwise register
+            // it to occur after the new row height has been installed
+            if (deferredScroller.newTopY + height < table.getHeight()) {
+                deferredScroller.run();
+            } else {
+                SwingUtilities.invokeLater(deferredScroller);
+            }
+
+            // return the result
+            return newRowHeight;
+        }
+
+        private class DeferredScroller implements Runnable {
+
+            private JViewport viewport;
+
+            private int newTopY;
+
+            public void run() {
+                Point p = viewport.getViewPosition();
+                p.y = newTopY;
+                viewport.setViewPosition(p);
+            }
+        }
+
+    }
+
+    public static final String DISABLE_TABLE_SCROLL_LOCK = //
+            TableRowHeightType.class.getName() + ".disableScrollLock";
 
 }

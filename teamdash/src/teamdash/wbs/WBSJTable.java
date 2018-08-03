@@ -108,6 +108,7 @@ import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
+import net.sourceforge.processdash.ui.lib.ZoomManager;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -284,6 +285,8 @@ public class WBSJTable extends JTable {
     /** Set the component which should handle scroll events on our behalf. */
     public void setScrollableDelegate(JComponent c) {
         scrollableDelegate = c;
+        if (c != null)
+            putClientProperty(ZoomManager.DISABLE_TABLE_SCROLL_LOCK, true);
     }
 
 
