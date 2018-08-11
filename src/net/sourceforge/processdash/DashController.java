@@ -202,11 +202,16 @@ public class DashController {
         dash.configure_button.startDefectLog(key);
     }
 
-    public static Window showTaskSchedule(final String path) {
-        return WindowTracker.openWindow(new Runnable() {
-                public void run() { showTaskScheduleImpl(path); } } );
+    public static Window showTaskSchedule(String path) {
+        return showTaskSchedule(path, false);
     }
-    private static void showTaskScheduleImpl(String path) {
+    /** @since 2.4.4 */
+    public static Window showTaskSchedule(final String path,
+            final boolean charts) {
+        return WindowTracker.openWindow(new Runnable() {
+                public void run() { showTaskScheduleImpl(path, charts); } } );
+    }
+    private static void showTaskScheduleImpl(String path, boolean charts) {
 
         // if no path was given, just display a chooser dialog to the user.
         if (path == null || path.length() == 0) {
@@ -217,11 +222,13 @@ public class DashController {
         List taskLists = EVTaskList.getPreferredTaskListsForPath(dash.data,
                 path);
 
-        if (taskLists.size() == 1)
-            TaskScheduleChooser.open(dash, (String) taskLists.get(0));
-        else
+        if (taskLists.size() != 1)
             new TaskScheduleChooser
                 (dash, (String[]) taskLists.toArray(new String[0]));
+        else if (charts)
+            TaskScheduleChooser.openCharts(dash, (String) taskLists.get(0));
+        else
+            TaskScheduleChooser.open(dash, (String) taskLists.get(0));
     }
 
     public static void exportData(String prefix) {

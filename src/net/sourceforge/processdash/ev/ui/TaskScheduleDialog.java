@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -268,6 +268,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     public TaskScheduleDialog(DashboardContext dash, String taskListName,
                               boolean createRollup) {
+        this(dash, taskListName, createRollup, false, true);
+    }
+
+    protected TaskScheduleDialog(DashboardContext dash, String taskListName,
+            boolean createRollup, boolean requireExisting, boolean showWindow) {
         this.dash = dash;
         this.taskListName = taskListName;
         this.hasRollupEditPerm = PermissionsManager.getInstance()
@@ -289,7 +294,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         // If the earned value model doesn't already exist, create a new one.
         if (model == null) {
-            if (createRollup)
+            if (requireExisting)
+                throw new IllegalArgumentException(
+                        "Task list " + taskListName + " not found");
+            else if (createRollup)
                 model = new EVTaskListRollup
                     (taskListName, dash.getData(), dash.getHierarchy(),
                      dash.getCache(),true);
@@ -440,6 +448,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
             scheduleTable.scrollRectToVisible(scheduleTable.getCellRect(
                 currentWeek, 0, true));
         }
+
+        if (!showWindow)
+            return;
 
         WindowUtils.showWindowToFront(frame);
 

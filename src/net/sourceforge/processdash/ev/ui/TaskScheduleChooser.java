@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -331,6 +331,37 @@ public class TaskScheduleChooser
             openWindows.put(taskListName,
                 d = new TaskScheduleDialog(dash, taskListName, createRollup));
         WindowTracker.windowOpened(d.frame);
+    }
+
+    /** @since 2.4.4 */
+    public static void openCharts(DashboardContext dash, String taskListName) {
+        if (taskListName == null)
+            return;
+
+        TaskScheduleDialog d =
+                (TaskScheduleDialog) openWindows.get(taskListName);
+        if (d != null) {
+            // if a window is currently displaying this task list, ask it to
+            // show charts
+            d.showChart();
+        } else {
+            try {
+                // open a new window for this task list, but leave it hidden.
+                // ask it to show its chart, then dispose it so it will release
+                // the resources it created during initialization
+                d = new TaskScheduleDialog(dash, taskListName, false, true,
+                        false);
+                d.showChart();
+                d.close();
+            } catch (Exception iae) {
+                // an IllegalArgumentException will be thrown if the given task
+                // list did not exist. Abort for that or any other error.
+                Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+        }
+
+        WindowTracker.windowOpened(d.chartDialog);
     }
 
     static void close(String taskListName) {

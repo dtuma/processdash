@@ -53,7 +53,7 @@
         href="control/showTaskSchedule.class?trigger&amp;PID-master"
         title="Project Task &amp; Schedule"/>
     <html ID="evCharts"
-        href="reports/ev.class?tl=auto&amp;groupFilterAuto&amp;charts&amp;PID-master"
+        href="control/showTaskSchedule.class?trigger&amp;charts&amp;PID-master"
         title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;groupFilterAuto&amp;PID-master"
         title="    Weekly Earned Value Report"/>
@@ -150,7 +150,7 @@
         href="control/showTaskSchedule.class?trigger&amp;PID-team"
         title="Project Task &amp; Schedule"/>
     <html ID="evCharts"
-        href="reports/ev.class?tl=auto&amp;groupFilterAuto&amp;charts&amp;PID-team"
+        href="control/showTaskSchedule.class?trigger&amp;charts&amp;PID-team"
         title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;groupFilterAuto&amp;PID-team"
         title="    Weekly Earned Value Report"/>
@@ -292,7 +292,8 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
         title="Project Task &amp; Schedule"/>
-    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-indiv"
+    <html ID="evCharts"
+        href="control/showTaskSchedule.class?trigger&amp;charts&amp;PID-indiv"
         title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-indiv"
         title="    Weekly Earned Value Report"/>
