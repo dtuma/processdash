@@ -172,6 +172,7 @@ import net.sourceforge.processdash.ui.TeamProjectBrowser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
@@ -221,6 +222,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     WorkingDirectory workingDirectory;
     FileBackupManager fileBackupManager;
     LockMessageHandler lockMessageHandler;
+    GuiPrefs globalPrefs, datasetPrefs;
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
     TaskNavigationSelector taskNav = null;
@@ -591,6 +593,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         EVTaskDependencyResolver.init(this);
         WBSTaskOrderComparator.init(this);
 
+        Settings.setDatasetID(DashController.getDatasetID(false));
+        globalPrefs = new GuiPrefs(Settings.userPreferences);
+        datasetPrefs = new GuiPrefs(Settings.getDatasetPrefsNode());
+
         configure_button = new ConfigureButton(this);
         PCSH.enableHelpKey(this, "QuickOverview");
         pt.click("Created configure button");
@@ -621,7 +627,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
         DashController.setDashboard(this);
-        Settings.setDatasetID(DashController.getDatasetID(false));
         try {
             UserGroupManagerDash.getInstance().init(this);
         } catch (TamperException te) {
@@ -1838,6 +1843,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // save the size of the team dashboard window
         maybeSaveWindowSize();
 
+        // save UI preferences
+        globalPrefs.saveAll();
+        datasetPrefs.saveAll();
+
         // Now, flush all in-memory data to disk, recording whether any steps
         // were unsuccessful.
 
@@ -2000,9 +2009,20 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     private void initializeWindowSize() {
         if (Settings.isPersonalMode()) {
+            // set the window to its preferred size, based on the previously
+            // saved width of the task selector in pspdash.ini
             this.pack();
 
+            // now load the last size/location from GUI prefs (but retain the
+            // computed preferred height of the window)
+            int preferredHeight = this.getHeight();
+            datasetPrefs.load("mainWindow", this);
+            this.setSize(this.getWidth(), preferredHeight);
+
         } else {
+            // set the size of the team dashboard window based on values saved
+            // in pspdash.ini. This sets a reasonable default for this team
+            // dashboard, if the user has never opened it before
             int width, height;
             try {
                 String setting = Settings.getVal(DIMENSION_SETTING);
@@ -2014,8 +2034,13 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 height = 300;
             }
             this.setSize(width, height);
-            this.validate();
+
+            // now load the last size/location from GUI prefs. This will
+            // override the dataset default with user-specific values
+            datasetPrefs.load("mainWindow", this);
         }
+
+        this.validate();
     }
 
     private void maybeSaveWindowSize() {
