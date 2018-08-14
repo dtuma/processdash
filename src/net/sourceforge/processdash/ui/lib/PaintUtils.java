@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -92,6 +92,30 @@ public class PaintUtils {
             resultBright = bgBright - 0.1f;
         hsb[2] = resultBright;
         return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+    }
+
+    /**
+     * Determine if two colors are visually similar
+     * 
+     * @param c1
+     *            one color to compare
+     * @param c2
+     *            another color to compare
+     * @param threshold
+     *            the level of similarity to compare against, on a range of 0
+     *            (identical) to ~764 (completely different)
+     * @since 2.4.4
+     */
+    public static boolean colorsAreSimilar(Color c1, Color c2, int threshold) {
+        // algorithm from https://www.compuphase.com/cmetric.htm
+        int r1 = c1.getRed(), r2 = c2.getRed();
+        int rmean = (r1 + r2) / 2;
+        int r = r1 - r2;
+        int g = c1.getGreen() - c2.getGreen();
+        int b = c1.getBlue() - c2.getBlue();
+        double delta = Math.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g
+                + (((767 - rmean) * b * b) >> 8));
+        return delta < threshold;
     }
 
 }

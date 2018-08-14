@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2017 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,8 +32,6 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Collection;
-import java.util.TreeSet;
 
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -53,8 +51,8 @@ import net.sourceforge.processdash.ui.lib.PaintUtils;
 public class StandardDiscItemRenderer implements DiscItemRenderer {
 
     public interface PaintKeyMapper {
-        public Collection<Comparable> getAllPaintKeys();
         public Comparable getPaintKey(Comparable dataKey);
+        public Paint getPreferredPaint(DrawingSupplier ds, Comparable paintKey);
     }
 
     /** The plot. */
@@ -118,26 +116,7 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
      */
     public void setPaintKeyMapper(PaintKeyMapper paintKeyMapper) {
         this.paintKeyMapper = paintKeyMapper;
-
         this.discPaintMap = new PaintMap();
-        DrawingSupplier ds = getDrawingSupplier();
-        if (paintKeyMapper != null && ds != null) {
-            try {
-                Collection<Comparable> keys = paintKeyMapper.getAllPaintKeys();
-                Paint bg = plot.getBackgroundPaint();
-                for (Comparable oneKey : new TreeSet<Comparable>(keys)) {
-                    Paint onePaint = ds.getNextPaint();
-                    if (onePaint instanceof Color && bg instanceof Color)
-                        onePaint = PaintUtils.adjustForContrast(
-                            (Color) onePaint, (Color) bg);
-                    this.discPaintMap.put(oneKey, onePaint);
-                }
-            } catch (Throwable t) {
-                // the "getAllPaintKeys" method was added in PD 2.3. If a
-                // particular implementor doesn't support it yet, catch the
-                // error and continue without preassigning colors.
-            }
-        }
     }
 
     public Comparable getBaseDiscPaintKey() {
@@ -194,7 +173,10 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
         if (autoPopulate) {
             DrawingSupplier ds = getDrawingSupplier();
             if (ds != null) {
-                result = ds.getNextPaint();
+                if (paintKeyMapper != null)
+                    result = paintKeyMapper.getPreferredPaint(ds, key);
+                if (result == null)
+                    result = ds.getNextPaint();
                 Paint bg = plot.getBackgroundPaint();
                 if (result instanceof Color && bg instanceof Color) {
                     result = PaintUtils.adjustForContrast((Color) result,
