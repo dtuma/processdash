@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2016 Tuma Solutions, LLC
+// Copyright (C) 2013-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -90,14 +91,16 @@ public class ImportedEVManager {
      *            method.
      * @param xml
      *            the parsed XML Element corresponding to this EV schedule.
+     * @param srcFile 
+     *            the PDASH file the EV data was imported from
      * @param srcDatasetID
      *            the ID of the dataset that this schedule originated from
      */
     public void importTaskList(String uniqueKey, Element xml,
-            String srcDatasetID) {
+            File srcFile, String srcDatasetID) {
         if (EVTaskList.EV_TASK_LIST_ELEMENT_NAME.equals(xml.getTagName())) {
             ImportedTaskList taskList = new ImportedTaskList(uniqueKey, xml,
-                    srcDatasetID);
+                    srcFile, srcDatasetID);
             importedTaskLists.put(uniqueKey, taskList);
         } else {
             logger.warning("Attempt to import invalid EV XML "
@@ -188,6 +191,21 @@ public class ImportedEVManager {
     public String getSrcDatasetID(String taskListID) {
         ImportedTaskList tl = getImportedTaskListByID(taskListID);
         return (tl == null ? null : tl.srcDatasetID);
+    }
+
+
+    /**
+     * Find an imported task list with the given ID, and return the PDASH file
+     * the the task list was imported from.
+     * 
+     * @param taskListID
+     *            a task list ID
+     * @return the PDASH file the task list was imported from, or null if no
+     *         such task list could be found.
+     */
+    public File getSrcFile(String taskListID) {
+        ImportedTaskList tl = getImportedTaskListByID(taskListID);
+        return (tl == null ? null : tl.srcFile);
     }
 
 
@@ -329,6 +347,8 @@ public class ImportedEVManager {
 
     private class ImportedTaskList implements Comparable<ImportedTaskList> {
 
+        private File srcFile;
+
         private String srcDatasetID;
 
         private Element xml;
@@ -344,8 +364,9 @@ public class ImportedEVManager {
         private Map cachedData;
 
         protected ImportedTaskList(String uniqueKey, Element xml,
-                String srcDatasetID) {
+                File srcFile, String srcDatasetID) {
             this.xml = xml;
+            this.srcFile = srcFile;
             this.srcDatasetID = srcDatasetID;
             this.taskListID = xml.getAttribute(EVTaskListXML.XMLID_ATTR);
             if (XMLUtils.hasValue(taskListID)) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.io.File;
+
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -36,6 +38,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
 
     private boolean reloadFromImports;
     private Element importedXml;
+    private File importSourceFile;
 
     /** @deprecated */
     public EVTaskListXML(String taskListName, DataRepository data) {
@@ -76,6 +79,11 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         super.recalc();
     }
 
+    /** @since 2.4.4 */
+    public File getImportSourceFile() {
+        return importSourceFile;
+    }
+
     private boolean openXMLForImportedTaskList() {
         Element xmlDoc = ImportedEVManager.getInstance()
                 .getImportedTaskListXml(taskListName);
@@ -85,6 +93,8 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         try{
             openXML(xmlDoc, cleanupName(taskListName), null);
             importedXml = xmlDoc;
+            importSourceFile = ImportedEVManager.getInstance()
+                    .getSrcFile(taskListID);
             return true;
 
         } catch (Exception e) {
