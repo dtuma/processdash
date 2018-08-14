@@ -357,24 +357,30 @@ public class HierarchySynchronizer {
     }
 
     private Map<String, String> getIndivNameMap() {
-        if (indivNames_ == null) {
-            indivNames_ = new LinkedHashMap<String, String>();
-
-            for (Element e : XMLUtils.getChildElements(projectXML)) {
-                if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
-                    String xmlInitials = e.getAttribute(INITIALS_ATTR);
-                    String xmlName = e.getAttribute(NAME_ATTR);
-                    if (XMLUtils.hasValue(xmlInitials)
-                            && XMLUtils.hasValue(xmlName))
-                        indivNames_.put(xmlInitials.toLowerCase(), xmlName);
-                }
-            }
-        }
+        if (indivNames_ == null)
+            indivNames_ = getIndivAttrMap(NAME_ATTR);
 
         return indivNames_;
     }
 
     private Map<String, String> indivNames_;
+
+    private Map<String, String> getIndivAttrMap(String valueAttrName) {
+        Map<String, String> result = new LinkedHashMap<String, String>();
+
+        for (Element e : XMLUtils.getChildElements(projectXML)) {
+            if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
+                String xmlInitials = e.getAttribute(INITIALS_ATTR);
+                String xmlValue = e.getAttribute(valueAttrName);
+                if (XMLUtils.hasValue(xmlInitials)
+                        && XMLUtils.hasValue(xmlValue))
+                    result.put(xmlInitials.toLowerCase(), xmlValue);
+            }
+        }
+
+        return result;
+    }
+
 
     private void loadProcessData() {
         List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
@@ -965,6 +971,7 @@ public class HierarchySynchronizer {
             // we prune the non-team nodes
             getLabelData(projectXML, milestoneNames, labelData, milestoneData);
             saveHierarchyFilterInfo(projectXML);
+            saveTeamMemberInfo();
         }
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs(),
             Collections.EMPTY_SET);
@@ -1261,6 +1268,23 @@ public class HierarchySynchronizer {
                 }
             }
         }
+    }
+
+    private void saveTeamMemberInfo() {
+        // get a map of colors for each team member. If the WBS was saved by
+        // someone who hasn't upgraded their software, these color attributes
+        // will be missing. In that case, abort.
+        Map<String, String> teamMemberColors = getIndivAttrMap(COLOR_ATTR);
+        if (teamMemberColors.isEmpty())
+            return;
+
+        // save the team member color data to the root node of the team project
+        ListData l = new ListData();
+        for (Entry<String, String> e : teamMemberColors.entrySet()) {
+            String item = e.getKey() + "=" + e.getValue();
+            l.add(item);
+        }
+        putData(this.projectPath, TeamDataConstants.TEAM_MEMBER_COLORS, l);
     }
 
 
@@ -1919,6 +1943,7 @@ public class HierarchySynchronizer {
 
     private static final String TEAM_MEMBER_TYPE = "teamMember";
     private static final String INITIALS_ATTR = "initials";
+    private static final String COLOR_ATTR = "color";
     private static final String START_DATE_ATTR = "startDate";
     private static final String START_CALENDAR_DATE_ATTR = "startCalendarDate";
     private static final String END_WEEK_ATTR = "endWeek";

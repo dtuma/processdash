@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ public interface TeamDataConstants {
     public static final String SYNC_ROOT_ONLY = "Sync_Project_Root_Only";
     public static final String PROJECT_MILESTONES_INFO = "Project_Milestones_Info";
     public static final String PROJECT_COMPONENT_INFO = "Project_Component_Info";
+    public static final String TEAM_MEMBER_COLORS = "Team_Member_Colors";
     public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
     public static final String RELAUNCHED_PROJECT_FLAG =
         "Project_Was_Relaunched";
