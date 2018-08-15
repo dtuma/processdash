@@ -25,7 +25,7 @@ package net.sourceforge.processdash.tool.launcher;
 
 import net.sourceforge.processdash.tool.launcher.macosx.LauncherMacOSX;
 import net.sourceforge.processdash.tool.launcher.pdes.PDESMain;
-import net.sourceforge.processdash.tool.launcher.ui.LookAndFeelUtil;
+import net.sourceforge.processdash.ui.LookAndFeelUtil;
 
 public class Main {
 
