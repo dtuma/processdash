@@ -1075,6 +1075,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu(resources.getString("Window.File_Menu"));
         result.setMnemonic('F');
         result.add(makeMenuItem(saveAction = new SaveAction()));
+        tabPanel.addToolbarButton(saveAction, 0);
         if (mergeCoordinator != null)
             result.add(makeMenuItem(new RefreshAction()));
         result.addSeparator();

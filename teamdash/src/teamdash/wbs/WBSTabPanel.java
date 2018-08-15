@@ -1116,8 +1116,12 @@ public class WBSTabPanel extends JLayeredPane implements
         layout.setConstraints(toolBar, c);
     }
 
-    /** Add a button to the beginning of the internal tool bar */
+    /** Add a button to the end of the internal tool bar */
     private void addToolbarButton(Action a) {
+        addToolbarButton(a, -1);
+    }
+
+    protected void addToolbarButton(Action a, int index) {
         JButton button = new JButton(a);
         int p = (MacGUIUtils.isMacOSX() ? 2 : 1);
         button.setMargin(new Insets(p,p,p,p));
@@ -1129,7 +1133,7 @@ public class WBSTabPanel extends JLayeredPane implements
         button.setToolTipText(toolTip);
         button.setText(null);
         IconFactory.setDisabledIcon(button);
-        toolBar.add(button);
+        toolBar.add(button, index);
     }
 
     /** Listen for changes to the tab selection, and install the corresponding
