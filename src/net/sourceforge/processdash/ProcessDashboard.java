@@ -167,6 +167,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.DashboardSplashScreen;
 import net.sourceforge.processdash.ui.DashboardWelcomePane;
 import net.sourceforge.processdash.ui.PercentSpentIndicator;
+import net.sourceforge.processdash.ui.QuickSelectTaskButton;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.TeamProjectBrowser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
@@ -1057,6 +1058,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         hierarchy_menubar = new WindowsFlatMenuBar();
         addToMainWindow(hierarchy_menubar, 1.0);
 
+        taskNav = new TaskNavigationSelector
+                (this, hierarchy_menubar, activeTaskModel);
+        addToMainWindow(
+            new QuickSelectTaskButton(taskNav.getChangeTaskAction()), 0);
+        pt.click("Created task navigation selector");
+
         TaskCommenterButton taskCommenterButton = new TaskCommenterButton(this,
                 activeTaskModel);
         addToMainWindow(taskCommenterButton, 0, 1, 0);
@@ -1072,6 +1079,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         addToMainWindow(completion_button, 0, 0, 1);
         new TaskTimeLoggingErrorWatcher(this, activeTaskModel,
                 timeLog.getTimeLoggingModel(), data);
+        completion_button.setNavSelector(taskNav);
         pt.click("Created completion button");
 
         if (Settings.isReadWrite()) {
@@ -1079,11 +1087,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             addToMainWindow(addTaskButton, 0, 0,
                 Settings.getInt("mainWindow.paddingRight", 5));
         }
-
-        taskNav = new TaskNavigationSelector
-                (this, hierarchy_menubar, activeTaskModel);
-        completion_button.setNavSelector(taskNav);
-        pt.click("Created task navigation selector");
 
         dependencyIndicator.update();
         pt.click("Updated dependency indicator");
