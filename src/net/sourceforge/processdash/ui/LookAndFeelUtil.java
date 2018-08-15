@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.launcher.ui;
+package net.sourceforge.processdash.ui;
 
 import java.util.prefs.Preferences;
 
@@ -33,19 +33,32 @@ public class LookAndFeelUtil {
 
     public static void setDefaultLAF() {
         try {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("windows")) {
-                Preferences prefs = Preferences.userRoot()
-                        .node("net/sourceforge/processdash/userPrefs");
-                if (prefs.getBoolean("useSystemLAF", true)) {
-                    String laf = UIManager.getSystemLookAndFeelClassName();
-                    UIManager.setLookAndFeel(laf);
-                    RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf",
-                        laf);
-                }
+            if (shouldUseSystemLAF()) {
+                String laf = UIManager.getSystemLookAndFeelClassName();
+                UIManager.setLookAndFeel(laf);
+                RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf",
+                    laf);
             }
         } catch (Exception e) {
         }
+    }
+
+    private static boolean shouldUseSystemLAF() {
+        // the system look and feel is currently only supported on Windows
+        String os = System.getProperty("os.name").toLowerCase();
+        if (!os.contains("windows"))
+            return false;
+
+        // for development/testing purposes, allow the user to override the
+        // default user preference by setting a system property
+        String sysprop = System.getProperty("useSystemLAF");
+        if (sysprop != null)
+            return sysprop.equals("true");
+
+        // by default, the look-and-feel flag is stored in user preferences
+        Preferences prefs = Preferences.userRoot()
+                .node("net/sourceforge/processdash/userPrefs");
+        return prefs.getBoolean("useSystemLAF", true);
     }
 
 }
