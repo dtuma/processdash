@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
+import teamdash.wbs.columns.WorkflowDefectInjectionRateColumn;
 import teamdash.wbs.columns.WorkflowLabelColumn;
 import teamdash.wbs.columns.WorkflowMinTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
@@ -42,6 +43,7 @@ import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowResourcesColumn;
 import teamdash.wbs.columns.WorkflowScriptColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
+import teamdash.wbs.columns.WorkflowYieldColumn;
 
 /** A customized DataTableModel containing only the columns pertinent
  * to editing workflows.
@@ -75,6 +77,9 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WorkflowResourcesColumn(this, teamList));
         addDataColumn(new WorkflowLabelColumn(this));
         addDataColumn(new WorkflowNotesColumn());
+        addDataColumn(
+            new WorkflowDefectInjectionRateColumn(wbsModel, teamProcess));
+        addDataColumn(new WorkflowYieldColumn(wbsModel, teamProcess));
 
         if (supportsURLs())
             addDataColumn(new WorkflowScriptColumn());

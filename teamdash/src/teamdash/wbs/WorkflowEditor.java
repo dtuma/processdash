@@ -92,6 +92,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
                 unitsColMgr);
         unitsColMgr.init();
         JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
+        guiPrefs.load("workflowTable", table);
 
         undoList = new UndoList(workflowModel.getWBSModel());
         undoList.setForComponent(table);
