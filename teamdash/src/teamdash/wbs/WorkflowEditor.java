@@ -24,24 +24,16 @@
 package teamdash.wbs;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -59,7 +51,6 @@ import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
-import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
@@ -76,7 +67,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     /** The data model for the workflows */
     WorkflowModel workflowModel;
     /** The table to display the workflows in */
-    WBSJTable table;
+    WorkflowJTable table;
     /** The total preferred width of visible optional columns */
     int optColumnWidth;
     /** The frame containing this workflow editor */
@@ -86,7 +77,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     /** An object for tracking undo operations */
     UndoList undoList;
 
-    private static final Resources resources = Resources
+    static final Resources resources = Resources
             .getDashBundle("WBSEditor.Workflows");
 
 
@@ -97,8 +88,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         this.workflowModel.setEditingEnabled(isEditable(teamProject));
 
         UnitsColumnVisibilityMgr unitsColMgr = new UnitsColumnVisibilityMgr();
-        table = createWorkflowJTable
-            (workflowModel, teamProject.getTeamProcess(), unitsColMgr);
+        table = new WorkflowJTable(workflowModel, teamProject.getTeamProcess(),
+                unitsColMgr);
         unitsColMgr.init();
         JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
 
@@ -146,65 +137,6 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         return true;
     }
 
-
-    public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel,
-            TeamProcess process, ActionListener probeListener) {
-        // create the WBSJTable for the workflow data model.
-        WBSJTable table = new WBSJTable(workflowModel,
-                getWorkflowIcons(process.getIconMap()),
-                tweakIconMenu(process.getNodeTypeMenu(), probeListener));
-
-        // configure the renderer for the table
-        table.renderer.setRootNodeName(resources.getString("Root_Name"));
-
-        // install the default editor for table data.
-        table.setDefaultEditor(Object.class, new WorkflowCellEditor());
-
-        // customize the behavior and appearance of the columns.
-        DataTableModel.installColumnCustomizations(table);
-
-        return table;
-    }
-
-    private static Map getWorkflowIcons(Map<String, Icon> processIconMap) {
-        // make a copy of the icon map.
-        Map result = new HashMap(processIconMap);
-        // change the "project" icon to a special value for common workflows
-        result.put(TeamProcess.PROJECT_TYPE,
-            WBSZoom.icon(IconFactory.getCommonWorkflowsIcon()));
-        // replace each of the "task" icons with the correponsponding
-        // "workflow task" icon.
-        for (Map.Entry<String, Icon> e : processIconMap.entrySet()) {
-            String key = e.getKey();
-            if (key != null && key.endsWith(TeamProcess.WORKFLOW_TASK_SUFFIX)) {
-                String taskType = StringUtils.findAndReplace(key,
-                    TeamProcess.WORKFLOW_TASK_SUFFIX, TeamProcess.TASK_SUFFIX);
-                Icon icon = e.getValue();
-                result.put(taskType, icon);
-            }
-        }
-        return result;
-    }
-
-    private static JMenu tweakIconMenu(JMenu iconMenu,
-            ActionListener probeListener) {
-        // create a new menu item for the PROBE task type.
-        JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
-        probeItem.setFont(iconMenu.getFont());
-        probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
-        if (probeListener != null)
-            probeItem.addActionListener(probeListener);
-
-        // insert the PROBE item after the PSP task item. The PSP item is first
-        // in the list unless a "More..." submenu precedes it.
-        JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
-        if (taskMenu.getMenuComponent(0) instanceof JMenu)
-            taskMenu.add(probeItem, 2);
-        else
-            taskMenu.add(probeItem, 1);
-
-        return iconMenu;
-    }
 
     private JTableColumnVisibilityButton adjustColumnVisibility() {
         // make a list of the columns that MUST be displayed
@@ -310,26 +242,6 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     public void removeChangeListener(ChangeListener l) {
         undoList.removeChangeListener(l);
-    }
-
-    private static class WorkflowCellEditor extends DefaultCellEditor {
-
-        public WorkflowCellEditor() {
-            super(new JTextField());
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table,
-                Object value, boolean isSelected, int row, int column) {
-            Component result = super.getTableCellEditorComponent(table,
-                ErrorValue.unwrap(value), isSelected, row, column);
-
-            if (result instanceof JTextField)
-                ((JTextField) result).selectAll();
-
-            return result;
-        }
-
     }
 
     private class ExportAction extends AbstractAction {

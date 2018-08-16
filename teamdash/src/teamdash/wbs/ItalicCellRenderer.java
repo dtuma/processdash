@@ -25,6 +25,9 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -40,11 +43,9 @@ import javax.swing.border.Border;
 public class ItalicCellRenderer extends DataTableCellRenderer {
 
     private String messageToItalicize;
-    private Border inheritedBorder;
 
     public ItalicCellRenderer(String messageToItalicize) {
         this.messageToItalicize = messageToItalicize;
-        inheritedBorder = BorderFactory.createEmptyBorder(0, 10, 0, 0);
     }
 
 
@@ -64,13 +65,34 @@ public class ItalicCellRenderer extends DataTableCellRenderer {
                 err.error.equals(messageToItalicize)) {
                 result.setForeground(Color.black);
                 result.setFont(TableFontHandler.getItalic(table));
-                ((JComponent) result).setBorder(inheritedBorder);
+                setInheritedBorder((JComponent) result);
             }
-        } else {
-            ((JComponent) result).setBorder(null);
         }
 
         return result;
     }
+
+    protected void setInheritedBorder(JComponent jc) {
+        Border b = jc.getBorder();
+        b = getInheritedBorder(b);
+        jc.setBorder(b);
+    }
+
+    private static Border getInheritedBorder(Border b) {
+        if (b == null)
+            return INHERITED_BORDER;
+        Border result = INHERITED_BORDERS.get(b);
+        if (result == null) {
+            result = BorderFactory.createCompoundBorder(b, INHERITED_BORDER);
+            INHERITED_BORDERS.put(b, result);
+        }
+        return result;
+    }
+
+    private static final Border INHERITED_BORDER = BorderFactory
+            .createEmptyBorder(0, 10, 0, 0);
+
+    private static final Map<Border, Border> INHERITED_BORDERS = Collections
+            .synchronizedMap(new HashMap());
 
 }

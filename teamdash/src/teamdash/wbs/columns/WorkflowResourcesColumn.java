@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2015 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,7 +39,6 @@ import javax.swing.JList;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument;
@@ -48,13 +47,12 @@ import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCe
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.CustomEditedColumn;
-import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class WorkflowResourcesColumn extends AbstractDataColumn implements
-        CustomRenderedColumn, CustomEditedColumn {
+        CustomEditedColumn {
 
     public static final String COLUMN_ID = "Performed By";
 
@@ -169,10 +167,6 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
             }
         }
         return result;
-    }
-
-    public TableCellRenderer getCellRenderer() {
-        return new WorkflowTableCellRenderer();
     }
 
     public TableCellEditor getCellEditor() {

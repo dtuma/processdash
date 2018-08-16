@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2013 Tuma Solutions, LLC
+// Copyright (C) 2010-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,28 +23,16 @@
 
 package teamdash.wbs.columns;
 
-import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.DataTableCellRenderer;
 import teamdash.wbs.NumericDataValue;
 
 public class WorkflowTableCellRenderer extends DataTableCellRenderer {
 
-    public static WorkflowTableCellRenderer INSTANCE =
-            new WorkflowTableCellRenderer();
-
-    private TableCellRenderer delegate;
-
     public WorkflowTableCellRenderer() {}
-
-    public WorkflowTableCellRenderer(TableCellRenderer delegate) {
-        this.delegate = delegate;
-    }
-
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -53,22 +41,8 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
         if (value instanceof NumericDataValue)
             value = tweakNumericValue((NumericDataValue) value, table, row);
 
-        Component result;
-        if (delegate == null)
-            result = super.getTableCellRendererComponent(table, value,
-                isSelected, hasFocus, row, column);
-        else
-            result = delegate.getTableCellRendererComponent(table, value,
-                isSelected, hasFocus, row, column);
-
-        if (!table.isCellEditable(row, column))
-            result.setBackground(isSelected ? UNEDITABLE_SELECTED : UNEDITABLE);
-        else if (isSelected)
-            result.setBackground(table.getSelectionBackground());
-        else
-            result.setBackground(table.getBackground());
-
-        return result;
+        return super.getTableCellRendererComponent(table, value, isSelected,
+            hasFocus, row, column);
     }
 
     protected Object tweakNumericValue(NumericDataValue ndv, JTable table,
@@ -86,9 +60,5 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
     }
 
     private static final int RATE_COLUMN = 2;
-
-    private static final Color UNEDITABLE = new Color(220, 220, 220);
-
-    private static final Color UNEDITABLE_SELECTED = new Color(218, 223, 229);
 
 }

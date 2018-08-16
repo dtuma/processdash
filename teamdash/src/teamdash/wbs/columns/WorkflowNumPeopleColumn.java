@@ -26,14 +26,10 @@ package teamdash.wbs.columns;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.table.TableCellRenderer;
-
-import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
-        CustomRenderedColumn {
+public class WorkflowNumPeopleColumn extends AbstractDataColumn {
 
     private WBSModel wbsModel;
 
@@ -80,10 +76,6 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         }
     }
 
-
-    public TableCellRenderer getCellRenderer() {
-        return WorkflowTableCellRenderer.INSTANCE;
-    }
 
     private static final Pattern NUM_PAT = Pattern.compile("\\d+");
     public static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;

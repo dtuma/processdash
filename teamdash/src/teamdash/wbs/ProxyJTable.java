@@ -89,14 +89,6 @@ public class ProxyJTable extends WBSJTable {
 
 
     @Override
-    public TableCellRenderer getCellRenderer(int row, int column) {
-        TableCellRenderer result = super.getCellRenderer(row, column);
-        if (column > 0 && result instanceof Component)
-            ((Component) result).setBackground(null);
-        return result;
-    }
-
-    @Override
     public Component prepareRenderer(TableCellRenderer renderer, int row,
             int column) {
         Component result = super.prepareRenderer(renderer, row, column);

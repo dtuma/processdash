@@ -243,6 +243,14 @@ public class DataJTable extends JTable {
     }
 
     @Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+        TableCellRenderer result = super.getCellRenderer(row, column);
+        if (result instanceof Component)
+            ((Component) result).setBackground(null);
+        return result;
+    }
+
+    @Override
     public Component prepareRenderer(TableCellRenderer renderer, int row,
             int column) {
         Component result = super.prepareRenderer(renderer, row, column);

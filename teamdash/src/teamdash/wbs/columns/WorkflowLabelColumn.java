@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,10 +23,7 @@
 
 package teamdash.wbs.columns;
 
-import javax.swing.table.TableCellRenderer;
-
 import teamdash.wbs.DataTableModel;
-import teamdash.wbs.ItalicCellRenderer;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
 
@@ -44,12 +41,6 @@ public class WorkflowLabelColumn extends TaskLabelColumn implements
     @Override
     public boolean isCellEditable(WBSNode node) {
         return node.getIndentLevel() > 0 && super.isCellEditable(node);
-    }
-
-    @Override
-    public TableCellRenderer getCellRenderer() {
-        return new WorkflowTableCellRenderer(new ItalicCellRenderer(
-                resources.getString("Inherited_Tooltip")));
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {
