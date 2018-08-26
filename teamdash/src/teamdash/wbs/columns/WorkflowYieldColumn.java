@@ -45,7 +45,7 @@ public class WorkflowYieldColumn extends WorkflowQualityParameterColumn
 
     @Override
     protected double getProcessDefaultForPhase(String phase) {
-        return 0; // FIXME
+        return teamProcess.getPhaseEstYield(phase) * 100;
     }
 
     @Override

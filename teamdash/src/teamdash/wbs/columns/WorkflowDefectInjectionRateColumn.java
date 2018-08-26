@@ -43,7 +43,7 @@ public class WorkflowDefectInjectionRateColumn
 
     @Override
     protected double getProcessDefaultForPhase(String phase) {
-        return 0; // FIXME
+        return teamProcess.getPhaseEstDefectInjectionRate(phase);
     }
 
     @Override

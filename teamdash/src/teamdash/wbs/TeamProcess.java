@@ -27,12 +27,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -74,6 +76,12 @@ public class TeamProcess {
 
     /** An immutable map of the size metric for each phase type */
     private Map phaseSizeMetrics;
+
+    /** An immutable map of the estimated yields for each phase */
+    private Map<String, Double> phaseYields;
+
+    /** An immutable map of the est defect injection rates for each phase */
+    private Map<String, Double> phaseInjRates;
 
 
     /** Contruct a team process from information in the given XML element.
@@ -123,6 +131,26 @@ public class TeamProcess {
         if (result == null)
             result = "LOC";
         return result;
+    }
+
+    /** For a task of a given phase, what is the default estimated yield?
+     * This will return a number between 0.0 and 1.0
+     */
+    public double getPhaseEstYield(String phase) {
+        if (phase != null && phase.endsWith(" Task"))
+            phase = phase.substring(0, phase.length()-5);
+        Double result = phaseYields.get(phase);
+        return (result == null ? 0 : result);
+    }
+
+    /** For a task of a given phase, what is the default estimated number of
+     * defects injected per hour?
+     */
+    public double getPhaseEstDefectInjectionRate(String phase) {
+        if (phase != null && phase.endsWith(" Task"))
+            phase = phase.substring(0, phase.length()-5);
+        Double result = phaseInjRates.get(phase);
+        return (result == null ? 0 : result);
     }
 
     public String[] getSizeMetrics() {
@@ -261,6 +289,9 @@ public class TeamProcess {
         phases = new ArrayList();
         phaseTypes = new HashMap();
         phaseSizeMetrics = new HashMap();
+        phaseYields = new HashMap();
+        phaseInjRates = new HashMap();
+        Properties phaseDataDefaults = getPhaseDataDefaults();
 
         Iterator i = process.getItemList(CustomProcess.PHASE_ITEM).iterator();
         while (i.hasNext()) {
@@ -280,12 +311,30 @@ public class TeamProcess {
             } else if (sizeMetric.startsWith(INSPECTED_PREFIX))
                 sizeMetric = sizeMetric.substring(INSPECTED_PREFIX.length());
             phaseSizeMetrics.put(phaseName, sizeMetric);
+            // store quality metrics for this phase
+            phaseYields.put(phaseName, getPhaseDoubleParam(phase,
+                phaseDataDefaults, phaseType, CustomProcess.EST_YIELD));
+            phaseInjRates.put(phaseName, getPhaseDoubleParam(phase,
+                phaseDataDefaults, phaseType, CustomProcess.EST_INJ_RATE));
         }
         phaseTypes.put("PROBE", "PLAN");
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
         phaseSizeMetrics = Collections.unmodifiableMap(phaseSizeMetrics);
+        phaseYields = Collections.unmodifiableMap(phaseYields);
+        phaseInjRates = Collections.unmodifiableMap(phaseInjRates);
+    }
+
+    private Properties getPhaseDataDefaults() {
+        Properties result = new Properties();
+        try {
+            InputStream in = TeamProcess.class
+                    .getResourceAsStream("default-phase-data.txt");
+            result.load(in);
+            in.close();
+        } catch (Exception e) {}
+        return result;
     }
 
     private String supplyDefaultSizeMetric(String type) {
@@ -293,6 +342,20 @@ public class TeamProcess {
         if (type.startsWith("REQ")) return REQ_UNITS;
         if (type.startsWith("HLD")) return HLD_UNITS;
         if (type.startsWith("DLD") && usesDLDLines) return DLD_UNITS;
+        return null;
+    }
+
+    private Double getPhaseDoubleParam(CustomProcess.Item phase,
+            Properties defaults, String phaseType, String attr) {
+        String value = phase.getAttr(attr);
+        if (value == null)
+            value = defaults.getProperty(phaseType.toUpperCase() + "." + attr);
+
+        try {
+            if (value != null)
+                return Double.valueOf(value);
+        } catch (Exception e) {
+        }
         return null;
     }
 

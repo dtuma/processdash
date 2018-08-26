@@ -1,0 +1,30 @@
+# default defect injection rates for TSP phases
+REQ.estDefectInjRate=0.25
+HLD.estDefectInjRate=0.25
+DLD.estDefectInjRate=0.75
+CODE.estDefectInjRate=2
+COMP.estDefectInjRate=0.3
+UT.estDefectInjRate=0.067
+
+# fallback defect injection rate
+DEVELOP.estDefectInjRate=1
+
+
+# default phase yields for TSP phases
+REQINSP.estYield=0.70
+HLDR.estYield=0.70
+HLDRINSP.estYield=0.70
+DLDR.estYield=0.70
+DLDINSP.estYield=0.70
+CR.estYield=0.70
+CODEINSP.estYield=0.70
+COMP.estYield=0.50
+UT.estYield=0.50
+IT.estYield=0.50
+ST.estYield=0.50
+
+# fallback phase yields
+APPRAISAL.estYield=0.70
+REVIEW.estYield=0.70
+INSP.estYield=0.70
+FAILURE.estYield=0.50

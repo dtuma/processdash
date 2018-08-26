@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,8 @@ public class CustomProcess {
     public static final String LONG_NAME = "longName";
     public static final String NAME = "name";
     public static final String TYPE = "type";
+    public static final String EST_INJ_RATE = "estDefectInjRate";
+    public static final String EST_YIELD = "estYield";
 
     public static final String SIZE_METRIC = "sizeMetric";
     public static final String PRODUCT_NAME = "productName";
@@ -181,14 +183,17 @@ public class CustomProcess {
     private DateFormat TIMESTAMP_FMT = new SimpleDateFormat("yyyy-MM-dd");
 
     public static CustomProcess open(File openFile) {
+        ZipFile zip = null;
         try {
-            ZipFile zip = new ZipFile(openFile);
+            zip = new ZipFile(openFile);
             ZipEntry entry = zip.getEntry(SETTINGS_FILENAME);
             if (entry == null) return null;
             Document doc = XMLUtils.parse(zip.getInputStream(entry));
             return new CustomProcess(doc);
         } catch (Exception e) {
             return null;
+        } finally {
+            try { zip.close(); } catch (Exception e) {}
         }
     }
 
