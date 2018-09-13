@@ -24,7 +24,8 @@ Java is not already installed on your computer, you can download an installer
 by visiting <a href="https://www.java.com/">https://www.java.com/</a>.</p>
 
 <p><b>Step 2:</b> Download the Process Dashboard Launcher using one of the
-links below, and double-click the file to install:</p>
+links below, and double-click<span id="manualA" style="display:none">*</span>
+the file to install:</p>
 
 <ul class="noBullets">
 
@@ -32,7 +33,7 @@ links below, and double-click the file to install:</p>
     <a href="pdash_install-launcher.exe">Windows</a></li>
 
 <li><img src="linux.png" class="icon16"/>
-    <a href="pdash_install-launcher.jar">Unix / Linux</a></li>
+    <a onclick="showManual()" href="pdash_install-launcher.jar">Unix / Linux</a></li>
 
 <li><img src="mac.png" class="icon16"/>
     <a href="pdash_install-launcher.dmg">Mac OS</a></li>
@@ -42,6 +43,19 @@ links below, and double-click the file to install:</p>
 
 <p>After installing this software, you can click links on this website to open
 the corresponding datasets.</p>
+
+
+<p id="manualB" style="display:none">
+*If double-clicking the file does not start the installer, please follow these 
+<a href="https://www.processdash.com/launch_install">instructions for
+launching the installer manually</a>.</p>
+
+<script type="text/javascript">
+    function showManual() {
+        document.getElementById("manualA").style.display = '';
+        document.getElementById("manualB").style.display = '';
+    }
+</script>
 
 </body>
 </html>

@@ -14,4 +14,4 @@ BASEDIR=$(dirname "$0")
 # needed to add other command line arguments for java (such as memory
 # settings, etc)
 #
-java -jar "$BASEDIR/launcher.jar" $@
+java -jar "$BASEDIR/launcher.jar" "$@"
