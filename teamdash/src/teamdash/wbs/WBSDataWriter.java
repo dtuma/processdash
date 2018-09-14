@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,12 +41,14 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import net.sourceforge.processdash.team.mcf.CustomProcess;
 import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.AbstractNumericColumn;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColorColumn;
@@ -61,7 +63,9 @@ import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
 import teamdash.wbs.columns.WbsNodeAttributeSource;
+import teamdash.wbs.columns.WorkflowDefectInjectionRateColumn;
 import teamdash.wbs.columns.WorkflowScriptColumn;
+import teamdash.wbs.columns.WorkflowYieldColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -115,6 +119,8 @@ public class WBSDataWriter {
     private Integer[] attrColumns;
     /** The column number of the task dependencies column */
     private int dependencyColumn;
+    /** Columns for workflow quality parameters */
+    private AbstractNumericColumn workflowYield, workflowDefectInjRate;
     /** Maps XML tag names to objects capable of writing their attributes.
      * 
      * Each key should be an XML tag name returned by {@link #getTagNameForNode
@@ -149,6 +155,11 @@ public class WBSDataWriter {
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
             dependencyColumn =
                 dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
+        } else {
+            workflowYield = new WorkflowYieldColumn((WorkflowWBSModel) wbsModel,
+                    process);
+            workflowDefectInjRate = new WorkflowDefectInjectionRateColumn(
+                    (WorkflowWBSModel) wbsModel, process);
         }
         attributeWriters = buildAttributeWriters();
     }
@@ -242,6 +253,14 @@ public class WBSDataWriter {
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
         if (aw != null)
             aw.writeAttributes(out, node);
+
+        // write workflow quality attributes if applicable
+        if (workflowYield != null)
+            writeAttr(out, CustomProcess.EST_YIELD,
+                (NumericDataValue) workflowYield.getValueAt(node));
+        if (workflowDefectInjRate != null)
+            writeAttr(out, CustomProcess.EST_INJ_RATE,
+                (NumericDataValue) workflowDefectInjRate.getValueAt(node));
 
         WBSNode[] children = wbsModel.getChildren(node);
         TaskDependencyList dependencies = null;
@@ -580,6 +599,22 @@ public class WBSDataWriter {
             out.write(name);
             out.write("='");
             out.write(XMLUtils.escapeAttribute(value));
+            out.write("'");
+        }
+    }
+
+
+
+    /** Convenience method for writing a numeric XML attribute
+     */
+    private void writeAttr(Writer out, String name, NumericDataValue value)
+        throws IOException
+    {
+        if (value != null && !Double.isNaN(value.value)) {
+            out.write(" ");
+            out.write(name);
+            out.write("='");
+            out.write(Double.toString(value.value));
             out.write("'");
         }
     }
