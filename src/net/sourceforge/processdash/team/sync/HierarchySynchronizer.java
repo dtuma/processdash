@@ -94,6 +94,7 @@ import net.sourceforge.processdash.process.WorkflowInfo;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -1015,6 +1016,7 @@ public class HierarchySynchronizer {
             saveWorkflowUrlData();
             checkForUserInactivity();
         }
+        saveWorkflowQualityParams();
 
         sync(syncWorker, projectPath, projectXML);
 
@@ -1574,15 +1576,13 @@ public class HierarchySynchronizer {
     }
 
     private void saveWorkflowUrlData() {
-        workflowXml = openWorkflowXml();
-
         // if the current dump file doesn't support URLs or we couldn't
         // read the URLs for some reason, we don't make any changes to the
         // workflow URL data in the current dashboard.  This attempts to
         // gracefully handle the transition scenario where some person on the
         // team hasn't upgraded to the new version of the WBS editor, and they
         // save changes to the WBS (omitting URL data from both dump files).
-        if (workflowXml != null) {
+        if (openWorkflowXml()) {
             workflowURLsSupported = true;
             // workflow ID data is scrubbed starting in version 4.2.0, and is
             // the best source of reliable mapping information. In earlier
@@ -1599,25 +1599,55 @@ public class HierarchySynchronizer {
         }
     }
 
-    private Element openWorkflowXml() {
+    private void saveWorkflowQualityParams() {
+        if (openWorkflowXml())
+            saveWorkflowQualityParams(workflowXml);
+    }
+
+    private void saveWorkflowQualityParams(Element xml) {
+        // save any quality parameters found on this element
+        String id = xml.getAttribute(ID_ATTR);
+        maybeSaveWorkflowQualityParam(xml, id, "estDefectInjRate",
+            "Estimated Defects Injected per Hour", 1);
+        maybeSaveWorkflowQualityParam(xml, id, "estYield",
+            "Estimated % Phase Yield", 100);
+
+        // recurse over children of this XML element
+        for (Element child : XMLUtils.getChildElements(xml))
+            saveWorkflowQualityParams(child);
+    }
+
+    private void maybeSaveWorkflowQualityParam(Element xml, String id,
+            String xmlAttrName, String dataElemName, int fraction) {
+        String xmlAttrValue = xml.getAttribute(xmlAttrName);
+        if (XMLUtils.hasValue(xmlAttrValue)) {
+            try {
+                String dataName = TeamDataConstants.WORKFLOW_PARAM_PREFIX + "/"
+                        + id + "/" + dataElemName;
+                double val = Double.parseDouble(xmlAttrValue) / fraction;
+                forceData(projectPath, dataName, new DoubleData(val));
+            } catch (NumberFormatException e) {}
+        }
+    }
+
+    private boolean openWorkflowXml() {
         // Handling of workflow URLs depends upon data introduced in the
         // dump file in version 3.9.0. If an earlier version wrote the file,
         // don't attempt to retrieve workflow URL data for sync purposes.
         if (DashPackage.compareVersions(dumpFileVersion, "3.9.0") < 0)
-            return null;
+            return false;
 
-        InputStream in = null;
-        Element result = null;
-        if (workflowLocation != null) {
+        if (workflowXml == null && workflowLocation != null) {
+            InputStream in = null;
             try {
                 in = new BufferedInputStream(workflowLocation.openStream());
-                result = XMLUtils.parse(in).getDocumentElement();
-            } catch (Exception e) {}
+                workflowXml = XMLUtils.parse(in).getDocumentElement();
+            } catch (Exception e) {
+            } finally {
+                FileUtils.safelyClose(in);
+            }
         }
-        if (in != null) {
-            try { in.close(); } catch (Exception e) {}
-        }
-        return result;
+        return workflowXml != null;
     }
 
     private void collectWorkflowUrls(ListData result, Element xml, String path,

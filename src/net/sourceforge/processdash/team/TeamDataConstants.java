@@ -42,6 +42,7 @@ public interface TeamDataConstants {
     public static final String PROJECT_MILESTONES_INFO = "Project_Milestones_Info";
     public static final String PROJECT_COMPONENT_INFO = "Project_Component_Info";
     public static final String TEAM_MEMBER_COLORS = "Team_Member_Colors";
+    public static final String WORKFLOW_PARAM_PREFIX = "Workflow_Param";
     public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
     public static final String RELAUNCHED_PROJECT_FLAG =
         "Project_Was_Relaunched";
