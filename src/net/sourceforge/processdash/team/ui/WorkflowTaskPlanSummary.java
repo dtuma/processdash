@@ -57,6 +57,8 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             out.write("Location: probeSummaryNA.shtm\r\n\r\n");
             return;
         }
+        ListData weh = new ListData();
+        weh.add(workflow);
 
         String rootPath = workflow.getRootItemPath();
         tasks.remove(rootPath);
@@ -104,6 +106,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
 
         String projectPath = workflow.getProjectRootPath();
         ListData phaseIDs = new ListData();
+        String lastPhaseName = null;
         for (Entry<String, String> e : workflow.getWorkflowPhaseNames()
                 .entrySet()) {
             // the phase ID will be of the form "WF:projID:phaseID". Discard
@@ -115,12 +118,13 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             phaseIDs.add(phaseID);
 
             // store the phase name in the parameters
-            String phaseName = e.getValue();
+            String phaseName = lastPhaseName = e.getValue();
             HTMLUtils.appendQuery(uri, phaseID + "_Name", phaseName);
 
             // copy quality params for this phase from the project root
             copyWorkflowPhaseQualityParams(data, projectPath, phaseID);
         }
+        HTMLUtils.appendQuery(uri, "Last_Phase_Name", lastPhaseName);
 
         // Write data into the repository for use by the plan summary form
         data.putValue("Workflow_Root_Path", StringData.create(rootPath));
@@ -131,6 +135,7 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         for (String coqType : COQ_TYPES)
             data.putValue("Workflow_Task_Paths/" + coqType,
                 coqLists.get(coqType));
+        data.putValue("Workflow//Enactment_Helper", weh);
         data.putValue("Workflow//Phase_Nums", phaseNums);
         data.putValue("Workflow//Phase_IDs", phaseIDs);
 

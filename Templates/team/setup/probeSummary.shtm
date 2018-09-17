@@ -1,3 +1,4 @@
+<!--#resources bundle="Analysis.Workflow" -->
 <html>
 <head>
 <title><!--#echo [Workflow_Name] --> - Project Plan Summary</title>
@@ -9,8 +10,9 @@
       font-weight: normal;
       padding-left: 1em;
    }
-   .plan { padding-left: 10px }
+   .plan { padding-left: 15px }
    .acct { padding-left: 1em }
+   .forceWrap { width: 130px }
 </style>
 </head>
 <body>
@@ -214,6 +216,105 @@
 <tr><td>Total</td>
 <td class="plan"><input type="text" size="7" name="[Estimated Workflow Time]"/></td>
 <td><input type="text" size="7" name="[Workflow Time]"/></td>
+</tr>
+
+</table>
+
+
+<h2>Defects Injected</h2>
+
+<table>
+<tr><th></th>
+<th colspan="3" class="plan"># Defects Injected</th>
+<th colspan="2" class="plan"><div class="forceWrap">Defects Injected Per Hour</div></th>
+</tr>
+
+<tr><th></th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+<th>Actual %</th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+</tr>
+
+<!--#foreach name=PhaseID list=[Workflow//Phase_IDs] -->
+<tr><td><!--#echo PhaseID_Name --></td>
+    <td class="plan"><input type="text" size="7"
+        name='[PhaseID//estDefInj]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actDefInj]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actPctInj]%={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td class="plan"><input type="text" size="7"
+        name="[Workflow_Param/PhaseID/Estimated Defects Injected per Hour]"/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actInjRate]={workflowQualityCalc(&quot;=n&quot)'/></td>
+</tr>
+<!--#endfor-->
+
+<tr><td>Total</td>
+    <td class="plan"><input type="text" size="7"
+        name='[total//estDefInj]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[total//actDefInj]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td></td>
+</tr>
+
+</table>
+
+
+<h2>Defects Removed</h2>
+
+<table>
+<tr><th></th>
+<th colspan="3" class="plan"># Defects Removed</th>
+<th colspan="2" class="plan"><div class="forceWrap">Defects Removed Per Hour</div></th>
+<th colspan="2" class="plan"><div class="forceWrap">Defect Removal Yield</div></th>
+</tr>
+
+<tr><th></th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+<th>Actual %</th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+</tr>
+
+<!--#foreach name=PhaseID list=[Workflow//Phase_IDs] -->
+<tr><td><!--#echo PhaseID_Name --></td>
+    <td class="plan"><input type="text" size="7"
+        name='[PhaseID//estDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actPctRem]%={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td class="plan"><input type="text" size="7"
+        name='[PhaseID//estRemRate]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actRemRate]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td class="plan"><input type="text" size="7"
+        name="[Workflow_Param/PhaseID/Estimated % Phase Yield]%"/></td>
+    <td><input type="text" size="7"
+        name='[PhaseID//actYield]%={workflowQualityCalc(&quot;=n&quot)'/></td>
+</tr>
+<!--#endfor-->
+
+<tr><td>Total</td>
+    <td class="plan"><input type="text" size="7"
+        name='[total//estDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[total//actDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td></td>
+</tr>
+
+<tr><td class="acct"><!--#echo var="Analysis.After_FMT" arg0="Last_Phase_Name" --></td>
+    <td class="plan"><input type="text" size="7"
+        name='[after//estDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td><input type="text" size="7"
+        name='[after//actDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
+    <td></td>
 </tr>
 
 </table>

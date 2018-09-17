@@ -96,3 +96,5 @@
 
 [Estimated AFR] = [Estimated % Appraisal COQ] / [Estimated % Failure COQ];
 [AFR] = [% Appraisal COQ] / [% Failure COQ];
+
+[Quality Plan] = workflowQualityPlan([Workflow//Enactment_Helper]);
