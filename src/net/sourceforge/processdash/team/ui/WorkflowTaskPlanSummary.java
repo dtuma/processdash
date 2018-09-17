@@ -29,10 +29,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskMapType;
 import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskNodeType;
@@ -100,6 +102,26 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             }
         }
 
+        String projectPath = workflow.getProjectRootPath();
+        ListData phaseIDs = new ListData();
+        for (Entry<String, String> e : workflow.getWorkflowPhaseNames()
+                .entrySet()) {
+            // the phase ID will be of the form "WF:projID:phaseID". Discard
+            // the initial portion, so we just have the project-relative ID
+            String phaseID = e.getKey();
+            int colonPos = phaseID.lastIndexOf(':');
+            if (colonPos != -1)
+                phaseID = phaseID.substring(colonPos + 1);
+            phaseIDs.add(phaseID);
+
+            // store the phase name in the parameters
+            String phaseName = e.getValue();
+            HTMLUtils.appendQuery(uri, phaseID + "_Name", phaseName);
+
+            // copy quality params for this phase from the project root
+            copyWorkflowPhaseQualityParams(data, projectPath, phaseID);
+        }
+
         // Write data into the repository for use by the plan summary form
         data.putValue("Workflow_Root_Path", StringData.create(rootPath));
         data.putValue("Workflow_Name", StringData.create(workflowName));
@@ -110,10 +132,47 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             data.putValue("Workflow_Task_Paths/" + coqType,
                 coqLists.get(coqType));
         data.putValue("Workflow//Phase_Nums", phaseNums);
+        data.putValue("Workflow//Phase_IDs", phaseIDs);
 
         String html = getRequestAsString(uri.toString());
         writeHeader();
         out.write(html);
+    }
+
+    private void copyWorkflowPhaseQualityParams(DataContext data,
+            String projectPath, String phaseID) {
+        // the workflow quality parameters are copied into the project root by
+        // the sync logic. Construct the prefix where the parameters should be
+        // stored for this phase.
+        String srcPrefix = projectPath + "/"
+                + TeamDataConstants.WORKFLOW_PARAM_PREFIX + "/";
+        int slashPos = phaseID.indexOf('/');
+        if (slashPos == -1)
+            srcPrefix += phaseID;
+        else
+            srcPrefix += "PSP" + phaseID.substring(slashPos);
+
+        // copy each phase parameter over
+        for (String param : WORKFLOW_QUALITY_PARAMS) {
+            // get the relevant data names for this parameter
+            String srcDataName = srcPrefix + "/" + param;
+            String destDataName = TeamDataConstants.WORKFLOW_PARAM_PREFIX + "/"
+                    + phaseID + "/" + param;
+            String syncDataName = destDataName + "_Last_Synced_Val";
+
+            // if this param has never been copied, or if it has not been edited
+            // since the last copy, refresh it with data from the project root
+            SimpleData newVal = data.getSimpleValue(srcDataName);
+            if (newVal == null)
+                newVal = ImmutableDoubleData.EDITABLE_ZERO;
+            SimpleData destVal = data.getSimpleValue(destDataName);
+            SimpleData syncVal = data.getSimpleValue(syncDataName);
+            if (!newVal.equals(destVal)
+                    && (syncVal == null || syncVal.equals(destVal))) {
+                data.putValue(destDataName, newVal);
+                data.putValue(syncDataName, newVal);
+            }
+        }
     }
 
     private boolean hasOrphanedTime(DataContext data, String path) {
@@ -124,5 +183,8 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
 
     private static final String[] COQ_TYPES = { "Overhead", "Construction",
             "Appraisal", "Failure" };
+
+    private static final String[] WORKFLOW_QUALITY_PARAMS = {
+            "Estimated Defects Injected per Hour", "Estimated % Phase Yield" };
 
 }

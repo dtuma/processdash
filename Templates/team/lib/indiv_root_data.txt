@@ -111,3 +111,24 @@
     <!--#else--> 0
     <!--#endif-->);
 <!--#endfor-->
+
+
+// Store default quality parameters for PSP phases
+
+[Workflow_Param/PSP/Planning/Estimated % Phase Yield] = 0;
+[Workflow_Param/PSP/Design/Estimated % Phase Yield] = 0;
+[Workflow_Param/PSP/Design Review/Estimated % Phase Yield] = 0.7;
+[Workflow_Param/PSP/Code/Estimated % Phase Yield] = 0;
+[Workflow_Param/PSP/Code Review/Estimated % Phase Yield] = 0.7;
+[Workflow_Param/PSP/Compile/Estimated % Phase Yield] = 0;
+[Workflow_Param/PSP/Test/Estimated % Phase Yield] = 0.5;
+[Workflow_Param/PSP/Postmortem/Estimated % Phase Yield] = 0;
+
+[Workflow_Param/PSP/Planning/Estimated Defects Injected per Hour] = 0;
+[Workflow_Param/PSP/Design/Estimated Defects Injected per Hour] = 0.75;
+[Workflow_Param/PSP/Design Review/Estimated Defects Injected per Hour] = 0;
+[Workflow_Param/PSP/Code/Estimated Defects Injected per Hour] = 2;
+[Workflow_Param/PSP/Code Review/Estimated Defects Injected per Hour] = 0;
+[Workflow_Param/PSP/Compile/Estimated Defects Injected per Hour] = 0.3;
+[Workflow_Param/PSP/Test/Estimated Defects Injected per Hour] = 0.067;
+[Workflow_Param/PSP/Postmortem/Estimated Defects Injected per Hour] = 0;

@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2016 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,8 @@ public class WorkflowEnactmentHelper {
 
     private String projectID;
 
+    private String projectPath;
+
     private Integer workflowProcessKey;
 
     private String workflowProcessName;
@@ -117,6 +119,12 @@ public class WorkflowEnactmentHelper {
             return nodeTypes.get(taskPath);
     }
 
+    public String getProjectRootPath() {
+        if (projectPath == null)
+            lookupObjects();
+        return projectPath;
+    }
+
     public String getRootItemPath() {
         if (rootItemPath == null)
             tryFindCurrentEnactmentRoot();
@@ -150,9 +158,10 @@ public class WorkflowEnactmentHelper {
                 .getSimpleValue(DashHierarchy.DATA_REPOSITORY_NAME);
         hier = (DashHierarchy) hierItem.get(0);
 
-        projectID = DataRepository
-                .getInheritableValue(data, new StringBuffer(onePath),
+        StringBuffer prefix = new StringBuffer(onePath);
+        projectID = DataRepository.getInheritableValue(data, prefix,
                     PROJECT_ID).getSimpleValue().format();
+        projectPath = prefix.toString();
         db.getObject(ProjectLocator.class).getKeyForProject(projectID, null);
     }
 
