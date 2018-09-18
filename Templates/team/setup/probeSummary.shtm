@@ -1,7 +1,7 @@
-<!--#resources bundle="Analysis.Workflow" -->
+<!--#resources bundle="Templates" --><!--#resources bundle="Analysis.Workflow" -->
 <html>
 <head>
-<title><!--#echo [Workflow_Name] --> - Project Plan Summary</title>
+<title><!--#echo [Workflow_Name] --> - <!--#echo Summary.Title --></title>
 <link href="/style.css" rel="stylesheet" type="text/css"></link>
 <style>
    h2 a { 
@@ -19,10 +19,10 @@
 
 <h1 style='margin-top:0px'><!--#echo [Workflow_Root_Path] --></h1>
 
-<h2><!--#echo [Workflow_Name] --> - Project Plan Summary
+<h2><!--#echo [Workflow_Name] --> - <!--#echo Summary.Title -->
 <!--#if !EXPORT -->
 <a class="doNotPrint" href="/reports/workflowToDate?workflow=<!--#echo
-     var=[Workflow_ID] encoding=url -->">(Show To Date Metrics)</a>
+     var=[Workflow_ID] encoding=url -->"><!--#echo Summary.To_Date_Link --></a>
 <!--#endif-->
 </h2>
 
@@ -30,159 +30,159 @@
 <input type="hidden" name="[///Hierarchy]!"/>
 
 
-<h2>Project/Task Settings</h2>
+<h2><!--#echo Summary.Settings_Header --></h2>
 
 <table>
 <tr>
-<td>Project Owner</td>
+<td><!--#echo Summary.Project_Owner--></td>
 <td colspan="10"><input type="text" size="50" name="[/Owner]s"/></td>
 </tr>
 
 <tr>
-<td>Start Date</td>
+<td><!--#echo Start_Date --></td>
 <td colspan="4"><input type="text" size="25" name="[Workflow Started]d"/></td>
 <td></td><td></td><td></td><td></td><td></td><td></td>
 </tr>
 
 <tr>
-<td>Completion Date</td>
+<td><!--#echo Completion_Date --></td>
 <td colspan="4"><input type="text" size="25" name="[Workflow Completed]du"/></td>
-<td colspan="6">&nbsp;Completed:
+<td colspan="6">&nbsp;<!--#echo Completed -->:
      <input type="checkbox" name="[Workflow Completed]du"/></td>
 </tr>
 
 <tr>
-<td>Keywords</td>
+<td><!--#echo Summary.Keywords --></td>
 <td colspan="10"><input type="text" size="15" name="[Workflow Keywords]s"/></td>
 </tr>
 
 <tr>
-<td>Size Units</td>
+<td><!--#echo Summary.Size_Units --></td>
 <td colspan="10"><input type="text" size="15" name="[Size Units]rs"/></td>
 </tr>
 
 </table>
 
 
-<h2>Overall Metrics</h2>
+<h2><!--#echo Summary.Overall_Metrics --></h2>
 
-<table><tr><th align="left">Summary</th>
-<th class="plan">Plan</th>
-<th>Actual</th>
+<table><tr><th align="left"><!--#echo Summary --></th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
 </tr>
 
-<tr><td>Size/Hour</td>
+<tr><td><!--#echo Summary.Size_Rate --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Productivity"/></td>
 <td><input type="text" size="7" name="Productivity"/></td>
 </tr>
 
-<tr><td>Total Time</td>
+<tr><td><!--#echo Total_Time --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Workflow Time"/></td>
 <td><input type="text" size="7" name="Workflow Time"/></td>
 </tr>
 
 </tr>
-<tr><td>Time Estimating Error</td>
+<tr><td><!--#echo Time_Estimating_Error --></td>
 <td class="plan"></td>
 <td><input type="text" size="7" name="[Time Estimating Error]%"/></td>
 </tr>
 
 </tr>
-<tr><td>CPI (Cost-Performance Index)</td>
+<tr><td><!--#echo Summary.Cost_Performance_Index --></td>
 <td class="plan"></td>
 <td><input type="text" size="7" name="CPI"/></td>
 </tr>
 
-<tr><td>% Reuse</td>
+<tr><td><!--#echo %_Reused --></td>
 <td class="plan"><input type="text" size="7" name="Estimated % Reused"/></td>
 <td><input type="text" size="7" name="% Reused"/></td>
 </tr>
 
-<tr><td>% New Reusable</td>
+<tr><td><!--#echo %_New_Reusable --></td>
 <td class="plan"><input type="text" size="7" name="Estimated % New Reused"/></td>
 <td><input type="text" size="7" name="% New Reused"/></td>
 </tr>
 
-<tr><td>% Appraisal COQ</td>
+<tr><td><!--#echo %_Appraisal_COQ --></td>
 <td class="plan"><input type="text" size="7" name="Estimated % Appraisal COQ"/></td>
 <td><input type="text" size="7" name="% Appraisal COQ"/></td>
 </tr>
 
-<tr><td>% Failure COQ</td>
+<tr><td><!--#echo %_Failure_COQ --></td>
 <td class="plan"><input type="text" size="7" name="Estimated % Failure COQ"/></td>
 <td><input type="text" size="7" name="% Failure COQ"/></td>
 </tr>
 
-<tr><td>% Total COQ</td>
+<tr><td><!--#echo %_Total_COQ --></td>
 <td class="plan"><input type="text" size="7" name="Estimated % COQ"/></td>
 <td><input type="text" size="7" name="% COQ"/></td>
 </tr>
 
-<tr><td>COQ A/F Ratio</td>
+<tr><td><!--#echo Summary.COQ_AFR --></td>
 <td class="plan"><input type="text" size="7" name="Estimated AFR"/></td>
 <td><input type="text" size="7" name="AFR"/></td>
 </tr>
 
 </table>
 
-<h2>Size</h2>
+<h2><!--#echo Size --></h2>
 
 <table><tr><th></th>
-<th class="plan">Plan</th>
-<th>Actual</th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
 </tr>
 
-<tr><td>Base (B)</td>
+<tr><td><!--#echo Summary.Base_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Base Size"/></td>
 <td><input type="text" size="7" name="Base Size"/></td>
 </tr>
 
-<tr><td class="acct">Deleted (D)</td>
+<tr><td class="acct"><!--#echo Summary.Deleted_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Deleted Size"/></td>
 <td><input type="text" size="7" name="Deleted Size"/></td>
 </tr>
 
-<tr><td class="acct">Modified (M)</td>
+<tr><td class="acct"><!--#echo Summary.Modified_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Modified Size"/></td>
 <td><input type="text" size="7" name="Modified Size"/></td>
 </tr>
 
-<tr><td class="acct">Added (A)</td>
+<tr><td class="acct"><!--#echo Summary.Added_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Added Size"/></td>
 <td><input type="text" size="7" name="Added Size"/></td>
 </tr>
 
-<tr><td class="acct">Reused (R)</td>
+<tr><td class="acct"><!--#echo Summary.Reused_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Reused Size"/></td>
 <td><input type="text" size="7" name="Reused Size"/></td>
 </tr>
 
-<tr><td>Added and Modified (A+M)</td>
+<tr><td><!--#echo Summary.Added_&_Modified_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size"/></td>
 <td><input type="text" size="7" name="Added &amp; Modified Size"/></td>
 </tr>
 
-<tr><td>Total Size (T)</td>
+<tr><td><!--#echo Summary.Total_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Total Size"/></td>
 <td><input type="text" size="7" name="Total Size"/></td>
 </tr>
 
-<tr><td>Total New Reusable</td>
+<tr><td><!--#echo Summary.New_Reusable_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated New Reused Size"/></td>
 <td><input type="text" size="7" name="New Reused Size"/></td>
 </tr>
 
-<tr><td>Estimated Proxy Size (E)</td>
+<tr><td><!--#echo Summary.Est_Proxy_Size --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Proxy Size"/></td>
 <td><input type="text" size="7" name="Proxy Size"/></td>
 </tr>
 
-<tr><td>Upper Prediction Interval (70%)</td>
+<tr><td><!--#echo Summary.UPI_Long --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size/UPI"/></td>
 <td></td>
 </tr>
 
-<tr><td>Lower Prediction Interval (70%)</td>
+<tr><td><!--#echo Summary.LPI_Long --></td>
 <td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size/LPI"/></td>
 <td></td>
 </tr>
@@ -190,11 +190,11 @@
 </table>
 
 
-<h2>Time In Phase</h2>
+<h2><!--#echo Time_in_Phase --></h2>
 
 <table><tr><th></th>
-<th class="plan">Plan</th>
-<th>Actual</th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
 </tr>
 
 <!--#foreach name=Phase list=[Workflow//Phase_Nums] -->
@@ -213,7 +213,7 @@
 </tr>
 <!--#endfor-->
 
-<tr><td>Total</td>
+<tr><td><!--#echo Total --></td>
 <td class="plan"><input type="text" size="7" name="[Estimated Workflow Time]"/></td>
 <td><input type="text" size="7" name="[Workflow Time]"/></td>
 </tr>
@@ -221,20 +221,20 @@
 </table>
 
 
-<h2>Defects Injected</h2>
+<h2><!--#echo Defects_Injected --></h2>
 
 <table>
 <tr><th></th>
-<th colspan="3" class="plan"># Defects Injected</th>
-<th colspan="2" class="plan"><div class="forceWrap">Defects Injected Per Hour</div></th>
+<th colspan="3" class="plan"><!--#echo Summary.#_Defects_Injected --></th>
+<th colspan="2" class="plan"><div class="forceWrap"><!--#echo Defects_Injected_per_Hour --></div></th>
 </tr>
 
 <tr><th></th>
-<th class="plan">Plan</th>
-<th>Actual</th>
-<th>Actual %</th>
-<th class="plan">Plan</th>
-<th>Actual</th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
+<th><!--#echo Actual_% --></th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
 </tr>
 
 <!--#foreach name=PhaseID list=[Workflow//Phase_IDs] -->
@@ -252,7 +252,7 @@
 </tr>
 <!--#endfor-->
 
-<tr><td>Total</td>
+<tr><td><!--#echo Total --></td>
     <td class="plan"><input type="text" size="7"
         name='[total//estDefInj]={workflowQualityCalc(&quot;=n&quot)'/></td>
     <td><input type="text" size="7"
@@ -263,23 +263,23 @@
 </table>
 
 
-<h2>Defects Removed</h2>
+<h2><!--#echo Defects_Removed --></h2>
 
 <table>
 <tr><th></th>
-<th colspan="3" class="plan"># Defects Removed</th>
-<th colspan="2" class="plan"><div class="forceWrap">Defects Removed Per Hour</div></th>
-<th colspan="2" class="plan"><div class="forceWrap">Defect Removal Yield</div></th>
+<th colspan="3" class="plan"><!--#echo Summary.#_Defects_Removed --></th>
+<th colspan="2" class="plan"><div class="forceWrap"><!--#echo Defects_Removed_per_Hour --></div></th>
+<th colspan="2" class="plan"><div class="forceWrap"><!--#echo Summary.Defect_Removal_Yield --></div></th>
 </tr>
 
 <tr><th></th>
-<th class="plan">Plan</th>
-<th>Actual</th>
-<th>Actual %</th>
-<th class="plan">Plan</th>
-<th>Actual</th>
-<th class="plan">Plan</th>
-<th>Actual</th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
+<th><!--#echo Actual_% --></th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
+<th class="plan"><!--#echo Plan --></th>
+<th><!--#echo Actual --></th>
 </tr>
 
 <!--#foreach name=PhaseID list=[Workflow//Phase_IDs] -->
@@ -301,7 +301,7 @@
 </tr>
 <!--#endfor-->
 
-<tr><td>Total</td>
+<tr><td><!--#echo Total --></td>
     <td class="plan"><input type="text" size="7"
         name='[total//estDefRem]={workflowQualityCalc(&quot;=n&quot)'/></td>
     <td><input type="text" size="7"
