@@ -61,7 +61,6 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
         weh.add(workflow);
 
         String rootPath = workflow.getRootItemPath();
-        tasks.remove(rootPath);
         String workflowName = workflow.getWorkflowProcessName();
         String workflowID = workflow.getWorkflowProcessID();
 
@@ -75,16 +74,25 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
             coqLists.put(coqType, new ListData());
         ListData phaseNums = new ListData();
 
-        int phaseNum = 0;
+        int phaseNum = 0, numRoots = 0;
+        String lastRootPath = rootPath;
         for (Entry<String, String> e : tasks.entrySet()) {
             String taskPath = e.getKey();
             TaskNodeType nodeType = workflow.getNodeType(taskPath);
-            if (nodeType == TaskNodeType.Leaf || nodeType == TaskNodeType.PSP)
+            if (nodeType == TaskNodeType.Leaf || nodeType == TaskNodeType.PSP) {
                 fullPaths.add(taskPath);
+            } else if (nodeType == TaskNodeType.Root) {
+                lastRootPath = taskPath;
+                HTMLUtils.appendQuery(uri, phaseNum + "_Is_Row_Group", "t");
+                HTMLUtils.appendQuery(uri, phaseNum + "_Abs_Path", taskPath);
+                phaseNums.add(Integer.toString(phaseNum++));
+                numRoots++;
+                continue;
+            }
 
             if (nodeType != TaskNodeType.Parent
                     || hasOrphanedTime(data, taskPath)) {
-                String shortName = taskPath.substring(rootPath.length() + 1);
+                String shortName = taskPath.substring(lastRootPath.length() + 1);
                 HTMLUtils.appendQuery(uri, phaseNum + "_Rel_Path", shortName);
                 HTMLUtils.appendQuery(uri, phaseNum + "_Abs_Path", taskPath);
                 if (nodeType == TaskNodeType.Parent) {
@@ -103,6 +111,8 @@ public class WorkflowTaskPlanSummary extends TinyCGIBase {
                 coqList.add(taskPath);
             }
         }
+        HTMLUtils.appendQuery(uri, "Row_Group_Type",
+            numRoots > 1 ? "showRowGroups" : "hideRowGroups");
 
         String projectPath = workflow.getProjectRootPath();
         ListData phaseIDs = new ListData();

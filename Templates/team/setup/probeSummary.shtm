@@ -13,6 +13,10 @@
    .plan { padding-left: 15px }
    .acct { padding-left: 1em }
    .forceWrap { width: 130px }
+   tr.rowGroup { font-size: small }
+   tr.rowGroup td { padding-top: 5px }
+   table.hideRowGroups tr.rowGroup { display: none }
+   table.showRowGroups td.stepName { padding-left: 15px }
 </style>
 </head>
 <body>
@@ -81,13 +85,11 @@
 <td><input type="text" size="7" name="Workflow Time"/></td>
 </tr>
 
-</tr>
 <tr><td><!--#echo Time_Estimating_Error --></td>
 <td class="plan"></td>
 <td><input type="text" size="7" name="[Time Estimating Error]%"/></td>
 </tr>
 
-</tr>
 <tr><td><!--#echo Summary.Cost_Performance_Index --></td>
 <td class="plan"></td>
 <td><input type="text" size="7" name="CPI"/></td>
@@ -192,14 +194,18 @@
 
 <h2><!--#echo Time_in_Phase --></h2>
 
-<table><tr><th></th>
+<table class="<!--#echo Row_Group_Type -->"><tr><th></th>
 <th class="plan"><!--#echo Plan --></th>
 <th><!--#echo Actual --></th>
 </tr>
 
 <!--#foreach name=Phase list=[Workflow//Phase_Nums] -->
 
-<tr><td><!--#echo Phase_Rel_Path --></td>
+<!--#if Phase_Is_Row_Group -->
+<tr class="rowGroup"><td colspan="4"><!--#echo Phase_Abs_Path --></td></tr>
+
+<!--#else-->
+<tr><td class="stepName"><!--#echo Phase_Rel_Path --></td>
 <!--#if Phase_Orphan #-->
     <td></td>
     <td><input type="text" size="7"
@@ -210,7 +216,9 @@
     <td><input type="text" size="7" name="[<!--#echo Phase_Abs_Path
              -->/Time]tro"/></td>
 <!--#endif-->
+<td>&nbsp;</td>
 </tr>
+<!--#endif-->
 <!--#endfor-->
 
 <tr><td><!--#echo Total --></td>

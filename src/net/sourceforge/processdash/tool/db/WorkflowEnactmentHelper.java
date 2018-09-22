@@ -67,6 +67,8 @@ public class WorkflowEnactmentHelper {
 
     private String workflowProcessID;
 
+    private Set<Integer> mappedProcessKeys;
+
     private Map<String, String> workflowPhaseNames;
 
     private Map<String, String> workflowPhaseTypes;
@@ -151,7 +153,7 @@ public class WorkflowEnactmentHelper {
     }
 
     private void lookupObjects() {
-        DatabasePlugin db = require(QueryUtils.getDatabasePlugin(data));
+        DatabasePlugin db = require(QueryUtils.getDatabasePlugin(data, true));
         query = require(db.getObject(QueryRunner.class));
 
         ListData hierItem = (ListData) data
@@ -162,7 +164,6 @@ public class WorkflowEnactmentHelper {
         projectID = DataRepository.getInheritableValue(data, prefix,
                     PROJECT_ID).getSimpleValue().format();
         projectPath = prefix.toString();
-        db.getObject(ProjectLocator.class).getKeyForProject(projectID, null);
     }
 
 
@@ -186,6 +187,8 @@ public class WorkflowEnactmentHelper {
         workflowProcessKey = (Integer) row[0];
         workflowProcessName = (String) row[1];
         workflowProcessID = (String) row[2];
+        mappedProcessKeys = new HashSet(query.queryHql(WORKFLOW_MAPPING_QUERY,
+            workflowProcessKey));
 
         // retrieve the phases in this workflow.
         rawData = query.queryHql(WORKFLOW_PHASE_QUERY, workflowProcessKey);
@@ -196,6 +199,11 @@ public class WorkflowEnactmentHelper {
     private static final String WORKFLOW_PROCESS_QUERY = //
     "select phase.process.key, phase.process.name, phase.process.identifier "
             + "from Phase phase where phase.identifier = ?";
+
+    private static final String WORKFLOW_MAPPING_QUERY = //
+    "select distinct p.process.key from Phase p " //
+            + "join p.mapsToPhase mapsTo " //
+            + "where mapsTo.process.key = ?";
 
     private static final String WORKFLOW_PHASE_QUERY = //
     "select phase.identifier, phase.shortName, phase.typeName "
@@ -219,8 +227,10 @@ public class WorkflowEnactmentHelper {
         // find the WBS IDs of all of the tasks in this enactment
         String wbsID = getString(onePath, WBS_ID);
         String projectWbsID = projectID + ":" + wbsID;
+        Object enactmentRootKey = QueryUtils.singleValue(query.queryHql(
+            ENACTMENT_ROOT_QUERY, workflowProcessKey, projectWbsID));
         enactmentWbsIDs = new HashSet(query.queryHql(ENACTMENT_ITEM_QUERY,
-            workflowProcessKey, projectWbsID));
+            enactmentRootKey, mappedProcessKeys));
 
         rootItemPath = onePath;
         String path = DataRepository.chopPath(onePath);
@@ -238,13 +248,16 @@ public class WorkflowEnactmentHelper {
         rootItemKey = require(hier.findExistingKey(rootItemPath));
     }
 
-    private static final String ENACTMENT_ITEM_QUERY = //
-    "select pi.includesItem.identifier "
-            + "from ProcessEnactment pe, ProcessEnactment pi "
+    private static final String ENACTMENT_ROOT_QUERY = //
+    "select pe.rootItem.key from ProcessEnactment pe "
             + "where pe.process.key = ? "
-            + "and pe.includesItem.identifier = ? "
-            + "and pe.rootItem.key = pi.rootItem.key "
-            + "and pe.process.key = pi.process.key";
+            + "and pe.includesItem.identifier = ?";
+
+    private static final String ENACTMENT_ITEM_QUERY = //
+    "select pe.includesItem.identifier from ProcessEnactment pe "
+            + "where pe.rootItem.key = ? " //
+            + "and pe.process.key in (?)";
+
 
 
     private void tryEnumerateTasks() {
@@ -254,11 +267,36 @@ public class WorkflowEnactmentHelper {
             if (rootItemKey != null) {
                 enactmentTasks = new LinkedHashMap<String, String>();
                 nodeTypes = new HashMap();
-                enumerateTasks(rootItemKey, null);
-                nodeTypes.put(rootItemPath, TaskNodeType.Root);
+                scanHierarchyForEnactmentTasks(PropertyKey.ROOT, null);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void scanHierarchyForEnactmentTasks(PropertyKey node,
+            String enclosingProjectID) {
+        String path = node.path();
+        String wbsFullID = null;
+        if (enclosingProjectID != null) {
+            wbsFullID = enclosingProjectID + ":" + getString(path, WBS_ID);
+        } else {
+            enclosingProjectID = getString(path, PROJECT_ID);
+            if (enclosingProjectID != null)
+                wbsFullID = enclosingProjectID + ":root";
+        }
+
+        if (wbsFullID != null && enactmentWbsIDs.contains(wbsFullID)
+                && enumerateTasks(node, null)) {
+            if (enactmentTasks.containsKey(path)
+                    && enactmentTasks.get(path) == null)
+                nodeTypes.put(path, TaskNodeType.Root);
+
+        } else {
+            int numChildren = hier.getNumChildren(node);
+            for (int i = 0; i < numChildren; i++)
+                scanHierarchyForEnactmentTasks(hier.getChildKey(node, i),
+                    enclosingProjectID);
         }
     }
 
