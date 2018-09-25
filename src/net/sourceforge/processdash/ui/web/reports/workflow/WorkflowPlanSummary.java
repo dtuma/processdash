@@ -153,7 +153,7 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             printTable("Defects_Removed", null, defectsByPhase[REM], Format.Number, true);
             printDefectsByPhaseCharts(defectsByPhase);
             writeAdvancedDefectMetrics(hist, defectsByPhase, timeInPhase,
-                phaseYields, processYields, injRates, remRates);
+                phaseYields, processYields, injRates, remRates, hasQualityPlan);
             if (hasQualityPlan == false)
                 out.print("</div>\n");
         }
@@ -251,7 +251,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             Map<String, DataPair> phaseYields,
             Map<String, DataPair> processYields,
             Map<String, DataPair> injRates,
-            Map<String, DataPair> remRates) {
+            Map<String, DataPair> remRates,
+            boolean hasQualityPlan) throws IOException {
 
         // change the display name for the "total" row
         DataPair totalProcessYield = processYields.remove(TOTAL_KEY);
@@ -267,6 +268,16 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             "Workflow.Analysis.%_Removed_Before", processYields,
             Format.Percent, false);
 
+        // display plan-vs-actual yield charts
+        if (hasQualityPlan) {
+            out.print("<p>\n");
+            writePhasePlanVsActualLineChart("Workflow.Analysis.Phase_Yields",
+                "Quality.Phase_Yield_Label", phaseYields, "100%");
+            writePhasePlanVsActualLineChart("Workflow.Analysis.Process_Yields",
+                "Workflow.Analysis.%_Removed_Before", processYields, "100%");
+            out.print("</p>\n");
+        }
+
         injRates.remove(TOTAL_KEY); // don't display overall rates
         remRates.remove(TOTAL_KEY);
         replaceNaNs(0.0, injRates, remRates); // clean up 0/0 rates
@@ -275,6 +286,19 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             "Defects_Injected_per_Hour", injRates, Format.Number, false);
         printTable("Workflow.Analysis.Defect_Removal_Rates",
             "Defects_Removed_per_Hour", remRates, Format.Number, false);
+
+        // display injection/removal rate charts
+        out.print("<p>\n");
+        if (hasQualityPlan) {
+            writePhasePlanVsActualLineChart(
+                "Workflow.Analysis.Defect_Injection_Rates",
+                "Defects_Injected_per_Hour", injRates);
+            writePhasePlanVsActualLineChart(
+                "Workflow.Analysis.Defect_Removal_Rates",
+                "Defects_Removed_per_Hour", remRates);
+        }
+        writeInjVsRemovedRatesChart(injRates, remRates);
+        out.print("</p>\n");
     }
 
     private DataContext getQualityParamData(WorkflowHistDataHelper hist) {
@@ -552,8 +576,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             return;
 
         out.print("<p>\n");
-        writePhaseChart(true, "Estimated_Time", "Hours", 60, timeInPhase);
-        writePhaseChart(false, "Time", "Hours", 60, timeInPhase);
+        writePhasePieChart(true, "Estimated_Time", "Hours", 60, timeInPhase);
+        writePhasePieChart(false, "Time", "Hours", 60, timeInPhase);
         out.print("</p>\n");
     }
 
@@ -572,56 +596,128 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         Map removed = defectsByPhase[REM];
 
         out.print("<p>\n");
-        writePhaseChart(false, "Defects_Injected", "Defects", 1, injected);
-        writePhaseChart(false, "Defects_Removed", "Defects", 1, removed);
+        writePhasePieChart(false, "Defects_Injected", "Defects", 1, injected);
+        writePhasePieChart(false, "Defects_Removed", "Defects", 1, removed);
+        writePhasePlanVsActualLineChart("Defect_Removal_Profile",
+            "Workflow.Analysis.#_Defects_Removed", removed);
+        writeLatentDefectChart(defectsByPhase);
         out.print("</p>\n");
     }
 
-    private void writePhaseChart(boolean plan, String titleRes,
+    private void writePhasePieChart(boolean plan, String titleRes,
             String columnRes, double factor, Map<String, DataPair> phaseData)
             throws IOException {
-        int numRows = phaseData.size() - 1;
-        ResultSet data = new ResultSet(numRows, 1);
-        int row = 0;
-        for (Entry<String, DataPair> e : phaseData.entrySet()) {
-            if (++row > numRows)
-                break;
-            data.setRowName(row, e.getKey());
-            double value = plan ? e.getValue().plan : e.getValue().actual;
-            data.setData(row, 1, new DoubleData(value / factor));
-        }
-        writeChart((plan ? "Plan" : "Actual"), titleRes, columnRes, data);
+        ResultSet data = buildPhaseResultSet(factor, phaseData, plan);
+        data.setColName(1, resources.getString(columnRes));
+        writeChart("pie", (plan ? "Plan" : "Actual"), titleRes, data,
+            "colorScheme", "consistent");
     }
 
-    private void writeChart(String type, String titleRes, String columnRes,
-            ResultSet chartData) throws IOException {
-        chartData.setColName(0, "Phase");
-        chartData.setColName(1, resources.getString(columnRes));
+    private void writePhasePlanVsActualLineChart(String titleRes,
+            String yAxisRes, Map<String, DataPair> phaseData,
+            String... format) throws IOException {
+        ResultSet data = buildPhaseResultSet(1, phaseData, true, //
+            phaseData, false);
+        data.setColName(1, "Plan");
+        data.setColName(2, "Actual");
+        if (format.length == 1) {
+            data.setFormat(1, format[0]);
+            data.setFormat(2, format[0]);
+        }
+        String units = resources.getString(yAxisRes);
+        writeChart("line", "Line", titleRes, data, //
+            "units", units, "headerComment", units);
+    }
+
+    private void writeLatentDefectChart(Map<String, DataPair>[] defectsByPhase)
+            throws IOException {
+        Map<String, DataPair> latent = new LinkedHashMap();
+        DataPair running = new DataPair();
+        for (String phaseName : defectsByPhase[INJ].keySet()) {
+            DataPair injectedInPhase = defectsByPhase[INJ].get(phaseName);
+            running.add(injectedInPhase);
+            DataPair removedInPhase = defectsByPhase[REM].get(phaseName);
+            if (removedInPhase != null)
+                running.subtract(removedInPhase);
+            latent.put(phaseName, new DataPair(running));
+        }
+
+        ResultSet data = buildPhaseResultSet(1, latent, true, latent, false);
+        data.setColName(1, resources.getString(LATENT_RES + "Plan"));
+        data.setColName(2, resources.getString(LATENT_RES + "Actual"));
+        String units = resources.getString(LATENT_RES + "Units");
+        writeChart("line", "Line", LATENT_RES + "Title", data, //
+            "units", units, "headerComment", units, //
+            "footerComment", resources.getString(LATENT_RES + "Footer"));
+    }
+    private static final String LATENT_RES = "Workflow.Analysis.Latent_Defects.";
+
+    private void writeInjVsRemovedRatesChart(Map<String, DataPair> injRates,
+            Map<String, DataPair> remRates) throws IOException {
+        injRates.put(TOTAL_KEY, null);
+        ResultSet data = buildPhaseResultSet(1, injRates, false, //
+            remRates, false);
+        data.setColName(1, resources.getString(RATES_RES + "Injected"));
+        data.setColName(2, resources.getString(RATES_RES + "Removed"));
+        String u = resources.getString(RATES_RES + "Units");
+        writeChart("line", "Line", RATES_RES + "Title", data, //
+            "units", u, "headerComment", u);
+    }
+    private static final String RATES_RES = "Workflow.Analysis.Defect_Rates.";
+
+    private ResultSet buildPhaseResultSet(double factor, Object... columns) {
+        Map<String, DataPair> phaseData = (Map<String, DataPair>) columns[0];
+        int numRows = phaseData.size() - 1;
+        int numCols = columns.length / 2;
+        ResultSet result = new ResultSet(numRows, numCols);
+        result.setColName(0, "Phase");
+
+        int row = 0;
+        for (String phaseName : phaseData.keySet()) {
+            if (++row > numRows)
+                break;
+            result.setRowName(row, phaseName);
+            for (int col = 0; col < numCols; col++) {
+                phaseData = (Map<String, DataPair>) columns[col * 2];
+                DataPair pair = phaseData.get(phaseName);
+                Boolean plan = (Boolean) columns[col * 2 + 1];
+                double value = plan ? pair.plan : pair.actual;
+                result.setData(row, col + 1, new DoubleData(value / factor));
+            }
+        }
+        return result;
+    }
+
+    private void writeChart(String chartType, String subtype, String titleRes,
+            ResultSet chartData, String... extraParams) throws IOException {
         String title = resources.getString(titleRes);
 
-        String dataName = "Workflow_Chart///" + type + "_" + titleRes;
+        String dataName = "Workflow_Chart///" + subtype + "_" + titleRes;
         ListData l = new ListData();
         l.add(chartData);
         getDataContext().putValue(dataName, l);
 
         StringBuffer fullUri = new StringBuffer(isExporting() ? "table.class"
                 : "full.htm");
-        HTMLUtils.appendQuery(fullUri, "chart", "pie");
+        HTMLUtils.appendQuery(fullUri, "chart", chartType);
         HTMLUtils.appendQuery(fullUri, "useData", dataName);
         HTMLUtils.appendQuery(fullUri, "title", title);
-        HTMLUtils.appendQuery(fullUri, "colorScheme", "consistent");
+        for (int i = 0; i < extraParams.length; i += 2)
+            HTMLUtils.appendQuery(fullUri, extraParams[i], extraParams[i+1]);
 
         StringBuffer uri = new StringBuffer();
-        uri.append(resolveRelativeURI("pie.class"));
+        uri.append(resolveRelativeURI(chartType + ".class"));
         HTMLUtils.appendQuery(uri, "useData", dataName);
         HTMLUtils.appendQuery(uri, "title", title);
         HTMLUtils.appendQuery(uri, "qf", "small.rpt");
         HTMLUtils.appendQuery(uri, "hideLegend", "t");
-        HTMLUtils.appendQuery(uri, "colorScheme", "consistent");
+        for (int i = 0; i < extraParams.length; i += 2)
+            HTMLUtils.appendQuery(uri, extraParams[i], extraParams[i+1]);
         HTMLUtils.appendQuery(uri, "html", "t");
         HTMLUtils.appendQuery(uri, "href", fullUri.toString());
 
         out.print(getRequestAsString(uri.toString()));
+        out.print("&nbsp;\n");
     }
 
     private String esc(String s) {
