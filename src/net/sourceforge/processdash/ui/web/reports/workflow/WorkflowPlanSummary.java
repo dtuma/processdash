@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2016 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
 
 package net.sourceforge.processdash.ui.web.reports.workflow;
 
+import static net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.INJ;
+import static net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.REM;
+import static net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.UNK;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -32,12 +36,19 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.db.WorkflowHistDataHelper;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.DataPair;
@@ -74,7 +85,7 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         out.print(" td.plan, td.act { padding-right: 4px; border: 1px solid gray; text-align: right }\n");
         out.print(" #filter.collapsed .filterItem { display: none }\n");
         out.print(" #filter.expanded .filterLink { display: none }\n");
-        out.print(" #defects th.plan, #defects td.plan { display: none }\n");
+        out.print(" div.hideQualPlan th.plan, div.hideQualPlan td.plan { display: none }\n");
         out.print("</style>\n");
         out.print("<script>\n");
         out.print("    function showFilter() {\n");
@@ -98,6 +109,32 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
         Map<String, DataPair>[] defectsByPhase = hist.getDefectsByPhase();
 
+        DataContext qualityParams = getQualityParamData(hist);
+        Map<String, String> phaseIDs = hist.getPhaseIdentifiers();
+
+        // calculate actual defect injection rates
+        Map<String, DataPair> injRates = divide(defectsByPhase[INJ], timeInPhase);
+        multiply(60, injRates); // convert minutes to hours
+        // load quality parameter values for planned injection rates
+        loadPhaseQualityPlanParams(qualityParams, phaseIDs, injRates,
+            "Estimated Defects Injected per Hour");
+
+        // get the yields for the process/phases
+        Map<String, DataPair>[] yields = hist.getYields();
+        Map<String, DataPair> processYields = yields[0];
+        Map<String, DataPair> phaseYields = yields[1];
+        // load quality parameter values for planned phase yields
+        loadPhaseQualityPlanParams(qualityParams, phaseIDs, phaseYields,
+            "Estimated % Phase Yield");
+
+        // estimate planned injected/removed defects by phase
+        boolean hasQualityPlan = calculatePlannedDefects(hist, defectsByPhase,
+            timeInPhase, phaseYields, processYields, injRates);
+
+        // calculate planned and actual defect removal rates
+        Map<String, DataPair> remRates = divide(defectsByPhase[REM], timeInPhase);
+        multiply(60, remRates); // convert minutes to hours
+
         for (Iterator<String> i = sizes.keySet().iterator(); i.hasNext();) {
             if (AnalysisPage.isTimeUnits(i.next()))
                 i.remove();
@@ -108,14 +145,17 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         printTable("Time_in_Phase", null, timeInPhase, Format.Time, true);
         printTimeInPhaseCharts(timeInPhase);
 
-        if (defectsByPhase[1].get(TOTAL_KEY).actual > 0) {
-            out.print("<div id=\"defects\">\n");
+        if (defectsByPhase[REM].get(TOTAL_KEY).actual > 0) {
+            if (hasQualityPlan == false)
+                out.print("<div class=\"hideQualPlan\">\n");
             setBeforeAndAfterRowLabels(timeInPhase);
-            printTable("Defects_Injected", null, defectsByPhase[0], Format.Number, true);
-            printTable("Defects_Removed", null, defectsByPhase[1], Format.Number, true);
+            printTable("Defects_Injected", null, defectsByPhase[INJ], Format.Number, true);
+            printTable("Defects_Removed", null, defectsByPhase[REM], Format.Number, true);
             printDefectsByPhaseCharts(defectsByPhase);
-            writeAdvancedDefectMetrics(hist, defectsByPhase, timeInPhase);
-            out.print("</div>\n");
+            writeAdvancedDefectMetrics(hist, defectsByPhase, timeInPhase,
+                phaseYields, processYields, injRates, remRates);
+            if (hasQualityPlan == false)
+                out.print("</div>\n");
         }
 
         if (!isExportingToExcel()) {
@@ -207,12 +247,11 @@ public class WorkflowPlanSummary extends TinyCGIBase {
 
     private void writeAdvancedDefectMetrics(WorkflowHistDataHelper hist,
             Map<String, DataPair>[] defectsByPhase,
-            Map<String, DataPair> timeInPhase) {
-
-        // get the yields for the process
-        Map<String, DataPair>[] yields = hist.getYields();
-        Map<String, DataPair> processYields = yields[0];
-        Map<String, DataPair> phaseYields = yields[1];
+            Map<String, DataPair> timeInPhase,
+            Map<String, DataPair> phaseYields,
+            Map<String, DataPair> processYields,
+            Map<String, DataPair> injRates,
+            Map<String, DataPair> remRates) {
 
         // change the display name for the "total" row
         DataPair totalProcessYield = processYields.remove(TOTAL_KEY);
@@ -228,15 +267,109 @@ public class WorkflowPlanSummary extends TinyCGIBase {
             "Workflow.Analysis.%_Removed_Before", processYields,
             Format.Percent, false);
 
-        Map<String, DataPair> injRates = divide(defectsByPhase[0], timeInPhase);
-        Map<String, DataPair> remRates = divide(defectsByPhase[1], timeInPhase);
-        multiply(60, injRates, remRates); // convert minutes to hours
+        injRates.remove(TOTAL_KEY); // don't display overall rates
+        remRates.remove(TOTAL_KEY);
         replaceNaNs(0.0, injRates, remRates); // clean up 0/0 rates
         applyLegacyMultiplier(defectsByPhase, injRates, remRates);
         printTable("Workflow.Analysis.Defect_Injection_Rates",
             "Defects_Injected_per_Hour", injRates, Format.Number, false);
         printTable("Workflow.Analysis.Defect_Removal_Rates",
             "Defects_Removed_per_Hour", remRates, Format.Number, false);
+    }
+
+    private DataContext getQualityParamData(WorkflowHistDataHelper hist) {
+        DataRepository data = getDataRepository();
+        String projectID = hist.getContextProjectID();
+        String projectPath = findProjectWithID(data, getPSPProperties(),
+            PropertyKey.ROOT, projectID);
+        return data.getSubcontext(
+            projectPath + "/" + TeamDataConstants.WORKFLOW_PARAM_PREFIX);
+    }
+
+    private String findProjectWithID(DataRepository data, DashHierarchy hier,
+            PropertyKey key, String projectID) {
+        String dataName = key.path() + "/" + TeamDataConstants.PROJECT_ID;
+        SimpleData sd = data.getSimpleValue(dataName);
+        if (sd == null) {
+            for (int i = hier.getNumChildren(key); i-- > 0;) {
+                String childResult = findProjectWithID(data, hier,
+                    hier.getChildKey(key, i), projectID);
+                if (childResult != null)
+                    return childResult;
+            }
+            return null;
+        } else if (projectID.equals(sd.format())) {
+            return key.path();
+        } else {
+            return null;
+        }
+    }
+
+    private void loadPhaseQualityPlanParams(DataContext params,
+            Map<String, String> phaseIDs, Map<String, DataPair> phaseData,
+            String paramName) {
+        for (Entry<String, String> e : phaseIDs.entrySet()) {
+            // get the name of this phase and find its data pair
+            String phaseName = e.getKey();
+            DataPair phase = phaseData.get(phaseName);
+            if (phase == null)
+                continue;
+
+            // get the phase ID, and use it to construct a param prefix
+            String phaseID = e.getValue();
+            int colonPos = phaseID.lastIndexOf(':');
+            String numericID = phaseID.substring(colonPos + 1);
+
+            // get the parameter value
+            SimpleData sd = params.getSimpleValue(numericID + "/" + paramName);
+            if (sd instanceof NumberData)
+                phase.plan = ((NumberData) sd).getDouble();
+            else
+                phase.plan = 0;
+        }
+    }
+
+    private boolean calculatePlannedDefects(WorkflowHistDataHelper hist,
+            Map<String, DataPair>[] defectsByPhase,
+            Map<String, DataPair> timeInPhase,
+            Map<String, DataPair> phaseYields,
+            Map<String, DataPair> processYields,
+            Map<String, DataPair> injRates) {
+
+        double cumInj = 0, cumRem = 0, runningDefectCount = 0;
+        for (String phaseName : hist.getPhasesOfType()) {
+            // calculate the process yield for this phase
+            DataPair processYield = processYields.get(phaseName);
+            if (processYield != null)
+                processYield.plan = cumRem / cumInj;
+
+            // estimate the # defects that will be injected in this phase
+            double estInjRate = injRates.get(phaseName).plan;
+            double estDefInj = estInjRate * timeInPhase.get(phaseName).plan / 60;
+            defectsByPhase[INJ].get(phaseName).plan = estDefInj;
+            runningDefectCount += estDefInj;
+            cumInj += estDefInj;
+
+            // use yield to estimate the defects that will be removed
+            double estYield = phaseYields.get(phaseName).plan;
+            double estDefRem = runningDefectCount * estYield;
+            defectsByPhase[REM].get(phaseName).plan = estDefRem;
+            runningDefectCount -= estDefRem;
+            cumRem += estDefRem;
+        }
+
+        // calculate the process yield for the overall workflow
+        processYields.get(TOTAL_KEY).plan = cumRem / cumInj;
+
+        // save the escaped defects into the "after development" bucket
+        DataPair remAfter = defectsByPhase[REM].get(Defect.AFTER_DEVELOPMENT);
+        remAfter.plan = runningDefectCount;
+
+        // update total planned defect count (inj and removed share a total)
+        defectsByPhase[INJ].get(TOTAL_KEY).plan = cumInj;
+
+        // return true if a nonzero quality plan was generated
+        return cumInj > 0;
     }
 
     private Map<String, DataPair> divide(Map<String, DataPair> numerators,
@@ -293,8 +426,8 @@ public class WorkflowPlanSummary extends TinyCGIBase {
      */
     private void applyLegacyMultiplier(Map<String, DataPair>[] defectsByPhase,
             Map<String, DataPair>... dataToFix) {
-        DataPair total = defectsByPhase[1].get(TOTAL_KEY);
-        DataPair unrecognized = defectsByPhase[2].get(TOTAL_KEY);
+        DataPair total = defectsByPhase[REM].get(TOTAL_KEY);
+        DataPair unrecognized = defectsByPhase[UNK].get(TOTAL_KEY);
         if (total.actual > 0 && unrecognized.actual > 0) {
             double factor = 1 + (unrecognized.actual / total.actual);
             for (Map<String, DataPair> oneDataSet : dataToFix) {
@@ -431,12 +564,12 @@ public class WorkflowPlanSummary extends TinyCGIBase {
 
         // shuffle the items in the "injected" list so "Before Development" is
         // at the end. This makes the phase colors consistent across pie charts.
-        Map<String, DataPair> injected = new LinkedHashMap(defectsByPhase[0]);
+        Map<String, DataPair> injected = new LinkedHashMap(defectsByPhase[INJ]);
         DataPair before = injected.remove(Defect.BEFORE_DEVELOPMENT);
         DataPair total = injected.remove(TOTAL_KEY);
         injected.put(Defect.BEFORE_DEVELOPMENT, before);
         injected.put(TOTAL_KEY, total);
-        Map removed = defectsByPhase[1];
+        Map removed = defectsByPhase[REM];
 
         out.print("<p>\n");
         writePhaseChart(false, "Defects_Injected", "Defects", 1, injected);

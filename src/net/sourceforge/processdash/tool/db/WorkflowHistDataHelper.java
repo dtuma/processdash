@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2017 Tuma Solutions, LLC
+// Copyright (C) 2014-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -906,6 +906,11 @@ public class WorkflowHistDataHelper {
         return result;
     }
 
+    public Map<String, String> getPhaseIdentifiers() {
+        return QueryUtils.mapColumns(getPhaseData(), PhaseCol.PhaseName,
+            PhaseCol.PhaseID);
+    }
+
     private Map<Integer, String> getWorkflowStepsByKey() {
         return QueryUtils.mapColumns(getPhaseData(), PhaseCol.PhaseKey,
             PhaseCol.PhaseName);
@@ -920,12 +925,13 @@ public class WorkflowHistDataHelper {
     }
 
     private static final String WORKFLOW_PHASE_QUERY = //
-    "select phase.key, phase.shortName, phase.typeName from Phase phase " //
+    "select phase.key, phase.shortName, phase.typeName, phase.identifier " //
+            + "from Phase phase " //
             + "where phase.process.key = ? " //
             + "and phase.ordinal is not null " //
             + "order by phase.ordinal";
 
-    private enum PhaseCol { PhaseKey, PhaseName, PhaseType };
+    private enum PhaseCol { PhaseKey, PhaseName, PhaseType, PhaseID };
 
     public enum PhaseType {
         Overhead, Construction, Appraisal, Failure
