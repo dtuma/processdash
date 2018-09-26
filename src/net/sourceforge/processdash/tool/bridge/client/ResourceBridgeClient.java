@@ -642,6 +642,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     private void addFileUploadParamsWithBatching(List params, String resourceName)
             throws IOException, LockFailureException {
         if (params.size() >= 100) {
+            startZipUploadThread(params);
             doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
             params.clear();
         }
