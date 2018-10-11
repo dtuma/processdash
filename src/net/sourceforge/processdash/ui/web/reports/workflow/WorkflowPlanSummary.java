@@ -28,6 +28,8 @@ import static net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.REM;
 import static net.sourceforge.processdash.tool.db.WorkflowHistDataHelper.UNK;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,55 +57,57 @@ import net.sourceforge.processdash.util.DataPair;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 
-public class WorkflowPlanSummary extends TinyCGIBase {
+public class WorkflowPlanSummary extends TinyCGIBase
+        implements AnalysisPage.HistDataFilterConfigurer {
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis");
 
     @Override
     protected void writeContents() throws IOException {
+        // is this request for a specific project, or for "to date" data?
+        boolean isProjectReport = parameters.containsKey("project");
+
+        // retrieve a set of chart data for the current report
         ChartData chartData = AnalysisPage.getChartData(
-            (HttpServletRequest) env.get(HttpServletRequest.class), true);
-        WorkflowHistDataHelper hist = chartData.histData;
-        if (hist.getWorkflowName() == null)
+            (HttpServletRequest) env.get(HttpServletRequest.class),
+            isProjectReport ? this : Boolean.TRUE);
+        if (chartData == null)
             throw new TinyCGIException(404,
                     "The requested workflow was not found.");
 
+        WorkflowHistDataHelper hist = chartData.histData;
+        String workflowName = hist.getWorkflowName();
         String title = resources.getString("Workflow.Analysis.Title") + " - "
-                + hist.getWorkflowName();
+                    + workflowName;
 
         out.print("<html><head><title>");
         out.print(esc(title));
         out.print("</title>\n");
         out.print(cssLinkHTML());
-        if (hist.isFiltering())
+        if (!isProjectReport && hist.isFiltering())
             out.write("<link rel='stylesheet' type='text/css' href='filter-style.css'>\n");
         out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
         out.print("<style>\n");
         out.print(" .rowLabel { padding-right: 10px }\n");
         out.print(" th.plan, th.act { width: 70px; }\n");
         out.print(" td.plan, td.act { padding-right: 4px; border: 1px solid gray; text-align: right }\n");
-        out.print(" #filter.collapsed .filterItem { display: none }\n");
-        out.print(" #filter.expanded .filterLink { display: none }\n");
         out.print(" div.hideQualPlan th.plan, div.hideQualPlan td.plan { display: none }\n");
         out.print("</style>\n");
-        out.print("<script>\n");
-        out.print("    function showFilter() {\n");
-        out.print("      document.getElementById('filter').className = 'expanded';\n");
-        out.print("    }\n");
-        out.print("</script>\n");
         out.print("</head>\n");
 
         out.print("<body><h1>");
-        out.print(esc(title));
+        out.print(esc(isProjectReport ? workflowName : title));
         out.print("</h1>\n");
 
-        out.write("<table><tr>\n<td style='vertical-align:baseline'><h2>");
-        out.print(esc(res("Summary.Title")));
-        out.write("&nbsp;</td>\n");
-        if (!isExporting())
-            writePageSubtitle(hist);
-        out.write("</tr></table>\n");
+        if (!isProjectReport) {
+            out.write("<table><tr>\n<td style='vertical-align:baseline'><h2>");
+            out.print(esc(res("Summary.Title")));
+            out.write("&nbsp;</td>\n");
+            if (!isExporting())
+                writePageSubtitle(hist);
+            out.write("</tr></table>\n");
+        }
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
         Map<String, DataPair> timeInPhase = hist.getTotalTimeInPhase();
@@ -145,7 +149,7 @@ public class WorkflowPlanSummary extends TinyCGIBase {
         printTable("Time_in_Phase", null, timeInPhase, Format.Time, true);
         printTimeInPhaseCharts(timeInPhase);
 
-        if (defectsByPhase[REM].get(TOTAL_KEY).actual > 0) {
+        if (hasQualityPlan || defectsByPhase[REM].get(TOTAL_KEY).actual > 0) {
             if (hasQualityPlan == false)
                 out.print("<div class=\"hideQualPlan\">\n");
             setBeforeAndAfterRowLabels(timeInPhase);
@@ -169,6 +173,16 @@ public class WorkflowPlanSummary extends TinyCGIBase {
 
         if (parameters.containsKey("debug"))
             hist.debugPrintEnactments();
+    }
+
+    @Override
+    public void applyFilter(WorkflowHistDataHelper histData) {
+        // don't exclude data from incomplete enactments
+        histData.setOnlyCompleted(false);
+
+        // read the list of included enactment roots from the "root" URI param
+        String[] roots = (String[]) parameters.get("root_ALL");
+        histData.setIncludedEnactments(new HashSet(Arrays.asList(roots)));
     }
 
     protected void writePageSubtitle(WorkflowHistDataHelper hist) {

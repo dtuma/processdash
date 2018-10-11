@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -106,8 +106,12 @@ public abstract class AnalysisPage {
 
 
 
+    public interface HistDataFilterConfigurer {
+        public void applyFilter(WorkflowHistDataHelper histData);
+    }
+
     protected static ChartData getChartData(HttpServletRequest req,
-            boolean applyFilter) {
+            Object applyFilter) {
         ChartData result = new ChartData();
 
         String workflowID = req.getParameter("workflow");
@@ -124,8 +128,11 @@ public abstract class AnalysisPage {
         if (result.histData.getWorkflowName() == null)
             return null;
 
-        if (applyFilter)
+        if (applyFilter == Boolean.TRUE) {
             configureFilter(result.histData, req);
+        } else if (applyFilter instanceof HistDataFilterConfigurer) {
+            ((HistDataFilterConfigurer) applyFilter).applyFilter(result.histData);
+        }
         configureSizeUnits(result, ctx);
 
         return result;
