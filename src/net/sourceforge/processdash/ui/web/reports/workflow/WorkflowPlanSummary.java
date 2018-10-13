@@ -86,14 +86,9 @@ public class WorkflowPlanSummary extends TinyCGIBase
         out.print("</title>\n");
         out.print(cssLinkHTML());
         if (!isProjectReport && hist.isFiltering())
-            out.write("<link rel='stylesheet' type='text/css' href='filter-style.css'>\n");
+            out.print(HTMLUtils.cssLinkHtml("/reports/filter-style.css"));
         out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
-        out.print("<style>\n");
-        out.print(" .rowLabel { padding-right: 10px }\n");
-        out.print(" th.plan, th.act { width: 70px; }\n");
-        out.print(" td.plan, td.act { padding-right: 4px; border: 1px solid gray; text-align: right }\n");
-        out.print(" div.hideQualPlan th.plan, div.hideQualPlan td.plan { display: none }\n");
-        out.print("</style>\n");
+        out.print(HTMLUtils.cssLinkHtml("/reports/workflowSummary.css"));
         out.print("</head>\n");
 
         out.print("<body><h1>");
@@ -501,15 +496,15 @@ public class WorkflowPlanSummary extends TinyCGIBase
     }
 
     private void printTableHeader(String subtitleRes, boolean showActualPct) {
-        out.print("<tr><th class='rowLabel'>");
+        out.print("<tr><th class='wpsRowLabel'>");
         if (subtitleRes != null)
             out.print(resources.getHTML(subtitleRes));
-        out.print("</th><th class='plan'>");
+        out.print("</th><th class='wpsPlan'>");
         out.print(resources.getString("Plan"));
-        out.print("</th><th class='act'>");
+        out.print("</th><th class='wpsAct'>");
         out.print(resources.getString("Actual"));
         if (showActualPct) {
-            out.print("</th><th class='act'>");
+            out.print("</th><th class='wpsAct'>");
             out.print(resources.getString("Actual_%"));
         }
         out.print("</th></tr>\n");
@@ -522,15 +517,15 @@ public class WorkflowPlanSummary extends TinyCGIBase
     private void printTableRow(String rowLabel, DataPair dataValues,
             Format fmt, boolean skipPlan, double showPercentOf) {
 
-        out.print("<tr><td class='rowLabel'>");
+        out.print("<tr><td class='wpsRowLabel'>");
         out.print(esc(maybeTranslateRowLabel(rowLabel)));
-        out.print("</td><td class='plan'>");
+        out.print("</td><td class='wpsPlan'>");
         if (!skipPlan)
             printNumber(dataValues.plan, fmt);
-        out.print("</td><td class='act'>");
+        out.print("</td><td class='wpsAct'>");
         printNumber(dataValues.actual, fmt);
         if (showPercentOf > 0) {
-            out.print("</td><td class='act'>");
+            out.print("</td><td class='wpsAct'>");
             printNumber(dataValues.actual / showPercentOf, Format.Percent);
         }
         out.print("</td></tr>\n");

@@ -1,0 +1,17 @@
+.wpsRowLabel {
+    padding-right: 10px;
+}
+
+th.wpsPlan, th.wpsAct {
+    width: 70px; 
+}
+
+td.wpsPlan, td.wpsAct {
+    border: 1px solid gray;
+    padding-right: 4px;
+    text-align: right;
+}
+
+div.hideQualPlan th.wpsPlan, div.hideQualPlan td.wpsPlan {
+    display: none;
+}
