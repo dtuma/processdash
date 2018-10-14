@@ -33,15 +33,19 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.reports.workflow.WorkflowPlanSummary;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class WorkflowTeamPlanSummary extends TinyCGIBase {
+
+    private boolean filterInEffect;
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis.Workflow.Analysis");
@@ -55,8 +59,6 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
         String baseUrl = getSummaryBaseUrl();
         if (workflows.isEmpty()) {
             writeNoWorkflowsFound();
-        } else if (workflows.size() == 1) {
-            writeSingleWorkflowReport(baseUrl, workflows);
         } else {
             writeWorkflowSelector(baseUrl, workflows);
         }
@@ -88,16 +90,24 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
         // build the effective query and associated argument list
         StringBuilder queryHql = new StringBuilder(ENACTMENT_QUERY);
         List queryArgs = new ArrayList();
-        ListData criteria = ListData.asListData(
-            data.getInheritableValue(getPrefix(), "DB_Filter_Criteria"));
+        ListData criteria = ListData.asListData(getDataRepository()
+                .getInheritableValue(getPrefix(), "DB_Filter_Criteria"));
         if (criteria != null && criteria.test())
             QueryUtils.addCriteriaToHql(queryHql, "ts", queryArgs,
                 criteria.asList());
 
-        // if we know that the query won't return any result, don't bother
-        // running it against the database.
-        if (queryHql.indexOf(QueryUtils.IMPOSSIBLE_CONDITION) != -1)
+        // if we know that the query won't return any result (because the filter
+        // was too restrictive), don't bother running it against the database.
+        if (queryHql.indexOf(QueryUtils.IMPOSSIBLE_CONDITION) != -1) {
+            filterInEffect = true;
             return Collections.EMPTY_LIST;
+        }
+
+        // make a note of whether the user is filtering this report. The
+        // query args should always have a single entry (indicating the key of
+        // the project we're viewing). If a label, WBS, or group filter is in
+        // effect, the args will have more than one entry.
+        filterInEffect = queryArgs.size() > 1;
 
         // run the query
         return queryRunner.queryHql(queryHql.toString(), queryArgs.toArray());
@@ -157,7 +167,7 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
         String baseUrl = (String) env.get("SCRIPT_PATH");
         int slashPos = baseUrl.lastIndexOf('/');
         baseUrl = baseUrl.substring(0, slashPos + 1) + "workflowSummary"
-                + "?project=t";
+                + "?project";
         return baseUrl;
     }
 
@@ -174,40 +184,92 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
 
 
     private void writeNoWorkflowsFound() {
-        out.write("<html><body>");
-        out.write(resources.getHTML("No_Workflows_Message_Component"));
-        out.write("</body></html>");
-    }
-
-
-    private void writeSingleWorkflowReport(String baseUrl,
-            Map<String, List<String>> workflows) {
-        // FIXME
-        writeWorkflowSelector(baseUrl, workflows);
+        String resKey = filterInEffect ? "No_Workflows_Message_Filter"
+                : "No_Workflows_Message_Project";
+        out.write("<html><body><p>");
+        out.write(resources.getHTML(resKey));
+        out.write("</p></body></html>");
     }
 
 
     private void writeWorkflowSelector(String baseUrl,
-            Map<String, List<String>> workflows) {
-        out.write("<html><body>");
-        out.write("<p>");
-        out.write(resources.getHTML("Choose_Workflow_Prompt"));
-        out.write("</p>\n<ul>\n");
+            Map<String, List<String>> workflows) throws IOException {
+        out.write(HTMLUtils.HTML_TRANSITIONAL_DOCTYPE);
+        out.write("<html><head>");
+        writeHeaderItems();
+        out.write("</head><body>");
+
+        // determine if we should display some workflow by default
+        String selectedWorkflowName = null, selectedWorkflowUrl = null;
+        if (isExporting()) {
+            // do not auto-display any particular workflow when exporting
+        } else if (workflows.size() == 1) {
+            // if there is only one workflow, display it automatically
+            selectedWorkflowName = workflows.keySet().iterator().next();
+        } else {
+            // if we have multiple workflows to choose from, try displaying the
+            // one the user last viewed
+            SimpleData sd = getDataContext()
+                    .getSimpleValue(WorkflowPlanSummary.LAST_WORKFLOW_NAME);
+            if (sd != null && sd.test()) {
+                String lastWorkflowName = sd.format();
+                if (workflows.containsKey(lastWorkflowName))
+                    selectedWorkflowName = lastWorkflowName;
+            }
+        }
+
+        // write a DIV for the overall report
+        String exp = workflows.size() > 1 ? "expanded" : "collapsed";
+        out.print("<div class='workflowTeamSummary " + exp + "'>\n");
+
+        // write the DIV for choosing a particular workflow
+        exp = workflows.size() > 1 ? "" : " style='display:none'";
+        out.println("<div class='workflowSelector doNotPrint'" + exp + ">\n");
+        String resKey = filterInEffect ? "Choose_Workflow_Filtered_Prompt"
+                : "Choose_Workflow_Prompt";
+        out.write(resources.getHTML(resKey));
+        out.write("\n<ul>\n");
 
         for (Entry<String, List<String>> e : workflows.entrySet()) {
             String workflowName = e.getKey();
             List<String> workflowData = e.getValue();
             String url = getWorkflowSummaryUrl(baseUrl, workflowData);
+            if (workflowName.equals(selectedWorkflowName))
+                selectedWorkflowUrl = url;
 
-            out.write("<li><a href=\"" + url + "\">");
+            out.write("<li><a href='" + url + "'");
+            if (!isExporting())
+                out.write(" onclick='return showSelectedWorkflow(this)'");
+            out.write(">");
             out.write(HTMLUtils.escapeEntities(workflowName));
             out.write("</a>");
-            out.write(" - " + workflowData);
             out.write("</li>\n");
         }
 
         out.write("</ul>\n");
+        out.write("</div>\n"); // workflowSelector
+
+        out.println("<div class='workflowContent'>");
+        if (selectedWorkflowUrl != null) {
+            String html = getTinyWebServer()
+                    .getRequestAsString(selectedWorkflowUrl + "&includable");
+            out.write(html);
+        }
+        out.write("</div>\n"); // workflowContent
+
+        out.write("</div>"); // workflowTeamSummary
         out.write("</body></html>");
+    }
+
+
+    private void writeHeaderItems() {
+        out.print(HTMLUtils.cssLinkHtml("/style.css"));
+        out.print(HTMLUtils.cssLinkHtml("/reports/workflowSummary.css"));
+        out.print(HTMLUtils.cssLinkHtml("/reports/workflowTeamSummary.css"));
+        out.print(HTMLUtils.scriptLinkHtml("/reports/workflowTeamSummary.js"));
+        out.print(HTMLUtils.scriptLinkHtml("/lib/prototype.js"));
+        out.print(HTMLUtils.scriptLinkHtml("/lib/scriptaculous.js"));
+        out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
     }
 
 }

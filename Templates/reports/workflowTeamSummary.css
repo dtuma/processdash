@@ -1,0 +1,23 @@
+div.workflowTeamSummary div.workflowSelector ul {
+    margin-top: 8px;
+    margin-bottom: 16px;
+}
+
+div.workflowTeamSummary h2.workflowTitle {
+    margin-top: 0px;
+}
+
+div.workflowTeamSummary a.toggleWorkflowSelector {
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-left: 10px;
+    padding-left: 11px;
+}
+
+div.workflowTeamSummary.collapsed a.toggleWorkflowSelector {
+    background-image: url("/Images/tree-open.gif");
+}
+
+div.workflowTeamSummary.expanded a.toggleWorkflowSelector {
+    background-image: url("/Images/triangle-up.gif");
+}

@@ -43,6 +43,7 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -60,6 +61,8 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class WorkflowPlanSummary extends TinyCGIBase
         implements AnalysisPage.HistDataFilterConfigurer {
 
+    public static final String LAST_WORKFLOW_NAME = "WorkflowPlanSummary//Last_Workflow";
+
     private static final Resources resources = Resources
             .getDashBundle("Analysis");
 
@@ -67,6 +70,7 @@ public class WorkflowPlanSummary extends TinyCGIBase
     protected void writeContents() throws IOException {
         // is this request for a specific project, or for "to date" data?
         boolean isProjectReport = parameters.containsKey("project");
+        boolean includable = parameters.containsKey("includable");
 
         // retrieve a set of chart data for the current report
         ChartData chartData = AnalysisPage.getChartData(
@@ -81,27 +85,43 @@ public class WorkflowPlanSummary extends TinyCGIBase
         String title = resources.getString("Workflow.Analysis.Title") + " - "
                     + workflowName;
 
-        out.print("<html><head><title>");
-        out.print(esc(title));
-        out.print("</title>\n");
-        out.print(cssLinkHTML());
-        if (!isProjectReport && hist.isFiltering())
-            out.print(HTMLUtils.cssLinkHtml("/reports/filter-style.css"));
-        out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
-        out.print(HTMLUtils.cssLinkHtml("/reports/workflowSummary.css"));
-        out.print("</head>\n");
-
-        out.print("<body><h1>");
-        out.print(esc(isProjectReport ? workflowName : title));
-        out.print("</h1>\n");
+        if (!includable) {
+            out.print("<html><head><title>");
+            out.print(esc(title));
+            out.print("</title>\n");
+            out.print(cssLinkHTML());
+            if (!isProjectReport && hist.isFiltering())
+                out.print(HTMLUtils.cssLinkHtml("/reports/filter-style.css"));
+            out.print(HTMLUtils.scriptLinkHtml("/lib/overlib.js"));
+            out.print(HTMLUtils.cssLinkHtml("/reports/workflowSummary.css"));
+            out.print("</head>\n");
+            out.print("<body>\n");
+        }
 
         if (!isProjectReport) {
+            out.print("<h1>" + esc(title) + "</h1>\n");
             out.write("<table><tr>\n<td style='vertical-align:baseline'><h2>");
             out.print(esc(res("Summary.Title")));
             out.write("&nbsp;</td>\n");
             if (!isExporting())
                 writePageSubtitle(hist);
             out.write("</tr></table>\n");
+
+        } else {
+            if (!includable)
+                out.print("<h1>" + esc(getPrefix()) + "</h1>\n");
+            out.print("<h2 class='workflowTitle'>");
+            out.print(esc(includable ? workflowName : title));
+            if (includable && !isExporting()) {
+                String tooltip = resources
+                        .getHTML("Workflow.Analysis.Workflow_Selector_Tooltip");
+                out.print("<a class='toggleWorkflowSelector plain doNotPrint' "
+                        + "onclick='return toggleWorkflowSelector(this)' "
+                        + "title='" + tooltip + "' href='#'></a>\n");
+            }
+            out.print("</h2>\n");
+            getDataContext().putValue(LAST_WORKFLOW_NAME,
+                StringData.create(workflowName));
         }
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
@@ -157,14 +177,15 @@ public class WorkflowPlanSummary extends TinyCGIBase
                 out.print("</div>\n");
         }
 
-        if (!isExportingToExcel()) {
+        if (!includable && !isExportingToExcel()) {
             out.print("<hr>\n");
             out.print("<a href=\"excel.iqy?fullPage\">");
             out.print(resources.getHTML("Export_to_Excel"));
             out.print("</a>");
         }
 
-        out.print("</body></html>\n");
+        if (!includable)
+            out.print("</body></html>\n");
 
         if (parameters.containsKey("debug"))
             hist.debugPrintEnactments();
