@@ -34,7 +34,6 @@ import java.util.TreeMap;
 
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
@@ -53,7 +52,18 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
 
     @Override
     protected void writeContents() throws IOException {
-        List<Object[]> enactments = queryEnactments();
+        // get the HQL query runner, waiting for all projects to be loaded
+        QueryRunnerRetriever qrr = new QueryRunnerRetriever();
+        boolean finished = qrr.waitForFinish();
+
+        // if the database object is not ready, display a "please wait" message
+        if (!finished) {
+            writePleaseWaitMessage();
+            return;
+        }
+
+        // query the list of workflows/enactments in this project
+        List<Object[]> enactments = queryEnactments(qrr.queryRunner);
         Map<String, List<String>> workflows = summarizeWorkflows(enactments);
 
         String baseUrl = getSummaryBaseUrl();
@@ -67,10 +77,59 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
 
 
     /**
+     * A thread that can retrieve the HQL query object in the background,
+     * allowing the script to abort if it's taking too long
+     */
+    private class QueryRunnerRetriever extends Thread {
+
+        private QueryRunner queryRunner;
+
+        private boolean finished;
+
+        @Override
+        public void run() {
+            // the next line waits for all project data to be loaded, which
+            // could take a while for large datasets
+            DatabasePlugin db = QueryUtils
+                    .getDatabasePlugin(getDataRepository(), true);
+
+            // fetch the query runner and mark this object as finished
+            synchronized (this) {
+                if (db != null)
+                    queryRunner = db.getObject(QueryRunner.class);
+                finished = true;
+            }
+        }
+
+        public boolean waitForFinish() {
+            try {
+                this.start();
+                int timeout = 100;
+                if (isExporting() || parameters.containsKey("wait"))
+                    timeout = 0;
+                this.join(timeout);
+            } catch (InterruptedException e) {
+            }
+
+            synchronized (this) {
+                return finished;
+            }
+        }
+    }
+
+
+
+    /**
      * Find a list of process enactments that match the current project
      * filtering criteria
      */
-    private List<Object[]> queryEnactments() {
+    private List<Object[]> queryEnactments(QueryRunner queryRunner) {
+        // if we couldn't get a query runner, abort
+        if (queryRunner == null) {
+            filterInEffect = false;
+            return Collections.EMPTY_LIST;
+        }
+
         // Normally we would automate the steps below by using the PDashQuery
         // object. Unfortunately, that object would apply an incorrect
         // constraint to the ProcessEnactment table (requiring enactment roots
@@ -78,14 +137,6 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
         // included plan items). To achieve the results we want, we must apply
         // the filtering logic manually. (The code below is copied from the
         // DbAbstractFunction class.)
-
-        // retrieve the database query runner
-        DataRepository data = getDataRepository();
-        DatabasePlugin db = QueryUtils.getDatabasePlugin(data, true);
-        QueryRunner queryRunner = db == null ? null
-                : db.getObject(QueryRunner.class);
-        if (queryRunner == null)
-            return Collections.EMPTY_LIST;
 
         // build the effective query and associated argument list
         StringBuilder queryHql = new StringBuilder(ENACTMENT_QUERY);
@@ -181,6 +232,27 @@ public class WorkflowTeamPlanSummary extends TinyCGIBase {
         return url.toString();
     }
 
+
+
+    private void writePleaseWaitMessage() {
+        // compute the URL for reloading the page and forcing a DB wait
+        String selfUrl = (String) env.get("SCRIPT_PATH");
+        String waitUrl = HTMLUtils.appendQuery(selfUrl, "wait", "t");
+
+        // write the header items our report will eventually need
+        out.write("<html><head>");
+        writeHeaderItems();
+        out.write("</head><body>");
+
+        // write a wait message, and a script to load the report content
+        out.write("<div id='$$$_wtps'><p>\n");
+        out.write(resources.getHTML("Wait_Message"));
+        out.write("<img style='margin-left:10px' src='/Images/loading-16.gif'>");
+        out.write("</p>\n<script>\n");
+        out.write("new Ajax.Updater('$$$_wtps', '" + waitUrl + "');");
+        out.write("</script>\n</div>\n");
+        out.write("</body></html>");
+    }
 
 
     private void writeNoWorkflowsFound() {
