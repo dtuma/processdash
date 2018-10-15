@@ -194,6 +194,13 @@
   <param name="ShowPlanCol">on</param>
 </parameters>]]></snippet>
 
+<snippet instanceId="80" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Name">Workflow Summary</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="81" type="pdash.workflowSummary" version="1.0" persister="xml.v1"/>
+
 <snippet instanceId="40" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <param name="Name">Analysis Charts</param>

@@ -727,8 +727,10 @@ public class WorkflowPlanSummary extends TinyCGIBase
         l.add(chartData);
         getDataContext().putValue(dataName, l);
 
-        StringBuffer fullUri = new StringBuffer(isExporting() ? "table.class"
-                : "full.htm");
+        StringBuffer fullUri = new StringBuffer();
+        fullUri.append(env.get("SCRIPT_PATH"));
+        fullUri.setLength(fullUri.lastIndexOf("/") + 1);
+        fullUri.append(isExporting() ? "table.class" : "full.htm");
         HTMLUtils.appendQuery(fullUri, "chart", chartType);
         HTMLUtils.appendQuery(fullUri, "useData", dataName);
         HTMLUtils.appendQuery(fullUri, "title", title);
