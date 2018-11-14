@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
      * cannot be any skipped steps. This method returns true if the enactment is
      * partially complete.
      */
-    private boolean shouldProcessEnactment(List<Object[]> enactmentTasks) {
+    protected boolean shouldProcessEnactment(List<Object[]> enactmentTasks) {
         boolean sawCompletedTask = false, sawIncompleteTask = false;
         for (Object[] task : enactmentTasks) {
             if (incomplete(task))
@@ -189,7 +189,7 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
      * Look through the tasks in an enactment, and find incomplete tasks
      * followed by completed tasks.
      */
-    private void findSkippedTasksInEnactment(List<Object[]> skippedTasks,
+    protected void findSkippedTasksInEnactment(List<Object[]> skippedTasks,
             List<Object[]> enactmentTasks, PersonFilter privacyFilt) {
 
         Object[] previousTask = null;
@@ -205,7 +205,7 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
                 workingIncompleteTask = null;
             }
 
-            if (incomplete(task)) {
+            if (notDone(task)) {
                 // if this task is incomplete, make a note of it.
                 if (!privacyFilt.include(task[Field.PersonKey.ordinal()])) {
                     // data privacy permissions dictate us to ignore this step
@@ -237,7 +237,11 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
         return false;
     }
 
-    private boolean incomplete(Object[] task) {
+    protected boolean notDone(Object[] task) {
+        return incomplete(task);
+    }
+
+    protected boolean incomplete(Object[] task) {
         Integer date = (Integer) task[Field.Completed.ordinal()];
         return (date == null || date > 99990000);
     }
@@ -250,9 +254,9 @@ public class SkippedWorkflowSteps extends GenericScanItemList {
         workingIncompleteTask[Field.Who.ordinal()] = combinedWho;
     }
 
-    private enum Field {
+    protected enum Field {
         TaskID, Root, Process, Parent, Ordinal, Completed, Who, WBSName, //
-        TaskName, PersonKey
+        TaskName, PersonKey, RootID, RootName, PhaseID, ActTime
     };
 
     private static class TaskSorter implements Comparator<Object[]> {

@@ -8,7 +8,11 @@ select
   t.dataBlock.person.encryptedName,
   t.planItem.wbsElement.name,
   t.planItem.task.name,
-  t.dataBlock.person.key
+  t.dataBlock.person.key,
+  pe.rootItem.identifier,
+  pe.rootItem.wbsElement.name,
+  phase.identifier,
+  t.actualTimeMin
 from ProcessEnactment as pe, TaskStatusFact as t
 join t.planItem.phase.mapsToPhase phase
 where pe.includesItem.key = t.planItem.key

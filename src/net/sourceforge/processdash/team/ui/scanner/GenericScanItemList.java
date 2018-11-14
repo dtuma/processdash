@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,10 +69,8 @@ public class GenericScanItemList extends TinyCGIBase {
         out.write(readOnly ? "<ul>\n" : "<table style=\"margin-left:1cm\">");
         String clearItemTooltip = resources.getHTML("Clear_Item_Tooltip");
 
-        MessageFormat itemFmt = new MessageFormat(getParameter("itemFormat"));
         for (Object[] oneItem : items) {
-            String itemText = itemFmt.format(oneItem);
-            String itemHtml = HTMLUtils.escapeEntities(itemText);
+            String itemHtml = getItemHtml(oneItem);
             itemHtml = StringUtils.findAndReplace(itemHtml, " -- ",
                 "&nbsp;&mdash;&nbsp;");
             if (readOnly) {
@@ -92,6 +90,15 @@ public class GenericScanItemList extends TinyCGIBase {
 
         out.write(readOnly ? "</ul>\n" : "</table>\n");
         out.write("</div>\n</body></html>\n");
+    }
+
+    private MessageFormat itemFmt = null;
+
+    protected String getItemHtml(Object[] oneItem) {
+        if (itemFmt == null)
+            itemFmt = new MessageFormat(getParameter("itemFormat"));
+        String itemText = itemFmt.format(oneItem);
+        return HTMLUtils.escapeEntities(itemText);
     }
 
     protected String getListID() {
