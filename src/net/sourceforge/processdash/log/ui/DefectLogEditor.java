@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2017 Tuma Solutions, LLC
+// Copyright (C) 1999-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.PrintJob;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -132,6 +134,7 @@ public class DefectLogEditor extends Component implements
     protected DataRepository  data;
     protected Vector<DefectListEntry> currentLog   = new Vector();
     protected DropDownButton  importButton;
+    protected Action addAction;
     protected JButton editButton, deleteButton, closeButton, dtsEditButton;
     protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
@@ -652,6 +655,12 @@ public class DefectLogEditor extends Component implements
 
                                     // Should only be available if one
                                     // entry is selected
+        addAction = new AddDefectAction();
+        if (Settings.isReadWrite())
+            btnPanel.add (new JButton(addAction));
+
+                                    // Should only be available if one
+                                    // entry is selected
         editButton = new JButton (resources.getString("Edit"));
         editButton.setActionCommand ("edit");
         editButton.addActionListener (this);
@@ -755,6 +764,9 @@ public class DefectLogEditor extends Component implements
 
     private void updateImportActions(PropertyKey selectedKey,
             PropertyKey defectLogKey) {
+        if (addAction != null)
+            updateImportAction(addAction, selectedKey, defectLogKey);
+
         if (importButton == null)
             return;
 
@@ -943,6 +955,52 @@ public class DefectLogEditor extends Component implements
                     && idsToSelect.contains(oneItem.defect.number))
                 table.table.addRowSelectionInterval(i, i);
         }
+    }
+
+
+    private class AddDefectAction extends AbstractAction {
+
+        public AddDefectAction() {
+            super(resources.getString("Add"));
+            setEnabled(false);
+        }
+
+        @Override
+        public void putValue(String key, Object newValue) {
+            super.putValue(key, newValue);
+
+            if (IMPORT_ACTION_DEF_PATH.equals(key))
+                setEnabled(StringUtils.hasValue((String) newValue));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                doIt();
+            } catch (Exception ex) {
+                Toolkit.getDefaultToolkit().beep();
+                setEnabled(false);
+                if (!(ex instanceof IllegalStateException))
+                    ex.printStackTrace();
+            }
+        }
+
+        private void doIt() throws Exception {
+            reupdateImportActions();
+            String taskPath = (String) getValue(IMPORT_ACTION_SEL_PATH);
+            PropertyKey taskKey = useProps.findExistingKey(taskPath);
+            String defectLogPath = (String) getValue(IMPORT_ACTION_DEF_PATH);
+            PropertyKey defectLogKey = useProps.findExistingKey(defectLogPath);
+            String defectFile = useProps.pget(defectLogKey).getDefectLog();
+            if (!isEnabled() || taskKey == null || defectLogKey == null
+                    || !StringUtils.hasValue(defectFile)
+                    || Filter.matchesFilter(forbiddenPaths, taskPath))
+                throw new IllegalStateException();
+
+            new DefectDialog(dashboard, dashboard.getDirectory() + defectFile,
+                    defectLogKey, taskKey);
+        }
+
     }
 
 
