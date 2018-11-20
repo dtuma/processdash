@@ -134,6 +134,13 @@ Authors:
   <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
   <property name="xmlrpc-com.jar" value="${lib}/xmlrpc-common-3.1.1.jar"/>
   <property name="jetty.jar"      value="${lib}/jetty-8.1.19.jar"/>
+  <property name="jgit.jar"       value="${lib}/jgit-5.1.3.jar"/>
+  <property name="jgitui.jar"     value="${lib}/jgit-ui-5.1.3.jar"/>
+  <property name="JavaEWAH.jar"   value="${lib}/JavaEWAH-1.1.6.jar"/>
+  <property name="jsch.jar"       value="${lib}/jsch-0.1.54.jar"/>
+  <property name="jzlib.jar"      value="${lib}/jzlib-1.1.1.jar"/>
+  <property name="slf4j-api.jar"  value="${lib}/slf4j-api-1.7.2.jar"/>
+  <property name="slf4j-impl.jar" value="${lib}/slf4j-jdk14-1.7.2.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
@@ -167,6 +174,8 @@ Authors:
     <pathelement location="${xmlrpc-cli.jar}"/>
     <pathelement location="${xmlrpc-com.jar}"/>
     <pathelement location="${jetty.jar}"/>
+    <pathelement location="${jgit.jar}"/>
+    <pathelement location="${jgitui.jar}"/>
   </path>
 
 
@@ -461,6 +470,27 @@ Authors:
     <ant dir="${rest-api}" inheritAll="false" />
   </target>
 
+  <target name="git-addon" depends="compile">
+    <jar destfile="${dist}/gitDiff.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+           value="net.sourceforge.processdash.tool.diff.impl.git.Main"/>
+        <attribute name="Class-Path" value="pspdash.jar"/>
+      </manifest>
+
+      <fileset dir="${build}"
+           includes="net/sourceforge/processdash/tool/diff/impl/git/**"/>
+      <zipfileset src="${jgit.jar}" includes="org/"/>
+      <zipfileset src="${jgitui.jar}" includes="org/"/>
+      <zipfileset src="${JavaEWAH.jar}" excludes="META-INF/**"/>
+      <zipfileset src="${jsch.jar}" excludes="META-INF/**"/>
+      <zipfileset src="${jzlib.jar}" excludes="META-INF/**"/>
+      <zipfileset src="${slf4j-api.jar}" excludes="META-INF/**"/>
+      <zipfileset src="${slf4j-impl.jar}" excludes="META-INF/**"/>
+    </jar>
+    <maybeSignJar jar="${dist}/gitDiff.jar" prefix="${pspdash-signature}"/>
+  </target>
+
   <target name="pkgAssets" depends="compile">
     <jar destfile="${dist}/pkgAssets.jar" duplicate="fail">
       <manifest>
@@ -655,6 +685,7 @@ Authors:
           <include name="net/"/>
           <exclude name="**/*Test.class"/>
           <exclude name="net/**/OpenLocalizationToolAction*.class"/>
+          <exclude name="net/sourceforge/processdash/tool/diff/impl/git/"/>
       </fileset>
 
       <!-- include important non-class files in the src directory -->
@@ -935,7 +966,7 @@ Authors:
   <!-- =================================================================== -->
   <target name="dist"
       depends="jar,javahelp-addon,import-addon,l10nTool-addon,
-               pspForEng-addon,rest-addon,extras-addon"/>
+               pspForEng-addon,rest-addon,git-addon,extras-addon"/>
 
   <target name="dist-src">
     <!-- get a list of all files known to version control -->

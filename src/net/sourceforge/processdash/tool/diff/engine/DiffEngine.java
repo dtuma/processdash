@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -270,6 +270,16 @@ public class DiffEngine {
         DiffAnalysisRequest r = new DiffAnalysisRequest(file, filter, options,
                 charset, fileTraits);
         DiffResult result = diffAnalyzer.analyze(r);
+
+        // When a file changes in whitespace only, the version control system
+        // will usually flag a change. (A common practical example would be a
+        // change to LF/CRLF line endings.) But that change won't result in any
+        // LOC counts or visible redlines. If that occurs, and we've been told
+        // to skip identical files, ignore the change.
+        if (result != null && skipIdenticalFiles
+                && result.getChangeType() == AccountingType.Base)
+            return null;
+
         return result;
     }
 

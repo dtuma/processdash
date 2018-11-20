@@ -82,7 +82,7 @@ Authors:
     <property name="cleanupMacData.jar" value="${files.dir}/cleanupMacData.jar"/>
     <property name="pspdash.jar" value="${processdash}/dist/pspdash.jar"/>
     <property name="custom-src" value="src"/>
-    <property name="compile.target" value="1.5"/>
+    <property name="compile.target" value="1.6"/>
 
 
     <target name="init" depends="-izpack-custom-compile">
@@ -109,9 +109,10 @@ Authors:
             description="Recompile the dashboard-specific IzPack code"
             unless="izpackCustom.upToDate">
         <javac srcdir="${custom-src}" destdir="${custom-src}"
-               debug="true" source="1.5" target="1.5">
+               debug="true" source="1.6" target="1.6">
             <classpath>
                 <pathelement location="${izpack-installer.jar}"/>
+                <pathelement location="${izpack-compiler.jar}"/>
                 <pathelement location="${mergeSettings.jar}"/>
                 <pathelement location="${cleanupMacData.jar}"/>
                 <pathelement location="${pspdash.jar}"/>

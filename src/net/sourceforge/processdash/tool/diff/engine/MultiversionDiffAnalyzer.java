@@ -1,4 +1,4 @@
-// Copyright (C) 1997-2011 Tuma Solutions, LLC
+// Copyright (C) 1997-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ public class MultiversionDiffAnalyzer extends LocDiffUtils implements
         }
 
         AccountingType changeType = getFileChangeType(r.traits.changeType,
-            locCounts);
+            locCounts, fragments);
 
         return new DiffResult(r.file, r.filter, r.options, changeType,
                 locCounts, fragments);

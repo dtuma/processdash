@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -142,10 +142,12 @@ public class LocDiffUtils {
      * @param locCounts
      *            the number of lines of various types that were counted during
      *            a diff analysis
+     * @param fragments
+     *            the redline fragments generated for this file
      * @return the most appropriate change type to use for the file.
      */
     public static AccountingType getFileChangeType(AccountingType macroType,
-            int[] locCounts) {
+            int[] locCounts, List<DiffFragment> fragments) {
 
         if (macroType == Added && isZero(locCounts, Base))
             return Added;
@@ -153,7 +155,8 @@ public class LocDiffUtils {
         else if (macroType == Deleted && isZero(locCounts, Total))
             return Deleted;
 
-        else if (isZero(locCounts, Deleted, Modified, Added))
+        else if (isZero(locCounts, Deleted, Modified, Added)
+                && hasNoChangedFragments(fragments))
             return Base;
 
         else
@@ -164,6 +167,22 @@ public class LocDiffUtils {
         for (AccountingType type : types)
             if (locCounts[type.ordinal()] != 0)
                 return false;
+        return true;
+    }
+
+    /**
+     * A file can have zero changed LOC, but still contain modifications within
+     * uncounted lines (such as comments). This method checks for that
+     * condition, and only returns true if the file contains no added/deleted
+     * fragments.
+     */
+    private static boolean hasNoChangedFragments(List<DiffFragment> fragments) {
+        if (fragments == null || fragments.isEmpty())
+            return true;
+        for (DiffFragment f : fragments) {
+            if (f.type != Base)
+                return false;
+        }
         return true;
     }
 

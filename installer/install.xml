@@ -127,6 +127,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/api.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/gitDiff.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
             <file targetdir="$INSTALL_PATH" override="true" os="windows"
 	          src="../dist/ProcessDashboard.exe"/>
