@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2013 Tuma Solutions, LLC
+// Copyright (C) 2011-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,7 +29,10 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -58,6 +61,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.SwingEventHandler;
+import net.sourceforge.processdash.util.FileUtils;
 
 public class LOCDiffDialog {
 
@@ -80,6 +84,14 @@ public class LOCDiffDialog {
         public PanelInvalidException(Object dialogMessage) {
             this.dialogMessage = dialogMessage;
         }
+        public void show(Component parent) {
+            if (dialogMessage != null) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(parent, dialogMessage,
+                    resources.getString("Dialog.Error"),
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private List<Panel> panels;
@@ -97,7 +109,7 @@ public class LOCDiffDialog {
 
     private static final String SELECTED_TAB_PREF = "selectedTabId";
 
-    protected static final Preferences PREFS = Preferences
+    public static final Preferences PREFS = Preferences
             .userNodeForPackage(LOCDiffDialog.class);
 
     protected static Resources resources = Resources.getDashBundle("LOCDiff");
@@ -115,6 +127,11 @@ public class LOCDiffDialog {
         frame = new JFrame(resources.getString("Dialog.Generic_Window_Title"));
         DashboardIconFactory.setWindowIcon(frame);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosed(WindowEvent e) {
+                disposePanels();
+            }
+        });
 
         JPanel content = new JPanel(new BorderLayout(5, 10));
         content.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
@@ -177,6 +194,14 @@ public class LOCDiffDialog {
             }});
     }
 
+    private void disposePanels() {
+        for (Panel p : panels) {
+            if (p instanceof Closeable) {
+                FileUtils.safelyClose((Closeable) p);
+            }
+        }
+    }
+
     public void closeDialog() {
         frame.setVisible(false);
         frame.dispose();
@@ -193,12 +218,7 @@ public class LOCDiffDialog {
         try {
             fileSet = panel.getFileAnalysisSet(engine);
         } catch (PanelInvalidException pie) {
-            if (pie.dialogMessage != null) {
-                java.awt.Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(tabPane, pie.dialogMessage,
-                    resources.getString("Dialog.Error"),
-                    JOptionPane.ERROR_MESSAGE);
-            }
+            pie.show(tabPane);
             return;
         }
 
@@ -301,6 +321,9 @@ public class LOCDiffDialog {
                 ExceptionDialog.show(progressDialog,
                     resources.getString("Dialog.Error"), //
                     resources.getString("Dialog.Unexpected_Error"), e);
+            } finally {
+                if (fileSet instanceof Closeable)
+                    FileUtils.safelyClose((Closeable) fileSet);               
             }
             progressDialog.dispose();
         }

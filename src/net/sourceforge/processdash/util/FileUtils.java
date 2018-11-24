@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2012 Tuma Solutions, LLC
+// Copyright (C) 2005-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.util;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -165,19 +166,17 @@ public class FileUtils {
     }
 
     public static void safelyClose(InputStream in) {
-        if (in != null) {
-            try {
-                in.close();
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
+        safelyClose((Closeable) in);
     }
 
     public static void safelyClose(OutputStream out) {
-        if (out != null) {
+        safelyClose((Closeable) out);
+    }
+
+    public static void safelyClose(Closeable c) {
+        if (c != null) {
             try {
-                out.close();
+                c.close();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }

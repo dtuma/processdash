@@ -60,10 +60,14 @@ public class GitFileSet implements FileAnalysisSet, Closeable {
 
     public static final String INDEX = "<index>";
 
+    public static final String PARENT = "<parent>";
+
 
     private Repository repo;
 
     private String beforeId, afterId;
+
+    private AbstractTreeIterator oldTree, newTree;
 
     private int renameScore;
 
@@ -74,9 +78,21 @@ public class GitFileSet implements FileAnalysisSet, Closeable {
 
     public GitFileSet(Repository repo, String beforeId, String afterId) {
         this.repo = repo;
-        this.beforeId = beforeId;
+        if (PARENT.equals(beforeId))
+            this.beforeId = getParentOf(afterId);
+        else
+            this.beforeId = beforeId;
         this.afterId = afterId;
         this.renameScore = -1;
+    }
+
+    private String getParentOf(String id) {
+        if (WORKING_DIR.equals(id))
+            return INDEX;
+        else if (INDEX.equals(id))
+            return "HEAD";
+        else
+            return id + "^";
     }
 
     public int getRenameScore() {
@@ -92,18 +108,26 @@ public class GitFileSet implements FileAnalysisSet, Closeable {
     public List<? extends FileToAnalyze> getFilesToAnalyze()
             throws GitDiffException, IOException {
         // get the trees to use for comparison
-        AbstractTreeIterator oldTree = getTree(beforeId);
-        AbstractTreeIterator newTree = getTree(afterId);
+        validate();
 
         // request a diff operation on the given trees
         diff = new TextCollectingFormatter();
         List<DiffEntry> changedFiles = diff.scan(oldTree, newTree);
+        oldTree = newTree = null;
 
         // create a list of changed resources
         List<GitFile> files = new ArrayList<GitFile>();
         for (DiffEntry e : changedFiles)
             files.add(new GitFile(e));
         return files;
+    }
+
+    public void validate() throws GitDiffException, IOException {
+        // get the trees to use for comparison
+        if (newTree == null)
+            newTree = getTree(afterId);
+        if (oldTree == null)
+            oldTree = getTree(beforeId);
     }
 
     private AbstractTreeIterator getTree(String id)
@@ -135,6 +159,7 @@ public class GitFileSet implements FileAnalysisSet, Closeable {
     }
 
     public void close() {
+        oldTree = newTree = null;
         if (diff != null)
             diff.close();
         if (reader != null)

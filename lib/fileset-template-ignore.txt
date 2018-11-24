@@ -18,6 +18,7 @@ Templates/help/javaHelp-manifest.txt
 Templates/help/make*.xslt
 Templates/help/style.css
 Templates/help/style-prod.css
+Templates/Git-template.xml
 Templates/Import-template.xml
 Templates/import/
 Templates/Insp.template

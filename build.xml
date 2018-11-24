@@ -473,6 +473,10 @@ Authors:
   <target name="git-addon" depends="compile">
     <jar destfile="${dist}/gitDiff.jar" duplicate="fail">
       <manifest>
+        <attribute name="Dash-Pkg-ID" value="gitDiff"/>
+        <attribute name="Dash-Pkg-Name" value="Git LOC Counter"/>
+        <attribute name="Dash-Pkg-Version" value="${dashboard.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${dashboard.version}"/>
         <attribute name="Main-Class"
            value="net.sourceforge.processdash.tool.diff.impl.git.Main"/>
         <attribute name="Class-Path" value="pspdash.jar"/>
@@ -480,6 +484,7 @@ Authors:
 
       <fileset dir="${build}"
            includes="net/sourceforge/processdash/tool/diff/impl/git/**"/>
+      <fileset dir="." includes="Templates/Git-template.xml"/>
       <zipfileset src="${jgit.jar}" includes="org/"/>
       <zipfileset src="${jgitui.jar}" includes="org/"/>
       <zipfileset src="${JavaEWAH.jar}" excludes="META-INF/**"/>

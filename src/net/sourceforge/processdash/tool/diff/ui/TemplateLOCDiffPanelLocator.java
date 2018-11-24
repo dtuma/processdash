@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2018 Tuma Solutions, LLC
+// Copyright (C) 2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,19 +25,34 @@ package net.sourceforge.processdash.tool.diff.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import net.sourceforge.processdash.tool.diff.impl.git.ui.GitLOCDiffPanel;
+import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.tool.diff.ui.LOCDiffDialog.Panel;
 
-public class HardcodedLOCDiffPanelLocator {
+public class TemplateLOCDiffPanelLocator {
+
+    public static final String EXTENSION_TAG = "locDiffPanel";
 
     public static List<LOCDiffDialog.Panel> getPanels() {
-        List<LOCDiffDialog.Panel> result = new ArrayList();
-        result.add(new FileSystemLOCDiffPanel());
         try {
-            result.add(new GitLOCDiffPanel());
-        } catch (Exception e) {}
-        result.add(new SvnLOCDiffPanel());
-        return result;
+            // get the list of panels declared by extensions
+            Map<String, Panel> panels = new TreeMap();
+            for (Object ext : ExtensionManager
+                    .getExecutableExtensions(EXTENSION_TAG, null)) {
+                if (ext instanceof Panel) {
+                    Panel panel = (Panel) ext;
+                    panels.put(panel.getId(), panel);
+                }
+            }
+
+            // return a sorted list of panels
+            return new ArrayList<Panel>(panels.values());
+        } catch (Exception e) {
+            // if any errors occur, use hardcoded panel creation logic instead
+            return HardcodedLOCDiffPanelLocator.getPanels();
+        }
     }
 
 }
