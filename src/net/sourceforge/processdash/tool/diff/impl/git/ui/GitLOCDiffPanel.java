@@ -28,10 +28,15 @@ import static org.eclipse.jgit.diff.DiffEntry.Side.OLD;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.Closeable;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.eclipse.jgit.errors.NoWorkTreeException;
 import org.eclipse.jgit.lib.Repository;
@@ -56,7 +61,11 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
 
     private Repository repo;
 
+    private GitIDBrowser browser;
+
     private GitIDSelector oldID, newID;
+
+    private DirectoryChangeHandler directoryChangeHandler;
 
     @Override
     public String getId() {
@@ -88,8 +97,11 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
                 "recentGitDirectories", JFileChooser.DIRECTORIES_ONLY,
                 getRes("Browse"));
 
-        oldID = new GitIDSelector(OLD, null);
-        newID = new GitIDSelector(NEW, oldID);
+        browser = new GitIDBrowser(this);
+        oldID = new GitIDSelector(OLD, browser, null);
+        newID = new GitIDSelector(NEW, browser, oldID);
+
+        directoryChangeHandler = new DirectoryChangeHandler();
 
         return BoxUtils.vbox( //
             hbox(getRes("Base_Dir_Prompt"), GLUE), 5, //
@@ -100,7 +112,7 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
             hbox(PAD, oldID.getUIControls(), 10, GLUE), GLUE);
     }
 
-    private Component hbox(Object... contents) {
+    static Component hbox(Object... contents) {
         BoxUtils result = BoxUtils.hbox(contents);
         Dimension d = result.getPreferredSize();
         d.width = 3000;
@@ -149,6 +161,7 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
         // Create a new repository object
         try {
             repo = repositoryBuilder.build();
+            directoryChangeHandler.armed = false;
             baseDirSelector.getTextField()
                     .setText(repo.getWorkTree().getPath());
             return repo;
@@ -158,6 +171,8 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
         } catch (Exception e) {
             e.printStackTrace();
             throw new PanelInvalidException(getRes("Unexpected_Error"));
+        } finally {
+            directoryChangeHandler.armed = true;
         }
     }
 
@@ -195,6 +210,51 @@ public class GitLOCDiffPanel implements LOCDiffDialog.Panel, Closeable {
 
         baseDirSelector.savePreferences();
         return result;
+    }
+
+    private class DirectoryChangeHandler
+            implements DocumentListener, ActionListener {
+
+        private Timer timer;
+
+        private boolean armed;
+
+        public DirectoryChangeHandler() {
+            timer = new Timer(20, this);
+            timer.setRepeats(false);
+            armed = true;
+            baseDirSelector.getTextField().getDocument()
+                    .addDocumentListener(this);
+        }
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            directoryChanged();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            directoryChanged();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            directoryChanged();
+        }
+
+        private void directoryChanged() {
+            if (armed)
+                timer.restart();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (oldID.hasNonstandardID() || newID.hasNonstandardID()) {
+                oldID.selectMenuItem(0);
+                newID.selectMenuItem(0);
+            }
+        }
+
     }
 
     static String getRes(String key) {

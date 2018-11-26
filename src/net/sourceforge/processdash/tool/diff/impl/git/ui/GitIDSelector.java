@@ -33,6 +33,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -46,6 +47,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import net.sourceforge.processdash.tool.diff.impl.git.GitFileSet;
 
@@ -55,6 +57,10 @@ public class GitIDSelector {
     private DiffEntry.Side side;
 
     private GitIDSelector downstreamSelector;
+
+    private GitIDBrowser browser;
+
+    private boolean hasAutoValue;
 
     private String selectedID;
 
@@ -68,12 +74,15 @@ public class GitIDSelector {
 
     private JButton button;
 
-    public GitIDSelector(DiffEntry.Side side, GitIDSelector downstream) {
+    public GitIDSelector(DiffEntry.Side side, GitIDBrowser browser,
+            GitIDSelector downstream) {
         this.side = side;
+        this.browser = browser;
 
         buildTextField();
         buildMenu();
 
+        this.hasAutoValue = true;
         this.downstreamSelector = downstream;
     }
 
@@ -90,9 +99,28 @@ public class GitIDSelector {
         }
     }
 
+    public boolean hasNonstandardID() {
+        return !STANDARD_ID_LIST.contains(selectedID);
+    }
+
+    private static final List STANDARD_ID_LIST = Collections
+            .unmodifiableList(Arrays.asList(GitFileSet.WORKING_DIR,
+                GitFileSet.INDEX, "HEAD", GitFileSet.PARENT));
+
     public void selectMenuItem(int pos) {
         JMenuItem menuItem = (JMenuItem) menu.getMenuComponent(pos);
         menuItem.doClick();
+        hasAutoValue = true;
+    }
+
+    public void selectCommit(RevCommit c) {
+        String sha1 = c.getId().getName();
+        String abbr = sha1.substring(0, 7);
+        String message = c.getShortMessage();
+        textField.setText(abbr + ": " + message);
+        textField.setCaretPosition(0);
+        textField.setFont(plain);
+        selectedID = sha1;
     }
 
     private void buildTextField() {
@@ -119,6 +147,7 @@ public class GitIDSelector {
             private void handleChange() {
                 textField.setFont(plain);
                 selectedID = null;
+                hasAutoValue = false;
             }
         });
 
@@ -146,6 +175,7 @@ public class GitIDSelector {
         menu.add(new IDMenuItem("HEAD_", "HEAD"));
         if (side == OLD)
             menu.add(new IDMenuItem("Parent", GitFileSet.PARENT));
+        menu.add(new BrowseMenuItem());
 
         // add the menu to a menubar
         menubar = new JMenuBar();
@@ -174,9 +204,31 @@ public class GitIDSelector {
             textField.setText((String) getValue(NAME));
             textField.setFont(bold);
             selectedID = id;
+            hasAutoValue = false;
 
-            if (downstreamSelector != null)
+            if (downstreamSelector != null && downstreamSelector.hasAutoValue)
                 downstreamSelector.selectMenuItem(pos);
+        }
+
+    }
+
+    private class BrowseMenuItem extends AbstractAction {
+
+        public BrowseMenuItem() {
+            super(resources.getString("Other_Commit"));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            RevCommit c = browser.browseForCommit();
+            if (c == null)
+                return;
+
+            selectCommit(c);
+            hasAutoValue = false;
+
+            if (downstreamSelector != null && downstreamSelector.hasAutoValue)
+                downstreamSelector.selectMenuItem(2); // "Parent"
         }
 
     }
