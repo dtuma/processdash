@@ -141,6 +141,8 @@ public class WBSJTable extends JTable {
     WBSNodeEditor editor;
     /** The map translating node types to corresponding icons */
     Map iconMap;
+    /** Information about project workflows */
+    WorkflowWBSModel workflows;
     /** Our source for task identification information */
     TaskIDSource taskIDSource;
     /** A collection of blame data for drawing annotations */
@@ -182,6 +184,7 @@ public class WBSJTable extends JTable {
         super(model);
         wbsModel = model;
         this.iconMap = iconMap;
+        this.workflows = workflows;
         taskIDSource = idSource;
 
         if (getRowHeight() < 1)
@@ -1072,7 +1075,9 @@ public class WBSJTable extends JTable {
 
             // record the cut nodes.
             cutList = wbsModel.getNodesForRows(rows, true);
+            WorkflowUtil.storeWorkflowStepNames(cutList, workflows);
             WBSClipSelection.putNodeListOnClipboard(cutList, this);
+            WorkflowUtil.clearWorkflowStepNames(cutList);
 
             // update the appearance of newly cut cells (they will be
             // displaying phantom icons).
@@ -1114,7 +1119,9 @@ public class WBSJTable extends JTable {
             List copyList = WBSNode.cloneNodeList
                 (wbsModel.getNodesForRows(rows, true));
             setSourceIDsForCopyOperation(copyList);
+            WorkflowUtil.storeWorkflowStepNames(copyList, workflows);
             WBSClipSelection.putNodeListOnClipboard(copyList, null);
+            WorkflowUtil.clearWorkflowStepNames(copyList);
 
             WBSJTable.this.recalculateEnablement();
         }
@@ -1181,6 +1188,7 @@ public class WBSJTable extends JTable {
                     MasterWBSUtil.removeMasterNodeAttrs(n);
                     ExtSyncUtil.removeExtNodeAttributes(n);
                 }
+                WorkflowUtil.resolveWorkflowStepNames(nodesToInsert, workflows);
             }
             cutList = null;
 

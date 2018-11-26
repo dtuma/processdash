@@ -1074,11 +1074,40 @@ public class WorkflowUtil {
             return workflowSourceIDs.substring(0, commaPos);
     }
 
+    public static void storeWorkflowStepNames(List<WBSNode> nodes,
+            WorkflowWBSModel workflows) {
+        for (WBSNode node : nodes) {
+            String step = getWorkflowStepName(node, workflows, "/");
+            node.setAttribute(WFLOW_STEP_NAME_ATTR, step);
+        }
+    }
+
+    public static void clearWorkflowStepNames(List<WBSNode> nodes) {
+        storeWorkflowStepNames(nodes, null);
+    }
+
+    public static void resolveWorkflowStepNames(List<WBSNode> nodes,
+            WorkflowWBSModel workflows) {
+        for (WBSNode node : nodes) {
+            String name = (String) node.removeAttribute(WFLOW_STEP_NAME_ATTR);
+            if (name == null || workflows == null)
+                continue;
+
+            WBSNode step = workflows.getDescendantByName(workflows.getRoot(),
+                name);
+            if (step != null)
+                node.setAttribute(WFLOW_SRC_IDS,
+                    Integer.toString(step.getUniqueID()));
+        }
+    }
+
 
     private static final String WFLOW_SRC_IDS = //
             WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 
     private static final String WORKFLOW_IDS_SCRUBBED_FLAG = //
             "workflowIDsScrubbed";
+
+    private static final String WFLOW_STEP_NAME_ATTR = "workflowStepName";
 
 }
