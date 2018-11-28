@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,11 @@ public class PercentCompleteColumn extends AbstractPrecomputedColumn implements
     public static boolean isComplete(WBSNode node) {
         double percent = node.getNumericAttribute(RESULT_ATTR);
         return percent > DataTableCellPercentRenderer.ONE_HUNDRED_PCT_CUTOFF;
+    }
+
+    public static boolean isNonzeroPercentComplete(WBSNode node) {
+        double percent = node.getNumericAttribute(RESULT_ATTR);
+        return percent > 0;
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+ // Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -493,6 +493,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
     @Override
     protected void multiplyValuesUnder(WBSNode topNode, double newTopDownValue,
             double oldTopDownValue, double ratio) {
+        multiplyValuesUnder(topNode, newTopDownValue, oldTopDownValue, ratio,
+            false);
+    }
+
+    private void multiplyValuesUnder(WBSNode topNode, double newTopDownValue,
+            double oldTopDownValue, double ratio, boolean workflowTasksOnly) {
         // our goal with this method is to scale the team time across subtasks
         // while still observing minimum time constraints.
 
@@ -501,6 +507,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         Map<WBSNode, Double> weights = new HashMap();
         Map<WBSNode, Double> minTimes = new HashMap();
         double totalWeight = 0;
+        double nonWorkflowTime = 0;
         for (WBSNode child : wbsModel.getDescendants(topNode)) {
             // do not make any changes to nodes that are hidden.
             if (child.isHidden())
@@ -535,6 +542,13 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             if (!(val > 0 || minTime > 0))
                 continue;
 
+            // check for non-workflow tasks if we've been asked to ignore them
+            if (workflowTasksOnly
+                    && child.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) == null) {
+                nonWorkflowTime += val;
+                continue;
+            }
+
             // store the weight of this node in our map.
             weights.put(child, val);
             totalWeight += val;
@@ -549,7 +563,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         }
 
         // if we didn't find any min times, fall back to standard scaling logic.
-        if (minTimes.isEmpty()) {
+        if (minTimes.isEmpty() && nonWorkflowTime == 0) {
             super.multiplyValuesUnder(topNode, newTopDownValue, oldTopDownValue,
                 ratio);
             return;
@@ -560,7 +574,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         // nodes will need a min time adjustment.
         Map<WBSNode, Double> minTimesToUse = new HashMap();
         Map<WBSNode, Double> fixedTimeWgtOverrides = new HashMap();
-        double timeToSpread = newTopDownValue;
+        double timeToSpread = newTopDownValue - nonWorkflowTime;
         double weightToSpread = totalWeight;
         while (true) {
             boolean madeChangeToMinTimesDuringThisPass = false;
@@ -594,7 +608,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         // pseudo-weight to tasks with a fixed time, so they don't suddenly
         // (and unexpectedly) flip down to zero.
         if (timeToSpread <= 0 || weightToSpread <= 0) {
-            timeToSpread = newTopDownValue;
+            timeToSpread = newTopDownValue - nonWorkflowTime;
             weightToSpread = totalWeight;
             for (Entry<WBSNode, Double> e : fixedTimeWgtOverrides.entrySet()) {
                 Double fixedTime = minTimes.remove(e.getKey());
@@ -627,6 +641,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             leaf.setNumericAttribute(topDownAttrName,
                 leafTime + getFilteredAmount(leaf));
         }
+    }
+
+    public void addTimeToWorkflowTasks(WBSNode node, double additionalTime) {
+        double oldTime = node.getNumericAttribute(bottomUpAttrName);
+        double newTime = oldTime + additionalTime;
+        double ratio = newTime / oldTime;
+        multiplyValuesUnder(node, newTime, oldTime, ratio, true);
+        dataModel.columnChanged(this);
     }
 
 

@@ -1459,8 +1459,17 @@ public class WBSJTable extends JTable {
             if (isEditing()) editor.stopCellEditing();
             UndoList.stopCellEditing(WBSJTable.this);
 
+            // create an object to reallocate time from deleted workflow tasks
+            WorkflowDeletedTimeSpreader wdts = new WorkflowDeletedTimeSpreader(
+                    wbsModel, dataModel, workflows, nodesToDelete);
+
             // delete the nodes.
             wbsModel.deleteNodes(nodesToDelete);
+
+            // reallocate time from deleted workflow tasks into sibling tasks
+            // nearby. If this table is editing a secondary model (like
+            // milestones, proxies, etc), this will do nothing.
+            wdts.respreadDeletedTime();
 
             int rowToSelect = Math.min(rows[0], wbsModel.getRowCount()-1);
             setRowSelectionInterval(rowToSelect, rowToSelect);
