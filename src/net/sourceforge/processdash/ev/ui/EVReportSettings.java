@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2017 Tuma Solutions, LLC
+// Copyright (C) 2006-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,7 +63,8 @@ public class EVReportSettings {
     static final String GROUP_FILTER_PARAM = SelectGroupFilter.FILTER_PARAM;
     static final String GROUP_FILTER_AUTO_PARAM = GROUP_FILTER_PARAM + "Auto";
     static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
-    public static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
+    public static final String CUSTOMIZE_HIDE_NAMES = EVReport.CUSTOMIZE_HIDE_NAMES;
+    public static final String CUSTOMIZE_HIDE_COSTS = EVReport.CUSTOMIZE_HIDE_COSTS;
 
     private DataRepository data;
     private Map parameters;

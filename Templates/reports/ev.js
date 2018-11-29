@@ -3,7 +3,7 @@ var PdashEV = {
 
    openCustomizeWindow: function(href) {
       var newWind = window.open (href, 'customize',
-            'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=720');
+            'scrollbars=yes,dependent=yes,resizable=yes,width=440,height=720');
       newWind.focus();
       return false;
    },

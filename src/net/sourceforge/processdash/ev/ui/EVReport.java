@@ -138,6 +138,7 @@ public class EVReport extends CGIChartBase {
     static final String CUSTOMIZE_HIDE_REPLAN_LINE = "hideReplanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
+    static final String CUSTOMIZE_HIDE_COSTS = "hideCosts";
     static final String CUSTOMIZE_LABEL_FILTER =
         EVReportSettings.LABEL_FILTER_PARAM;
     static final String TASK_STYLE_PARAM = "taskStyle";
@@ -805,6 +806,7 @@ public class EVReport extends CGIChartBase {
             settings.store(CUSTOMIZE_HIDE_REPLAN_LINE, true);
             settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
             settings.store(CUSTOMIZE_HIDE_NAMES, true);
+            settings.store(CUSTOMIZE_HIDE_COSTS, true);
             settings.store(CUSTOMIZE_LABEL_FILTER, false);
             saveChartOrderingPreference();
             out.println("window.opener.location.reload();");
