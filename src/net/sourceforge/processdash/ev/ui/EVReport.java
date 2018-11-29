@@ -876,7 +876,7 @@ public class EVReport extends CGIChartBase {
         boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
-            writeMetric(m, i, hidePlan, hideReplan, hideForecast);
+            writeMetric(m, i, hidePlan, hideReplan, hideForecast, hideCosts);
         out.print("</table>");
 
         out.print("<h2><a name='" + namespace + "tasks'></a>"
@@ -1238,11 +1238,12 @@ public class EVReport extends CGIChartBase {
 
 
     protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
-            boolean hideReplan, boolean hideForecast) {
+            boolean hideReplan, boolean hideForecast, boolean hideCosts) {
         String metricID = (String) m.getValueAt(i, EVMetrics.METRIC_ID);
         if (hidePlan && (metricID.indexOf("Plan_") != -1)) return;
         if (hideReplan && (metricID.indexOf("Replan_") != -1)) return;
         if (hideForecast && metricID.indexOf("Forecast_") != -1) return;
+        if (hideCosts && (Boolean) m.getValueAt(i, EVMetrics.IS_COST)) return;
 
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
         if (name == null) return;

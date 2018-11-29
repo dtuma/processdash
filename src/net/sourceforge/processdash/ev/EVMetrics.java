@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -597,6 +597,7 @@ public class EVMetrics implements TableModel {
         String metricName;
         MessageFormat shortFormat, medFormat, fullFormat;
         Object[] args = null;
+        boolean costRelated;
 
         public MetricFormatter(String key) {
             this.key = key;
@@ -605,6 +606,7 @@ public class EVMetrics implements TableModel {
             shortFormat = fmt.shortFormat;
             medFormat = fmt.medFormat;
             fullFormat = fmt.fullFormat;
+            costRelated = false;
         }
 
         protected boolean isValid() { return args != null; }
@@ -614,6 +616,7 @@ public class EVMetrics implements TableModel {
         public String getMed() { return medFormat.format(args); }
         public String getFull() { return fullFormat.format(args); }
         public String getKey() { return key; }
+        public boolean isCostRelated() { return costRelated; }
 
         public abstract Object getValue();
         protected abstract void recalc();
@@ -638,7 +641,7 @@ public class EVMetrics implements TableModel {
     }
 
     protected abstract class CostMetricFormatter extends NumberMetricFormatter {
-        public CostMetricFormatter(String key) { super(key); }
+        public CostMetricFormatter(String key) { super(key); cost(this); }
         protected void recalc() {
             double d = val();
             if (badDouble(d))
@@ -688,7 +691,7 @@ public class EVMetrics implements TableModel {
     }
 
     protected abstract class CostRangeMetricFormatter extends MetricFormatter {
-        public CostRangeMetricFormatter(String key) { super(key); }
+        public CostRangeMetricFormatter(String key) { super(key); cost(this); }
         public Object getValue() { return new Double[] { lpi(), upi() }; }
         abstract double lpi();
         abstract double upi();
@@ -730,10 +733,10 @@ public class EVMetrics implements TableModel {
                 double val() { return replanCost(); } } );
         result.add(new CostMetricFormatter("Cost_Variance") {
                 double val() { return costVariance(); } } );
-        result.add(new AbsMetricFormatter("Cost_Variance_Percent") {
-                double val() { return costVariancePercentage(); } } );
-        result.add(new DblMetricFormatter("Cost_Performance_Index") {
-                double val() { return costPerformanceIndex(); } } );
+        result.add(cost(new AbsMetricFormatter("Cost_Variance_Percent") {
+                double val() { return costVariancePercentage(); } } ) );
+        result.add(cost(new DblMetricFormatter("Cost_Performance_Index") {
+                double val() { return costPerformanceIndex(); } } ) );
         result.add(new CostMetricFormatter("Schedule_Variance") {
                 double val() { return scheduleVariance(); } } );
         result.add(new AbsMetricFormatter("Schedule_Variance_Percent") {
@@ -753,12 +756,12 @@ public class EVMetrics implements TableModel {
                 Date val() { return baselineDate(); } } );
         result.add(new DblMetricFormatter("Percent_Complete") {
                 double val() { return percentComplete(); } } );
-        result.add(new DblMetricFormatter("Percent_Spent") {
-                double val() { return percentSpent(); } } );
-        result.add(new DblMetricFormatter("To_Complete_Index") {
-                double val() { return toCompletePerformanceIndex(); } } );
-        result.add(new AbsMetricFormatter("Improvement_Ratio") {
-                double val() { return improvementRatio(); } } );
+        result.add(cost(new DblMetricFormatter("Percent_Spent") {
+                double val() { return percentSpent(); } } ) );
+        result.add(cost(new DblMetricFormatter("To_Complete_Index") {
+                double val() { return toCompletePerformanceIndex(); } } ) );
+        result.add(cost(new AbsMetricFormatter("Improvement_Ratio") {
+                double val() { return improvementRatio(); } } ) );
         result.add(new CostMetricFormatter("Forecast_Cost") {
                 double val() { return independentForecastCostEff(); } } );
         result.add(new CostRangeMetricFormatter("Forecast_Cost_Range") {
@@ -772,6 +775,11 @@ public class EVMetrics implements TableModel {
                 Date lpi() { return independentForecastDateLPI(); }
                 Date upi() { return independentForecastDateUPI(); } } );
         return result;
+    }
+
+    protected MetricFormatter cost(MetricFormatter metricsFormatter) {
+        metricsFormatter.costRelated = true;
+        return metricsFormatter;
     }
 
     public void discardMetrics(PatternList patterns) {
@@ -900,6 +908,9 @@ public class EVMetrics implements TableModel {
     /** Return the String ID for the metric */
     public static final int METRIC_ID = -1;
 
+    /** Return a flag indicating whether the metric is cost-related */
+    public static final int IS_COST = -2;
+
 
     private static String NAME_HEADING =
         resources.getString("Metrics.Column_Heading.Name");
@@ -944,6 +955,7 @@ public class EVMetrics implements TableModel {
         case MEDIUM: return f.getMed();
         case FULL: return f.getFull();
         case METRIC_ID: return f.getKey();
+        case IS_COST: return f.isCostRelated();
         }
         return null;
     }
