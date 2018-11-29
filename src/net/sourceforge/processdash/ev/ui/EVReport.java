@@ -873,6 +873,7 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
             writeMetric(m, i, hidePlan, hideReplan, hideForecast);
@@ -885,7 +886,7 @@ public class EVReport extends CGIChartBase {
         taskDataWriter.write(out, evModel, taskFilter, settings, namespace);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
-        writeScheduleTable(s);
+        writeScheduleTable(s, hideCosts);
 
         if (isExporting() && !isSnippet)
             writeExportFooter(out);
@@ -1404,11 +1405,14 @@ public class EVReport extends CGIChartBase {
         writer.writeTree(out, tree);
     }
 
-    void writeScheduleTable(EVSchedule s) throws IOException {
+    void writeScheduleTable(EVSchedule s, boolean hideCosts) throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
         customizeTableWriter(writer, s, s.getColumnTooltips());
         setupRenderers(writer, EVSchedule.COLUMN_FORMATS);
         writer.setSkipColumn(EVSchedule.NOTES_COLUMN, true);
+        if (hideCosts)
+            hideCostColumns(writer, EVSchedule.COLUMN_FORMATS,
+                EVSchedule.IPERCENT_COLUMN);
         writer.setTableName("SCHEDULE");
         writer.writeTable(out, s);
     }
@@ -1421,6 +1425,7 @@ public class EVReport extends CGIChartBase {
         boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
+        boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
@@ -1436,7 +1441,22 @@ public class EVReport extends CGIChartBase {
             writer.setSkipColumn(EVTaskList.REPLAN_DATE_COLUMN, true);
         if (hideForecast)
             writer.setSkipColumn(EVTaskList.FORECAST_DATE_COLUMN, true);
+        if (hideCosts)
+            hideCostColumns(writer, EVTaskList.COLUMN_FORMATS,
+                EVTaskList.PCT_SPENT_COLUMN);
         return table;
+    }
+
+    private static void hideCostColumns(HTMLTableWriter writer,
+            Object[] columnFormats, int... otherColumns) {
+        for (int column = columnFormats.length; column-- > 0;) {
+            Object thisColumnFormat = columnFormats[column];
+            if (EVTaskList.COLUMN_FMT_TIME.equals(thisColumnFormat))
+                writer.setSkipColumn(column, true);
+        }
+        for (int column : otherColumns) {
+            writer.setSkipColumn(column, true);
+        }
     }
 
 
