@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ public class EVCharts {
     /** A widget that displays a cumulative earned value chart */
     public static class Value extends AbstractEVTimeSeriesChart{
 
+        public static final String ID = "pdash.ev.cumValueChart";
+
         @Override
         protected XYDataset createDataset(Map env, Map params) {
             return getSchedule(env).getValueChartData();
@@ -43,6 +45,8 @@ public class EVCharts {
     /** A widget that displays a cumulative direct time chart */
     public static class DirectTime extends AbstractEVTimeSeriesChart {
 
+        public static final String ID = "pdash.ev.cumDirectTimeChart";
+
         @Override
         protected XYDataset createDataset(Map env, Map params) {
             return getSchedule(env).getTimeChartData();
@@ -52,6 +56,8 @@ public class EVCharts {
 
     /** A widget that displays a combined chart */
     public static class Combined extends AbstractEVTimeSeriesChart {
+
+        public static final String ID = "pdash.ev.cumCombinedChart";
 
         @Override
         protected XYDataset createDataset(Map env, Map params) {

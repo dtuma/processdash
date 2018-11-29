@@ -84,6 +84,7 @@ import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartItem;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVTimeSeriesChart;
+import net.sourceforge.processdash.ev.ui.chart.EVCharts;
 import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.ev.ui.chart.HtmlEvChart;
 import net.sourceforge.processdash.i18n.Resources;
@@ -856,11 +857,11 @@ public class EVReport extends CGIChartBase {
             printFilterInfo(out, taskFilter, settings, isExporting(),
                 exportingToExcel());
 
+        boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         if (!exportingToExcel()) {
-            writeImageHtml(taskFilter != null);
+            writeImageHtml(taskFilter != null, hideCosts);
             out.print("<div style='clear:both'></div>");
-            writeCharts(evModel, s, taskFilter,
-                settings.getBool(CUSTOMIZE_HIDE_NAMES), 350, 300,
+            writeCharts(evModel, s, taskFilter, 350, 300,
                 ChartListPurpose.ReportMain, null, null);
             out.print("<div style='clear:both'>&nbsp;</div>");
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
@@ -873,7 +874,6 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
-        boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
             writeMetric(m, i, hidePlan, hideReplan, hideForecast, hideCosts);
@@ -1003,7 +1003,13 @@ public class EVReport extends CGIChartBase {
     }
 
 
-    private void writeImageHtml(boolean showCombined) throws IOException {
+    private void writeImageHtml(boolean hasFilter, boolean hideCosts)
+            throws IOException {
+        // when a filter is in effect, we normally display the EV-vs-cost
+        // chart. But don't write that chart if we're hiding costs.
+        if (hasFilter && hideCosts)
+            return;
+
         boolean exporting = isExporting();
         Map realParameters = this.parameters;
         Map imgParams = new HashMap();
@@ -1017,17 +1023,17 @@ public class EVReport extends CGIChartBase {
             imgParams.put("EXPORT", realParameters.get("EXPORT"));
 
         out.write("<pre>");
-        if (showCombined) {
+        if (hasFilter) {
             imgParams.put("width", "720");
             if (!exporting)
                 imgParams.put("href",
-                    getChartDrillDownUrl("pdash.ev.cumCombinedChart"));
+                    getChartDrillDownUrl(EVCharts.Combined.ID));
             writeCombinedChart();
 
         } else {
             if (!exporting)
                 imgParams.put("href",
-                    getChartDrillDownUrl("pdash.ev.cumValueChart"));
+                    getChartDrillDownUrl(EVCharts.Value.ID));
             writeValueChart();
 
             imgParams.put("width", "320");
@@ -1035,8 +1041,9 @@ public class EVReport extends CGIChartBase {
             imgParams.remove("title");
             if (!exporting)
                 imgParams.put("href",
-                    getChartDrillDownUrl("pdash.ev.cumDirectTimeChart"));
-            writeTimeChart();
+                    getChartDrillDownUrl(EVCharts.DirectTime.ID));
+            if (!hideCosts)
+                writeTimeChart();
         }
         out.write("</pre>\n");
 
@@ -1591,7 +1598,6 @@ public class EVReport extends CGIChartBase {
         String title = resources.format("Report.Charts_Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
-        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
 
         StringBuffer header = new StringBuffer(SIMPLE_HEADER_HTML);
         StringUtils.findAndReplace(header, TITLE_VAR, title);
@@ -1608,16 +1614,15 @@ public class EVReport extends CGIChartBase {
 
         String singleChartId = getParameter(SINGLE_CHART_PARAM);
         if (singleChartId == null)
-            writeChartsGalleryPage(taskFilter, hideNames, s);
+            writeChartsGalleryPage(taskFilter, s);
         else
-            writeSingleChartPage(taskFilter, hideNames, s, singleChartId);
+            writeSingleChartPage(taskFilter, s, singleChartId);
 
         out.print("</body></html>\n");
     }
 
 
-    private void writeChartsGalleryPage(EVTaskFilter taskFilter,
-            boolean hideNames, EVSchedule s) {
+    private void writeChartsGalleryPage(EVTaskFilter taskFilter, EVSchedule s) {
 
         if (!isExporting()) {
             out.write("<p class='doNotPrint'><i>"
@@ -1626,7 +1631,7 @@ public class EVReport extends CGIChartBase {
         }
 
         // display all of the charts that are relevant to this task list.
-        writeCharts(evModel, s, taskFilter, hideNames, 400, 300,
+        writeCharts(evModel, s, taskFilter, 400, 300,
             ChartListPurpose.ReportAll, null, null);
 
         // add space to the bottom of the page so the chart tooltips don't
@@ -1634,8 +1639,8 @@ public class EVReport extends CGIChartBase {
         out.print("<div style='height: 1in; clear:both'>&nbsp;</div>\n");
     }
 
-    protected void writeSingleChartPage(EVTaskFilter taskFilter,
-            boolean hideNames, EVSchedule s, String singleChartId) {
+    protected void writeSingleChartPage(EVTaskFilter taskFilter, EVSchedule s,
+            String singleChartId) {
 
         out.write("<div class='singleChartWrapper'>\n");
 
@@ -1643,8 +1648,7 @@ public class EVReport extends CGIChartBase {
         out.write("<div class='singleChartHolder'>\n");
         Map<String, String> chartHelp = new HashMap<String, String>();
         List<ChartItem> allCharts = writeCharts(evModel, s, taskFilter,
-            hideNames, 800, 500, ChartListPurpose.ReportAll, singleChartId,
-            chartHelp);
+            800, 500, ChartListPurpose.ReportAll, singleChartId, chartHelp);
         out.write("</div>\n"); // singleChartHolder
 
         // display a drop-down selector that can be used to select a
@@ -1768,16 +1772,18 @@ public class EVReport extends CGIChartBase {
 
 
     protected List<ChartItem> writeCharts(EVTaskList evModel,
-            EVSchedule schedule, EVTaskFilter filter, boolean hideNames,
+            EVSchedule schedule, EVTaskFilter filter,
             int width, int height, ChartListPurpose p,
             String singleChartId, Map<String, String> chartHelpMap) {
         DashboardContext ctx = getDashboardContext();
         Object exportMarker = parameters.get("EXPORT");
         boolean filterInEffect = (filter != null);
         boolean isRollup = (evModel instanceof EVTaskListRollup);
+        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
+        boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             evModel.getID(), getDataRepository(), filterInEffect, isRollup,
-            hideNames, p);
+            hideNames, hideCosts, p);
 
         for (Iterator i = chartList.iterator(); i.hasNext();) {
             ChartItem chart = (ChartItem) i.next();
@@ -1849,7 +1855,7 @@ public class EVReport extends CGIChartBase {
         String taskListId = getParameter("tlid");
         boolean isRollup = parameters.containsKey("isRollup");
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
-            taskListId, getDataRepository(), false, isRollup, false,
+            taskListId, getDataRepository(), false, isRollup, false, false,
             ChartListPurpose.ReportAll);
         Iterator<ChartItem> i = chartList.iterator();
 

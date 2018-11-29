@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
+import net.sourceforge.processdash.ev.ui.chart.EVCharts;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
@@ -86,6 +87,7 @@ public class TaskScheduleChartUtil {
      * @param isRollup true if the task list is a rollup
      * @param hideNames true if the identities of individuals should be
      *      protected
+     * @param hideCosts true if cost-related charts should be hidden
      *
      * @return a collection of {@link ChartItem} objects describing the
      *      snippets for the relevant charts, and the settings that should
@@ -93,14 +95,14 @@ public class TaskScheduleChartUtil {
      */
     public static List<ChartItem> getChartsForTaskList(String taskListID,
             DataRepository data, boolean filterInEffect, boolean isRollup,
-            boolean hideNames, ChartListPurpose purpose) {
+            boolean hideNames, boolean hideCosts, ChartListPurpose purpose) {
         Map<String, TaskScheduleChartSettings> chartSettings =
             TaskScheduleChartSettings.getSettingsForTaskList(taskListID, data);
 
         Map<String, ChartItem> result = new HashMap<String, ChartItem>();
 
         SimpleDataContext ctx = getContextTags(filterInEffect, isRollup,
-            hideNames);
+            hideNames, hideCosts);
 
         SnippetDefinitionManager.initialize();
         for (SnippetDefinition snip : SnippetDefinitionManager
@@ -130,6 +132,18 @@ public class TaskScheduleChartUtil {
                 || purpose == ChartListPurpose.ReportAll) {
             List<String> preferredChartOrdering = TaskScheduleChartSettings
                     .getPreferredChartOrdering(taskListID, data);
+
+            if (hideCosts && filterInEffect
+                    && purpose == ChartListPurpose.ReportMain) {
+                // when costs are being hidden and a filter is in effect, the
+                // main EV report will squash the display of the usual
+                // EV-vs-cost chart. Compensate by showing the Cumulative EV
+                // chart at the front of the chart list.
+                preferredChartOrdering = new ArrayList(preferredChartOrdering);
+                preferredChartOrdering.remove(EVCharts.Value.ID);
+                preferredChartOrdering.add(0, EVCharts.Value.ID);
+            }
+
             for (String oneId : preferredChartOrdering) {
                 if (TaskScheduleChartSettings.SECONDARY_CHART_MARKER
                         .equals(oneId)) {
@@ -156,7 +170,7 @@ public class TaskScheduleChartUtil {
     }
 
     private static SimpleDataContext getContextTags(boolean filterInEffect,
-            boolean isRollup, boolean hideNames) {
+            boolean isRollup, boolean hideNames, boolean hideCosts) {
         SimpleDataContext ctx = new SimpleDataContext();
         TagData tag = TagData.getInstance();
 
@@ -167,6 +181,8 @@ public class TaskScheduleChartUtil {
             ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
         if (hideNames)
             ctx.put(EVSnippetEnvironment.ANON_EV_CONTEXT_KEY, tag);
+        if (hideCosts)
+            ctx.put(EVSnippetEnvironment.COST_FREE_EV_CONTEXT_KEY, tag);
 
         return ctx;
     }

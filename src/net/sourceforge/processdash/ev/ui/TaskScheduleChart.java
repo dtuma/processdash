@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -94,6 +94,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
+import net.sourceforge.processdash.ev.ui.chart.EVCharts;
 import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.ev.ui.icons.TaskScheduleIcons;
 import net.sourceforge.processdash.i18n.Resources;
@@ -200,7 +201,7 @@ public class TaskScheduleChart extends JFrame
 
         List<TaskScheduleChartUtil.ChartItem> chartItems =
             TaskScheduleChartUtil.getChartsForTaskList(tl.getID(), data,
-                    filterInEffect, isRollup, false,
+                    filterInEffect, isRollup, false, false,
                     ChartListPurpose.ChartWindow);
         for (TaskScheduleChartUtil.ChartItem oneChart : chartItems) {
             try {
@@ -1047,6 +1048,6 @@ public class TaskScheduleChart extends JFrame
     private static final Preferences PREFS = Preferences
             .userNodeForPackage(TaskScheduleChart.class);
     private static final String DEFAULT_CHART_PREF = "TaskScheduleChart.DefaultChartId";
-    private static final String DEFAULT_CHART_ID = "pdash.ev.cumValueChart";
+    private static final String DEFAULT_CHART_ID = EVCharts.Value.ID;
 
 }

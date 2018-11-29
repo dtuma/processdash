@@ -470,6 +470,7 @@ The author(s) may be contacted at:
     <resources>EV.Snippet.Direct_Hours_Chart</resources>
     <context>Earned Value Context</context>
     <context>!Filtered Earned Value Context</context>
+    <context>!Cost Free Earned Value Context</context>
     <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$DirectTime</widget>
     <help id="EV.cumDirectTimeChart"
           uri="/help/Topics/Planning/EV-cumDirectTimeChart.html"/>
@@ -478,6 +479,7 @@ The author(s) may be contacted at:
   <snippet id="pdash.ev.cumCombinedChart" version="1.0" category="ev">
     <resources>EV.Snippet.Combined_Chart</resources>
     <context>Earned Value Context</context>
+    <context>!Cost Free Earned Value Context</context>
     <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$Combined</widget>
     <help id="EV.cumCombinedChart"
           uri="/help/Topics/Planning/EV-cumCombinedChart.html"/>
