@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -233,6 +233,7 @@ public class EVWeekReport extends TinyCGIBase {
         boolean hideNames = settings.getBool(EVReport.CUSTOMIZE_HIDE_NAMES);
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
                 && !hideNames;
+        boolean showCosts = !settings.getBool(EVReport.CUSTOMIZE_HIDE_COSTS);
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && !isExporting() && purpose == PLAIN_REPORT);
         boolean showMilestones = evModel.showMilestoneColumn();
@@ -476,6 +477,8 @@ public class EVWeekReport extends TinyCGIBase {
 
         if (!shouldHideSummary) {
 
+            boolean showSummaryDirectHours = taskFilter == null && showCosts;
+
             interpOut("<" + hh + indivDetail + ">${Summary.Header}");
             if (isTopLevel(purpose) && showAssignedTo && !isExporting()) {
                 String splitLink = (String) env.get("REQUEST_URI");
@@ -492,13 +495,13 @@ public class EVWeekReport extends TinyCGIBase {
             }
             out.print("</" + hh + ">");
             out.print("<table border=1 name='summary'><tr><td></td><td></td>");
-            if (taskFilter == null)
+            if (showSummaryDirectHours)
                 interpOut("<td class=header colspan=3>${Summary.Direct_Hours}"
                         + "</td><td></td>");
             interpOut("<td class=header colspan=3>${Summary.Earned_Value}"
                     + "</td></tr>\n" //
                     + "<tr><td></td><td></td>");
-            if (taskFilter == null)
+            if (showSummaryDirectHours)
                 interpOut("<td class=header>${Summary.Plan}</td>"
                         + "<td class=header>${Summary.Actual}</td>"
                         + "<td class=header>${Summary.Ratio}</td><td></td>");
@@ -514,7 +517,7 @@ public class EVWeekReport extends TinyCGIBase {
             out.print("<tr><td class=left>"
                     + effRes.getHTML("Summary." + thisWeekKey)
                     + "</td><td></td>");
-            if (taskFilter == null) {
+            if (showSummaryDirectHours) {
                 double directTimeThisWeek;
                 if (monthly)
                     directTimeThisWeek = sumActualTime(actualTimeThisWeek);
@@ -530,7 +533,7 @@ public class EVWeekReport extends TinyCGIBase {
             out.print("<tr><td class=left>" + encodeHTML(resources.format(
                     "Summary.To_Date_FMT", effDateDisplay)) + "</td><td></td>");
             double directTimeToDate = 0;
-            if (taskFilter == null) {
+            if (showSummaryDirectHours) {
                 if (monthly)
                     directTimeToDate = schedule.get(0).getActualDirectTime()
                             + sumActualTime(getActualTimeSpent(tasks, startDate,
@@ -557,7 +560,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<tr" + indivDetail
                         + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
             }
-            if (taskFilter == null) {
+            if (showSummaryDirectHours) {
                 double planTimePerWeek = weekSlice.getCumPlanDirectTime() / numWeeks;
                 double actualTimePerWeek = directTimeToDate / numWeeks;
                 printTimeData(planTimePerWeek, actualTimePerWeek);
@@ -568,7 +571,7 @@ public class EVWeekReport extends TinyCGIBase {
             printPctData(planEVPerWeek, actualEVPerWeek);
             out.print("</tr>\n");
     
-            if (taskFilter == null) {
+            if (showSummaryDirectHours) {
                 interpOut("<tr" + indivDetail
                         + "><td class=left>${Summary.Completed_Tasks_To_Date}"
                         + "</td><td></td>");
@@ -616,7 +619,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printCompletedTaskTableHeader(showTimeThisWeek, showAssignedTo,
-                    showMilestones, showLabels, monthly);
+                    showMilestones, showLabels, monthly, showCosts);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -640,25 +643,28 @@ public class EVWeekReport extends TinyCGIBase {
 
                     printCompletedLine(tableWriter, tasks, i,
                         showTimeThisWeek ? actualTimeThisWeek : null,
-                        showAssignedTo, showMilestones, showLabels);
+                        showAssignedTo, showMilestones, showLabels, showCosts);
                 }
 
                 interpOut("<tr class='sortbottom'><td><b>${Completed_Tasks.Total}"
-                        + "&nbsp;</b></td><td class='timeFmt'>");
-                out.print(formatTime(totalPlannedTime) + "</td>");
-                out.print("<td class='timeFmt'>");
-                out.print(formatTime(totalActualTime) + "</td>");
-                if (showTimeThisWeek) {
+                        + "&nbsp;</b></td>");
+                if (showCosts) {
                     out.print("<td class='timeFmt'>");
-                    out.print(formatTime(completedTasksTimeThisWeek) + "</td>");
-                }
+                    out.print(formatTime(totalPlannedTime) + "</td>");
+                    out.print("<td class='timeFmt'>");
+                    out.print(formatTime(totalActualTime) + "</td>");
+                    if (showTimeThisWeek) {
+                        out.print("<td class='timeFmt'>");
+                        out.print(formatTime(completedTasksTimeThisWeek) + "</td>");
+                    }
 
-                if (totalPlannedTime > 0) {
-                    double totalPctSpent = totalActualTime/totalPlannedTime;
-                    out.print("<td>" + EVSchedule.formatPercent(totalPctSpent)
-                            + "</td>");
-                } else {
-                    out.print("<td>&nbsp;</td>");
+                    if (totalPlannedTime > 0) {
+                        double totalPctSpent = totalActualTime/totalPlannedTime;
+                        out.print("<td>" + EVSchedule.formatPercent(totalPctSpent)
+                                + "</td>");
+                    } else {
+                        out.print("<td>&nbsp;</td>");
+                    }
                 }
 
                 // Empty td for assigned to, planned date, and labels columns
@@ -689,7 +695,8 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printUncompletedTaskTableHeader(showTimeThisWeek,
-                    showAssignedTo, showMilestones, showLabels, true, monthly);
+                    showAssignedTo, showMilestones, showLabels, true, monthly,
+                    showCosts);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -722,21 +729,26 @@ public class EVWeekReport extends TinyCGIBase {
                         taskPlannedTimeRemaining,
                         showTimeThisWeek ? actualTimeThisWeek : null,
                         showAssignedTo, showMilestones, showLabels,
-                        taskUnearnedValue);
+                        taskUnearnedValue, showCosts);
                 }
 
                 interpOut("<tr class='sortbottom'><td><b>${Tasks_In_Progress.Total}"
-                        + "&nbsp;</b></td><td class='timeFmt'>");
-                out.print(formatTime(totalPlannedTime) + "</td>");
-                out.print("<td class='timeFmt'>");
-                out.print(formatTime(totalActualTime) + "</td>");
-                if (showTimeThisWeek) {
+                        + "&nbsp;</b></td>");
+                if (showCosts) {
                     out.print("<td class='timeFmt'>");
-                    out.print(formatTime(inProgressTasksTimeThisWeek) + "</td>");
+                    out.print(formatTime(totalPlannedTime) + "</td>");
+                    out.print("<td class='timeFmt'>");
+                    out.print(formatTime(totalActualTime) + "</td>");
+                    if (showTimeThisWeek) {
+                        out.print("<td class='timeFmt'>");
+                        out.print(formatTime(inProgressTasksTimeThisWeek) + "</td>");
+                    }
                 }
                 out.print("<td>" + EVSchedule.formatPercent(totalPlannedValue)
                         + "</td>");
-                if (totalPlannedTime > 0) {
+                if (showCosts == false) {
+                    // do not display % spent column
+                } else if (totalPlannedTime > 0) {
                     double totalPctSpent = totalActualTime/totalPlannedTime;
                     out.print("<td>" + EVSchedule.formatPercent(totalPctSpent)
                             + "</td>");
@@ -749,11 +761,13 @@ public class EVWeekReport extends TinyCGIBase {
                 for (int i = 0; i < noSumCol ; ++i)
                     out.print("<td>&nbsp;</td>");
 
-                out.print("<td class='timeFmt'>");
-                out.print(formatTime(totalPlannedTimeRemaining) + "</td>");
-
-                out.println("<td>" + EVSchedule.formatPercent(totalUnearnedValue)
-                        + "</td>");
+                if (showCosts) {
+                    out.print("<td class='timeFmt'>");
+                    out.print(formatTime(totalPlannedTimeRemaining));
+                    out.print("</td><td>");
+                    out.print(EVSchedule.formatPercent(totalUnearnedValue));
+                    out.println("</td>");
+                }
                 out.println("</tr>\n</table>");
             }
 
@@ -773,29 +787,34 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printUncompletedTaskTableHeader(false, showAssignedTo,
-                    showMilestones, showLabels, false, monthly);
+                    showMilestones, showLabels, false, monthly, showCosts);
 
                 double timeRemaining = 0;
-                for (int i = 0;   i < taskListLen;   i++)
+                for (int i = 0;   i < taskListLen;   i++) {
                     if (dueThroughNextWeek[i]) {
                         double forecastTimeRemaining =
                             computeTaskForecastTimeRemaining(tasks, i, cpi);
 
                         printDueLine(tableWriter, tasks, progress[i], i, cpi,
                             forecastTimeRemaining, showAssignedTo,
-                            showMilestones, showLabels);
+                            showMilestones, showLabels, showCosts);
 
                         if (progress[i] != AHEAD_OF_SCHEDULE && forecastTimeRemaining > 0)
                             timeRemaining += forecastTimeRemaining;
                     }
+                }
 
-                out.print("<tr class='sortbottom'><td align=right colspan=");
-                int colspan = 6 + numOptionalCols;
-                out.print(Integer.toString(colspan));
-                interpOut("><b>${Due_Tasks.Total}"
-                        + "&nbsp;</b></td><td class='timeFmt'>");
-                out.print(formatTime(timeRemaining));
-                out.println("</td></tr>\n</table>");
+                if (showCosts) {
+                    out.print("<tr class='sortbottom'><td align=right colspan=");
+                    int colspan = 6 + numOptionalCols;
+                    out.print(Integer.toString(colspan));
+                    interpOut("><b>${Due_Tasks.Total}"
+                            + "&nbsp;</b></td><td class='timeFmt'>");
+                    out.print(formatTime(timeRemaining));
+                    out.println("</td></tr>");
+                }
+
+                out.println("</table>");
             }
             out.print("</div>\n");
         } else {
@@ -1011,22 +1030,22 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printUncompletedTaskTableHeader(boolean showTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean inProgressThisWeek, boolean monthly) {
+            boolean inProgressThisWeek, boolean monthly, boolean showCosts) {
         String HTMLTableId = (inProgressThisWeek) ? "$$$_progress" : "$$$_due";
 
-        interpOut("<table border=1 name='dueTask' class='sortable' id='" + HTMLTableId+
-                  "'><tr>" +
-                  "<td></td>"+
-                  "<td class=header>${Columns.Planned_Time}</td>"+
-                  "<td class=header>${Columns.Actual_Time}</td>");
+        interpOut("<table border=1 name='dueTask' class='sortable' id='"
+                + HTMLTableId + "'><tr><td></td>");
 
-        if (inProgressThisWeek && showTimeThisWeek)
+        if (showCosts)
+            interpOut("<td class=header>${Columns.Planned_Time}</td>"
+                    + "<td class=header>${Columns.Actual_Time}</td>");
+        if (showCosts && inProgressThisWeek && showTimeThisWeek)
             interpOut("<td class=header>${Columns.Actual_Time_"
                     + (monthly ? "Month" : "Week") + "}</td>");
         if (inProgressThisWeek)
             interpOut("<td class=header>${Columns.Planned_Value}</td>");
-
-        interpOut("<td class=header>${Columns.Percent_Spent}</td>");
+        if (showCosts)
+            interpOut("<td class=header>${Columns.Percent_Spent}</td>");
 
         if (showAssignedTo)
             interpOut("<td class=header>${Columns.Assigned_To}</td>");
@@ -1037,7 +1056,9 @@ public class EVWeekReport extends TinyCGIBase {
             interpOut("<td class=header>${Columns.Labels}</td>");
         interpOut("<td class=header title='${Columns.Depend_Tooltip}'>${Columns.Depend}</td>");
 
-        if (inProgressThisWeek) {
+        if (showCosts == false) {
+            // do not display these columns
+        } else if (inProgressThisWeek) {
             interpOut("<td class=header>${Columns.Planned_Time_Remaining}</td>" +
                       "<td class=header>${Columns.Unearned_Value}</td>");
         }
@@ -1049,16 +1070,17 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printCompletedTaskTableHeader(boolean showTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean monthly) {
-        interpOut("<table border=1 name='compTask' class='sortable' " +
-                        "id='$$$_comp'><tr>" +
-                  "<td></td>"+
-                  "<td class=header>${Columns.Planned_Time}</td>"+
-                  "<td class=header>${Columns.Actual_Time}</td>");
-        if (showTimeThisWeek)
-            interpOut("<td class=header>${Columns.Actual_Time_"
-                    + (monthly ? "Month" : "Week") + "}</td>");
-        interpOut("<td class=header>${Columns.Percent_Spent}</td>");
+            boolean monthly, boolean showCosts) {
+        interpOut("<table border=1 name='compTask' class='sortable' "
+                + "id='$$$_comp'><tr><td></td>");
+        if (showCosts) {
+            interpOut("<td class=header>${Columns.Planned_Time}</td>"
+                    + "<td class=header>${Columns.Actual_Time}</td>");
+            if (showTimeThisWeek)
+                interpOut("<td class=header>${Columns.Actual_Time_"
+                        + (monthly ? "Month" : "Week") + "}</td>");
+            interpOut("<td class=header>${Columns.Percent_Spent}</td>");
+        }
         if (showAssignedTo)
             interpOut("<td class=header>${Columns.Assigned_To}</td>");
         interpOut("<td class=header>${Columns.Planned_Date}</td>");
@@ -1319,14 +1341,16 @@ public class EVWeekReport extends TinyCGIBase {
 
     protected void printCompletedLine(HTMLTableWriter tableWriter,
             TableModel tasks, int i, double[] actualTimeThisWeek,
-            boolean showAssignedTo, boolean showMilestones, boolean showLabels)
-            throws IOException {
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
+            boolean showCosts) throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
-        tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
-        tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
-        writeActualTimeThisWeek(actualTimeThisWeek, i);
-        tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
+        if (showCosts) {
+            tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
+            tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
+            writeActualTimeThisWeek(actualTimeThisWeek, i);
+            tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
+        }
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_DATE_COLUMN);
@@ -1342,38 +1366,41 @@ public class EVWeekReport extends TinyCGIBase {
             TableModel tasks, byte progress, int i,
             double plannedTimeRemaining, double[] actualTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            double unearnedValue) throws IOException {
+            double unearnedValue, boolean showCosts) throws IOException {
         printUncompletedTaskLine(tableWriter, tasks, progress, i, 0,
-            plannedTimeRemaining, actualTimeThisWeek, showAssignedTo, showMilestones,
-            showLabels, true, unearnedValue);
+            plannedTimeRemaining, actualTimeThisWeek, showAssignedTo,
+            showMilestones, showLabels, true, unearnedValue, showCosts);
     }
 
     protected void printDueLine(HTMLTableWriter tableWriter, TableModel tasks,
             byte progress, int i, double cpi, double forecastTimeRemaining,
-            boolean showAssignedTo, boolean showMilestones, boolean showLabels)
-            throws IOException {
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
+            boolean showCosts) throws IOException {
         printUncompletedTaskLine(tableWriter, tasks, progress, i, cpi,
             forecastTimeRemaining, null, showAssignedTo, showMilestones,
-            showLabels, false, 0);
+            showLabels, false, 0, showCosts);
     }
 
     protected void printUncompletedTaskLine(HTMLTableWriter tableWriter,
             TableModel tasks, byte progress, int i, double cpi,
             double timeRemaining, double[] actualTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean inProgressThisWeek, double unearnedValue)
+            boolean inProgressThisWeek, double unearnedValue, boolean showCosts)
             throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
-        tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
-        tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
-
-        if (inProgressThisWeek) {
-            writeActualTimeThisWeek(actualTimeThisWeek, i);
-            tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_VALUE_COLUMN);
+        if (showCosts) {
+            tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
+            tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
         }
 
-        tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
+        if (showCosts && inProgressThisWeek)
+            writeActualTimeThisWeek(actualTimeThisWeek, i);
+        if (inProgressThisWeek)
+            tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_VALUE_COLUMN);
+
+        if (showCosts)
+            tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
 
@@ -1398,7 +1425,9 @@ public class EVWeekReport extends TinyCGIBase {
 
         tableWriter.writeCell(out, tasks, i, EVTaskList.DEPENDENCIES_COLUMN);
 
-        if (timeRemaining <= 0) {
+        if (showCosts == false) {
+            // do not print this column
+        } else if (timeRemaining <= 0) {
             out.print("<td class='error' " +
                       EVReport.getSortAttribute(Double.toString(timeRemaining)) +
                       ">" + formatTime(timeRemaining) + "</td>");
@@ -1408,7 +1437,7 @@ public class EVWeekReport extends TinyCGIBase {
                                       formatTime(timeRemaining), 0, 0);
         }
 
-        if (inProgressThisWeek) {
+        if (showCosts && inProgressThisWeek) {
             HTMLTableWriter.writeCell(out, EVReport.EV_CELL_RENDERER,
                     EVSchedule.formatPercent(unearnedValue), 0, 0);
         }
