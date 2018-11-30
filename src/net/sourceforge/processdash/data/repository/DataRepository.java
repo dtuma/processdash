@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2017 Tuma Solutions, LLC
+// Copyright (C) 1998-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2868,16 +2868,15 @@ public class DataRepository implements Repository, DataContext,
             boolean followIncludes, boolean close)
         throws FileNotFoundException, IOException, InvalidDatafileFormat {
 
-        //debug("loadDatafile("+filename+")");
-        // Initialize data, file, and read buffer.
-        BufferedReader in = new BufferedReader(datafile);
         FileLoader loader = new FileLoader(dest, followIncludes);
-        String defineDecls = null;
-        if (filename != null)
-            defineDecls = (String) defineDeclarations.get(filename);
-        defineDecls = prependGlobalDefineDeclarations(defineDecls);
-
         try {
+            // Initialize data, file, and read buffer.
+            BufferedReader in = new BufferedReader(datafile);
+            String defineDecls = null;
+            if (filename != null)
+                defineDecls = (String) defineDeclarations.get(filename);
+            defineDecls = prependGlobalDefineDeclarations(defineDecls);
+
             CppFilterReader readIn = new CppFilterReader(in, defineDecls);
             Parser p = new Parser(new Lexer(new PushbackReader(readIn, 1024)));
 
@@ -2907,7 +2906,7 @@ public class DataRepository implements Repository, DataContext,
             root.printStackTrace();
             throw new IOException(root.getMessage());
         } finally {
-            if (close) in.close();
+            if (close) datafile.close();
         }
 
         return loader.getInheritedDatafile();

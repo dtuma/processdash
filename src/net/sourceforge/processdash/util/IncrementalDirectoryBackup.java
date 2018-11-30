@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2015 Tuma Solutions, LLC
+// Copyright (C) 2000-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -424,7 +424,6 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
                         matchLength++;
                     }
                 }
-                ThreadThrottler.tick();
             }
         } finally {
             fileIn.close();
@@ -444,6 +443,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
         // finish writing the file to the new backup archive.
         fileOut.flush();
         newBackupOut.closeEntry();
+        ThreadThrottler.tick();
     }
 
     private void wroteEntryToOldBackup(String filename) {

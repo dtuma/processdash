@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2015 Tuma Solutions, LLC
+// Copyright (C) 1998-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -340,10 +340,11 @@ public class BrokenDataFileHandler {
 
         try {
             FileUtils.copyFile(in, f);
-            in.close();
             return true;
         } catch (IOException ioe) {
             return false;
+        } finally {
+            FileUtils.safelyClose(in);
         }
     }
 
@@ -362,10 +363,11 @@ public class BrokenDataFileHandler {
         });
         Arrays.sort(backupZipFiles);
         for (int i = backupZipFiles.length; i-- > 0;) {
+            InputStream zipFileIn = null;
             try {
                 File zip = backupZipFiles[i];
                 ZipInputStream in = new ZipInputStream(new BufferedInputStream(
-                        new FileInputStream(zip)));
+                        zipFileIn = new FileInputStream(zip)));
                 ZipEntry e;
                 while ((e = in.getNextEntry()) != null) {
                     if (e.getName().equalsIgnoreCase(f.getName())) {
@@ -384,11 +386,11 @@ public class BrokenDataFileHandler {
                         return pb;
                     }
                 }
-                in.close();
-            } catch (IOException ioe) {
+            } catch (Exception ex) {
                 // if a given ZIP file is damaged or corrupt, skip it and look
                 // through the previous ZIP files to scan further back in time
             }
+            FileUtils.safelyClose(zipFileIn);
         }
 
         // no replacement file was found in the recent backups.

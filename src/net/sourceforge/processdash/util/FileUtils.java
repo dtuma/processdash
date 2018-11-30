@@ -54,14 +54,14 @@ public class FileUtils {
     public static long computeChecksum(InputStream stream, Checksum verify,
             boolean close) throws IOException {
 
-        InputStream in = new CheckedInputStream(
-                new BufferedInputStream(stream), verify);
         try {
+            InputStream in = new CheckedInputStream(
+                new BufferedInputStream(stream), verify);
             while (in.read() != -1)
                 ; // do nothing
         } finally {
             if (close)
-                in.close();
+                safelyClose(stream);
         }
 
         return verify.getValue();
@@ -74,14 +74,14 @@ public class FileUtils {
         ByteArrayOutputStream slurpBuffer = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
         int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1)
-            slurpBuffer.write(buffer, 0, bytesRead);
-        result = slurpBuffer.toByteArray();
-        if (close)
-            try {
-                in.close();
-            } catch (IOException ioe) {
-            }
+        try {
+            while ((bytesRead = in.read(buffer)) != -1)
+                slurpBuffer.write(buffer, 0, bytesRead);
+            result = slurpBuffer.toByteArray();
+        } finally {
+            if (close)
+                safelyClose(in);
+        }
         return result;
     }
 
@@ -115,6 +115,7 @@ public class FileUtils {
         }
     }
 
+
     public static void copyFile(File src, File dest) throws IOException {
         InputStream inputStream = new FileInputStream(src);
         try {
@@ -122,20 +123,6 @@ public class FileUtils {
         } finally {
             inputStream.close();
         }
-    }
-
-    public static void copyFile(File src, String srcEncoding, File dest,
-            String destEncoding) throws IOException {
-        InputStreamReader in = new InputStreamReader(new FileInputStream(src),
-                srcEncoding);
-        OutputStreamWriter out = new OutputStreamWriter(new RobustFileOutputStream(
-                dest), destEncoding);
-        int c;
-        while ((c = in.read()) != -1)
-            out.write(c);
-        out.flush();
-        in.close();
-        out.close();
     }
 
     public static void copyFile(InputStream src, File dest) throws IOException {
@@ -182,6 +169,31 @@ public class FileUtils {
             }
         }
     }
+
+
+    /**
+     * Copy the contents of a file, changing the character encoding in the
+     * process.
+     */
+    public static void reencodeFile(File src, String srcEncoding, File dest,
+            String destEncoding) throws IOException {
+        InputStreamReader in = null;
+        OutputStreamWriter out = null;
+        try {
+            in = new InputStreamReader(new FileInputStream(src), srcEncoding);
+            out = new OutputStreamWriter(new RobustFileOutputStream(dest),
+                    destEncoding);
+            int c;
+            while ((c = in.read()) != -1)
+                out.write(c);
+            out.flush();
+        } finally {
+            safelyClose(in);
+            if (out != null)
+                out.close();
+        }
+    }
+
 
     /** Rename a file.
      * 
