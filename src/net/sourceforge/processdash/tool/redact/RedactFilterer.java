@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.quicklauncher.PdbkConstants;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
 
@@ -65,9 +65,9 @@ public class RedactFilterer {
 
 
     public void doFilter(File src, File dest) throws IOException {
-        OutputStream out = new XorOutputStream(new BufferedOutputStream(
-                new FileOutputStream(dest)),
-                CompressedInstanceLauncher.PDASH_BACKUP_XOR_BITS);
+        OutputStream out = new XorOutputStream(
+                new BufferedOutputStream(new FileOutputStream(dest)),
+                PdbkConstants.PDASH_BACKUP_XOR_BITS);
         doFilter(src, out);
         out.close();
     }

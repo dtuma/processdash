@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ import java.util.zip.ZipOutputStream;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
-import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.quicklauncher.PdbkConstants;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.TempFileFactory;
@@ -245,8 +245,8 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
     private static CWDFileFilter CWD_FILE_FILTER = new CWDFileFilter();
 
     private static final String PDBK = "." +
-        CompressedInstanceLauncher.PDASH_BACKUP_EXTENSION;
+            PdbkConstants.PDASH_BACKUP_EXTENSION;
     private static final int PDBK_XOR_BITS =
-        CompressedInstanceLauncher.PDASH_BACKUP_XOR_BITS;
+            PdbkConstants.PDASH_BACKUP_XOR_BITS;
 
 }

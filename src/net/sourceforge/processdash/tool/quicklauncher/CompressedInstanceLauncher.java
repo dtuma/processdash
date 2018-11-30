@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2016 Tuma Solutions, LLC
+// Copyright (C) 2006-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,10 +45,8 @@ import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorInputStream;
 
-public class CompressedInstanceLauncher extends DashboardInstance {
-
-    public static final String PDASH_BACKUP_EXTENSION = "pdbk";
-    public static final int PDASH_BACKUP_XOR_BITS = 0x55;
+public class CompressedInstanceLauncher extends DashboardInstance
+        implements PdbkConstants {
 
     private static final String TEMP_DIR_PREFIX = "pdash-quicklaunch-";
 

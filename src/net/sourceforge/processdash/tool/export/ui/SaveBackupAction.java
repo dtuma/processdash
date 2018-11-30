@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
-import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.quicklauncher.PdbkConstants;
 import net.sourceforge.processdash.tool.redact.RedactFilterer;
 import net.sourceforge.processdash.tool.redact.ui.RedactFilterConfigDialog;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
@@ -201,7 +201,7 @@ public class SaveBackupAction extends AbstractAction
                     dest));
             if (dest.getName().toLowerCase().endsWith(PDBK))
                 out = new XorOutputStream(out,
-                        CompressedInstanceLauncher.PDASH_BACKUP_XOR_BITS);
+                        PdbkConstants.PDASH_BACKUP_XOR_BITS);
 
             if (redactFilters == null)
                 FileUtils.copyFile(backupFile, out);
@@ -396,7 +396,7 @@ public class SaveBackupAction extends AbstractAction
         return new ExampleFileFilter(ext, descr);
     }
 
-    private static final String PDBK = CompressedInstanceLauncher.PDASH_BACKUP_EXTENSION;
+    private static final String PDBK = PdbkConstants.PDASH_BACKUP_EXTENSION;
     private static final String RPDBK = RedactFilterer.REDACTED_PDASH_BACKUP_EXTENSION;
     private static final String ZIP = "zip";
     private static final String[] BACKUP_FILE_TYPES = { PDBK, RPDBK, ZIP };
