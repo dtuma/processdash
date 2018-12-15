@@ -943,7 +943,7 @@ Authors:
     <delete quiet="true" dir="${glob}/analysis"/>
     <delete quiet="true" dir="${pfaImport}"/>
     <delete quiet="true" dir="${pfeImport}"/>
-    <delete quiet="true" file="${i18n}/DefaultEngine*"/>
+    <delete><fileset dir="${i18n}" includes="DefaultEngine*"/></delete>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
     <delete quiet="true" file="${help}/book.html"/>
@@ -955,7 +955,7 @@ Authors:
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
     <delete quiet="true" file="${dist}/l10nTool.jar"/>
     <delete quiet="true" file="${dist}/extras.jar"/>
-    <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
+    <delete><fileset dir="${dist}" includes="pdash-src-*.zip"/></delete>
     <delete quiet="true" file="${dist}/ProcessDashboard.exe"/>
     <delete quiet="true" file="${dist}/QuickLauncher.exe"/>
     <delete quiet="true" file="${dist}/uninstaller.exe"/>
