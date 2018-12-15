@@ -35,6 +35,7 @@ The author(s) may be contacted at:
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.dist" value="${processdash.dir}/dist"/>
+  <property name="dashlibsrc" value="${processdash.dir}/lib/src"/>
   <property name="pspdash.jar" value="${processdash.dist}/pspdash.jar"/>
 
   <property name="src" value="src"/>
@@ -79,8 +80,10 @@ The author(s) may be contacted at:
       <fileset dir="${build}"/>
       <fileset dir="." includes="Templates/"/>
     </jar>
-    <signjar jar="${api.jar}" alias="${api-jar.alias}"
-        storepass="${api-jar.storepass}"/>
+    <taskdef name="maybeSignJar"
+             classname="net.sourceforge.processdash.MaybeSign"
+             classpath="${dashlibsrc}"/>
+    <maybeSignJar jar="${api.jar}" prefix="api-jar"/>
     <copy file="${api.jar}" todir="${processdash.dist}"/>
   </target>
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@ package net.sourceforge.processdash;
 import java.lang.reflect.Method;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.SignJar;
 
 /**
@@ -48,7 +49,8 @@ public class MaybeSign extends SignJar {
 
     private static final String[] PROPAGATED_PROPERTIES = { "alias",
             "storepass", "keystore", "storetype", "keypass", "tsaurl",
-            "tsacert" };
+            "tsacert", "sigfile", "strict", "executable", "sigAlg", "digestAlg",
+            "TSADigestAlg" };
 
     @Override
     public void execute() throws BuildException {
@@ -67,6 +69,10 @@ public class MaybeSign extends SignJar {
     protected void propagateProperty(String propName) {
         String fullPropName = prefix + "." + propName;
         String propValue = getProject().getProperty(fullPropName);
+        if (propValue == null) {
+            fullPropName = "signDefault." + propName;
+            propValue = getProject().getProperty(fullPropName);
+        }
         if (!hasValue(propValue))
             return;
 
@@ -76,6 +82,9 @@ public class MaybeSign extends SignJar {
                     + propName.substring(1);
             Method m = getClass().getMethod(setterMethodName, String.class);
             m.invoke(this, propValue);
+        } catch (NoSuchMethodException nsme) {
+            getProject().log("Property '" + propName + "' not supported by " //
+                    + "this version of ant; ignoring", null, Project.MSG_WARN);
         } catch (Exception e) {
             throw new BuildException("Unexpected internal error", e);
         }

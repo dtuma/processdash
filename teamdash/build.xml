@@ -98,6 +98,18 @@ The author(s) may be contacted at:
     <property name="teamProcess.zip" value="PDSSD.zip"/>
   </target>
 
+  <target name="-ant-tasks">
+    <taskdef name="svgToImage"
+             classname="net.sourceforge.processdash.SVGToImage"
+             classpath="${dashlibsrc};${svg.jar}"/>
+    <taskdef name="maybeSignJar"
+             classname="net.sourceforge.processdash.MaybeSign"
+             classpath="${dashlibsrc}"/>
+    <taskdef name="packageLaunchProfile"
+             classname="net.sourceforge.processdash.PackageLaunchProfile"
+             classpath="${dashlibsrc}"/>
+  </target>
+
 
 
   <target name="filelist.txt"
@@ -166,7 +178,7 @@ The author(s) may be contacted at:
   </target>
 
 
-  <target name="jnlp-jars"  depends="compile,framework"
+  <target name="jnlp-jars"  depends="compile,framework,-ant-tasks"
        description="Build the JAR files for the JNLP framework editor app">
 
     <!-- compute the classes needed for the GUI and process generator -->
@@ -194,15 +206,13 @@ The author(s) may be contacted at:
       <fileset refid="jnlpDashClasses"/>
       <zipfileset src="${xmlpull.jar}"/>
     </jar>
-    <signjar jar="${jnlp.jar}" alias="${jnlpSign.alias}"
-        storepass="${jnlpSign.storepass}"/>
+    <maybeSignJar jar="${jnlp.jar}" prefix="jnlpSign"/>
 
     <!-- build a signed JAR file containing framework metadata -->
     <property name="jnlp-framework.jar"
         value="FrameworkMetadata-${framework.version}.jar"/>
     <copy file="${framework.jar}" tofile="${jnlp-framework.jar}"/>
-    <signjar jar="${jnlp-framework.jar}" alias="${jnlpSign.alias}"
-        storepass="${jnlpSign.storepass}"/>
+    <maybeSignJar jar="${jnlp-framework.jar}" prefix="jnlpSign"/>
   </target>
 
 
@@ -283,11 +293,8 @@ The author(s) may be contacted at:
     <delete file="${teamhelp}/Skeleton.html"/>
   </target>
 
-  <target name="-javahelp-images" depends="-javahelp-depend"
+  <target name="-javahelp-images" depends="-javahelp-depend,-ant-tasks"
           unless="javahelp.upToDate">
-    <taskdef name="svgToImage"
-             classname="net.sourceforge.processdash.SVGToImage"
-	     classpath="${dashlibsrc};${svg.jar}"/>
     <svgToImage maxWidth="740" bg="#ffffff" verbose="true"
                 destdir="${teamhelp.images}">
       <fileset dir="${teamhelp.imgsrc}" includes="*.svg"/>
@@ -296,7 +303,7 @@ The author(s) may be contacted at:
 
 
   <target name="TeamTools"
-          depends="-noBuild-init,javahelp,compile" unless="noBuild.TeamTools">
+          depends="-noBuild-init,javahelp,compile,-ant-tasks" unless="noBuild.TeamTools">
 
     <!-- compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.bin}">
@@ -470,8 +477,7 @@ class dependency has been added in a dashboard class?)
       <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
     </jar>
 
-    <signjar jar="TeamTools.jar" alias="${jnlpSign.alias}"
-        storepass="${jnlpSign.storepass}"/>
+    <maybeSignJar jar="TeamTools.jar" prefix="jnlpSign"/>
 
     <move file="TeamTools.jar" todir="${processdash.dist}"/>
   </target>
@@ -553,10 +559,7 @@ class dependency has been added in a dashboard class?)
     </ant>
   </target>
 
-  <target name="launch-profile">
-    <taskdef name="packageLaunchProfile"
-             classname="net.sourceforge.processdash.PackageLaunchProfile"
-	     classpath="${dashlibsrc}"/>
+  <target name="launch-profile" depends="-ant-tasks">
     <condition property="skipConsentFile" value="licenseConsented.txt"
              else="noSuchFile">
       <equals arg1="${launchProfile.skipConsent}" arg2="true"/>
@@ -577,8 +580,8 @@ class dependency has been added in a dashboard class?)
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
-    <signjar jar="${processdash.dist}/${launchProfile.filename}"
-          alias="${jnlpSign.alias}" storepass="${jnlpSign.storepass}"/>
+    <maybeSignJar jar="${processdash.dist}/${launchProfile.filename}"
+          prefix="jnlpSign"/>
   </target>
 
   <target name="verify16"
