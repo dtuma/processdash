@@ -29,6 +29,10 @@
 
     <listeners>
         <listener installer="com.izforge.izpack.pdash.DashboardPostInstallAction" />
+        <listener installer="RegistryInstallerListener"
+            uninstaller="RegistryUninstallerListener" >
+            <os family="windows"/>
+        </listener>
     </listeners>
 
     <guiprefs height="480" resizable="yes" width="640">
@@ -61,6 +65,7 @@
         <res src="files/Win_shortcutSpec.xml" id="Win_shortcutSpec.xml"/>
         <res src="files/Win_shortcutSpec.xml" id="Win_NT_shortcutSpec.xml"/>
         <res src="files/Unix_shortcutSpec.xml" id="Unix_shortcutSpec.xml"/>
+        <res src="files/launcher-registry-entries.xml" id="RegistrySpec.xml"/>
         <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"
              excludeIf="pspTsp"/>
         <res src="files/PspTspLicense.html" id="CondHTMLLicencePanel0.licence"
@@ -108,6 +113,10 @@
     <!-- The native libraries to add -->
     <native type="izpack" name="ShellLink.dll"/>
     <native type="izpack" name="ShellLink_x64.dll"/>
+    <native type="3rdparty" name="COIOSHelper.dll" stage="both">
+        <os family="windows"/></native>
+    <native type="3rdparty" name="COIOSHelper_x64.dll" stage="both">
+        <os family="windows"/></native>
 
     <!-- The custom java code to add -->
     <jar src="files/izpack-customizations.jar"/>
@@ -146,6 +155,16 @@
                   target="$INSTALL_PATH/ProcessDashboard.l4j.ini" os="windows"/>
             <parsable targetfile="$INSTALL_PATH/ProcessDashboard.l4j.ini"
                   os="windows"/>
+
+            <!-- Install PDES launcher-related files on Windows -->
+            <file targetdir="$INSTALL_PATH" override="true" os="windows"
+                  src="../dist/launcher.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true" os="windows"
+                  src="../dist/Launcher.exe"/>
+            <singlefile src="files/launcher-launch4j.ini" override="false"
+                  target="$INSTALL_PATH/Launcher.l4j.ini" os="windows"/>
+            <fileset targetdir="$INSTALL_PATH" override="true" os="windows"
+                  dir="files" includes="dashicon.ico teamicon.ico"/>
 
             <!-- Create an Application icon on Mac OS X -->
             <fileset targetdir="$MAC_APPL/Process Dashboard.app"

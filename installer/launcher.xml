@@ -73,7 +73,7 @@
 
     <!-- The list of packages the user can install -->
     <packs>
-        <pack name="launcher" id="launcher" required="yes">
+        <pack name="pdash" id="pdash" required="yes">
             <description>Process Dashboard Server Launcher</description>
 
             <!-- files used on all platforms -->

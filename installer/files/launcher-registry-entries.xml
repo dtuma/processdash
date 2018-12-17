@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 
 <registry>
-  <pack name="launcher">
+  <pack name="pdash">
 
     <!-- register the .pdlnk filename extension -->
     <value root="HKCU" keypath="Software\Classes\.pdlnk"
