@@ -29,9 +29,7 @@
         <tocitem image="PageIcon" target="Colt" text="Colt License"/>
         <tocitem image="PageIcon" target="Overlib" text="Overlib License"/>
         <tocitem image="PageIcon" target="LicenseExtras" text="Charting and Reporting Plug-in License"/>
-        <tocitem image="BookIcon" target="Separation" text="PSP Processes">
-          <tocitem image="PageIcon" target="LicensePSP" text="PSP Materials License"/>
-        </tocitem>
+        <tocitem image="PageIcon" target="LicensePSP" text="PSP Materials License"/>
       </tocitem>
     </tocitem>
 

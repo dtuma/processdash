@@ -158,7 +158,6 @@
   <mapID target="TaskScheduleRanges.when" url="Topics/Planning/TaskScheduleRanges.html#when" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
-  <mapID target="Separation" url="Topics/Overview/Separation.html" />
   <mapID target="LocalizationTool" url="Topics/AdvancedTopics/LocalizationTool.html" />
   <mapID target="BackupData" url="Topics/AdvancedTopics/BackupData.html" />
   <mapID target="TeamUse" url="Topics/AdvancedTopics/TeamUse.html" />

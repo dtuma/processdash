@@ -63,7 +63,7 @@ BODY { color: black; background-color: white }
 <H1 NO_NUMBER="true" style="page-break-before:avoid">Process Dashboard
      Users Manual</H1>
 <p align="center" class="unlesspsp">
-<a href="Topics/Overview/Separation.html"><img src="Images/PSPDisclaimer.png" border="0" width="auto" height="auto" /></a>
+<a href="Topics/Overview/HowToInstall.html#addon"><img src="Images/PSPDisclaimer.png" border="0" width="auto" height="auto" /></a>
 </p>
 <H2 NO_NUMBER="true" style="page-break-before:avoid">Table of Contents</H2>
 TABLE_OF_CONTENTS
