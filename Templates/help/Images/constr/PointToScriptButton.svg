@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="598"
-   height="95"
+   width="614"
+   height="97"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="95px"
+     height="97px"
      width="598px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -58,29 +58,29 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,8)">
+     transform="translate(0,10)">
     <image
-       y="-8"
+       y="-10"
        x="0"
        id="image9856"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainDashboardWindow.png"
        xlink:href="MainDashboardWindow.png"
-       width="598" />
+       width="614" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="182.23927"
+       x="190.23927"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="182.23927"
+         x="190.23927"
          y="83.810814">Project reports, forms, scripts and tools button</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 161.9844,47.035111 L 185.0013,70.052016"
+       d="M 169.9844,47.035111 L 193.0013,70.052016"
        id="path5882" />
   </g>
 </svg>

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="560"
-   height="94"
+   width="577"
+   height="96"
    id="svg5636"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -33,14 +33,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="237.16886"
-     inkscape:cy="146.75592"
+     inkscape:cx="288.5"
+     inkscape:cy="48"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="94px"
-     width="560px"
-     inkscape:window-width="952"
-     inkscape:window-height="805"
+     height="96px"
+     width="577px"
+     inkscape:window-width="888"
+     inkscape:window-height="905"
      inkscape:window-x="488"
      inkscape:window-y="95" />
   <metadata
@@ -58,37 +58,37 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,8)">
+     transform="translate(0,10)">
     <image
-       y="-8"
+       y="-10"
        x="0"
        id="image5684"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSChoosingPlanning.png"
        xlink:href="QSChoosingPlanning.png"
-       width="560" />
+       width="577" />
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="27.345774"
+       x="15.345774"
        y="82.536362"
        id="text5687"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5689"
-         x="27.345774"
+         x="15.345774"
          y="82.536362"
          style="font-size:15px">Play button</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="153.28856"
+       x="123.28856"
        y="82.536362"
        id="text5691"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5693"
-         x="153.28856"
+         x="123.28856"
          y="82.536362">Scripts button</tspan></text>
     <text
        xml:space="preserve"
@@ -102,8 +102,8 @@
          x="294.45633"
          y="82.536362">Active Task Selector</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.0377233px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 214.27355,50.084104 C 219.1035,57.821655 223.16367,63.616017 230.98927,63.616017 C 252.95013,63.616017 297.99058,63.568885 344.46177,63.519706 C 346.70603,63.517332 352.05826,69.220149 352.41329,68.927007 C 354.47837,67.221891 357.95144,63.505434 360.60902,63.502631 C 405.96309,63.454805 450.29698,63.409992 473.53954,63.409992 C 481.68748,63.409992 482.46695,57.176098 486.84521,50.162151"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.03772378px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 205.27361,47.584121 C 210.63679,56.347667 215.1452,62.910358 223.83474,62.910358 C 248.22008,62.910358 298.23301,62.856976 349.83463,62.801277 C 352.32666,62.798587 358.26977,69.257596 358.66399,68.925583 C 360.95706,66.994369 364.81356,62.785112 367.76454,62.781937 C 418.1257,62.72777 467.35407,62.677015 493.16261,62.677015 C 502.21008,62.677015 503.0756,55.61651 507.93722,47.672516"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <path
@@ -112,7 +112,7 @@
        id="path5713" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 162.82562,47.781534 L 176.67904,71.776361"
+       d="M 166.67904,47.781534 L 152.82562,71.776361"
        id="path5715" />
   </g>
 </svg>

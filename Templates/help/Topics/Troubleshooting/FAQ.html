@@ -599,7 +599,18 @@ these processes are no longer available.</p>
 closely with my IDE. Is it possible to programatically start/stop the timer, 
 change the active hierarchy path, and open the defect dialog?</B>
 
-<P>Yes! If you issue an HTTP request of the form:
+<p>As of Process Dashboard 2.5, a Visual Studio plugin is available that makes
+it easy to collect metrics without leaving your IDE.  Contact the development
+team if you are interested in using this functionality.</p>
+
+<p>If you are interested in developing integration for another IDE, take a
+look at the various <a href="http://www.processdash.com/restApi"
+target="_blank">REST APIs</a> that the dashboard publishes.  Your plugin can
+interact with those APIs to retrieve and modify UI state.</p>
+
+<p>For much simpler mashups (such as quick links in a webpage), a handful of
+older APIs are still available. For example, if you issue an HTTP request of
+the form:
 
 <PRE><FONT SIZE="-2">http://localhost:2468/control/startTiming.class</FONT></PRE>
 

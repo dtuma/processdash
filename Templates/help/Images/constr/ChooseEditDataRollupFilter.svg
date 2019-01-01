@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="622"
-   height="147"
+   width="634"
+   height="176"
    id="svg20349"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -55,33 +55,33 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(5,-20)">
+     transform="translate(5,9)">
     <image
-       y="20"
+       y="-9"
        x="-5"
        id="image20364"
-       height="147"
+       height="176"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ChooseEditDataRollupFilter.png"
        xlink:href="ChooseEditDataRollupFilter.png"
-       width="622" />
+       width="634" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="475.20547"
-       y="104.81471"
+       x="497.20547"
+       y="92.814713"
        id="text20367"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20369"
-         x="475.20547"
-         y="104.81471">Edit the rollup filter</tspan><tspan
+         x="497.20547"
+         y="92.814713">Edit the rollup filter</tspan><tspan
          sodipodi:role="line"
-         x="475.20547"
-         y="123.56471"
+         x="497.20547"
+         y="111.56471"
          id="tspan1971">for the dataset</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999934px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 279.57727,130.18592 L 469.37437,101.63067"
+       d="M 301.57727,118.18592 L 491.37437,89.63067"
        id="path20371" />
   </g>
 </svg>

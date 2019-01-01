@@ -68,22 +68,22 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="64.247925"
+       x="46.247925"
        y="14.947215"
        id="text1933"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1935"
-         x="64.247925"
+         x="46.247925"
          y="14.947215"
          style="font-size:15px">Index tab</tspan></text>
     <path
        id="path1941"
-       d="M 82.199546,96.890401 L 103.66943,16.763719"
+       d="M 64.199546,96.890401 L 85.66943,16.763719"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 82.2,96.890401 L 103.66988,16.763719"
+       d="M 64.2,96.890401 L 85.66988,16.763719"
        id="path1939" />
   </g>
 </svg>

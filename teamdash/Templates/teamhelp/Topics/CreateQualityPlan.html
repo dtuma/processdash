@@ -19,10 +19,59 @@ No.4.</p>
 href="ViewBottomUpPlan.html">validated the bottom-up team plan</a>,
 you may proceed with the steps below.</p>
 
-<p>Team quality metrics are calculated using team project quality
-parameters. These parameters can be edited on the Team Project
-Parameters and Settings page, which can be opened by clicking the
-appropriate item on the main Team Dashboard window.</p>
+<h2>Workflow-Driven Quality Plans</h2>
+
+<p>During planning, teams <a href="EditWorkflows.html">create workflows</a> to
+define their development process.  If your team has created workflows, applied
+them to components in the WBS, assigned those tasks to individuals, and had
+the individuals perform a "Sync to WBS," you can view quality plans for each
+workflow in use.</p>
+
+<p>To view the quality plan for a workflow, open the project's Rollup Plan
+Summary report, <a href="TeamLeaderProcess.html#project">navigate to the
+"Workflow Summary" section</a>, and select the workflow you wish to
+analyze.</p>
+
+<p>Several of the tables and charts in the "Workflow Summary" section will
+depict the number of defects that the team expects to inject and remove in
+each phase, and the number of defects that will still be present in the
+components after the workflow is complete.  If these values do not measure up
+to your team's quality goals, you can 
+<a href="EditWorkflows.html#qualityParams">edit the quality parameters</a> for
+the workflow, save the changes, and refresh this report.</p>
+
+<p><i>Note:</i> workflow-driven quality plans were introduced in Process
+Dashboard version 2.5.  If you wish to view the quality plan for an older
+project, it may be necessary to open that team project's WBS at least once and
+save a trivial change.  (This step gives the WBS Editor a chance to add
+default quality parameter values to the project workflows.)</p>
+
+
+<h2>Overarching Quality Plans</h2>
+
+<p>The workflow-driven quality plans described above are informative because
+they are aligned to the custom processes the team has defined.  But often,
+workflows only cover a portion of the end-to-end development process: for
+example, a team might have separate workflows for requirements vs
+implementation. In this case, it can be helpful to see a quality model that
+covers the entire development process, to estimate how many defects will
+remain in the final delivered product.</p>
+
+<p>One powerful and flexible way to accomplish this is to create a workflow
+that describes the entire, end-to-end development process. Then,
+<a href="TeamLeaderProcess.html#workflowMapping">map all of the other
+workflows</a> to this end-to-end workflow.  After configuring those mappings,
+view the quality plan for the end-to-end workflow.</p>
+
+<p>But for most projects, a much simpler approach is possible. The steps in
+every workflow are already mapped to the phases in the team project's
+<a href="MetricsCollectionFramework.html">metrics collection framework</a>; so
+the dashboard can automatically generate an end-to-end quality plan based on
+those framework phases.</p>
+
+<p>The framework-driven quality parameters can be edited on the Team Project
+Parameters and Settings page, which can be opened by clicking the appropriate
+item on the main Team Dashboard window.</p>
 
 <p class="figure"><img src="../Images/team-settings-page.png"></p>
 
@@ -53,15 +102,11 @@ select the team project from the tree on the left, and click the
 Rollup Plan Summary option in the list on the right.  The rollup plan
 summary will appear in your web browser.</p>
 
-<p>The process mentor for your organization may have populated your
-project summary with charts, forms, and reports that you can use to
-view the planned quality metrics. (See the <a
-href="FormsReports.html">Creating / Customizing Process Forms and
-Reports</a> help topic for more information.)</p>
-
-<p>You can drill down and see the quality plans for various project
-subcomponents by clicking on the (<img
-src="../Images/icon-hier-nav.png">) icon.</p>
+<p>Next, click the "Quality Summary" section from the list on the left.
+This will display a quality plan based on the phases in the metrics
+collection framework.  You can drill down and see the quality plans for
+various project subcomponents by clicking on the 
+(<img src="../Images/icon-hier-nav.png">) icon.</p>
 
 
 <p>If the calculated quality metrics do not meet your team's quality

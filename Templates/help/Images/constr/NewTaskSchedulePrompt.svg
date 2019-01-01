@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="328"
-   height="181"
+   width="319"
+   height="175"
    id="svg10912"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -34,8 +34,8 @@
      inkscape:cy="68.905827"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     width="352px"
-     height="181px"
+     width="319px"
+     height="175px"
      inkscape:window-width="870"
      inkscape:window-height="575"
      inkscape:window-x="681"
@@ -55,26 +55,26 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-4,-1)">
+     transform="translate(-4,-7)">
     <image
-       y="1"
+       y="7"
        x="4"
        id="image10960"
-       height="147"
-       width="328"
+       height="141"
+       width="307"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\NewTaskSchedulePrompt.png"
        xlink:href="NewTaskSchedulePrompt.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="173.17082"
-       y="148.96536"
+       x="165.17082"
+       y="152.96536"
        id="text10963"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan10965"
-         x="173.17082"
-         y="148.96536">Choose schedule name</tspan></text>
+         x="165.17082"
+         y="152.96536">Choose schedule name</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -88,7 +88,7 @@
          y="178.02054">Choose schedule type</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 159.73923,66.486143 L 192.54347,134.9064"
+       d="M 159.73923,70.486143 L 192.54347,138.9064"
        id="path10971" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="401"
-   height="167"
+   width="422"
+   height="190"
    id="svg17395"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -58,33 +58,33 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,7.39946)">
+     transform="translate(-2,30.39946)">
     <image
-       y="-7.3994598"
+       y="-30.39946"
        x="2"
        id="image17410"
-       height="143"
+       height="166"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToPlayPausePullDownShowMenu.png"
        xlink:href="PointToPlayPausePullDownShowMenu.png"
-       width="401" />
+       width="422" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="27.720774"
+       x="11.720774"
        y="156.4438"
        id="text17413"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan17415"
-         x="27.720774"
+         x="11.720774"
          y="156.4438">Play/Pause button pull-down tab</tspan></text>
     <path
        id="path18304"
-       d="M 86.142542,42.838373 L 43.965671,142.83837"
-       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       d="M 89.871035,28.907681 L 23.237128,142.76908"
+       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:3.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 86.142542,42.838373 L 43.965671,142.83837"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.99999988;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 89.871035,28.907681 L 23.237128,142.76908"
        id="path17417" />
   </g>
 </svg>

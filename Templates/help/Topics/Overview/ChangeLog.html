@@ -8,6 +8,109 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.5</h2>
+
+<ul>
+
+<li>Significant enhancements have been made to the Work Breakdown Structure
+Editor:<ul>
+
+    <li>A "Zoom" feature is now available for the WBS.</li>
+
+    <li>The workflow editor now provides optional columns to enter the
+        estimated yield and defect injection rate for each workflow step.
+        These parameters make it possible to generate workflow-driven quality
+        plans for a project.</li>
+
+    <li>After you apply a workflow in the WBS that spreads time across phases,
+        you may wish to delete a few steps that aren't needed for the
+        component in question.  When you do, the time from the deleted tasks
+        will now be spread across the remaining tasks based on phase
+        percentages, leaving the overall component estimate unchanged.</li>
+
+    <li>New, prototype integration has been added between the Team Dashboard
+        and external systems (such as TFS or JIRA).  Organizations that are
+        interested in piloting this functionality are encouraged to contact
+        the Process Dashboard development team.</li>
+
+    </ul></li>
+
+<li>The reports have been improved in several ways:<ul>
+
+    <li>In the Team Dashboard, the Rollup Plan Summary report now includes a
+        "Workflow Summary" section, which rolls up data according to the steps
+        in the team's custom workflows.  This gives teams the power to analyze
+        data using their own processes (rather than just the metrics
+        collection framework).</li>
+
+    <li>The Earned Value report now includes an option to hide cost
+        information.  This can be useful if you need to share progress/status
+        with a customer or stakeholder, but you don't want them to be able to
+        reverse-engineer your hourly rate. To use this feature, click the
+        "Customize" link on the earned value report and check the box to hide
+        cost data.</li>
+
+    <li>The Project Data Scanner now includes a section listing components
+        whose final workflow task was marked complete, but which have earlier
+        tasks that weren't closed, or that have no time logged.</li>
+
+    </ul></li>
+
+<li>A number of user interface changes have been added for greater
+convenience:<ul>
+
+    <li>The WBS Editor toolbar now includes a "Save" button.</li>
+
+    <li>A new "Open Link" button on the WBS Editor toolbar makes it easy to
+        quickly visit any external websites associated with the currently
+        selected item (for example, when URLs are embedded in the task
+        note).</li>
+
+    <li>The personal dashboard toolbar now includes a "Find Task" button.</li>
+
+    <li>The defect log editor now provides a button to add a new defect.</li>
+
+    <li>When you choose the "Earned Value Charts" option from the script menu,
+        it will now display charts in an interactive, zoomable window.</li>
+
+    <li>The defect creation window now stays on top of other windows, making
+        it easier to capture defect data while you are working in another
+        program like an IDE.  To help maintain context, the window also
+        displays a label indicating the project and component that the defect
+        is being logged against.</li>
+
+    <li>The main dashboard window now remembers its last location on
+        startup.</li>
+
+    <li>The dashboard now uses a native visual theme on Windows computers,
+        allowing it to blend in more naturally with other applications.</li>
+
+    </ul></li>
+
+<li>The LOC counter can now count changes between various commits in a Git
+working directory.</li>
+
+<li>The performance of the "Sync to WBS" operation has been dramatically
+improved for personal dashboards that contain a lot of historical data.</li>
+
+<li>Many changes have been made under-the-hood to improve the reliability and
+security of various web-based tools and APIs.</li>
+
+<li>The dashboard installer has been updated to reflect the recent release of
+<a href="http://www.processdash.com/seiPspTspMaterialsRedirect"
+target="_blank">PSP and TSP materials</a> under a Creative Commons
+license.</li>
+
+<li>A new Visual Studio plugin is available, making it possible for developers
+to interact with the Process Dashboard and collect data without leaving their
+IDE.  Contact the development team if you would like to help pilot this new
+functionality.  If you use a different IDE and are interested in developing a
+similar plugin, please contact the Process Dashboard development team for
+information about the new REST APIs that support this goal.</li>
+
+</ul>
+
+
 <h2>Features new in version 2.4</h2>
 
 <ul>

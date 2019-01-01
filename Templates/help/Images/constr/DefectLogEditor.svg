@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="934"
-   height="326"
+   width="932"
+   height="325"
    id="svg20258"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -34,8 +34,8 @@
      inkscape:cy="157.31759"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="332px"
-     width="917px"
+     height="325px"
+     width="932px"
      inkscape:window-width="1204"
      inkscape:window-height="858"
      inkscape:window-x="635"
@@ -55,44 +55,44 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,2.997345)">
+     transform="translate(-2,1.997345)">
     <image
-       y="-2.997345"
+       y="-1.997345"
        x="2"
        id="image20273"
-       height="297"
-       width="934"
+       height="296"
+       width="932"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\DefectLogEditor.png"
        xlink:href="DefectLogEditor.png" />
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="47.106003"
+       x="33.106003"
        y="319.21457"
        id="text20276"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20278"
-         x="47.106003"
+         x="33.106003"
          y="319.21457">Hierarchical project view</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="314.5563"
+       x="294.5563"
        y="319.21457"
        id="text20280"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20282"
-         x="314.5563"
+         x="294.5563"
          y="319.21457">Defect entries</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 123.33208,302.08982 L 152.10491,194.70818"
+       d="M 109.33208,302.08982 L 138.10491,194.70818"
        id="path20284" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 353.09756,303.80276 L 382.58548,193.75233"
+       d="M 333.09756,303.80276 L 362.58548,193.75233"
        id="path20286" />
   </g>
 </svg>

@@ -7,15 +7,55 @@
 
 <h1>Analyzing Process Metrics</h1>
 
-<p>To analyze data from the various workflows in your project, select the
-"Workflow Process Analysis" item from the list on the right side of the Team
-Dashboard window.  When the list of project workflows is displayed in your web
-browser, click the name of a particular workflow to see aggregate metrics.</p>
+<p>Workflows provide a powerful way for teams to define custom processes and
+use them in their work.  The dashboard provides a number of reports that
+analyze workflow process data.</p>
 
-<p>The report will roll up data from all the WBS components that used this
-workflow and that are 100% complete.  By default it will roll up all component
-data from all of the projects in the Team Dashboard, but you can click the
-Filter link at the top to customize this behavior.</p>
+<h2><a name="project"></a>Current Project Workflow Metrics</h2>
+
+<p>To view workflow data from a single project, select that project on the
+left side of the Team Dashboard window.  Then click the Rollup Plan Summary
+option on the right.</p>
+
+<p class="figure"><img src="../Images/team-scripts-summary.png"></p>
+
+<p>The Rollup Plan Summary report will open in your web browser.  When it
+does, click the "Workflow Summary" link from the report navigation pane.  This
+will show a list of workflows that are in use by the current project.  Choose
+a workflow to display planned and actual metrics for the corresponding
+components in this project.</p>
+
+<p>By default, this report will include data from all components in the given
+project that use the selected workflow.  For example, it will include data
+from components that have been planned but yet started.  You can use the 
+<a href="TeamLeaderProjectReports.html#labelFiltering">filtering tools</a> at
+the top of the page to customize this behavior.  To view "To Date" data from
+completed components only, see the <a href="#toDate">next section</a>.</p>
+
+<p><i>Note:</i> the "Workflow Summary" section was added in Process Dashboard
+version 2.5.  If your team <a href="FormsReports.html">customized</a> the
+Rollup Plan Summary using an earlier version of the dashboard, your customized
+report might not include a "Workflow Summary" section.  In that case, you will
+need to <a href="FormsReports.html">edit the report again</a> and add a
+"Workflow Summary" item.</p>
+
+
+<h2><a name="toDate"></a>To Date Workflow Metrics</h2>
+
+<p>To analyze "to date" data from various workflows, select the "Workflow
+Process Analysis" item from the list on the right side of the Team Dashboard
+window.</p>
+
+<p class="figure"><img src="../Images/team-scripts-workflow.png"></p>
+
+<p>When the list of project workflows is displayed in your web browser, click
+the name of a particular workflow to see aggregate metrics.</p>
+
+<p>The "Workflow Process Analysis" report rolls up data from all the WBS
+components that used this workflow and that are 100% complete.  By default it
+will roll up all component data from <u>all</u> of the projects in the Team
+Dashboard, but you can click the Filter link at the top to customize this
+behavior.</p>
 
 <p>The resulting report displays a number of charts and metrics, such as:</p>
 

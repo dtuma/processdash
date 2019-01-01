@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="562"
-   height="93"
+   width="574"
+   height="95"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="93px"
+     height="95px"
      width="562px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,9)">
+     transform="translate(0,11)">
     <image
-       y="-9"
+       y="-11"
        x="0"
        id="image5969"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSCompiling.png"
        xlink:href="QSCompiling.png"
-       width="562" />
+       width="574" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="597"
-   height="94"
+   width="613"
+   height="95"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -33,14 +33,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="128.3186"
-     inkscape:cy="89"
+     inkscape:cx="306.5"
+     inkscape:cy="47.5"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="94px"
+     height="95px"
      width="597px"
-     inkscape:window-width="1208"
-     inkscape:window-height="688"
+     inkscape:window-width="1198"
+     inkscape:window-height="784"
      inkscape:window-x="410"
      inkscape:window-y="338" />
   <metadata
@@ -58,15 +58,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,9)">
+     transform="translate(0,11)">
     <image
-       y="-9"
+       y="-11"
        x="0"
        id="image15501"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
-       width="597" />
+       width="613" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -81,22 +81,37 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="306.31927"
-       y="83.810814"
+       x="298.31927"
+       y="77.810814"
        id="text15251"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15253"
-         x="306.31927"
-         y="83.810814">Active Task Selector</tspan></text>
+         x="298.31927"
+         y="77.810814">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 202.57282,38.432226 L 177.12254,71.882511"
        id="path15257" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.10595393px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 215.50503,46.690427 C 221.01092,54.399975 225.6393,60.173366 234.56009,60.173366 C 259.59436,60.173366 310.93817,60.126405 363.91297,60.077404 C 366.47131,60.075039 372.57258,65.757217 372.9773,65.465137 C 375.33139,63.76619 379.29051,60.063184 382.32,60.060391 C 434.02136,60.012739 484.55972,59.968087 511.05507,59.968087 C 520.34329,59.968087 521.23184,53.756752 526.22284,46.768188"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.10595405px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 220.45478,46.690425 C 225.64116,52.803904 230.00095,57.382059 238.40405,57.382059 C 261.98557,57.382059 310.34985,57.34482 360.25048,57.305963 C 362.66036,57.304088 368.40756,61.809913 368.7888,61.578301 C 371.00628,60.231079 374.73565,57.294687 377.58933,57.292473 C 426.29042,57.254686 473.89599,57.219278 498.8538,57.219278 C 507.60302,57.219278 508.44,52.293844 513.14137,46.752088"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="537.72278"
+       y="81.947693"
+       id="text3120"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3122"
+         x="537.72278"
+         y="81.947693">Find Task</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.0000006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 537.05026,43.233256 L 543.76221,69.258938"
+       id="path3124" />
   </g>
 </svg>

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="562"
-   height="96"
+   width="577"
+   height="98"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -33,16 +33,17 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="246.42857"
-     inkscape:cy="-11.937143"
+     inkscape:cx="288.5"
+     inkscape:cy="49"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="96px"
-     width="562px"
+     height="98px"
+     width="577px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="503"
-     inkscape:window-y="184" />
+     inkscape:window-y="184"
+     borderlayer="false" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -58,29 +59,29 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,11)">
+     transform="translate(0,13)">
     <image
-       y="-11"
+       y="-13"
        x="0"
        id="image5824"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSFinishPlanning.png"
        xlink:href="QSFinishPlanning.png"
-       width="562" />
+       width="577" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="251.27293"
+       x="265.27295"
        y="81.197044"
        id="text5827"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5829"
-         x="251.27293"
+         x="265.27295"
          y="81.197044">Click the Completion checkbox to finish</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 528.29248,40.30494 L 500.46274,67.134667"
+       d="M 542.29248,40.30494 L 514.46274,67.134667"
        id="path5833" />
   </g>
 </svg>

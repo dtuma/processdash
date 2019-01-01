@@ -67,21 +67,21 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="38.150791"
+       x="28.150791"
        y="16.761654"
        id="text1972"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1974"
-         x="38.150791"
+         x="28.150791"
          y="16.761654">Table of Contents tab</tspan></text>
     <path
        id="path1983"
-       d="M 43.126984,106.33308 L 92.916524,20.095069"
+       d="M 33.126984,106.33308 L 82.916524,20.095069"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 43.127,106.33308 L 92.91654,20.095069"
+       d="M 33.127,106.33308 L 82.91654,20.095069"
        id="path1981" />
   </g>
 </svg>

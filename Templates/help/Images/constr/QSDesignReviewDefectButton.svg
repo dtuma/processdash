@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="593"
-   height="91"
+   width="608"
+   height="93"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,12 +37,12 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="91px"
-     width="593px"
+     height="93px"
+     width="608px"
      inkscape:window-width="1045"
-     inkscape:window-height="688"
-     inkscape:window-x="406"
-     inkscape:window-y="89" />
+     inkscape:window-height="575"
+     inkscape:window-x="587"
+     inkscape:window-y="611" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -58,29 +58,30 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,7)">
+     transform="translate(0,9)">
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="125.61248"
+       x="129.61249"
        y="83.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="125.61248"
+         x="129.61249"
          y="83.197029">Defect button</tspan></text>
     <image
-       y="-7"
+       y="-9"
        x="0"
        id="image5924"
-       height="59"
+       height="61"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesignReviewDefectButton.png"
        xlink:href="QSDesignReviewDefectButton.png"
-       width="593" />
+       width="608"
+       style="fill:#c83737" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 124.86086,47.035111 L 146.6502,68.824447"
+       d="M 128.86086,47.035111 L 150.6502,68.824447"
        id="path5927" />
   </g>
 </svg>

@@ -11,7 +11,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="708"
-   height="426"
+   height="535"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -38,16 +38,16 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6132265"
+     inkscape:zoom="1"
      inkscape:cx="354"
-     inkscape:cy="176.5"
+     inkscape:cy="267.5"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     inkscape:window-width="1400"
-     inkscape:window-height="1003"
-     inkscape:window-x="401"
-     inkscape:window-y="75"
-     height="426px"
+     inkscape:window-width="1360"
+     inkscape:window-height="797"
+     inkscape:window-x="522"
+     inkscape:window-y="361"
+     height="535px"
      width="708px"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -75,18 +75,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,23)">
+     transform="translate(0,108)">
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\teamdash\Templates\teamhelp\Images\constr\wbs-icon-menu.png"
        xlink:href="wbs-icon-menu.png"
        width="708"
-       height="499"
+       height="584"
        id="image1963"
        x="0"
-       y="-23" />
+       y="-108" />
     <path
        style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:white;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 297.75653,397.16247 L 319.64983,381.24006 L 343.03587,396.16732 L 369.90493,380.74249 L 394.78369,395.17217 L 419.66244,379.74734 L 443.54604,395.66975 L 465.93692,380.74249 L 489.32296,396.16732 L 493.30356,424.03152 L 292.78078,430.5 L 297.75653,397.16247 z "
+       d="M 297.75653,427.16247 L 319.64983,411.24006 L 343.03587,426.16732 L 369.90493,410.74249 L 394.78369,425.17217 L 419.66244,409.74734 L 443.54604,425.66975 L 465.93692,410.74249 L 489.32296,426.16732 L 493.30356,454.03152 L 292.78078,460.5 L 297.75653,427.16247 z "
        id="path1966"
        sodipodi:nodetypes="cccccccccccc" />
   </g>

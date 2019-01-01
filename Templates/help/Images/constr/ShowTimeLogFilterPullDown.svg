@@ -10,8 +10,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="242"
-   height="193"
+   width="289"
+   height="215"
    id="svg19235"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -47,7 +47,7 @@
      inkscape:window-height="709"
      inkscape:window-x="768"
      inkscape:window-y="171"
-     width="242px"
+     width="289px"
      height="158px"
      showgrid="false"
      inkscape:window-maximized="0" />
@@ -72,37 +72,37 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,37)">
+     transform="translate(-3,59)">
     <image
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\ShowTimeLogFilterPullDown.png"
        xlink:href="ShowTimeLogFilterPullDown.png"
-       width="169"
-       height="193"
+       width="207"
+       height="215"
        id="image19250"
        x="3"
-       y="-37" />
+       y="-59" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;font-family:Arial"
-       x="179.25926"
-       y="26.111111"
+       x="227.25926"
+       y="16.111111"
        id="text19253"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         x="179.25926"
-         y="26.111111"
+         x="227.25926"
+         y="16.111111"
          id="tspan19257">Date filter</tspan><tspan
          sodipodi:role="line"
-         x="179.25926"
-         y="44.861111"
+         x="227.25926"
+         y="34.861111"
          id="tspan19263">pull-down</tspan><tspan
          sodipodi:role="line"
-         x="179.25926"
-         y="63.611111"
+         x="227.25926"
+         y="53.611111"
          id="tspan19259">tab</tspan></text>
     <path
-       style="fill:none;stroke:black;stroke-width:1.32548058px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 128.45909,6.347923 L 177.87438,20.429845"
+       style="fill:none;stroke:black;stroke-width:1.32548082px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 126.45912,-30.652084 L 224.87441,6.4298408"
        id="path19267" />
   </g>
 </svg>

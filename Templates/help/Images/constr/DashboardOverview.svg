@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="616"
-   height="279"
+   width="630"
+   height="281"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -33,14 +33,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="243.5"
-     inkscape:cy="128.58661"
+     inkscape:cx="315"
+     inkscape:cy="140.5"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="279px"
+     height="281px"
      width="616px"
-     inkscape:window-width="1253"
-     inkscape:window-height="688"
+     inkscape:window-width="1507"
+     inkscape:window-height="920"
      inkscape:window-x="334"
      inkscape:window-y="226" />
   <metadata
@@ -58,13 +58,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(7,9)">
+     transform="translate(7,11)">
     <image
-       y="-9"
+       y="-11"
        x="-7"
        id="image2042"
-       height="59"
-       width="616"
+       height="61"
+       width="630"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png" />
     <text
@@ -114,28 +114,28 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="374.16168"
+       x="388.16168"
        y="207.65521"
        id="text1957"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1959"
-         x="374.16168"
+         x="388.16168"
          y="207.65521">Task complete checkbox</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="290.12677"
+       x="301.54095"
        y="85.9673"
        id="text1965"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1967"
-         x="290.12677"
+         x="301.54095"
          y="85.9673">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000012;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 574.54978,45.170492 L 538.26599,196.47831"
+       d="M 588.54978,45.170492 L 552.26599,196.47831"
        id="path2883" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -154,8 +154,8 @@
        d="M 11.808756,45.702231 L 66.41532,251.20233"
        id="path2905" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.19257259px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 188.98982,51.698059 C 194.88695,59.372057 199.84422,65.118829 209.39891,65.118829 C 236.21199,65.118829 291.20413,65.072084 347.94313,65.02331 C 350.68327,65.020955 357.21807,70.676933 357.65156,70.386199 C 360.17291,68.695087 364.41334,65.009154 367.65813,65.006375 C 423.0332,64.958942 477.16266,64.914496 505.54066,64.914496 C 515.48889,64.914496 516.44056,58.731801 521.78621,51.775461"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.19257283px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 198.98982,47.101875 C 204.97771,56.662139 210.01127,63.821465 219.71299,63.821465 C 246.93869,63.821465 302.7771,63.763231 360.38923,63.702469 C 363.17155,63.699534 369.80691,70.745749 370.24708,70.383553 C 372.80722,68.276767 377.11291,63.684833 380.40764,63.681371 C 436.63486,63.622279 491.59731,63.566908 520.41201,63.566908 C 530.51333,63.566908 531.47965,55.864509 536.90757,47.198303"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <text
@@ -177,46 +177,46 @@
        sodipodi:linespacing="125%"
        id="text2780"
        y="109.65521"
-       x="428.16168"
+       x="442.16168"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        xml:space="preserve"><tspan
          y="109.65521"
-         x="428.16168"
+         x="442.16168"
          id="tspan2782"
          sodipodi:role="line">Note Indicator</tspan></text>
     <path
        id="path1897"
-       d="M 535.54977,43.170512 L 521.54208,99.478351"
+       d="M 549.54977,43.170512 L 535.54208,99.478351"
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000036;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="392.16168"
+       x="406.16168"
        y="135.65521"
        id="text2047"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2049"
-         x="392.16168"
+         x="406.16168"
          y="135.65521">Dependency Indicator</tspan></text>
     <path
        id="path2938"
-       d="M 554.72954,44.990707 L 533.08623,124.24594"
+       d="M 568.72954,44.990707 L 547.08623,124.24594"
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <text
        sodipodi:linespacing="125%"
        id="text1974"
        y="233.65521"
-       x="442.16168"
+       x="456.16168"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        xml:space="preserve"><tspan
          y="233.65521"
-         x="442.16168"
+         x="456.16168"
          id="tspan1976"
          sodipodi:role="line">Add task button</tspan></text>
     <path
        id="path1978"
-       d="M 592.54967,45.170478 L 548.92211,226.47825"
+       d="M 606.54967,45.170478 L 562.92211,226.47825"
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999994;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>

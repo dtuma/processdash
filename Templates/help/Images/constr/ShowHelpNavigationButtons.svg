@@ -67,22 +67,22 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="19.904758"
+       x="9.9047585"
        y="16.208744"
        id="text1972"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1974"
-         x="19.904758"
+         x="9.9047585"
          y="16.208744">Navigation buttons</tspan></text>
     <path
        sodipodi:nodetypes="ccc"
        id="path5634"
-       d="M 21.010582,59.539678 L 44.785715,20.835974 L 69.113758,61.198409"
+       d="M 11.010582,59.539678 L 34.785715,20.835974 L 59.113758,61.198409"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 21.010582,59.539678 L 44.785715,20.835974 L 69.113758,61.198409"
+       d="M 11.010582,59.539678 L 34.785715,20.835974 L 59.113758,61.198409"
        id="path4745"
        sodipodi:nodetypes="ccc" />
   </g>
