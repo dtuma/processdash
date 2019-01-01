@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2016 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -146,8 +146,14 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
 
         if (!isExportingToExcel())
             interpOut(EXPORT_FOOTER_TEXT);
-        if (!isExporting() && !parameters.containsKey("noDisclaimer"))
-            interpOut(DISCLAIMER);
+        if (!isExporting() && !parameters.containsKey("noDisclaimer")) {
+            StringBuffer html = new StringBuffer(resources.interpolate(
+                    DISCLAIMER, HTMLUtils.ESC_ENTITIES));
+            StringUtils.findAndReplace(html, "&lt;a&gt;",
+                    "<a href='../control/showDefectLog'>");
+            StringUtils.findAndReplace(html, "&lt;/a&gt;", "</a>");
+            out.print(html.toString());
+        }
 
         out.println(END_TEXT);
     }
