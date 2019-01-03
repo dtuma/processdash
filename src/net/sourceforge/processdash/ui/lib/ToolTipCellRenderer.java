@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2003 Tuma Solutions, LLC
+// Copyright (C) 2000-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,14 +29,17 @@ import java.awt.Component;
 import javax.swing.*;
 import java.util.*;
 
-public class ToolTipCellRenderer extends JLabel implements ListCellRenderer {
+public class ToolTipCellRenderer implements ListCellRenderer {
+
+    ListCellRenderer delegate;
     Map toolTips, translations;
     Color highlight = Color.blue.darker().darker();
 
-    public ToolTipCellRenderer(Map toolTips, Map translations) {
+    public ToolTipCellRenderer(ListCellRenderer delegate, Map toolTips,
+            Map translations) {
+        this.delegate = delegate;
         this.toolTips = toolTips;
         this.translations = translations;
-        setOpaque(true);
     }
 
     public Component getListCellRendererComponent (JList list,
@@ -50,12 +53,10 @@ public class ToolTipCellRenderer extends JLabel implements ListCellRenderer {
             String trans = (String) translations.get(val);
             if (trans != null) display = trans;
         }
-        setText(display + "  ");
         if (isSelected && toolTips != null) {
             list.setToolTipText((String) toolTips.get(val));
         }
-        setBackground(isSelected ? highlight : Color.white);
-        setForeground(isSelected ? Color.white : Color.black);
-        return this;
+        return delegate.getListCellRendererComponent(list, display + "  ",
+            index, isSelected, cellHasFocus);
     }
 }
