@@ -762,7 +762,7 @@ Authors:
   <!-- Update the JavaHelp                                                 -->
   <!-- =================================================================== -->
   <target name="javahelp"
-          depends="init,-javahelp-depend,-javahelp-images,-javahelp-index,-javahelp-book"/>
+          depends="init,-javahelp-depend,javahelp-images,-javahelp-index,javahelp-book"/>
 
   <!-- invoke the jhindexer -->
   <target name="-javahelp-index" depends="init,-javahelp-depend"
@@ -800,8 +800,7 @@ Authors:
   </target>
 
   <!-- regenerate the "book.html" file -->
-  <target name="-javahelp-book" depends="-javahelp-depend"
-          unless="javahelp.upToDate">
+  <target name="javahelp-book" unless="javahelp.upToDate">
     <xslt in="${help}/TOC.xml" out="${help}/TOC.html"
           style="${help}/makeTOC.xslt"/>
     <xslt in="${help}/TOC.xml" out="${help}/Skeleton.html"
@@ -820,7 +819,7 @@ Authors:
     <delete file="${help}/Skeleton.html"/>
   </target>
 
-  <target name="-javahelp-images" depends="ant-tasks"
+  <target name="javahelp-images" depends="ant-tasks"
           unless="javahelp.upToDate">
     <svgToImage maxWidth="740" bg="#ffffff" verbose="true"
                 destdir="${helpimages}">
