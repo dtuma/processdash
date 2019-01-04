@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -356,7 +356,12 @@ public class DropDownButton extends JPanel {
      */
     private class NormalDropDownButtonLayout implements LayoutManager {
 
+        private int menuBarL;
         private Rectangle bounds = new Rectangle();
+
+        NormalDropDownButtonLayout()  {
+            menuBarL = WindowsGUIUtils.isWindowsLAF() ? 1 : 0;
+        }
 
         public void layoutContainer(Container parent) {
             parent.getBounds(bounds);
@@ -371,7 +376,7 @@ public class DropDownButton extends JPanel {
             mainButton.setBounds(lww - lwo, 0, mainW, bounds.height);
             dropDownButton.setBounds(lww - lwo + mainW - 1, 0, ddw, bounds.height);
 
-            menuBar.setBounds(0, 0, 0, bounds.height);
+            menuBar.setBounds(menuBarL, 0, 0, bounds.height);
         }
 
         public Dimension minimumLayoutSize(Container parent) {

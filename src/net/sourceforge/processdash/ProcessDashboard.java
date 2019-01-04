@@ -1105,8 +1105,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         g.gridx = getContentPane().getComponentCount();
         g.insets = new Insets(2, padLeft, 2, padRight);
         g.weightx = weight;
-        if (weight > 0)
-            g.fill = GridBagConstraints.HORIZONTAL;
+        if (weight > 0) {
+            // the only component with nonzero weight is the hierarchy_menubar.
+            // on the Windows LAF, it needs to be resized in both directions;
+            // on others is is just resized horizontally.
+            if (WindowsGUIUtils.isWindowsLAF())
+                g.fill = GridBagConstraints.BOTH;
+            else
+                g.fill = GridBagConstraints.HORIZONTAL;
+        }
 
         GridBagLayout layout = (GridBagLayout) getContentPane().getLayout();
         layout.setConstraints(component, g);
