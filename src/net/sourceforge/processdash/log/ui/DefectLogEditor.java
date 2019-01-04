@@ -206,7 +206,6 @@ public class DefectLogEditor extends Component implements
         tree.setEditable(false);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
         tree.setDropMode(DropMode.ON);
         tree.setTransferHandler(new TreeTransferHandler());
 

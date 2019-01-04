@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2016 Tuma Solutions, LLC
+// Copyright (C) 1999-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -266,7 +266,6 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         treeModel.useTreeModelListener (true);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
         try {
             tree.setCellEditor(new SelectingTreeEditor
                 (tree, (DefaultTreeCellRenderer) tree.getCellRenderer()));

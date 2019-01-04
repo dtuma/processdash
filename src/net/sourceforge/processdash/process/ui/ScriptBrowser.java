@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -115,7 +115,6 @@ public class ScriptBrowser extends JDialog
             (TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener (this);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);      // Make tree ask for the height of each row.
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane

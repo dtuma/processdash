@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2018 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -90,7 +90,6 @@ public class NodeSelectionDialog extends JDialog
         tree.addTreeSelectionListener(this);
         tree.expandRow (0);
         tree.setRootVisible(false);
-        tree.setRowHeight(-1);     // make tree ask for the height of each row.
 
         /* Put the Tree in a scroller. */
         JScrollPane sp = new JScrollPane
@@ -107,7 +106,7 @@ public class NodeSelectionDialog extends JDialog
         this.approver = approver;
 
         pack();
-        show();      // this will block until the user dismisses the dialog
+        setVisible(true); // this will block until the user dismisses the dialog
     }
 
     private Component buildButtonPanel(String okayLabel) {

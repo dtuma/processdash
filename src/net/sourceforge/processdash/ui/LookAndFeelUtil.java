@@ -27,6 +27,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.UIManager;
 
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class LookAndFeelUtil {
@@ -39,6 +40,7 @@ public class LookAndFeelUtil {
                 RuntimeUtils.addPropagatedSystemProperty("swing.defaultlaf",
                     laf);
             }
+            tweakLAFDefaults();
         } catch (Exception e) {
         }
     }
@@ -59,6 +61,18 @@ public class LookAndFeelUtil {
         Preferences prefs = Preferences.userRoot()
                 .node("net/sourceforge/processdash/userPrefs");
         return prefs.getBoolean("useSystemLAF", true);
+    }
+
+    private static void tweakLAFDefaults() {
+        if (WindowsGUIUtils.isWindowsLAF()) {
+            setMinIntDefault("Tree.rowHeight", 18);
+        }
+    }
+
+    private static void setMinIntDefault(String key, int minValue) {
+        int currentVal = UIManager.getInt(key);
+        if (currentVal > 0 && currentVal < minValue)
+            UIManager.put(key, minValue);
     }
 
 }
