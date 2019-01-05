@@ -203,6 +203,7 @@ import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.ui.lib.WindowUtils;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.Disposable;
@@ -642,7 +643,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
             public void actionPerformed(ActionEvent e) {
                 displayErrorDialog(getErrors()); }};
         final JButton errorButton = new JButton(errorAction);
-        errorButton.setBackground(Color.red);
+        if (WindowsGUIUtils.isWindowsLAF()) {
+            errorButton.setIcon(new RedFillIcon());
+            errorButton.setIconTextGap(0);
+        } else {
+            errorButton.setBackground(Color.red);
+        }
         errorButton.setFocusPainted(false);
         errorAction.addPropertyChangeListener(new PropertyChangeListener(){
             public void propertyChange(PropertyChangeEvent evt) {
@@ -2300,6 +2306,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
             g2.setStroke(saved);
         }
     }
+
+
+    private class RedFillIcon implements Icon {
+        Color redFill = new Color(255, 92, 92);
+        public int getIconWidth()  { return 1; }
+        public int getIconHeight() { return 1; }
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(redFill);
+            g.fillRect(2, 2, c.getWidth() - 4, c.getHeight() - 4);
+        }
+    }
+
 
     class ScheduleJTable extends JTable {
         DefaultTableCellRenderer editable, readOnly;
