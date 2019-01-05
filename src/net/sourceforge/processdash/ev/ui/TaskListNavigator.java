@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2015 Tuma Solutions, LLC
+// Copyright (C) 2006-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -262,7 +262,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         truncatedPrefixMenu = new ChooseTaskList(null, chooseAction);
         overflowMenu.add(truncatedPrefixMenu, 0);
 
-        boldFont = overflowMenu.getFont();
+        boldFont = overflowMenu.getFont().deriveFont(Font.BOLD);
         plainFont = boldFont.deriveFont(Font.PLAIN);
         completedTasksMenu = new JMenu(resources
                 .getString("Navigator.Completed_Items"));
