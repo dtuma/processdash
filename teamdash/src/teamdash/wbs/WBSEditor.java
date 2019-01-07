@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -169,6 +169,7 @@ import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
+import teamdash.wbs.icons.WBSEditorIcon;
 
 public class WBSEditor implements WindowListener, SaveListener,
         LockMessageHandler, WBSFilenameConstants {
@@ -460,6 +461,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             windowTitle += " " + resources.getString("Window.Read_Only");
 
         frame = new JFrame(windowTitle);
+        WBSEditorIcon.setWindowIcon(frame);
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
             teamProject.getMilestones(), data, initials));
         frame.getContentPane().add(tabPanel);
@@ -1476,6 +1478,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private static JFrame createWaitFrame(String message) {
         JFrame result = new JFrame(resources.getString("Window.Please_Wait"));
+        WBSEditorIcon.setWindowIcon(result);
         result.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         result.getContentPane().add(buildWaitContents(message));
         result.pack();

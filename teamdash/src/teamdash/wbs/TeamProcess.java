@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -436,7 +436,7 @@ public class TeamProcess {
 
 
     /** Calculate the appropriate color for displaying a particular phase. */
-    private Color getPhaseColor(int phaseNum, int numPhases) {
+    public static Color getPhaseColor(int phaseNum, int numPhases) {
         float r = (phaseNum * (COLOR_SPECTRUM.length-1)) / (float) numPhases;
         int offset = (int) Math.floor(r);
         r -= offset;

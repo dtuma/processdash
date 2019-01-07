@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
+import teamdash.wbs.icons.WBSEditorIcon;
 
 
 public class MilestonesEditor implements MergeConflictHyperlinkHandler {
@@ -90,6 +91,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() + " - "
                 + resources.getString("Window_Title"));
+        WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

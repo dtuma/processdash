@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ import teamdash.wbs.AbstractLibraryEditor.Mode;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
+import teamdash.wbs.icons.WBSEditorIcon;
 
 /** A graphical user interface for editing common workflows.
  */
@@ -102,6 +103,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         buildToolbar(columnSelector.getAction());
         frame = new JFrame(teamProject.getProjectName() + " - "
                 + resources.getString("Window_Title"));
+        WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.UndoList;
+import teamdash.wbs.icons.WBSEditorIcon;
 
 public class MergeConflictDialog implements DataModelSource {
 
@@ -81,6 +82,7 @@ public class MergeConflictDialog implements DataModelSource {
         this.teamProject = teamProject;
 
         frame = new JFrame(resources.getString("Conflict_Window.Title"));
+        WBSEditorIcon.setWindowIcon(frame);
 
         JPanel content = new JPanel();
         content.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));

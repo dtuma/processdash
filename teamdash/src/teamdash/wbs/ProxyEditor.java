@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2018 Tuma Solutions, LLC
+// Copyright (C) 2014-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import net.sourceforge.processdash.ui.lib.GuiPrefs;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
+import teamdash.wbs.icons.WBSEditorIcon;
 
 public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
@@ -80,6 +81,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         frame = new JFrame(teamProject.getProjectName() + " - "
                 + resources.getString("Window_Title"));
+        WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
