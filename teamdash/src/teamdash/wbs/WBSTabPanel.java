@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -87,6 +87,7 @@ import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ColumnSelectorIcon;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -156,14 +157,15 @@ public class WBSTabPanel extends JLayeredPane implements
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
-            TaskIDSource idSource) {
+            TaskIDSource idSource, GuiPrefs guiPrefs) {
         this(wbs, data, teamProcess.getIconMap(),
-             teamProcess.getNodeTypeMenu(), workflows, idSource);
+             teamProcess.getNodeTypeMenu(), workflows, idSource, guiPrefs);
     }
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
-            JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource) {
+            JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource,
+            GuiPrefs guiPrefs) {
         setLayout(layout = new GridBagLayout());
 
         undoList = new UndoList(wbs);
@@ -178,9 +180,9 @@ public class WBSTabPanel extends JLayeredPane implements
         makeToolBar();
         installKeyboardShortcuts();
 
-        // manually set the initial divider location, to trigger the
-        // size coordination logic.
+        // set the default divider location, then load user's last location
         splitPane.setDividerLocation((int) toolBar.getPreferredSize().getWidth() + 10);
+        guiPrefs.load(splitPane);
     }
 
     public void setReadOnly(boolean readOnly) {
