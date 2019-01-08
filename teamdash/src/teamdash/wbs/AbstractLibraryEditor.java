@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -169,6 +169,7 @@ public abstract class AbstractLibraryEditor {
         panel.add(sp);
 
         libraryTable = buildJTable(libraryModel);
+        libraryTable.renderer.setRootNodeName(null);
         libraryTable.setEditingEnabled(false);
         libraryTable.setBackground(LIGHT_SEPIA);
         sp = new JScrollPane(libraryTable);
@@ -187,6 +188,7 @@ public abstract class AbstractLibraryEditor {
 
         addButton = new JButton(resources.getString("Overwrite"));
         addButton.setIcon(export ? IconFactory.getRightArrowIcon() : IconFactory.getLeftArrowIcon());
+        IconFactory.setDisabledIcon(addButton);
         addButton.setHorizontalTextPosition(export ? SwingConstants.LEFT : SwingConstants.RIGHT);
         addButton.setMinimumSize(addButton.getPreferredSize());
         addButton.setText(resources.getString("Add"));
