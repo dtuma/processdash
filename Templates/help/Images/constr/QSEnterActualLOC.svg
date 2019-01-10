@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="798"
+   height="722"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="QSEnterActualLOC.svg"
+   version="1.0">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="375"
+     inkscape:cy="283.09034"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1272"
+     inkscape:window-height="909"
+     inkscape:window-x="740"
+     inkscape:window-y="1455"
+     height="722px"
+     borderlayer="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(24,66)">
+    <image
+       y="-66"
+       x="-24"
+       id="image1930"
+       height="1197"
+       width="798"
+       sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\QSEnterActualLOC.png"
+       xlink:href="QSEnterActualLOC.png" />
+    <path
+       style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:#8a8a8a;stroke-width:2.00000262;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M -54.657097,631.53765 L 15.508083,613.61455 L 85.302682,631.66212 L 159.29734,613.73901 L 225.2624,631.66212 L 295.30417,613.86348 L 365.09868,631.78658 L 435.01689,613.73901 L 504.93498,631.91105 L 574.85306,613.73901 L 644.77117,631.78658 L 714.68924,613.73901 L 784.73091,631.78658 L 785.65852,843.88168 L -54.31071,846.69802 L -54.657097,631.53765 z "
+       id="path1963"
+       sodipodi:nodetypes="cccccccccccccccc" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:red;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 635.5,283.5 L 507.5,283.5 L 507.5,188.5 L 762.5,188.5 L 762.5,614.5 L 667.5,614.5 L 667.5,443.5 L 635.5,443.5 L 635.5,283.5 z "
+       id="path1933"
+       sodipodi:nodetypes="ccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="491"
+       y="654.76563"
+       id="text3737"><tspan
+         sodipodi:role="line"
+         id="tspan3739"
+         x="491"
+         y="654.76563"
+         style="font-size:20px">Enter actual size data</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:red;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 742,679 L 710,713"
+       id="path3741"
+       transform="translate(-24,-66.13782)" />
+  </g>
+</svg>

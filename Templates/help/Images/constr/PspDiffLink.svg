@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="700"
+   height="540"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="PspDiffLink.svg">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="421.46547"
+     inkscape:cy="279.79095"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="2323"
+     inkscape:window-height="1250"
+     inkscape:window-x="123"
+     inkscape:window-y="86"
+     height="540px"
+     borderlayer="true"
+     showborder="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-868.5,-244.1479)">
+    <image
+       y="244.1479"
+       x="868.5"
+       id="image1930"
+       height="757"
+       width="700"
+       sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\PspDiffLink.png"
+       xlink:href="PspDiffLink.png" />
+    <path
+       style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:#8a8a8a;stroke-width:2.00000095;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 862.25023,756.8979 L 921.97797,738.8979 L 981.39024,757.0229 L 1044.3778,739.0229 L 1100.5302,757.0229 L 1160.1529,739.1479 L 1219.5651,757.1479 L 1279.0826,739.0229 L 1338.6,757.2729 L 1398.1174,739.0229 L 1457.6348,757.1479 L 1517.1522,739.0229 L 1576.7748,757.1479 L 1577.5644,970.15295 L 862.54509,972.98138 L 862.25023,756.8979 z "
+       id="path1963"
+       sodipodi:nodetypes="cccccccccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="1008.5"
+       y="778.9389"
+       id="text3746"><tspan
+         sodipodi:role="line"
+         id="tspan3748"
+         x="1008.5"
+         y="778.9389"
+         style="font-size:20px">Link to the LOC Counting Tool</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:3.99999905;stroke-linecap:round;stroke-linejoin:miter;marker-start:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 1100.5,712.14757 L 1044.5,762.14755"
+       id="path3801" />
+  </g>
+</svg>

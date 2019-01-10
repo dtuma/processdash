@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="667"
+   height="534"
+   id="svg4630"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="QSEnterActualLOCPPS.svg">
+  <defs
+     id="defs4632" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="375"
+     inkscape:cy="233.60241"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1069"
+     inkscape:window-height="741"
+     inkscape:window-x="1353"
+     inkscape:window-y="1645" />
+  <metadata
+     id="metadata4635">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-41.5,-265.3622)">
+    <image
+       y="265.36218"
+       x="41.5"
+       id="image4678"
+       height="534"
+       width="667"
+       sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\QSEnterActualLOCPPS.png"
+       xlink:href="QSEnterActualLOCPPS.png" />
+    <rect
+       style="fill:none;fill-opacity:0;stroke:red;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4681"
+       width="106.00008"
+       height="37.000004"
+       x="45"
+       y="524.86218" />
+    <rect
+       style="fill:none;fill-opacity:0;stroke:red;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect5568"
+       width="81.000061"
+       height="208.00003"
+       x="508"
+       y="438.86258" />
+  </g>
+</svg>

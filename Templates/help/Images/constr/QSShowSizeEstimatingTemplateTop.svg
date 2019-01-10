@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:ns="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="798"
+   height="345"
+   id="svg8402"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="QSShowSizeEstimatingTemplateTop.svg">
+  <defs
+     id="defs8404" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="399"
+     inkscape:cy="194.5"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1496"
+     inkscape:window-height="803"
+     inkscape:window-x="744"
+     inkscape:window-y="1544"
+     height="345px"
+     borderlayer="true" />
+  <metadata
+     id="metadata8407">
+    <rdf:RDF>
+      <ns:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </ns:Work>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="0"
+       x="0"
+       id="image8450"
+       height="1189"
+       width="798"
+       sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\QSSizeEstimatingTemplateDone.png"
+       xlink:href="../QSSizeEstimatingTemplateDone.png" />
+    <path
+       style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:#8a8a8a;stroke-width:2.00000262;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M -6.443523,309.52422 L 63.721657,291.60112 L 133.51626,309.64869 L 207.51092,291.72558 L 273.47598,309.64869 L 343.51775,291.85005 L 413.31226,309.77315 L 483.23047,291.72558 L 553.14856,309.89763 L 623.06664,291.72558 L 692.98475,309.77315 L 762.90282,291.72558 L 832.94449,309.77315 L 833.8721,521.86825 L -6.097133,524.6846 L -6.443523,309.52422 z "
+       id="path1963"
+       sodipodi:nodetypes="cccccccccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="105"
+       y="338.79102"
+       id="text8468"><tspan
+         sodipodi:role="line"
+         id="tspan8470"
+         x="105"
+         y="338.79102">Instructions link on the Size Estimating Template</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:4;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 308,171 L 228,318"
+       id="path8472" />
+  </g>
+</svg>
