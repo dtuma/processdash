@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2018 Tuma Solutions, LLC
+// Copyright (C) 2012-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -114,6 +114,24 @@ public class GuiPrefs {
 
 
     /**
+     * Save the current state of selected user interface controls that were
+     * previously loaded by this object.
+     * 
+     * @param ids
+     *            a list of ids that were previously passed to <code>load</code>
+     *            methods in this object.
+     * @since 2.5
+     */
+    public void save(String... ids) {
+        for (String id : ids) {
+            RegisteredItem item = registeredItems.get(id);
+            if (item != null)
+                item.save();
+        }
+    }
+
+
+    /**
      * Save the current state of all user interface controls that were
      * previously loaded by this object.
      */
@@ -223,6 +241,28 @@ public class GuiPrefs {
      */
     public boolean load(JTable table) {
         return load("table", table);
+    }
+
+    /**
+     * Register a table column model so the column sizes and order will be saved
+     * when the {@link #saveAll()} method is called, and restore any column
+     * state that was saved for this column model in the past.
+     * 
+     * This method performs a task similar to {@link #load(JTable)}, but for a
+     * column model that might or might not be in use by a physical JTable.
+     * 
+     * @param columnModelId
+     *            a unique ID for this table column model; if a {@link GuiPrefs}
+     *            object is managing state for several column models, each one
+     *            should have a different id.
+     * @param columns
+     *            the table column model to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.5
+     */
+    public boolean load(String columnModelId, TableColumnModel columns) {
+        return load(new RegisteredTable(columnModelId, columns));
     }
 
 
@@ -575,6 +615,14 @@ public class GuiPrefs {
             this.visibility = JTableColumnVisibilityAction.getForTable(table);
         }
 
+        public RegisteredTable(String id, TableColumnModel columns) {
+            super(id);
+            this.cols = columns;
+            this.orig = TableUtils.cloneTableColumnModel(this.cols);
+            this.reorder = true;
+            this.visibility = null;
+        }
+
         @Override
         boolean load() {
             List<ColPos> columnPositions = new ArrayList<ColPos>();
@@ -631,6 +679,9 @@ public class GuiPrefs {
 
         @Override
         void save() {
+            if (hasUserData() == false)
+                return;
+
             for (int i = 0; i < cols.getColumnCount(); i++) {
                 TableColumn column = cols.getColumn(i);
                 Object columnId = column.getIdentifier();
@@ -642,6 +693,20 @@ public class GuiPrefs {
 
             if (visibility != null)
                 visibility.saveColumnVisibility(prefs, orig, cols);
+        }
+
+        private boolean hasUserData() {
+            // if this column model was created but never installed into a
+            // table, the column widths will not have been calculated and set.
+            // We can detect this scenario if all columns have a placeholder
+            // width (set by the TableColumn constructor). In that case, there
+            // is nothing to save.
+            for (int i = 0; i < cols.getColumnCount(); i++) {
+                int w = cols.getColumn(i).getWidth();
+                if (w != 0 && w != COL_PLACEHOLDER_WIDTH)
+                    return true;
+            }
+            return false;
         }
 
         private class ColPos implements Comparable<ColPos> {
@@ -657,6 +722,8 @@ public class GuiPrefs {
         }
 
     }
+
+    private static final int COL_PLACEHOLDER_WIDTH = new TableColumn().getWidth();
 
 
     private class RegisteredButtonModel extends RegisteredItem {

@@ -88,6 +88,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         this.milestonesModel.setEditingEnabled(isEditable(teamProject));
         table = createMilestonesJTable();
         table.setEditingEnabled(isEditable(teamProject));
+        guiPrefs.load("milestonesTable", table);
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() + " - "
                 + resources.getString("Window_Title"));

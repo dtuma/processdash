@@ -76,6 +76,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         table = createProxyJTable();
         table.setEditingEnabled(isEditable(teamProject));
+        guiPrefs.load("proxyTable", table);
 
         buildToolbar();
 

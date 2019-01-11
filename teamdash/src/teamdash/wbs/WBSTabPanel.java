@@ -151,6 +151,7 @@ public class WBSTabPanel extends JLayeredPane implements
     int customColumnInsertPosDelta;
     boolean customTabsDirty = false;
     GridBagLayout layout;
+    GuiPrefs guiPrefs;
     ArrayList tabProperties = new ArrayList();
     List enablementCalculations = new LinkedList();
 
@@ -167,6 +168,7 @@ public class WBSTabPanel extends JLayeredPane implements
             JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource,
             GuiPrefs guiPrefs) {
         setLayout(layout = new GridBagLayout());
+        this.guiPrefs = guiPrefs;
 
         undoList = new UndoList(wbs);
         undoList.setForComponent(this);
@@ -278,6 +280,10 @@ public class WBSTabPanel extends JLayeredPane implements
         // add tab properties
         tabProperties.add(properties);
 
+        // load user-preferred column widths
+        if (!properties.isProtected())
+            loadUserColumnPrefs(tabName, columnModel, properties.isEditable());
+
         // insert the new tab immediately before the "Add Tab" pseudotab.
         int tabIndex = tableColumnModels.size() - 1;
         tabbedPane.insertTab(tabName, null,
@@ -292,6 +298,12 @@ public class WBSTabPanel extends JLayeredPane implements
             tabbedPane.setSelectedIndex(0);
 
         return tabIndex;
+    }
+
+    private void loadUserColumnPrefs(String tabName,
+            TableColumnModel columnModel, boolean editable) {
+        String guiPrefId = "tabColumns_" + (editable ? "c_" : "s_") + tabName;
+        guiPrefs.load(guiPrefId, columnModel);
     }
 
     protected void removeTab(int index) {
@@ -653,16 +665,18 @@ public class WBSTabPanel extends JLayeredPane implements
         }
 
         public void actionPerformed(ActionEvent e) {
+            int tabPos = tabbedPane.getSelectedIndex();
             String tabName = JOptionPane.showInputDialog(tabbedPane,
                 resources.format("Rename_Tab.Prompt_FMT",
-                    tabbedPane.getTitleAt(tabbedPane.getSelectedIndex())),
+                    tabbedPane.getTitleAt(tabPos)),
                 resources.getString("Rename_Tab.Title"),
                 JOptionPane.QUESTION_MESSAGE);
             if (null == tabName)
                 return;
 
             customTabsDirty = true;
-            tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), tabName);
+            tabbedPane.setTitleAt(tabPos, tabName);
+            loadUserColumnPrefs(tabName, tableColumnModels.get(tabPos), true);
             notifyAllListeners();
         }
 
