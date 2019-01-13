@@ -594,7 +594,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         EVTaskDependencyResolver.init(this);
         WBSTaskOrderComparator.init(this);
 
-        Settings.setDatasetID(DashController.getDatasetID(false));
+        Settings.setDatasetID(DashController.getDatasetID(true));
         globalPrefs = new GuiPrefs(Settings.userPreferences);
         datasetPrefs = new GuiPrefs(Settings.getDatasetPrefsNode());
 
