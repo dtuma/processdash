@@ -8,6 +8,7 @@
   <jar>launcher.jar</jar>
   <icon>dashicon.ico</icon>
   <jre>
+    <path>jre;%JAVA_HOME%;%PATH%</path>
     <minVersion>1.6.0</minVersion>
   </jre>
 </launch4jConfig>

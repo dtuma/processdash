@@ -8,6 +8,7 @@
   <errTitle>Process Dashboard</errTitle>
   <manifest>installer-launch4j-manifest.xml</manifest>
   <jre>
+    <path>jre;%JAVA_HOME%;%PATH%</path>
     <minVersion>1.6.0</minVersion>
   </jre>
 </launch4jConfig>
