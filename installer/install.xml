@@ -131,6 +131,8 @@
         <pack name="pdash" id="pdash" required="yes">
             <description>Process Dashboard</description>
 
+            <!-- core files to include. When adding to this list, make -->
+            <!-- sure to add to ../lib/fileset-install-jars.txt too    -->
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"

@@ -1,5 +1,6 @@
 pspdash.jar
 api.jar
+gitDiff.jar
 l10nTool.jar
 extras.jar
 dashHelp.jar
