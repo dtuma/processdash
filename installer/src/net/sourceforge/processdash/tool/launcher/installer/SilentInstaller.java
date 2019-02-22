@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,15 +32,36 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 
 public class SilentInstaller implements Runnable {
 
     @Override
     public void run() {
-        if (LauncherInstallerPaths.getInstalledPath() == null)
+        if (needsInstall())
             install();
+    }
+
+    private static boolean needsInstall() {
+        if (LauncherInstallerPaths.getInstalledPath() == null)
+            return true;
+
+        String installedVersion = LauncherInstallerPaths.getInstalledVersion();
+        if (installedVersion == null)
+            return true;
+
+        try {
+            // if this version is newer than the installed version, upgrade
+            String thisVersion = TemplateLoader
+                    .getPackageVersion("pdes-installer-launcher");
+            return VersionUtils.compareVersions(installedVersion,
+                thisVersion) < 0;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
 
