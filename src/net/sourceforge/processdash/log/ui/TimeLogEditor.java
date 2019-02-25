@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2018 Tuma Solutions, LLC
+// Copyright (C) 1999-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -558,7 +558,16 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     private Date getToDate(boolean endOfDay) {
-        return truncDate(toDate.getDate(), endOfDay ? 1 : 0);
+        if (endOfDay) {
+            Date result = truncDate(toDate.getDate(), 1);
+            if (result != null)
+                // close our filter window one millisecond before midnight, so
+                // we don't pick up time log entries that started the next day
+                result = new Date(result.getTime() - 1);
+            return result;
+        } else {
+            return truncDate(toDate.getDate(), 0);
+        }
     }
 
     private Date truncDate(Date d, int addDays) {
