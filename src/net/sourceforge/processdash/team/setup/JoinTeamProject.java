@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -41,6 +43,7 @@ import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -67,7 +70,9 @@ public class JoinTeamProject extends TinyCGIBase {
         else if (parameters.get("formdata") != null)
             printJoinFormData();
         else if (parameters.get("invitation") != null)
-            printJoinInvitations();
+            printRelaunchJoinInvitation();
+        else if (parameters.get("pdash") != null)
+            writePdashJoinInvitation();
         else
             printRedirect(JOIN_URL);
     }
@@ -123,10 +128,10 @@ public class JoinTeamProject extends TinyCGIBase {
      * message inviting the individual to join the new project. The file is in
      * 'pdash message' format, ready to be embedded in a PDASH file.
      */
-    private void printJoinInvitations() throws IOException {
+    private void printRelaunchJoinInvitation() throws IOException {
         super.writeHeader();
 
-        out.write("<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n");
+        out.write(XML_HEADER);
         out.write("<messages>\n");
 
         // if this project was relaunched, print an invitation to join the
@@ -194,6 +199,62 @@ public class JoinTeamProject extends TinyCGIBase {
         return null;
     }
 
+    /**
+     * Write a PDASH file containing an invitation for joining this project
+     */
+    private void writePdashJoinInvitation() throws IOException {
+        // write the HTTP header fields, including a suggested name for the file
+        String projectName = getPrefix();
+        projectName = projectName.substring(projectName.lastIndexOf('/') + 1);
+        String filename = "join_project_" + FileUtils.makeSafe(projectName);
+        out.print("Content-type: application/octet-stream\r\n");
+        out.print("Content-Disposition: attachment; " + "filename=\""
+                + filename + ".pdash\"\r\n\r\n");
+        out.flush();
+
+        // create a ZIP output stream for the data
+        ZipOutputStream zipOut = new ZipOutputStream(outStream);
+
+        // write the PDASH manifest file
+        zipOut.putNextEntry(new ZipEntry("manifest.xml"));
+        zipOut.write((MANIFEST_XML_1 + System.currentTimeMillis()
+                + MANIFEST_XML_2).getBytes("UTF-8"));
+        zipOut.closeEntry();
+
+        // write the message document containing the joining invitation
+        zipOut.putNextEntry(new ZipEntry("joinProject.xml"));
+        zipOut.write(getXmlJoinMessageDocument().getBytes("UTF-8"));
+        zipOut.closeEntry();
+
+        zipOut.finish();
+        zipOut.close();
+    }
+
+    private String getXmlJoinMessageDocument() throws IOException {
+        // open the document
+        StringBuilder result = new StringBuilder();
+        result.append(XML_HEADER);
+        result.append("<messages>\n");
+
+        // write out a message with a join invitation.
+        String projectID = getData(TeamDataConstants.PROJECT_ID);
+        result.append("\n<message type='pdash.joinTeamProject' msgId='"
+                + projectID + "." + System.currentTimeMillis() + "'>\n");
+
+        // retrieve the XML joining document
+        String uri = makeURI(JOIN_XML);
+        String joinInfo = getTinyWebServer().getRequestAsString(uri);
+        int pos = joinInfo.indexOf("?>");
+        if (pos != -1)
+            joinInfo = joinInfo.substring(pos + 2); // strip XML prolog
+        result.append(joinInfo);
+
+        // close the document
+        result.append("</message>\n\n");
+        result.append("</messages>\n");
+        return result.toString();
+    }
+
     private String getData(String dataName) {
         return getData(getPrefix(), dataName);
     }
@@ -253,5 +314,14 @@ public class JoinTeamProject extends TinyCGIBase {
         int slashPos = path.indexOf('/');
         return path.substring(0, slashPos);
     }
+
+    private static final String XML_HEADER = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n";
+
+    private static final String MANIFEST_XML_1 = XML_HEADER
+            + "<archive type='dashboardDataExport'>\n"
+            + "   <exported when='@";
+    private static final String MANIFEST_XML_2 = "' />\n"
+            + "   <file name='joinProject.xml' type='messages' version='1' />\n"
+            + "</archive>";
 
 }
