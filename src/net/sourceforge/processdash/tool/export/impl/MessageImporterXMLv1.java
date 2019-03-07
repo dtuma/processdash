@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2016 Tuma Solutions, LLC
+// Copyright (C) 2009-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -105,6 +105,13 @@ public class MessageImporterXMLv1 implements
         if (nl != null && nl.getLength() > 0 && caller != null)
             caller.deleteArchiveFileOnCompletion();
 
+        nl = doc.getElementsByTagName(DELETE_FROM_IMPORT_TAG);
+        if (nl != null && nl.getLength() > 0 && caller != null) {
+            File importDir = caller.getImportFile().getParentFile();
+            if (importDir != null && "import".equals(importDir.getName()))
+                caller.deleteArchiveFileOnCompletion();
+        }
+
         if (serverMode)
             MessageDispatcher.getInstance()
                     .setKnownServerMessagesIDs(serverIDs);
@@ -123,5 +130,7 @@ public class MessageImporterXMLv1 implements
     private static final String MESSAGE_TAG = "message";
 
     private static final String DELETE_TAG = "deleteEnclosingArchive";
+
+    private static final String DELETE_FROM_IMPORT_TAG = "deleteEnclosingArchiveFromImport";
 
 }

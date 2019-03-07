@@ -251,6 +251,7 @@ public class JoinTeamProject extends TinyCGIBase {
 
         // close the document
         result.append("</message>\n\n");
+        result.append("<deleteEnclosingArchiveFromImport/>\n\n");
         result.append("</messages>\n");
         return result.toString();
     }
