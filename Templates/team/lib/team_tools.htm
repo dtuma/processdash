@@ -136,9 +136,9 @@
 [!--#endif--][!--#endif--]
 
 
-<h3>Useful Hyperlinks</h3>
-
 [!--#if http.allowRemote eq 'true' --]
+
+<h3>Useful Hyperlinks</h3>
 
 <p><b><i>(Note: These hyperlinks will only work while this dashboard
 is running.  If you shut down the dashboard, people trying to visit
@@ -156,29 +156,66 @@ interested individuals) can view the current plan summary for this
 project (including the current earned value status) by visiting:</p>
 <div style="margin-left:1in"><script> writePlanLink(); </script></div>
 
-
-[!--#if teamServerJoinUrl --]
-<p><b><i>(The following hyperlink will work, even if this dashboard is
-not running.)</i></b>
-[!--#endif--]
+<br/>
 
 [!--#endif http.allowRemote --]
+
+
+<h2>Joining Team Members to the Project</h2>
+
+<p>The dashboard takes a wholistic view of team and personal data.  It assumes
+that teams and individuals will participate in many projects, and that these
+many-to-many relationships will change over time.  So to establish these
+relationships, each team member must "join" the team project, using one of the
+approaches below.</p>
+
+
+<h3>Joining via Hyperlink</h3>
+
+<div style="margin-left:1cm">
 
 <p style="margin-bottom:0pt">Team members can join this project by
 pointing their web browser to:
 <div style="margin-left:1in"><script> writeJoinLink(); </script></div>
-[!--#if READ_ONLY --]
-[!--#if Dash_Package_pspdash lt 'version 1.12.1.3b' --]
-<div style="margin-left:1in" class="error">Problem: this dashboard is
-currently running in read-only mode.  As a result, when individuals
-join, their personal schedules can not be added to the rolled-up team
-schedule.  To avoid this problem, please restart this dashboard in
-read-write mode before asking team members to join.</div>
-[!--#endif--][!--#endif--]
 
 To make it easy for individual team members to join this project,
 you can <script> writeMailtoLink(); </script> to send them an email
 with instructions.</p>
+
+[!--#if !teamServerJoinUrl --]
+<p><i><b>To use this approach, you must leave the Team Dashboard running while
+team members join.</b>  (Otherwise, the link above will not work.)  If the Team
+Dashboard is running, but team members still see an error when they visit the
+URL, try sending an invitation file as described below.</i></p>
+[!--#endif--]
+
+</div>
+
+
+<h3>Joining via Invitation File</h3>
+
+<div style="margin-left:1cm">
+
+<p>You can also invite team members to join by taking these steps:</p>
+
+<ol>
+
+<li>Download a <a href="setup/join.pdash">joining invitation file</a> for this
+project, and save it to your computer.</li>
+
+<li>Share the file with all team members (for example, as an email
+attachment, or via a thumb drive).</li>
+
+<li>Individuals can drag-and-drop this invitation file onto their personal
+dashboard window to start the joining process.</li>
+
+</ol>
+
+<p><i><b>To use this approach, individuals must be running Process Dashboard
+2.5.1 or higher.</b></i></p>
+
+</div>
+
 
 </body>
 </html>
