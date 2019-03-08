@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2018 Tuma Solutions, LLC
+// Copyright (C) 1998-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -162,6 +162,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.CompletionButton;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.ConsoleWindow;
+import net.sourceforge.processdash.ui.DashboardDropTransferHandler;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.DashboardSplashScreen;
 import net.sourceforge.processdash.ui.DashboardWelcomePane;
@@ -604,6 +605,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         configureStandardIconSize();
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
         pt.click("Created play/pause button");
+
+        setTransferHandler(
+            new DashboardDropTransferHandler(prop_file.getParentFile()));
 
         if (Settings.isPersonalMode())
             buildPersonalUI(pt);
