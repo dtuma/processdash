@@ -239,7 +239,7 @@ public class JoinTeamProject extends TinyCGIBase {
         // write out a message with a join invitation.
         String projectID = getData(TeamDataConstants.PROJECT_ID);
         result.append("\n<message type='pdash.joinTeamProject' msgId='"
-                + projectID + "." + System.currentTimeMillis() + "'>\n");
+                + projectID + "." + System.currentTimeMillis() + ".*'>\n");
 
         // retrieve the XML joining document
         String uri = makeURI(JOIN_XML);

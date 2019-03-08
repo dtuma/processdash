@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -152,6 +152,10 @@ public class MessageDispatcher {
             else if (messageID.contains("/pdes/"))
                 return false;
         }
+
+        // messages with IDs ending in "*" should always be redelivered
+        if (messageID.endsWith("*"))
+            return false;
 
         SimpleData d = data.getSimpleValue(getHandledDataName(messageID));
         if (d == null || !d.test()) {
