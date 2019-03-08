@@ -25,7 +25,6 @@
   <mapID target="TeamMemberJoin" url="Topics/MembersJoin.html" />
   <mapID target="TeamAddSchedule" url="Topics/AddSchedules.html" />
   <mapID target="TeamGetForms" url="Topics/GetForms.html" />
-  <mapID target="TeamNetworkTrouble" url="Topics/NetworkTroubleshooting.html"/>
   <mapID target="TeamMakeMaster" url="Topics/MakeMasterProject.html" />
   <mapID target="TeamAddToMaster" url="Topics/AddToMaster.html" />
   <mapID target="TeamTopDownMaster" url="Topics/TopDownMasterTasks.html" />

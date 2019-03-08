@@ -30,8 +30,6 @@
                               image="PageIcon" target="TeamAddSchedule" />
          <tocitem text="Forms &amp; Reports"
                               image="PageIcon" target="TeamGetForms" />
-         <tocitem text="Network Troubleshooting"
-                              image="PageIcon" target="TeamNetworkTrouble" />
          <tocitem text="Create Master Project"
                               image="PageIcon" target="TeamMakeMaster" />
          <tocitem text="Add Projects to Master"
