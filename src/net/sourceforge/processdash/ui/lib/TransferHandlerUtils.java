@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ public class TransferHandlerUtils {
         for (int i = 0; i < flavors.length; i++) {
             if (DataFlavor.javaFileListFlavor.equals(flavors[i]))
                 return true;
-            if (uriListFlavor.equals(flavors[i]))
+            if (uriListFlavor != null && uriListFlavor.equals(flavors[i]))
                 return true;
         }
         return false;
@@ -72,6 +72,51 @@ public class TransferHandlerUtils {
 
     private static List<File> textURIListToFileList(String data) {
         List<File> result = new ArrayList(1);
+        for (URI oneUri : parseURIList(data)) {
+            try {
+                File oneFile = new File(oneUri);
+                result.add(oneFile);
+            } catch (IllegalArgumentException e) {
+                // the URI is not a valid 'file:' URI
+            }
+        }
+        return result;
+    }
+
+
+    /**
+     * Check to see whether a URI list can potentially be extracted from
+     * any of the given data flavors.
+     */
+    public static boolean hasURIListFlavor(DataFlavor[] flavors) {
+        for (int i = 0; i < flavors.length; i++) {
+            if (uriListFlavor != null && uriListFlavor.equals(flavors[i]))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Extract a list of URI objects that were transferred as part of a
+     * copy/paste or drag/drop operation.
+     * 
+     * @return a list of URIs, or null if no list could be extracted.
+     */
+    public static List<URI> getTransferredURIList(Transferable t) {
+        try {
+            if (uriListFlavor != null && t.isDataFlavorSupported(uriListFlavor)) {
+                String data = (String) t.getTransferData(uriListFlavor);
+                return parseURIList(data);
+            }
+
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+
+    private static List<URI> parseURIList(String data) {
+        List<URI> result = new ArrayList(1);
         StringTokenizer lines = new StringTokenizer(data, "\r\n");
         while (lines.hasMoreTokens()) {
             String oneLine = lines.nextToken();
@@ -81,12 +126,9 @@ public class TransferHandlerUtils {
             }
             try {
                 URI oneUri = new URI(oneLine);
-                File oneFile = new File(oneUri);
-                result.add(oneFile);
+                result.add(oneUri);
             } catch (URISyntaxException e) {
                 // malformed URI
-            } catch (IllegalArgumentException e) {
-                // the URI is not a valid 'file:' URI
             }
         }
         return result;

@@ -26,6 +26,8 @@ package net.sourceforge.processdash.ui;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,9 +63,11 @@ public class DashboardDropTransferHandler extends TransferHandler {
     public boolean importData(TransferSupport support) {
         boolean importedFile = false;
 
-        // retrieve a list of any files that were dropped
+        // retrieve a list of any files/URIs that were dropped
         List<File> files = TransferHandlerUtils
                 .getTransferredFileList(support.getTransferable());
+        List<URI> uris = TransferHandlerUtils
+                .getTransferredURIList(support.getTransferable());
 
         // if any PDASH files were dropped, process them
         List<File> pdashFiles = getFileList(files, PDASH_SUFFIX);
@@ -71,6 +75,17 @@ public class DashboardDropTransferHandler extends TransferHandler {
             support.getComponent(), pdashFiles, "PDASH_File")) {
             for (File f : pdashFiles) {
                 if (importPdashFile(f))
+                    importedFile = true;
+            }
+        }
+
+        // if any PDASH URLs were dropped, process them
+        List<URI> pdashUris = getUriList(uris, "http", PDASH_SUFFIX, //
+            "/setup/join.shtm$", "/setup/join.pdash");
+        if (pdashUris != null && !pdashUris.isEmpty() && getUserApproval(
+            support.getComponent(), pdashUris, "PDASH_URL")) {
+            for (URI u : pdashUris) {
+                if (importPdashUri(u))
                     importedFile = true;
             }
         }
@@ -105,13 +120,30 @@ public class DashboardDropTransferHandler extends TransferHandler {
     private boolean importPdashFile(File f) {
         if (!isImportableFile(f, PDASH_SUFFIX))
             return false;
+        else
+            return importPdashUri(f.toURI());
+    }
 
+
+    private boolean importPdashUri(URI u) {
         try {
+            // make sure the "import" directory exists
             File importDir = new File(baseDir, "import");
             if (!importDir.isDirectory())
                 importDir.mkdir();
-            File dest = new File(importDir, f.getName());
-            FileUtils.copyFile(f, dest);
+
+            // determine the name we should use for the incoming file
+            String filename = u.getPath();
+            int slashPos = Math.max(filename.lastIndexOf('/'),
+                filename.lastIndexOf('\\'));
+            filename = filename.substring(slashPos + 1);
+            File dest = new File(importDir, filename);
+
+            // copy the file into the import directory
+            InputStream in = u.toURL().openStream();
+            FileUtils.copyFile(in, dest);
+            FileUtils.safelyClose(in);
+
             return true;
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -131,6 +163,28 @@ public class DashboardDropTransferHandler extends TransferHandler {
         }
 
         return result;
+    }
+
+
+    private List<URI> getUriList(List<URI> uris, String prefix, String suffix,
+            String... replacements) {
+        if (uris == null)
+            return null;
+
+        List<URI> result = new ArrayList<URI>();
+        for (URI u : uris) {
+            try {
+                String s = u.toString();
+                for (int i = 0; i < replacements.length; i += 2)
+                    s = s.replaceAll(replacements[i], replacements[i + 1]);
+                if (s.startsWith(prefix) && s.endsWith(suffix))
+                    result.add(new URI(s));
+            } catch (Exception e) {
+            }
+        }
+
+        return result;
+
     }
 
 
