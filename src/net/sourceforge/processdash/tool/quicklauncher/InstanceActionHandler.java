@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,10 @@ public class InstanceActionHandler implements MouseListener {
 
     public void showConsole() {
         makeHttpRequest(table.getSelectedRow(), "/control/showConsole.class");
+    }
+
+    public void refreshAllImports(int pos) {
+        makeHttpRequest(pos, "/control/importNow.class");
     }
 
     private void makeHttpRequest(int pos, String uri) {

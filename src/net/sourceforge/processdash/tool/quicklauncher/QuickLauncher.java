@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2018 Tuma Solutions, LLC
+// Copyright (C) 2006-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -60,6 +60,7 @@ import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.ConcurrencyLock;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.Initializable;
 
 
@@ -277,6 +278,54 @@ public class QuickLauncher {
                 .getParent());
         frame.setTitle(windowTitle);
         return true;
+    }
+
+    void publishPdashFile(File pdashFile, String description) {
+        boolean delivered = false;
+
+        // iterate over the dashboard instances known to this launcher
+        for (int i = instanceList.getRowCount(); i-- > 0;) {
+
+            // find the data directory in use by each instance
+            DashboardInstance inst = instanceList.getInstance(i);
+            File launchTarget = inst.getLaunchTarget();
+            if (launchTarget == null || !launchTarget.isDirectory())
+                continue;
+
+            // mske certain this instance represents a team/personal dashboard
+            File globalDatFile = new File(launchTarget, "global.dat");
+            if (!globalDatFile.isFile())
+                continue;
+
+            // get the "import" subdirectory, creating it if necessary
+            File importDir = new File(launchTarget, "import");
+            if (!importDir.isDirectory() && !importDir.mkdir())
+                continue;
+
+            // copy the PDASH file into the import subdirectory
+            try {
+                File dest = new File(importDir, pdashFile.getName());
+                FileUtils.copyFile(pdashFile, dest);
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            // ask the instance to reload all imported data
+            actionHandler.refreshAllImports(i);
+            delivered = true;
+        }
+
+        // display a message to the user
+        if (delivered) {
+            String title = resources.getString("Pdash.Window_Title");
+            Object message = new Object[] {
+                    resources.getString("Pdash.Message_Header"),
+                    "        " + description, " ",
+                    resources.getString("Pdash.Message_Footer") };
+            JOptionPane.showMessageDialog(frame, message, title,
+                JOptionPane.PLAIN_MESSAGE);
+        }
     }
 
     public void launchInstances(Collection launchers) {
