@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -50,7 +51,10 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.json.simple.JSONArray;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
@@ -80,6 +84,7 @@ import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
@@ -230,6 +235,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String INITIALS_POLICY_USERNAME = "username";
     private static final String INITIALS_LABEL = "setup//Initials_Label";
     private static final String INITIALS_LABEL_LC = "setup//initials_label";
+    private static final String TEAM_MEMBER_LIST = "setup//Team_Member_List";
     private static final String CSS_CLASS_SUFFIX = "//Class";
     private static final String JOINING_DATA_MAP = "setup//Joining_Data";
     private static final String IN_PROGRESS_URI = "setup//In_Progress_URI";
@@ -1706,6 +1712,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             initialsLabel = "Username";
         putValue(INITIALS_LABEL, initialsLabel);
         putValue(INITIALS_LABEL_LC, initialsLabel.toLowerCase());
+
+        // get a list of team member names/initials
+        List<String> teamMembers = loadTeamMemberData(teamDirUrl);
+        if (teamMembers != null && !teamMembers.isEmpty())
+            putValue(TEAM_MEMBER_LIST, JSONArray.toJSONString(teamMembers));
     }
 
     private Properties retrieveWbsUserSettings(URL teamDirUrl) {
@@ -1716,6 +1727,63 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             result.load(in);
             in.close();
         } catch (Exception e) {}
+        return result;
+    }
+
+    private List<String> loadTeamMemberData(URL teamDirUrl) {
+        // get the initials of team members who have already joined
+        Set<String> alreadyJoined;
+        try {
+            alreadyJoined = getJoinedTeamMemberInitials(teamDirUrl);
+        } catch (Exception e) {
+            alreadyJoined = Collections.EMPTY_SET;
+        }
+
+        // now retrieve the team member list and build our result
+        try {
+            URL userSettingsUrl = new URL(teamDirUrl, "team.xml");
+            Document xml = XMLUtils.parse(userSettingsUrl.openStream());
+            NodeList nl = xml.getElementsByTagName("teamMember");
+            List<String> result = new ArrayList<String>();
+            List<String> joined = new ArrayList<String>();
+            for (int i = 0; i < nl.getLength(); i++) {
+                Element e = (Element) nl.item(i);
+                String initials = e.getAttribute("initials");
+                String name = e.getAttribute("name");
+                String item = initials + " - " + name;
+                if (alreadyJoined.contains(initials.toLowerCase())) {
+                    joined.add(item);
+                } else {
+                    result.add(item);
+                }
+            }
+            result.addAll(joined);
+            return result;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Set<String> getJoinedTeamMemberInitials(URL teamDirUrl)
+            throws IOException, URISyntaxException {
+        List<String> filenames;
+        if ("file".equals(teamDirUrl.getProtocol())) {
+            File dir = new File(teamDirUrl.toURI());
+            filenames = Arrays.asList(dir.list());
+        } else {
+            String s = teamDirUrl.toString();
+            if (s.endsWith("/"))
+                teamDirUrl = new URL(s.substring(0, s.length() - 1));
+            filenames = XmlCollectionListing
+                    .parseListing(teamDirUrl.openStream()).listResourceNames();
+        }
+        Set<String> result = new HashSet<String>();
+        for (String oneFile : filenames) {
+            oneFile = oneFile.toLowerCase();
+            if (oneFile.endsWith("-data.pdash"))
+                result.add(oneFile.substring(0, oneFile.length() - 11));
+        }
         return result;
     }
 

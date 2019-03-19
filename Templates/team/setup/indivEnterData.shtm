@@ -46,7 +46,32 @@
       right: -337px;
       width: 300px;
    }
+  div.autocomplete {
+      margin: 0px;
+      padding: 0px;
+      width: 250px;
+      background: #fff;
+      border: 1px solid #888;
+      position: absolute;
+  }
+  div.autocomplete ul {
+      margin: 0px;
+      padding: 0px;
+      list-style-type: none;
+  }
+  div.autocomplete ul li.selected {
+      background-color: #ffb;
+  }
+  div.autocomplete ul li {
+      margin: 0;
+      padding: 5px 2px;
+      display: block;
+      list-style-type: none;
+      cursor: pointer;
+  }
 </style>
+<script type="text/javascript" src="/lib/prototype.js"></script>
+<script type="text/javascript" src="/lib/scriptaculous.js?controls"></script>
 <script type="text/javascript">
 
    function save(root, relPath, fullPath) {
@@ -93,6 +118,7 @@ you would like to use, click the button to join this team project.</p>
 <tr>
 <td class="label">Your Info:</td>
 <td style="width: 136px"><input type="text" name="Initials"
+           id="initialsField" autocomplete="off"
            value="<!--#echo [setup//Indiv_Initials] -->"
            class="<!--#echo [setup//Indiv_Initials//Class] -->"
            <!--#if [setup//Indiv_Initials//Class] eq 'flat' -->
@@ -116,7 +142,7 @@ you would like to use, click the button to join this team project.</p>
 <div class="helpContent" style="top:-8px">
    Please enter your name here.
 </div><div class="helpPointer">&nbsp;</div></div>
-<input type="text" name="Full_Name"
+<input type="text" name="Full_Name" id="fullNameField"
            value="<!--#echo [/Owner] -->"
            class="<!--#echo [/Owner//Class] -->"
            <!--#if [/Owner//Class] eq 'flat' -->
@@ -303,5 +329,31 @@ you would like to use, click the button to join this team project.</p>
 </table>
 
 </form>
+
+<div class="autocomplete" id="autocomplete" style="display:none"></div>
+
+<!--#if [setup//Team_Member_List] -->
+<script type="text/javascript">
+
+    var handleSelectedInitials = function(selectedElement) {
+        var text = Element.collectTextNodes(selectedElement);
+        var parts = text.split(" - ");
+
+        var initialsField = $("initialsField");
+        initialsField.value = parts[0];
+        initialsField.focus();
+
+        var nameField = $("fullNameField");
+        if (!nameField.value) { nameField.value = parts[1]; }
+    }
+
+    var teamMembers = <!--#echo var=[setup//Team_Member_List] encoding=none -->;
+
+    var ac = new Autocompleter.Local("initialsField", "autocomplete", teamMembers,
+        { partialChars: 1, updateElement: handleSelectedInitials });
+
+</script>
+<!--#endif Team_MemberList -->
+
 </body>
 </html>
