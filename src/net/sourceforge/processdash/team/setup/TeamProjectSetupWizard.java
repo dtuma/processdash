@@ -234,6 +234,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String INITIALS_POLICY = "initialsPolicy";
     private static final String INITIALS_POLICY_USERNAME = "username";
     private static final String INITIALS_LABEL = "setup//Initials_Label";
+    private static final String INITIALS_LABEL_S = "setup//Initials_Label_S";
     private static final String INITIALS_LABEL_LC = "setup//initials_label";
     private static final String TEAM_MEMBER_LIST = "setup//Team_Member_List";
     private static final String CSS_CLASS_SUFFIX = "//Class";
@@ -1708,9 +1709,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String initialsPolicy = (String) userSettings.get(INITIALS_POLICY);
         joinInfo.put(INITIALS_POLICY, initialsPolicy);
         String initialsLabel = "Initials";
-        if (INITIALS_POLICY_USERNAME.equals(initialsPolicy))
+        String initialsLabels = initialsLabel;
+        if (INITIALS_POLICY_USERNAME.equals(initialsPolicy)) {
             initialsLabel = "Username";
+            initialsLabels = "Usernames";
+        }
         putValue(INITIALS_LABEL, initialsLabel);
+        putValue(INITIALS_LABEL_S, initialsLabels);
         putValue(INITIALS_LABEL_LC, initialsLabel.toLowerCase());
 
         // get a list of team member names/initials
@@ -1752,7 +1757,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                 String name = e.getAttribute("name");
                 String item = initials + " - " + name;
                 if (alreadyJoined.contains(initials.toLowerCase())) {
-                    joined.add(item);
+                    joined.add("~ " + item);
                 } else {
                     result.add(item);
                 }

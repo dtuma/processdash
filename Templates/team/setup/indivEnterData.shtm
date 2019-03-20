@@ -49,7 +49,7 @@
   div.autocomplete {
       margin: 0px;
       padding: 0px;
-      width: 250px;
+      width: 438px;
       background: #fff;
       border: 1px solid #888;
       position: absolute;
@@ -64,10 +64,30 @@
   }
   div.autocomplete ul li {
       margin: 0;
-      padding: 5px 2px;
+      padding: 5px 3px;
       display: block;
       list-style-type: none;
       cursor: pointer;
+  }
+  div.autocomplete ul li.joined.first {
+      border-top: 1px solid #888;
+      padding-top: 0px;
+  }
+  div.autocomplete ul li.joined.first div.joinedHeader {
+      background: #fff;
+      color: #000;
+      cursor: default;
+      font-size: smaller;
+      font-style: normal;
+      margin: 0px -3px 3px -3px;
+      padding: 1px 3px;
+  }
+  div.autocomplete ul li.joined {
+      color: #800;
+      font-style: italic;
+  }
+  div.autocomplete ul li.joined.selected {
+      background-color: #fdd;
   }
 </style>
 <script type="text/javascript" src="/lib/prototype.js"></script>
@@ -124,7 +144,8 @@ you would like to use, click the button to join this team project.</p>
            <!--#if [setup//Indiv_Initials//Class] eq 'flat' -->
            title="You can accept the current value for this field."
            <!--#endif-->
-           onfocus="fieldFocus(this);" style="width: 126px"></td>
+           onfocus="fieldFocus(this);" style="width: 126px">
+    <div class="autocomplete" id="autocomplete" style="display:none"></div></td>
 <td><div class="helpWrapper" id="Initials_Help" style="display:none">
 <div class="helpContent" style="bottom:-157px">
    On a team project, each individual is uniquely identified by their
@@ -330,13 +351,15 @@ you would like to use, click the button to join this team project.</p>
 
 </form>
 
-<div class="autocomplete" id="autocomplete" style="display:none"></div>
-
 <!--#if [setup//Team_Member_List] -->
 <script type="text/javascript">
 
-    var handleSelectedInitials = function(selectedElement) {
-        var text = Element.collectTextNodes(selectedElement);
+    var showCompletions = function(element, update) {
+        Effect.Appear(update, { duration: 0.15 });
+    }
+
+    var handleSelection = function(selectedElement) {
+        var text = Element.collectTextNodesIgnoreClass(selectedElement, "joinedHeader");
         var parts = text.split(" - ");
 
         var initialsField = $("initialsField");
@@ -350,7 +373,16 @@ you would like to use, click the button to join this team project.</p>
     var teamMembers = <!--#echo var=[setup//Team_Member_List] encoding=none -->;
 
     var ac = new Autocompleter.Local("initialsField", "autocomplete", teamMembers,
-        { partialChars: 1, updateElement: handleSelectedInitials });
+        { partialChars: 1, onShow: showCompletions, updateElement: handleSelection });
+
+    ac.getUpdatedChoices = function() {
+        var html = this.options.selector(this);
+        html = html.replace(/<li>~ /g, "<li class='joined'>");
+        html = html.replace("<li class='joined'>", "<li class='joined first'>"
+            + "<div class='joinedHeader'><!--#echo [setup//Initials_Label_S] --> "
+            + "used by people who have already joined:</div>");
+        this.updateChoices(html);
+    }
 
 </script>
 <!--#endif Team_MemberList -->
