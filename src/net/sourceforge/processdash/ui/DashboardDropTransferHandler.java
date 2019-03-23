@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,21 +36,24 @@ import javax.swing.JOptionPane;
 import javax.swing.TransferHandler;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.ui.lib.TransferHandlerUtils;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class DashboardDropTransferHandler extends TransferHandler {
 
-    private File baseDir;
+    private WorkingDirectory workingDir;
 
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Drag_and_Drop");
 
 
-    public DashboardDropTransferHandler(File baseDir) {
-        this.baseDir = baseDir;
+    public DashboardDropTransferHandler(WorkingDirectory workingDir) {
+        this.workingDir = workingDir;
     }
 
 
@@ -126,18 +130,41 @@ public class DashboardDropTransferHandler extends TransferHandler {
 
 
     private boolean importPdashUri(URI u) {
+        if (workingDir instanceof BridgedWorkingDirectory) {
+            return importPdashUriToBridgedDir(u);
+        } else {
+            return importPdashUriToLocalDir(u);
+        }
+    }
+
+    private boolean importPdashUriToBridgedDir(URI u) {
+        try {
+            // identify the URL destination we should copy to
+            URL baseUrl = new URL(workingDir.getDescription());
+            String destName = "import/" + getUriFileName(u);
+
+            // upload the file to the import subdirectory
+            InputStream in = u.toURL().openStream();
+            ResourceBridgeClient.uploadSingleFile(baseUrl, destName, in);
+            FileUtils.safelyClose(in);
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean importPdashUriToLocalDir(URI u) {
         try {
             // make sure the "import" directory exists
+            File baseDir = workingDir.getDirectory();
             File importDir = new File(baseDir, "import");
             if (!importDir.isDirectory())
                 importDir.mkdir();
 
             // determine the name we should use for the incoming file
-            String filename = u.getPath();
-            int slashPos = Math.max(filename.lastIndexOf('/'),
-                filename.lastIndexOf('\\'));
-            filename = filename.substring(slashPos + 1);
-            File dest = new File(importDir, filename);
+            File dest = new File(importDir, getUriFileName(u));
 
             // copy the file into the import directory
             InputStream in = u.toURL().openStream();
@@ -149,6 +176,16 @@ public class DashboardDropTransferHandler extends TransferHandler {
             ioe.printStackTrace();
             return false;
         }
+    }
+
+
+    public String getUriFileName(URI u) {
+        // Find the last part of the URI path, after the final slash
+        String filename = u.getPath();
+        int slashPos = Math.max(filename.lastIndexOf('/'),
+            filename.lastIndexOf('\\'));
+        filename = filename.substring(slashPos + 1);
+        return filename;
     }
 
 

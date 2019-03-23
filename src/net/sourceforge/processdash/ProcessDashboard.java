@@ -607,7 +607,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created play/pause button");
 
         setTransferHandler(
-            new DashboardDropTransferHandler(prop_file.getParentFile()));
+            new DashboardDropTransferHandler(workingDirectory));
 
         if (Settings.isPersonalMode())
             buildPersonalUI(pt);
