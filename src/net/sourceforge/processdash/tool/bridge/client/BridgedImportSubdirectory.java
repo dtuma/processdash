@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,10 +29,13 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
 
     private BridgedWorkingDirectory base;
 
+    private String subdir;
+
     public BridgedImportSubdirectory(BridgedWorkingDirectory base, String subdir) {
         super(new File(base.getDirectory(), subdir));
         if (base.hasAcquiredWriteLock())
             this.base = base;
+        this.subdir = subdir;
     }
 
     @Override
@@ -44,6 +47,14 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
             }
         } catch (Exception e) {
         }
+    }
+
+    @Override
+    public String getRemoteLocation() {
+        if (base == null)
+            return null;
+        else
+            return base.getDescription() + "#" + subdir;
     }
 
 }

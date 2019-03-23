@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2018 Tuma Solutions, LLC
+// Copyright (C) 2005-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.team.group.UserGroupManagerDash;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class ArchiveMetricsFileImporter implements Runnable,
@@ -72,19 +74,22 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     private Element importSpec;
 
+    private String directoryUrl;
+
     private List fileHandlers;
 
     public ArchiveMetricsFileImporter(DataRepository data, File file,
             String prefix) {
-        this(data, file, prefix, null);
+        this(data, file, prefix, null, null);
     }
 
     public ArchiveMetricsFileImporter(DataRepository data, File file,
-            String prefix, Element importSpec) {
+            String prefix, Element importSpec, String directoryUrl) {
         this.data = data;
         this.file = file;
         this.prefix = prefix;
         this.importSpec = importSpec;
+        this.directoryUrl = directoryUrl;
         this.fileHandlers = initHandlers();
     }
 
@@ -124,7 +129,33 @@ public class ArchiveMetricsFileImporter implements Runnable,
                 } catch (Exception e) {}
             zipFile = null;
             if (shouldDeleteArchiveFileOnCompletion)
-                file.delete();
+                deleteArchiveFile();
+        }
+    }
+
+    public void deleteArchiveFile() {
+        // delete the file we've been importing from
+        file.delete();
+
+        // if this file is in a bridged import directory, tell the server to
+        // delete it as well
+        if (directoryUrl != null) {
+            try {
+                // locate the file on the server we should delete
+                String name = file.getName();
+                int hashPos = directoryUrl.lastIndexOf('#');
+                if (hashPos != -1) {
+                    name = directoryUrl.substring(hashPos + 1) + "/" + name;
+                    directoryUrl = directoryUrl.substring(0, hashPos);
+                }
+                URL url = new URL(directoryUrl);
+
+                // perform the deletion
+                ResourceBridgeClient.deleteSingleFile(url, name);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
