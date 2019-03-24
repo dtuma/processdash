@@ -358,6 +358,10 @@ you would like to use, click the button to join this team project.</p>
         Effect.Appear(update, { duration: 0.15 });
     }
 
+
+    var fullNameField = $("fullNameField");
+    var replaceableFullName = (fullNameField.title ? null : fullNameField.value);
+
     var handleSelection = function(selectedElement) {
         var text = Element.collectTextNodesIgnoreClass(selectedElement, "joinedHeader");
         var parts = text.split(" - ");
@@ -367,7 +371,10 @@ you would like to use, click the button to join this team project.</p>
         initialsField.focus();
 
         var nameField = $("fullNameField");
-        if (!nameField.value) { nameField.value = parts[1]; }
+        if (!nameField.value || nameField.value == replaceableFullName) {
+            nameField.value = parts[1];
+            replaceableFullName = parts[1];
+        }
     }
 
     var teamMembers = <!--#echo var=[setup//Team_Member_List] encoding=none -->;
