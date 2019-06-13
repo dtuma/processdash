@@ -79,6 +79,7 @@ import javax.swing.JRadioButton;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ExternalDataFile;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
@@ -308,6 +309,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
         DashController.setDataDirectory(prop_file.getParentFile());
+        ExternalDataFile.setDataDirectory(prop_file.getParentFile());
         pt.click("Set default directory");
 
         // create the data repository
