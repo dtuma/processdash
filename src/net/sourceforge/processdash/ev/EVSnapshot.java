@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ExternalDataFile;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -186,21 +189,21 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
      */
     public static class Metadata extends EVSnapshot {
 
-        String dataName;
+        private String dataName;
 
-        private String taskListXml;
+        private String taskListID;
 
-        public Metadata(String dataName, String snapshotId, String xml)
-                throws SAXException, IOException {
-            this(dataName, snapshotId, xml, getStartOfTaskListXml(xml),
-                    getEndOfTaskListXml(xml));
+        public Metadata(String dataName, String taskListID, String snapshotId,
+                String xml) throws SAXException, IOException {
+            this(dataName, taskListID, snapshotId, xml,
+                    getStartOfTaskListXml(xml));
         }
 
-        private Metadata(String dataName, String snapshotId, String xml,
-                int beg, int end) throws SAXException, IOException {
+        private Metadata(String dataName, String taskListID, String snapshotId,
+                String xml, int beg) throws SAXException, IOException {
             super(snapshotId, xml.substring(0, beg - 1) + "/>");
             this.dataName = dataName;
-            this.taskListXml = xml.substring(beg, end);
+            this.taskListID = taskListID;
         }
 
         private static int getStartOfTaskListXml(String xml) {
@@ -218,7 +221,7 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
 
         @Override
         public String getAsXML() {
-            return getAsXML(taskListXml);
+            return getAsXML("");
         }
 
         public void setName(String name) {
@@ -230,11 +233,57 @@ public class EVSnapshot implements Comparable<EVSnapshot> {
         }
 
         public void save(DataContext data) {
-            data.putValue(dataName, StringData.create(getAsXML()));
+            // to save memory, we did not retain the full XML document for
+            // this snapshot. So to recreate the XML, we lazily retrieve the
+            // data element that created this snapshot
+            SimpleData val = data.getSimpleValue(dataName);
+            if (val == null) {
+                try {
+                    val = getExtData().getDataValue(getExtDataName());
+                } catch (IOException ioe) {}
+            }
+
+            // extract the task list XML from that data value
+            String taskListXml;
+            try {
+                taskListXml = val.format();
+                int beg = getStartOfTaskListXml(taskListXml);
+                int end = getEndOfTaskListXml(taskListXml);
+                taskListXml = taskListXml.substring(beg, end);
+            } catch (Exception e) {
+                return;
+            }
+
+            val = StringData.create(getAsXML(taskListXml));
+            try {
+                // save the modified snapshot to external data
+                getExtData().putDataValue(getExtDataName(), val);
+                data.putValue(dataName, null);
+            } catch (IOException ioe) {
+                // if an IO error occurs, save to the repository
+                data.putValue(dataName, val);
+            }
         }
 
         public void delete(DataContext data) {
+            // delete the snapshot from the repository
             data.putValue(dataName, null);
+            try {
+                // delete the snapshot from external data
+                getExtData().putDataValue(getExtDataName(), null);
+            } catch (IOException ioe) {
+                // if an I/O error prevents us from writing to ext data,
+                // save a "false" value to the repository to override
+                data.putValue(dataName, ImmutableDoubleData.FALSE);
+            }
+        }
+
+        private String getExtDataName() {
+            return EVTaskList.SNAPSHOT_DATA_PREFIX + "/" + getId();
+        }
+
+        private ExternalDataFile getExtData() {
+            return EVTaskList.getExtData(taskListID);
         }
 
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ExternalDataFile;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -1163,7 +1164,7 @@ public class EVTaskList extends AbstractTreeTableModel
     private static final String METADATA_DATA_NAME = "Task_List_Metadata";
     private static final String PROJECT_SCHEDULE_ID = "Project_Schedule_ID";
     private static final String PROJECT_SCHEDULE_NAME = "Project_Schedule_Name";
-    private static final String SNAPSHOT_DATA_PREFIX = "Snapshot";
+    static final String SNAPSHOT_DATA_PREFIX = "Snapshot";
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
@@ -1532,9 +1533,20 @@ public class EVTaskList extends AbstractTreeTableModel
     protected EVSnapshot getSnapshotFromData(DataRepository data,
             String snapshotId) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
-        String dataName = globalPrefix + "/" + SNAPSHOT_DATA_PREFIX + "/"
-                + snapshotId;
-        SimpleData d = data.getSimpleValue(dataName);
+        String localDataName = SNAPSHOT_DATA_PREFIX + "/" + snapshotId;
+        String fullDataName = globalPrefix + "/" + localDataName;
+
+        // read the snapshot from the data repository if it is stored there
+        SimpleData d = data.getSimpleValue(fullDataName);
+
+        // if the snapshot isn't in the repository, read it from external data
+        if (d == null) {
+            try {
+                d = getExtData().getDataValue(localDataName);
+            } catch (IOException ioe) {
+            }
+        }
+
         if (d != null && d.test()) {
             try {
                 return new EVSnapshot(snapshotId, d.format());
@@ -1571,7 +1583,15 @@ public class EVTaskList extends AbstractTreeTableModel
                 snapshotComment, new Date(), this);
         String xml = snap.getAsXML();
         String dataName = SNAPSHOT_DATA_PREFIX + "/" + snapshotId;
-        persistDataValue(taskListName, data, dataName, StringData.create(xml));
+        StringData dataValue = StringData.create(xml);
+        try {
+            // save the snapshot to external storage
+            getExtData().putDataValue(dataName, dataValue);
+            persistDataValue(taskListName, data, dataName, null);
+        } catch (IOException ioe) {
+            // if external storage encounters an IO error, save to data
+            persistDataValue(taskListName, data, dataName, dataValue);
+        }
 
         return snapshotId;
     }
@@ -1613,22 +1633,49 @@ public class EVTaskList extends AbstractTreeTableModel
      * task list.
      */
     protected List<EVSnapshot.Metadata> getSnapshots(DataRepository data) {
-        String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
+        final List<EVSnapshot.Metadata> result = new ArrayList();
+
+        // find any snapshots that are stored in the data repository
+        final String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
         String snapshotPrefix = globalPrefix + SNAPSHOT_DATA_PREFIX + "/";
         int snapshotPrefixLen = snapshotPrefix.length();
         Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
-        List<EVSnapshot.Metadata> result = new ArrayList();
         while (i.hasNext()) {
             String dataName = (String) i.next();
             if (dataName.startsWith(snapshotPrefix)) {
                 try {
                     String snapshotId = dataName.substring(snapshotPrefixLen);
+                    String xml = data.getSimpleValue(dataName).format();
                     EVSnapshot.Metadata m = new EVSnapshot.Metadata(dataName,
-                            snapshotId, data.getSimpleValue(dataName).format());
+                            taskListID, snapshotId, xml);
                     result.add(m);
                 } catch (Exception e) {}
             }
         }
+
+        // now, add snapshots from external storage
+        try {
+            getExtData().scan(new ExternalDataFile.Scanner() {
+                String localPrefix = SNAPSHOT_DATA_PREFIX + "/";
+                int localPrefixLen = localPrefix.length();
+                public void handleDataFileEntry(String localName,
+                        SimpleData dataValue) {
+                    if (!localName.startsWith(localPrefix))
+                        return;
+
+                    String fullDataName = globalPrefix + localName;
+                    String snapshotId = localName.substring(localPrefixLen);
+                    try {
+                        EVSnapshot.Metadata m = new EVSnapshot.Metadata(
+                                fullDataName, taskListID, snapshotId,
+                                dataValue.format());
+                        result.add(m);
+                    } catch (Exception e) {
+                    }
+                }
+            });
+        } catch (IOException ioe) {}
+
         Collections.sort(result);
         return result;
     }
@@ -1664,6 +1711,14 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         return newDataName;
+    }
+
+    protected ExternalDataFile getExtData() {
+        return getExtData(taskListID);
+    }
+
+    protected static ExternalDataFile getExtData(String taskListID) {
+        return ExternalDataFile.get("ev-" + taskListID.replace('.', '-'));
     }
 
     public Object getDeepestNoteFor(EVTask node) {
