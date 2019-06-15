@@ -61,6 +61,7 @@ import javax.swing.tree.TreePath;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ExternalDataFile;
 import net.sourceforge.processdash.data.ListData;
@@ -82,6 +83,7 @@ import net.sourceforge.processdash.hier.HierarchyNoteEvent;
 import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.DateAdjuster;
@@ -1487,7 +1489,12 @@ public class EVTaskList extends AbstractTreeTableModel
      * @param data the DataRepository
     */
     protected void loadMetadata(String taskListName, DataRepository data) {
-        metaData = new Properties();
+        this.metaData = loadMetadata(data, taskListName);
+    }
+
+    private static Properties loadMetadata(DataRepository data,
+            String taskListName) {
+        Properties metaData = new Properties();
 
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
         String dataName = DataRepository.createDataName
@@ -1502,6 +1509,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 e.printStackTrace();
             }
         }
+
+        return metaData;
     }
 
     /** Save the metadata for this task list.
@@ -1679,6 +1688,87 @@ public class EVTaskList extends AbstractTreeTableModel
         Collections.sort(result);
         return result;
     }
+
+
+
+    public static class ExternalDataSnapshotMigrator implements Runnable {
+
+        private DashboardContext context;
+
+        public void setDashboardContext(DashboardContext context) {
+            this.context = context;
+        }
+
+        public void run() {
+            // do not perform a migration if we are running in read-only mode
+            if (Settings.isReadOnly())
+                return;
+
+            // do not perform a migration if we are running in the quick
+            // launcher. This avoids altering data in a directory owned by
+            // a team when a coach looks at the data.
+            String quickLaunchResourceScanMode = System.getProperty(
+                ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME);
+            if (quickLaunchResourceScanMode != null)
+                return;
+
+            // move historical baselines out of global.dat, but leave the
+            // active baselines in place (so users with an older version won't
+            // suddenly see the baseline disappear from charts)
+            migrateSnapshotsToExternalData(context.getData(), false);
+        }
+
+    }
+
+    public static void migrateSnapshotsToExternalData(DataRepository data,
+            boolean includeActiveSnapshots) {
+        // Find all of the snapshots that are stored in the data repository
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (!dataName.startsWith(MAIN_DATA_PREFIX))
+                continue;
+
+            int snapPrefixPos = dataName.lastIndexOf(SNAPSHOT_DATA_PREFIX);
+            if (snapPrefixPos == -1)
+                continue;
+
+            try {
+                // retrieve metadata for this task list / snapshot
+                String taskListPrefix = dataName.substring(0, snapPrefixPos);
+                String taskListID = data
+                        .getSimpleValue(taskListPrefix + ID_DATA_NAME).format();
+                String taskListName = dataName.substring(
+                    MAIN_DATA_PREFIX.length(), snapPrefixPos - 1);
+                String snapshotID = dataName.substring(
+                    snapPrefixPos + SNAPSHOT_DATA_PREFIX.length() + 1);
+
+                // if we've been instructed to leave active snapshots alone,
+                // check to see if this one is active.
+                if (includeActiveSnapshots == false) {
+                    Properties metadata = loadMetadata(data, taskListName);
+                    String activeBaselineID = metadata
+                            .getProperty(EVMetadata.Baseline.SNAPSHOT_ID);
+                    if (snapshotID.equals(activeBaselineID))
+                        continue;
+                }
+
+                // load the snapshot named by this data element
+                String xml = data.getSimpleValue(dataName).format();
+                EVSnapshot.Metadata m = new EVSnapshot.Metadata(dataName,
+                        taskListID, snapshotID, xml);
+
+                // save the snapshot. This will save to external storage and
+                // clear the element from the repository
+                m.save(data);
+                System.out.println("Migrated snapshot " + snapshotID //
+                        + " for task list " + taskListName //
+                        + " to external storage");
+            } catch (Exception e) {
+            }
+        }
+    }
+
 
 
     /**

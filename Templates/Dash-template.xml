@@ -251,6 +251,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
      settingPrefix="export" disabledWith="export.disableAutoExport"/>
 
+  <background-task ordinal="4000" runAtStartup="true" whenDefault="-1"
+     class="net.sourceforge.processdash.ev.EVTaskList$ExternalDataSnapshotMigrator"
+     settingPrefix="evBaselineExtMigrator"/>
+
   <background-task runAtStartup="true" whenDefault="0"
      class="net.sourceforge.processdash.util.UsageLogger"
      settingPrefix="usageLogger"/>
