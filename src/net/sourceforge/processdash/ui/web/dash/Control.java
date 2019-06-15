@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import org.json.simple.JSONObject;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.ui.TriggerURI;
@@ -86,6 +87,7 @@ public class Control extends TinyCGIBase {
         saveDataFiles();
         scrubDataDir();
         repairDefectCounts();
+        migrateBaselines();
         reloadWARs();
         runTrigger();
 
@@ -195,6 +197,20 @@ public class Control extends TinyCGIBase {
             out.println("<HTML><HEAD><TITLE>Defect Counts Repaired</TITLE></HEAD>");
             out.println("<BODY><H1>Defect Counts Repaired</H1>");
             out.println("The defect counts were repaired at " + new Date());
+            out.println("</BODY></HTML>");
+
+            printNullDocument = false;
+        }
+    }
+
+    private void migrateBaselines() {
+        if (isTask("migrateBaselines")) {
+            EVTaskList.migrateSnapshotsToExternalData(getDataRepository(), true);
+
+            writeHtmlHeader();
+            out.println("<HTML><HEAD><TITLE>EV Baselines Migrated</TITLE></HEAD>");
+            out.println("<BODY><H1>EV Baselines Migrated</H1>");
+            out.println("Earned value baselines were migrated to external storage on " + new Date());
             out.println("</BODY></HTML>");
 
             printNullDocument = false;
