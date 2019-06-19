@@ -165,6 +165,8 @@ ev.forecast.task.maxCpiCorrectionPct=20
 ev.Forecast.Range.Use_Current=true
 ev.Forecast.Range.Use_Historical_Data=false
 
+ev.autoSnap.retention=14,1,366,7,999999,28
+
 
 control.allowRemote.setPath=true
 control.allowRemote.startTiming=true

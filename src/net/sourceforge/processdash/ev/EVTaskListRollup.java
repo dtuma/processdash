@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -493,6 +493,11 @@ public class EVTaskListRollup extends EVTaskList {
     @Override
     public List<EVSnapshot.Metadata> getSnapshots() {
         return super.getSnapshots(data);
+    }
+
+    @Override
+    public void saveAutoSnapshot() {
+        super.saveAutoSnapshot(data);
     }
 
     public XYDataset getTeamMemberCompletionDateData(String permissionID) {

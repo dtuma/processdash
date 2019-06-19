@@ -84,9 +84,11 @@ import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.DateAdjuster;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.Disposable;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
@@ -1602,6 +1604,9 @@ public class EVTaskList extends AbstractTreeTableModel
             persistDataValue(taskListName, data, dataName, dataValue);
         }
 
+        // discard the previous auto snapshot if appropriate
+        cleanupUnneededAutoSnapshot();
+
         return snapshotId;
     }
 
@@ -1688,6 +1693,134 @@ public class EVTaskList extends AbstractTreeTableModel
         Collections.sort(result);
         return result;
     }
+
+
+
+    public void maybeSaveAutoSnapshot() {
+        // if auto-snap functionality is not enabled, abort
+        boolean enabled = Settings.getBool("ev.autoSnap.enabled",
+            Settings.isTeamMode());
+        if (!enabled)
+            return;
+
+        // if we are viewing ZIP data in the quick launcher, abort
+        if (CompressedInstanceLauncher.isRunningFromCompressedData())
+            return;
+
+        // if this schedule is empty (for example, if it is a team project
+        // rollup that no one has joined), it doesn't need to be snapshotted
+        if (getSchedule().getMetrics().totalPlanTime == 0)
+            return;
+
+        // if all tests above pass, save a new automatic snapshot.
+        saveAutoSnapshot();
+    }
+
+    public void saveAutoSnapshot() {}
+
+    protected void saveAutoSnapshot(DataRepository data) {
+        // save a new snapshot, with a name and ID that flags it as automatic
+        Date now = new Date();
+        String snapshotId = Long.toString(now.getTime(), Character.MAX_RADIX)
+                + AUTO_SNAP_SUFFIX;
+        String snapshotName = resources
+                .format("Save_Baseline.Auto_Snapshot_Name_FMT", now);
+        saveSnapshotToData(data, snapshotId, snapshotName, "");
+    }
+
+    /**
+     * If the next-to-last snapshot for this schedule is an automatic snapshot
+     * that is no longer needed, delete it.
+     */
+    protected void cleanupUnneededAutoSnapshot() {
+        // Get the list of all known snapshots IDs for this schedule
+        List<String> allSnapIDs = new ArrayList<String>();
+        try {
+            for (String dataName : getExtData().getDataNames()) {
+                if (dataName.startsWith(SNAPSHOT_DATA_PREFIX)) {
+                    String oneSnapId = dataName
+                            .substring(SNAPSHOT_DATA_PREFIX.length() + 1);
+                    allSnapIDs.add(oneSnapId);
+                }
+            }
+        } catch (IOException ioe) {
+        }
+
+        // if there are fewer than 2 snapshots, don't clean anything up
+        int numSnaps = allSnapIDs.size();
+        if (numSnaps < 2)
+            return;
+
+        // Sort the snapshot IDs. We might delete the next-to-last snap
+        Collections.sort(allSnapIDs);
+        String vulnerableSnapId = allSnapIDs.get(numSnaps - 2);
+
+        // if the snap in question is not automatic, don't delete it
+        if (!vulnerableSnapId.endsWith(AUTO_SNAP_SUFFIX))
+            return;
+
+        // if the snap in question is the active baseline, don't delete it
+        String baselineSnapId = getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
+        if (vulnerableSnapId.equals(baselineSnapId))
+            return;
+
+        // what time span would the newest snap cover, if we deleted the
+        // next-to-last snap?
+        String newestSnapId = allSnapIDs.get(numSnaps - 1);
+        long newestSnapSpan = getSnapTime(newestSnapId);
+        if (numSnaps > 2) {
+            // compare the newest snap to the one before the vulnerable snap
+            String priorSnapId = allSnapIDs.get(numSnaps - 3);
+            newestSnapSpan -= getSnapTime(priorSnapId);
+        } else {
+            // compare the newest snap to the schedule start date
+            newestSnapSpan -= getSchedule().getStartDate().getTime();
+        }
+
+        // how frequently should we be saving snaps, based on how far we are
+        // into this schedule? If we can delete the vulnerable snap without
+        // missing that frequency, do so
+        if (newestSnapSpan < getDesiredSnapFrequency()) {
+            String snapToDelete = SNAPSHOT_DATA_PREFIX + "/" + vulnerableSnapId;
+            try {
+                getExtData().putDataValue(snapToDelete, null);
+            } catch (IOException ioe) {
+            }
+        }
+    }
+
+    private long getSnapTime(String snapId) {
+        try {
+            if (snapId.endsWith(AUTO_SNAP_SUFFIX))
+                snapId = snapId.substring(0,
+                    snapId.length() - AUTO_SNAP_SUFFIX.length());
+            return Long.parseLong(snapId, Character.MAX_RADIX);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    protected long getDesiredSnapFrequency() {
+        // how long has this schedule been running?
+        Date scheduleStart = getSchedule().getStartDate();
+        long scheduleAge = System.currentTimeMillis() - scheduleStart.getTime();
+        long scheduleAgeDays = scheduleAge / DateUtils.DAYS;
+
+        // check the dataset pref to see the desired snap frequency for this age
+        try {
+            String[] pref = Settings.getVal("ev.autoSnap.retention").split(",");
+            for (int i = 1; i < pref.length; i += 2) {
+                long oneAge = Integer.parseInt(pref[i - 1]);
+                long oneFreq = Integer.parseInt(pref[i]);
+                if (scheduleAgeDays <= oneAge)
+                    return oneFreq * DateUtils.DAYS;
+            }
+        } catch (Exception e) {
+        }
+        return Long.MAX_VALUE;
+    }
+
+    private static final String AUTO_SNAP_SUFFIX = "-auto";
 
 
 
