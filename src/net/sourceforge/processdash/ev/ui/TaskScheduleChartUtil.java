@@ -95,15 +95,15 @@ public class TaskScheduleChartUtil {
      */
     public static List<ChartItem> getChartsForTaskList(String taskListID,
             DataRepository data, boolean filterInEffect, boolean isRollup,
-            boolean hidePlan, boolean hideNames, boolean hideCosts,
-            ChartListPurpose purpose) {
+            boolean isBaseline, boolean hidePlan, boolean hideNames,
+            boolean hideCosts, ChartListPurpose purpose) {
         Map<String, TaskScheduleChartSettings> chartSettings =
             TaskScheduleChartSettings.getSettingsForTaskList(taskListID, data);
 
         Map<String, ChartItem> result = new HashMap<String, ChartItem>();
 
         SimpleDataContext ctx = getContextTags(filterInEffect, isRollup,
-            hidePlan, hideNames, hideCosts);
+            isBaseline, hidePlan, hideNames, hideCosts);
 
         SnippetDefinitionManager.initialize();
         for (SnippetDefinition snip : SnippetDefinitionManager
@@ -171,8 +171,8 @@ public class TaskScheduleChartUtil {
     }
 
     private static SimpleDataContext getContextTags(boolean filterInEffect,
-            boolean isRollup, boolean hidePlan, boolean hideNames,
-            boolean hideCosts) {
+            boolean isRollup, boolean isBaseline, boolean hidePlan,
+            boolean hideNames, boolean hideCosts) {
         SimpleDataContext ctx = new SimpleDataContext();
         TagData tag = TagData.getInstance();
 
@@ -181,6 +181,8 @@ public class TaskScheduleChartUtil {
             ctx.put(EVSnippetEnvironment.ROLLUP_EV_CONTEXT_KEY, tag);
         if (filterInEffect)
             ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
+        if (isBaseline)
+            ctx.put(EVSnippetEnvironment.BASELINE_EV_CONTEXT_KEY, tag);
         if (hidePlan)
             ctx.put(EVSnippetEnvironment.PLAN_FREE_EV_CONTEXT_KEY, tag);
         if (hideNames)

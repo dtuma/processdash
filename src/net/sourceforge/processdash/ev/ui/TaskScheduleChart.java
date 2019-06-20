@@ -201,7 +201,7 @@ public class TaskScheduleChart extends JFrame
 
         List<TaskScheduleChartUtil.ChartItem> chartItems =
             TaskScheduleChartUtil.getChartsForTaskList(tl.getID(), data,
-                    filterInEffect, isRollup, false, false, false,
+                    filterInEffect, isRollup, false, false, false, false,
                     ChartListPurpose.ChartWindow);
         for (TaskScheduleChartUtil.ChartItem oneChart : chartItems) {
             try {

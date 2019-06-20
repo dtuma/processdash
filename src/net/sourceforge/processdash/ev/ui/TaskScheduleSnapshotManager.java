@@ -35,6 +35,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,9 +50,11 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.ev.EVMetadata;
+import net.sourceforge.processdash.ev.EVSnapshot;
 import net.sourceforge.processdash.ev.EVSnapshot.Metadata;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -106,25 +109,27 @@ public class TaskScheduleSnapshotManager extends JPanel {
         if (activePos != -1)
             snapshotList.setSelectedIndex(activePos);
         c.gridx = c.gridy = 0;
-        c.gridheight = 3;
+        c.gridheight = 7;
         c.fill = GridBagConstraints.BOTH;
         c.insets = new Insets(0, 0, 0, 10);
         add(new JScrollPane(snapshotList), c);
 
 
         c.gridx = c.gridheight = 1;
-        c.weighty = c.gridy = 0;
+        c.weighty = 0;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(0, 0, 0, 0);
-        add(new JButton(new EditAction()), c);
 
-        c.weighty = c.gridy = 1;
-        add(new JButton(new DeleteAction()), c);
+        c.gridy = 0; add(new JButton(new ViewAction()), c);
+        c.gridy = 2; add(new JButton(new EditAction()), c);
+        c.gridy = 4; add(new JButton(new DeleteAction()), c);
+        c.gridy = 6; add(new JButton(new SelectAction()), c);
 
-        c.weighty = 0;
-        c.gridy = 2;
-        add(new JButton(new SelectAction()), c);
+        c.weighty = 1;
+        c.gridy = 1; add(new JLabel(), c);
+        c.gridy = 3; add(new JLabel(), c);
+        c.gridy = 5; add(new JLabel(), c);
     }
 
     private void setSelectedBaseline(String snapshotId) {
@@ -185,6 +190,26 @@ public class TaskScheduleSnapshotManager extends JPanel {
                 setEnabled(selCount == 1);
         }
 
+    }
+
+    private class ViewAction extends SnapshotAction {
+        public ViewAction() {
+            super(resources.getDlgString("View"), "View.Tooltip", false);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // find the snapshot that the user wants to edit
+            int selIdx = snapshotList.getSelectedIndex();
+            if (selIdx == -1)
+                return;
+            Metadata snap = (Metadata) snapshotModel.get(selIdx);
+
+            // construct a URL to view a report for that snapshot
+            String snapName = taskList.getTaskListName() + EVSnapshot.ID_DELIM
+                    + snap.getId();
+            String snapReportUrl = "/" + HTMLUtils.urlEncodePath(snapName)
+                    + "//reports/ev.class";
+            Browser.launch(snapReportUrl);
+        }
     }
 
     private class EditAction extends SnapshotAction {

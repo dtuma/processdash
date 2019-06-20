@@ -245,17 +245,26 @@ public class EVTaskList extends AbstractTreeTableModel
                                           ObjectCache cache,
                                           boolean willNeedChangeNotification)
     {
+        // if a baseline snapshot qualifier is present, extract it
+        String snapId = null;
+        int snapPos = taskListName.indexOf(EVSnapshot.ID_DELIM);
+        if (snapPos != -1) {
+            snapId = taskListName.substring(snapPos + EVSnapshot.ID_DELIM.length());
+            taskListName = taskListName.substring(0, snapPos);
+            willNeedChangeNotification = false;
+        }
+
         // most common case: open a regular task list
         if (EVTaskListData.validName(taskListName) &&
             EVTaskListData.exists(data, taskListName))
-            return new EVTaskListData(taskListName, data, hierarchy,
-                                      willNeedChangeNotification);
+            return maybeRetrieveSnapshot(new EVTaskListData(taskListName, data,
+                    hierarchy, willNeedChangeNotification), snapId);
 
         // next most common case: open a rollup task list
         if (EVTaskListRollup.validName(taskListName) &&
             EVTaskListRollup.exists(data, taskListName))
-            return new EVTaskListRollup(taskListName, data, hierarchy, cache,
-                                        willNeedChangeNotification);
+            return maybeRetrieveSnapshot(new EVTaskListRollup(taskListName,
+                    data, hierarchy, cache, willNeedChangeNotification), snapId);
 
         // open an cached imported XML task list.
         if (EVTaskListCached.validName(taskListName) &&
@@ -273,6 +282,16 @@ public class EVTaskList extends AbstractTreeTableModel
 
         // no task list was found.
         return null;
+    }
+
+    private static EVTaskList maybeRetrieveSnapshot(EVTaskList tl,
+            String snapId) {
+        if (snapId == null) {
+            return tl;
+        } else {
+            EVSnapshot snap = tl.getSnapshotById(snapId);
+            return (snap == null ? null : snap.getTaskList());
+        }
     }
 
     public static EVTaskList open(String taskListName,
@@ -543,7 +562,10 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public String getDisplayName() {
-        return getDisplayName(taskListName);
+        if (taskListName == null)
+            return getRootName();
+        else
+            return getDisplayName(taskListName);
     }
 
     public static String getDisplayName(String taskListName) {

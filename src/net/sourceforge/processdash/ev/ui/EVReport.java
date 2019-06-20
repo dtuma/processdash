@@ -71,6 +71,7 @@ import net.sourceforge.processdash.ev.EVPermissions;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
+import net.sourceforge.processdash.ev.EVSnapshot;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -826,6 +827,8 @@ public class EVReport extends CGIChartBase {
         isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
         String namespace = (isSnippet ? "$$$_" : "");
         String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+        if (isViewingBaseline())
+            taskListDisplayName += " - " + evModel.getRootName();
         String taskListHTML = HTMLUtils.escapeEntities(taskListDisplayName);
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
@@ -911,6 +914,10 @@ public class EVReport extends CGIChartBase {
 
         out.print("</p>");
         out.print("</body></html>");
+    }
+
+    private boolean isViewingBaseline() {
+        return taskListName.contains(EVSnapshot.ID_DELIM);
     }
 
     protected static void printScheduleErrors(PrintWriter out, Map errors) {
@@ -1594,6 +1601,8 @@ public class EVReport extends CGIChartBase {
 
     protected void writeChartsPage() {
         String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+        if (isViewingBaseline())
+            taskListDisplayName += " - " + evModel.getRootName();
         String taskListHTML = HTMLUtils.escapeEntities(taskListDisplayName);
         String title = resources.format("Report.Charts_Title_FMT", taskListHTML);
 
@@ -1779,12 +1788,13 @@ public class EVReport extends CGIChartBase {
         Object exportMarker = parameters.get("EXPORT");
         boolean filterInEffect = (filter != null);
         boolean isRollup = (evModel instanceof EVTaskListRollup);
+        boolean isBaseline = isViewingBaseline();
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             evModel.getID(), getDataRepository(), filterInEffect, isRollup,
-            hidePlan, hideNames, hideCosts, p);
+            isBaseline, hidePlan, hideNames, hideCosts, p);
 
         for (Iterator i = chartList.iterator(); i.hasNext();) {
             ChartItem chart = (ChartItem) i.next();
@@ -1855,9 +1865,10 @@ public class EVReport extends CGIChartBase {
     private void writeChartOptions() {
         String taskListId = getParameter("tlid");
         boolean isRollup = parameters.containsKey("isRollup");
+        boolean isBaseline = isViewingBaseline();
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
-            taskListId, getDataRepository(), false, isRollup, false, false,
-            false, ChartListPurpose.ReportAll);
+            taskListId, getDataRepository(), false, isRollup, isBaseline, false,
+            false, false, ChartListPurpose.ReportAll);
         Iterator<ChartItem> i = chartList.iterator();
 
         out.write("<div id='chartOrderBlock'>\n");

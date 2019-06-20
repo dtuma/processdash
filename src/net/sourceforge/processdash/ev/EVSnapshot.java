@@ -41,6 +41,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class EVSnapshot implements Comparable<EVSnapshot> {
 
+    public static final String ID_DELIM = "/*";
+
     private String id;
 
     String name;

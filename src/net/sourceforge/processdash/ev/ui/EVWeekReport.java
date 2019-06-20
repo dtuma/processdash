@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.ev.EVPermissions;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
+import net.sourceforge.processdash.ev.EVSnapshot;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -424,6 +425,8 @@ public class EVWeekReport extends TinyCGIBase {
 
         if (isTopLevel(purpose)) {
             String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+            if (taskListName.contains(EVSnapshot.ID_DELIM))
+                taskListDisplayName += " - " + evModel.getRootName();
             String titleHTML = effRes.format("Title_FMT", taskListDisplayName);
             titleHTML = HTMLUtils.escapeEntities(titleHTML);
             StringBuffer header = new StringBuffer(HEADER_HTML);
@@ -821,8 +824,7 @@ public class EVWeekReport extends TinyCGIBase {
             EVTaskListRollup parentEVModel = (EVTaskListRollup) evModel;
             for (int i = 0;  i < parentEVModel.getSubScheduleCount();  i++) {
                 EVTaskList childModel = parentEVModel.getSubSchedule(i);
-                String childName = EVTaskList.cleanupName(childModel
-                        .getTaskListName());
+                String childName = childModel.getDisplayName();
                 int childPurpose = (childModel instanceof EVTaskListRollup
                         ? SUB_REPORT : LEAF_REPORT);
                 writeReport(childName, childModel, effDate, settings,

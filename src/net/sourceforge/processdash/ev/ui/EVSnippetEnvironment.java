@@ -53,6 +53,10 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
      * a filtered task list */
     String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
 
+    /** Data context key indicating that earned value data is being drawn for
+     * a task list baseline snapshot */
+    String BASELINE_EV_CONTEXT_KEY = "Baseline Earned Value Context";
+
     /** Data context key indicating that planned EV lines should be hidden */
     String PLAN_FREE_EV_CONTEXT_KEY = "Plan Free Earned Value Context";
 
