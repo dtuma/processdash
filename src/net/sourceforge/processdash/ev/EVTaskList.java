@@ -2655,6 +2655,213 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
+
+    private class BaselineTrendData {
+
+        class Point implements Comparable<Point> {
+            Long date;
+            String name;
+            Map<String, String> taskData;
+            public int compareTo(Point that) {
+                return this.date.compareTo(that.date);
+            }
+        }
+
+        private DataRepository data;
+
+        private List<Point> points;
+
+        private Point active;
+
+        private long recalcTime = -1;
+
+        BaselineTrendData(DataRepository data) {
+            this.data = data;
+        }
+
+        public synchronized void recalc() {
+            long recalcAge = System.currentTimeMillis() - recalcTime;
+            if (recalcAge < 1000)
+                return;
+
+            final String bid = getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
+            points = new ArrayList<Point>();
+            active = null;
+
+            // find any snapshots that are stored in the data repository
+            String snapshotPrefix = MAIN_DATA_PREFIX + taskListName + "/"
+                    + SNAPSHOT_DATA_PREFIX + "/";
+            Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+            while (i.hasNext()) {
+                String dataName = (String) i.next();
+                if (dataName.startsWith(snapshotPrefix))
+                    addDataPoint(dataName, data.getSimpleValue(dataName), bid);
+            }
+
+            // add baseline snapshots from external data
+            try {
+                getExtData().scan(new ExternalDataFile.Scanner() {
+                    public void handleDataFileEntry(String dataName,
+                            SimpleData dataValue) {
+                        if (dataName.startsWith(SNAPSHOT_DATA_PREFIX))
+                            addDataPoint(dataName, dataValue, bid);
+                    }
+                });
+                recalcAge = System.currentTimeMillis();
+            } catch (Exception e) {
+            }
+            Collections.sort(points);
+        }
+
+        private void addDataPoint(String dataName, SimpleData dataValue,
+                String activeBaselineId) {
+            try {
+                int slashPos = dataName.lastIndexOf('/');
+                String snapshotId = dataName.substring(slashPos + 1);
+
+                String xml = dataValue.format();
+                EVSnapshot.Metadata m = new EVSnapshot.Metadata(null, null,
+                        snapshotId, xml);
+
+                int taskPos = xml.indexOf("<task");
+                int taskEnd = xml.indexOf(">", taskPos + 5);
+                String taskXml = xml.substring(taskPos, taskEnd) + "/>";
+                Map<String, String> data = XMLUtils.getAttributesAsMap(
+                    XMLUtils.parse(taskXml).getDocumentElement());
+
+                Point p = new Point();
+                p.date = m.getDate().getTime();
+                p.name = m.getName();
+                p.taskData = data;
+                points.add(p);
+
+                if (snapshotId.equals(activeBaselineId))
+                    active = p;
+
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private BaselineTrendData baselineTrendData;
+
+    private interface BaselineAttrValueLookup {
+        public Number getValue(Map<String, String> taskAttrs);
+    }
+
+    private class BaselineTrendSeries implements XYChartSeries {
+        private BaselineAttrValueLookup value;
+        public BaselineTrendSeries(BaselineAttrValueLookup value) {
+            this.value = value;
+        }
+        public String getSeriesKey() { return "Saved_Baselines"; }
+        public int getItemCount() { return baselineTrendData.points.size(); }
+        public Number getX(int i) { return baselineTrendData.points.get(i).date; }
+        public Number getY(int i) {
+            try {
+                return value.getValue(baselineTrendData.points.get(i).taskData);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private class BaselineActiveValueSeries implements XYChartSeries {
+        private BaselineAttrValueLookup value;
+        public BaselineActiveValueSeries(BaselineAttrValueLookup value) {
+            this.value = value;
+        }
+        public String getSeriesKey() { return "Active_Baseline"; }
+        public int getItemCount() {
+            return (baselineTrendData.active == null ? 0 : 1);
+        }
+        public Number getX(int i) { return baselineTrendData.active.date; }
+        public Number getY(int i) {
+            try {
+                return value.getValue(baselineTrendData.active.taskData);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    private abstract class BaselineCurrentValueSeries implements XYChartSeries {
+        public String getSeriesKey() { return "Current_Plan"; }
+        public int getItemCount() { return 1; }
+        public Number getX(int itemIndex) {
+            return schedule.getEffectiveDate().getTime();
+        }
+    }
+
+    private class BaselineTrendChartData extends XYChartData
+            implements XYNameDataset {
+        XYChartSeries trend, active, current;
+
+        public BaselineTrendChartData(ChartEventAdapter eventAdapter,
+                BaselineAttrValueLookup value,
+                BaselineCurrentValueSeries current) {
+            super(eventAdapter);
+            this.trend = new BaselineTrendSeries(value);
+            this.active = new BaselineActiveValueSeries(value);
+            this.current = current;
+        }
+
+        public void recalc() {
+            baselineTrendData.recalc();
+            clearSeries();
+            maybeAddSeries(trend);
+            maybeAddSeries(active);
+            maybeAddSeries(current);
+        }
+
+        public String getName(int series, int item) {
+            if (item < baselineTrendData.points.size())
+                return baselineTrendData.points.get(item).name;
+            else
+                return null;
+        }
+    }
+
+    public XYDataset getBaselineTimeData(DataRepository data) {
+        if (baselineTrendData == null)
+            baselineTrendData = new BaselineTrendData(data);
+
+        return new BaselineTrendChartData(new EVTaskChartEventAdapter(), //
+                new BaselineAttrValueLookup() {
+                    public Number getValue(Map<String, String> taskAttrs) {
+                        return Double.parseDouble(taskAttrs.get("pt")) / 60.0;
+                    }}, //
+                new BaselineCurrentValueSeries() {
+                    public Number getY(int itemIndex) {
+                        return getTaskRoot().planTime / 60;
+                    }});
+    }
+
+    public XYDataset getBaselineDateData(DataRepository data) {
+        if (baselineTrendData == null)
+            baselineTrendData = new BaselineTrendData(data);
+
+        return new BaselineTrendChartData(new EVTaskChartEventAdapter(), //
+                new BaselineAttrValueLookup() {
+                    public Number getValue(Map<String, String> taskAttrs) {
+                        return baselineChartDate(
+                            XMLUtils.parseDate(taskAttrs.get("pd")));
+                    }}, //
+                new BaselineCurrentValueSeries() {
+                    public Number getY(int itemIndex) {
+                        return baselineChartDate(getTaskRoot().planDate);
+                    }});
+    }
+
+    private Long baselineChartDate(Date d) {
+        if (EVCalculator.badDate(d))
+            return null;
+        else
+            return DateUtils.truncDate(d).getTime();
+    }
+
+
+
     ///////////////////////////////////////////////////////////////////////
     // The methods/classes below assist in the generation of chart's tooltip
     ///////////////////////////////////////////////////////////////////////

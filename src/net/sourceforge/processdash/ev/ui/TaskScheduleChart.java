@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -201,7 +201,7 @@ public class TaskScheduleChart extends JFrame
 
         List<TaskScheduleChartUtil.ChartItem> chartItems =
             TaskScheduleChartUtil.getChartsForTaskList(tl.getID(), data,
-                    filterInEffect, isRollup, false, false,
+                    filterInEffect, isRollup, false, false, false,
                     ChartListPurpose.ChartWindow);
         for (TaskScheduleChartUtil.ChartItem oneChart : chartItems) {
             try {

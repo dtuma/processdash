@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2018 Tuma Solutions, LLC
+// Copyright (C) 2011-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -95,14 +95,15 @@ public class TaskScheduleChartUtil {
      */
     public static List<ChartItem> getChartsForTaskList(String taskListID,
             DataRepository data, boolean filterInEffect, boolean isRollup,
-            boolean hideNames, boolean hideCosts, ChartListPurpose purpose) {
+            boolean hidePlan, boolean hideNames, boolean hideCosts,
+            ChartListPurpose purpose) {
         Map<String, TaskScheduleChartSettings> chartSettings =
             TaskScheduleChartSettings.getSettingsForTaskList(taskListID, data);
 
         Map<String, ChartItem> result = new HashMap<String, ChartItem>();
 
         SimpleDataContext ctx = getContextTags(filterInEffect, isRollup,
-            hideNames, hideCosts);
+            hidePlan, hideNames, hideCosts);
 
         SnippetDefinitionManager.initialize();
         for (SnippetDefinition snip : SnippetDefinitionManager
@@ -170,7 +171,8 @@ public class TaskScheduleChartUtil {
     }
 
     private static SimpleDataContext getContextTags(boolean filterInEffect,
-            boolean isRollup, boolean hideNames, boolean hideCosts) {
+            boolean isRollup, boolean hidePlan, boolean hideNames,
+            boolean hideCosts) {
         SimpleDataContext ctx = new SimpleDataContext();
         TagData tag = TagData.getInstance();
 
@@ -179,6 +181,8 @@ public class TaskScheduleChartUtil {
             ctx.put(EVSnippetEnvironment.ROLLUP_EV_CONTEXT_KEY, tag);
         if (filterInEffect)
             ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
+        if (hidePlan)
+            ctx.put(EVSnippetEnvironment.PLAN_FREE_EV_CONTEXT_KEY, tag);
         if (hideNames)
             ctx.put(EVSnippetEnvironment.ANON_EV_CONTEXT_KEY, tag);
         if (hideCosts)

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1779,11 +1779,12 @@ public class EVReport extends CGIChartBase {
         Object exportMarker = parameters.get("EXPORT");
         boolean filterInEffect = (filter != null);
         boolean isRollup = (evModel instanceof EVTaskListRollup);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         boolean hideCosts = settings.getBool(CUSTOMIZE_HIDE_COSTS);
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             evModel.getID(), getDataRepository(), filterInEffect, isRollup,
-            hideNames, hideCosts, p);
+            hidePlan, hideNames, hideCosts, p);
 
         for (Iterator i = chartList.iterator(); i.hasNext();) {
             ChartItem chart = (ChartItem) i.next();
@@ -1856,7 +1857,7 @@ public class EVReport extends CGIChartBase {
         boolean isRollup = parameters.containsKey("isRollup");
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             taskListId, getDataRepository(), false, isRollup, false, false,
-            ChartListPurpose.ReportAll);
+            false, ChartListPurpose.ReportAll);
         Iterator<ChartItem> i = chartList.iterator();
 
         out.write("<div id='chartOrderBlock'>\n");

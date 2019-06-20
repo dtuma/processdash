@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,9 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
     /** Data context key indicating that earned value data is being drawn for
      * a filtered task list */
     String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
+
+    /** Data context key indicating that planned EV lines should be hidden */
+    String PLAN_FREE_EV_CONTEXT_KEY = "Plan Free Earned Value Context";
 
     /** Data context key indicating that earned value data is being drawn for
      * an audience that should not see the names of individuals */
