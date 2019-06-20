@@ -35,8 +35,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -2251,6 +2253,50 @@ public class EVTaskList extends AbstractTreeTableModel
 
             return true;
         }
+
+        public boolean sortTasksByMilestone() {
+            if (!showMilestoneColumn())
+                return false;
+
+            Collections.sort(evLeaves, new TaskMilestoneComparator());
+            enumerateOrdinals();
+
+            int[] changedNodes = new int[evLeaves.size()];
+            for (int i = 0; i < changedNodes.length; i++)
+                changedNodes[i] = i;
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(), changedNodes,
+                evLeaves.toArray());
+
+            if (recalcTimer != null)
+                recalcTimer.restart();
+
+            return true;
+        }
+
+        private class TaskMilestoneComparator implements Comparator<EVTask> {
+
+            private Map<EVTask, Integer> ordinalCache = new HashMap();
+
+            @Override
+            public int compare(EVTask a, EVTask b) {
+                int aOrd = getMilestoneOrdinal(a);
+                int bOrd = getMilestoneOrdinal(b);
+                return aOrd - bOrd;
+            }
+
+            private int getMilestoneOrdinal(EVTask task) {
+                Integer ord = ordinalCache.get(task);
+                if (ord == null)
+                    ordinalCache.put(task, ord = calcMilestoneOrdinal(task));
+                return ord;
+            }
+
+            private int calcMilestoneOrdinal(EVTask task) {
+                MilestoneList l = getMilestonesForTask(task);
+                return (l == null ? 99999 : l.getMinSortOrdinal());
+            }
+        }
+
 
         /** Extract and reorder one or more tasks from the list, and reinsert
          * them at a particular location.

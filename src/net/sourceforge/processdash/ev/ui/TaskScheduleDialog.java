@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -248,7 +248,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             saveBaselineAction, collaborateAction, filteredReportAction,
             weekReportAction, scheduleOptionsAction, expandAllAction,
             showTimeLogAction, showDefectLogAction, copyTaskInfoAction,
-            manageBaselinesAction;
+            manageBaselinesAction, sortByMilestonesAction;
     private List<TSAction> altReportActions;
     private GroupFilterMenu groupFilterMenu;
 
@@ -550,6 +550,20 @@ public class TaskScheduleDialog implements EVTask.Listener,
             result.add(new JButton(moveDownAction));
         result.add(Box.createHorizontalGlue());
 
+        sortByMilestonesAction = new TSAction("Buttons.Sort_By_Milestone") {
+            public void actionPerformed(ActionEvent e) {
+                sortByMilestones(); }};
+        final JButton sortByMilestonesButton = new JButton(sortByMilestonesAction);
+        sortByMilestonesAction.addPropertyChangeListener(new PropertyChangeListener(){
+            public void propertyChange(PropertyChangeEvent evt) {
+                sortByMilestonesButton.setVisible(sortByMilestonesAction.isEnabled());
+            }});
+        sortByMilestonesAction.setEnabled(false);
+        if (!isRollup() && canEdit()) {
+            result.add(sortByMilestonesButton);
+            result.add(Box.createHorizontalGlue());
+        }
+
         flatViewAction = mergedViewAction = null;
         if (!isRollup) {
             flatViewAction = new TSAction("Buttons.Flat_View") {
@@ -560,7 +574,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             flatViewAction.useButtonModel(flatViewCheckbox);
             flatViewAction.setSelected(false);
             result.add(flatViewCheckbox);
-            result.add(Box.createHorizontalGlue());
+            result.add(Box.createRigidArea(new Dimension(30, 0)));
         } else {
             mergedViewAction = new TSAction("Buttons.Merged_View") {
                 public void actionPerformed(ActionEvent e) {
@@ -763,6 +777,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             editMenu.add(deleteTaskAction);
             editMenu.add(moveUpAction);
             editMenu.add(moveDownAction);
+            if (!isRollup())
+                editMenu.add(sortByMilestonesAction);
             editMenu.add(copyTaskInfoAction);
             if (!isRollup()) {
                 editMenu.addSeparator();
@@ -3072,6 +3088,26 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
 
+    /**
+     * In Flat View, sort all tasks by milestone
+     */
+    private void sortByMilestones() {
+        // we shouldn't be sorting by milestone unless we're in flat view
+        if (flatModel == null)
+            return;
+
+        // make sure the user really wants to sort the task list
+        int userChoice = JOptionPane.showConfirmDialog(frame,
+            resources.getStrings("Buttons.Sort_By_Milestone.Prompt"),
+            resources.getString("Buttons.Sort_By_Milestone.Title"),
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (userChoice == JOptionPane.YES_OPTION) {
+            if (flatModel.sortTasksByMilestone())
+                setDirty(true);
+        }
+    }
+
+
     private class RowSelectionTask implements Runnable {
         private int firstRow;
         private int lastRow;
@@ -3145,6 +3181,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(false);
+        sortByMilestonesAction.setEnabled(model.showMilestoneColumn());
         filteredChartAction.setEnabled(false);
         filteredReportAction.setEnabled(false);
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
@@ -3201,6 +3238,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(true);
+        sortByMilestonesAction.setEnabled(false);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
