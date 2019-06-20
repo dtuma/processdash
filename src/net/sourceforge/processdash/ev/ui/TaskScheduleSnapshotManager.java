@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,12 +31,14 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -201,7 +203,7 @@ public class TaskScheduleSnapshotManager extends JPanel {
             String[] userValues = showSnapEditDialog(
                 TaskScheduleSnapshotManager.this,
                 resources.getString("Edit.Title"), //
-                snap.getName(), snap.getComment());
+                snap.getName(), snap.getComment(), false);
             if (userValues == null)
                 return;
 
@@ -258,7 +260,7 @@ public class TaskScheduleSnapshotManager extends JPanel {
     }
 
     public static String[] showSnapEditDialog(Component parent, String title,
-            String name, String comment) {
+            String name, String comment, boolean showSnapOption) {
         // create a set of fields allowing them to edit the name/comment
         JTextField snapshotName = new JTextField(name);
         snapshotName.selectAll();
@@ -266,11 +268,23 @@ public class TaskScheduleSnapshotManager extends JPanel {
         snapshotComment.setFont(UIManager.getFont("Table.font"));
         snapshotComment.setWrapStyleWord(true);
         snapshotComment.setLineWrap(true);
+
+        JRadioButton makeActive = new JRadioButton(
+                resources.getString("Save_Baseline.Save_Dialog.Make_Active"));
+        JRadioButton makeSnapshot = new JRadioButton(
+                resources.getString("Save_Baseline.Save_Dialog.Make_Snapshot"));
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(makeActive);
+        bg.add(makeSnapshot);
+        bg.setSelected(makeActive.getModel(), true);
+
         Object message = new Object[] {
                 resources.getString("Save_Baseline.Save_Dialog.Name_Prompt"),
                 snapshotName,
                 resources.getString("Save_Baseline.Save_Dialog.Comment_Prompt"),
                 new JScrollPane(snapshotComment),
+                showSnapOption ? makeActive : null,
+                showSnapOption ? makeSnapshot : null,
                 new JOptionPaneTweaker.GrabFocus(snapshotName) };
 
         // display a dialog inviting the user to edit the values
@@ -279,7 +293,8 @@ public class TaskScheduleSnapshotManager extends JPanel {
             return null;
 
         return new String[] { snapshotName.getText().trim(),
-                snapshotComment.getText().trim() };
+                snapshotComment.getText().trim(),
+                Boolean.toString(makeActive.isSelected()) };
     }
 
 }

@@ -3653,7 +3653,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             "Save_Baseline.Snapshot_Name_FMT", new Date());
         String[] userValues = TaskScheduleSnapshotManager.showSnapEditDialog(
             frame, resources.getString("Save_Baseline.Save_Dialog.Title"),
-            snapshotName, null);
+            snapshotName, null, true);
         if (userValues == null)
             return;
 
@@ -3670,7 +3670,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             snapshotName = userSelectedName;
         String comment = userValues[1];
         String snapshotId = model.saveSnapshot(null, snapshotName, comment);
-        model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, snapshotId);
+        if ("true".equals(userValues[2]))
+            model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, snapshotId);
         model.save();
         setDirty(false);
 
