@@ -131,7 +131,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return;
 
         if ("".equals(aValue)) {
-            node.setAttribute(nodeValueAttrName, null);
+            clearNodeValue(node, topDownEditMode);
 
         } else if (isNoOpEdit(aValue, node)) {
             // if this was an editing session and no change was made, return.
@@ -143,9 +143,68 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             if (Double.isNaN(newValue))
                 return;
 
-            node.setNumericAttribute(nodeValueAttrName, newValue);
+            if (maybeMultipleNodeValues(node, newValue) == false)
+                node.setNumericAttribute(nodeValueAttrName, newValue);
         }
     }
+
+    private void clearNodeValue(WBSNode node, boolean recursive) {
+        node.setAttribute(nodeValueAttrName, null);
+
+        if (recursive) {
+            for (WBSNode child : wbsModel.getChildren(node))
+                clearNodeValue(child, true);
+        }
+    }
+
+    @Override
+    protected boolean isNoOpEdit(Object newValue, WBSNode node) {
+        if (newValue instanceof String && topDownEditMode) {
+            // in top-down editing mode, we need to compare the value to
+            // our bottom-up sum rather than the node value
+            double oldVal = NumericDataValue.parse(getValueAt(node));
+            String oldStr = NumericDataValue.format(oldVal);
+            return newValue.equals(oldStr);
+        } else {
+            return super.isNoOpEdit(newValue, node);
+        }
+    }
+
+    private boolean maybeMultipleNodeValues(WBSNode node, double newValue) {
+        // if we aren't in top-down editing mode, don't multiply values
+        if (topDownEditMode == false)
+            return false;
+
+        // get the old bottom up value. If zero, there's nothing to multiply
+        Value v = (Value) getValueAt(node);
+        if (v.bottomUp == 0 || Double.isNaN(v.bottomUp))
+            return false;
+
+        if (newValue == 0) {
+            // if we've been asked to change the sum to zero, clear all values
+            clearNodeValue(node, true);
+        } else {
+            // otherwise, calculate the ratio and multiply all node values
+            double ratio = newValue / v.bottomUp;
+            multiplyNodeValues(node, ratio);
+        }
+        return true;
+    }
+
+    private void multiplyNodeValues(WBSNode node, double ratio) {
+        // multiply the value on this node, if one is present
+        double nodeValue = node.getNumericAttribute(nodeValueAttrName);
+        if (nodeValue > 0) {
+            nodeValue *= ratio;
+            node.setNumericAttribute(nodeValueAttrName, nodeValue);
+        }
+
+        // recurse over children
+        for (WBSNode child : wbsModel.getChildren(node))
+            multiplyNodeValues(child, ratio);
+    }
+
+
 
     public boolean recalculate() {
         recalc(wbsModel.getRoot());
@@ -394,6 +453,22 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return result;
         }
     }
+
+
+
+    /**
+     * Normally, this column allows people to edit values on individual nodes,
+     * to include attaching a new value to a parent. But when this column is
+     * altered by other logic, it may be desirable to use the traditional WBS
+     * behavior, where editing a parent alters the children underneath. Other
+     * logic can call this method to request that mode, then change it back when
+     * they are done.
+     */
+    public static void setTopDownEditMode(boolean mode) {
+        topDownEditMode = mode;
+    }
+
+    private static volatile boolean topDownEditMode = false;
 
 
 

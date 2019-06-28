@@ -127,7 +127,12 @@ public class TaskSizeColumn extends SizeAliasColumn implements
         } else if (super.isCellEditable(node)) {
             // if this node does not have a custom size, but if the underlying
             // aliased size column is editable, write the data through.
-            super.setValueAt(aValue, node);
+            try {
+                SizeDataColumn.setTopDownEditMode(true);
+                super.setValueAt(aValue, node);
+            } finally {
+                SizeDataColumn.setTopDownEditMode(false);
+            }
 
         } else if (canEditTaskSizeUnits(node)) {
             // this node is NOT using a custom size unit, and the currently
