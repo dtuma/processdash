@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2016 Tuma Solutions, LLC
+// Copyright (C) 2014-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -66,6 +66,8 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
 
     private int nodeTypeColumn;
 
+    private boolean newSizeDataColumns;
+
     private Map<String, Integer> sizeColumns;
 
 
@@ -77,6 +79,8 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
         this.componentTypes = process.getWorkProductSizeMap();
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Proxy_Est_Bucket.Name");
+        this.newSizeDataColumns = SizeTypeColumn
+                .isUsingNewSizeDataColumns(dataModel.getWBSModel());
         setConflictAttributeName(ATTR_NAME);
 
         this.dependentColumns = new String[] { ProxyEstTypeColumn.COLUMN_ID };
@@ -140,12 +144,14 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
             return;
 
         // clear out top-down size estimates of other types for this node
-        for (Integer col : sizeColumns.values()) {
-            if (col != sizeCol) {
-                NumericDataValue oneSize = (NumericDataValue) dataModel
-                        .getValueAt(node, col);
-                if (oneSize != null && oneSize.value > 0)
-                    dataModel.setValueAt("", node, col);
+        if (newSizeDataColumns == false) {
+            for (Integer col : sizeColumns.values()) {
+                if (col != sizeCol) {
+                    NumericDataValue oneSize = (NumericDataValue) dataModel
+                            .getValueAt(node, col);
+                    if (oneSize != null && oneSize.value > 0)
+                        dataModel.setValueAt("", node, col);
+                }
             }
         }
 
@@ -158,7 +164,12 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
         }
 
         // store the new size estimate for this node
-        dataModel.setValueAt(size.value, node, sizeCol);
+        try {
+            SizeDataColumn.setTopDownEditMode(true);
+            dataModel.setValueAt(size.value, node, sizeCol);
+        } finally {
+            SizeDataColumn.setTopDownEditMode(false);
+        }
     }
 
     private String getTypeForSizeMetric(String sizeMetric) {
@@ -194,16 +205,23 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
 
         sizeColumns = new HashMap();
         for (String sizeMetric : sizeMetrics) {
-            String columnId = SizeAccountingColumnSet.getAddedID(sizeMetric);
-            Integer columnPos = dataModel.findColumn(columnId);
-            if (columnPos != -1)
-                sizeColumns.put(sizeMetric, columnPos);
-            columnId = SizeAccountingColumnSet.getModifiedID(sizeMetric);
-            columnPos = dataModel.findColumn(columnId);
-            if (columnPos != -1)
-                sizeColumns.put(sizeMetric + " (Modified)", columnPos);
+            if (newSizeDataColumns) {
+                lookupSizeColumn(sizeMetric,
+                    SizeDataColumn.getColumnID(sizeMetric, true));
+            } else {
+                lookupSizeColumn(sizeMetric,
+                    SizeAccountingColumnSet.getAddedID(sizeMetric));
+                lookupSizeColumn(sizeMetric + " (Modified)",
+                    SizeAccountingColumnSet.getModifiedID(sizeMetric));
+            }
         }
         sizeColumns = Collections.unmodifiableMap(sizeColumns);
+    }
+
+    private void lookupSizeColumn(String key, String columnId) {
+        int columnPos = dataModel.findColumn(columnId);
+        if (columnPos != -1)
+            sizeColumns.put(key, columnPos);
     }
 
     private WBSNode[] getBuckets(WBSNode node) {
