@@ -23,10 +23,12 @@
 
 package teamdash.wbs.columns;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.util.VersionUtils;
@@ -61,10 +63,10 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     /** Maps node types to related size units */
     private Map sizeMetrics;
 
-    /** the column that is holding the new & changed LOC value */
-    private int locSizeColumn = -1;
+    /** positions of columns that are holding planned size values */
+    int[] sizeColumns;
 
-    private DataTableModel dataModel;
+    DataTableModel dataModel;
 
     public SizeTypeColumn(DataTableModel m, Map sizeMetrics) {
         this.dataModel = m;
@@ -73,16 +75,20 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         this.columnName = resources.getString("Units.Name");
         this.dependentColumns = new String[] {
                 SizeAccountingColumnSet.getNCID("LOC") };
+        this.sizeColumns = new int[] { -1 };
     }
 
 
     @Override
     public void resetDependentColumns() {
-        locSizeColumn = -1;
+        Arrays.fill(sizeColumns, -1);
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {
-        locSizeColumn = columnNumber;
+        for (int i = sizeColumns.length; i-- > 0;) {
+            if (ID.equals(dependentColumns[i]))
+                sizeColumns[i] = columnNumber;
+        }
     }
 
     public boolean recalculate() {
@@ -118,11 +124,11 @@ public class SizeTypeColumn extends AbstractDataColumn implements
             return false;
 
         // if we don't know the position of the LOC size column, abort.
-        if (locSizeColumn == -1)
+        if (sizeColumns[0] == -1)
             return false;
 
         // If a nonzero LOC value is present, don't hide the LOC moniker
-        Object locSizeVal = dataModel.getValueAt(node, locSizeColumn);
+        Object locSizeVal = dataModel.getValueAt(node, sizeColumns[0]);
         double locSize = NumericDataValue.parse(locSizeVal);
         if (locSize > 0)
             return false;
@@ -140,8 +146,59 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     }
 
 
-    protected DataTableModel getDataTableModel() {
-        return dataModel;
+
+    private static class NewSizeTypeColumn extends SizeTypeColumn {
+
+        /** names of known size metrics */
+        private List<String> sizeMetricNames;
+
+        private final Object BLANK = new ReadOnlyValue(
+                new HtmlRenderedValue("LOC", ""));
+
+        public NewSizeTypeColumn(DataTableModel m, Map sizeMetrics) {
+            super(m, sizeMetrics);
+
+            sizeMetricNames = new ArrayList(new HashSet(sizeMetrics.values()));
+            sizeMetricNames.remove("LOC");
+            sizeMetricNames.add(0, "LOC"); // make sure LOC is in position 0
+            int numMetrics = sizeMetricNames.size();
+
+            dependentColumns = new String[numMetrics];
+            for (int i = numMetrics; i-- > 0;) {
+                dependentColumns[i] = SizeDataColumn
+                        .getColumnID(sizeMetricNames.get(i), true);
+            }
+            sizeColumns = new int[numMetrics];
+            resetDependentColumns();
+        }
+
+        @Override
+        public Object getValueAt(WBSNode node) {
+            // don't display size units for the root node.
+            String nodeType = node.getType();
+            if ("Project".equals(nodeType))
+                return BLANK;
+
+            // if this isn't a 'generic component', defer to the old logic
+            if (!"Component".equals(nodeType))
+                return super.getValueAt(node);
+
+            // special handling for 'generic components': if only one planned
+            // size value has been entered, assume that metric; else null
+            Object result = BLANK;
+            for (int i = sizeColumns.length; i-- > 0;) {
+                Object oneSize = dataModel.getValueAt(node, sizeColumns[i]);
+                if (NumericDataValue.parse(oneSize) > 0) {
+                    if (result == BLANK)
+                        result = sizeMetricNames.get(i);
+                    else
+                        // more than one metric found: abort
+                        return BLANK;
+                }
+            }
+            return result;
+        }
+
     }
 
 
@@ -190,9 +247,6 @@ public class SizeTypeColumn extends AbstractDataColumn implements
             TeamProcess teamProcess) {
         Map sizeMetrics = teamProcess.getWorkProductSizeMap();
 
-        // create the size type columns.
-        dataModel.addDataColumn(new SizeTypeColumn(dataModel, sizeMetrics));
-
         if (isUsingNewSizeDataColumns(dataModel.getWBSModel()))
             createNewSizeColumns(dataModel, teamProcess, sizeMetrics);
         else
@@ -202,6 +256,8 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     private static void createNewSizeColumns(DataTableModel dataModel,
             TeamProcess teamProcess, Map sizeMetrics) {
 
+        // create the size type columns.
+        dataModel.addDataColumn(new NewSizeTypeColumn(dataModel, sizeMetrics));
         dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
 
         Iterator i = new HashSet(sizeMetrics.values()).iterator();
@@ -219,7 +275,8 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     private static void createOldSizeColumns(DataTableModel dataModel,
             TeamProcess teamProcess, Map sizeMetrics) {
 
-        // create a size type column for use by the data writer
+        // create the size type columns.
+        dataModel.addDataColumn(new SizeTypeColumn(dataModel, sizeMetrics));
         dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel, sizeMetrics));
 
         // create an editable size column.
