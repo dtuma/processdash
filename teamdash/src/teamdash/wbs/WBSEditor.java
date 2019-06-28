@@ -149,6 +149,7 @@ import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.EditableSizeColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
@@ -345,25 +346,34 @@ public class WBSEditor implements WindowListener, SaveListener,
         String[] sizeDataColNames = new String[sizeMetrics.length];
         sizeTabColIDs[0] = EditableSizeColumn.COLUMN_ID;
         sizeTabColIDs[1] = SizeTypeColumn.COLUMN_ID;
+        boolean newSizeColumns = SizeTypeColumn.isUsingNewSizeDataColumns(model);
         for (int i = 0; i < sizeMetrics.length; i++) {
             String units = sizeMetrics[i];
             sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(units);
             sizeTabColNames[i+2] = units;
-            planSizeTabColIDs[i] = SizeActualDataColumn.getColumnID(units, true);
-            actSizeTabColIDs[i] = SizeActualDataColumn.getColumnID(units, false);
+            planSizeTabColIDs[i] = (newSizeColumns
+                    ? SizeDataColumn.getColumnID(units, true)
+                    : SizeActualDataColumn.getColumnID(units, true));
+            actSizeTabColIDs[i] = (newSizeColumns
+                    ? SizeDataColumn.getColumnID(units, false)
+                    : SizeActualDataColumn.getColumnID(units, false));
             sizeDataColNames[i] = units;
         }
-        tabPanel.addTab(getRes(showActualSize ? "Tabs.Launch_Size" : "Tabs.Size"),
-            sizeTabColIDs, sizeTabColNames);
 
-        tabPanel.addTab(
-            getRes(showActualSize ? "Tabs.Launch_Size_Accounting"
-                    : "Tabs.Size_Accounting"),
-            new String[] { SizeTypeColumn.COLUMN_ID, "Base", "Deleted",
-                    "Modified", "Added", "Reused", "N&C", "Total" },
-            null);
+        if (newSizeColumns == false) {
+            tabPanel.addTab(
+                getRes(showActualSize ? "Tabs.Launch_Size" : "Tabs.Size"),
+                sizeTabColIDs, sizeTabColNames);
 
-        if (showActualSize) {
+            tabPanel.addTab(
+                getRes(showActualSize ? "Tabs.Launch_Size_Accounting"
+                        : "Tabs.Size_Accounting"),
+                new String[] { SizeTypeColumn.COLUMN_ID, "Base", "Deleted",
+                        "Modified", "Added", "Reused", "N&C", "Total" },
+                null);
+        }
+
+        if (newSizeColumns || showActualSize) {
             tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
             tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
         }

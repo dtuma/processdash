@@ -63,4 +63,27 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
             return null;
     }
 
+    public static class Simple extends AbstractDataColumn {
+
+        public Simple() {
+            this.columnID = this.columnName = COLUMN_ID;
+        }
+
+        public boolean isCellEditable(WBSNode node) { return false; }
+        public void setValueAt(Object aValue, WBSNode node) {}
+
+        public Object getValueAt(WBSNode node) {
+            if (TeamProcess.isProbeTask(node.getType())) {
+                return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node);
+
+            } else if (TeamProcess.isPSPTask(node.getType())) {
+                return "LOC";
+
+            } else {
+                return null;
+            }
+        }
+
+    }
+
 }

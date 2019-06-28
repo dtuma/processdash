@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,8 +25,12 @@ package teamdash.wbs.columns;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+
+import net.sourceforge.processdash.util.VersionUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
@@ -34,6 +38,7 @@ import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 
@@ -158,6 +163,26 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
 
 
+    /**
+     * Return true if this WBS is using the new-style size columns (provided by
+     * the SizeDataColumn class), false if it is using the old size accounting
+     * columns.
+     */
+    public static boolean isUsingNewSizeDataColumns(WBSModel wbsModel) {
+        WBSNode root = wbsModel.getRoot();
+        String createdWithVersion = (String) root
+                .getAttribute(WBSModel.CREATED_WITH_ATTR);
+        if (XMLUtils.hasValue(createdWithVersion))
+            return VersionUtils.compareVersions(MIN_NEW_SIZE_VERSION,
+                createdWithVersion) <= 0;
+        else
+            return false;
+    }
+
+    private static final String MIN_NEW_SIZE_VERSION = "5.0.0";
+
+
+
     /** Create all of the required columns for size metrics, and add them
      * to the given data model.
      */
@@ -167,6 +192,34 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
         // create the size type columns.
         dataModel.addDataColumn(new SizeTypeColumn(dataModel, sizeMetrics));
+
+        if (isUsingNewSizeDataColumns(dataModel.getWBSModel()))
+            createNewSizeColumns(dataModel, teamProcess, sizeMetrics);
+        else
+            createOldSizeColumns(dataModel, teamProcess, sizeMetrics);
+    }
+
+    private static void createNewSizeColumns(DataTableModel dataModel,
+            TeamProcess teamProcess, Map sizeMetrics) {
+
+        dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
+
+        Iterator i = new HashSet(sizeMetrics.values()).iterator();
+        while (i.hasNext()) {
+            String metric = (String) i.next();
+
+            // add a planned size column for this metric
+            dataModel.addDataColumn(new SizeDataColumn(dataModel, metric, true));
+
+            // add an actual size column for this metric
+            dataModel.addDataColumn(new SizeDataColumn(dataModel, metric, false));
+        }
+    }
+
+    private static void createOldSizeColumns(DataTableModel dataModel,
+            TeamProcess teamProcess, Map sizeMetrics) {
+
+        // create a size type column for use by the data writer
         dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel, sizeMetrics));
 
         // create an editable size column.
@@ -223,4 +276,5 @@ public class SizeTypeColumn extends AbstractDataColumn implements
             dataModel, "Total", "Size_Accounting.Total.Name",
             SizeAccountingColumnSet.getTotalID(""), sizeUnits, sizeMetrics));
     }
+
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
+import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -110,7 +111,7 @@ public class WBSDataWriter {
     /** The column number of the unassigned time column */
     private int unassignedTimeColumn;
     /** The list of column numbers for each top-level size accounting column */
-    private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
+    private int[] sizeAccountingColumns;
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
     /** The column numbers of the task labels column */
@@ -148,9 +149,14 @@ public class WBSDataWriter {
         this.userSettings = userSettings;
 
         if (dataModel != null) {
-            for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
-                sizeAccountingColumns[i] =
-                    dataModel.findColumn(SIZE_COLUMN_IDS[i]);
+            if (SizeTypeColumn.isUsingNewSizeDataColumns(wbsModel)) {
+                sizeAccountingColumns = new int[0];
+            } else {
+                sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
+                for (int i = 0; i < SIZE_COLUMN_IDS.length; i++)
+                    sizeAccountingColumns[i] = dataModel
+                            .findColumn(SIZE_COLUMN_IDS[i]);
+            }
             directSizeUnitsColumn =
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
             dependencyColumn =
@@ -701,7 +707,7 @@ public class WBSDataWriter {
             // write an XML attribute for the size units
             writeAttr(out, UNITS_ATTR, String.valueOf(units));
             // write out XML attributes for each size accounting number
-            for (int i = 0;   i < SIZE_ACCOUNTING_ATTRS.length;   i++){
+            for (int i = 0;   i < sizeAccountingColumns.length;   i++){
                 Object size =
                     dataModel.getValueAt(node, sizeAccountingColumns[i]);
                 writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatNumber(size));
