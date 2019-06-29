@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,14 @@ package teamdash.wbs;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.HashSet;
-import javax.swing.event.TableModelListener;
+
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+
+import teamdash.wbs.columns.SizeTypeColumn;
 
 
 /** Checks a WBSModel for errors, and saves those errors as attributes
@@ -57,10 +60,15 @@ public class WBSModelValidator implements TableModelListener {
     /** True if we are validating a workflow WBS */
     protected boolean workflowMode;
 
+    /** True if this WBS is using the new SizeDataColumn model */
+    protected boolean newSizeDataColumns;
+
     /** Create a validator for the given WBSModel. */
     public WBSModelValidator(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         this.workflowMode = (wbsModel instanceof WorkflowWBSModel);
+        this.newSizeDataColumns = SizeTypeColumn
+                .isUsingNewSizeDataColumns(wbsModel);
         wbsModel.addTableModelListener(this);
     }
 
@@ -155,7 +163,14 @@ public class WBSModelValidator implements TableModelListener {
         if (type == null) type = "Task";
         if (parentType == null) parentType = "Task";
 
-        if (isLOCComponent(type)) {
+        if (newSizeDataColumns) {
+
+            // components cannot be children of tasks
+
+            if (parentType.endsWith(" Task") && !type.endsWith(" Task"))
+                return type + "s cannot be children of tasks.";
+
+        } else if (isLOCComponent(type)) {
 
             // the parent of a software component must be another
             // software component.
