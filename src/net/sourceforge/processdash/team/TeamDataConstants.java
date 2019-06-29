@@ -60,6 +60,7 @@ public interface TeamDataConstants {
     public static final String WORKFLOW_ID_DATA_NAME = "Workflow_Source_ID";
     public static final String PROJECT_WORKFLOW_URLS_DATA_NAME =
         "Project_Workflow_URL_List";
+    public static final String WBS_SIZE_DATA_NAME = "WBS_Managed_Size_Data";
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
     public static final String USER_ACTIVITY_TIMESTAMP = "Data_Activity_Timestamp";
     public static final String USER_DONE_TIMESTAMP = "Project_Is_Done";

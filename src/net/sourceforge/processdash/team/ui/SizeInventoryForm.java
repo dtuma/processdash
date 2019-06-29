@@ -25,13 +25,17 @@ package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
+import net.sourceforge.processdash.process.ProcessUtil;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -42,6 +46,8 @@ public class SizeInventoryForm extends TinyCGIBase {
 
     private static final String EXTRA_ROWS_PARAM = "addRows";
     private static final int NUM_EXTRA_ROWS = 5;
+    private boolean newSizeData;
+    private List<String> sizeMetrics;
     private long highlightTimestamp;
     private StringBuffer expansionText;
 
@@ -52,6 +58,7 @@ public class SizeInventoryForm extends TinyCGIBase {
         DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(prefix);
 
+        loadProjectSizeMetadata();
         String uri = getURI();
         highlightTimestamp = getHighlightTimestamp();
 
@@ -85,10 +92,21 @@ public class SizeInventoryForm extends TinyCGIBase {
                 .removeNotification(getParameter("removeNotification"));
     }
 
+    private void loadProjectSizeMetadata() {
+        DataContext data = getDataContext();
+        SimpleData flag = data.getSimpleValue(TeamDataConstants.WBS_SIZE_DATA_NAME);
+        newSizeData = (flag != null && flag.test());
+
+        sizeMetrics = new ProcessUtil(data)
+                .getProcessListPlain("Custom_Size_Metric_List");
+        sizeMetrics.add(0, "LOC");
+        sizeMetrics.add("DLD Lines");
+    }
+
     protected String getURI() {
         String script = (String) env.get("SCRIPT_NAME");
         int pos = script.indexOf(".class");
-        return script.substring(0, pos) + ".shtm";
+        return script.substring(0, pos) + (newSizeData ? "2" : "") + ".shtm";
     }
 
     private long getHighlightTimestamp() {
@@ -163,7 +181,11 @@ public class SizeInventoryForm extends TinyCGIBase {
 
     private boolean shouldShowHierarchyNode(String fullPath) {
         String dataName =
-            DataRepository.createDataName(fullPath, OBJ_LIST_NAME);
+                DataRepository.createDataName(fullPath, "PSP Project");
+        if (newSizeData && getDataRepository().getValue(dataName) != null)
+            return true;
+
+        dataName = DataRepository.createDataName(fullPath, OBJ_LIST_NAME);
         if (getDataRepository().getValue(dataName) == null)
             return false;
 
@@ -203,6 +225,18 @@ public class SizeInventoryForm extends TinyCGIBase {
     protected void findAndAppendObjectNumbers(StringBuffer url,
             StringBuffer rowNums, String fullPath, boolean addExtraRows)
     {
+        // when we're using new style size data, we don't need to check for
+        // object rows. We just generate a section if there are data values for
+        // any of the known size metrics
+        if (newSizeData) {
+            url.insert(0, HTMLUtils.urlEncodePath(fullPath) + "/");
+            if (addExtraRows)
+                rowNums.append("tt");
+            else if (hasNewSizeData(fullPath))
+                rowNums.append("t");
+            return;
+        }
+
         DataRepository data = getDataRepository();
         int rowNum, lastPopulatedRow, i;
         rowNum = lastPopulatedRow = -1;
@@ -239,6 +273,18 @@ public class SizeInventoryForm extends TinyCGIBase {
         }
     }
 
+    private boolean hasNewSizeData(String fullPath) {
+        for (String metric : sizeMetrics) {
+            for (String suffix : newDataSuffixes) {
+                String dataName = fullPath + newDataPrefix + metric + suffix;
+                SimpleData sd = getDataRepository().getSimpleValue(dataName);
+                if (sd != null && sd.test())
+                    return true;
+            }
+        }
+        return false;
+    }
+
     private static final int abs(int x) {
         return (x > 0 ? x : 0 - x);
     }
@@ -267,6 +313,10 @@ public class SizeInventoryForm extends TinyCGIBase {
         "Sized_Objects/NUM/Estimated Size",
         "Sized_Objects/NUM/Size" };
 
+    private static final String newDataPrefix = "/Sized_Objects/";
+    private static final String[] newDataSuffixes = { 
+        "/Plan Size", "/Actual Size" };
+    
     private static final String EXPANSION_SECTION =
         "<a href=\"sizeForm.class?"+EXTRA_ROWS_PARAM+"=U-PATH#ANCHOR\">" +
         "H-PATH</a><br>\n";

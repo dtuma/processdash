@@ -1,0 +1,72 @@
+<p><a name="[!--#echo ANCHOR --]"><span class='node'>[!--#echo
+    SUB_PATH --]</span>
+
+[!--#set var="expand" value="#####" --]
+
+<table cellpadding="2" cellspacing="0">
+
+<tr>
+<td class="spacer">&nbsp;</td>
+<td class="header">Size Units</td>
+<td class="header">Plan</td>
+<td class="header">Actual</td>
+</tr>
+
+[!--#if [<!--#echo Process_ID --> Size Estimating Template Tag]
+     && [Size Units] eq 'LOC' --]
+[!--#elif [PSP Project] --]
+[!--#elif expand
+     || [Sized_Objects/LOC/Plan Size]
+     || [Sized_Objects/LOC/Actual Size] --]
+<tr>
+<td class="spacer">&nbsp;</td>
+<td>Lines of Code (LOC)&nbsp;</td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/LOC/Plan Size	on"
+    type="text" size="7"></td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/LOC/Actual Size	on"
+    type="text" size="7"></td>
+</tr>
+[!--#endif--]
+
+
+<!--#foreach name=Metric list=Size_Metric_List #-->
+[!--#if [<!--#echo Process_ID --> Size Estimating Template Tag]
+     && [Size Units] eq '<!--#echo Metric_Name-->' --]
+[!--#elif expand
+     || [Sized_Objects/<!--#echo Metric_Name-->/Plan Size]
+     || [Sized_Objects/<!--#echo Metric_Name-->/Actual Size] --]
+<tr>
+<td class="spacer">&nbsp;</td>
+<td><!--#echo Metric_Long_Name -->&nbsp;</td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/<!--#echo Metric_Name-->/Plan Size	on"
+    type="text" size="7"></td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/<!--#echo Metric_Name-->/Actual Size	on"
+    type="text" size="7"></td>
+</tr>
+
+[!--#endif--]
+<!--#endfor #-->
+
+[!--#if [<!--#echo Process_ID --> Size Estimating Template Tag]
+     && [Size Units] eq 'DLD Lines' --]
+[!--#elif expand
+     || [Sized_Objects/DLD Lines/Plan Size]
+     || [Sized_Objects/DLD Lines/Actual Size] --]
+<tr>
+<td class="spacer">&nbsp;</td>
+<td>DLD Lines&nbsp;</td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/DLD Lines/Plan Size	on"
+    type="text" size="7"></td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/DLD Lines/Actual Size	on"
+    type="text" size="7"></td>
+</tr>
+[!--#endif--]
+
+</table>
+
