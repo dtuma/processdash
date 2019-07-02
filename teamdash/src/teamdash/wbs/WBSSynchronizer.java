@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -63,6 +63,7 @@ import teamdash.team.TeamMemberList;
 import teamdash.team.WeeklySchedule;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeActualDataColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
@@ -661,6 +662,8 @@ public class WBSSynchronizer {
             result.put(SCHEDULE_CHANGE_TAG, new ScheduleSynchronizer());
         if (isEnabled(PLAN_TIME_CHANGE_TAG))
             result.put(PLAN_TIME_CHANGE_TAG, new PlanTimeSynchronizer());
+        if (isEnabled(SIZE_CHANGE_TAG))
+            result.put(SIZE_CHANGE_TAG, new SizeDataSynchronizer());
         if (isEnabled(NODE_TYPE_CHANGE_TAG))
             result.put(NODE_TYPE_CHANGE_TAG, new NodeTypeSynchronizer());
         if (isEnabled(NOTE_CHANGE_TAG))
@@ -759,6 +762,28 @@ public class WBSSynchronizer {
             }
         }
 
+    }
+
+    /**
+     * Class to read user changes in planned/actual size, and incorporate them
+     * into the size data in the WBS.
+     */
+    private class SizeDataSynchronizer implements SyncHandler {
+
+        @Override
+        public void sync(TeamProject teamProject, TeamMember individual,
+                Element sizeChangeTag) {
+            WBSNode node = getWbsNode(sizeChangeTag);
+            if (node == null)
+                return;
+
+            String metric = sizeChangeTag.getAttribute(UNITS_ATTR);
+            boolean plan = "true".equals(sizeChangeTag.getAttribute(PLAN_ATTR));
+            String newValue = sizeChangeTag.getAttribute(SIZE_VALUE_ATTR);
+            Date timestamp = XMLUtils.getXMLDate(sizeChangeTag, WHEN_ATTR);
+            SizeDataColumn.maybeStoreReverseSyncValue(node, metric, plan,
+                newValue, timestamp);
+        }
     }
 
     /**
@@ -1112,6 +1137,12 @@ public class WBSSynchronizer {
     private static final String WBS_ID_ATTR = "wbsId";
 
     private static final String TIME_ATTR = "time";
+
+    private static final String SIZE_CHANGE_TAG = "sizeChange";
+
+    private static final String PLAN_ATTR = "plan";
+
+    private static final String SIZE_VALUE_ATTR = "value";
 
     private static final String SCHEDULE_CHANGE_TAG = "scheduleChange";
 

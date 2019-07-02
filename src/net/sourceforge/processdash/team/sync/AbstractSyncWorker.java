@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -225,6 +225,12 @@ public abstract class AbstractSyncWorker implements SyncWorker {
         return dataName + SYNC_VAL_SUFFIX;
     }
 
+    private static final String REV_SYNC_TIMESTAMP_SUFFIX = "_Rev_Sync_Time";
+
+    static String revSyncTimeDataName(String dataName) {
+        return dataName + REV_SYNC_TIMESTAMP_SUFFIX;
+    }
+
     private SaveableData lastReverseSyncedValue = null;
 
     public void setLastReverseSyncedValue(SaveableData d) {
@@ -289,6 +295,52 @@ public abstract class AbstractSyncWorker implements SyncWorker {
         }
     }
 
+    public DataSyncResult putValue(String name, SaveableData newValue,
+            String wbsTimestamp) {
+        SimpleData currVal = getSimpleValue(name);
+        String syncName = syncDataName(name);
+        SimpleData lastSyncVal = getSimpleValue(syncName);
+        String syncTimeName = revSyncTimeDataName(name);
+        SimpleData lastRevSyncTime = getSimpleValue(syncTimeName);
+
+        if (dataEquals(newValue, currVal)) {
+            // the current value already agrees with the new value. Update
+            // metadata if necessary to reflect agreement
+            if (!dataEquals(newValue, lastSyncVal))
+                doPutValueForce(syncName, newValue);
+            if (lastRevSyncTime != null)
+                doPutValueForce(syncTimeName, null);
+            return null;
+
+        } else  if (currVal == null
+                || dataEquals(currVal, lastSyncVal)
+                || !localIsNewer(lastRevSyncTime, wbsTimestamp)) {
+            // if the current value is missing, or is the same as the last
+            // sync, or is older than the WBS, adopt the WBS value
+            doPutValue(name, newValue);
+            doPutValue(syncName, newValue);
+            doPutValue(syncTimeName, null);
+            noteDataChange(name);
+            DataSyncResult result = new DataSyncResult();
+            result.name = name;
+            result.localValue = currVal;
+            return result;
+
+        } else {
+            // the current value has been edited more recently than the WBS.
+            // return a discrepancy value to indicate this
+            if (!(lastRevSyncTime instanceof DateData)) {
+                lastRevSyncTime = new DateData();
+                doPutValueForce(syncTimeName, lastRevSyncTime);
+            }
+            DataSyncResult result = new DataSyncResult();
+            result.name = name;
+            result.localValue = currVal;
+            result.localTimestamp = (DateData) lastRevSyncTime;
+            return result;
+        }
+    }
+
     protected boolean isFalseSimpleValue(SaveableData value) {
         if (value == null) return true;
         SimpleData simpleValue = value.getSimpleValue();
@@ -304,4 +356,18 @@ public abstract class AbstractSyncWorker implements SyncWorker {
             return ((SimpleData) valueA).equals((SimpleData) valueB);
         return valueA.equals(valueB);
     }
+
+    protected boolean localIsNewer(SimpleData localTime, String wbsTime) {
+        if (wbsTime == null || !wbsTime.startsWith("@")
+                || !(localTime instanceof DateData))
+            return true;
+        try {
+            long localMillis = ((DateData) localTime).getValue().getTime();
+            long wbsMillis = Long.parseLong(wbsTime.substring(1));
+            return localMillis > wbsMillis;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
 }

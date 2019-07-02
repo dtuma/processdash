@@ -92,6 +92,7 @@ import net.sourceforge.processdash.log.defects.DefectWorkflowPhaseUpdater;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.WorkflowInfo;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.sync.SyncWorker.DataSyncResult;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
@@ -172,6 +173,9 @@ public class HierarchySynchronizer {
     /** Does the caller want to copy all nontask WBS items? */
     private boolean fullCopyMode;
 
+    /** Is this project using the new size data management strategy? */
+    private boolean newStyleSize;
+
     /** Does the user want us to sync the sizes of inspected work products? */
     private boolean syncInspectedSizes;
 
@@ -181,6 +185,7 @@ public class HierarchySynchronizer {
     private List completionsPerformed;
     private List pspTasksNeedingSubsetPrompt;
 
+    private List<String> sizeMetrics;
     private Map sizeConstrPhases;
     private List allConstrPhases;
 
@@ -246,8 +251,10 @@ public class HierarchySynchronizer {
             this.completionPermissions = Collections.EMPTY_LIST;
             this.deferredDeletions = new ArrayList();
             this.pspTasksNeedingSubsetPrompt = new ArrayList();
-            this.syncInspectedSizes = Settings.getBool(
-                "syncWBS.copyInspectedSizes", false);
+            this.newStyleSize = testData(
+                getData(projectPath, TeamDataConstants.WBS_SIZE_DATA_NAME));
+            this.syncInspectedSizes = !newStyleSize
+                    && Settings.getBool("syncWBS.copyInspectedSizes", false);
         }
 
         loadProcessData();
@@ -385,6 +392,10 @@ public class HierarchySynchronizer {
 
     private void loadProcessData() {
         List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
+        sizeMetrics = new ArrayList<String>();
+        sizeMetrics.add("LOC");
+        sizeMetrics.addAll(sizeMetricsList);
+        sizeMetrics.add("DLD Lines");
 
         sizeConstrPhases = new HashMap();
         for (Iterator i = sizeMetricsList.iterator(); i.hasNext();) {
@@ -2403,7 +2414,7 @@ public class HierarchySynchronizer {
                 maybeFixPreviouslyClobberedTeamTimeElement(path);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
-                maybeSaveNodeSize(path, node);
+                maybeSaveNodeSize(worker, path, node);
                 maybeSaveDependencies(path, node);
                 maybeSaveNote(path, node, nodeID);
                 saveWbsNodeUrls(path, node);
@@ -2526,9 +2537,95 @@ public class HierarchySynchronizer {
             } catch (Exception e) {}
         }
 
-        protected void maybeSaveNodeSize(String path, Element node) {
+        protected void maybeSaveNodeSize(SyncWorker worker, String path,
+                Element node) {
+            if (newStyleSize)
+                saveNewStyleNodeSizes(worker, path, node);
+            else
+                maybeSaveOldStyleNodeSize(path, node);
+        }
+
+        /**
+         * Find &lt;size&gt; tags in the XML, and sync the values to the Size
+         * Inventory Form
+         */
+        protected void saveNewStyleNodeSizes(SyncWorker worker, String path,
+                Element node) {
+
+            // PSP and PROBE tasks make use of the Size Estimating Template for
+            // one of the metrics. See which metric that is, and don't copy the
+            // resulting size values to the Size Inventory Form.
+            String skipUnits = node.getAttribute(OLD_SIZE_UNITS_ATTR);
+
+            // read <size> tags and sync the data values they contain
+            Set<String> unseenUnits = new HashSet<String>(sizeMetrics);
+            for (Element xml : XMLUtils.getChildElements(node)) {
+                if (SIZE_DATA_TAG.equals(xml.getTagName()))
+                    saveNewStyleNodeSize(worker, path, xml, unseenUnits,
+                        skipUnits);
+            }
+
+            // clear any old local values that no longer appear in the WBS
+            clearNewStyleNodeSize(worker, path, unseenUnits);
+        }
+
+        private void saveNewStyleNodeSize(SyncWorker worker, String path,
+                Element xml, Set<String> unseenUnits, String skipUnits) {
+            String units = xml.getAttribute(SIZE_UNITS_ATTR);
+            if (!XMLUtils.hasValue(units) || units.equals(skipUnits))
+                return;
+
+            saveNewStyleNodeSize(worker, path, units, true,
+                asDouble(xml.getAttribute(SIZE_PLAN_VALUE_ATTR), 0),
+                xml.getAttribute(SIZE_PLAN_TS_ATTR));
+            saveNewStyleNodeSize(worker, path, units, false,
+                asDouble(xml.getAttribute(SIZE_ACTUAL_VALUE_ATTR), 0),
+                xml.getAttribute(SIZE_ACTUAL_TS_ATTR));
+            unseenUnits.remove(units);
+        }
+
+        private void clearNewStyleNodeSize(SyncWorker worker, String path,
+                Set<String> unseenUnits) {
+            for (String units : unseenUnits) {
+                saveNewStyleNodeSize(worker, path, units, true, null, null);
+                saveNewStyleNodeSize(worker, path, units, false, null, null);
+            }
+        }
+
+        private void saveNewStyleNodeSize(SyncWorker worker, String path,
+                String units, boolean plan, Double value,
+                String wbsRevSyncTime) {
+            // write the value into the repository
+            String dataName = path + SIZE_DATA_NAME_PREFIX + units
+                    + (plan ? SIZE_DATA_NAME_PLAN_SUFFIX
+                            : SIZE_DATA_NAME_ACTUAL_SUFFIX);
+            DoubleData dataValue = value == null ? null : new DoubleData(value);
+            DataSyncResult sdr = worker.putValue(dataName, dataValue,
+                wbsRevSyncTime);
+
+            // check the sync result we get back
+            if (sdr == null) {
+                // no change was made
+
+            } else if (sdr.localTimestamp == null) {
+                // a null timestamp means a new WBS value was synced down
+                if (!changes.contains(SIZE_INV_MSG))
+                    changes.add(SIZE_INV_MSG);
+
+            } else if (sdr.localValue instanceof NumberData) {
+                // if a locally edited value needs to be copied back, build a
+                // reverse-sync instruction for it
+                double val = asDouble(sdr.localValue);
+                discrepancies.add(new SyncDiscrepancy.SizeData(path,
+                        getWbsIdForPath(path), units, plan, val,
+                        sdr.localTimestamp.getValue().getTime()));
+            }
+        }
+        private static final String SIZE_INV_MSG = "Updated values on the Size Inventory Form";
+
+        protected void maybeSaveOldStyleNodeSize(String path, Element node) {
             // see if this node has size data.
-            String units = node.getAttribute("sizeUnits");
+            String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
             if (units == null || units.length() == 0)
                 return;
 
@@ -2699,12 +2796,27 @@ public class HierarchySynchronizer {
     }
 
     private static double asDouble(String d) {
+        return asDouble(d, Double.NaN);
+    }
+
+    private static double asDouble(String d, double defaultValue) {
         if (StringUtils.hasValue(d)) {
             try {
                 return Double.parseDouble(d);
             } catch (Exception e) {}
         }
-        return Double.NaN;
+        return defaultValue;
+    }
+
+    private double asDouble(SimpleData sd) {
+        return asDouble(sd, Double.NaN);
+    }
+
+    private double asDouble(SimpleData sd, double defaultValue) {
+        if (sd instanceof NumberData)
+            return ((NumberData) sd).getDouble();
+        else
+            return defaultValue;
     }
 
     private HashMap phaseIDs;
@@ -3017,9 +3129,9 @@ public class HierarchySynchronizer {
         }
 
         @Override
-        protected void maybeSaveNodeSize(String path, Element node) {
+        protected void maybeSaveOldStyleNodeSize(String path, Element node) {
             // retrieve the unit of size measure for this PROBE task
-            String units = node.getAttribute("sizeUnits");
+            String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
             if (units == null || units.length() == 0)
                 return;
 
@@ -3066,6 +3178,17 @@ public class HierarchySynchronizer {
 
 
 
+    private static final String SIZE_DATA_TAG = "size";
+    private static final String SIZE_UNITS_ATTR = "units";
+    private static final String SIZE_PLAN_VALUE_ATTR = "plan";
+    private static final String SIZE_ACTUAL_VALUE_ATTR = "actual";
+    private static final String SIZE_PLAN_TS_ATTR = "planRevSyncTime";
+    private static final String SIZE_ACTUAL_TS_ATTR = "actualRevSyncTime";
+    private static final String SIZE_DATA_NAME_PREFIX = "/Sized_Objects/";
+    private static final String SIZE_DATA_NAME_PLAN_SUFFIX = "/Plan Size";
+    private static final String SIZE_DATA_NAME_ACTUAL_SUFFIX = "/Actual Size";
+
+    private static final String OLD_SIZE_UNITS_ATTR = "sizeUnits";
     private static final String EST_SIZE_DATA_NAME =
         "Sized_Objects/0/Estimated Size";
     private static final String SIZE_UNITS_DATA_NAME =
@@ -3168,9 +3291,9 @@ public class HierarchySynchronizer {
         }
 
         @Override
-        protected void maybeSaveNodeSize(String path, Element node) {
+        protected void maybeSaveOldStyleNodeSize(String path, Element node) {
             // ensure that this node has size data.
-            if (!"LOC".equals(node.getAttribute("sizeUnits")))
+            if (!"LOC".equals(node.getAttribute(OLD_SIZE_UNITS_ATTR)))
                 return;
 
             // check to see if any size data exists for this PSP2.1 project.

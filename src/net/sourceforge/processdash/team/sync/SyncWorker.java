@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,9 @@ package net.sourceforge.processdash.team.sync;
 import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 
 
@@ -71,5 +73,14 @@ public interface SyncWorker extends DataContext {
     void setLastReverseSyncedValue(SaveableData d);
 
     void setLastReverseSyncedValue(double d);
+
+    public class DataSyncResult {
+        public String name;
+        public SimpleData localValue;
+        public DateData localTimestamp;
+    }
+
+    public DataSyncResult putValue(String name, SaveableData newValue,
+            String wbsTimestamp);
 
 }

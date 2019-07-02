@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ public abstract class SyncDiscrepancy {
 
     public interface Visitor {
         public void visit(PlanTime p);
+        public void visit(SizeData s);
         public void visit(EVSchedule s);
         public void visit(NodeType n);
         public void visit(ItemNote n);
@@ -60,6 +61,55 @@ public abstract class SyncDiscrepancy {
 
         public double getPlannedHours() {
             return plannedHours;
+        }
+
+        @Override
+        public void visit(Visitor v) {
+            v.visit(this);
+        }
+
+    }
+
+    public static class SizeData extends SyncDiscrepancy {
+        private String path;
+        private String wbsId;
+        private String metric;
+        private boolean plan;
+        private double value;
+        private long timestamp;
+
+        public SizeData(String path, String wbsId, String metric, boolean plan,
+                double value, long timestamp) {
+            this.path = path;
+            this.wbsId = wbsId;
+            this.metric = metric;
+            this.plan = plan;
+            this.value = value;
+            this.timestamp = timestamp;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getWbsId() {
+            return wbsId;
+        }
+
+        public String getMetric() {
+            return metric;
+        }
+
+        public boolean isPlan() {
+            return plan;
+        }
+
+        public double getValue() {
+            return value;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
         }
 
         @Override

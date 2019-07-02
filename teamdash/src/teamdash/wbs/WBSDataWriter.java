@@ -58,6 +58,8 @@ import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
+import teamdash.wbs.columns.SizeDataColumn;
+import teamdash.wbs.columns.SizeDataColumn.Value;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -110,10 +112,14 @@ public class WBSDataWriter {
     private String[] zeroAssignmentAttrs;
     /** The column number of the unassigned time column */
     private int unassignedTimeColumn;
+    /** The list of size metrics in the process */
+    private String[] sizeMetrics;
     /** The list of column numbers for each top-level size accounting column */
     private int[] sizeAccountingColumns;
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
+    /** The numbers of plan & actual size data columns */
+    private int[] planSizeDataColumns, actualSizeDataColumns;
     /** The column numbers of the task labels column */
     private Integer[] labelColumns;
     /** The column numbers of the task attribute columns */
@@ -149,8 +155,18 @@ public class WBSDataWriter {
         this.userSettings = userSettings;
 
         if (dataModel != null) {
+            sizeMetrics = process.getSizeMetrics();
             if (SizeTypeColumn.isUsingNewSizeDataColumns(wbsModel)) {
                 sizeAccountingColumns = new int[0];
+                planSizeDataColumns = new int[sizeMetrics.length];
+                actualSizeDataColumns = new int[sizeMetrics.length];
+                for (int i = sizeMetrics.length; i-- > 0;) {
+                    String sm = sizeMetrics[i];
+                    planSizeDataColumns[i] = dataModel
+                            .findColumn(SizeDataColumn.getColumnID(sm, true));
+                    actualSizeDataColumns[i] = dataModel
+                            .findColumn(SizeDataColumn.getColumnID(sm, false));
+                }
             } else {
                 sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
                 for (int i = 0; i < SIZE_COLUMN_IDS.length; i++)
@@ -274,10 +290,12 @@ public class WBSDataWriter {
             dependencies = (TaskDependencyList) WrappedValue.unwrap(dataModel
                     .getValueAt(node, dependencyColumn));
         List<String> nodeAttributes = getWbsNodeAttributes(node);
+        List<NodeSizeData> nodeSizeData = getNodeSizeData(node);
 
         if ((children == null || children.length == 0)
                 && (dependencies == null || dependencies.isEmpty())
                 && (nodeAttributes == null || nodeAttributes.isEmpty())
+                && (nodeSizeData == null || nodeSizeData.isEmpty())
                 && (NotesColumn.getTextAt(node) == null)
                 && (depth > 0)) {
             // if this node has no children and no dependencies, just close
@@ -294,6 +312,7 @@ public class WBSDataWriter {
             writeDependencies(out, dependencies, depth+1);
             writeNote(out, node, depth+1);
             writeWbsNodeAttributeValues(out, nodeAttributes, depth+1);
+            writeNodeSizeData(out, nodeSizeData, depth+1);
             if (children != null)
                 for (int i = 0;   i < children.length;   i++)
                     write(out, children[i], depth+1);
@@ -457,6 +476,59 @@ public class WBSDataWriter {
                 out.write(">");
                 out.write(XMLUtils.escapeAttribute(value));
                 out.write("</" + ATTRIBUTE_VALUE_TAG + ">\n");
+            }
+        }
+    }
+
+
+
+    private class NodeSizeData {
+        String metric;
+        double plan, actual;
+        String planTS, actualTS;
+    }
+
+    private List<NodeSizeData> getNodeSizeData(WBSNode node) {
+        if (planSizeDataColumns == null)
+            return null;
+
+        List<NodeSizeData> result = new ArrayList();
+        for (int i = 0; i < sizeMetrics.length; i++) {
+            SizeDataColumn.Value plan = (Value) dataModel.getValueAt(node,
+                planSizeDataColumns[i]);
+            SizeDataColumn.Value actual = (Value) dataModel.getValueAt(node,
+                actualSizeDataColumns[i]);
+            if (hasNodeSizeValue(plan) || hasNodeSizeValue(actual)) {
+                NodeSizeData nsd = new NodeSizeData();
+                nsd.metric = sizeMetrics[i];
+                nsd.plan = plan.nodeValue;
+                nsd.planTS = plan.revSyncTime;
+                nsd.actual = actual.nodeValue;
+                nsd.actualTS = actual.revSyncTime;
+                result.add(nsd);
+            }
+        }
+        return result;
+    }
+
+    private boolean hasNodeSizeValue(Value v) {
+        return v.nodeValue > 0 || v.revSyncTime != null;
+    }
+
+    private void writeNodeSizeData(Writer out, List<NodeSizeData> nodeSizeData,
+            int depth) throws IOException {
+        if (nodeSizeData != null) {
+            for (NodeSizeData nsd : nodeSizeData) {
+                writeIndent(out, depth);
+                out.write("<" + SIZE_TAG);
+                writeAttr(out, SIZE_UNITS_ATTR, nsd.metric);
+                if (nsd.plan > 0)
+                    writeAttr(out, PLAN_ATTR, Double.toString(nsd.plan));
+                writeAttr(out, SIZE_PLAN_TS_ATTR, nsd.planTS);
+                if (nsd.actual > 0)
+                    writeAttr(out, ACTUAL_ATTR, Double.toString(nsd.actual));
+                writeAttr(out, SIZE_ACTUAL_TS_ATTR, nsd.actualTS);
+                out.write("/>\n");
             }
         }
     }
@@ -893,6 +965,7 @@ public class WBSDataWriter {
     private static final String MILESTONE_TAG = "milestone";
     private static final String DEPENDENCY_TAG = "dependency";
     private static final String NOTE_TAG = "note";
+    private static final String SIZE_TAG = "size";
 
     /** A list of column IDs for the top-level size accounting columns */
     private static final String[] SIZE_COLUMN_IDS = new String[] {
@@ -938,6 +1011,11 @@ public class WBSDataWriter {
     private static final String AUTHOR_ATTR = "author";
     private static final String TIMESTAMP_ATTR = "timestamp";
     private static final String FORMAT_ATTR = "format";
+    private static final String SIZE_UNITS_ATTR = "units";
+    private static final String PLAN_ATTR = "plan";
+    private static final String ACTUAL_ATTR = "actual";
+    private static final String SIZE_PLAN_TS_ATTR = "planRevSyncTime";
+    private static final String SIZE_ACTUAL_TS_ATTR = "actualRevSyncTime";
 
     private static final DateFormat CALENDAR_DATE_FMT = new SimpleDateFormat(
             "yyyy-MM-dd");

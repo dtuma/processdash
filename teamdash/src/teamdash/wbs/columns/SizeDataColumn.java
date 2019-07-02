@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomNamedColumn;
@@ -59,11 +61,16 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         /** A size value inherited from the parent component */
         public double inherited;
 
-        public Value(double nodeValue, double bottomUp, double inherited) {
+        /** The time when the last reverse sync occurred for this value */
+        public String revSyncTime;
+
+        public Value(double nodeValue, double bottomUp, double inherited,
+                String revSyncTime) {
             super(inherited > 0 ? inherited : bottomUp);
             this.nodeValue = nodeValue;
             this.bottomUp = bottomUp;
             this.inherited = inherited;
+            this.revSyncTime = revSyncTime;
             if (inherited > 0) {
                 this.isInvisible = true;
                 this.isEditable = false;
@@ -88,7 +95,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
     private String metricName;
 
     protected String nodeValueAttrName, bottomUpAttrName, inheritedAttrName,
-            restoreCandidateAttrName;
+            syncTimestampAttrName, restoreCandidateAttrName;
 
 
     public SizeDataColumn(DataTableModel dataModel, String metricName,
@@ -101,11 +108,11 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT",
             metricName);
 
-        String attr = (plan ? "Added-" : "Actual-")
-                + metricName.replace('_', '-');
+        String attr = getAttrBaseName(metricName, plan);
         nodeValueAttrName = TopDownBottomUpColumn.getTopDownAttrName(attr);
         bottomUpAttrName = TopDownBottomUpColumn.getBottomUpAttrName(attr);
         inheritedAttrName = TopDownBottomUpColumn.getInheritedAttrName(attr);
+        syncTimestampAttrName = attr + REV_SYNC_SUFFIX;
         restoreCandidateAttrName = bottomUpAttrName + " Restore Candidate";
         setConflictAttributeName(nodeValueAttrName);
     }
@@ -122,7 +129,8 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         double nodeValue = node.getNumericAttribute(nodeValueAttrName);
         double bottomUpValue = node.getNumericAttribute(bottomUpAttrName);
         double inheritedValue = node.getNumericAttribute(inheritedAttrName);
-        return new Value(nodeValue, bottomUpValue, inheritedValue);
+        String syncTime = (String) node.getAttribute(syncTimestampAttrName);
+        return new Value(nodeValue, bottomUpValue, inheritedValue, syncTime);
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -472,6 +480,32 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
 
+    public static void maybeStoreReverseSyncValue(WBSNode node, String metric,
+            boolean plan, String newValue, Date timestamp) {
+        // calculate the names of attributes we will use
+        String attr = getAttrBaseName(metric, plan);
+        String nodeAttr = TopDownBottomUpColumn.getTopDownAttrName(attr);
+        String timeAttr = attr + REV_SYNC_SUFFIX;
+
+        // If the WBS has processed newer reverse sync values for this
+        // size data value, ignore the instruction
+        Object lastSyncTime = node.getAttribute(timeAttr);
+        if (lastSyncTime != null) {
+            try {
+                Date last = XMLUtils.parseDate(lastSyncTime.toString());
+                if (last.compareTo(timestamp) >= 0)
+                    return;
+            } catch (Exception e) {}
+        }
+
+        // save the new value along with the timestamp
+        node.setAttribute(nodeAttr, newValue);
+        node.setAttribute(timeAttr, XMLUtils.saveDate(timestamp));
+    }
+    private static final String REV_SYNC_SUFFIX = " (Last Rev Sync Time)";
+
+
+
     public static String getColumnID(String metric, boolean plan) {
         // return column IDs that are backward-compatible with the names of
         // old-style size columns (from earlier versions of the dashboard). This
@@ -480,6 +514,10 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return SizeAccountingColumnSet.getNCID(metric);
         else
             return SizeActualDataColumn.getColumnID(metric, false);
+    }
+
+    private static String getAttrBaseName(String metricName, boolean plan) {
+        return (plan ? "Added-" : "Actual-") + metricName.replace('_', '-');
     }
 
 }

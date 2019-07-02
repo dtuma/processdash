@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import net.sourceforge.processdash.team.sync.SyncDiscrepancy.EVSchedule;
 import net.sourceforge.processdash.team.sync.SyncDiscrepancy.ItemNote;
 import net.sourceforge.processdash.team.sync.SyncDiscrepancy.NodeType;
 import net.sourceforge.processdash.team.sync.SyncDiscrepancy.PlanTime;
+import net.sourceforge.processdash.team.sync.SyncDiscrepancy.SizeData;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
@@ -497,6 +498,21 @@ public class UserDataWriter extends TinyCGIBase {
             }
         }
 
+        public void visit(SizeData s) {
+            try {
+                ser.startTag(null, SIZE_CHANGE_TAG);
+                ser.attribute(null, PATH_ATTR, s.getPath());
+                ser.attribute(null, WBS_ID_ATTR, s.getWbsId());
+                ser.attribute(null, UNITS_ATTR, s.getMetric());
+                ser.attribute(null, PLAN_ATTR, Boolean.toString(s.isPlan()));
+                ser.attribute(null, SIZE_VALUE_ATTR, Double.toString(s.getValue()));
+                ser.attribute(null, WHEN_ATTR, "@" + s.getTimestamp());
+                ser.endTag(null, SIZE_CHANGE_TAG);
+            } catch (IOException e) {
+                throw new WrappedIOException(e);
+            }
+        }
+
         public void visit(EVSchedule s) {
             Map<Date, Double> changes = s.getExceptions();
             if (changes == null || changes.isEmpty())
@@ -622,6 +638,12 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String WBS_ID_ATTR = "wbsId";
 
     private static final String TIME_ATTR = "time";
+
+    private static final String SIZE_CHANGE_TAG = "sizeChange";
+
+    private static final String PLAN_ATTR = "plan";
+
+    private static final String SIZE_VALUE_ATTR = "value";
 
     private static final String SCHEDULE_CHANGE_TAG = "scheduleChange";
 
