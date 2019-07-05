@@ -313,6 +313,7 @@ public abstract class AbstractSyncWorker implements SyncWorker {
             return null;
 
         } else  if (currVal == null
+                || !currVal.isDefined()
                 || dataEquals(currVal, lastSyncVal)
                 || !localIsNewer(lastRevSyncTime, wbsTimestamp)) {
             // if the current value is missing, or is the same as the last

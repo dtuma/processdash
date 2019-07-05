@@ -3068,10 +3068,12 @@ public class HierarchySynchronizer {
         String newPartSizeName;
         String[] conceptStartedNames;
         String planningCompleteName;
+        String actualTotalSizeName;
+        String actualCompleteName;
     }
 
-    private void syncPlannedProbeSize(SyncWorker worker, String path,
-            Element node, Element wbsSizeData, ProbeDataNames pdn) {
+    private void syncProbeSizeData(SyncWorker worker, String path, Element node,
+            Element wbsSizeData, ProbeDataNames pdn) {
         // if the user is not assigned to this task, don't sync
         if (isPrunedNode(node))
             return;
@@ -3082,6 +3084,13 @@ public class HierarchySynchronizer {
                 || timeAttr.substring(1).split(",", 0).length > 1)
             return;
 
+        String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
+        syncPlannedProbeSize(worker, path, units, wbsSizeData, pdn);
+        syncActualProbeSize(worker, path, units, wbsSizeData, pdn);
+    }
+
+    private void syncPlannedProbeSize(SyncWorker worker, String path,
+            String units, Element wbsSizeData, ProbeDataNames pdn) {
         // get the planned size from the WBS
         DoubleData wbsPlanSize = null;
         String wbsTimestamp = null;
@@ -3090,7 +3099,6 @@ public class HierarchySynchronizer {
                 wbsSizeData.getAttribute(SIZE_PLAN_VALUE_ATTR), 0));
             wbsTimestamp = wbsSizeData.getAttribute(SIZE_PLAN_TS_ATTR);
         }
-        String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
 
         // identify how far the user has gotten in the PROBE process
         ProbePlanStatus status = getProbePlanStatus(path, pdn);
@@ -3214,6 +3222,68 @@ public class HierarchySynchronizer {
             return null;
     }
 
+    private void syncActualProbeSize(SyncWorker worker, String path,
+            String units, Element wbsSizeData, ProbeDataNames pdn) {
+        // get the actual New & Changed size from the WBS
+        DoubleData wbsNCSize = null;
+        String wbsTimestamp = null;
+        if (wbsSizeData != null) {
+            wbsNCSize = new DoubleData(asDouble( //
+                wbsSizeData.getAttribute(SIZE_ACTUAL_VALUE_ATTR), 0));
+            wbsTimestamp = wbsSizeData.getAttribute(SIZE_ACTUAL_TS_ATTR);
+        }
+
+        // the WBS holds a "New & Changed" value, but locally we need to sync
+        // the "Total" size. Retrieve the computed delta between those values
+        // (based on other actual size metrics the user has entered) and add
+        // it to see the total size value the WBS would be expecting
+        SimpleData sd = getData(path, "PROBE_ACT_SIZE_SYNC_DELTA");
+        double syncDelta = (isGoodNumber(sd) ? asDouble(sd) : 0);
+        DoubleData wbsTotalSize = null;
+        if (wbsNCSize != null)
+            wbsTotalSize = new DoubleData(wbsNCSize.getDouble() + syncDelta);
+
+        // See if the component has been marked complete
+        boolean complete = testData(getData(path, pdn.actualCompleteName));
+        DataSyncResult syncResult = null;
+
+        if (complete == true) {
+            // if they have marked the task complete, their actual size values
+            // are fixed. Check to see if they agree with the WBS. if not, send
+            // a change back to the WBS
+            SimpleData curr = getData(path, pdn.actualTotalSizeName);
+            if (isGoodNumber(curr) && !curr.equals(wbsTotalSize)) {
+                syncResult = new DataSyncResult();
+                syncResult.name = pdn.actualTotalSizeName;
+                syncResult.localValue = curr;
+                syncResult.localTimestamp = new DateData();
+            }
+
+        } else {
+            // if the task hasn't been marked complete, try syncing the total
+            // size value
+            syncResult = worker.putValue(path + "/" + pdn.actualTotalSizeName,
+                wbsTotalSize, wbsTimestamp);
+        }
+
+        // check the sync result we get back
+        if (syncResult == null) {
+            // no change was made
+
+        } else if (syncResult.localTimestamp == null) {
+            // a null timestamp means a new WBS value was synced down
+            changes.add("Updated the actual size for " + path);
+
+        } else if (isGoodNumber(syncResult.localValue)) {
+            // if a locally edited value needs to be copied back, build a
+            // reverse-sync instruction for it
+            double val = asDouble(syncResult.localValue);
+            discrepancies.add(new SyncDiscrepancy.SizeData(path,
+                    getWbsIdForPath(path), units, false, val - syncDelta,
+                    syncResult.localTimestamp.getValue().getTime()));
+        }
+    }
+
 
 
 
@@ -3233,6 +3303,8 @@ public class HierarchySynchronizer {
                     "Estimated Reused Size"
             };
             pdn.planningCompleteName = "Completed";
+            pdn.actualTotalSizeName = "Total Size";
+            pdn.actualCompleteName = "///no need to disable sync";
         }
 
         @Override
@@ -3324,7 +3396,7 @@ public class HierarchySynchronizer {
 
             Element probeSizeData = super.saveNewStyleNodeSizes(worker, path,
                 node);
-            syncPlannedProbeSize(worker, path, node, probeSizeData, pdn);
+            syncProbeSizeData(worker, path, node, probeSizeData, pdn);
             return probeSizeData;
         }
 
@@ -3428,6 +3500,8 @@ public class HierarchySynchronizer {
                     "Estimated Reused LOC"
             };
             pdn.planningCompleteName = "Planning/Completed";
+            pdn.actualTotalSizeName = "Total LOC";
+            pdn.actualCompleteName = "Completed";
         }
 
         @Override
@@ -3510,7 +3584,7 @@ public class HierarchySynchronizer {
                 Element node) {
             Element probeSizeData = super.saveNewStyleNodeSizes(worker, path,
                 node);
-            syncPlannedProbeSize(worker, path, node, probeSizeData, pdn);
+            syncProbeSizeData(worker, path, node, probeSizeData, pdn);
             return probeSizeData;
         }
 
