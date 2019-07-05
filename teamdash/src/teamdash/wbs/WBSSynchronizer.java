@@ -777,12 +777,43 @@ public class WBSSynchronizer {
             if (node == null)
                 return;
 
+            if (isLockedPspOrProbeTask(node, individual.getInitials()))
+                return;
+
             String metric = sizeChangeTag.getAttribute(UNITS_ATTR);
             boolean plan = "true".equals(sizeChangeTag.getAttribute(PLAN_ATTR));
             String newValue = sizeChangeTag.getAttribute(SIZE_VALUE_ATTR);
             Date timestamp = XMLUtils.getXMLDate(sizeChangeTag, WHEN_ATTR);
             SizeDataColumn.maybeStoreReverseSyncValue(node, metric, plan,
                 newValue, timestamp);
+        }
+
+        private boolean isLockedPspOrProbeTask(WBSNode node, String initials) {
+            // If this isn't a PSP or PROBE task, no further testing is needed
+            String type = node.getType();
+            if (!TeamProcess.isPSPTask(type) && !TeamProcess.isProbeTask(type))
+                return false;
+
+            // scan the team member columns for the people assigned to this task
+            int numPeople = 0;
+            boolean isAssigned = false;
+            for (TeamMember m : teamProject.getTeamMemberList()
+                    .getTeamMembers()) {
+                if (TeamMemberTimeColumn.isAssignedToLeafTask(node, m)) {
+                    // keep track of the number of people that are assigned.
+                    // if more than one person is assigned, don't sync at all
+                    if (++numPeople > 1)
+                        return true;
+
+                    // keep track of whether we see an assignment to the current
+                    // individual
+                    if (m.getInitials().equalsIgnoreCase(initials))
+                        isAssigned = true;
+                }
+            }
+            // if the current team member isn't assigned to this task, they
+            // don't have a right to change its size via reverse sync
+            return isAssigned == false;
         }
     }
 

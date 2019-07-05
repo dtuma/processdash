@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -149,6 +149,16 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
 
     private static final TableCellRenderer CELL_RENDERER =
         new TeamMemberTimeCellRenderer();
+
+
+    /** @return true if this team member has an assignment to this task. */
+    public static boolean isAssignedToLeafTask(WBSNode task, TeamMember m) {
+        String attr = getMemberNodeDataAttrName(m);
+        if (task.getNumericAttribute(attr) > 0)
+            return true;
+        attr = getMemberAssignedZeroAttrName(m);
+        return task.getAttribute(attr) != null;
+    }
 
 
     /** Instances of this column use a team member's initials to store
