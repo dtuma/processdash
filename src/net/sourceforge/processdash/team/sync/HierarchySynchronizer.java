@@ -549,6 +549,10 @@ public class HierarchySynchronizer {
         pruneList.add(child);
     }
 
+    protected boolean isPrunedNode(Element node) {
+        return XMLUtils.hasValue(node.getAttribute(PRUNED_ATTR));
+    }
+
     private List<Element> getChildrenPrunedFrom(Element parent) {
         List<Element> result = prunedChildren.get(parent);
         return (result == null ? Collections.EMPTY_LIST : result);
@@ -2421,10 +2425,6 @@ public class HierarchySynchronizer {
             }
         }
 
-        protected boolean isPrunedNode(Element node) {
-            return XMLUtils.hasValue(node.getAttribute(PRUNED_ATTR));
-        }
-
         @Override
         public String getName(Element node) {
             String result = super.getName(node);
@@ -2549,31 +2549,38 @@ public class HierarchySynchronizer {
          * Find &lt;size&gt; tags in the XML, and sync the values to the Size
          * Inventory Form
          */
-        protected void saveNewStyleNodeSizes(SyncWorker worker, String path,
+        protected Element saveNewStyleNodeSizes(SyncWorker worker, String path,
                 Element node) {
 
             // PSP and PROBE tasks make use of the Size Estimating Template for
             // one of the metrics. See which metric that is, and don't copy the
             // resulting size values to the Size Inventory Form.
             String skipUnits = node.getAttribute(OLD_SIZE_UNITS_ATTR);
+            Element skippedXml = null;
 
             // read <size> tags and sync the data values they contain
             Set<String> unseenUnits = new HashSet<String>(sizeMetrics);
             for (Element xml : XMLUtils.getChildElements(node)) {
-                if (SIZE_DATA_TAG.equals(xml.getTagName()))
-                    saveNewStyleNodeSize(worker, path, xml, unseenUnits,
-                        skipUnits);
+                if (SIZE_DATA_TAG.equals(xml.getTagName())) {
+                    boolean wasSkipped = saveNewStyleNodeSize(worker, path, xml,
+                        unseenUnits, skipUnits);
+                    if (wasSkipped)
+                        skippedXml = xml;
+                }
             }
 
             // clear any old local values that no longer appear in the WBS
             clearNewStyleNodeSize(worker, path, unseenUnits);
+            return skippedXml;
         }
 
-        private void saveNewStyleNodeSize(SyncWorker worker, String path,
+        private boolean saveNewStyleNodeSize(SyncWorker worker, String path,
                 Element xml, Set<String> unseenUnits, String skipUnits) {
             String units = xml.getAttribute(SIZE_UNITS_ATTR);
-            if (!XMLUtils.hasValue(units) || units.equals(skipUnits))
-                return;
+            if (!XMLUtils.hasValue(units))
+                return false;
+            else if (units.equals(skipUnits))
+                return true;
 
             saveNewStyleNodeSize(worker, path, units, true,
                 asDouble(xml.getAttribute(SIZE_PLAN_VALUE_ATTR), 0),
@@ -2582,6 +2589,7 @@ public class HierarchySynchronizer {
                 asDouble(xml.getAttribute(SIZE_ACTUAL_VALUE_ATTR), 0),
                 xml.getAttribute(SIZE_ACTUAL_TS_ATTR));
             unseenUnits.remove(units);
+            return false;
         }
 
         private void clearNewStyleNodeSize(SyncWorker worker, String path,
@@ -2819,6 +2827,12 @@ public class HierarchySynchronizer {
             return defaultValue;
     }
 
+    private boolean isGoodNumber(SimpleData sd) {
+        return sd instanceof NumberData && sd.isDefined()
+                && !Double.isNaN(((NumberData) sd).getDouble())
+                && !Double.isInfinite(((NumberData) sd).getDouble());
+    }
+
     private HashMap phaseIDs;
 
     static HashMap initPhaseIDs(String processID) {
@@ -3049,9 +3063,176 @@ public class HierarchySynchronizer {
     }
 
 
+
+    private class ProbeDataNames {
+        String newPartSizeName;
+        String[] conceptStartedNames;
+        String planningCompleteName;
+    }
+
+    private void syncPlannedProbeSize(SyncWorker worker, String path,
+            Element node, Element wbsSizeData, ProbeDataNames pdn) {
+        // if the user is not assigned to this task, don't sync
+        if (isPrunedNode(node))
+            return;
+
+        // if more than one person is assigned to this task, don't sync
+        String timeAttr = node.getAttribute(TIME_ATTR);
+        if (!XMLUtils.hasValue(timeAttr)
+                || timeAttr.substring(1).split(",", 0).length > 1)
+            return;
+
+        // get the planned size from the WBS
+        DoubleData wbsPlanSize = null;
+        String wbsTimestamp = null;
+        if (wbsSizeData != null) {
+            wbsPlanSize = new DoubleData(asDouble( //
+                wbsSizeData.getAttribute(SIZE_PLAN_VALUE_ATTR), 0));
+            wbsTimestamp = wbsSizeData.getAttribute(SIZE_PLAN_TS_ATTR);
+        }
+        String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
+
+        // identify how far the user has gotten in the PROBE process
+        ProbePlanStatus status = getProbePlanStatus(path, pdn);
+        DataSyncResult syncResult = null;
+
+        if (status == ProbePlanStatus.Done) {
+            // if they have marked the PROBE/Planning phase complete, their
+            // estimates are fixed. Check to see if they agree with the WBS.
+            // if not, send a change back to the WBS
+            SimpleData currVal = getData(path, PROBE_PLAN_SIZE_TARGET);
+            if (isGoodNumber(currVal) && !currVal.equals(wbsPlanSize)) {
+                syncResult = new DataSyncResult();
+                syncResult.name = PROBE_PLAN_SIZE_TARGET;
+                syncResult.localValue = currVal;
+                syncResult.localTimestamp = new DateData();
+            }
+
+        } else if (status == ProbePlanStatus.Wizard) {
+            // if they have run the PROBE Wizard and selected a size method,
+            // try syncing their estimated size with the WBS
+            if (wbsPlanSize == null)
+                wbsPlanSize = ImmutableDoubleData.EDITABLE_ZERO;
+            syncResult = worker.putValue(path + "/" + PROBE_PLAN_SIZE_TARGET,
+                wbsPlanSize, wbsTimestamp);
+            // if this changed the local size estimate, set PROBE method to D
+            if (syncResult != null && syncResult.localTimestamp == null)
+                putData(path, PROBE_PLAN_SIZE_TARGET + "/Probe Method",
+                    StringData.create("D "));
+
+        } else if (status == ProbePlanStatus.Concept) {
+            // if they've started their conceptual design, we offer NO sync
+            // at all. This is because we can't tell if the design is complete,
+            // half baked, etc.
+
+        } else if (status == ProbePlanStatus.Initial) {
+            // if they haven't started the PROBE process, copy the WBS size
+            // down into the first row of the new objects table
+            syncResult = worker.putValue(path + "/" + pdn.newPartSizeName,
+                wbsPlanSize, wbsTimestamp);
+        }
+
+        // check the sync result we get back
+        if (syncResult == null) {
+            // no change was made
+
+        } else if (syncResult.localTimestamp == null) {
+            // a null timestamp means a new WBS value was synced down
+            changes.add("Updated the size estimate for " + path);
+
+        } else if (isGoodNumber(syncResult.localValue)) {
+            // if a locally edited value needs to be copied back, build a
+            // reverse-sync instruction for it
+            double val = asDouble(syncResult.localValue);
+            discrepancies.add(new SyncDiscrepancy.SizeData(path,
+                    getWbsIdForPath(path), units, true, val,
+                    syncResult.localTimestamp.getValue().getTime()));
+        }
+    }
+
+    private enum ProbePlanStatus {
+        Initial, Concept, Wizard, Done
+    }
+
+    private ProbePlanStatus getProbePlanStatus(String path,
+            ProbeDataNames pdn) {
+        // if the PROBE task has been marked complete, it is Done
+        if (testData(getData(path, pdn.planningCompleteName)))
+            return ProbePlanStatus.Done;
+
+        // if they have run the wizard and selected a size method, return Wizard
+        if (Boolean.TRUE == testProbeValues(path, //
+                PROBE_PLAN_SIZE_TARGET,
+                PROBE_PLAN_SIZE_TARGET + "/Probe Method"))
+            return ProbePlanStatus.Wizard;
+
+        // if they have started a conceptual design, return Concept
+        if (Boolean.FALSE != testProbeValues(path, 
+                // lists that should contain less than two items
+                "Base_Parts_Prefix_List",
+                "Base_Additions_Prefix_List",
+                "New_Objects_Prefix_List",
+                "Reused_Objects_Prefix_List",
+                // values that should be empty
+                "Base_Parts/0/Description",
+                "New Objects/0/Description",
+                "New Objects/0/Type",
+                "New Objects/0/Methods",
+                "New Objects/0/Relative Size",
+                "Reused Objects/0/Description"))
+            return ProbePlanStatus.Concept;
+        if (Boolean.FALSE != testProbeValues(path, //
+                pdn.conceptStartedNames))
+            return ProbePlanStatus.Concept;
+
+        // no data values have been entered so far. Initial state
+        return ProbePlanStatus.Initial;
+    }
+
+    private Boolean testProbeValues(String path, String... dataNames) {
+        boolean sawTrue = false;
+        boolean sawFalse = false;
+        for (String name : dataNames) {
+            SimpleData sd = getData(path, name);
+            if (sd instanceof ListData) {
+                if (((ListData) sd).size() > 1)
+                    sawTrue = true;
+                else
+                    sawFalse = true;
+            } else {
+                if (testData(sd))
+                    sawTrue = true;
+                else
+                    sawFalse = true;
+            }
+        }
+        if (sawTrue && !sawFalse)
+            return Boolean.TRUE;
+        else if (sawFalse && !sawTrue)
+            return Boolean.FALSE;
+        else
+            return null;
+    }
+
+
+
+
     private class SyncProbeTaskNode extends SyncSimpleNode {
+        ProbeDataNames pdn;
         public SyncProbeTaskNode() {
             super(probeNodeID, "", null);
+
+            pdn = new ProbeDataNames();
+            pdn.newPartSizeName = "New Objects/0/Size";
+            pdn.conceptStartedNames = new String[] {
+                    // data values that should be empty/zero
+                    "Estimated Base Size",
+                    "Estimated Deleted Size",
+                    "Estimated Modified Size",
+                    "Estimated Base Added Size",
+                    "Estimated Reused Size"
+            };
+            pdn.planningCompleteName = "Completed";
         }
 
         @Override
@@ -3129,6 +3310,25 @@ public class HierarchySynchronizer {
         }
 
         @Override
+        protected Element saveNewStyleNodeSizes(SyncWorker worker, String path,
+                Element node) {
+            // save the unit of size measurement to the project
+            String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
+            String currentUnits = getStringData(
+                getData(path, PROBE_SIZE_UNITS_DATA_NAME));
+            if (XMLUtils.hasValue(units) && !units.equals(currentUnits)) {
+                StringData value = StringData.create(units);
+                value.setEditable(false);
+                putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
+            }
+
+            Element probeSizeData = super.saveNewStyleNodeSizes(worker, path,
+                node);
+            syncPlannedProbeSize(worker, path, node, probeSizeData, pdn);
+            return probeSizeData;
+        }
+
+        @Override
         protected void maybeSaveOldStyleNodeSize(String path, Element node) {
             // retrieve the unit of size measure for this PROBE task
             String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
@@ -3203,16 +3403,31 @@ public class HierarchySynchronizer {
         "New Objects/0/Size",
         "Reused Objects/0/Size",
         "Estimated Size" };
+    private static final String PROBE_PLAN_SIZE_TARGET = //
+        "Estimated Added & Modified Size";
 
 
 
     private class SyncPSPTaskNode extends SyncSimpleNode {
+        ProbeDataNames pdn;
         public SyncPSPTaskNode() {
             super("PSP2.1", (oldStyleSync ? " Task" : ""), null);
             compatibleTemplateIDs.add("PSP0.1");
             compatibleTemplateIDs.add("PSP1");
             compatibleTemplateIDs.add("PSP1.1");
             compatibleTemplateIDs.add("PSP2");
+
+            pdn = new ProbeDataNames();
+            pdn.newPartSizeName = "New Objects/0/LOC";
+            pdn.conceptStartedNames = new String[] {
+                    // data values that should be empty/zero
+                    "Estimated Base LOC",
+                    "Estimated Deleted LOC",
+                    "Estimated Modified LOC",
+                    "Estimated Base Added LOC",
+                    "Estimated Reused LOC"
+            };
+            pdn.planningCompleteName = "Planning/Completed";
         }
 
         @Override
@@ -3288,6 +3503,15 @@ public class HierarchySynchronizer {
         @Override
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
             return worker.markPSPTaskIncomplete(path);
+        }
+
+        @Override
+        protected Element saveNewStyleNodeSizes(SyncWorker worker, String path,
+                Element node) {
+            Element probeSizeData = super.saveNewStyleNodeSizes(worker, path,
+                node);
+            syncPlannedProbeSize(worker, path, node, probeSizeData, pdn);
+            return probeSizeData;
         }
 
         @Override
