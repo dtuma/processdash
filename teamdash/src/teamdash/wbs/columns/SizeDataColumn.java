@@ -28,7 +28,9 @@ import java.awt.Component;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -480,8 +482,14 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
 
-    public static void maybeStoreReverseSyncValue(WBSNode node, String metric,
-            boolean plan, String newValue, Date timestamp) {
+    /**
+     * Write a reverse synced value into a node, unless the value there is newer
+     * than the reverse sync value.
+     * 
+     * @return true if a change was made
+     */
+    public static boolean maybeStoreReverseSyncValue(WBSNode node,
+            String metric, boolean plan, String newValue, Date timestamp) {
         // calculate the names of attributes we will use
         String attr = getAttrBaseName(metric, plan);
         String nodeAttr = TopDownBottomUpColumn.getTopDownAttrName(attr);
@@ -494,15 +502,77 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             try {
                 Date last = XMLUtils.parseDate(lastSyncTime.toString());
                 if (last.compareTo(timestamp) >= 0)
-                    return;
+                    return false;
             } catch (Exception e) {}
         }
 
         // save the new value along with the timestamp
         node.setAttribute(nodeAttr, newValue);
         node.setAttribute(timeAttr, XMLUtils.saveDate(timestamp));
+        return true;
     }
     private static final String REV_SYNC_SUFFIX = " (Last Rev Sync Time)";
+
+
+
+    /**
+     * Scan the WBS for any tasks that inherit their task size (directly or
+     * indirectly) from the nodes in question. If found, clear any direct rates
+     * for those tasks.
+     * 
+     * @return true if any rates were cleared
+     */
+    public static boolean clearTaskRatesForNodesAffectedByPlanSizeChange(
+            WBSModel wbs, TeamProcess process, String metric,
+            Set<WBSNode> directlyChangedNodes) {
+
+        // find all ancestors of the changed nodes; their sum was affected too
+        Set<WBSNode> allAffectedNodes = new HashSet<WBSNode>();
+        for (WBSNode node : directlyChangedNodes) {
+            while (node != null) {
+                allAffectedNodes.add(node);
+                node = wbs.getParent(node);
+            }
+        }
+
+        // scan the WBS, clearing task rates as needed
+        String base = getAttrBaseName(metric, true);
+        String attr = TopDownBottomUpColumn.getTopDownAttrName(base);
+        return clearRateDrivenTasks(wbs, wbs.getRoot(), process, metric, attr,
+            allAffectedNodes);
+    }
+
+    private static boolean clearRateDrivenTasks(WBSModel wbs, WBSNode node,
+            TeamProcess process, String metric, String attr,
+            Set<WBSNode> changedNodes) {
+
+        // if this node is not in the "changed" list, and it has a size
+        // estimate of its own, that size estimate will shield it from
+        // "inheriting" a size from any changed parent. We can prune our
+        // depth-first search in that case.
+        if (node.getAttribute(attr) != null && !changedNodes.contains(node))
+            return false;
+
+        // if this node is a leaf task that uses the same task units as
+        // the changed estimate, clear its rate attribute.
+        if (TeamTimeColumn.isLeafTask(wbs, node)) {
+            String taskUnits = TaskSizeUnitsColumn.getSizeUnitsForTask(node,
+                process);
+            if (metric.equals(taskUnits))
+                return node.removeAttribute(TeamTimeColumn.RATE_ATTR) != null;
+            else
+                return false;
+
+        } else {
+            // recurse over children
+            boolean result = false;
+            for (WBSNode child : wbs.getChildren(node)) {
+                result = clearRateDrivenTasks(wbs, child, process, metric, attr,
+                    changedNodes) || result;
+            }
+            return result;
+        }
+    }
 
 
 

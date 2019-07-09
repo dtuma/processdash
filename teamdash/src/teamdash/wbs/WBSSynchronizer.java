@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -162,6 +163,11 @@ public class WBSSynchronizer {
         maxPastClientIDs = buildMaxClientIdMap(wbsRoot);
         Map<String, String> datasetIDMap = new HashMap<String, String>();
 
+        for (Object h : handlers.values()) {
+            if (h instanceof SyncHandler2)
+                ((SyncHandler2) h).startSync(teamProject);
+        }
+
         for (Iterator i = teamProject.getTeamMemberList().getTeamMembers()
                 .iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
@@ -174,6 +180,11 @@ public class WBSSynchronizer {
 
         if (createMissingTeamMembers)
             addMissingTeamMembers(exportFiles, datasetIDMap);
+
+        for (Object h : handlers.values()) {
+            if (h instanceof SyncHandler2)
+                ((SyncHandler2) h).finishSync(teamProject);
+        }
 
         UserGroupManagerWBS groupMgr = UserGroupManagerWBS.getInstance();
         if (groupMgr != null) {
@@ -689,6 +700,11 @@ public class WBSSynchronizer {
                 Element dumpData);
     }
 
+    private interface SyncHandler2 extends SyncHandler {
+        public void startSync(TeamProject teamProject);
+        public void finishSync(TeamProject teamProject);
+    }
+
     /**
      * Class to read user changes to the EV schedule, and incorporate them
      * into the WBS schedule for the team member.
@@ -768,7 +784,13 @@ public class WBSSynchronizer {
      * Class to read user changes in planned/actual size, and incorporate them
      * into the size data in the WBS.
      */
-    private class SizeDataSynchronizer implements SyncHandler {
+    private class SizeDataSynchronizer implements SyncHandler2 {
+
+        private Map<String, Set<WBSNode>> planSizeChangedNodes;
+
+        public void startSync(TeamProject teamProject) {
+            planSizeChangedNodes = new HashMap<String, Set<WBSNode>>();
+        }
 
         @Override
         public void sync(TeamProject teamProject, TeamMember individual,
@@ -784,8 +806,10 @@ public class WBSSynchronizer {
             boolean plan = "true".equals(sizeChangeTag.getAttribute(PLAN_ATTR));
             String newValue = sizeChangeTag.getAttribute(SIZE_VALUE_ATTR);
             Date timestamp = XMLUtils.getXMLDate(sizeChangeTag, WHEN_ATTR);
-            SizeDataColumn.maybeStoreReverseSyncValue(node, metric, plan,
-                newValue, timestamp);
+            boolean madeChange = SizeDataColumn.maybeStoreReverseSyncValue(node,
+                metric, plan, newValue, timestamp);
+            if (plan == true && madeChange)
+                recordNodeWithPlanSizeChange(metric, node);
         }
 
         private boolean isLockedPspOrProbeTask(WBSNode node, String initials) {
@@ -814,6 +838,27 @@ public class WBSSynchronizer {
             // if the current team member isn't assigned to this task, they
             // don't have a right to change its size via reverse sync
             return isAssigned == false;
+        }
+
+        private void recordNodeWithPlanSizeChange(String metric, WBSNode node) {
+            Set<WBSNode> changedNodes = planSizeChangedNodes.get(metric);
+            if (changedNodes == null) {
+                changedNodes = new HashSet<WBSNode>();
+                planSizeChangedNodes.put(metric, changedNodes);
+            }
+            changedNodes.add(node);
+        }
+
+        public void finishSync(TeamProject teamProject) {
+            for (Entry<String, Set<WBSNode>> e : planSizeChangedNodes
+                    .entrySet()) {
+                String metric = e.getKey();
+                Set<WBSNode> changedNodes = e.getValue();
+                SizeDataColumn.clearTaskRatesForNodesAffectedByPlanSizeChange(
+                    teamProject.getWBS(), teamProject.getTeamProcess(), metric,
+                    changedNodes);
+            }
+            planSizeChangedNodes = null;
         }
     }
 
