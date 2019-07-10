@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -116,7 +116,7 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
         return (plan ? "Plan" : "Actual") + " Size " + units;
     }
 
-    private static final String getNodeAttrName(String units, boolean plan) {
+    static final String getNodeAttrName(String units, boolean plan) {
         return (plan ? "@Plan" : "@Actual") + "_Node_Size_" + units;
     }
 

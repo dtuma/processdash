@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,15 @@ import teamdash.wbs.WBSNode;
 public class SizeDataColumn extends AbstractNumericColumn implements
         CalculatedDataColumn, CustomRenderedColumn, CustomNamedColumn {
 
+    /**
+     * When a PSP/PROBE task is assigned to more than one person, the
+     * {@link PlanTimeWatcher} will set this attribute on the node (to "LOC" for
+     * a PSP task, or the task size units for the PROBE task). If a node is not
+     * a PSP/PROBE task, or if it is assigned to less than two people, the node
+     * will not have a value for this attribute.
+     */
+    public static final String PROBE_MULTI_FLAG_ATTR = "_ PROBE Multi Flag";
+
 
     public class Value extends NumericDataValue {
 
@@ -66,13 +76,18 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         /** The time when the last reverse sync occurred for this value */
         public String revSyncTime;
 
+        /** An optional tooltip explaining why this value is read only */
+        public String readOnlyReason;
+
         public Value(double nodeValue, double bottomUp, double inherited,
-                String revSyncTime) {
+                String revSyncTime, String readOnlyReason) {
             super(inherited > 0 ? inherited : bottomUp);
             this.nodeValue = nodeValue;
             this.bottomUp = bottomUp;
             this.inherited = inherited;
             this.revSyncTime = revSyncTime;
+            this.readOnlyReason = readOnlyReason;
+            this.isEditable = (readOnlyReason == null);
             if (inherited > 0) {
                 this.isInvisible = true;
                 this.isEditable = false;
@@ -94,17 +109,26 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
     protected WBSModel wbsModel;
 
+    private TeamProcess teamProcess;
+
     private String metricName;
 
+    private boolean plan;
+
+    private Map<String, String> lowerCaseCache;
+
     protected String nodeValueAttrName, bottomUpAttrName, inheritedAttrName,
-            syncTimestampAttrName, restoreCandidateAttrName;
+            syncTimestampAttrName, restoreCandidateAttrName, pdashSumAttrName;
 
 
-    public SizeDataColumn(DataTableModel dataModel, String metricName,
-            boolean plan) {
+    public SizeDataColumn(DataTableModel dataModel, TeamProcess teamProcess,
+            String metricName, boolean plan) {
         this.wbsModel = dataModel.getWBSModel();
+        this.teamProcess = teamProcess;
         this.metricName = metricName;
+        this.plan = plan;
 
+        this.lowerCaseCache = new HashMap<String, String>();
         this.columnID = getColumnID(metricName, plan);
         this.columnName = resources.format(
             plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT",
@@ -116,6 +140,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         inheritedAttrName = TopDownBottomUpColumn.getInheritedAttrName(attr);
         syncTimestampAttrName = attr + REV_SYNC_SUFFIX;
         restoreCandidateAttrName = bottomUpAttrName + " Restore Candidate";
+        pdashSumAttrName = SizeActualDataColumn.getNodeAttrName(metricName, plan);
         setConflictAttributeName(nodeValueAttrName);
     }
 
@@ -123,19 +148,58 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         return columnName;
     }
 
-    public boolean isCellEditable(WBSNode node) {
-        return node != null && node.getIndentLevel() > 0;
-    }
-
     public Object getValueAt(WBSNode node) {
-        double nodeValue = node.getNumericAttribute(nodeValueAttrName);
+        double nodeValue = getNodeValue(node);
         double bottomUpValue = node.getNumericAttribute(bottomUpAttrName);
         double inheritedValue = node.getNumericAttribute(inheritedAttrName);
         String syncTime = (String) node.getAttribute(syncTimestampAttrName);
-        return new Value(nodeValue, bottomUpValue, inheritedValue, syncTime);
+        String readOnlyReason = getReadOnlyReason(node);
+        return new Value(nodeValue, bottomUpValue, inheritedValue, syncTime,
+                readOnlyReason);
+    }
+
+    private double getNodeValue(WBSNode node) {
+        return node.getNumericAttribute(
+            isProbeMulti(node) ? pdashSumAttrName : nodeValueAttrName);
+    }
+
+    /**
+     * @return a non-null string if this node is read-only; a non-empty string
+     *         if we should display a tooltip explaining why
+     */
+    private String getReadOnlyReason(WBSNode node) {
+        if (isProbeMulti(node)) {
+            return resources.format(
+                plan ? "Size_Data.Multi_PROBE_Plan_Tooltip_FMT"
+                     : "Size_Data.Multi_PROBE_Actual_Tooltip_FMT",
+                lowerCase(node.getType()), lowerCase(metricName));
+        } else if (node.getIndentLevel() == 0) {
+            return "";
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isCellEditable(WBSNode node) {
+        // the tests in this method must match the tests performed by the
+        // getReadOnlyReason method above. When this method returns false,
+        // that method must return non-null.
+        return node != null //
+                && node.getIndentLevel() > 0 //
+                && !isProbeMulti(node);
+    }
+
+    /** @return true if node is a PSP/PROBE task assigned to multiple people */
+    private boolean isProbeMulti(WBSNode node) {
+        return metricName.equals(node.getAttribute(PROBE_MULTI_FLAG_ATTR));
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
+        if (aValue == PROBE_MULTI_FLAG_ATTR) {
+            handleProbeMultiStatusChange(node);
+            return;
+        }
+
         System.out.println("setValueAt(" + aValue + ")");
         if (!isCellEditable(node))
             return;
@@ -155,6 +219,31 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
             if (maybeMultipleNodeValues(node, newValue) == false)
                 node.setNumericAttribute(nodeValueAttrName, newValue);
+        }
+    }
+
+    private void handleProbeMultiStatusChange(WBSNode node) {
+        if (isProbeMulti(node)) {
+            // this node just changed from single-assignee status to multiple
+            // assignee status. We'll have to stop displaying our direct value,
+            // and display the sum of PDASH values instead. If those numbers
+            // differ, and this is a plan column, we don't want the change
+            // to alter rate-driven time estimates; so we must clear explicit
+            // rates from affected tasks.
+            double explicitVal = node.getNumericAttribute(nodeValueAttrName);
+            double pdashSum = node.getNumericAttribute(pdashSumAttrName);
+            if (plan && !equal(explicitVal, pdashSum, 0.0001)) {
+                clearTaskRatesForNodesAffectedByPlanSizeChange(wbsModel,
+                    teamProcess, metricName, Collections.singleton(node));
+            }
+
+        } else {
+            // this node just changed from multiple assignees to a single
+            // assignee. For continuity, we'll consider preserving the number
+            // that is currently in the cell
+            double pdashSum = node.getNumericAttribute(pdashSumAttrName);
+            if (pdashSum > 0)
+                node.setNumericAttribute(nodeValueAttrName, pdashSum);
         }
     }
 
@@ -223,7 +312,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
     protected double recalc(WBSNode node) {
         double result;
-        double nodeValue = node.getNumericAttribute(nodeValueAttrName);
+        double nodeValue = getNodeValue(node);
         WBSNode[] children = wbsModel.getChildren(node);
 
         if (children.length == 0) {
@@ -402,11 +491,8 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
     private class SizeValueRenderer extends DefaultTableCellRenderer {
 
-        private Map<String, String> lowerCaseCache;
-
         SizeValueRenderer() {
             setHorizontalAlignment(RIGHT);
-            lowerCaseCache = new HashMap<String, String>();
         }
 
         public Component getTableCellRendererComponent(JTable table,
@@ -432,36 +518,38 @@ public class SizeDataColumn extends AbstractNumericColumn implements
                 }
             }
 
-            setForeground(
-                table.isCellEditable(row, column) ? Color.black : Color.gray);
-
+            if (StringUtils.hasValue(v.readOnlyReason))
+                tooltip = v.readOnlyReason;
             setToolTipText(tooltip);
+
+            setForeground(v.isEditable ? Color.black : Color.gray);
+
             return super.getTableCellRendererComponent(table, display,
                 isSelected, hasFocus, row, column);
         }
+    }
 
-        private String lowerCase(String s) {
-            if (s == null)
-                return null;
+    private String lowerCase(String s) {
+        if (s == null)
+            return null;
 
-            String result = lowerCaseCache.get(s);
-            if (result != null)
-                return result;
-
-            String[] words = s.split(" ");
-            for (int i = words.length; i-- > 0;) {
-                String w = words[i];
-                if (w.equals(w.toUpperCase())) {
-                    // this word is all upper case; likely an acronym such as
-                    // LOC, PSP, or PROBE. Leave it alone
-                } else {
-                    words[i] = w.toLowerCase();
-                }
-            }
-            result = StringUtils.join(Arrays.asList(words), " ");
-            lowerCaseCache.put(s, result);
+        String result = lowerCaseCache.get(s);
+        if (result != null)
             return result;
+
+        String[] words = s.split(" ");
+        for (int i = words.length; i-- > 0;) {
+            String w = words[i];
+            if (w.equals(w.toUpperCase())) {
+                // this word is all upper case; likely an acronym such as
+                // LOC, PSP, or PROBE. Leave it alone
+            } else {
+                words[i] = w.toLowerCase();
+            }
         }
+        result = StringUtils.join(Arrays.asList(words), " ");
+        lowerCaseCache.put(s, result);
+        return result;
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2017 Tuma Solutions, LLC
+// Copyright (C) 2010-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,11 @@
 
 package teamdash.wbs.columns;
 
+import static teamdash.wbs.columns.SizeDataColumn.PROBE_MULTI_FLAG_ATTR;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -35,18 +38,28 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WBSSynchronizer;
 
 /**
- * This specialized column monitors changes in the total planned time for
- * each team member.
+ * This specialized column monitors changes in the total planned time for each
+ * team member. It also watches PSP and PROBE tasks to see whether they are
+ * assigned to more than one person.
  * 
- * By default, this class is disabled and does nothing.  But it can be
- * enabled by registering the initials of a single team member whose time
- * is expected to be changing.  Once activated, if the plan time changes
- * for any <b>other</b> team member, an event will be generated to registered
- * listeners.
+ * When these values change, appropriate targets are notified:
+ * <ul>
+ * 
+ * <li>A single set of initials can be registered to indicate a single team
+ * member whose time is expected to be changing. If the plan time changes for
+ * any <b>other</b> team member, an event will be generated to registered
+ * listeners.</li>
+ * 
+ * <li>If a PSP or PROBE task changes from one assignee to multiple (or vice
+ * versa), the appropriate {@link SizeDataColumn}s will be notified so they can
+ * dynamically change behavior.</li>
+ * 
+ * </ul>
  */
 public class PlanTimeWatcher extends AbstractDataColumn implements
         CalculatedDataColumn {
@@ -69,20 +82,28 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     }
 
     private DataTableModel dataModel;
+    private TeamProcess process;
     private IntList teamMemberColumns;
     private String[] teamMemberAttrs;
+    private int numPeopleCol;
+    private int rateCol;
     private String restrictTo;
     private List<String> discrepantIndividuals;
+    private boolean watchPspAndProbeTasks;
     private Set<PlanTimeDiscrepancyListener> listeners;
 
-    public PlanTimeWatcher(DataTableModel m) {
+    public PlanTimeWatcher(DataTableModel m, TeamProcess p) {
         this.dataModel = m;
+        this.process = p;
         this.columnName = this.columnID = COLUMN_ID;
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID };
         this.teamMemberColumns = new IntList();
         this.teamMemberAttrs = new String[0];
+        this.numPeopleCol = this.rateCol = -1;
         this.restrictTo = null;
         this.discrepantIndividuals = null;
+        this.watchPspAndProbeTasks = SizeTypeColumn
+                .isUsingNewSizeDataColumns(m.getWBSModel());
         this.listeners = new HashSet<PlanTimeDiscrepancyListener>();
     }
 
@@ -118,6 +139,8 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
             String initials = getInitialsFor(col);
             teamMemberAttrs[i] = "_Plan_Time_Watcher_Last_Val-" + initials;
         }
+        numPeopleCol = dataModel.findColumn(TeamTimeColumn.NUM_PEOPLE_COL_ID);
+        rateCol = dataModel.findColumn(TeamTimeColumn.RATE_COL_ID);
     }
 
     public boolean isCellEditable(WBSNode node) { return false; }
@@ -129,6 +152,7 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
 
     public boolean recalculate() {
         discrepantIndividuals = calcDiscrepancies();
+        maybeScanPspAndProbeTasks();
         maybeFireChangeEvent();
         return false;
     }
@@ -187,6 +211,57 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     private String getInitialsFor(int col) {
         return dataModel.getColumnName(col);
     }
+
+
+
+    private void maybeScanPspAndProbeTasks() {
+        if (watchPspAndProbeTasks && numPeopleCol != -1) {
+            for (WBSNode n : dataModel.getWBSModel().getWbsNodes())
+                scanPspOrProbeTask(n);
+        }
+    }
+
+    private void scanPspOrProbeTask(WBSNode node) {
+        // we only need to look at PSP/PROBE tasks
+        String type = node.getType();
+        if (!TeamProcess.isPSPTask(type) && !TeamProcess.isProbeTask(type))
+            return;
+
+        // count the number of people assigned to this task
+        double numPeople = NumericDataValue
+                .parse(dataModel.getValueAt(node, numPeopleCol));
+        boolean isMulti = (numPeople > 1);
+
+        // check the "PROBE Multi" flag on the node. If it's correct, nothing
+        // more needs to be done
+        Object multiFlag = node.getAttribute(PROBE_MULTI_FLAG_ATTR);
+        if (isMulti == false && multiFlag == null)
+            return;
+        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, process);
+        if (isMulti == true && units.equals(multiFlag))
+            return;
+
+        // set the flag on the node. If the task is assigned to multiple people,
+        // the flag hold the units of the PSP/PROBE task. Otherwise null
+        node.setAttribute(PROBE_MULTI_FLAG_ATTR, isMulti ? units : null);
+
+        // alert the affected columns
+        Set<String> affectedMetrics = new HashSet(Collections.singleton(units));
+        if (multiFlag instanceof String)
+            affectedMetrics.add((String) multiFlag);
+        for (String metric : affectedMetrics) {
+            for (boolean plan : new boolean[] { true, false }) {
+                String colID = SizeDataColumn.getColumnID(metric, plan);
+                int colPos = dataModel.findColumn(colID);
+                if (colPos != -1)
+                    dataModel.setValueAt(PROBE_MULTI_FLAG_ATTR, node, colPos);
+            }
+        }
+        if (isMulti && rateCol != -1)
+            dataModel.columnChanged(dataModel.getColumn(rateCol));
+    }
+
+
 
     private void maybeFireChangeEvent() {
         if (empty(discrepantIndividuals) || empty(listeners))

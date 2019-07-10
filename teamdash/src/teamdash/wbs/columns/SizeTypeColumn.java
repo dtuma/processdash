@@ -265,10 +265,12 @@ public class SizeTypeColumn extends AbstractDataColumn implements
             String metric = (String) i.next();
 
             // add a planned size column for this metric
-            dataModel.addDataColumn(new SizeDataColumn(dataModel, metric, true));
+            dataModel.addDataColumn(
+                new SizeDataColumn(dataModel, teamProcess, metric, true));
 
             // add an actual size column for this metric
-            dataModel.addDataColumn(new SizeDataColumn(dataModel, metric, false));
+            dataModel.addDataColumn(
+                new SizeDataColumn(dataModel, teamProcess, metric, false));
         }
     }
 
