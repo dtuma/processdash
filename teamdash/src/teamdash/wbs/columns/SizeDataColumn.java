@@ -48,6 +48,7 @@ import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer;
 
 public class SizeDataColumn extends AbstractNumericColumn implements
         CalculatedDataColumn, CustomRenderedColumn, CustomNamedColumn {
@@ -60,6 +61,21 @@ public class SizeDataColumn extends AbstractNumericColumn implements
      * will not have a value for this attribute.
      */
     public static final String PROBE_MULTI_FLAG_ATTR = "_ PROBE Multi Flag";
+
+    /**
+     * When the planning step in a PSP/PROBE task is marked complete, the
+     * {@link WBSSynchronizer} will set this attribute on the node to indicate
+     * that planned size should be read-only.
+     */
+    public static final String PROBE_PLAN_LOCKED_FLAG_ATTR = "@ Plan Size Locked";
+
+    /**
+     * When a PSP task is marked complete, the {@link WBSSynchronizer} will set
+     * this attribute on the node to indicate that actual LOC should be
+     * read-only.
+     */
+    public static final String PROBE_ACTUAL_LOCKED_FLAG_ATTR = "@ Actual Size Locked";
+
 
 
     public class Value extends NumericDataValue {
@@ -173,6 +189,13 @@ public class SizeDataColumn extends AbstractNumericColumn implements
                 plan ? "Size_Data.Multi_PROBE_Plan_Tooltip_FMT"
                      : "Size_Data.Multi_PROBE_Actual_Tooltip_FMT",
                 lowerCase(node.getType()), lowerCase(metricName));
+
+        } else if (isCompletionLocked(node)) {
+            return resources.format(
+                plan ? "Size_Data.Completion_Locked_Plan_FMT"
+                     : "Size_Data.Completion_Locked_Actual_FMT",
+                lowerCase(node.getType()), lowerCase(metricName));
+
         } else if (node.getIndentLevel() == 0) {
             return "";
         } else {
@@ -186,7 +209,19 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         // that method must return non-null.
         return node != null //
                 && node.getIndentLevel() > 0 //
+                && !isCompletionLocked(node) //
                 && !isProbeMulti(node);
+    }
+
+    /** @return true if this cell is read only because tasks were completed */
+    private boolean isCompletionLocked(WBSNode node) {
+        String attr = plan ? PROBE_PLAN_LOCKED_FLAG_ATTR
+                : PROBE_ACTUAL_LOCKED_FLAG_ATTR;
+        if (node.getAttribute(attr) == null)
+            return false;
+
+        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, teamProcess);
+        return metricName.equals(units);
     }
 
     /** @return true if node is a PSP/PROBE task assigned to multiple people */

@@ -23,6 +23,9 @@
 
 package teamdash.wbs;
 
+import static teamdash.wbs.columns.SizeDataColumn.PROBE_ACTUAL_LOCKED_FLAG_ATTR;
+import static teamdash.wbs.columns.SizeDataColumn.PROBE_PLAN_LOCKED_FLAG_ATTR;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -961,15 +964,39 @@ public class WBSSynchronizer {
             node.setAttribute(completionDateAttrName, date);
 
             List subtaskData = null;
+            boolean oneSubtaskComplete = false;
             NodeList subtaskNodes = actualDataTag
                     .getElementsByTagName(SUBTASK_DATA_TAG);
             if (subtaskNodes != null && subtaskNodes.getLength() > 0) {
                 subtaskData = new ArrayList();
-                for (int i = 0;  i < subtaskNodes.getLength();  i++)
-                    subtaskData.add(new ActualSubtaskData(
-                            (Element) subtaskNodes.item(i)));
+                for (int i = 0; i < subtaskNodes.getLength(); i++) {
+                    ActualSubtaskData asd = new ActualSubtaskData(
+                            (Element) subtaskNodes.item(i));
+                    if (asd.getCompletionDate() != null)
+                        oneSubtaskComplete = true;
+                    subtaskData.add(asd);
+                }
             }
             node.setAttribute(subtaskDataAttrName, subtaskData);
+
+            if (TeamProcess.isProbeTask(node.getType())) {
+                // lock planned size when a PROBE task is marked complete
+                if (date != null)
+                    node.setAttribute(PROBE_PLAN_LOCKED_FLAG_ATTR, Boolean.TRUE);
+
+            } else if (TeamProcess.isPSPTask(node.getType())) {
+                // we must lock planned size when the Planning phase of a PSP
+                // task is marked complete. This class doesn't have visibility
+                // into specific PSP phases; but we assume that people will
+                // mark planning complete first. So if we see even one phase
+                // marked complete, we'll assume Planning is complete.
+                if (date != null || oneSubtaskComplete)
+                    node.setAttribute(PROBE_PLAN_LOCKED_FLAG_ATTR, Boolean.TRUE);
+
+                // lock actual size when the entire PSP task is marked complete
+                if (date != null)
+                    node.setAttribute(PROBE_ACTUAL_LOCKED_FLAG_ATTR, Boolean.TRUE);
+            }
 
             foundActualData = true;
         }
