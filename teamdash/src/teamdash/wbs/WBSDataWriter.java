@@ -59,6 +59,7 @@ import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeDataColumn;
+import teamdash.wbs.columns.SizeOwnerColumn;
 import teamdash.wbs.columns.SizeDataColumn.Value;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
@@ -120,6 +121,8 @@ public class WBSDataWriter {
     private int directSizeUnitsColumn;
     /** The numbers of plan & actual size data columns */
     private int[] planSizeDataColumns, actualSizeDataColumns;
+    /** This column number of the size owner column */
+    private int sizeOwnerColumn;
     /** The column numbers of the task labels column */
     private Integer[] labelColumns;
     /** The column numbers of the task attribute columns */
@@ -167,6 +170,8 @@ public class WBSDataWriter {
                     actualSizeDataColumns[i] = dataModel
                             .findColumn(SizeDataColumn.getColumnID(sm, false));
                 }
+                sizeOwnerColumn = dataModel
+                        .findColumn(SizeOwnerColumn.COLUMN_ID);
             } else {
                 sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
                 for (int i = 0; i < SIZE_COLUMN_IDS.length; i++)
@@ -486,6 +491,7 @@ public class WBSDataWriter {
         String metric;
         double plan, actual;
         String planTS, actualTS;
+        String owner;
     }
 
     private List<NodeSizeData> getNodeSizeData(WBSNode node) {
@@ -493,6 +499,7 @@ public class WBSDataWriter {
             return null;
 
         List<NodeSizeData> result = new ArrayList();
+        String owner = (String) dataModel.getValueAt(node, sizeOwnerColumn);
         for (int i = 0; i < sizeMetrics.length; i++) {
             SizeDataColumn.Value plan = (Value) dataModel.getValueAt(node,
                 planSizeDataColumns[i]);
@@ -505,6 +512,7 @@ public class WBSDataWriter {
                 nsd.planTS = plan.revSyncTime;
                 nsd.actual = actual.nodeValue;
                 nsd.actualTS = actual.revSyncTime;
+                nsd.owner = owner;
                 result.add(nsd);
             }
         }
@@ -528,6 +536,7 @@ public class WBSDataWriter {
                 if (nsd.actual > 0)
                     writeAttr(out, ACTUAL_ATTR, Double.toString(nsd.actual));
                 writeAttr(out, SIZE_ACTUAL_TS_ATTR, nsd.actualTS);
+                writeAttr(out, OWNER_ATTR, nsd.owner);
                 out.write("/>\n");
             }
         }
@@ -1016,6 +1025,7 @@ public class WBSDataWriter {
     private static final String ACTUAL_ATTR = "actual";
     private static final String SIZE_PLAN_TS_ATTR = "planRevSyncTime";
     private static final String SIZE_ACTUAL_TS_ATTR = "actualRevSyncTime";
+    private static final String OWNER_ATTR = "owner";
 
     private static final DateFormat CALENDAR_DATE_FMT = new SimpleDateFormat(
             "yyyy-MM-dd");

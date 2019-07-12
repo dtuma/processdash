@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -185,14 +185,14 @@ public class TeamMember implements PersonLookupData, Cloneable {
     }
 
     public static String convertToInitials(String initials) {
-        Matcher m = LETTERS.matcher(initials);
+        Matcher m = INITIALS_PATTERN.matcher(initials);
         StringBuffer result = new StringBuffer();
         while (m.find())
             result.append(m.group());
         String theAnswer = trim(result.toString());
         return theAnswer;
     }
-    private static final Pattern LETTERS = Pattern.compile("[a-zA-Z]+");
+    public static final Pattern INITIALS_PATTERN = Pattern.compile("[a-zA-Z]+");
 
     // getter/setter for the color property.
     public Color getColor() {

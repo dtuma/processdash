@@ -259,6 +259,7 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         // create the size type columns.
         dataModel.addDataColumn(new NewSizeTypeColumn(dataModel, sizeMetrics));
         dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
+        dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
 
         Iterator i = new HashSet(sizeMetrics.values()).iterator();
         while (i.hasNext()) {
