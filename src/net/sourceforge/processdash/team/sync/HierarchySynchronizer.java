@@ -70,6 +70,7 @@ import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -2588,6 +2589,8 @@ public class HierarchySynchronizer {
             saveNewStyleNodeSize(worker, path, units, false,
                 asDouble(xml.getAttribute(SIZE_ACTUAL_VALUE_ATTR), 0),
                 xml.getAttribute(SIZE_ACTUAL_TS_ATTR));
+            saveNewStyleNodeSizeOwnerFlag(path, units,
+                initials.equalsIgnoreCase(xml.getAttribute(SIZE_OWNER_ATTR)));
             unseenUnits.remove(units);
             return false;
         }
@@ -2597,6 +2600,7 @@ public class HierarchySynchronizer {
             for (String units : unseenUnits) {
                 saveNewStyleNodeSize(worker, path, units, true, null, null);
                 saveNewStyleNodeSize(worker, path, units, false, null, null);
+                saveNewStyleNodeSizeOwnerFlag(path, units, false);
             }
         }
 
@@ -2630,6 +2634,13 @@ public class HierarchySynchronizer {
             }
         }
         private static final String SIZE_INV_MSG = "Updated values on the Size Inventory Form";
+
+        private void saveNewStyleNodeSizeOwnerFlag(String path, String units,
+                boolean isOwner) {
+            String prefix = path + SIZE_DATA_NAME_PREFIX + units;
+            putData(prefix, SIZE_OWNER_DATA_NAME_SUFFIX,
+                isOwner ? TagData.getInstance() : null);
+        }
 
         protected void maybeSaveOldStyleNodeSize(String path, Element node) {
             // see if this node has size data.
@@ -3456,9 +3467,11 @@ public class HierarchySynchronizer {
     private static final String SIZE_ACTUAL_VALUE_ATTR = "actual";
     private static final String SIZE_PLAN_TS_ATTR = "planRevSyncTime";
     private static final String SIZE_ACTUAL_TS_ATTR = "actualRevSyncTime";
+    private static final String SIZE_OWNER_ATTR = "owner";
     private static final String SIZE_DATA_NAME_PREFIX = "/Sized_Objects/";
     private static final String SIZE_DATA_NAME_PLAN_SUFFIX = "/Plan Size";
     private static final String SIZE_DATA_NAME_ACTUAL_SUFFIX = "/Actual Size";
+    private static final String SIZE_OWNER_DATA_NAME_SUFFIX = "Is Owner";
 
     private static final String OLD_SIZE_UNITS_ATTR = "sizeUnits";
     private static final String EST_SIZE_DATA_NAME =

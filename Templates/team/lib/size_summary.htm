@@ -11,7 +11,7 @@
 <th>[!--#echo Actual --]</th>
 </tr>
 
-[!--#if [<!--#echo Process_ID --> Indiv Root Tag] --]
+[!--#if [<!--#echo Process_ID --> Indiv Root Tag] && ![WBS_Managed_Size_Data] --]
 <tr style="background-color: #D3D3D3; font-weight: bold">
 <td align="left" colspan="3">[!--#echo Personally_Produced --]</td>
 </tr>
@@ -76,7 +76,7 @@
 
 
 
-[!--#if [<!--#echo Process_ID --> Indiv Root Tag] --]
+[!--#if [<!--#echo Process_ID --> Indiv Root Tag] && ![WBS_Managed_Size_Data] --]
 
 <tr style="background-color: #D3D3D3; font-weight: bold">
 <td align="left" colspan="3">[!--#echo Personally_Inspected --]</td>

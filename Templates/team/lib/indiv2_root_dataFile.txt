@@ -50,14 +50,33 @@ undefine([Simple Project Tag]);
 
 
 /*
+ * Modify the rollup calculations for size metrics in the personal dashboard
+ */
+<!--#foreach name=Metric list=Size_Metric_Data_Names -->
+
+/*
+ * Include new-style size inventory entries in the size rollups
+ */
+<!--#set var='Size_Prefix' inline='t' --><!--#replace token="New & Changed LOC"
+         value="LOC" -->Sized_Objects/Metric<!--#endreplace--><!--#endset#-->
+[Metric/Owned_List] = iff(![WBS_Managed_Size_Data], list(),
+    filter(lookup([_] &/ "<!--#echo Size_Prefix -->/Is Owner"), [Rollup_List]));
+
+[Estimated Metric] = 0 + sumFor ("Estimated Metric", [Rollup_List])
+    + sumFor ("<!--#echo Size_Prefix -->/Plan Size", [Metric/Owned_List]);
+
+[Metric] = 0 + sumFor ("Metric", [Rollup_List])
+    + sumFor ("<!--#echo Size_Prefix -->/Actual Size", [Metric/Owned_List]);
+
+/*
  * On the team side, the calculations assume that the team inspects
  * the products that were produced.  But on the personal side, that
  * isn't true - you are inspecting other people's products, not your
  * own. Redefine the "Inspected" metrics to sum up the corresponding
  * "Inspected" items from the Size Inventory form.
  */
-<!--#foreach name=Metric list=Size_Metric_Data_Names -->
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 [Estimated_Inspected Metric] = 0 + sumFor ("Estimated_Inspected Metric" , [Rollup_List]);
 <!--#endfor-->
+
 <!--#endfor-->
