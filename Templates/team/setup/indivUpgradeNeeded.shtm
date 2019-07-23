@@ -1,0 +1,23 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Software Upgrade Needed</h2>
+
+<p>New planning capabilities have been added to the Process Dashboard, and
+your project team has chosen to use these new features.  Unfortunately, the
+software on this computer is out-of-date.  To join this team project, you will
+need to upgrade.</p>
+
+<p>To resolve these problems, please contact your team leader and install an
+upgraded version of the Process Dashboard.  Then try joining the project
+again.</p>
+
+</body>
+</html>

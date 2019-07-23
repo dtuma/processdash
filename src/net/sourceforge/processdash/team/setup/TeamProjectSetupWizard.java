@@ -205,6 +205,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String IND_BG_SYNC_URL = "sync.class?run&bg&noExport";
     // URLs for pages alerting an individual to various errors that could
     // occur when attempting to join a team project.
+    private static final String IND_UPGRADE_ERR_URL = "indivUpgradeNeeded.shtm";
     private static final String IND_DUPL_PROJ_URL = "indivDuplicateProj.shtm";
     private static final String IND_CONNECT_ERR_URL = "indivConnectError.shtm";
     private static final String IND_DATADIR_ERR_URL = "indivDataDirError.shtm";
@@ -1615,6 +1616,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // get information needed by the joining process
         Map<String, String> joinInfo = getTeamProjectJoinInformation();
 
+        // make sure the user has the required software installed
+        checkInstalledSoftwareVersionRequirement(joinInfo);
+
         // make sure the user hasn't joined this project before.
         checkForDuplicateProject(joinInfo);
 
@@ -1664,6 +1668,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         l.add(result);
         putValue(JOINING_DATA_MAP, l);
         return result;
+    }
+
+    private void checkInstalledSoftwareVersionRequirement(
+            Map<String, String> joinInfo) {
+        String reqirement = joinInfo.get("Requires_Package");
+        if (!TemplateLoader.meetsPackageRequirement(reqirement))
+            throw new WizardError(IND_UPGRADE_ERR_URL);
     }
 
     private void checkForDuplicateProject(Map<String, String> joinInfo) {
@@ -2188,6 +2199,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
         String teamDataDirectoryURL = joinInfo.get(TEAM_DATA_DIRECTORY_URL);
         String indivTemplateID = joinInfo.get("Template_ID");
+        boolean wbsManagedSizeData = "true"
+                .equals(joinInfo.get("WBS_Managed_Size_Data"));
         boolean teamDashSupportsScheduleMessages = "true".equals(joinInfo
                 .get("Schedule_Messages_Supported"));
 
@@ -2209,6 +2222,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
+        if (wbsManagedSizeData)
+            enableWbsManagedSizeData();
         maybeSetProjectRootNodeId(projectID);
         boolean joinSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);

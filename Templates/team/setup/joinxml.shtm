@@ -48,7 +48,16 @@
 <!--#endif-->
 
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
+
+<!--#if [WBS_Managed_Size_Data] -->
+    Continuation_URI="/TPID/setup/probeUpgradeNeeded.shtm"
+    Continuation_URI2="/TPID/setup/wizard.class?page=indiv"
+    Requires_Package="pspdash version 2.5.3b; teamTools version 5.0.0"
+    WBS_Managed_Size_Data="true"
+<!--#else-->
     Continuation_URI="/TPID/setup/wizard.class?page=indiv"
+    WBS_Managed_Size_Data="false"
+<!--#endif-->
 
     Project_Full_Name="<!--#echo var=PATH_TRANSLATED encoding=xml -->"
     Schedule_Name="<!--#echo var=[Project_Schedule_Name] encoding=xml -->"

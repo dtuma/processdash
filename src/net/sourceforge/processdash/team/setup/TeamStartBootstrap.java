@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -761,7 +761,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(PACKAGE_VERSION, e.getAttribute("Package_Version"));
         putValue(TEMPLATE_PATH, e.getAttribute("Template_Path"));
         putValue(TEMPLATE_UNC, e.getAttribute("Template_Path_UNC"));
-        putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
+        String continuationUri = e.getAttribute("Continuation_URI2");
+        if (!XMLUtils.hasValue(continuationUri))
+            continuationUri = e.getAttribute("Continuation_URI");
+        putValue(CONTINUATION_URI, continuationUri);
         putValue(RELAX_PATH_REQ, e.getAttribute("Relax_Path_Reqt"));
         saveAllJoiningData(XMLUtils.getAttributesAsMap(e));
     }
@@ -814,7 +817,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(PACKAGE_VERSION, getParameter("Package_Version"));
         putValue(TEMPLATE_PATH, getParameter("Template_Path"));
         putValue(TEMPLATE_UNC, getParameter("Template_Path_UNC"));
-        putValue(CONTINUATION_URI, getParameter("Continuation_URI"));
+        String continuationUri = getParameter("Continuation_URI2");
+        if (!StringUtils.hasValue(continuationUri))
+            continuationUri = getParameter("Continuation_URI");
+        putValue(CONTINUATION_URI, continuationUri);
         putValue(RELAX_PATH_REQ, getParameter("Relax_Path_Reqt"));
         saveAllJoiningData(parameters);
         joinProject();
