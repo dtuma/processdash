@@ -78,6 +78,7 @@ import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.mcf.MCFManager;
+import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
@@ -844,6 +845,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             result.put("relaunchSourceID", relaunchSourceID);
         }
 
+        // tell the WBS to manage size data for all new and relaunched projects,
+        // unless this team dashboard has been configured otherwise
+        if (shouldEnableWbsManagedSizeData())
+            result.put("wbsManagedSize", "true");
+
         return result;
     }
 
@@ -993,7 +999,20 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             copyRelaunchableSettingsFrom(relaunchSourcePath);
         }
 
+        if (shouldEnableWbsManagedSizeData())
+            enableWbsManagedSizeData();
+
         putValue("_Password_", ImmutableDoubleData.TRUE);
+    }
+
+    private static boolean shouldEnableWbsManagedSizeData() {
+        return Settings.getBool("wbsManagedSize.enabled", true);
+    }
+
+    private void enableWbsManagedSizeData() {
+        putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
+        DataVersionChecker.registerDataRequirement("pspdash", "2.5.3b");
+        DataVersionChecker.registerDataRequirement("teamTools", "5.0.0");
     }
 
     private void copyRelaunchableSettingsFrom(String relaunchSourcePath) {

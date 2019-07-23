@@ -31,15 +31,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.processdash.util.VersionUtils;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -221,22 +219,26 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
 
     /**
+     * Copy the new-style size flag from team project settings to the WBS
+     */
+    public static void maybeEnableNewSizeDataColumns(TeamProject proj) {
+        if (proj.getBoolUserSetting(NEW_SIZE_SETTING_NAME)
+                && !isUsingNewSizeDataColumns(proj.getWBS())) {
+            proj.getWBS().getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
+        }
+    }
+
+    /**
      * Return true if this WBS is using the new-style size columns (provided by
      * the SizeDataColumn class), false if it is using the old size accounting
      * columns.
      */
     public static boolean isUsingNewSizeDataColumns(WBSModel wbsModel) {
-        WBSNode root = wbsModel.getRoot();
-        String createdWithVersion = (String) root
-                .getAttribute(WBSModel.CREATED_WITH_ATTR);
-        if (XMLUtils.hasValue(createdWithVersion))
-            return VersionUtils.compareVersions(MIN_NEW_SIZE_VERSION,
-                createdWithVersion) <= 0;
-        else
-            return false;
+        return wbsModel.getRoot().getAttribute(NEW_SIZE_ATTR_NAME) != null;
     }
 
-    private static final String MIN_NEW_SIZE_VERSION = "5.0.0";
+    private static final String NEW_SIZE_SETTING_NAME = "wbsManagedSize";
+    private static final String NEW_SIZE_ATTR_NAME = "WBS Managed Size Data";
 
 
 

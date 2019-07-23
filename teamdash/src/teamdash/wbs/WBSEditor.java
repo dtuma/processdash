@@ -149,7 +149,6 @@ import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.EditableSizeColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.MilestoneColumn;
-import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
@@ -161,6 +160,7 @@ import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -256,6 +256,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         WBSModel model = teamProject.getWBS();
 
+        SizeTypeColumn.maybeEnableNewSizeDataColumns(teamProject);
         WorkflowUtil.maybeUpdateWorkflowTypeData(model,
             teamProject.getWorkflows());
 
