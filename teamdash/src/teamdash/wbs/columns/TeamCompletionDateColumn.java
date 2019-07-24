@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -63,6 +63,14 @@ public class TeamCompletionDateColumn extends AbstractPrecomputedColumn
 
     protected static String getMemberNodeDataAttrName(String initials) {
         return initials + "@Actual_Node_Completion_Date";
+    }
+
+    public static final String getMemberTaskPrunedAttrName(TeamMember m) {
+        return getMemberTaskPrunedAttrName(m.getInitials());
+    }
+
+    protected static final String getMemberTaskPrunedAttrName(String initials) {
+        return initials + "@Actual_Node_Pruned_Flag";
     }
 
     public TableCellRenderer getCellRenderer() {

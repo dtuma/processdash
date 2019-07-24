@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -91,6 +91,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
     private String[] nodeTimeAttrs;
     private String[] actTimeAttrs;
     private String[] completionDateAttrs;
+    private String[] prunedAttrs;
     private String[] subtaskDataAttrs;
     private String[] planTimeAttrs;
     private String[] assignedWithZeroAttrs;
@@ -130,6 +131,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
         nodeTimeAttrs = new String[teamSize];
         actTimeAttrs = new String[teamSize];
         completionDateAttrs = new String[teamSize];
+        prunedAttrs = new String[teamSize];
         subtaskDataAttrs = new String[teamSize];
         planTimeAttrs = new String[teamSize];
         assignedWithZeroAttrs = new String[teamSize];
@@ -144,6 +146,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
                     .getResultDataAttrName(m);
             completionDateAttrs[i] = TeamCompletionDateColumn
                     .getMemberNodeDataAttrName(m);
+            prunedAttrs[i] = TeamCompletionDateColumn
+                    .getMemberTaskPrunedAttrName(m);
             subtaskDataAttrs[i] = TeamMemberActualTimeColumn
                     .getSubtaskDataAttrName(m);
             planTimeAttrs[i] = TopDownBottomUpColumn
@@ -230,6 +234,11 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
                     // their actual completion date for the task.
                     Date memberCompletionDate = (Date) node
                             .getAttribute(completionDateAttrs[i]);
+                    // if the task is incomplete, but the user has pruned it
+                    // from their EV plan, use the N/A date instead
+                    boolean pruned = node.getAttribute(prunedAttrs[i]) != null;
+                    if (memberCompletionDate == null && pruned)
+                        memberCompletionDate = new Date(COMPL_DATE_NA);
                     // keep track of the max completion date so far.
                     if (rollupMember)
                         completionDate[0] = mergeCompletionDate(
@@ -239,8 +248,9 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
                     if (memberCompletionDate != null) {
                         if (rollupMember)
                             earnedValue[0] += memberPlanTime;
-                        timeCalc[i].addCompletedTask(memberPlanTime,
-                            actualTime[i], milestone);
+                        if (!pruned)
+                            timeCalc[i].addCompletedTask(memberPlanTime,
+                                actualTime[i], milestone);
                     } else {
                         // See if subtask data is present for this task
                         List<ActualSubtaskData> subtaskData = (List) node
@@ -253,15 +263,19 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
                             // add up to a different value than memberPlanTime.
                             // calculate this ratio so we can adjust EV.
                             double subtaskPlanTotal = 0;
-                            for (ActualSubtaskData subtask : subtaskData)
-                                subtaskPlanTotal += subtask.getPlanTime();
+                            for (ActualSubtaskData subtask : subtaskData) {
+                                if (!subtask.isPruned())
+                                    subtaskPlanTotal += subtask.getPlanTime();
+                            }
                             double ratio = memberPlanTime / subtaskPlanTotal;
                             if (Double.isInfinite(ratio) || Double.isNaN(ratio))
                                 ratio = 0;
 
                             // record each subtask as an independent task.
                             for (ActualSubtaskData subtask : subtaskData) {
-                                if (subtask.getCompletionDate() != null) {
+                                if (subtask.isPruned()) {
+                                    // ignore pruned subtasks
+                                } else if (subtask.getCompletionDate() != null) {
                                     // this subtask was completed
                                     if (rollupMember)
                                         earnedValue[0] += subtask.getPlanTime()
@@ -350,12 +364,14 @@ public class TeamActualTimeColumn extends AbstractNumericColumn
                 // their actual completion date for the task.
                 Date memberCompletionDate = (Date) leafNode
                         .getAttribute(completionDateAttrs[i]);
-                // if this member is not completed, the overall task isn't
-                // complete either
-                if (memberCompletionDate == null)
-                    return false;
-                else
+                if (memberCompletionDate != null)
+                    // remember if we saw a completion date
                     sawCompletion = true;
+                else if (leafNode.getAttribute(prunedAttrs[i]) == null)
+                    // if this member has not completed the task, and hasn't
+                    // pruned it from their EV plan, the overall task isn't
+                    // complete either
+                    return false;
             }
         }
 

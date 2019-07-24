@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
@@ -934,6 +935,7 @@ public class WBSSynchronizer {
         private TeamMember m;
         private String actualTimeAttrName;
         private String completionDateAttrName;
+        private String prunedAttrName;
         private String subtaskDataAttrName;
 
         private void setTeamMember(TeamMember m) {
@@ -944,6 +946,8 @@ public class WBSSynchronizer {
                         .getNodeDataAttrName(m);
                 completionDateAttrName = TeamCompletionDateColumn
                         .getMemberNodeDataAttrName(m);
+                prunedAttrName = TeamCompletionDateColumn
+                        .getMemberTaskPrunedAttrName(m);
                 subtaskDataAttrName = TeamMemberActualTimeColumn
                         .getSubtaskDataAttrName(m);
             }
@@ -963,19 +967,38 @@ public class WBSSynchronizer {
             Date date = XMLUtils.getXMLDate(actualDataTag, COMPLETION_DATE_ATTR);
             node.setAttribute(completionDateAttrName, date);
 
+            if (XMLUtils.hasValue(PRUNED_ATTR))
+                node.setAttribute(prunedAttrName, "t");
+
             List subtaskData = null;
             boolean oneSubtaskComplete = false;
             NodeList subtaskNodes = actualDataTag
                     .getElementsByTagName(SUBTASK_DATA_TAG);
             if (subtaskNodes != null && subtaskNodes.getLength() > 0) {
                 subtaskData = new ArrayList();
+                boolean sawOneNonprunedSubtask = false;
+                Date nonprunedDate = new Date(0);
                 for (int i = 0; i < subtaskNodes.getLength(); i++) {
                     ActualSubtaskData asd = new ActualSubtaskData(
                             (Element) subtaskNodes.item(i));
                     if (asd.getCompletionDate() != null)
                         oneSubtaskComplete = true;
+                    if (asd.isPruned() == false) {
+                        sawOneNonprunedSubtask = true;
+                        if (asd.getCompletionDate() == null)
+                            nonprunedDate = null;
+                        else if (nonprunedDate != null)
+                            nonprunedDate = DateUtils.maxDate(nonprunedDate,
+                                asd.getCompletionDate());
+                    }
                     subtaskData.add(asd);
                 }
+                // if all subtasks were pruned, the parent task is pruned too
+                if (sawOneNonprunedSubtask == false)
+                    node.setAttribute(prunedAttrName, "t");
+                // calculate the completion date based on the nonpruned tasks
+                if (nonprunedDate != null && nonprunedDate.getTime() > 0)
+                    node.setAttribute(completionDateAttrName, nonprunedDate);
             }
             node.setAttribute(subtaskDataAttrName, subtaskData);
 
@@ -1007,14 +1030,17 @@ public class WBSSynchronizer {
         double planTime;
         double actualTime;
         Date completionDate;
+        boolean pruned;
         private ActualSubtaskData(Element xml) {
             planTime = XMLUtils.getXMLNum(xml, EST_TIME_ATTR);
             actualTime = XMLUtils.getXMLNum(xml, TIME_ATTR);
             completionDate = XMLUtils.getXMLDate(xml, COMPLETION_DATE_ATTR);
+            pruned = XMLUtils.hasValue(xml.getAttribute(PRUNED_ATTR));
         }
         public double getPlanTime()     { return planTime;       }
         public double getActualTime()   { return actualTime;     }
         public Date getCompletionDate() { return completionDate; }
+        public boolean isPruned()       { return pruned;         }
     }
 
     private class SizeDataLoader implements SyncHandler {
@@ -1264,6 +1290,8 @@ public class WBSSynchronizer {
     // private static final String START_DATE_ATTR = "started";
 
     private static final String COMPLETION_DATE_ATTR = "completed";
+
+    private static final String PRUNED_ATTR = "pruned";
 
     private static final String NEW_TASK_TAG = "newTask";
 

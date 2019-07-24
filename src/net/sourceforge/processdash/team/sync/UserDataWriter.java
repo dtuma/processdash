@@ -38,6 +38,7 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.TeamDataConstants;
@@ -58,6 +59,8 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String FORCE_REFRESH_PARAM = "forceRefresh";
 
 
+    private String taskListName;
+
     @Override
     protected void writeHeader() {
         out.print("Content-type: text/xml; charset=UTF-8\r\n\r\n");
@@ -69,6 +72,7 @@ public class UserDataWriter extends TinyCGIBase {
         String processID = getStringValue("Team_Process_PID");
         String processVersion = TemplateLoader.getPackageVersion(processID);
         String initials = getStringValue(TeamDataConstants.INDIV_INITIALS);
+        taskListName = getStringValue(TeamDataConstants.PROJECT_SCHEDULE_NAME);
         Date timestamp = new Date();
 
         XmlSerializer ser = XMLUtils.getXmlSerializer(true);
@@ -219,16 +223,19 @@ public class UserDataWriter extends TinyCGIBase {
         SimpleData actualTime = getData(path, "Time");
         SimpleData startDate = getData(path, "Started");
         SimpleData completionDate = getData(path, "Completed");
+        boolean pruned = isPrunedLeaf(path);
         boolean reportSubtasks = isPSPTaskWithReportableSubtaskData(hier, node,
             actualTime, completionDate);
 
         if (hasValue(actualTime) || hasValue(startDate)
-                || hasValue(completionDate) || reportSubtasks) {
+                || hasValue(completionDate) || pruned || reportSubtasks) {
             ser.startTag(null, ACTUAL_DATA_TAG);
             ser.attribute(null, WBS_ID_ATTR, wbsID);
             writeTimeDataAttr(ser, TIME_ATTR, actualTime);
             writeActualDataAttr(ser, START_DATE_ATTR, startDate);
             writeActualDataAttr(ser, COMPLETION_DATE_ATTR, completionDate);
+            if (pruned)
+                ser.attribute(null, PRUNED_ATTR, "t");
             if (reportSubtasks)
                 writeActualDataForPSPPhases(ser, hier, node);
             ser.endTag(null, ACTUAL_DATA_TAG);
@@ -240,6 +247,13 @@ public class UserDataWriter extends TinyCGIBase {
         // if this isn't a PSP project, return false.
         if (getData(node.path(), "PSP Project") == null)
             return false;
+
+        // if any of the PSP phases are pruned, report subtask data
+        for (int i = hier.getNumChildren(node); i-- > 0; ) {
+            PropertyKey phase = hier.getChildKey(node, i);
+            if (isPrunedLeaf(phase.path()))
+                return true;
+        }
 
         // if the entire PSP task has been marked complete, we don't need to
         // report subtask data.
@@ -277,6 +291,8 @@ public class UserDataWriter extends TinyCGIBase {
             writeTimeDataAttr(ser, TIME_ATTR, getData(path, "Time"));
             writeActualDataAttr(ser, START_DATE_ATTR, getData(path, "Started"));
             writeActualDataAttr(ser, COMPLETION_DATE_ATTR, getData(path, "Completed"));
+            if (isPrunedLeaf(path))
+                ser.attribute(null, PRUNED_ATTR, "t");
             ser.endTag(null, SUBTASK_DATA_TAG);
         }
     }
@@ -461,6 +477,11 @@ public class UserDataWriter extends TinyCGIBase {
         return hasValue(getData(path, "PSP Project"));
     }
 
+    private boolean isPrunedLeaf(String path) {
+        return hasValue(getData(path, "leaf"))
+                && EVTask.taskIsPruned(getDataRepository(), taskListName, path);
+    }
+
     private static boolean hasValue(String s) {
         return StringUtils.hasValue(s);
     }
@@ -616,6 +637,8 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String START_DATE_ATTR = "started";
 
     private static final String COMPLETION_DATE_ATTR = "completed";
+
+    private static final String PRUNED_ATTR = "pruned";
 
     private static final String NC_LOC = "New & Changed LOC";
 
