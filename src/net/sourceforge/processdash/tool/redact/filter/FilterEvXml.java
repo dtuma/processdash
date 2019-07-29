@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ public class FilterEvXml extends RedactFilterUtils {
                 tag = hashEvScheduleTag(tags[i]);
 
             else if (tag.startsWith("<evSnapshot "))
-                ; // TODO: remap snapshot names, if we ever let the user enter them
+                tag = hashSnapshotTag(tags[i]);
 
             else if (tag.startsWith("<task "))
                 tag = hashTaskTag(tags[i]);
@@ -76,6 +76,13 @@ public class FilterEvXml extends RedactFilterUtils {
             return tag;
         else
             return replaceXmlAttr(tag, "name", taskListMapper);
+    }
+
+    private String hashSnapshotTag(String tag) {
+        if (hashTaskNames)
+            tag = replaceXmlAttr(tag, "name", "EV Snapshot");
+        tag = replaceXmlAttr(tag, "comment", null);
+        return tag;
     }
 
     private String hashTaskTag(String tag) {
@@ -143,10 +150,10 @@ public class FilterEvXml extends RedactFilterUtils {
         private FilterEvXml xmlFilter;
 
         public InGlobalDat() {
-            filenamePatterns = new PatternList("global.dat");
+            filenamePatterns = new PatternList("global.dat", "ev-.*.dat");
         }
 
-        @EnabledFor("^Task-Schedule/.*/Snapshot/")
+        @EnabledFor({ "^Task-Schedule/.*/Snapshot/", "^Snapshot/" })
         public String hashEvBaselines(String xml) {
             xmlFilter = getEvXmlFilter(xmlFilter, data);
 
