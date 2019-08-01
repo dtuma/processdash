@@ -1,19 +1,86 @@
 <html>
 <head>
-<title>Restore Data for an Individual</title>
+<title>Restore Team Project Data</title>
+<style>
+    h3 { margin-top: 1.5em }
+    form { margin-left: 1cm }
+</style>
 </head>
 <body>
 
-<h1>Restore Data for an Individual</h1>
+<h1><!--#echo var="PATH_TRANSLATED" --></h1>
 
-<form action="restoreIndivData" method="post">
+<h2>Restore Team Project Data</h2>
 
-Complete path to pdash file:
-<input type="text" name="filename">
+<p>When you join a team project, the actual data you collect (e.g. time log
+entries, defects, task completion dates) is stored in your personal dashboard
+database.  When you perform an "Export My Data Now" operation, that actual
+data is published to the Team Dashboard so it can be used for team
+reports.</p>
 
-<input type="submit" name="OK" value="OK">
+<p>If your personal dashboard database is lost or corrupted (for example, due
+to a hard drive crash), the actual data you've collected will be lost.</p>
 
+<ul>
+
+<li>If you have a <b>recent backup</b> of your personal dashboard data, it's a
+good idea to restore your personal dashboard from that backup.  Of course,
+you'll still be missing any data you collected after that backup was
+made.</li>
+
+<li style="margin-top:12px">If you <b>don't have a backup</b> of your personal
+dashboard, you'll have to create a new personal dashboard database and rejoin
+the project.  Rejoining will create a new <b>plan</b> for you from the tasks
+found in the WBS, but it will not restore any of the <b>actual</b> data. The
+newly created personal database will not contain any of the time log entries,
+defects, etc. that you collected before the crash.</li>
+
+</ul>
+
+<p>In those scenarios, you can use the form below to pull actual data from the
+Team Dashboard and restore it to your personal database.  Two options are
+possible:</p>
+
+
+<h3>Option 1: Last Personal Export File</h3>
+
+<p>The dashboard can attempt to pull actual data from the last file you
+exported:</p>
+
+<form action="restoreIndivData" method="post" enctype="multipart/form-data">
+    <input type='hidden' name='__POST_TOKEN'
+           value='<!--#echo var=[POST_TOKEN//RestoreIndivData] -->'>
+    Personal Export Filename:
+    <input type="text" name="filename" size="40" value="<!--#echo var=[EXPORT_FILE] -->">
+    <input type="submit" name="filenameOK" value="OK">
 </form>
+
+<p>This can be effective if you rejoined the project but have <b>not yet
+performed</b> an "Export My Data Now" operation; in that case the export file
+will still contain data exported from your old personal dashboard database.
+(If you've already done a "sync" or "export" after rejoining, this empty
+dashboard will have already overwritten the export file from the original
+dashboard, so this techique won't find any data to import.)</p>
+
+
+<h3>Option 2: Team Dashboard Backup File</h3>
+
+<p>The dashboard can attempt to extract data from a Team Dashboard backup:</p>
+
+<form action="restoreIndivData" method="post" enctype="multipart/form-data">
+    <input type='hidden' name='__POST_TOKEN'
+           value='<!--#echo var=[POST_TOKEN//RestoreIndivData] -->'>
+    Team Dashboard Backup File:
+    <input type="file" name="file">
+    <input type="submit" name="uploadOK" value="OK">
+</form>
+
+<p>The "File" menu in the Team Dashboard includes a "Save Data Backup" option.
+If someone on your team used that option in the past, and saved a team backup
+<b>before you rejoined the project</b>, that backup will contain the actual
+data you exported before the team backup was made.  Upload a Team Dashboard
+backup via the form above, and the dashboard will look inside to see if it
+contains any of your actual data.</p>
 
 </body>
 </html>

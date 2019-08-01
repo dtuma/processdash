@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -204,6 +204,8 @@ public class RestoreIndivDataWorker implements TeamDataConstants, DefectAnalyzer
         // to the time log.
         i = ImportedTimeLogManager.getInstance().getImportedTimeLogEntries(
             importPrefix);
+        if (i == null)
+            return;
         while (i.hasNext()) {
             TimeLogEntry tle = (TimeLogEntry) i.next();
             if (!knownEntries.contains(tle.getStartTime())) {
