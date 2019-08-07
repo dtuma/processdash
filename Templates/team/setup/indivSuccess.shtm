@@ -2,6 +2,12 @@
 <head>
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<style>
+   .addMargin { margin: 16px }
+   div.advice { margin-left: 40px }
+   form.collapsed div.advice { display: none }
+   form.expanded input { display: none }
+</style>
 </head>
 <body>
 
@@ -11,9 +17,9 @@
 
 <h2>Joining Complete</h2>
 
-You have successfully joined this team project.  If you return to the main
+<p>You have successfully joined this team project.  If you return to the main
 Process Dashboard toolbar and click on the script button, you will find a
-number of useful tools for managing your personal plan.
+number of useful tools for managing your personal plan.</p>
 
 <!--#if schedProblem -->
 
@@ -22,6 +28,108 @@ the dashboard was unable to add your personal earned value schedule to
 the team earned value schedule.  <b><u>Please tell your team leader
 about this problem</u></b>; they will be able to add your schedule to
 the team schedule manually.</td></tr></table>
+
+<!--#endif-->
+
+<!--#if foundBackup -->
+
+<table border width='100%'>
+
+<tr><td bgcolor="#ff6666">
+<h3 class="addMargin">Data Collision Warning</h3>
+
+<p class="addMargin">It appears that someone has already joined this project
+using the initials '<tt><!--#echo [Indiv_Initials] --></tt>' from a different
+personal dashboard.  Please read the following scenarios carefully, and click
+the option that applies to you:</p>
+</td></tr>
+
+
+<tr><td><form class="collapsed">
+
+<p class="addMargin">Are you trying to join this project from two or more
+computers (for example, so you can collect data from more than one place)?
+<input type="button" name="Yes" value="Yes" onclick="return expand(this)"></p>
+
+<div class="advice">
+
+<p>This mode of operation is <b>not supported</b>.  When you do this, each
+joined computer will end up having an independent database of actual project
+data.  Each time you export data from one computer, you will overwrite the
+data written by the other computer(s).</p>
+
+<p>If you'd like to open your personal dashboard from more than one computer,
+ask your organization to consider using the <a target="_blank"
+href="https://www.processdash.com/pdes-indiv">Process Dashboard Enterprise
+Server</a>.</p>
+
+<p style="margin-bottom: 3px">In the meantime, you will need to:</p>
+
+<ul>
+<li>Pick one computer where you'll enter data for this project, and</li>
+<li>Use &quot;<img src="/help/Images/cmenu.png"> &rarr; Hierarchy&quot; to
+    delete this team project from the personal dashboard on the other
+    computers.</li>
+</ul>
+
+<p><b style="color:#700">Do not ignore this warning.</b> You will be
+contributing incomplete/incorrect data to team reports until you fix this
+problem.  Print this page if necessary, and ask your team leader for help.</p>
+
+</div></form></td></tr>
+
+
+<!--#if [EXPORT_FILE_BACKUP] -->
+<tr><td><form action="restoreIndivData" method="GET">
+
+<p class="addMargin">Did you lose your personal dashboard database (for
+example, because of a hard drive crash with no backup), so you're trying to
+rejoin? <input type="submit" name="Yes" value="Yes"></p>
+
+</form></td></tr>
+<!--#endif-->
+
+
+<tr><td><form class="collapsed">
+
+<p class="addMargin">
+<!--#if [EXPORT_FILE_BACKUP] -->
+    Neither of the scenarios above apply.
+<!--#else-->
+    The scenario above does not apply.
+<!--#endif-->
+<input type="button" name="OK" value="OK" onclick="return expand(this)"></p>
+
+<div class="advice">
+
+<p>It is likely that you and a team member have both joined the project using
+the same initials.  Please contact your team leader for help with this
+problem.</p>
+
+<ul>
+
+<li>If you've joined using the wrong initials, you can correct the mistake on
+the <a target="_top" href="../indiv_project_parameters.shtm">Project
+Parameters and Settings</a> page.  After correcting the mistake, perform a
+"Sync to WBS" operation.</li>
+
+<li>If a team member has used your initials by mistake, they can correct the
+problem by opening the Project Parameters and Settings page in their own
+dashboard.</li>
+
+</ul>
+
+</div></form></td></tr>
+
+</table>
+
+
+<script>
+    function expand(elem) {
+        elem.parentNode.parentNode.className = "expanded";
+        return false;
+    }
+</script>
 
 <!--#endif-->
 

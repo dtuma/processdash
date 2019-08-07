@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.team.setup;
 
+import static net.sourceforge.processdash.team.setup.TeamProjectSetupWizard.EXPORT_FILE_BACKUP;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -255,6 +257,10 @@ public class RestoreIndivDataWorker implements TeamDataConstants, DefectAnalyzer
 
     private void closeData() {
         DataImporter.closeImportedFile(ctx.getData(), importPrefix);
+
+        String efb = getStrData(projectPrefix, EXPORT_FILE_BACKUP);
+        if (efb != null && efb.endsWith(pdashFile.getName()))
+            putData(projectPrefix, EXPORT_FILE_BACKUP, null);
     }
 
     private String getStrData(String prefix, String name) {

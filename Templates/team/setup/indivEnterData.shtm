@@ -380,7 +380,8 @@ you would like to use, click the button to join this team project.</p>
     var teamMembers = <!--#echo var=[setup//Team_Member_List] encoding=none -->;
 
     var ac = new Autocompleter.Local("initialsField", "autocomplete", teamMembers,
-        { partialChars: 1, onShow: showCompletions, updateElement: handleSelection });
+        { partialChars: 1, onShow: showCompletions, updateElement: handleSelection,
+          frequency: 0.1 });
 
     ac.getUpdatedChoices = function() {
         var html = this.options.selector(this);

@@ -35,10 +35,12 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +52,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.json.simple.JSONArray;
 import org.w3c.dom.Document;
@@ -94,6 +97,7 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -202,6 +206,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     // URL of the page that is displayed when the wizard successfully
     // joins the individual to the team project
     private static final String IND_SUCCESS_URL = "indivSuccess.shtm";
+    static final String EXPORT_FILE_BACKUP = "EXPORT_FILE_BACKUP";
     private static final String IND_BG_SYNC_URL = "sync.class?run&bg&noExport";
     // URLs for pages alerting an individual to various errors that could
     // occur when attempting to join a team project.
@@ -2225,12 +2230,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (wbsManagedSizeData)
             enableWbsManagedSizeData();
         maybeSetProjectRootNodeId(projectID);
-        boolean joinSucceeded = teamDashSupportsScheduleMessages
+        boolean addScheduleSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);
         importDisseminatedTeamData();
+        boolean foundBackup = maybeBackupExistingPdashFile();
         DashController.setPath(localProjectName);
 
-        showIndivSuccessPage(joinSucceeded);
+        showIndivSuccessPage(addScheduleSucceeded, foundBackup);
     }
 
     /** Contacts the team dashboard and downloads information about
@@ -2413,16 +2419,99 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
     }
 
-    protected void showIndivSuccessPage(boolean joinSucceeded) {
+    private boolean maybeBackupExistingPdashFile() {
+        // get the name of the backup file used by this individual
+        String pdashFile = getValue("EXPORT_FILE");
+        if (!StringUtils.hasValue(pdashFile))
+            return false;
+
+        // if the file doesn't exist, return false
+        File f = new File(pdashFile);
+        if (!f.isFile())
+            return false;
+
+        // if the file already exists, make a backup copy of it
+        try {
+            // place the copy in the WBS's "backup" subdirectory
+            File wbsDir = f.getParentFile();
+            File backupDir = new File(wbsDir, "backup");
+            backupDir.mkdir();
+
+            // create a unique filename that includes the export time
+            Date d = new Date(f.lastModified());
+            String timeStr = new SimpleDateFormat("yyyyMMddHHmmss").format(d);
+            String filename = f.getName().toLowerCase();
+            String initials = filename.substring(0, filename.indexOf('-'));
+            String prefix = "pdash-" + initials + "-";
+            filename = prefix + timeStr + "-data.pdash";
+            File backup = new File(backupDir, filename);
+
+            // back up the file
+            FileUtils.copyFile(f, backup);
+
+            // scan the backup directory and see if we find a PDASH file for
+            // this person that contains actual data. (It could be the file we
+            // just copied, or an earlier one.) If so, save the filename.
+            lookForRecentPdashWithActualData(backupDir, prefix);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // return true to indicate that we found an existing pdash file
+        return true;
+    }
+
+    private void lookForRecentPdashWithActualData(File dir, String prefix) {
+        String[] files = dir.list();
+        Arrays.sort(files);
+        for (int i = files.length; i-- > 0;) {
+            if (files[i].startsWith(prefix)) {
+                File pdashFile = new File(dir, files[i]);
+                if (pdashFileContainsActualData(pdashFile)) {
+                    putValue(EXPORT_FILE_BACKUP, pdashFile.getAbsolutePath());
+                    break;
+                }
+            }
+        }
+    }
+
+    /** @return true if a pdash file appears to contain actual data */
+    private boolean pdashFileContainsActualData(File f) {
+        ZipInputStream zip = null;
+        try {
+            zip = new ZipInputStream(
+                    new BufferedInputStream(new FileInputStream(f)));
+            ZipEntry e;
+            while ((e = zip.getNextEntry()) != null) {
+                String name = e.getName();
+                if ("time.xml".equals(name) || "defects.xml".equals(name)) {
+                    Element xml = XMLUtils.parse(new NonclosingInputStream(zip))
+                            .getDocumentElement();
+                    if (!XMLUtils.getChildElements(xml).isEmpty())
+                        return true;
+                }
+            }
+        } catch (Exception e) {
+        } finally {
+            FileUtils.safelyClose(zip);
+        }
+        return false;
+    }
+
+    protected void showIndivSuccessPage(boolean addScheduleSucceeded,
+            boolean foundBackup) {
         String prefix = WebServer.urlEncodePath(getPrefix());
         String selfUrl = prefix + "/" + env.get("SCRIPT_NAME");
         String url = StringUtils.findAndReplace(selfUrl, "wizard.class",
             IND_SUCCESS_URL);
 
-        if (joinSucceeded)
-            printRedirect(url);
-        else
-            printRedirect(url + "?schedProblem");
+        if (!addScheduleSucceeded)
+            url = HTMLUtils.appendQuery(url, "schedProblem");
+        if (foundBackup)
+            url = HTMLUtils.appendQuery(url, "foundBackup");
+
+        printRedirect(url);
 
         // the logic above will send the user to a "success" page.  While
         // they are reading that page, we will kick off a "Sync to WBS"

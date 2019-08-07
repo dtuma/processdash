@@ -42,7 +42,9 @@ Team Dashboard and restore it to your personal database.  Two options are
 possible:</p>
 
 
-<h3>Option 1: Last Personal Export File</h3>
+<h3>Option 1: Last Personal Export File
+<!--#if [EXPORT_FILE_BACKUP] --><i>(Recommended)</i><!--#endif-->
+</h3>
 
 <p>The dashboard can attempt to pull actual data from the last file you
 exported:</p>
@@ -51,16 +53,20 @@ exported:</p>
     <input type='hidden' name='__POST_TOKEN'
            value='<!--#echo var=[POST_TOKEN//RestoreIndivData] -->'>
     Personal Export Filename:
-    <input type="text" name="filename" size="40" value="<!--#echo var=[EXPORT_FILE] -->">
+    <input type="text" name="filename" size="60"
+          value="<!--#if [EXPORT_FILE_BACKUP] --><!--#echo [EXPORT_FILE_BACKUP]
+              --><!--#else--><!--#echo [EXPORT_FILE] --><!--#endif-->">
     <input type="submit" name="filenameOK" value="OK">
 </form>
 
+<!--#if not [EXPORT_FILE_BACKUP] -->
 <p>This can be effective if you rejoined the project but have <b>not yet
 performed</b> an "Export My Data Now" operation; in that case the export file
 will still contain data exported from your old personal dashboard database.
 (If you've already done a "sync" or "export" after rejoining, this empty
 dashboard will have already overwritten the export file from the original
 dashboard, so this techique won't find any data to import.)</p>
+<!--#endif-->
 
 
 <h3>Option 2: Team Dashboard Backup File</h3>
