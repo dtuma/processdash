@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2017 Tuma Solutions, LLC
+// Copyright (C) 2013-2019 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -102,6 +103,11 @@ public class McfSizeMetricApiHandler implements SizeMetricApiHandler {
         // make certain the task is an Indiv node within a team project
         String pathTemplateId = request.ctx.getHierarchy().getID(pathKey);
         if (!pathTemplateId.contains("/Indiv"))
+            return null;
+
+        // abort if this team project is using WBS-managed size instead of
+        // the Size Inventory Form
+        if (testInheritableData(request, TeamDataConstants.WBS_SIZE_DATA_NAME))
             return null;
 
         // make certain the task is capable of storing size metrics
@@ -295,6 +301,16 @@ public class McfSizeMetricApiHandler implements SizeMetricApiHandler {
     private boolean hasData(SizeMetricApiRequestData request,
             String dataElemName) {
         return getData(request, dataElemName) != null;
+    }
+
+    private boolean testInheritableData(SizeMetricApiRequestData request,
+            String dataElemName) {
+        SaveableData value = request.ctx.getData()
+                .getInheritableValue(request.targetPath, dataElemName);
+        if (value == null)
+            return false;
+        SimpleData result = value.getSimpleValue();
+        return (result != null && result.test());
     }
 
     private String getStringData(SizeMetricApiRequestData request,

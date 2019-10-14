@@ -45,7 +45,9 @@ up to the team level.)</p>
 <p>At the moment, this API only supports size metrics recorded by an
 individual onto the Size Inventory Form of a team project.  Other size metric
 types, such as the Size Estimating Template of a PSP task, are not currently
-supported.</p>
+supported.  In addition, starting with dashboard version 2.5.3, team projects
+store size data in the WBS rather than the Size Inventory Form; such projects
+are not supported by this API either.</p>
 
 <p>By default, invocations of this POST method will be rejected unless they
 originate from the same computer where the Process Dashboard is running.  This
