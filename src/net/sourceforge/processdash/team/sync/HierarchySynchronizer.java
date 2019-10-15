@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1960,6 +1960,7 @@ public class HierarchySynchronizer {
     private static final String CLIENT_ID_ATTR = "cid";
     private static final String TASK_ID_ATTR = "tid";
     private static final String WORKFLOW_ID_ATTR = "wid";
+    private static final String RELAUNCH_SOURCE_ID_ATTR = "rsid";
     private static final String MILESTONE_ID_ATTR = "mid";
     private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String SAVE_DATE_ATTR = "dumpTimestamp";
@@ -2407,6 +2408,7 @@ public class HierarchySynchronizer {
             String nodeID = node.getAttribute(ID_ATTR);
             String taskID = node.getAttribute(TASK_ID_ATTR);
             String workflowID = node.getAttribute(WORKFLOW_ID_ATTR);
+            String relaunchID = node.getAttribute(RELAUNCH_SOURCE_ID_ATTR);
             try {
                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));
@@ -2416,6 +2418,9 @@ public class HierarchySynchronizer {
                     putData(path, TeamDataConstants.WORKFLOW_ID_DATA_NAME,
                         (XMLUtils.hasValue(workflowID)
                                 ? StringData.create(workflowID) : null));
+                putData(path, TeamDataConstants.RELAUNCH_SOURCE_WBS_ID,
+                    (XMLUtils.hasValue(relaunchID)
+                            ? StringData.create(relaunchID) : null));
                 maybeFixPreviouslyClobberedTeamTimeElement(path);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
@@ -3525,7 +3530,7 @@ public class HierarchySynchronizer {
                 return result;
 
             // check to see if this PSP task was relaunched from a prior project
-            String relaunchSourceID = xml.getAttribute("rsid");
+            String relaunchSourceID = xml.getAttribute(RELAUNCH_SOURCE_ID_ATTR);
             if (!XMLUtils.hasValue(relaunchSourceID))
                 return null;
 

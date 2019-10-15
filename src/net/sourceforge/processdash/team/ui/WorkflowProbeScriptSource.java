@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
 
 package net.sourceforge.processdash.team.ui;
 
+import static net.sourceforge.processdash.team.TeamDataConstants.PROJECT_ID;
+import static net.sourceforge.processdash.team.TeamDataConstants.RELAUNCH_SOURCE_WBS_ID;
+import static net.sourceforge.processdash.team.TeamDataConstants.WBS_ID_DATA_NAME;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +37,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptSource;
@@ -98,6 +103,7 @@ public class WorkflowProbeScriptSource implements ScriptSource {
 
         List<String> result = new ArrayList();
         findProbeTasks(result, workflowRootKey);
+        findPriorProbeTasks(result, workflowRoot);
         return result;
     }
 
@@ -123,6 +129,63 @@ public class WorkflowProbeScriptSource implements ScriptSource {
                 findProbeTasks(result,
                     context.getHierarchy().getChildKey(node, i));
             }
+        }
+    }
+
+    private void findPriorProbeTasks(List<String> result, String workflowRoot) {
+        // see if this component was relaunched from an earlier project
+        String relaunchID = getString(workflowRoot, RELAUNCH_SOURCE_WBS_ID);
+        if (relaunchID == null)
+            return;
+
+        // parse the relaunch ID
+        String[] parts = relaunchID.split(":");
+        if (parts.length != 2)
+            return;
+        String projectID = parts[0], wbsID = parts[1];
+
+        // scan the hierarchy to find earlier instances of this component, and
+        // look for PROBE tasks within
+        scanForPriorProbeTasks(result, workflowRoot, relaunchID, projectID,
+            wbsID, context.getHierarchy(), PropertyKey.ROOT, false, false);
+    }
+
+    private void scanForPriorProbeTasks(List<String> result,
+            String workflowRoot, String relaunchID, String projectID,
+            String wbsID, DashHierarchy hier, PropertyKey node,
+            boolean projectMatch, boolean componentMatch) {
+
+        // the original workflow root was already searched for PROBE tasks; so
+        // when we encounter it again, skip that portion of the hierarchy.
+        String path = node.path();
+        if (path.equals(workflowRoot))
+            return;
+
+        if (componentMatch) {
+            // when our ancestor is a pre-relaunch instance of the workflow
+            // root, search for PROBE tasks
+            if (getValue(path, "PROBE Task") != null)
+                result.add(path);
+
+        } else if (projectMatch) {
+            // within the original project, look for the matching WBS node
+            if (wbsID.equals(getString(path, WBS_ID_DATA_NAME)))
+                componentMatch = true;
+
+        } else if (projectID.equals(getString(path, PROJECT_ID))) {
+            // if we find the root of the original project, set the flag
+            projectMatch = true;
+
+        } else if (relaunchID.equals(getString(path, RELAUNCH_SOURCE_WBS_ID))) {
+            // in other projects, look for nodes with this relaunch ID
+            componentMatch = true;
+        }
+
+        // recurse over hierarchy children
+        for (int i = hier.getNumChildren(node); i-- > 0;) {
+            PropertyKey child = hier.getChildKey(node, i);
+            scanForPriorProbeTasks(result, workflowRoot, relaunchID, projectID,
+                wbsID, hier, child, projectMatch, componentMatch);
         }
     }
 
