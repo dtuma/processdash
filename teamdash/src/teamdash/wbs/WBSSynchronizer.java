@@ -967,7 +967,7 @@ public class WBSSynchronizer {
             Date date = XMLUtils.getXMLDate(actualDataTag, COMPLETION_DATE_ATTR);
             node.setAttribute(completionDateAttrName, date);
 
-            if (XMLUtils.hasValue(PRUNED_ATTR))
+            if (XMLUtils.hasValue(actualDataTag.getAttribute(PRUNED_ATTR)))
                 node.setAttribute(prunedAttrName, "t");
 
             List subtaskData = null;
