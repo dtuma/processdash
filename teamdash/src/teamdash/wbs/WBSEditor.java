@@ -622,7 +622,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isDumpAndExitMode())
             return true;
 
-        if (teamProject.getBoolUserSetting(RelaunchWorker.RELAUNCH_PROJECT_SETTING))
+        if (teamProject.getBoolUserSetting(RelaunchWorkerNew.RELAUNCH_PROJECT_SETTING))
             return true;
 
         return false;
@@ -633,9 +633,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (readOnly)
             return;
 
-        if (teamProject.getBoolUserSetting(RelaunchWorker.RELAUNCH_PROJECT_SETTING)) {
+        if (teamProject.getBoolUserSetting(RelaunchWorkerNew.RELAUNCH_PROJECT_SETTING)) {
             setDirty(true);
-            new RelaunchWorker(teamProject, data).run();
+            new RelaunchWorkerNew(teamProject, data).run();
         }
     }
 
@@ -677,7 +677,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         Object message;
         boolean wasRelaunched = StringUtils.hasValue(
-            teamProject.getUserSetting(RelaunchWorker.RELAUNCH_SOURCE_ID));
+            teamProject.getUserSetting(RelaunchWorkerNew.RELAUNCH_SOURCE_ID));
         if (wasRelaunched) {
             message = new Object[] {
                     resources.getStrings("Project_Closed.Message_2"), " ",

@@ -716,7 +716,7 @@ public class WBSJTable extends JTable {
                         taskIDSource.getNodeID(node));
             node.setAttribute(MasterWBSUtil.MASTER_PARENT_ID, null);
             node.setAttribute(MasterWBSUtil.MASTER_NODE_ID, null);
-            node.setAttribute(RelaunchWorker.RELAUNCH_SOURCE_ID, null);
+            node.setAttribute(RelaunchWorkerNew.RELAUNCH_SOURCE_ID, null);
         }
     }
 

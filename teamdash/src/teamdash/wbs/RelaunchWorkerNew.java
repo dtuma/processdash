@@ -40,7 +40,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
-public class RelaunchWorker {
+public class RelaunchWorkerNew {
 
     public static final String RELAUNCH_PROJECT_SETTING = "relaunchProject";
 
@@ -56,7 +56,7 @@ public class RelaunchWorker {
     private static final String DUMP_DATA_FILE = "relaunchDump.xml";
 
 
-    public RelaunchWorker(TeamProject teamProject, DataTableModel data) {
+    public RelaunchWorkerNew(TeamProject teamProject, DataTableModel data) {
         this.teamProject = teamProject;
         this.dataModel = data;
         this.wbs = teamProject.getWBS();
