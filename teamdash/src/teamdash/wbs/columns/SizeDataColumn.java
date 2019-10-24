@@ -639,6 +639,59 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
     /**
+     * Iterate over the WBS, and clear size data values entered on any of the
+     * given nodes.
+     * 
+     * @param wbs
+     *            the WBS to scan
+     * @param process
+     *            the team process used by this project
+     * @param clearPlanSize
+     *            true if planned size values should be cleared
+     * @param clearActualSize
+     *            true if actual size values should be cleared
+     * @param nodesToClear
+     *            the nodes whose size data should be cleared
+     */
+    public static void clearSizeDataNodeValues(WBSModel wbs,
+            TeamProcess process, boolean clearPlanSize, boolean clearActualSize,
+            Set<WBSNode> nodesToClear) {
+
+        // iterate over each of the plan/actual size metrics in the team process
+        for (boolean plan : new boolean[] { true, false }) {
+            // if the user doesn't wants this type cleared, skip it
+            if ((plan ? clearPlanSize : clearActualSize) == false)
+                continue;
+
+            for (String metric : process.getSizeMetrics()) {
+                // get the name of the attribute for this metric
+                String base = getAttrBaseName(metric, plan);
+                String attr = TopDownBottomUpColumn.getTopDownAttrName(base);
+
+                // iterate over the nodes we were given, clearing this attribute
+                Set<WBSNode> planChangedNodes = new HashSet<WBSNode>();
+                for (WBSNode node : nodesToClear) {
+                    // keep track of changes made to planned node size data
+                    if (plan && node.getNumericAttribute(attr) > 0)
+                        planChangedNodes.add(node);
+
+                    // clear the node size data attribute for this metric
+                    node.removeAttribute(attr);
+                }
+
+                // if we changed the planned size for any nodes, clear the
+                // associated rates from all affected nodes (so their time
+                // estimates won't get recalculated)
+                if (plan && !planChangedNodes.isEmpty())
+                    clearTaskRatesForNodesAffectedByPlanSizeChange(wbs, process,
+                        metric, planChangedNodes);
+            }
+        }
+    }
+
+
+
+    /**
      * Scan the WBS for any tasks that inherit their task size (directly or
      * indirectly) from the nodes in question. If found, clear any direct rates
      * for those tasks.

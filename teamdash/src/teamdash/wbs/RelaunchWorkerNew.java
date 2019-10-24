@@ -40,6 +40,10 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
+/**
+ * When a team project has been relaunched, this makes changes to the WBS in the
+ * new (poat-relaunch) project.
+ */
 public class RelaunchWorkerNew {
 
     public static final String RELAUNCH_PROJECT_SETTING = "relaunchProject";
@@ -132,6 +136,8 @@ public class RelaunchWorkerNew {
     }
 
     private boolean listCompletedItems(List dest, WBSNode wbsNode) {
+        // keep this logic in this method in sync with the logic in the
+        // RelaunchWorkerOld.getRelaunchedNodes() method
         boolean deleteThisNode;
         WBSNode[] children = wbs.getChildren(wbsNode);
         if (children.length == 0) {

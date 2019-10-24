@@ -680,10 +680,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         saveTeamSettings (teamDirectory, teamDataDir, projectID);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
         exportProjectData();
-        if (StringUtils.hasValue(relaunchSourcePath))
+        if (StringUtils.hasValue(relaunchSourcePath)) {
             startAsyncExport(relaunchSourcePath);
+            if (testValue(relaunchSourcePath + "/"
+                    + TeamDataConstants.WBS_SIZE_DATA_NAME))
+                startAsyncCleanupOfRelaunchedWbs(relaunchSourcePath);
+        }
         if (StringUtils.hasValue(relaunchSourceID))
-            startAsyncCleanupOfRelaunchedWbs();
+            startAsyncCleanupOfRelaunchedWbs(null);
 
         // print a success message!
         printRedirect(TEAM_SUCCESS_URL);
@@ -775,7 +779,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return null;
 
         // update settings on the relaunched project WBS to mark it as closed
-        CloseRelaunchedProjectWbs crpw = new CloseRelaunchedProjectWbs();
+        CloseProjectWbs crpw = new CloseProjectWbs(true);
         List l = relaunchSourceLocations.asList();
         try {
             writeFilesToWbsDir(Collections.singleton(crpw),
@@ -795,10 +799,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         return crpw.dir;
     }
 
-    private class CloseRelaunchedProjectWbs implements WriteFileTask {
+    private class CloseProjectWbs implements WriteFileTask {
+        private boolean isRelaunch;
         private File dir;
+        public CloseProjectWbs(boolean isRelaunch) {
+            this.isRelaunch = isRelaunch;
+        }
         public void write(File dir) throws IOException {
-            closeOldProjectWbs(dir);
+            closeOldProjectWbs(dir, isRelaunch);
             this.dir = dir;
         }
     }
@@ -854,10 +862,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // tell the WBS to manage size data for all new and relaunched projects,
         // unless this team dashboard has been configured otherwise
         if (shouldEnableWbsManagedSizeData())
-            result.put("wbsManagedSize", "true");
+            result.put(WBS_MANAGED_SIZE_WBS_SETTING, "true");
 
         return result;
     }
+
+    private static final String WBS_MANAGED_SIZE_WBS_SETTING = "wbsManagedSize";
 
     private class UserSettingsWriter implements WriteFileTask {
         private Properties userSettings;
@@ -933,11 +943,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
 
-    private void startAsyncCleanupOfRelaunchedWbs() {
+    private void startAsyncCleanupOfRelaunchedWbs(String projectPath) {
         try {
             // start a headless WBS Editor process in the background to
-            // perform the cleanup operations on the new WBS
+            // perform the cleanup operations on the project WBS
             String wbsUri = resolveRelativeURI("openWBS.shtm?dumpAndExit");
+            if (projectPath != null)
+                wbsUri = HTMLUtils.urlEncodePath(projectPath)
+                        + wbsUri.substring(wbsUri.lastIndexOf("//"));
             getRequest(wbsUri, false);
         } catch (Exception e) {
             // if this fails, continue; the cleanup will be performed the
@@ -1453,7 +1466,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // if we see a "confirm" param, attempt to close the project
         if (parameters.containsKey("confirm") && checkPostToken()) {
             try {
-                CloseRelaunchedProjectWbs crpw = new CloseRelaunchedProjectWbs();
+                CloseProjectWbs crpw = new CloseProjectWbs(false);
                 writeFilesToWbsDir(Collections.singleton(crpw), //
                     remap(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL)), //
                     remap(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY)));
@@ -1474,7 +1487,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         return ExternalResourceManager.getInstance().remapFilename(path);
     }
 
-    private void closeOldProjectWbs(File oldProjectWbsDir) throws IOException {
+    private void closeOldProjectWbs(File oldProjectWbsDir, boolean isRelaunch)
+            throws IOException {
         // read the current settings from the user settings file
         File f = new File(oldProjectWbsDir, "user-settings.ini");
         Properties p = new Properties();
@@ -1484,8 +1498,15 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             in.close();
         }
 
-        // add a "project closed" setting, and resave
+        // add "project is closed" setting
         p.put("projectClosed", "true");
+        // write "project was relaunched" setting
+        if (isRelaunch)
+            p.put("projectRelaunched", "true");
+        // request post-relaunch cleanup of WBS-managed size data
+        if (isRelaunch && "true".equals(p.get(WBS_MANAGED_SIZE_WBS_SETTING)))
+            p.put("cleanupRelaunched", "true");
+        // save changes to user-settings.ini
         RobustFileOutputStream out = new RobustFileOutputStream(f);
         p.store(out, null);
         out.close();
