@@ -1030,7 +1030,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     private void enableWbsManagedSizeData() {
         putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
-        DataVersionChecker.registerDataRequirement("pspdash", "2.5.3b");
+        DataVersionChecker.registerDataRequirement("pspdash", "2.5.3");
         DataVersionChecker.registerDataRequirement("teamTools", "5.0.0");
     }
 
