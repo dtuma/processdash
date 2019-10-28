@@ -665,8 +665,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
             for (String metric : process.getSizeMetrics()) {
                 // get the name of the attribute for this metric
-                String base = getAttrBaseName(metric, plan);
-                String attr = TopDownBottomUpColumn.getTopDownAttrName(base);
+                String attr = getNodeValueAttrName(metric, plan);
 
                 // iterate over the nodes we were given, clearing this attribute
                 Set<WBSNode> planChangedNodes = new HashSet<WBSNode>();
@@ -712,8 +711,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         }
 
         // scan the WBS, clearing task rates as needed
-        String base = getAttrBaseName(metric, true);
-        String attr = TopDownBottomUpColumn.getTopDownAttrName(base);
+        String attr = getNodeValueAttrName(metric, true);
         return clearRateDrivenTasks(wbs, wbs.getRoot(), process, metric, attr,
             allAffectedNodes);
     }
@@ -760,6 +758,11 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return SizeAccountingColumnSet.getNCID(metric);
         else
             return SizeActualDataColumn.getColumnID(metric, false);
+    }
+
+    public static String getNodeValueAttrName(String metricName, boolean plan) {
+        String base = getAttrBaseName(metricName, plan);
+        return TopDownBottomUpColumn.getTopDownAttrName(base);
     }
 
     private static String getAttrBaseName(String metricName, boolean plan) {

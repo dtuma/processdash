@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package teamdash.wbs;
 
+import static teamdash.wbs.columns.SizeTypeColumn.isUsingNewSizeDataColumns;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +33,7 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -117,7 +120,8 @@ public class MasterWBSUtil {
         WBSModel working = new WBSModel();
         working.copyFrom(master);
 
-        visitWBS(working, new MasterNodeTweaker(masterProjectID));
+        visitWBS(working, new MasterNodeTweaker(masterProjectID,
+                isUsingNewSizeDataColumns(dest)));
 
         // copy the master node ID for the overall project
         copyAttr(working.getRoot(), dest.getRoot(), MASTER_NODE_ID, true);
@@ -174,9 +178,11 @@ public class MasterWBSUtil {
 
     private static class MasterNodeTweaker implements WBSNodeVisitor {
         String id;
+        boolean clearSizeData;
 
-        public MasterNodeTweaker(String id) {
+        public MasterNodeTweaker(String id, boolean clearSizeData) {
             this.id = id;
+            this.clearSizeData = clearSizeData;
         }
 
         public void visit(WBSNode parent, WBSNode child) {
@@ -188,6 +194,8 @@ public class MasterWBSUtil {
             child.setAttribute(MASTER_NODE_ID, id + ":" + child.getUniqueID());
             child.setAttribute(MilestoneCommitDateColumn.MASTER_VALUE_ATTR,
                 child.getAttribute(MilestoneCommitDateColumn.VALUE_ATTR));
+            if (clearSizeData && SIZE_DATA_ATTRS != null)
+                child.removeAttributes(SIZE_DATA_ATTRS);
         }
 
     }
@@ -200,7 +208,7 @@ public class MasterWBSUtil {
         working.copyFrom(subproject);
         SubprojectNodeTweaker worker = new SubprojectNodeTweaker(shortName,
                 subprojectID, subprojectInitials, teamMemberInitials,
-                useShortNamesInRollup);
+                useShortNamesInRollup, isManagedSizeMismatch(subproject, dest));
         visitWBS(working, worker);
         return dest.mergeWBSModel(working, worker, MASTER_NODE_COMPARATOR,
             false);
@@ -216,13 +224,16 @@ public class MasterWBSUtil {
 
         boolean useShortNamesInRollup;
 
+        boolean clearSizeData;
+
         public SubprojectNodeTweaker(String shortName, String projectID,
                 String projectInitials, List memberInitials,
-                boolean useShortNamesInRollup) {
+                boolean useShortNamesInRollup, boolean clearSizeData) {
             this.shortName = shortName;
             this.projectID = projectID;
             this.subprojectTimeAttr = projectInitials + MEMBER_TIME_SUFFIX;
             this.useShortNamesInRollup = useShortNamesInRollup;
+            this.clearSizeData = clearSizeData;
         }
 
         public void visit(WBSNode parent, WBSNode node) {
@@ -233,6 +244,9 @@ public class MasterWBSUtil {
             }
 
             node.setReadOnly(false);
+
+            if (clearSizeData && SIZE_DATA_ATTRS != null)
+                node.removeAttributes(SIZE_DATA_ATTRS);
 
             String nodeID = projectID + ":" + node.getUniqueID();
             node.setAttribute(PROJECT_NODE_ID, nodeID);
@@ -262,6 +276,27 @@ public class MasterWBSUtil {
                 .addLiteralEquals(TeamTimeColumn.TPP_ATTR)
                 .addLiteralEndsWith(MEMBER_TIME_SUFFIX);
 
+    }
+
+    private static PatternList SIZE_DATA_ATTRS = null;
+
+    public static void setSizeMetrics(String[] sizeMetrics) {
+        PatternList pl = new PatternList();
+        for (String m : sizeMetrics) {
+            pl.addLiteralEquals(SizeDataColumn.getNodeValueAttrName(m, true));
+            pl.addLiteralEquals(SizeDataColumn.getNodeValueAttrName(m, false));
+        }
+        SIZE_DATA_ATTRS = pl;
+    }
+
+    /**
+     * @return true if WBS-managed size is in effect for one of the given WBSes,
+     *         but not for the other
+     */
+    private static boolean isManagedSizeMismatch(WBSModel a, WBSModel b) {
+        boolean aSizeFlag = isUsingNewSizeDataColumns(a);
+        boolean bSizeFlag = isUsingNewSizeDataColumns(b);
+        return aSizeFlag != bSizeFlag;
     }
 
     public static String getNodeID(WBSNode node, String projectID) {

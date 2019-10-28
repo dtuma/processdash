@@ -222,9 +222,17 @@ public class SizeTypeColumn extends AbstractDataColumn implements
      * Copy the new-style size flag from team project settings to the WBS
      */
     public static void maybeEnableNewSizeDataColumns(TeamProject proj) {
+        maybeEnableNewSizeDataColumns(proj, proj.getWBS());
+    }
+
+    /**
+     * Set the new-style size flag on the given WBS if project settings dictate
+     */
+    public static void maybeEnableNewSizeDataColumns(TeamProject proj,
+            WBSModel wbs) {
         if (proj.getBoolUserSetting(NEW_SIZE_SETTING_NAME)
-                && !isUsingNewSizeDataColumns(proj.getWBS())) {
-            proj.getWBS().getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
+                && !isUsingNewSizeDataColumns(wbs)) {
+            wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
         }
     }
 

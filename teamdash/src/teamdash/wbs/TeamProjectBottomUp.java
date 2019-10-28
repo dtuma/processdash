@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2019 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,14 +34,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.SizeTypeColumn;
 
 public class TeamProjectBottomUp extends TeamProject {
 
@@ -67,6 +68,7 @@ public class TeamProjectBottomUp extends TeamProject {
         this.ignoredSubprojects = (ignoredSubprojects != null
                 ? ignoredSubprojects : Collections.EMPTY_SET);
 
+        MasterWBSUtil.setSizeMetrics(getTeamProcess().getSizeMetrics());
         reloadBottomUpData();
         if (autoReload)
             watcher = new FileWatcher();
@@ -189,6 +191,7 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private WBSModel makeStartingWBS() {
         WBSModel result = new WBSModel(getProjectName());
+        SizeTypeColumn.maybeEnableNewSizeDataColumns(this, result);
         WBSNode[] descendants = result.getDescendants(result.getRoot());
         result.deleteNodes(Arrays.asList(descendants));
         MasterWBSUtil.mergeFromMaster(super.readWBS(), getProjectID(), result);

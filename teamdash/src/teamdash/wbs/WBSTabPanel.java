@@ -1082,6 +1082,7 @@ public class WBSTabPanel extends JLayeredPane implements
     /** Create and install the tabbed pane component. */
     private void makeTabbedPane() {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+        tabbedPane.setOpaque(true);
 
         // Create a "pseudo-tab" that displays the "Add Tab" icon.
         tabbedPane.addTab(null, IconFactory.getAddTabIcon(),
