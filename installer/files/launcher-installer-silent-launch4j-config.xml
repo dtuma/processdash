@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <errTitle>Process Dashboard Launcher Installer</errTitle>
+  <manifest>launcher-installer-launch4j-manifest.xml</manifest>
+  <stayAlive>true</stayAlive>
+  <icon>dashicon.ico</icon>
+  <classPath>
+    <mainClass>net.sourceforge.processdash.tool.launcher.installer.SilentInstaller</mainClass>
+  </classPath>
+  <jre>
+    <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>
+    <minVersion>1.6.0</minVersion>
+  </jre>
+</launch4jConfig>
