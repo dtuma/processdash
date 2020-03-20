@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2016 Tuma Solutions, LLC
+// Copyright (C) 2003-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -182,14 +182,17 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
     public void handleTimerEvent() {
         logger.finer("handleTimerEvent");
         saveCurrentTimeLogEntry(false);
+        maybeReleaseEntryWithLongTerminalInterrupt();
+    }
 
+    private void maybeReleaseEntryWithLongTerminalInterrupt() {
         // Possibly commit the current row. If a user clicks
         // pause, then goes home for the evening, and comes back
         // the next day and starts working on the same activity,
         // it really isn't meaningful to log 15 hours of interrupt
         // time. So if the interrupt time passes some "critical
         // point", just commit the current row.
-        if (paused && currentTimeLogEntry != null) {
+        if (paused && stopwatch != null && currentTimeLogEntry != null) {
             double interruptMinutes = stopwatch.runningMinutesInterrupt();
             double elapsedMinutes = currentTimeLogEntry.getElapsedTime();
             if (interruptMinutes > 5.0
@@ -229,6 +232,7 @@ public class DefaultTimeLoggingModel implements TimeLoggingModel {
         }
 
         if (paused == true) {
+            maybeReleaseEntryWithLongTerminalInterrupt();
             paused = false;
             propertyChangeSupport.firePropertyChange(PAUSED_PROPERTY, true, false);
         }
