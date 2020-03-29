@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,7 +53,13 @@ public class WorkingDirectoryFactory {
         return INSTANCE;
     }
 
+    private File baseDirectory;
+
     private WorkingDirectoryFactory() {}
+
+    public void setBaseDirectory(File baseDirectory) {
+        this.baseDirectory = baseDirectory;
+    }
 
     public WorkingDirectory get(String location, int purpose) {
         return get(purpose, location);
@@ -81,7 +87,12 @@ public class WorkingDirectoryFactory {
 
             } else {
                 // test "regular" locations to see if the directory exists
-                File file = new File(loc);
+                File file;
+                if (loc.startsWith("./") || loc.startsWith(".\\")) {
+                    file = new File(baseDirectory, loc.substring(2));
+                } else {
+                    file = new File(loc);
+                }
                 if (file.isDirectory())
                     return get(file, purpose);
 

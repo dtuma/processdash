@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2019 Tuma Solutions, LLC
+// Copyright (C) 1998-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -283,10 +283,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     e.getMessage(), e);
             System.exit(0);
         }
-        File prop_file = new File(workingDirectory.getDirectory(),
-                DEFAULT_PROP_FILE);
+        File dataDir = workingDirectory.getDirectory();
+        File prop_file = new File(dataDir, DEFAULT_PROP_FILE);
         try {
             prop_file = prop_file.getCanonicalFile();
+            dataDir = prop_file.getParentFile();
         } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
@@ -303,13 +304,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ExternalResourceManager.getInstance().initializeMappings(
                 prop_file.getParentFile());
         try {
-            default_directory = prop_file.getParentFile().getCanonicalPath();
+            default_directory = dataDir.getCanonicalPath();
         } catch (IOException ioe) {
-            default_directory = prop_file.getParentFile().getAbsolutePath();
+            default_directory = dataDir.getAbsolutePath();
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
-        DashController.setDataDirectory(prop_file.getParentFile());
-        ExternalDataFile.setDataDirectory(prop_file.getParentFile());
+        WorkingDirectoryFactory.getInstance().setBaseDirectory(dataDir);
+        DashController.setDataDirectory(dataDir);
+        ExternalDataFile.setDataDirectory(dataDir);
         pt.click("Set default directory");
 
         // create the data repository

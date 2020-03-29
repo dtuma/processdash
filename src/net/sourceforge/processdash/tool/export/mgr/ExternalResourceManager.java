@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -132,6 +132,8 @@ public class ExternalResourceManager {
             // NOTE: this style of resource mapping is not supported by the
             // "default map data source" functionality at this time.
         }
+
+        mapper.setBaseDirectory(baseDir);
     }
 
     private void dispatchAllImportInstructions(ImportInstructionDispatcher d) {

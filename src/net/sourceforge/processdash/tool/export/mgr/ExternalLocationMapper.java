@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -92,6 +92,15 @@ public class ExternalLocationMapper {
             result.put(normalize(origPath), normalize(newPath));
         }
         return result;
+    }
+
+    public void setBaseDirectory(File baseDirectory) {
+        if (pathRemappings == null)
+            pathRemappings = new HashMap();
+        if (generalizedRemappings == null)
+            generalizedRemappings = new HashMap();
+
+        pathRemappings.put(".", baseDirectory.getPath());
     }
 
     private boolean isEmpty(Map m) {

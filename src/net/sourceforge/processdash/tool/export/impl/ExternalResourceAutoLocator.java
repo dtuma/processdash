@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ public class ExternalResourceAutoLocator implements
 
     public Map load(File dir) {
         Map result = new HashMap();
+        result.put(".", dir.getPath());
         scanForDirectories(result, dir, "");
         scanForDirectories(result, dir.getParentFile(), "");
         return result;
