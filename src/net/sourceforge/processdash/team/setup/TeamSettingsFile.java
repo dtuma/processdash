@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -91,6 +91,8 @@ public class TeamSettingsFile {
 
     private String scheduleName;
 
+    private boolean isPersonal;
+
     private List masterProjects;
 
     private List subprojects;
@@ -106,6 +108,7 @@ public class TeamSettingsFile {
         if (this.projDataDir == null && this.projDataUrl == null)
             throw new IllegalArgumentException("No location specified");
 
+        this.isPersonal = false;
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
         this.isReadOnly = false;
@@ -200,6 +203,14 @@ public class TeamSettingsFile {
         }
     }
 
+    public boolean isPersonal() {
+        return isPersonal;
+    }
+
+    public void setPersonal(boolean isPersonal) {
+        this.isPersonal = isPersonal;
+    }
+
     public List getMasterProjects() {
         return masterProjects;
     }
@@ -228,6 +239,7 @@ public class TeamSettingsFile {
             this.processID = getAttribute(e, PROCESS_ID_ATTR);
             this.templatePath = getAttribute(e, TEMPLATE_PATH_ATTR);
             this.scheduleName = getAttribute(e, SCHEDULE_NAME_ATTR);
+            this.isPersonal = "true".equals(getAttribute(e, PERSONAL_ATTR));
 
             readRelatedProjects(e, MASTER_PROJECT_TAG, masterProjects);
             readRelatedProjects(e, SUBPROJECT_TAG, subprojects);
@@ -341,6 +353,8 @@ public class TeamSettingsFile {
         writeAttr(out, indent, PROCESS_ID_ATTR, processID);
         writeAttr(out, indent, TEMPLATE_PATH_ATTR, templatePath);
         writeAttr(out, indent, SCHEDULE_NAME_ATTR, scheduleName);
+        if (isPersonal)
+            writeAttr(out, indent, PERSONAL_ATTR, "true");
 
         // write global, dashboard-specific attributes
         writeAttr(out, indent, VERSION_ATTR,
@@ -469,6 +483,8 @@ public class TeamSettingsFile {
     private static final String TEMPLATE_PATH_ATTR = "templatePath";
 
     private static final String SCHEDULE_NAME_ATTR = "scheduleName";
+
+    private static final String PERSONAL_ATTR = "personal";
 
     private static final String VERSION_ATTR = "version";
 

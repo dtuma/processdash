@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,7 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -68,6 +69,7 @@ import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -218,6 +220,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     // Flag indicating an individual wants to join the team schedule.
     private static final String JOIN_TEAM_SCHED_PAGE = "joinSchedule";
 
+    // Values relating to an individual creating a personal project
+    private static final String PERSONAL_START_PAGE = "personalStart";
+    private static final String PERSONAL_ERR_URL = "personalError.shtm";
+    private static final String PERSONAL_SUCCESS_URL = "personalSuccess.shtm";
 
     // Names of session variables used to store user selections.
     private static final String TEAM_MASTER_FLAG = "setup//Is_Master";
@@ -291,6 +297,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         else if (JOIN_TEAM_SCHED_PAGE.equals(page))
                                                    handleJoinTeamSchedPage();
+
+        else if (PERSONAL_START_PAGE.equals(page)) startPersonalCreate();
 
         else if (RELAUNCH_WELCOME_PAGE.equals(page)) showRelaunchWelcomePage();
         else if (RELAUNCH_START_PAGE.equals(page)) handleRelaunchWelcomePage();
@@ -630,12 +638,24 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // make sure all the required data is present - otherwise abort.
         if (!ensureTeamValues()) return;
 
+        // perform all of the steps needed to create the team project
+        createTeamProject(false, null);
+        createTeamSchedule();
+        saveTeamSettings();
+        exportProjectData();
+
+        // print a success message!
+        printRedirect(TEAM_SUCCESS_URL);
+    }
+
+    private void createTeamProject(boolean isPersonal, String newPath) {
         String teamPID = getValue(TEAM_PID);
         String teamDirectory = getValue(TEAM_DIR);
         String teamDataDir = null;
         String teamDataDirUrl = null;
         String teamSchedule = getValue(TEAM_SCHEDULE);
-        String processJarFile = findTeamProcessJarfile(teamPID);
+        String processJarFile = isPersonal ? null
+                : findTeamProcessJarfile(teamPID);
         String projectID;
 
         boolean isMaster = testValue(TEAM_MASTER_FLAG);
@@ -650,13 +670,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // error page.
 
         if (TeamServerSelector.isUrlFormat(teamDirectory)) {
-            projectID = createServerCollection(teamDirectory);
+            projectID = createServerCollection(teamDirectory, isPersonal);
             teamDataDirUrl = teamDirectory + "/" + projectID;
             teamDirectory = teamDataDir = null;
 
         } else {
             projectID = generateID();
-            teamDataDir = createTeamDirs(teamDirectory, projectID);
+            teamDataDir = createTeamDirs(teamDirectory, projectID, isPersonal);
+            tryToCopyProcessJarfile (processJarFile, teamDirectory);
         }
 
         // if we are relaunching a project, mark the original WBS as closed.
@@ -666,20 +687,20 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         // attempt to write applicable files to the new WBS directory.
         writeTeamSettingsFile(teamPID, teamDataDir, teamDataDirUrl,
-            teamSchedule, projectID, processJarFile);
+            newPath, teamSchedule, projectID, isPersonal, processJarFile);
         writeFilesToNewWbsDir(relaunchSourceDir, relaunchSourceID,
             teamDataDirUrl, teamDataDir);
 
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
-        alterTeamTemplateID(teamPID);
+        if (newPath != null)
+            setPrefix(newPath);
+        createProjectRootNode(teamPID);
         maybeSetProjectRootNodeId(projectID);
-        String scheduleID = createTeamSchedule (teamSchedule);
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
-            teamSchedule, scheduleID, relaunchSourceID, relaunchSourcePath);
-        saveTeamSettings (teamDirectory, teamDataDir, projectID);
-        tryToCopyProcessJarfile (processJarFile, teamDirectory);
-        exportProjectData();
+            teamSchedule, relaunchSourceID, relaunchSourcePath);
+        DashController.setPath(getPrefix());
+
         if (StringUtils.hasValue(relaunchSourcePath)) {
             startAsyncExport(relaunchSourcePath);
             if (testValue(relaunchSourcePath + "/"
@@ -688,19 +709,18 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
         if (StringUtils.hasValue(relaunchSourceID))
             startAsyncCleanupOfRelaunchedWbs(null);
-
-        // print a success message!
-        printRedirect(TEAM_SUCCESS_URL);
     }
 
-    private String createServerCollection(String teamServerUrl) {
+    private String createServerCollection(String teamServerUrl, boolean isPersonal) {
         try {
             URL url = new URL(teamServerUrl);
             String collectionId = ResourceBridgeClient.createNewCollection(url,
                 ResourceCollectionType.TeamProjectData);
             return collectionId;
         } catch (Exception e) {
-            throw new WizardError(TEAM_SERVER_URL).param("cannotContact");
+            throw new WizardError(
+                    isPersonal ? PERSONAL_ERR_URL : TEAM_SERVER_URL)
+                            .param("cannotContact");
         }
     }
 
@@ -708,28 +728,35 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         return Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
     }
 
-    protected String createTeamDirs(String teamDirectory, String projectID) {
-        File teamDir = new File(teamDirectory);
-        createTeamDirectory(teamDir);
+    protected String createTeamDirs(String teamDirectory, String projectID,
+            boolean isPersonal) {
+        File teamDir;
+        if (".".equals(teamDirectory)) {
+            teamDir = new File(ProcessDashboard.getDefaultDirectory());
+        } else {
+            teamDir = new File(teamDirectory);
+            createTeamDirectory(teamDir, isPersonal);
+        }
 
         File templateDir = new File(teamDir, "Templates");
-        createTeamDirectory(templateDir);
+        if (!isPersonal)
+            createTeamDirectory(templateDir, isPersonal);
 
         File dataDir = new File(teamDir, "data");
-        createTeamDirectory(dataDir);
+        createTeamDirectory(dataDir, isPersonal);
 
         File projDataDir = new File(dataDir, projectID);
-        createTeamDirectory(projDataDir);
+        createTeamDirectory(projDataDir, isPersonal);
 
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
-        createTeamDirectory(disseminationDir);
+        createTeamDirectory(disseminationDir, isPersonal);
 
         return projDataDir.getPath();
     }
 
-    private void createTeamDirectory(File directory) {
+    private void createTeamDirectory(File directory, boolean isPersonal) {
         if (!directory.isDirectory() && !directory.mkdirs())
-            throw new WizardError(TEAM_DIR_URL) //
+            throw new WizardError(isPersonal ? PERSONAL_ERR_URL : TEAM_DIR_URL)
                     .param("errCantCreateDir", directory.getPath()) //
                     .param(isWindows() ? "isWindows" : null);
     }
@@ -737,17 +764,22 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private void writeTeamSettingsFile(String teamPID,
                                           String teamDataDir,
                                           String teamDataDirUrl,
+                                          String projectPath,
                                           String teamSchedule,
                                           String projectID,
+                                          boolean isPersonal,
                                           String processJarFile)
     {
         TeamSettingsFile tsf = new TeamSettingsFile(teamDataDir, teamDataDirUrl);
 
         try {
             // write the project name
-            tsf.setProjectHierarchyPath(getPrefix());
+            if (projectPath == null)
+                projectPath = getPrefix();
+            tsf.setProjectHierarchyPath(projectPath);
             tsf.setProjectID(projectID);
             tsf.setScheduleName(teamSchedule);
+            tsf.setPersonal(isPersonal);
 
             // set the process ID.
             int pos = teamPID.indexOf('/');
@@ -1000,8 +1032,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     protected void saveTeamDataValues(String teamDirectory,
             String teamDataDirUrl, String projectID, String teamScheduleName,
-            String teamScheduleID, String relaunchSourceID,
-            String relaunchSourcePath) {
+            String relaunchSourceID, String relaunchSourcePath) {
         putValue(TEAM_DIRECTORY, teamDirectory);
         String uncName = calcUNCName(teamDirectory);
         putValue(TEAM_DIRECTORY_UNC, uncName);
@@ -1009,7 +1040,6 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         putValue(PROJECT_ID, projectID);
         putValue(PROJECT_SCHEDULE_NAME, teamScheduleName);
-        putValue(PROJECT_SCHEDULE_ID, teamScheduleID);
         putValue(RELAUNCH_SOURCE_PROJECT_ID, relaunchSourceID);
 
         if (StringUtils.hasValue(relaunchSourcePath)) {
@@ -1020,8 +1050,6 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         if (shouldEnableWbsManagedSizeData())
             enableWbsManagedSizeData();
-
-        putValue("_Password_", ImmutableDoubleData.TRUE);
     }
 
     private static boolean shouldEnableWbsManagedSizeData() {
@@ -1077,17 +1105,18 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
 
 
-    protected void saveTeamSettings(String teamDirectory, String teamDataDir,
-            String projectID) {
+    protected void saveTeamSettings() {
         // set up an import instruction to retrieve team data
         RepairImportInstruction.maybeRepairForTeam(getDataContext());
 
         // enable other configuration settings that are appropriate for
         // team use.
         DashController.enableTeamSettings();
+        putValue("_Password_", ImmutableDoubleData.TRUE);
 
         // possibly wire up a URL for the team directory.
-        if (teamDataDir != null) {
+        String teamDataDir = getValue(TEAM_DATA_DIRECTORY);
+        if (StringUtils.hasValue(teamDataDir)) {
             URL url = TeamServerSelector.getServerURL(new File(teamDataDir));
             if (url != null) {
                 putValue(TEAM_DATA_DIRECTORY_URL, url.toString());
@@ -1096,16 +1125,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
 
         // initiate the template directory adding task.
+        String teamDirectory = getValue(TEAM_DIRECTORY);
         String templatePathSetting = Settings.getVal(
             "teamJoin.templateSearchPathPhilosophy");
-        if (teamDirectory != null
+        if (StringUtils.hasValue(teamDirectory)
                 && "alwaysAdd".equalsIgnoreCase(templatePathSetting)) {
             putValue(TEAM_TEMPLATE_FLAG, "t");
             new TemplateDirAdder(teamDirectory);
         }
-
-        // make this project the actively selected task
-        DashController.setPath(getPrefix());
     }
 
     private final class TemplateDirAdder extends Thread {
@@ -1123,7 +1150,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
 
-    protected String createTeamSchedule(String scheduleName) {
+    protected String createTeamSchedule() {
+        String scheduleName = getValue(PROJECT_SCHEDULE_NAME);
         DataRepository data = getDataRepository();
         EVTaskListRollup rollup = new EVTaskListRollup
             (scheduleName, data,
@@ -1136,11 +1164,18 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         passwordDataName = "/ev /" + scheduleName + "/PW_STOR";
         data.putValue(passwordDataName, StringData.create(" none "));
 
+        putValue(PROJECT_SCHEDULE_ID, rollup.getID());
         return rollup.getID();
     }
 
-    protected void alterTeamTemplateID(String teamPID) {
-        DashController.alterTemplateID(getPrefix(), TEAM_STUB_ID, teamPID);
+    /** Create the team project root node if it doesn't exist, or change the
+     * id of the TeamProjectStub to reflect the correct template ID. */
+    protected void createProjectRootNode(String rootTemplateID) {
+        if (DashController.alterTemplateID
+                (getPrefix(), TEAM_STUB_ID, rootTemplateID))
+            return;
+
+        DashController.alterTemplateID(getPrefix(), null, rootTemplateID);
     }
 
     private void maybeSetProjectRootNodeId(String projectID) {
@@ -1622,6 +1657,40 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                 return true;
         }
         return false;
+    }
+
+
+
+    /** Begin the process of creating a personal project */
+    private void startPersonalCreate() {
+        // TODO: prompt the user for project creation parameters
+        String teamServerUrl = TeamServerSelector.getDefaultTeamServerUrl();
+        putValue(TEAM_DIR, teamServerUrl != null ? teamServerUrl : ".");
+        putValue(TEAM_PID, "TSP/Indiv2Root");
+        putValue(NODE_LOCATION, "/Project");
+        putValue(NODE_NAME, "Team of One Project");
+        putValue(TEAM_SCHEDULE, "Team of One Project");
+        putValue(IND_FULLNAME, "My Full Name");
+
+        try {
+            createTeamProject(true, "/Project/Team of One Project");
+        } catch (WizardError we) {
+            if (we.uri.startsWith(PERSONAL_ERR_URL))
+                throw we;
+            else
+                throw new WizardError(PERSONAL_ERR_URL).causedBy(we)
+                        .param("unexpectedError");
+        }
+
+        putValue(INDIV_INITIALS, "me");
+        putValue(PERSONAL_PROJECT_FLAG, TagData.getInstance());
+        createIndivSchedule(getValue(PROJECT_SCHEDULE_NAME));
+        RepairImportInstruction.maybeRepairForIndividual(getDataContext());
+        DataVersionChecker.registerDataRequirement("pspdash", "2.5.4b");
+        DataVersionChecker.registerDataRequirement("teamTools", "5.1.0");
+        exportProjectData();
+
+        printRedirect(PERSONAL_SUCCESS_URL);
     }
 
 
@@ -2244,7 +2313,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         setPrefix(localProjectName);
-        createIndivProject(indivTemplateID);
+        createProjectRootNode(indivTemplateID);
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
@@ -2352,16 +2421,6 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         parameters.put("hierarchyPath", newPrefix);
     }
 
-    /** Create the individual project if it doesn't exist, or change
-     * the id of the TeamProjectStub to reflect the correct template
-     * ID.  */
-    protected void createIndivProject(String indivTemplateID) {
-        if (DashController.alterTemplateID
-            (getPrefix(), TEAM_STUB_ID, indivTemplateID)) return;
-
-        DashController.alterTemplateID(getPrefix(), null, indivTemplateID);
-    }
-
     /** Save data values for an individual project. */
     protected void saveIndivDataValues(String projectID, String teamURL,
             String indivInitials, String scheduleName, String scheduleID,
@@ -2397,6 +2456,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             Double.toString(schedule.getSchedule().get(1).planDirectTime()));
         schedule.save();
 
+        putValue(PROJECT_SCHEDULE_ID, schedule.getID());
         return schedule.getID();
     }
 

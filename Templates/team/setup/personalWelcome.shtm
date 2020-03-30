@@ -1,0 +1,76 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Personal Project Creation Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+<table width='100%'><tr><td width='100%'>
+  <img align="left" src="/Images/team.jpg">
+  <h1>Personal Project Creation Wizard</h1>
+</td></tr></table>
+
+<form action='wizard.class' method='post' style='max-width:600px'>
+<input type='hidden' name='page' value='personalStart'>
+
+<p>Within the Process Dashboard, a personal project:</p>
+
+<ul>
+
+<li>Gives you tools to quickly and easily create a detailed personal task
+    plan</li>
+
+<li>Helps you predict when the work might finish, so you can manage your
+    commitments to others</li>
+
+<li>Provides charts and reports for tracking your progress and improving your
+    process</li>
+
+</ul>
+
+<table border=0 style="margin: 16px 0px"><tr>
+
+<td><img width=60 height=24 src="/teamhelp/Images/finger.png"></td>
+
+<td>Personal projects are useful for planning and tracking independent
+work. (If you need to collaborate with other people and track progress for the
+overall team, ask your team leader to create a team project within a Team
+Dashboard instead.)</td>
+
+</tr></table>
+
+<p>This wizard will help you to create a personal project.</p>
+
+<p>Close this window to cancel, or click &quot;Next&quot; to continue.</p>
+
+<div style="text-align: right">
+    <input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>

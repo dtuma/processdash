@@ -25,7 +25,7 @@
 /* use a different look and feel from the standard forms, to clue in the user
    right away that these forms operate differently. */
 
-BODY { color: black; background-color: silver }
+BODY { color: black; background-color: #c0c0c0 }
 
 A.plain:link    { color:"#000080"; text-decoration:none }
 A.plain:visited { color:"#000080"; text-decoration:none }
