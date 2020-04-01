@@ -221,8 +221,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String JOIN_TEAM_SCHED_PAGE = "joinSchedule";
 
     // Values relating to an individual creating a personal project
+    private static final String PERSONAL_PAGE = "personal";
+    private static final String PERSONAL_START_URL = "personalWelcome.shtm";
     private static final String PERSONAL_START_PAGE = "personalStart";
+    private static final String PERSONAL_DATA_URL = "personalEnterData.shtm";
+    private static final String PERSONAL_DATA_PAGE = "personalEnterData";
     private static final String PERSONAL_ERR_URL = "personalError.shtm";
+    private static final String PERSONAL_RETRY_PAGE = "personalRetry";
     private static final String PERSONAL_SUCCESS_URL = "personalSuccess.shtm";
 
     // Names of session variables used to store user selections.
@@ -253,6 +258,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String CSS_CLASS_SUFFIX = "//Class";
     private static final String JOINING_DATA_MAP = "setup//Joining_Data";
     private static final String IN_PROGRESS_URI = "setup//In_Progress_URI";
+    private static final String STACK_TRACE = "setup//Stack_Trace";
     private static final String[] JOIN_SESSION_VARIABLES = { NODE_NAME,
             NODE_LOCATION, IND_SCHEDULE, DATA_DIR, DATA_DIR_URL, IND_DIR_OVERRIDE };
 
@@ -298,7 +304,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         else if (JOIN_TEAM_SCHED_PAGE.equals(page))
                                                    handleJoinTeamSchedPage();
 
-        else if (PERSONAL_START_PAGE.equals(page)) startPersonalCreate();
+        else if (PERSONAL_PAGE.equals(page))       startPersonalCreate();
+        else if (PERSONAL_START_PAGE.equals(page)) handlePersonalStart();
+        else if (PERSONAL_DATA_PAGE.equals(page))  handlePersonalDataPage();
+        else if (PERSONAL_RETRY_PAGE.equals(page)) handlePersonalRetry();
 
         else if (RELAUNCH_WELCOME_PAGE.equals(page)) showRelaunchWelcomePage();
         else if (RELAUNCH_START_PAGE.equals(page)) handleRelaunchWelcomePage();
@@ -1663,34 +1672,173 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     /** Begin the process of creating a personal project */
     private void startPersonalCreate() {
-        // TODO: prompt the user for project creation parameters
+        // clear any session variables that were saved during a previous
+        // project creation operation
+        for (String var : JOIN_SESSION_VARIABLES)
+            putValue(var, (SimpleData) null);
+
+        // direct the user to a page that introduces the creation wizard
+        printRedirect(PERSONAL_START_URL);
+    }
+
+    private void handlePersonalStart() {
+        // check preconditions
+        if (Settings.isReadOnly())
+            throw new WizardError(PERSONAL_ERR_URL).param("readOnlyCantCreate")
+                    .param("fatal");
+        else if (!Settings.isPersonalMode())
+            throw new WizardError(PERSONAL_ERR_URL).param("notPersonal")
+                    .param("fatal");
+        else if (!TemplateLoader.meetsPackageRequirement("teamTools", "5.1.0"))
+            throw new WizardError(PERSONAL_ERR_URL).param("badTeamTools")
+                    .param("fatal");
+
+        // prepopulate default values for the user
+        setDefaultPersonalValues();
+        checkValidityOfPersonalDataValues(false);
+
+        // show a page asking the user to enter the data
+        generatePostToken();
+        printRedirect(PERSONAL_DATA_URL);
+    }
+
+    private void setDefaultPersonalValues() {
+        // setup a default parent for the new project
+        saveDefaultNodeLocation();
+
+        // save the list of MCF processes, along with a reasonable default
+        savePersonalMcfMetadata();
+
+        // if a full name was provided by the PDES, possibly save it
+        maybeSavePersonalValue(IND_FULLNAME, getPlaceholderFullNames(),
+            System.getProperty(DATASET_OWNER_FULLNAME_SYSPROP));
+    }
+
+    private void checkValidityOfPersonalDataValues(boolean abortOnError) {
+        WizardError err = new WizardError(PERSONAL_DATA_URL);
+
+        checkIndivValue(err, IND_FULLNAME, getPersonNameError());
+        checkIndivValue(err, NODE_NAME, getNodeNameError());
+        checkIndivValue(err, NODE_LOCATION, getNodeLocationError());
+        checkIndivValue(err, TEAM_PID, getPersonalProcessError());
+        checkIndivValue(err, IND_SCHEDULE, getScheduleNameErr());
+
+        if (abortOnError && !PERSONAL_DATA_URL.equals(err.uri)) {
+            savePersonalMcfMetadata();
+            throw err;
+        }
+    }
+
+    private String getPersonalProcessError() {
+        String processID = getValue(TEAM_PID);
+
+        if (!StringUtils.hasValue(processID)) {
+            return "processMissing";
+        } else if (!processID.endsWith("/Indiv2Root")) {
+            return "invalidProcess";
+        } else if (!DashController.getTemplates().containsKey(processID)) {
+            return "invalidProcess";
+        } else if (!isSafePersonalProcessSelection(processID)) {
+            return SHOW_FIELD_WITH_EDIT_CSS;
+        }
+
+        return null;
+    }
+
+    private void savePersonalMcfMetadata() {
+        TeamStartMcfUtil.setupMcfMetadata(getDataContext(), getPSPProperties(),
+            "/Indiv2Root");
+    }
+
+    private boolean isSafePersonalProcessSelection(String processID) {
+        // get the list of MCFs the user can choose from.
+        ListData options = ListData.asListData( //
+            getSimpleValue(TeamStartBootstrap.TEAM_PID_LIST));
+
+        // the dashboard ships with two MCFs, and our logic elsewhere makes a
+        // safe/good process choice in that scenario.
+        if (options == null || options.size() < 3)
+            return true;
+
+        // if the user has three or more MCFs, we should ask them to make a
+        // conscious choice about which one to use.
+        return false;
+    }
+
+    private void handlePersonalDataPage() {
+        savePersonalDataValues();
+        createPersonalProject();
+    }
+
+    private void savePersonalDataValues() {
+        putValue(IND_FULLNAME, trimParameter("Full_Name"));
+        putValue(NODE_NAME, trimParameter("Node_Name"));
+        putValue(NODE_LOCATION, trimParameter("Node_Location"));
+        putValue(TEAM_PID, trimParameter("Process_ID"));
+        putValue(IND_SCHEDULE, trimParameter("Schedule_Name"));
+    }
+
+    private void handlePersonalRetry() {
+        createPersonalProject();
+    }
+
+    private void createPersonalProject() {
+        if (!checkPostToken()) {
+            startPersonalCreate();
+            return;
+        }
+
+        // make sure all the required data is present - otherwise abort.
+        checkValidityOfPersonalDataValues(true);
+
+        // make sure the hierarchy editor isn't open
+        if (DashController.isHierarchyEditorOpen())
+            throw new WizardError(PERSONAL_ERR_URL)
+                    .param("hierarchyEditorOpen");
+
+        // store project data on the PDES, or under the personal data directory
         String teamServerUrl = TeamServerSelector.getDefaultTeamServerUrl();
         putValue(TEAM_DIR, teamServerUrl != null ? teamServerUrl : ".");
-        putValue(TEAM_PID, "TSP/Indiv2Root");
-        putValue(NODE_LOCATION, "/Project");
-        putValue(NODE_NAME, "Team of One Project");
-        putValue(TEAM_SCHEDULE, "Team of One Project");
-        putValue(IND_FULLNAME, "My Full Name");
 
+        // identify the hierarchy path of the new project
+        String nodeName = getValue(NODE_NAME);
+        String nodeLocation = getValue(NODE_LOCATION);
+        if (!nodeLocation.endsWith("/"))
+            nodeLocation = nodeLocation + "/";
+        String projectPath = nodeLocation + nodeName;
+
+        // copy the schedule name to the required data element
+        String scheduleName = getValue(IND_SCHEDULE);
+        putValue(TEAM_SCHEDULE, scheduleName);
+
+        // invoke the team project creation logic
         try {
-            createTeamProject(true, "/Project/Team of One Project");
+            createTeamProject(true, projectPath);
         } catch (WizardError we) {
             if (we.uri.startsWith(PERSONAL_ERR_URL))
                 throw we;
             else
-                throw new WizardError(PERSONAL_ERR_URL).causedBy(we)
-                        .param("unexpectedError");
+                unexpectedPersonalError(we);
+        } catch (Exception e) {
+            unexpectedPersonalError(e);
         }
 
+        // setup personal project root data
         putValue(INDIV_INITIALS, "me");
         putValue(PERSONAL_PROJECT_FLAG, TagData.getInstance());
-        createIndivSchedule(getValue(PROJECT_SCHEDULE_NAME));
+        createIndivSchedule(scheduleName);
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.4b");
         DataVersionChecker.registerDataRequirement("teamTools", "5.1.0");
         exportProjectData();
 
         printRedirect(PERSONAL_SUCCESS_URL);
+    }
+
+    private void unexpectedPersonalError(Exception e) {
+        putValue(STACK_TRACE, StringUtils.getStackTrace(e));
+        throw new WizardError(PERSONAL_ERR_URL).causedBy(e)
+                .param("unexpectedError");
     }
 
 
@@ -2080,8 +2228,15 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(dataName + CSS_CLASS_SUFFIX, cssClassName);
 
         // also record the error token in the WizardError object.
-        we.param(error);
+        if (!SHOW_FIELD_WITH_EDIT_CSS.equals(error))
+            we.param(error);
     }
+
+    /**
+     * "error" string indicating we should use the "edit" CSS class on the
+     * individual data entry form for a field, even though no error is present
+     */
+    private static final String SHOW_FIELD_WITH_EDIT_CSS = " edit CSS ";
 
     private String getNodeNameError() {
         String nodeName = getValue(NODE_NAME);
@@ -2633,6 +2788,15 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         protected WizardError causedBy(Throwable t) {
             initCause(t);
             return this;
+        }
+
+        @Override
+        public String toString() {
+            String result = uri;
+            result = StringUtils.findAndReplace(result, ".shtm", "");
+            result = StringUtils.findAndReplace(result, "?", "; ");
+            result = StringUtils.findAndReplace(result, "&", "; ");
+            return result;
         }
 
     }

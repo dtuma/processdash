@@ -1,0 +1,160 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2013-2020 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Personal Project Creation Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<style type="text/css">
+   pre.indent {
+      margin-left: 1cm
+   }
+   .spaceAfter {
+      padding-bottom: 1em
+   }
+</style>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Personal Project Creation Wizard</h1></td>
+</tr></table>
+
+<h2>Problem Creating Project</h2>
+
+<div style="width: 550px">
+
+<!--#if readOnlyCantCreate -->
+
+<p>You opened the dashboard in read-only mode, so it cannot create a new
+project.</p>
+
+<p>Please close the dashboard, reopen in read-write mode, and try creating the
+project again.</p>
+
+
+
+<!--#elif notPersonal -->
+
+<p>You cannot create a personal project in a Team Dashboard.</p>
+
+<p>Consider <a href="/dash/teamStart.class">creating a team project</a>
+instead.</p>
+
+
+
+<!--#elif badTeamTools -->
+
+<p>Personal projects rely on logic that was added in version 5.1.0 of the
+"Advanced Team Tools" plugin.  Unfortunately, you only have version
+<!--#echo Dash_Package_teamTools -->.</p>
+
+<p>You will need to upgrade to a more recent version of the dashboard before
+you can create a personal project.</p>
+
+
+
+<!--#elif errCantCreateDir -->
+
+<p>The dashboard tried to set up your project, but it was unable to create
+the following directory:</p>
+
+<pre class="indent spaceAfter"><!--#echo var="errCantCreateDir" --></pre>
+
+<p>Please check for the following potential problems, and correct as
+needed:</p>
+
+<ul>
+
+<li class="spaceAfter">If the directory above is on the network, please check
+your network connection.</li>
+
+<li class="spaceAfter">If a file with this name already exists, please rename
+it or move it out of the way.</li>
+
+<li>If you do not have permission to modify files in the parent directory,
+please correct those filesystem permissions.</li>
+
+</ul>
+
+<p>After correcting the problem, press "Retry" to try again.</p>
+
+
+
+<!--#elif cannotContact -->
+
+<p>To create your project, the dashboard must contact the server located at:</p>
+
+<pre class="indent spaceAfter"><!--#echo [setup//Team_Dir] --></pre>
+
+<p>Unfortunately, the server could not be reached.  Please check your network
+connection, then press "Retry."  If the problem persists, contact the server
+administrator.</p>
+
+
+
+<!--#elif hierarchyEditorOpen -->
+
+<p>The project creation wizard cannot proceed because the Hierarchy Editor is
+currently open.</p>
+
+<p>Please close the Hierarchy Editor, then click "Retry" to continue.</p>
+
+
+
+<!--#elif unexpectedError -->
+
+<p>The dashboard encountered an unexpected problem that prevented it from
+creating your project.  The problem details are below:</p>
+
+<textarea style="margin-left: 50px; width: 500px; height: 150px; font-size: small"
+          wrap="off" ><!--#echo [setup//Stack_Trace] --></textarea>
+
+<p>Review this error and correct the underlying root problem. Then press
+"Retry" to try again.</p>
+
+
+<!--#endif-->
+
+
+
+<!--#if not fatal -->
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='personalRetry'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+
+
+<p align="right"><input type="submit" name="next" value="Retry"></p>
+
+<!--#endif not fatal -->
+
+
+</form>
+
+</div>
+</body>
+</html>
