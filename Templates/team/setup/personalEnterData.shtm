@@ -345,6 +345,53 @@ you would like to use, click the button to join this team project.</p>
 
 
 <tr>
+<td class="label">Schedule Time:</td>
+<td colspan="2">
+<div class="helpWrapper" id="Schedule_Hours_Help" style="display:none">
+<div class="helpContent" style="bottom:-64px">
+   Your schedule will calculate dates when various project tasks might finish.
+   To do this, it needs to know how much time you plan to spend each week on
+   the tasks in <u>this project</u>.<br/><br/>
+
+   Available time can vary from week to week, and you'll be able to enter
+   those exceptions later.  But for now, please enter the typical hours on
+   this project for an average week.<br/><br/>
+
+   <b>Note:</b> You may spend 40 hours per week at work, but not all of those
+   hours will be spent on project tasks.  Most people spend over half their
+   available time toward ongoing collaborative activies (such as assisting
+   coworkers, attending meetings, sharing project status, training, and so
+   on).  Don't include that collaborative time in the number you enter here.
+</div><div class="helpPointer">&nbsp;</div></div>
+<input type="text" name="Schedule_Hours"
+           value="<!--#echo var='[setup//Schedule_Hours]' -->"
+           class="edit"
+           onfocus="fieldFocus(this);" style="text-align: right; width: 50px">
+&nbsp;planned task hours per week
+</td>
+</tr>
+
+<!--#if scheduleHoursMissing || scheduleHoursInvalid -->
+
+<tr>
+<td></td>
+<td colspan="2" style="padding-bottom: 16px">
+<ul class="err">
+    <!--#if scheduleHoursMissing -->
+        <li>You must enter the number of hours per week you plan to spend
+        on the tasks in this project.</li>
+    <!--#elif scheduleHoursInvalid -->
+        <li>Please enter a valid number of hours.</li>
+    <!--#endif-->
+</ul>
+</td>
+</tr>
+
+<!--#endif scheduleHours* -->
+
+
+
+<tr>
 <td colspan="3" style="text-align: right; padding-top: 16px">
 <input type="submit" name="next" value="Create Project">
 </td>

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -182,8 +182,12 @@ public class WBSSynchronizer {
                 reloadedMemberNames.remove(m.getName());
         }
 
-        if (createMissingTeamMembers)
-            addMissingTeamMembers(exportFiles, datasetIDMap);
+        if (createMissingTeamMembers) {
+            if (teamProject.isPersonalProject() == false)
+                addMissingTeamMembers(exportFiles, datasetIDMap);
+            else
+                updateTeamForPersonalProject(directDumpData, datasetIDMap);
+        }
 
         for (Object h : handlers.values()) {
             if (h instanceof SyncHandler2)
@@ -621,6 +625,58 @@ public class WBSSynchronizer {
         if (XMLUtils.hasValue(username))
             m.setServerIdentityInfo("searchType=username&search=" + username
                     + "&username=" + username);
+    }
+
+
+    /**
+     * Within a personal project, update the (single-person) team member list to
+     * reflect the most up-to-date information.
+     */
+    private void updateTeamForPersonalProject(Element xml,
+            Map<String, String> datasetIDMap) {
+        // get the single team member on this project, adding one if necessary
+        TeamMemberList team = new TeamMemberList(teamProject.getTeamMemberList());
+        if (team.getRowCount() == 0)
+            team.maybeAddEmptyRow();
+        TeamMember m = team.get(0);
+
+        // set the initials for our single team member
+        m.setInitials(getFirstNonEmptyValue( //
+            System.getProperty("teamdash.wbs.indivInitials"), //
+            nullSafeGetAttr(xml, INITIALS_ATTR), //
+            "me"));
+
+        // update the full name of our single team member if applicable
+        m.setName(getFirstNonEmptyValue( //
+            nullSafeGetAttr(xml, OWNER_FULLNAME_ATTR), //
+            m.getName(), //
+            "-"));
+
+        // store the username if we have one
+        String username = nullSafeGetAttr(xml, OWNER_USERNAME_ATTR);
+        if (XMLUtils.hasValue(username))
+            m.setServerIdentityInfo("searchType=username&search=" + username
+                    + "&username=" + username);
+
+        // commit the changes
+        addDatasetIdMapping(datasetIDMap, xml);
+        team.assignMissingUniqueIDs(null);
+        teamProject.getTeamMemberList().copyFrom(team);
+    }
+
+    private String getFirstNonEmptyValue(String... values) {
+        // return the first item that has a non-empty value
+        for (String result : values) {
+            if (XMLUtils.hasValue(result))
+                return result;
+        }
+
+        // no value found? return null
+        return null;
+    }
+
+    private String nullSafeGetAttr(Element xml, String attrName) {
+        return (xml == null ? null : xml.getAttribute(attrName));
     }
 
 

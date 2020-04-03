@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ public class WeeklySchedule implements EffortCalendar {
 
     public static final int NO_END = Integer.MAX_VALUE;
 
+    private static double DEFAULT_HOURS_PER_WEEK = 12;
+
     Date zeroDay;
 
     int startWeek;
@@ -63,7 +65,7 @@ public class WeeklySchedule implements EffortCalendar {
         this.zeroDay = zeroDay;
         this.startWeek = startWeek;
         this.endWeek = NO_END;
-        setHoursPerWeek(12);
+        setHoursPerWeek(DEFAULT_HOURS_PER_WEEK);
         this.exceptions = new HashMap();
         this.maxExceptionWeek = Integer.MIN_VALUE;
     }
@@ -441,6 +443,17 @@ public class WeeklySchedule implements EffortCalendar {
 
     private static final DateFormat CALENDAR_DATE_FMT =
         new SimpleDateFormat("yyyy-MM-dd");
+
+
+    public static void setDefaultHourPerWeek(String param) {
+        try {
+            if (XMLUtils.hasValue(param))
+                DEFAULT_HOURS_PER_WEEK = Double.parseDouble(param);
+        } catch (Exception e) {
+            System.err.println(
+                "Bad hours-per-week param '" + param + "' - ignoring");
+        }
+    }
 
 
     private static final String START_DATE_ATTR = "startDate";

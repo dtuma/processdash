@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -143,6 +143,7 @@ import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.team.TeamMemberListEditor;
+import teamdash.team.WeeklySchedule;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
@@ -272,6 +273,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
         if (isMode(MODE_PLAIN)) {
+            WeeklySchedule.setDefaultHourPerWeek(
+                teamProject.getUserSetting("defaultHoursPerWeek"));
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
             if (Boolean.getBoolean("teamdash.wbs.reverseSyncNewMembers"))
                 reverseSynchronizer.setCreateMissingTeamMembers(true);

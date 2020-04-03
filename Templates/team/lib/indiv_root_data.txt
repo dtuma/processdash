@@ -26,7 +26,8 @@
 [EXPORT_FILE/Disabled] = [Project_Is_Done]
     || lookup([Team_Settings_Node] & "Disable_Indiv_Auto_Export");
 
-[Reverse_Sync_New_Members] = [/Team_Project_Policy/Reverse_Sync_New_Members];
+[Reverse_Sync_New_Members] = [/Team_Project_Policy/Reverse_Sync_New_Members]
+    || [Personal_Project];
 
 [Sync_Full_WBS] = 0;
 [Autosync_Disabled] = [Project_Is_Done]

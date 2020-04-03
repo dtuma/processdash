@@ -35,6 +35,7 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,9 +65,11 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
@@ -97,6 +100,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.NonclosingInputStream;
@@ -240,11 +244,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String SUGG_TEAM_DIR = "setup//Suggested_Team_Dir";
     private static final String TEAM_DIR = "setup//Team_Dir";
     private static final String TEAM_SCHEDULE = "setup//Team_Schedule";
+    private static final String SCHEDULE_HOURS = "setup//Schedule_Hours";
     private static final String NODE_NAME = "setup//Node_Name";
     private static final String NODE_LOCATION = "setup//Node_Location";
     private static final String IND_INITIALS = "setup//Indiv_Initials";
     private static final String IND_FULLNAME = "/Owner";
     private static final String IND_SCHEDULE = "setup//Indiv_Schedule";
+    private static final String IND_HOURS = "setup//Indiv_Schedule_Hours";
     private static final String DATA_DIR = "setup//Data_Directory";
     private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
@@ -697,7 +703,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // attempt to write applicable files to the new WBS directory.
         writeTeamSettingsFile(teamPID, teamDataDir, teamDataDirUrl,
             newPath, teamSchedule, projectID, isPersonal, processJarFile);
-        writeFilesToNewWbsDir(relaunchSourceDir, relaunchSourceID,
+        writeFilesToNewWbsDir(isPersonal, relaunchSourceDir, relaunchSourceID,
             teamDataDirUrl, teamDataDir);
 
         // perform lots of other setup tasks.  Unlike the operation
@@ -853,12 +859,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     /** write files to the WBS directory for the newly created project */
-    private void writeFilesToNewWbsDir(File relaunchSourceDir,
-            String relaunchSourceID, String... locations) {
+    private void writeFilesToNewWbsDir(boolean isPersonal,
+            File relaunchSourceDir, String relaunchSourceID,
+            String... locations) {
         List<WriteFileTask> files = new ArrayList();
 
         // write the userSettings.ini file
-        Properties wbsUserSettings = getWbsUserSettings(relaunchSourceID);
+        Properties wbsUserSettings = getWbsUserSettings(isPersonal,
+            relaunchSourceID);
         if (!wbsUserSettings.isEmpty())
             files.add(new UserSettingsWriter(wbsUserSettings));
 
@@ -886,13 +894,20 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
-    private Properties getWbsUserSettings(String relaunchSourceID) {
+    private Properties getWbsUserSettings(boolean isPersonal,
+            String relaunchSourceID) {
         Properties result = new Properties();
 
         // record the global initials policy, if one is registered
         String initialsPolicy = getValue("/Team_Project_Policy/Initials_Policy");
         if (StringUtils.hasValue(initialsPolicy))
             result.put("initialsPolicy", initialsPolicy);
+
+        // write default hours per week if applicable
+        String defaultHoursPerWeek = getValue(isPersonal ? IND_HOURS
+                : "/Team_Project_Policy/Default_Hours_Per_Week");
+        if (StringUtils.hasValue(defaultHoursPerWeek))
+            result.put("defaultHoursPerWeek", defaultHoursPerWeek);
 
         // if this is a relaunched project, record applicable settings
         if (StringUtils.hasValue(relaunchSourceID)) {
@@ -1712,6 +1727,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // if a full name was provided by the PDES, possibly save it
         maybeSavePersonalValue(IND_FULLNAME, getPlaceholderFullNames(),
             System.getProperty(DATASET_OWNER_FULLNAME_SYSPROP));
+
+        // save a default number of planned hours per week
+        maybeSavePersonalValue(SCHEDULE_HOURS, Collections.EMPTY_SET, "12");
     }
 
     private void checkValidityOfPersonalDataValues(boolean abortOnError) {
@@ -1722,6 +1740,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         checkIndivValue(err, NODE_LOCATION, getNodeLocationError());
         checkIndivValue(err, TEAM_PID, getPersonalProcessError());
         checkIndivValue(err, IND_SCHEDULE, getScheduleNameErr());
+        checkIndivValue(err, SCHEDULE_HOURS, getScheduleHoursError());
 
         if (abortOnError && !PERSONAL_DATA_URL.equals(err.uri)) {
             savePersonalMcfMetadata();
@@ -1742,6 +1761,26 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return SHOW_FIELD_WITH_EDIT_CSS;
         }
 
+        return null;
+    }
+
+    private String getScheduleHoursError() {
+        String hoursStr = getValue(SCHEDULE_HOURS);
+
+        if (!StringUtils.hasValue(hoursStr))
+            return "scheduleHoursMissing";
+
+        double hours;
+        try {
+            hours = NumberFormat.getNumberInstance().parse(hoursStr)
+                    .doubleValue();
+            if (hours < 0 || hours > 24 * 7)
+                throw new IllegalArgumentException();
+        } catch (Exception e) {
+            return "scheduleHoursInvalid";
+        }
+
+        putValue(IND_HOURS, new DoubleData(hours));
         return null;
     }
 
@@ -1776,6 +1815,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(NODE_LOCATION, trimParameter("Node_Location"));
         putValue(TEAM_PID, trimParameter("Process_ID"));
         putValue(IND_SCHEDULE, trimParameter("Schedule_Name"));
+        putValue(SCHEDULE_HOURS, trimParameter("Schedule_Hours"));
     }
 
     private void handlePersonalRetry() {
@@ -1810,6 +1850,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // copy the schedule name to the required data element
         String scheduleName = getValue(IND_SCHEDULE);
         putValue(TEAM_SCHEDULE, scheduleName);
+        double scheduleHours = ((NumberData) getSimpleValue(IND_HOURS))
+                .getDouble();
 
         // invoke the team project creation logic
         try {
@@ -1826,7 +1868,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // setup personal project root data
         putValue(INDIV_INITIALS, "me");
         putValue(PERSONAL_PROJECT_FLAG, TagData.getInstance());
-        createIndivSchedule(scheduleName);
+        createIndivSchedule(scheduleName, scheduleHours);
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.4b");
         DataVersionChecker.registerDataRequirement("teamTools", "5.1.0");
@@ -2469,7 +2511,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // above, these tasks should succeed 99.999% of the time.
         setPrefix(localProjectName);
         createProjectRootNode(indivTemplateID);
-        String scheduleID = createIndivSchedule(scheduleName);
+        String scheduleID = createIndivSchedule(scheduleName, 12);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
         if (wbsManagedSizeData)
@@ -2591,7 +2633,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(TEAM_DATA_DIRECTORY_URL, teamDataDirectoryURL);
     }
 
-    protected String createIndivSchedule(String scheduleName) {
+    protected String createIndivSchedule(String scheduleName,
+            double scheduleHours) {
         // if an older schedule exists with this same name, delete it.
         // (Based on our checks above, the older task list should be empty
         // anyway.  But we don't want to reuse its task list ID.)
@@ -2600,10 +2643,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (oldList != null)
             oldList.save(null);
 
+        // create the new schedule and save it
         EVTaskListData schedule = new EVTaskListData
             (scheduleName, getDataRepository(), getPSPProperties(), false);
         schedule.addTask(getPrefix(), getDataRepository(),
                          getPSPProperties(), null, false);
+        schedule.getSchedule().get(1)
+                .setPlanTime(FormatUtil.formatTime(scheduleHours * 60));
         schedule.getSchedule().setDatesLocked(true);
         schedule.setMetadata(PROJECT_SCHEDULE_SYNC_SCHEDULE,
             schedule.getSchedule().getSaveList().formatClean());
@@ -2611,6 +2657,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             Double.toString(schedule.getSchedule().get(1).planDirectTime()));
         schedule.save();
 
+        // save the task list ID for the new schedule
         putValue(PROJECT_SCHEDULE_ID, schedule.getID());
         return schedule.getID();
     }
