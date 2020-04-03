@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2017 Tuma Solutions, LLC
+// Copyright (C) 1999-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
@@ -95,6 +96,7 @@ public class ConfigureButton extends WindowsFlatMenuBar
     Logger logger = Logger.getLogger(ConfigureButton.class.getName());
 
                                   // menu labels
+    static final String NEW_PROJECT      = "New_Project";
     static final String HIERARCHY_FRAME  = "Hierarchy";
     static final String TIME_LOG_FRAME   = "Time_Log";
     static final String DEFECT_LOG_FRAME = "Defect_Log";
@@ -142,6 +144,9 @@ public class ConfigureButton extends WindowsFlatMenuBar
 
         BetaVersionSetup.addSubmenu(menu);
 
+        if (Settings.isReadWrite() && hasInstalledMCF()) {
+            menu.add(makeMenuItem(NEW_PROJECT));
+        }
         menu.add(makeMenuItem(HIERARCHY_FRAME));
         menu.add(makeMenuItem(TIME_LOG_FRAME));
         menu.add(makeMenuItem(DEFECT_LOG_FRAME));
@@ -336,6 +341,22 @@ public class ConfigureButton extends WindowsFlatMenuBar
         }
     }
 
+    private boolean hasInstalledMCF() {
+        DashHierarchy templates = parent.getTemplateProperties();
+        Prop root = templates.pget(PropertyKey.ROOT);
+        for (int i = root.getNumChildren(); i-- > 0;) {
+            PropertyKey childKey = root.getChild(i);
+            String childID = templates.pget(childKey).getID();
+            if (childID.endsWith("/Indiv2Root"))
+                return true;
+        }
+        return false;
+    }
+
+    private void startNewPersonalProjectWizard() {
+        Browser.launch("/team/setup/wizard.class?page=personal");
+    }
+
     public void startPropertyFrame () {
         if (parent.getProperties() != null) {
             if (prop_frame != null)
@@ -447,6 +468,8 @@ public class ConfigureButton extends WindowsFlatMenuBar
 
         if (cmd.equals(HIERARCHY_FRAME)) {
             startPropertyFrame ();
+        } else if (cmd.equals(NEW_PROJECT)) {
+            startNewPersonalProjectWizard();
         } else if (cmd.equals(TIME_LOG_FRAME)) {
             startTimeLog();
         } else if (cmd.equals(DEFECT_LOG_FRAME)) {
