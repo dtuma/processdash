@@ -25,7 +25,9 @@
 
 <html>
 <head>
-<title>Personal Project Creation Wizard</title>
+<title>Personal Project
+<!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
+Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 <style type="text/css">
    td.label {
@@ -107,19 +109,25 @@
 <body onload="nodeNameChange()">
 
 <table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
-<td><h1 style="margin:0px">Personal Project Creation Wizard</h1></td>
+<td><h1 style="margin:0px">Personal Project
+<!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
+Wizard</h1></td>
 </tr></table>
 
 <h2>Enter Project Information</h2>
 
 <p style="width: 550px">Please review the following information.  Enter any
 missing values, and edit other values if desired.  After providing the values
-you would like to use, click the button to join this team project.</p>
+you would like to use, click the button to create this new project.</p>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='personalEnterData'>
 <input type='hidden' name='__POST_TOKEN'
        value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+<!--#if [setup//Is_Relaunch] -->
+    <input type="hidden" name="Is_Relaunch" value="true">
+    <input type="hidden" name="Schedule_Hours" value="12">
+<!--#endif-->
 
 <table>
 
@@ -252,7 +260,7 @@ you would like to use, click the button to join this team project.</p>
 
 
 
-<!--#if [setup//Process_ID_List] -->
+<!--#if [setup//Process_ID_List] && ![setup//Is_Relaunch] -->
 
 <tr>
 <td class="label">Project type:</td>
@@ -344,6 +352,8 @@ you would like to use, click the button to join this team project.</p>
 
 
 
+<!--#if ![setup//Is_Relaunch] -->
+
 <tr>
 <td class="label">Schedule Time:</td>
 <td colspan="2">
@@ -388,6 +398,7 @@ you would like to use, click the button to join this team project.</p>
 </tr>
 
 <!--#endif scheduleHours* -->
+<!--#endif relaunch -->
 
 
 

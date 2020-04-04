@@ -25,7 +25,9 @@
 
 <html>
 <head>
-<title>Personal Project Setup Wizard</title>
+<title>Personal Project
+<!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
+Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>

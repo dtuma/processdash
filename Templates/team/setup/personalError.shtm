@@ -25,7 +25,9 @@
 
 <html>
 <head>
-<title>Personal Project Creation Wizard</title>
+<title>Personal Project
+<!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
+Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 <style type="text/css">
    pre.indent {
@@ -39,7 +41,9 @@
 <body>
 
 <table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
-<td><h1 style="margin:0px">Personal Project Creation Wizard</h1></td>
+<td><h1 style="margin:0px">Personal Project
+<!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
+Wizard</h1></td>
 </tr></table>
 
 <h2>Problem Creating Project</h2>
@@ -124,6 +128,27 @@ currently open.</p>
 
 
 
+<!--#elif relaunchCopyErr -->
+
+<p>The relaunch wizard needs to copy project data from the old project plan to
+the new project plan.  Unfortunately, it was unable to perform this task.</p>
+
+<ul>
+
+<li>Please ensure that you are connected to the network.</li>
+
+<li>If you are currently editing the Work Breakdown Structure for the
+&quot;<!--#echo [setup//Relaunch_Source_Path] -->&quot; project, please
+close the Work Breakdown Structure Editor before proceeding.</li>
+
+</ul>
+
+<p>After you have corrected these problems, click &quot;Retry.&quot; If the
+problem persists, <a href="/control/showConsole.class">click here</a> for
+additional information about the error that was encountered.</p>
+
+
+
 <!--#elif unexpectedError -->
 
 <p>The dashboard encountered an unexpected problem that prevented it from
@@ -146,6 +171,9 @@ creating your project.  The problem details are below:</p>
 <input type='hidden' name='page' value='personalRetry'>
 <input type='hidden' name='__POST_TOKEN'
        value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+<!--#if [setup//Is_Relaunch] -->
+    <input type="hidden" name="Is_Relaunch" value="true">
+<!--#endif-->
 
 
 <p align="right"><input type="submit" name="next" value="Retry"></p>

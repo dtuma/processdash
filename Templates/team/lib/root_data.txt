@@ -115,3 +115,22 @@
 <!--#endfor-->
 [Phase_Display_Filter_List] =
     filter(indirect("Phase_Display_Filter_Include/" & [_]), [Phase_List]);
+
+
+/*
+ * Document a list of settings that should be copied forward when 
+ * a project is relaunched
+ */
+
+[Relaunchable_Settings] = list(
+    "Defect Type Standard",
+    "Target Design/Code Ratio",
+    "Target Code Review/Code Ratio",
+    "Target Compile Defect Density",
+    "Target Test Defect Density",
+    "Target Design Review/Design Ratio",
+    "Prefer Actual Size for Inspection Estimates",
+    "*PHASE*/Estimated % Phase Yield",
+    "*PHASE*/Estimated Defects Injected per Hour",
+    "Phase_Display_Filter_Include/*PHASE*"
+);

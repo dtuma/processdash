@@ -106,25 +106,6 @@ undefine([Simple Project Tag]);
 
 
 /*
- * Document a list of settings that should be copied forward when 
- * a project is relaunched
- */
-
-[Relaunchable_Settings] = list(
-    "Defect Type Standard",
-    "Target Design/Code Ratio",
-    "Target Code Review/Code Ratio",
-    "Target Compile Defect Density",
-    "Target Test Defect Density",
-    "Target Design Review/Design Ratio",
-    "Prefer Actual Size for Inspection Estimates",
-    "*PHASE*/Estimated % Phase Yield",
-    "*PHASE*/Estimated Defects Injected per Hour",
-    "Phase_Display_Filter_Include/*PHASE*"
-);
-
-
-/*
  * Publish team settings data that can be exported to individuals
  */
 [Team_Settings] = TAG;

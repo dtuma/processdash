@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>Personal Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+   table.warning {
+      background-color: #ffcccc;
+      border: 1px solid #DD7777;
+      margin: 1em 0;
+      padding: 5px 10px;
+   }
+   table.warning td {
+      padding-right: 10px;
+      vertical-align: middle;
+   }
+</style>
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Personal Project
+Relaunch Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='relaunchStart'>
+
+<p>A personal project lets you manage a complex plan with a large number of
+tasks, and track your progress against that plan.  But from time to time, you
+may wish to clean up your old/completed tasks, and get a fresh start on a new
+plan looking forward.  You might do this during a personal replanning session,
+or at the start of a new project iteration.</p>
+
+<p>This Relaunch Wizard is designed to help you create a starting point for a
+new plan.  The relaunch wizard will:</p>
+
+<ul>
+
+<li>Mark the "<tt><!--#echo var=PATH_TRANSLATED --></tt>" project as
+<b><u>closed</u></b>, indicating that no additional work will be performed
+there.</li>
+
+<li>Create a new personal project to hold the plan for the new iteration.</li>
+
+<li>Copy the workflows, milestones, and calendar of available hours from the
+old plan to the new plan.</li>
+
+<li>Copy incomplete components and tasks from the old plan to the new plan,
+and adjust the planned times of in-progress tasks to account for work that
+has already been performed.</li>
+
+<li>Create a new schedule that calculates plan/forecast dates starting this
+week and looking forward.</li>
+
+</ul>
+
+<p>If you are ready to close this cycle and create a new plan based on the
+remaining work, press the Next button to continue.</p>
+
+
+<div style="text-align:right">
+<input type="button" name="cancel" value="Cancel"
+       onClick="window.close();">&nbsp;&nbsp;
+<input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>

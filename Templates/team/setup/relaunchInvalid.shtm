@@ -1,6 +1,7 @@
 <html>
 <head>
-<title>Team Project Relaunch Wizard</title>
+<title><!--#if datasetMode eq 'team' -->Team<!--#else-->Personal<!--#endif-->
+Project Relaunch Wizard</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
 </head>
 <body>
@@ -11,12 +12,18 @@
 
 <h2>Invalid Request</h2>
 
-<p>This wizard automates the task of relaunching a team project.</p>
+<p>This wizard automates the task of relaunching a
+<!--#if datasetMode eq 'team' -->team<!--#else-->personal<!--#endif-->
+project.</p>
 
 <p>
 <!--#if notTeamRoot -->
 However, &quot;<!--#echo var=PATH_TRANSLATED -->&quot; is not the root of a
 team project.
+
+<!--#elif notPersonalRoot -->
+However, &quot;<!--#echo var=PATH_TRANSLATED -->&quot; is not the root of a
+personal project.
 
 <!--#elif isRelaunched -->
 However, the &quot;<!--#echo var=PATH_TRANSLATED -->&quot; project has
@@ -25,17 +32,17 @@ already been closed and relaunched at some time in the past.
 <!--#elif badTeamTools -->
 However, it requires version 4.1 or higher of the "Advanced Team Tools"
 plugin, and you only have version <!--#echo Dash_Package_teamTools -->.
-You will need to upgrade to a more recent version of the Team Dashboard
+You will need to upgrade to a more recent version of the dashboard
 before you can use the Relaunch Wizard.
 
 <!--#elif quickLaunch -->
-Unfortunately, you are currently running the Team Dashboard against a Data
+Unfortunately, you are currently running the dashboard against a Data
 Backup (e.g. ZIP/PDBK) file. The relaunch wizard can only operate against live
 data.
 
 <!--#elif readOnly -->
-Unfortunately, you are currently running the Team Dashboard in read-only
-mode.  Accordingly, you cannot relaunch this team project until you restart
+Unfortunately, you are currently running the dashboard in read-only
+mode.  Accordingly, you cannot relaunch this project until you restart
 the dashboard in read-write mode.
 
 <!--#endif-->

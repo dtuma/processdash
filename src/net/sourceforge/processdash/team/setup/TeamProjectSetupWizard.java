@@ -175,6 +175,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     // information for the team project relaunch welcome page
     private static final String RELAUNCH_WELCOME_PAGE = "relaunch";
     private static final String RELAUNCH_WELCOME_URL = "relaunchWelcome.shtm";
+    private static final String RELAUNCH_PERSONAL_URL = "relaunchPersonal.shtm";
     private static final String RELAUNCH_START_PAGE = "relaunchStart";
     // information for the team project relaunch node name page
     private static final String RELAUNCH_NODE_PAGE = "relaunchNode";
@@ -696,7 +697,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
 
         // if we are relaunching a project, mark the original WBS as closed.
-        File relaunchSourceDir = maybeCloseRelaunchedProjectWbs();
+        File relaunchSourceDir = maybeCloseRelaunchedProjectWbs(isPersonal);
         String relaunchSourcePath = getValue(RELAUNCH_SOURCE_PATH);
         String relaunchSourceID = getValue(RELAUNCH_SOURCE_ID);
 
@@ -717,13 +718,19 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         DashController.setPath(getPrefix());
 
         if (StringUtils.hasValue(relaunchSourcePath)) {
-            startAsyncExport(relaunchSourcePath);
-            if (testValue(relaunchSourcePath + "/"
-                    + TeamDataConstants.WBS_SIZE_DATA_NAME))
+            // after relaunching a project, export an up-to-date dissemination
+            // file to let members of the old project know that it was closed,
+            // and to invite them to the relaunched project.
+            if (!isPersonal)
+                startAsyncExport(relaunchSourcePath);
+            // if the old project used WBS-managed size data, run a cleanup to
+            // delete size data that got moved forward.
+            if (testValue(relaunchSourcePath + "/" + WBS_SIZE_DATA_NAME))
                 startAsyncCleanupOfRelaunchedWbs(relaunchSourcePath);
         }
         if (StringUtils.hasValue(relaunchSourceID))
-            startAsyncCleanupOfRelaunchedWbs(null);
+            // cleanup the relaunched WBS in the new project
+            startAsyncCleanupOfRelaunchedWbs(getPrefix());
     }
 
     private String createServerCollection(String teamServerUrl, boolean isPersonal) {
@@ -817,7 +824,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
-    private File maybeCloseRelaunchedProjectWbs() {
+    private File maybeCloseRelaunchedProjectWbs(boolean isPersonal) {
         // if we are relaunching a project, get the locations where that
         // project stores its data
         ListData relaunchSourceLocations = ListData
@@ -839,7 +846,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             // Display a page advising the user to close the WBS Editor.
             System.out.println("Unable to close WBS of relaunched project:");
             e.printStackTrace();
-            throw new WizardError(RELAUNCH_CANNOT_COPY_URL);
+            if (isPersonal)
+                throw new WizardError(PERSONAL_ERR_URL).param("relaunchCopyErr");
+            else
+                throw new WizardError(RELAUNCH_CANNOT_COPY_URL);
         }
 
         // return the local directory where the WBS data is cached
@@ -885,7 +895,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             // link they can click to view the stack trace we print below.
             System.out.println("Unable to write files to project WBS dir");
             e.printStackTrace();
-            if (relaunchSourceDir != null)
+            if (relaunchSourceDir == null)
+                ; // do nothing; see below
+            else if (isPersonal)
+                throw new WizardError(PERSONAL_ERR_URL).param("relaunchCopyErr");
+            else
                 throw new WizardError(RELAUNCH_CANNOT_COPY_URL);
 
             // if we are not in relaunch mode, just log the error and keep
@@ -1003,10 +1017,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         try {
             // start a headless WBS Editor process in the background to
             // perform the cleanup operations on the project WBS
-            String wbsUri = resolveRelativeURI("openWBS.shtm?dumpAndExit");
-            if (projectPath != null)
-                wbsUri = HTMLUtils.urlEncodePath(projectPath)
-                        + wbsUri.substring(wbsUri.lastIndexOf("//"));
+            String processID = getValue(projectPath + "/" + PROCESS_ID);
+            String wbsUri = HTMLUtils.urlEncodePath(projectPath) + "//"
+                    + processID + "/setup/openWBS.shtm?dumpAndExit";
             getRequest(wbsUri, false);
         } catch (Exception e) {
             // if this fails, continue; the cleanup will be performed the
@@ -1347,7 +1360,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     /** Begin the process of relaunching a team project */
     private void showRelaunchWelcomePage() {
-        printRedirect(RELAUNCH_WELCOME_URL);
+        if (Settings.isPersonalMode())
+            printRedirect(RELAUNCH_PERSONAL_URL);
+        else
+            printRedirect(RELAUNCH_WELCOME_URL);
     }
 
     private void handleRelaunchWelcomePage() {
@@ -1359,11 +1375,18 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (Settings.isReadOnly())
             throw new WizardError(RELAUNCH_INVALID_URL).param("readOnly");
 
-        // look at the current path. It it doesn't name a team project, abort.
+        // look at the current path. It it doesn't name a project root, abort.
+        boolean isPersonal = Settings.isPersonalMode();
         String projectPath = getPrefix();
         String templateID = getTemplateID(projectPath);
-        if (templateID == null || !templateID.endsWith("/TeamRoot"))
-            throw new WizardError(RELAUNCH_INVALID_URL).param("notTeamRoot");
+        if (isPersonal) {
+            if (templateID == null || !templateID.endsWith("/Indiv2Root")
+                    || !testValue(PERSONAL_PROJECT_FLAG))
+                throw new WizardError(RELAUNCH_INVALID_URL).param("notPersonalRoot");
+        } else {
+            if (templateID == null || !templateID.endsWith("/TeamRoot"))
+                throw new WizardError(RELAUNCH_INVALID_URL).param("notTeamRoot");
+        }
 
         // if this team project has been relaunched in the past, abort.
         if (testValue(RELAUNCHED_PROJECT_FLAG))
@@ -1385,7 +1408,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(NODE_LOCATION, projectParent);
         putValue(RELAUNCH_FLAG, "true");
 
-        showRelaunchNodePage();
+        if (isPersonal)
+            startPersonalRelaunch();
+        else
+            showRelaunchNodePage();
     }
 
     private static String getDefaultRelaunchedProjectName(String oldName) {
@@ -1696,6 +1722,17 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         printRedirect(PERSONAL_START_URL);
     }
 
+    private void startPersonalRelaunch() {
+        // write metadata into the repository to prepare for relaunch
+        copyRelaunchValues(getPrefix());
+
+        // give the schedule the same default name as the relaunched project
+        putValue(IND_SCHEDULE, getValue(NODE_NAME));
+
+        // continue with personal project setup
+        handlePersonalStart();
+    }
+
     private void handlePersonalStart() {
         // check preconditions
         if (Settings.isReadOnly())
@@ -1824,7 +1861,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     private void createPersonalProject() {
         if (!checkPostToken()) {
-            startPersonalCreate();
+            if (getParameter("Is_Relaunch") != null)
+                showRelaunchWelcomePage();
+            else
+                startPersonalCreate();
             return;
         }
 
@@ -1835,6 +1875,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (DashController.isHierarchyEditorOpen())
             throw new WizardError(PERSONAL_ERR_URL)
                     .param("hierarchyEditorOpen");
+
+        // when relaunching, perform one last export of data in the old project.
+        // (this will ensure that task completion flags, etc are up-to-date)
+        if (testValue(RELAUNCH_FLAG))
+            exportProjectData();
 
         // store project data on the PDES, or under the personal data directory
         String teamServerUrl = TeamServerSelector.getDefaultTeamServerUrl();
