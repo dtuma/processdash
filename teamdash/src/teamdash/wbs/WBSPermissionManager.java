@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -148,6 +148,12 @@ public class WBSPermissionManager {
             pdesUrl = ExternalLocationMapper.getInstance().getDatasetUrl();
         WhoAmI whoAmI = new WhoAmI(pdesUrl);
         currentUser = whoAmI.getUsername();
+
+        // if this is a personal project, the current user owns it and should
+        // have permission to do anything they please. In that case, exit.
+        // Leaving the "version" field null will grant all permissions.
+        if (proj.isPersonalProject())
+            return;
 
         // look at the team settings.xml file. if it was written by an old
         // version of the dashboard, it will not contain a version. In that
