@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,9 @@
 //     processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.tool.export.impl;
+
+import static net.sourceforge.processdash.team.TeamDataConstants.DISSEMINATION_DIRECTORY;
+import static net.sourceforge.processdash.team.TeamDataConstants.PERSONAL_PROJECT_IMPORT_SUFFIX;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -76,8 +79,24 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     }
 
     public Object dispatch(ImportDirectoryInstruction instr) {
+        if (instr.getPrefix().endsWith(PERSONAL_PROJECT_IMPORT_SUFFIX)) {
+            // Personal projects have an import instruction that points to a
+            // (completely empty) disseminate directory. For these projects, we
+            // need to archive the parent WBS directory instead.
+            instr = (ImportDirectoryInstruction) instr.clone();
+            instr.setDirectory(stripDisseminate(instr.getDirectory()));
+            instr.setURL(stripDisseminate(instr.getURL()));
+        }
         importInstructions.add(instr);
         return null;
+    }
+
+    private String stripDisseminate(String str) {
+        if (str == null || !str.endsWith(DISSEMINATION_DIRECTORY))
+            return str;
+        else
+            return str.substring(0,
+                str.length() - DISSEMINATION_DIRECTORY.length() - 1);
     }
 
     public void export(ZipOutputStream out) throws IOException {

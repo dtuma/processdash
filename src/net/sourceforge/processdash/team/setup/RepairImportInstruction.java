@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,8 @@ public class RepairImportInstruction {
     private static void maybeRepair(DataContext data, boolean indiv) {
         String projectID = getString(data, TeamDataConstants.PROJECT_ID);
         String prefix = "Import_" + projectID;
+        if (indiv && getString(data, TeamDataConstants.PERSONAL_PROJECT_FLAG) != null)
+            prefix = prefix + TeamDataConstants.PERSONAL_PROJECT_IMPORT_SUFFIX;
 
         String[] locations = new String[2];
 

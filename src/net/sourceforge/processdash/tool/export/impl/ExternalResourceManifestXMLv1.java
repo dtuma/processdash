@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2017 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,7 +59,8 @@ public class ExternalResourceManifestXMLv1 implements
     }
 
     public boolean isEmpty() {
-        return mappingEntries.isEmpty() && datasetUrl == null;
+        return mappingEntries.isEmpty() && mcfEntries.isEmpty()
+                && datasetUrl == null;
     }
 
     public String getDatasetUrl() {
