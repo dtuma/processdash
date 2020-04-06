@@ -279,7 +279,7 @@
 	   must instead use the team setup wizard to join a team project.
        <!--#endbreak comment-->
 
-    <html ID="sump" href="cms/PID/indiv_plan_summary"
+    <html ID="sump" href="PID/indiv_plan_summary"
         title="<!--#echo Full_Name --> Project Plan Summary"/>
     <html ID="size" href="PID/sizeForm.class"
         title="<!--#echo Full_Name --> Size Inventory"/>
