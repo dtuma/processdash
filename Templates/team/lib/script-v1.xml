@@ -48,7 +48,6 @@
     <file in="project_parameters.htm" encoding="html" 
           out="indiv_project_parameters.shtm">
 	<param name="indiv" value="true" />
-	<param name="TEAM" value="Team" replace="true" />
     </file>
 
     <!-- html pages for the team project root node -->

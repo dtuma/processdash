@@ -1,4 +1,10 @@
 <html>[!--#do-not-translate--]
+<!--#if indiv -->
+    [!--#set var="TeamStr" inline="true" #--]
+        [!--#if [Personal_Project] --]Personal[!--#else--]Team[!--#endif#--]
+    [!--#endset--]
+    [!--#replace token="TEAM" var="TeamStr" --]
+<!--#endif#-->
 <head>
 <title>TEAM Project Parameters and Settings</title>
 <link rel=stylesheet type="text/css" href="style.css">
@@ -56,7 +62,7 @@
 <td><input type="text" size="50" class="notTeamSetting" name="[Project_ID]rs"></td>
 </tr>
 
-[!--#if showTeamDir || ![Team_Directory_URL_Only] --]
+[!--#if showTeamDir || ![Team_Directory_URL_Only] && ![Personal_Project] --]
 <tr>
 <td>TEAM Project Network Directory</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory]s"></td>
@@ -94,10 +100,12 @@
 <td><input type=text size=50 name="/Owner	s"></td>
 </tr>
 
+[!--#if showInitials || ![Personal_Project] --]
 <tr>
 <td>Your Initials</td>
 <td><input type=text size=50 name="Indiv_Initials	s"></td>
 </tr>
+[!--#endif--]
 
 <tr>
 <td>Your Data Export Filename</td>
@@ -267,7 +275,7 @@ calculate planned inspection rates and densities
 <!--#endif not VVIS -->
 
 
-<!--#if not indiv -->
+[!--#if not [Team Project Indiv Root] || [Personal_Project] --]
 
 <h2>Phase Display List</h2>
 
@@ -282,7 +290,7 @@ checked below:</p>
 <!--#endfor-->
 </div>
 
-<!--#endif-->
+[!--#endif--]
 
 </form>
 
@@ -292,7 +300,9 @@ checked below:</p>
 document.writeln("<P>Problem loading the data.js script!");
 </script>
 
-<!--#if not indiv && not master -->
+<!--#if indiv -->
+[!--#endreplace--]
+<!--#elif not master -->
 [!--#if !EXPORT --]
 <div id="settingsExportBanner" style="display:none">
 You have made changes to the settings on this page.  You will need to 
