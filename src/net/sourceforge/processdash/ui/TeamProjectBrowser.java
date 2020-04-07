@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2017 Tuma Solutions, LLC
+// Copyright (C) 2013-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,12 +45,10 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
@@ -69,7 +67,6 @@ import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.BrokenDataFileHandler;
-import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -80,8 +77,6 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
-import net.sourceforge.processdash.hier.HierarchyAlterer;
-import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
@@ -97,11 +92,11 @@ import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupUtil;
 import net.sourceforge.processdash.team.group.ui.GroupFilterMenu;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
+import net.sourceforge.processdash.team.ui.TeamProjectAlterer;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
-import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -134,6 +129,8 @@ public class TeamProjectBrowser extends JSplitPane {
 
     private ScriptList scriptList;
 
+    private TeamProjectAlterer alterer;
+
     private ExternalEventHandler handler;
 
     private static final Resources resources = Resources
@@ -145,6 +142,7 @@ public class TeamProjectBrowser extends JSplitPane {
         this.ctx = dash;
         this.taskModel = dash.getActiveTaskModel();
 
+        this.alterer = new TeamProjectAlterer(dash, this);
         this.handler = new ExternalEventHandler();
         dash.addApplicationEventListener(handler);
         taskModel.addPropertyChangeListener(handler);
@@ -496,204 +494,6 @@ public class TeamProjectBrowser extends JSplitPane {
     }
 
 
-    private void maybeRenameSelectedProject() {
-        // determine which team project is selected. If none, abort.
-        PropertyKey projectNode = getSelectedTreeNode();
-        String projectPath = projectNode.path();
-        String templateID = ctx.getHierarchy().getID(projectNode);
-        if (!StringUtils.hasValue(templateID))
-            return;
-
-        // Create objects we will use in a dialog
-        String title = resources.getString("Rename.Title");
-        JTextField newPathField = new JTextField(projectPath);
-        Object message = resources.formatStrings("Rename.Message_Header_FMT",
-            projectPath);
-        message = new Object[] { message, " ", newPathField,
-                new JOptionPaneTweaker.GrabFocus(newPathField) };
-
-        while (true) {
-            // Show the user a dialog asking for the new path and name.
-            int userChoice = JOptionPane.showConfirmDialog(this, message,
-                title, JOptionPane.OK_CANCEL_OPTION);
-
-            // if the user didn't press the OK button, abort.
-            if (userChoice != JOptionPane.OK_OPTION)
-                return;
-
-            // get the new path in canonical form. If it was not absolute,
-            // interpret it relative to the current parent of the project.
-            String newPath = newPathField.getText().trim();
-            if (newPath.indexOf('/') == -1)
-                newPath = projectNode.getParent().path() + "/" + newPath;
-            newPath = DashHierarchy.scrubPath(newPath);
-            newPathField.setText(newPath);
-
-            // if the user didn't change the name, abort.
-            if (newPath.length() < 2 || newPath.equals(projectPath))
-                return;
-
-            // check for various error conditions.
-            if (projectAlreadyExists(newPath)) {
-                showInvalidRenameMessage("Rename.Duplicate_Name");
-
-            } else if (projectParentIsInvalid(newPath)) {
-                showInvalidRenameMessage("Rename.Invalid_Parent");
-
-            } else {
-                try {
-                    // try performing the renaming operation.
-                    HierarchyAlterer hierarchyAlterer = DashController
-                            .getHierarchyAlterer();
-                    hierarchyAlterer.renameNode(projectPath, newPath);
-
-                    // if this caused the old parent of the project to become
-                    // childless, delete that parent (and grandparent, etc)
-                    PropertyKey oldParent = projectNode.getParent();
-                    while (ctx.getHierarchy().getNumChildren(oldParent) == 0) {
-                        hierarchyAlterer.deleteNode(oldParent.path());
-                        oldParent = oldParent.getParent();
-                    }
-
-                    // point the "active task" at the renamed project.
-                    PropertyKey newNode = ctx.getHierarchy().findExistingKey(
-                        newPath);
-                    if (newNode != null)
-                        taskModel.setNode(newNode);
-
-                } catch (HierarchyAlterationException e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-        }
-    }
-
-    private boolean projectAlreadyExists(String path) {
-        PropertyKey key = ctx.getHierarchy().findExistingKey(path);
-        return (key != null);
-    }
-
-    private boolean projectParentIsInvalid(String path) {
-        PropertyKey key = ctx.getHierarchy().findClosestKey(path);
-        while (key != null) {
-            String templateID = ctx.getHierarchy().getID(key);
-            if (StringUtils.hasValue(templateID))
-                return true;
-            key = key.getParent();
-        }
-        return false;
-    }
-
-    private void showInvalidRenameMessage(String resKey) {
-        JOptionPane.showMessageDialog(this, resources.getStrings(resKey),
-            resources.getString("Rename.Error_Title"),
-            JOptionPane.ERROR_MESSAGE);
-    }
-
-
-
-    private void maybeCloseSelectedProject() {
-        PropertyKey selectedNode = getSelectedTreeNode();
-        String projectPath = selectedNode.path();
-        String templateID = ctx.getHierarchy().getID(selectedNode);
-
-        // do not close plain nodes (which act as folders full of projects)
-        if (!StringUtils.hasValue(templateID))
-            return;
-
-        // if this is a team project stub, delete rather than closing
-        if (TeamStartBootstrap.TEAM_STUB_ID.equals(templateID)) {
-            maybeDeleteSelectedProject();
-            return;
-        }
-
-        // extract the process ID
-        int slashPos = templateID.indexOf('/');
-        if (slashPos == -1)
-            return;
-        String processID = templateID.substring(0, slashPos);
-
-        // open the Close Team Project page.
-        StringBuilder uri = new StringBuilder();
-        uri.append(HTMLUtils.urlEncodePath(projectPath)) //
-                .append("//").append(processID)
-                .append("/setup/wizard.class?page=close");
-        Browser.launch(uri.toString());
-    }
-
-    private void maybeDeleteSelectedProject() {
-        PropertyKey selectedNode = getSelectedTreeNode();
-        String projectPath = selectedNode.path();
-        String templateID = ctx.getHierarchy().getID(selectedNode);
-        if (okToDeleteProject(projectPath, templateID)) {
-            try {
-                DashController.getHierarchyAlterer().deleteNode(projectPath);
-            } catch (HierarchyAlterationException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private boolean okToDeleteProject(String projectPath, String templateID) {
-        // do not delete plain nodes (which act as folders full of projects)
-        if (!StringUtils.hasValue(templateID))
-            return false;
-
-        // it is harmless to delete a team project stub.
-        if (TeamStartBootstrap.TEAM_STUB_ID.equals(templateID))
-            return true;
-
-        // the user is deleting a real project. Display a dialog to confirm.
-        String title = resources.getString("Delete.Title");
-        Object message = getDeleteProjectWarningMessage(projectPath, templateID);
-        int userChoice = JOptionPane.showConfirmDialog(this, message, title,
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        return userChoice == JOptionPane.YES_OPTION;
-    }
-
-    private Object getDeleteProjectWarningMessage(String projectPath,
-            String templateID) {
-        List message = new ArrayList();
-
-        // add a header to the message.
-        message.add(resources.formatStrings("Delete.Message_Header_FMT",
-            projectPath));
-        message.add(" ");
-
-        // if WBS planning has been done, add a warning.
-        if (hasWbsData(projectPath)) {
-            message.add(resources.getStrings("Delete.WBS_Data_Warning"));
-            message.add(" ");
-        }
-
-        // if team members have joined the project, add a warning.
-        if (membersHaveJoined(projectPath, templateID)) {
-            message.add(resources.getStrings("Delete.Members_Joined"));
-            message.add(" ");
-        }
-
-        // add a footer to the message.
-        message.add(resources.getString("Delete.Message_Footer"));
-        return message.toArray();
-    }
-
-    private boolean hasWbsData(String projectPath) {
-        return listLongerThan(projectPath, "Synchronized_Task_ID_WBS_Order", 2);
-    }
-
-    private boolean membersHaveJoined(String projectPath, String templateID) {
-        return (templateID.endsWith("/TeamRoot") && listLongerThan(projectPath,
-            "Corresponding_Project_Nodes", 0));
-    }
-
-    private boolean listLongerThan(String projectPath, String listName,
-            int length) {
-        String name = projectPath + "/" + listName;
-        ListData l = ListData.asListData(ctx.getData().getSimpleValue(name));
-        return l != null && l.size() > length;
-    }
-
 
     private static final String SPLITTER_SETTING = "mainWindow.splitterPos";
 
@@ -972,7 +772,10 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            maybeRenameSelectedProject();
+            PropertyKey selectedNode = getSelectedTreeNode();
+            PropertyKey renamedNode = alterer.maybeRenameProject(selectedNode);
+            if (renamedNode != null)
+                taskModel.setNode(renamedNode);
         }
 
     }
@@ -984,7 +787,7 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            maybeCloseSelectedProject();
+            alterer.maybeCloseProject(getSelectedTreeNode());
         }
 
     }
@@ -996,7 +799,7 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            maybeDeleteSelectedProject();
+            alterer.maybeDeleteProject(getSelectedTreeNode());
         }
 
     }
@@ -1075,24 +878,7 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            PropertyKey projectKey = getSelectedTreeNode();
-            String templateID = ctx.getHierarchy().getID(projectKey);
-            checkEnabledForProcess(templateID);
-            if (!isEnabled())
-                return;
-
-            StringBuilder uri = new StringBuilder();
-            uri.append(HTMLUtils.urlEncodePath(projectKey.path()));
-
-            int slashPos = templateID.indexOf('/');
-            String processID = templateID.substring(0, slashPos);
-            if (isRelaunchSupported(processID))
-                uri.append("//").append(processID)
-                        .append("/setup/wizard.class?page=relaunch");
-            else
-                uri.append("//dash/relaunchUpgradeMCF.shtm");
-
-            Browser.launch(uri.toString());
+            alterer.maybeRelaunchProject(getSelectedTreeNode());
         }
 
         private boolean isRelaunchSupported(String packageID) {
