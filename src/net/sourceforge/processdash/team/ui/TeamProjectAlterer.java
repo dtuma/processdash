@@ -25,7 +25,11 @@ package net.sourceforge.processdash.team.ui;
 
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -125,14 +129,7 @@ public class TeamProjectAlterer {
                     HierarchyAlterer hierarchyAlterer = DashController
                             .getHierarchyAlterer();
                     hierarchyAlterer.renameNode(projectPath, newPath);
-
-                    // if this caused the old parent of the project to become
-                    // childless, delete that parent (and grandparent, etc)
-                    PropertyKey oldParent = projectNode.getParent();
-                    while (ctx.getHierarchy().getNumChildren(oldParent) == 0) {
-                        hierarchyAlterer.deleteNode(oldParent.path());
-                        oldParent = oldParent.getParent();
-                    }
+                    deleteChildlessParentsOfNode(hierarchyAlterer, projectNode);
 
                     // point the "active task" at the renamed project.
                     PropertyKey newNode = ctx.getHierarchy().findExistingKey(
@@ -219,7 +216,9 @@ public class TeamProjectAlterer {
         String templateID = ctx.getHierarchy().getID(selectedNode);
         if (okToDeleteProject(projectPath, templateID)) {
             try {
-                DashController.getHierarchyAlterer().deleteNode(projectPath);
+                HierarchyAlterer alt = DashController.getHierarchyAlterer();
+                alt.deleteNode(projectPath);
+                deleteChildlessParentsOfNode(alt, selectedNode);
             } catch (HierarchyAlterationException e) {
                 showHierarchyError(e);
             }
@@ -254,7 +253,7 @@ public class TeamProjectAlterer {
         message.add(" ");
 
         // if WBS planning has been done, add a warning.
-        if (hasWbsData(projectPath)) {
+        if (hasWbsData(projectPath, type)) {
             message.add(resources.getStrings("Delete.WBS_Data_Warning"));
             message.add(" ");
         }
@@ -265,13 +264,26 @@ public class TeamProjectAlterer {
             message.add(" ");
         }
 
+        // warn an individual that actual data will be lost.
+        if (type == ProjectType.Indiv || type == ProjectType.Personal) {
+            message.add(resources.getStrings("Delete.Personal_Data_Warning"));
+            message.add(" ");
+        }
+
+        // if an individual is deleting a joined project, add a warning.
+        if (type == ProjectType.Indiv) {
+            message.add(resources.getStrings("Delete.Unjoin_Warning"));
+            message.add(" ");
+        }
+
         // add a footer to the message.
         message.add(resources.getString("Delete.Message_Footer"));
         return message.toArray();
     }
 
-    private boolean hasWbsData(String projectPath) {
-        return listLongerThan(projectPath, "Synchronized_Task_ID_WBS_Order", 2);
+    private boolean hasWbsData(String projectPath, ProjectType type) {
+        return (type != ProjectType.Indiv && listLongerThan(projectPath,
+            "Synchronized_Task_ID_WBS_Order", 2));
     }
 
     private boolean membersHaveJoined(String projectPath, ProjectType type) {
@@ -285,6 +297,33 @@ public class TeamProjectAlterer {
         ListData l = ListData.asListData(ctx.getData().getSimpleValue(name));
         return l != null && l.size() > length;
     }
+
+    private void deleteChildlessParentsOfNode(HierarchyAlterer hierarchyAlterer,
+            PropertyKey node) throws HierarchyAlterationException {
+        // if the deletion of a node caused its old parent to become
+        // childless, delete that parent (and grandparent, etc)
+        PropertyKey oldParent = node.getParent();
+        while (isDeletableChildlessParent(oldParent)) {
+            hierarchyAlterer.deleteNode(oldParent.path());
+            oldParent = oldParent.getParent();
+        }
+    }
+
+    private boolean isDeletableChildlessParent(PropertyKey node) {
+        if (node == null || PropertyKey.ROOT.equals(node))
+            return false;
+        else if (PropertyKey.ROOT.equals(node.getParent())
+                && STANDARD_NODE_NAMES.contains(node.name()))
+            return false;
+        else
+            return !StringUtils.hasValue(ctx.getHierarchy().getID(node))
+                    && ctx.getHierarchy().getNumChildren(node) == 0;
+    }
+
+    private static final Set<String> STANDARD_NODE_NAMES = Collections
+            .unmodifiableSet(new HashSet<String>(Arrays.asList( //
+                "Project", resources.getString("Project"), //
+                "Non Project", resources.getString("Non_Project"))));
 
     private void showHierarchyError(HierarchyAlterationException e) {
         e.printStackTrace();
