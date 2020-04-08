@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -119,6 +119,8 @@ public class SyncWBS extends TinyCGIBase {
     private boolean isTeam;
     /** True if this is a master project rollup */
     private boolean isMaster;
+    /** True if this is a personal project */
+    private boolean isPersonal;
     /** true if this is an old-style individual project that needs to be
      * upgraded to the new-style format */
     private boolean migrationNeeded;
@@ -291,7 +293,7 @@ public class SyncWBS extends TinyCGIBase {
         if (isTeam) {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
-            migrationNeeded = conversionNeeded = false;
+            migrationNeeded = conversionNeeded = isPersonal = false;
             pspToDateSubset = pspSubsetSelector = null;
             promptForPspToDateSubset = false;
 
@@ -322,6 +324,10 @@ public class SyncWBS extends TinyCGIBase {
             if (d == null || !d.test() ||
                 "tttt".equals(initials = d.format().trim()))
                 signalError(INITIALS_MISSING);
+ 
+            d = data.getSimpleValue(DataRepository.createDataName
+                (projectRoot, TeamDataConstants.PERSONAL_PROJECT_FLAG));
+            isPersonal = (d != null && d.test());
 
             d = data.getSimpleValue(DataRepository.createDataName
                                     (projectRoot, MIGRATE_DATA_NAME));
@@ -566,6 +572,16 @@ public class SyncWBS extends TinyCGIBase {
         synch.sync();
         syncTemplates(synch);
 
+        if (synch.getDebugLogInfo() != null)
+            maybeDumpDebugLog(synch);
+
+        // in personal mode, we don't need confirmation to complete/delete
+        // tasks, so discard notes about any permissions that might be needed.
+        if (isPersonal) {
+            synch.getTaskDeletions().clear();
+            synch.getTaskCompletions().clear();
+        }
+
         if (isJsonRequest()) {
             printJsonResponse(synch.getChanges().isEmpty());
 
@@ -584,9 +600,6 @@ public class SyncWBS extends TinyCGIBase {
         } else {
             printWaitPage();
         }
-
-        if (synch.getDebugLogInfo() != null)
-            maybeDumpDebugLog(synch);
     }
 
 
@@ -788,14 +801,24 @@ public class SyncWBS extends TinyCGIBase {
      * HierarchySynchronizer.
      */
     private void loadPermissionData(HierarchySynchronizer synch) {
-        Object list = getDataRepository().getSimpleValue(
-                getDataName(DELETE_DATANAME));
-        if (list instanceof ListData)
-            synch.setDeletionPermissions(((ListData) list).asList());
-        list = getDataRepository().getSimpleValue(
-                getDataName(COMPLETE_DATANAME));
-        if (list instanceof ListData)
-            synch.setCompletionPermissions(((ListData) list).asList());
+        Object list;
+        if (isPersonal) {
+            // in a personal project, we don't need user confirmation to
+            // delete/complete anything. Presumably they were the one who made
+            // the edit to begin with.
+            synch.setDeletionPermissions(null);
+            synch.setCompletionPermissions(null);
+
+        } else {
+            list = getDataRepository().getSimpleValue(
+                    getDataName(DELETE_DATANAME));
+            if (list instanceof ListData)
+                synch.setDeletionPermissions(((ListData) list).asList());
+            list = getDataRepository().getSimpleValue(
+                    getDataName(COMPLETE_DATANAME));
+            if (list instanceof ListData)
+                synch.setCompletionPermissions(((ListData) list).asList());
+        }
         list = getDataRepository().getSimpleValue(
             getDataName(PSP_SUBSET_DATANAME));
         if (list instanceof ListData)
