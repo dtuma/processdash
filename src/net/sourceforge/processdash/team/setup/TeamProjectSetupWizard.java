@@ -2844,6 +2844,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // the logic above will send the user to a "success" page.  While
         // they are reading that page, we will kick off a "Sync to WBS"
         // operation in the background.
+        startBackgroundSyncWbsOperation();
+    }
+
+    /** Kick off a "Sync to WBS" operation in the background */
+    private void startBackgroundSyncWbsOperation() {
+        String prefix = WebServer.urlEncodePath(getPrefix());
+        String selfUrl = prefix + "/" + env.get("SCRIPT_NAME");
         final String syncUrl = StringUtils.findAndReplace(selfUrl,
             "wizard.class", IND_BG_SYNC_URL);
         BackgroundTaskManager.getInstance().addTask(new Runnable() {
