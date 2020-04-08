@@ -140,7 +140,7 @@ public class TeamProjectAlterer {
                     return newNode;
 
                 } catch (HierarchyAlterationException e) {
-                    e.printStackTrace();
+                    showHierarchyError(e);
                 }
                 return null;
             }
@@ -221,7 +221,7 @@ public class TeamProjectAlterer {
             try {
                 DashController.getHierarchyAlterer().deleteNode(projectPath);
             } catch (HierarchyAlterationException e) {
-                e.printStackTrace();
+                showHierarchyError(e);
             }
         }
     }
@@ -284,6 +284,14 @@ public class TeamProjectAlterer {
         String name = projectPath + "/" + listName;
         ListData l = ListData.asListData(ctx.getData().getSimpleValue(name));
         return l != null && l.size() > length;
+    }
+
+    private void showHierarchyError(HierarchyAlterationException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(parent,
+            resources.getStrings("Hierarchy_Err.Message"),
+            resources.getString("Hierarchy_Err.Title"),
+            JOptionPane.ERROR_MESSAGE);
     }
 
 

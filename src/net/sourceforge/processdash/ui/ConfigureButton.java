@@ -56,6 +56,7 @@ import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.ui.ShowUserGroupEditorAction;
+import net.sourceforge.processdash.team.ui.IndivAlterProjectMenu;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.diff.ui.OpenLOCDiffAction;
 import net.sourceforge.processdash.tool.export.ui.SaveBackupAction;
@@ -146,6 +147,8 @@ public class ConfigureButton extends WindowsFlatMenuBar
 
         if (Settings.isReadWrite() && hasInstalledMCF()) {
             menu.add(makeMenuItem(NEW_PROJECT));
+            menu.add(new IndivAlterProjectMenu(parent));
+            menu.addSeparator();
         }
         menu.add(makeMenuItem(HIERARCHY_FRAME));
         menu.add(makeMenuItem(TIME_LOG_FRAME));
