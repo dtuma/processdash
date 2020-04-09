@@ -232,12 +232,13 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
     public static final String PROJECT_CLOSED_SETTING = "projectClosed";
 
-    public WBSEditor(WorkingDirectory workingDirectory,
-            TeamProject teamProject, String owner, String initials)
+    public WBSEditor(WorkingDirectory workingDirectory, TeamProject teamProject,
+            String syncURL, String owner, String initials)
             throws LockFailureException {
 
         this.workingDirectory = workingDirectory;
         this.teamProject = teamProject;
+        this.syncURL = syncURL;
         acquireLock(owner);
 
         File storageDir = teamProject.getStorageDirectory();
@@ -666,6 +667,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 workingDirectory.releaseLocks();
                 if (dataSaved) {
                     System.out.println("Saved updated WBS data at " + new Date());
+                    triggerSyncOperation();
                     System.exit(0);
                 } else {
                     maybeDumpStartupError("Cannot Save Data", new Object[] { //
@@ -769,10 +771,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (replaceAction != null)
             replaceAction.setEnabled(!indivMode && !readOnly);
-    }
-
-    private void setSyncURL(String syncURL) {
-        this.syncURL = syncURL;
     }
 
     public boolean isDisposed() {
@@ -1573,7 +1571,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         try {
             if (saveData()) {
-                maybeTriggerSyncOperation();
+                maybeTriggerBackgroundSyncOperation();
                 return true;
             }
 
@@ -1783,13 +1781,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    private void maybeTriggerSyncOperation() {
+    private void maybeTriggerBackgroundSyncOperation() {
         if (syncURL != null)
             new SyncTriggerThread().start();
     }
 
     private class SyncTriggerThread extends Thread {
         public void run() {
+            triggerSyncOperation();
+        }
+    }
+
+    private void triggerSyncOperation() {
+        if (syncURL != null) {
             try {
                 URL u = new URL(syncURL);
                 URLConnection conn = u.openConnection();
@@ -1956,9 +1960,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             initials = null;
 
         try {
-            WBSEditor w = new WBSEditor(workingDirectory, proj, owner, initials);
+            WBSEditor w = new WBSEditor(workingDirectory, proj, syncURL, owner,
+                    initials);
             w.setExitOnClose(exitOnClose);
-            w.setSyncURL(syncURL);
             w.setIndivMode(indivMode);
             if (showTeamList) {
                 w.showTeamListEditorWithSaveButton();
