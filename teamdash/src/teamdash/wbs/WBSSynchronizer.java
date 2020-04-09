@@ -178,7 +178,7 @@ public class WBSSynchronizer {
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
             addDatasetIdMapping(datasetIDMap, dump);
             syncTeamMember(m, dump);
-            if (dump == directDumpData)
+            if (dump == directDumpData || teamProject.isPersonalProject())
                 reloadedMemberNames.remove(m.getName());
         }
 

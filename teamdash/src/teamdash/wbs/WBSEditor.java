@@ -2417,10 +2417,15 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void run() {
             long start = System.currentTimeMillis();
+            // on a team project, we can't indiscriminately run reverse sync,
+            // because doing so could break 3-way-merge logic. That constraint
+            // does not apply on personal projects, so we always sync to
+            // retrieve changes made in the personal dashboard.
+            boolean forceReverseSync = isMode(MODE_PERSONAL);
             try {
                 // do the work.
                 tabPanel.saveOrderOfProjectSpecificCustomColumns();
-                dataWasMerged = mergeExternalChanges(false);
+                dataWasMerged = mergeExternalChanges(forceReverseSync);
             } catch (Exception e) {
                 mergeException = e;
             }
@@ -2465,14 +2470,14 @@ public class WBSEditor implements WindowListener, SaveListener,
                 ExceptionDialog.show(frame, title, message, mergeException,
                     debugZipMsg);
 
-            } else if (dataWasMerged == false) {
+            } else if (dataWasMerged) {
+                showMergeFollowUpInfo("File_Refresh.Title", true);
+
+            } else if (!isMode(MODE_PERSONAL)) {
                 JOptionPane.showMessageDialog(frame,
                     resources.getStrings("File_Refresh.No_Merge_Message"),
                     resources.getString("File_Refresh.Title"),
                     JOptionPane.PLAIN_MESSAGE);
-
-            } else {
-                showMergeFollowUpInfo("File_Refresh.Title", true);
             }
         }
     }
