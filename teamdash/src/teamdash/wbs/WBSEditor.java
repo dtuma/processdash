@@ -207,7 +207,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     boolean readOnly = false;
     boolean simultaneousEditing = false;
     boolean holdingStartupLock = false;
-    boolean indivMode = false;
+    boolean indivRestrictedMode = false;
     boolean exitOnClose = false;
     String syncURL = null;
     boolean disposed = false;
@@ -223,6 +223,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final int MODE_HAS_MASTER = 2;
     private static final int MODE_MASTER = 4;
     private static final int MODE_BOTTOM_UP = 8;
+    private static final int MODE_PERSONAL = 16;
 
     static Resources resources = Resources.getDashBundle("WBSEditor");
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
@@ -717,6 +718,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             this.mode = MODE_PLAIN;
             if (teamProject.getMasterProjectDirectory() != null)
                 this.mode |= MODE_HAS_MASTER;
+            if (teamProject.isPersonalProject())
+                this.mode |= MODE_PERSONAL;
         }
     }
 
@@ -766,11 +769,16 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.exitOnClose = exitOnClose;
     }
 
-    public void setIndivMode(boolean indivMode) {
-        this.indivMode = indivMode;
+    /**
+     * Set a flag indicating that the current user is an individual, running the
+     * WBS Editor from a personal dashboard, and they should be restricted from
+     * performing sensitive operations.
+     */
+    public void setIndivRestrictedMode(boolean indivRestrictedMode) {
+        this.indivRestrictedMode = indivRestrictedMode;
 
         if (replaceAction != null)
-            replaceAction.setEnabled(!indivMode && !readOnly);
+            replaceAction.setEnabled(!indivRestrictedMode && !readOnly);
     }
 
     public boolean isDisposed() {
@@ -921,20 +929,21 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean readOnlyPromptSetting = teamProject
                 .getBoolUserSetting(PROMPT_READ_ONLY_SETTING);
         readOnlyPrompt.setSelected(readOnlyPromptSetting);
+        readOnlyPrompt.setEnabled(!indivRestrictedMode);
 
         JCheckBox membersCanEdit = new JCheckBox(
                 resources.getString("Preferences.Team_Edit"));
         boolean membersCanEditSetting = !teamProject
                 .getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING);
         membersCanEdit.setSelected(membersCanEditSetting);
-        membersCanEdit.setEnabled(!indivMode);
+        membersCanEdit.setEnabled(!indivRestrictedMode);
 
         JCheckBox allowSimulEdit = new JCheckBox(
                 resources.getString("Preferences.Simultaneous_Edit"));
         boolean simulEditSetting = teamProject
                 .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true);
         allowSimulEdit.setSelected(simulEditSetting);
-        allowSimulEdit.setEnabled(!indivMode);
+        allowSimulEdit.setEnabled(!indivRestrictedMode);
 
         JCheckBox initialsPolicy = null;
         String globalInitialsPolicy = System
@@ -947,22 +956,26 @@ public class WBSEditor implements WindowListener, SaveListener,
                     .getUserSetting(INITIALS_POLICY_SETTING);
             initialsPolicySetting = "username".equals(localInitialsPolicy);
             initialsPolicy.setSelected(initialsPolicySetting);
-            initialsPolicy.setEnabled(!indivMode);
+            initialsPolicy.setEnabled(!indivRestrictedMode);
         }
 
         JCheckBox projectClosed = null;
         String projectClosedSettingStr = teamProject
                 .getUserSetting(PROJECT_CLOSED_SETTING);
         boolean projectClosedSetting = false;
-        if (projectClosedSettingStr != null) {
+        if (projectClosedSettingStr != null || isMode(MODE_PERSONAL)) {
             projectClosed = new JCheckBox(
                     resources.getString("Preferences.Project_Closed"));
             projectClosedSetting = "true".equals(projectClosedSettingStr);
             projectClosed.setSelected(projectClosedSetting);
-            projectClosed.setEnabled(!indivMode);
+            projectClosed.setEnabled(!indivRestrictedMode);
         }
 
-        Object[] message = new Object[] { readOnlyPrompt, membersCanEdit,
+        Object[] message;
+        if (isMode(MODE_PERSONAL))
+            message = new Object[] { projectClosed };
+        else
+            message = new Object[] { readOnlyPrompt, membersCanEdit,
                 allowSimulEdit, initialsPolicy, projectClosed };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
             resources.getString("Preferences.Dialog_Title"),
@@ -1966,7 +1979,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             WBSEditor w = new WBSEditor(workingDirectory, proj, syncURL, owner,
                     initials);
             w.setExitOnClose(exitOnClose);
-            w.setIndivMode(indivMode);
+            w.setIndivRestrictedMode(indivMode && !proj.isPersonalProject());
             if (showTeamList) {
                 w.showTeamListEditorWithSaveButton();
             } else {
