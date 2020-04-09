@@ -179,8 +179,9 @@ public class TeamProjectAlterer {
         String templateID = ctx.getHierarchy().getID(selectedNode);
         ProjectType type = getProjectType(projectPath, templateID);
 
-        // do not close plain nodes (which act as folders full of projects)
-        if (type == null)
+        // do not close plain nodes (which act as folders full of projects).
+        // also refuse to close team projects from an individual dashboard
+        if (type == null || type == ProjectType.Indiv)
             return;
 
         // if this is a team project stub, delete rather than closing

@@ -190,6 +190,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     // information for the close team project page
     private static final String CLOSE_PAGE = "close";
     private static final String CLOSE_WELCOME_URL = "closeWelcome.shtm";
+    private static final String CLOSE_PERSONAL_URL = "closePersonal.shtm";
     private static final String CLOSE_ERROR_URL = "closeError.shtm";
     private static final String CLOSE_CANCEL_URL = "closeCancel.shtm";
     private static final String CLOSE_SUCCESS_URL = "closeSuccess.shtm";
@@ -1548,6 +1549,18 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (parameters.containsKey("cancel"))
             return CLOSE_CANCEL_URL;
 
+        // abort if we are running in read-only mode
+        if (Settings.isReadOnly())
+            return CLOSE_ERROR_URL + "?readOnlyMode";
+
+        // if an individual joins a team project, they should not be allowed to
+        // close the project from their personal dashboard. Logic elsewhere
+        // should prevent this scenario from occurring, but we perform one
+        // last check just in case.
+        boolean isPersonalProject = testValue(PERSONAL_PROJECT_FLAG);
+        if (Settings.isPersonalMode() && !isPersonalProject)
+            return CLOSE_ERROR_URL + "?indivMode&fatal";
+
         // if we see a "confirm" param, attempt to close the project
         if (parameters.containsKey("confirm") && checkPostToken()) {
             try {
@@ -1557,16 +1570,25 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                     remap(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY)));
                 putValue(TeamDataConstants.CLOSED_PROJECT_FLAG,
                     ImmutableDoubleData.TRUE);
+                if (isPersonalProject)
+                    startBackgroundSyncWbsOperation();
                 return CLOSE_SUCCESS_URL;
 
+            } catch (AlreadyLockedException ale) {
+                return CLOSE_ERROR_URL;
+
             } catch (Exception e) {
+                e.printStackTrace();
                 return CLOSE_ERROR_URL;
             }
         }
 
         // display the page to begin the project closing operation
         generatePostToken();
-        return CLOSE_WELCOME_URL;
+        if (isPersonalProject)
+            return CLOSE_PERSONAL_URL;
+        else
+            return CLOSE_WELCOME_URL;
     }
     private String remap(String path) {
         return ExternalResourceManager.getInstance().remapFilename(path);

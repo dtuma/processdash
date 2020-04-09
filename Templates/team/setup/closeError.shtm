@@ -1,6 +1,8 @@
 <html>
 <head>
-<title>Close Team Project</title>
+<title>Close
+<!--#if [Personal_Project] -->Personal<!--#else-->Team<!--#endif-->
+Project</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
 <style>
    li {
@@ -10,7 +12,8 @@
 </head>
 <body>
 
-<div><img align="left" src="/Images/team.jpg"><h1>Close Team
+<div><img align="left" src="/Images/team.jpg"><h1>Close
+<!--#if [Personal_Project] -->Personal<!--#else-->Team<!--#endif-->
 Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
 
 <div style="clear:both"></div>
@@ -18,9 +21,22 @@ Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='close'>
 
-<p class="error">To close this project, the Team Dashboard needs to
-modify data in the team project plan.  Unfortunately, it was unable to
+<p class="error">To close this project, the dashboard needs to
+modify data in the project plan.  Unfortunately, it was unable to
 perform this task.</p>
+
+<!--#if readOnlyMode -->
+
+<p>The dashboard is running in read-only mode. Please close the
+dashboard, reopen in read-write mode, then try again.</p>
+
+<!--#elif indivMode -->
+
+<p>You have asked to close a Team Project from the personal dashboard.
+Team Projects can only be modified from the Team Dashboard.  Please
+open the Team Dashboard and close the project from there.</p>
+
+<!--#else-->
 
 <ul>
 
@@ -32,6 +48,10 @@ the Work Breakdown Structure Editor before proceeding.</li>
 
 </ul>
 
+<!--#endif-->
+
+<!--#if not fatal -->
+
 <p>After you have corrected these problems, click &quot;Retry&quot; to
 try the operation again.  If the problem persists, 
 <a href="/control/showConsole.class">click here</a> for additional
@@ -42,6 +62,8 @@ information about the error that was encountered.</p>
 <td align="center"><input type="submit" name="confirm" value="Retry"></td>
 <td align="center"><input type="submit" name="cancel" value="Cancel"></td>
 </tr></table>
+
+<!--#endif-->
 
 </form>
 </body>

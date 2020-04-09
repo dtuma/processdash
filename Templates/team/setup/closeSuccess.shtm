@@ -1,6 +1,8 @@
 <html>
 <head>
-<title>Team Project Closed</title>
+<title>
+<!--#if [Personal_Project] -->Personal<!--#else-->Team<!--#endif-->
+Project Closed</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
 <style>
    li {
@@ -10,18 +12,19 @@
 </head>
 <body>
 
-<div><img align="left" src="/Images/team.jpg"><h1>Team Project
-Closed<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+<div><img align="left" src="/Images/team.jpg"><h1>
+<!--#if [Personal_Project] -->Personal<!--#else-->Team<!--#endif-->
+Project Closed<br><!--#echo var=PATH_TRANSLATED --></h1></div>
 
 <div style="clear:both"></div>
 
-<p>This team project has been closed.</p>
+<p>This project has been closed.</p>
 
 <p>If you have closed the project by mistake, you can reopen it by:</p>
 
 <ol>
 
-<li>Opening the Work Breakdown Structure Editor from the Team Dashboard</li>
+<li>Opening the Work Breakdown Structure Editor</li>
 
 <li>Choosing "Edit &rarr; Preferences"</li>
 

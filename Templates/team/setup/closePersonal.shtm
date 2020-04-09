@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>Close Personal Project</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+   li {
+      padding-bottom: 10px;
+   }
+</style>
+</head>
+<body>
+
+<div><img align="left" src="/Images/team.jpg"><h1>Close Personal
+Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+
+<div style="clear:both"></div>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='close'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+
+<p>When a project is finished or cancelled, you may hold a personal
+retrospective to review project data and collect lessons learned. As
+part of this effort, you may wish to mark the project as
+<b><u>closed</u></b>.</p>
+
+<p>Marking a project as "closed" has the following effects:</p>
+
+<ul>
+
+<li>It deletes tasks from your working plan that you haven't started
+yet. The tasks will still be present in the WBS, but won't appear in
+the main dashboard toolbar as work that needs to be performed.</li>
+
+<li>It marks in-progress tasks as complete. Together with the previous
+item, this means your project schedule will show as being 100%
+complete.</li>
+
+<li>You will still be able to enter missing data for the project (for
+example, to record defects, capture actual size, or fill in forgotten
+time log entries).  You will also be able to edit your existing data
+to correct any mistakes you find.</li>
+
+<li><b>However</b>, if you use the play/pause buttons to log time
+against tasks in this project, you will see a warning that the tasks
+in question have been marked complete. (This can help you to avoid
+collecting new time log data accidentally.)</li>
+
+<li>If you open the Work Breakdown Structure for this project, you will
+see a warning that the project has been marked complete, and that no
+additional work should be performed here.  (This can help you to avoid
+creating new tasks in the project by accident.)  If you do create new
+tasks in the WBS, those changes will have no effect. (The new tasks
+will not be copied down into your personal plan for the closed
+project.)</li>
+
+</ul>
+
+<p><b>Note:</b> if the work on this project is ongoing, but you simply
+wish to close this project cycle and begin a new cycle, it is more
+helpful to <a href="relaunchPersonal.shtm">relaunch</a> the project
+instead.</p>
+
+<p>Would you like to mark the "<tt><!--#echo var=PATH_TRANSLATED --></tt>"
+project as <b><u>closed</u></b>?</p>
+
+
+<table width="100%" style="margin-top:1cm"><tr>
+<td align="center"><input type="submit" name="confirm"
+     value="Yes, close this project"></td>
+<td align="center"><input type="submit" name="cancel"
+     value="No, cancel this operation"></td>
+</tr></table>
+
+</form>
+</body>
+</html>
