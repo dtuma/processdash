@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -83,6 +83,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     /** True if we should always keep an empty team member at the end of
      * the list */
     private boolean autoNewRow = true;
+
+    /** True if this team should only have a single team member */
+    private boolean singlePersonTeam = false;
 
     /** Is this team member list read only? */
     private boolean readOnly = false;
@@ -173,6 +176,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public TeamMemberList(TeamMemberList list) {
         this.subteamModel = new SubteamDataModel();
         this.teamMembers = copyTeamMemberList(list.teamMembers);
+        this.singlePersonTeam = list.singlePersonTeam;
         this.readOnly = list.readOnly;
         this.onlyEditableFor = list.onlyEditableFor;
         this.startOnDayOfWeek = list.startOnDayOfWeek;
@@ -184,6 +188,14 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public SubteamDataModel getSubteamModel() {
         return subteamModel;
+    }
+
+    public boolean isSinglePersonTeam() {
+        return singlePersonTeam;
+    }
+
+    public void setSinglePersonTeam(boolean singlePersonTeam) {
+        this.singlePersonTeam = singlePersonTeam;
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -389,6 +401,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         if (isReadOnly())
             return;
         int rows = getRowCount();
+        if (singlePersonTeam && rows > 0)
+            return;
         if (rows == 0 || hasValue(getValueAt(rows-1, NAME_COLUMN)))
             addNewRow();
     }
@@ -620,6 +634,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         if (isReadOnly())
             return false;
 
+        if (isSinglePersonTeam() && col < HOURS_COLUMN)
+            return false;
+
         PrivacyType p = teamMembers.get(row).getSchedulePrivacy();
         if (p == PrivacyType.Visible || p == PrivacyType.Censored
                 || p == PrivacyType.Uncertain)
@@ -628,8 +645,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         if (onlyEditableFor != null) {
             if (col == INITIALS_COLUMN)
                 return false;
-            else
-                return p == PrivacyType.Me;
+            else if (p != PrivacyType.Me)
+                return false;
         }
 
         if (col < FIRST_WEEK_COLUMN)

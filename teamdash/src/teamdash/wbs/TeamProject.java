@@ -537,6 +537,7 @@ public class TeamProject implements WBSFilenameConstants {
                                " found; creating empty team list");
             teamList = new TeamMemberList();
         }
+        teamList.setSinglePersonTeam(isPersonalProject());
         teamList.setReadOnly(readOnly);
     }
 

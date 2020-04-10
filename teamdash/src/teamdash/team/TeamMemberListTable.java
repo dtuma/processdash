@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -169,10 +169,11 @@ public class TeamMemberListTable extends JTable {
         customizationHyperlink = createCustomizationHyperlink();
         unmodifiableCellBackground = UIManager.getColor("control");
         resizeHandler = new ResizeHandler();
-        setTransferHandler(new TransferSupport());
+        if (!teamList.isSinglePersonTeam())
+            setTransferHandler(new TransferSupport());
         setDragEnabled(true);
         createButtons();
-        setupTableColumnHeader();
+        setupTableColumnHeader(teamList.isSinglePersonTeam());
         WBSZoom.get().manage(this, "font", "rowHeight", "zoom");
     }
 
@@ -337,13 +338,19 @@ public class TeamMemberListTable extends JTable {
     }
 
     /** Create and configure the column header for the table */
-    private void setupTableColumnHeader() {
+    private void setupTableColumnHeader(boolean isSinglePersonTeam) {
         // scale the table header along with the global zoom settings
         WBSZoom.get().manage(getTableHeader(), "font");
 
         // do not allow columns to be reordered. (That wouldn't make sense for
         // our weekly data columns, which appear in chronological order.
         getTableHeader().setReorderingAllowed(false);
+
+        // hide columns that aren't applicable for personal projects
+        if (isSinglePersonTeam) {
+            COL_WIDTHS[TeamMemberList.INITIALS_COLUMN] = 0;
+            COL_WIDTHS[TeamMemberList.COLOR_COLUMN] = 0;
+        }
 
         // set the first few "fixed" columns to use a default header renderer,
         // and set their size to our predefined column widths.
@@ -660,8 +667,9 @@ public class TeamMemberListTable extends JTable {
      */
     private void showCustomizationWindow() {
         TeamMemberList tml = getTeamMemberList();
+        boolean isPersonal = tml.isSinglePersonTeam();
         boolean readOnly = tml.isReadOnly()
-            || tml.getOnlyEditableFor() != null;
+                || (tml.getOnlyEditableFor() != null && !isPersonal);
 
         int currentDOW = tml.getStartOnDayOfWeek();
         JComboBox weekSelector = new JComboBox();
@@ -932,7 +940,7 @@ public class TeamMemberListTable extends JTable {
                 int row = getSelectedRow();
                 int col = getSelectedColumn();
                 // if we are not allowed to edit this row of the table, abort.
-                if (!isCellEditable(row, 0))
+                if (!isCellEditable(row, TeamMemberList.HOURS_COLUMN))
                     return;
                 Object value = getValueAt(row, col);
                 int type = getWeekType(value);
