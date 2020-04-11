@@ -1,4 +1,4 @@
- // Copyright (C) 2002-2018 Tuma Solutions, LLC
+ // Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -96,6 +96,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
 
     int sizeColumn = -1;
     int unitsColumn = -1;
+    boolean singlePersonTeam;
     IntList teamMemberColumns;
     String[] teamMemberInitials;
     TeamMemberFilter teamFilter;
@@ -109,8 +110,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
     UnassignedTimeColumn unassignedTimeColumn;
 
 
-    public TeamTimeColumn(DataTableModel m, MilestonesWBSModel milestones) {
+    public TeamTimeColumn(DataTableModel m, MilestonesWBSModel milestones,
+            boolean singlePersonTeam) {
         super(m, resources.getString("Team_Time.Name"), COLUMN_ID);
+        this.singlePersonTeam = singlePersonTeam;
         this.dependentColumns = new String[] {
                 TaskSizeColumn.COLUMN_ID, TaskSizeUnitsColumn.COLUMN_ID };
         this.setTeamMemberColumns(new IntList());
@@ -1024,6 +1027,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             individualTimes = getIndivTimes(node);
         }
 
+        protected void maybeAssignToSingleTeamMember() {
+            if (singlePersonTeam && countPeople(individualTimes) == 0
+                    && individualTimes.length > 0) {
+                IndivTime indiv = individualTimes[0];
+                indiv.setTime(
+                    Collections.singletonMap(indiv.initials, teamTime));
+            }
+        }
+
         protected void setTimes(AssignedToEditList edits) {
             Map<String, Double> newTimes = new HashMap();
 
@@ -1139,6 +1151,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             figureTimePerPerson();
             figureNumPeople();
             figureTeamTime();
+            maybeAssignToSingleTeamMember();
         }
 
         @Override
@@ -1676,6 +1689,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             super(node);
             teamTime = safe(node.getNumericAttribute(topDownAttrName));
             recalc();
+            maybeAssignToSingleTeamMember();
         }
 
         boolean isTypeMismatch() {
