@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,7 +29,8 @@ import java.util.regex.Pattern;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowNumPeopleColumn extends AbstractDataColumn {
+public class WorkflowNumPeopleColumn extends AbstractDataColumn
+        implements WorkflowNonpersonalColumn {
 
     private WBSModel wbsModel;
 

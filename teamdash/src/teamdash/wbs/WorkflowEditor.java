@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import net.sourceforge.processdash.ui.lib.PaddedIcon;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
+import teamdash.wbs.columns.WorkflowNonpersonalColumn;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
@@ -164,6 +165,11 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
                         table.getColumnModel().getColumn(col));
                 else
                     optColumnWidth += column.getPreferredWidth();
+
+            } else if (teamProject.isPersonalProject()
+                    && column instanceof WorkflowNonpersonalColumn) {
+                table.getColumnModel()
+                        .removeColumn(table.getColumnModel().getColumn(col));
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2018 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
     }
 
     protected boolean isRatePresent(JTable table, int row) {
-        Object value = table.getValueAt(row, RATE_COLUMN);
+        Object value = table.getModel().getValueAt(row, RATE_COLUMN);
         if (value instanceof NumericDataValue) {
             NumericDataValue ndv = (NumericDataValue) value;
             return ndv.value > 0;

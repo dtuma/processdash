@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2018 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class WorkflowResourcesColumn extends AbstractDataColumn implements
-        CustomEditedColumn {
+        CustomEditedColumn, WorkflowNonpersonalColumn {
 
     public static final String COLUMN_ID = "Performed By";
 
