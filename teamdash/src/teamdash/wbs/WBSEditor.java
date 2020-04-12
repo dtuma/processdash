@@ -384,7 +384,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
         }
 
-        if (!isMode(MODE_MASTER))
+        boolean plainNotPersonal = isMode(MODE_PLAIN) && !isMode(MODE_PERSONAL);
+        boolean notMasterNotPersonal = !isMode(MODE_MASTER) && !isMode(MODE_PERSONAL);
+        if (notMasterNotPersonal)
             tabPanel.addTab(getRes("Tabs.Planned_Time"),
                      new String[] { TeamTimeColumn.COLUMN_ID,
                                     WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID,
@@ -398,11 +400,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                         TaskSizeColumn.COLUMN_ID,
                         TaskSizeUnitsColumn.COLUMN_ID,
                         TeamTimeColumn.RATE_COL_ID,
-                        ifMode(MODE_PLAIN, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
-                        ifMode(MODE_PLAIN, TeamTimeColumn.NUM_PEOPLE_COL_ID),
+                        ifMode(plainNotPersonal, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
+                        ifMode(plainNotPersonal, TeamTimeColumn.NUM_PEOPLE_COL_ID),
                         (isMode(MODE_MASTER) ? TeamTimeColumn.TIME_NO_ERR_COL_ID
                                 : TeamTimeColumn.COLUMN_ID),
-                        ifNotMode(MODE_MASTER, TeamTimeColumn.RESOURCES_COL_ID),
+                        ifMode(notMasterNotPersonal, TeamTimeColumn.RESOURCES_COL_ID),
                         (showActualData ? TeamCompletionDateColumn.COLUMN_ID : null),
                         (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
                         (showActualData ? PercentSpentColumn.COLUMN_ID : null),
@@ -420,7 +422,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                                ErrorNotesColumn.COLUMN_ID },
                 null);
 
-        if (showActualData)
+        if (showActualData && !isMode(MODE_PERSONAL))
             tabPanel.addTab(getRes("Tabs.Actual_Time"),
                 new String[] { TeamActualTimeColumn.COLUMN_ID,
                                WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
@@ -723,11 +725,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private String ifMode(int m, String id) {
-        return (isMode(m) ? id : null);
-    }
-    private String ifNotMode(int m, String id) {
-        return (isMode(m) ? null : id);
+    private String ifMode(boolean test, String id) {
+        return (test ? id : null);
     }
     private boolean isMode(int m) {
         return ((mode & m) == m);
