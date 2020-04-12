@@ -1928,7 +1928,10 @@ public class WBSEditor implements WindowListener, SaveListener,
                 return null;
             }
             dir = workingDirectory.getDirectory();
-            proj = new TeamProject(dir, "Team Project");
+            proj = new TeamProject(dir, "Team Project", true);
+
+            if (proj.isPersonalProject())
+                resources = Resources.getDashBundle("WBSEditor");
 
             if (workingDirectory instanceof CompressedWorkingDirectory) {
                 if (!((CompressedWorkingDirectory) workingDirectory)

@@ -42,6 +42,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -70,6 +71,7 @@ public class TeamProject implements WBSFilenameConstants {
     private String masterProjectID;
     private ImportDirectory masterProjectDirectory;
     private boolean readOnly;
+    private boolean isPrimaryProject;
     private boolean filesAreReadOnly;
     private Properties userSettings;
     private ImportDirectory importDirectory;
@@ -77,9 +79,15 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Create or open a team project */
     public TeamProject(File directory, String projectName) {
+        this(directory, projectName, false);
+    }
+
+    public TeamProject(File directory, String projectName,
+            boolean isPrimaryProject) {
         this.projectName = projectName;
         this.directory = directory;
         this.readOnly = false;
+        this.isPrimaryProject = isPrimaryProject;
         reload();
     }
 
@@ -426,6 +434,13 @@ public class TeamProject implements WBSFilenameConstants {
         } catch (Exception e) {
             projectSettings = null;
         }
+
+        // if we are loading the primary team project (the one which will be
+        // displayed in all the WBS Editor windows), and it is a personal
+        // project, optimize all labels/messages for personal WBS usage.
+        if ((isPrimaryProject && isPersonalProject())
+                || Boolean.getBoolean("teamdash.wbs.testPersonalResourceOverride"))
+            Resources.registerDashBundleOverride("WBSEditor", "WBSEditorPersonal");
     }
 
     private void loadProperties(Properties p, InputStream in) {

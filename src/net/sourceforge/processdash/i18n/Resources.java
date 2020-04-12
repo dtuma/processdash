@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2016 Tuma Solutions, LLC
+// Copyright (C) 2003-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,11 +27,13 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
@@ -221,7 +223,11 @@ public class Resources extends ResourceBundle implements StringMapper {
 
     public static Resources getDashBundle(String bundleName) {
         initGlobalResources();
-        return getDashBundle(bundleName, globalResources);
+        Resources result = getDashBundle(bundleName, globalResources);
+        String overrideBundleName = getOverrideBundleName(bundleName);
+        if (overrideBundleName != null)
+            result = getDashBundle(overrideBundleName, result);
+        return result;
     }
     public static Resources getDashBundle(String bundleName, Resources parent) {
         bundleName = bundleName.replace('.', PREFIX_SEPARATOR);
@@ -261,6 +267,63 @@ public class Resources extends ResourceBundle implements StringMapper {
         if (pos == -1) return bundleName;
         return bundleName.substring(0, pos);
     }
+
+    /**
+     * Register a dash bundle that should automatically override resources in
+     * another.
+     * 
+     * After calling this method, future calls to {@link #getDashBundle(String)}
+     * requesting [dashBundleName] will return a resource bundle that actually
+     * reads resources from [overrideBundleName], then falls back to
+     * [dashBundleName] as the parent.
+     * 
+     * This only affects resource bundles that are created in the future. Any
+     * prior retrievals of [dashBundleName] will be unaffected.
+     * 
+     * @since 2.5.4
+     */
+    public static void registerDashBundleOverride(String dashBundleName,
+            String overrideBundleName) {
+        BUNDLE_OVERRIDES.put(dashBundleName, overrideBundleName);
+
+        // if we've been asked to test the loading of a specific overridden
+        // bundle, compare the actual and expected load counts and exit with
+        // a status code indicating success or failure
+        if (dashBundleName.equals(OVERRIDE_TEST_BUNDLE)) {
+            if (OVERRIDE_TEST_ACTUAL_COUNT == OVERRIDE_TEST_EXPECTED_COUNT)
+                System.exit(0);
+            System.err.println("Bundle " + dashBundleName + " was loaded "
+                    + OVERRIDE_TEST_ACTUAL_COUNT
+                    + " times before override registration, expected "
+                    + OVERRIDE_TEST_EXPECTED_COUNT);
+            System.exit(1);
+        }
+    }
+    private static String getOverrideBundleName(String bundleName) {
+        for (Entry<String, String> e : BUNDLE_OVERRIDES.entrySet()) {
+            String oneName = e.getKey();
+            if (bundleName.startsWith(oneName))
+                return e.getValue() + bundleName.substring(oneName.length());
+        }
+
+        // if we've been asked to test the loading of a specific overridden
+        // bundle, keep a count of how many times it gets loaded before the
+        // override is registered.
+        if (OVERRIDE_TEST_BUNDLE != null
+                && bundleName.startsWith(OVERRIDE_TEST_BUNDLE))
+            OVERRIDE_TEST_ACTUAL_COUNT++;
+
+        return null;
+    }
+    private static final Map<String, String> BUNDLE_OVERRIDES = Collections
+            .synchronizedMap(new HashMap());
+    private static final String OVERRIDE_TEST_BUNDLE = System
+            .getProperty(Resources.class.getName() + ".Override_Test_Bundle");
+    private static final int OVERRIDE_TEST_EXPECTED_COUNT = Integer.getInteger(
+        Resources.class.getName() + ".Override_Test_Expected_Count", 0);
+    private static int OVERRIDE_TEST_ACTUAL_COUNT = 0;
+
+
 
     public String format(String key, Object[] args) {
         return format(this, key, args);

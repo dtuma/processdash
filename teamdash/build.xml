@@ -483,6 +483,19 @@ class dependency has been added in a dashboard class?)
   </target>
   <target name="TeamTools.jar" depends="TeamTools"/>
 
+  <target name="verifyResourceOverrides">
+  <property name="ResPrefix"
+            value="net.sourceforge.processdash.i18n.Resources"/>
+    <java jar="${processdash.dist}/TeamTools.jar"
+          fork="true" failonerror="true" inputstring="">
+      <jvmarg value="-Dteamdash.wbs.testPersonalResourceOverride=true"/>
+      <jvmarg value="-Dteamdash.wbs.dumpAndExit=true"/>
+      <jvmarg value="-D${ResPrefix}.Override_Test_Bundle=WBSEditor"/>
+      <jvmarg value="-D${ResPrefix}.Override_Test_Expected_Count=1"/>
+      <arg value="${processdash.dist}"/>
+    </java>
+  </target>
+
   <target name="TeamProcess" depends="-defaultValues,-noBuild-init,framework"
           unless="noBuild.TeamProcess">
     <java classname="teamdash.process.GenerateProcess"
