@@ -1085,7 +1085,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows,
-            WBSModel milestones, DataTableModel dataModel, String initials) {
+            MilestonesWBSModel milestones, DataTableModel dataModel,
+            String initials) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
@@ -1184,7 +1185,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
         return result;
     }
-    private JMenu buildMilestonesMenu(WBSModel milestones) {
+    private JMenu buildMilestonesMenu(MilestonesWBSModel milestones) {
         JMenu result = new JMenu(resources.getString("Milestones.Menu"));
         result.setMnemonic('M');
         boolean personal = isMode(MODE_PERSONAL);
@@ -1193,6 +1194,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.add(new MilestonesEditorAction());
         if (!isMode(MODE_MASTER)) {
             result.addSeparator();
+            Component separator = result
+                    .getMenuComponent(result.getMenuComponentCount() - 1);
+
             result.add(new ShowCommitDatesMenuItem());
             if (!personal) {
                 result.add(new ShowMilestoneMarksMenuItem());
@@ -1204,7 +1208,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                     KeyEvent.VK_B);
             result.add(balanceHeader);
             result.add(new BalanceThroughMilestoneMenuItem(milestones,
-                    balanceHeader));
+                    separator, balanceHeader));
         }
         return result;
     }
@@ -2664,21 +2668,42 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class ShowCommitDatesMenuItem extends CheckBoxMenuItem implements
-            ChangeListener {
+    private class MilestonesCheckBoxMenuItem extends CheckBoxMenuItem
+            implements TableModelListener {
+        public MilestonesCheckBoxMenuItem(String name) {
+            super(name);
+            teamProject.getMilestones().addTableModelListener(this);
+            tableChanged(null);
+        }
+
+        public void tableChanged(TableModelEvent e) {
+            setVisible(!teamProject.getMilestones().isEmpty());
+        }
+    }
+
+    private class ShowCommitDatesMenuItem extends CheckBoxMenuItem
+            implements ChangeListener, TableModelListener {
         public ShowCommitDatesMenuItem() {
             super(resources.getString("Milestones.Balance.Show_Commit_Dates"));
             setSelected(true);
             addChangeListener(this);
             load("teamTimePanel.showCommitDates");
+            milestonesModel.addTableModelListener(this);
+            tableChanged(null);
+        }
+
+        public void tableChanged(TableModelEvent e) {
+            setVisible(!milestonesModel.getWBSModel().isEmpty()
+                    && milestonesModel.hasCommitDates());
+            stateChanged(null);
         }
 
         public void stateChanged(ChangeEvent e) {
-            teamTimePanel.setShowCommitDates(getState());
+            teamTimePanel.setShowCommitDates(getState() && isVisible());
         }
     }
 
-    private class ShowMilestoneMarksMenuItem extends CheckBoxMenuItem
+    private class ShowMilestoneMarksMenuItem extends MilestonesCheckBoxMenuItem
             implements ChangeListener {
         public ShowMilestoneMarksMenuItem() {
             super(resources.getString("Milestones.Balance.Show_Member_Marks"));
@@ -2692,7 +2717,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class ShowMilestoneColorsMenuItem extends CheckBoxMenuItem
+    private class ShowMilestoneColorsMenuItem extends MilestonesCheckBoxMenuItem
             implements ChangeListener {
         public ShowMilestoneColorsMenuItem() {
             super(resources.getString("Milestones.Balance.Use_Milestone_Colors"));
@@ -2711,13 +2736,17 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         private MilestonesWBSModel milestonesWbs;
         private Font plain, italic;
+        private Component separator;
+        private JMenuItem header;
         private int selectedMilestoneID;
 
-        public BalanceThroughMilestoneMenuItem(WBSModel milestones,
-                JMenuItem header) {
-            this.milestonesWbs = (MilestonesWBSModel) milestones;
+        public BalanceThroughMilestoneMenuItem(MilestonesWBSModel milestones,
+                Component separator, JMenuItem header) {
+            this.milestonesWbs = milestones;
             this.plain = getFont();
             this.italic = plain.deriveFont(Font.ITALIC + Font.BOLD);
+            this.separator = separator;
+            this.header = header;
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             setSelectedMilestone(-1);
@@ -2803,6 +2832,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                 id = -1;
                 milestoneName = BALANCE_ENTIRE_WBS;
                 setFont(italic);
+
+                boolean projectHasMilestones = !milestonesWbs.isEmpty();
+                this.setVisible(projectHasMilestones);
+                separator.setVisible(projectHasMilestones);
+                header.setVisible(projectHasMilestones);
             }
             setText(milestoneName);
             this.selectedMilestoneID = id;

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -65,6 +65,14 @@ public class MilestonesDataModel extends DataTableModel {
     @Override
     public MilestonesWBSModel getWBSModel() {
         return (MilestonesWBSModel) super.getWBSModel();
+    }
+
+    public boolean hasCommitDates() {
+        for (WBSNode m : getWBSModel().getMilestones()) {
+            if (MilestoneCommitDateColumn.getCommitDate(m) != null)
+                return true;
+        }
+        return false;
     }
 
 }
