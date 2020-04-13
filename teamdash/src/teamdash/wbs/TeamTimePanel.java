@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -151,6 +151,8 @@ public class TeamTimePanel extends JPanel
     private boolean showMilestoneMarks;
     /** Should the bars be colored by milestone, rather than person? */
     private boolean colorByMilestone;
+    /** Should amilestone be highlighted when the mouse hovers over it? */
+    private boolean highlightMilestoneOnHover;
     /** An object to manage the highlighted milestone */
     private MilestoneHighlighter milestoneHighlighter;
     /** An object to manage highlighting of team member bars */
@@ -193,6 +195,7 @@ public class TeamTimePanel extends JPanel
         this.showCommitDates = true;
         this.showMilestoneMarks = true;
         this.colorByMilestone = false;
+        this.highlightMilestoneOnHover = true;
         this.balanceThroughMilestone = -1;
 
         this.recalcTimer = new Timer(100, EventHandler.create(
@@ -315,6 +318,14 @@ public class TeamTimePanel extends JPanel
                 milestoneHighlighter.clear();
             recalc();
         }
+    }
+
+    public boolean isHighlightMilestoneOnHover() {
+        return highlightMilestoneOnHover;
+    }
+
+    public void setHighlightMilestoneOnHover(boolean highlightOnHover) {
+        this.highlightMilestoneOnHover = highlightOnHover;
     }
 
     public int getBalanceThroughMilestone() {
@@ -945,7 +956,7 @@ public class TeamTimePanel extends JPanel
                     // if the user re-clicks the click-locked milestone, clear it.
                     if (clickLocked && armedForClick)
                         set(null);
-                } else {
+                } else if (armedForClick || highlightMilestoneOnHover) {
                     // when highlighting a new milestone, calc new colors
                     this.milestoneID = h.getMilestoneID();
                     this.color = h.getMilestoneColor();
@@ -993,7 +1004,11 @@ public class TeamTimePanel extends JPanel
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            setBarHighlighted(e, true);
+            // the mouseover highlight makes a given bar stand out from the
+            // rest, which helps to trace a given bar back to its owner. But
+            // this is unnecessary and distracting if only one team member bar
+            // is visible, so we skip it in that case.
+            setBarHighlighted(e, teamMemberBars.size() > 2);
         }
 
         @Override

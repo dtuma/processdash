@@ -1262,6 +1262,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamTimePanel.setShowRemainingWork(true);
         teamTimePanel.setShowMilestoneMarks(true);
         teamTimePanel.setColorByMilestone(true);
+        teamTimePanel.setHighlightMilestoneOnHover(false);
     }
 
     private JMenuItem makeMenuItem(Action a) {
