@@ -1099,7 +1099,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_HAS_MASTER)
                 && "true".equals(teamProject.getUserSetting("showMasterMenu")))
             result.add(buildMasterMenu(tabPanel.getMasterActions(teamProject)));
-        if (!isMode(MODE_MASTER))
+        if (isMode(MODE_PERSONAL))
+            configurePersonalProjectDefaults(initials);
+        else if (!isMode(MODE_MASTER))
             result.add(buildTeamMenu(initials, dataModel));
 
         return result;
@@ -1185,12 +1187,17 @@ public class WBSEditor implements WindowListener, SaveListener,
     private JMenu buildMilestonesMenu(WBSModel milestones) {
         JMenu result = new JMenu(resources.getString("Milestones.Menu"));
         result.setMnemonic('M');
+        boolean personal = isMode(MODE_PERSONAL);
+        if (personal)
+            result.add(new ShowTeamMemberListEditorMenuItem());
         result.add(new MilestonesEditorAction());
         if (!isMode(MODE_MASTER)) {
             result.addSeparator();
             result.add(new ShowCommitDatesMenuItem());
-            result.add(new ShowMilestoneMarksMenuItem());
-            result.add(new ShowMilestoneColorsMenuItem());
+            if (!personal) {
+                result.add(new ShowMilestoneMarksMenuItem());
+                result.add(new ShowMilestoneColorsMenuItem());
+            }
 
             JMenuItem balanceHeader = new JMenuItem(
                     resources.getString("Milestones.Balance.Menu"),
@@ -1246,6 +1253,15 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpIncludeUnassignedMenuItem());
         }
         return result;
+    }
+    private void configurePersonalProjectDefaults(String initials) {
+        tabPanel.wbsTable.setOptimizeForIndiv(initials);
+        teamTimePanel.setVisible(true);
+        teamTimePanel.setShowBalancedBar(false);
+        teamTimePanel.setShowHoursPerWeek(false);
+        teamTimePanel.setShowRemainingWork(true);
+        teamTimePanel.setShowMilestoneMarks(true);
+        teamTimePanel.setColorByMilestone(true);
     }
 
     private JMenuItem makeMenuItem(Action a) {
