@@ -1147,6 +1147,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             super(node);
             size = parse(dataModel.getValueAt(node, sizeColumn));
             units = String.valueOf(dataModel.getValueAt(node, unitsColumn));
+            if (singlePersonTeam) {
+                node.removeAttribute(NUM_PEOPLE_ATTR);
+                node.removeAttribute(PERFORMED_BY_ATTR);
+            }
             maybeSetAutoZeroUser();
             figureTimePerPerson();
             figureNumPeople();

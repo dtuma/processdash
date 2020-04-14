@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2014 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,8 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.TempFileFactory;
 
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.ChangeHistory.Entry;
 
 public class WBSReplaceAction extends AbstractAction {
@@ -380,6 +382,7 @@ public class WBSReplaceAction extends AbstractAction {
                     replacementDir, "replacement");
 
             tweakIncomingSettings(replacementProject.getUserSettings());
+            maybeTweakIncomingTeam(replacementProject.getTeamMemberList());
 
             try {
                 // tell the WBS Editor to perform the replacement.
@@ -418,6 +421,65 @@ public class WBSReplaceAction extends AbstractAction {
         private void tweakIncomingSettings(Properties incomingSettings) {
             incomingSettings.clear();
             incomingSettings.putAll(wbsEditor.teamProject.getUserSettings());
+        }
+
+        /**
+         * If we're replacing data into a personal project, it's important not
+         * to clobber our current single-person team list with something from an
+         * unrelated (team or personal) project.
+         * 
+         * This method checks for various danger scenarios. If one is detected,
+         * it discards the incoming team member list and replaces it with our
+         * current team, so the upcoming data replacement will be a no-op.
+         */
+        private void maybeTweakIncomingTeam(TeamMemberList incomingTeam) {
+            TeamMemberList ourTeam = wbsEditor.teamProject.getTeamMemberList();
+            if (shouldAcceptIncomingTeam(ourTeam, incomingTeam) == false) {
+                incomingTeam.copyFrom(ourTeam);
+                incomingTeam.getSubteamModel()
+                        .copyFrom(ourTeam.getSubteamModel());
+            }
+        }
+
+        /**
+         * Compare the current and incoming team member lists, and decide
+         * whether we should accept the incoming list.
+         */
+        private boolean shouldAcceptIncomingTeam(TeamMemberList ourTeam,
+                TeamMemberList incomingTeam) {
+            final boolean ACCEPT = true, REJECT = false;
+
+            // if we're importing data into a team project, it's OK to keep the
+            // incoming team member list. (In fact, doing so will be important
+            // so task assignments in the incoming WBS can be retained.) This
+            // also matches the years-old "Replace Data" behavior.
+            if (!ourTeam.isSinglePersonTeam())
+                return ACCEPT;
+
+            // if we reach this point, we know we're importing data into a
+            // personal project. If the incoming team member list doesn't appear
+            // to be from a personal project, reject it.
+            if (incomingTeam.getRowCount() != 1)
+                return REJECT;
+
+            // if we reach this point, we know we're importing one single-person
+            // team into another. Check to see if the IDs & initials match.
+            TeamMember us = ourTeam.get(0);
+            TeamMember them = incomingTeam.get(0);
+            boolean samePerson = us.getId() == them.getId()
+                    && us.getInitials().equals(them.getInitials());
+
+            // if the IDs & initials match, the incoming team was most likely
+            // saved from our own project at some point in the past. It could be
+            // an alternative plan, or a backup when the network was down, etc.
+            if (samePerson)
+                return ACCEPT;
+
+            // if the IDs & initials don't match, the incoming team came from an
+            // unrelated personal project. (For example, it might be a PSP class
+            // assignment sequence.) In those cases it makes more sense to
+            // reject it, and keep the planned schedule our user entered.
+            return REJECT;
         }
 
         @Override
