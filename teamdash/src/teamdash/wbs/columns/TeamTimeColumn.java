@@ -1151,8 +1151,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 node.removeAttribute(NUM_PEOPLE_ATTR);
                 node.removeAttribute(PERFORMED_BY_ATTR);
             }
-            maybeSetAutoZeroUser();
-            figureTimePerPerson();
+            boolean addedAutoZeroUser = maybeSetAutoZeroUser();
+            figureTimePerPerson(addedAutoZeroUser);
             figureNumPeople();
             figureTeamTime();
             maybeAssignToSingleTeamMember();
@@ -1163,7 +1163,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             return !isTask(node);
         }
 
-        private void maybeSetAutoZeroUser() {
+        private boolean maybeSetAutoZeroUser() {
             // check to see if an auto zero user has been set using either a
             // persistent or transient attribute or a workflow assignment
             String autoZeroInitials = (String) node.removeAttribute(
@@ -1173,12 +1173,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                     AUTO_ZERO_USER_ATTR_TRANSIENT);
             autoZeroInitials = getWorkflowAssignedUsers(autoZeroInitials);
             if (autoZeroInitials == null)
-                return;
+                return false;
 
             // if someone is already assigned to this task, don't make any
             // new task assignments.
             if (countPeople(individualTimes) > 0)
-                return;
+                return false;
 
             // find out how many people should be assigned to this task, and
             // extract up to that many initials from the auto-zero setting
@@ -1199,6 +1199,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             if (!times.isEmpty())
                 for (IndivTime oneIndiv : individualTimes)
                     oneIndiv.setTime(times);
+            return !times.isEmpty();
         }
 
         /**
@@ -1271,7 +1272,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             return (String) node.getAttribute(PERFORMED_BY_ATTR);
         }
 
-        void figureTimePerPerson() {
+        void figureTimePerPerson(boolean applyRateToAssignedPeople) {
             // if a filter is in effect, prefer the hardcoded time per person
             boolean tryCalc = true;
             if (matchesFilter != null) {
@@ -1289,6 +1290,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             if (timePerPerson == 0) {
                 rate = node.getNumericAttribute(RATE_ATTR);
                 timePerPerson = adjustRateDrivenTimeForMin(size, rate);
+                if (timePerPerson > 0 && applyRateToAssignedPeople) {
+                    for (IndivTime indiv : individualTimes) {
+                        if (indiv.isAssigned())
+                            indiv.setTime(timePerPerson);
+                    }
+                }
             }
 
             // if that didn't work, revert to the last known good time
@@ -1414,7 +1421,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
                 userSetSize(newSize);
             } else {
                 individualTimes = getIndivTimes(node);
-                figureTimePerPerson();
+                figureTimePerPerson(false);
                 figureNumPeople();
                 figureTeamTime();
                 dataModel.columnChanged(timePerPersonColumn);
