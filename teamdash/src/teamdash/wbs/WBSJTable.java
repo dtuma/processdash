@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -494,7 +494,7 @@ public class WBSJTable extends JTable {
     }
 
     /** Return a list of workflow-related actions */
-    public Action[] getWorkflowActions(WBSModel workflows) {
+    public Action[] getWorkflowActions(WorkflowWBSModel workflows) {
         Action apply = new SelectAndApplyWorkflowAction(workflows);
         Action reapply = new ReapplyWorkflowAction(workflows);
         return new Action[] { new ApplyOrReapplyWorkflowAction(workflows,
@@ -502,7 +502,7 @@ public class WBSJTable extends JTable {
     }
 
     /** Return an action capable of inserting a workflow */
-    public Action getInsertWorkflowAction(WBSModel workflows) {
+    public Action getInsertWorkflowAction(WorkflowWBSModel workflows) {
         if (INSERT_WORKFLOW_ACTION == null)
             INSERT_WORKFLOW_ACTION = new InsertWorkflowAction(workflows);
         return INSERT_WORKFLOW_ACTION;
@@ -1533,9 +1533,9 @@ public class WBSJTable extends JTable {
     private class InsertWorkflowAction extends AbstractAction implements
             EnablementCalculation {
 
-        private WBSModel workflows;
+        private WorkflowWBSModel workflows;
 
-        public InsertWorkflowAction(WBSModel workflows) {
+        public InsertWorkflowAction(WorkflowWBSModel workflows) {
             this.workflows = workflows;
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             setEnabled(false);
@@ -1592,11 +1592,11 @@ public class WBSJTable extends JTable {
     private class SelectAndApplyWorkflowAction extends AbstractAction implements
             PropertyChangeListener {
 
-        private WBSModel workflows;
+        private WorkflowWBSModel workflows;
         private Action insertAction;
         private String lastWorkflow;
 
-        public SelectAndApplyWorkflowAction(WBSModel workflows) {
+        public SelectAndApplyWorkflowAction(WorkflowWBSModel workflows) {
             super(resources.getString("Workflow.Apply.Menu"));
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             setEnabled(false);
@@ -1616,7 +1616,7 @@ public class WBSJTable extends JTable {
             new JOptionPaneActionHandler().install(text);
 
             Vector options = new Vector();
-            for (WBSNode wkflw : workflows.getChildren(workflows.getRoot())) {
+            for (WBSNode wkflw : workflows.getWorkflowNodes()) {
                 String name = wkflw.getName();
                 if (name.trim().length() > 0 && !options.contains(name))
                     options.add(name);
@@ -1680,11 +1680,11 @@ public class WBSJTable extends JTable {
         private JOptionPane pane;
         private JDialog dialog;
 
-        public ReapplyWorkflowAction(WBSModel workflows) {
+        public ReapplyWorkflowAction(WorkflowWBSModel workflows) {
             super(resources.getString("Workflow.Reapply.Menu"));
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             putValue(MNEMONIC_KEY, new Integer('R'));
-            this.workflows = (WorkflowWBSModel) workflows;
+            this.workflows = workflows;
             recalculateEnablement(null);
             enablementCalculations.add(this);
         }
@@ -1905,13 +1905,13 @@ public class WBSJTable extends JTable {
         private WorkflowWBSModel workflows;
         private Action applyAction, reapplyAction;
 
-        public ApplyOrReapplyWorkflowAction(WBSModel workflows,
+        public ApplyOrReapplyWorkflowAction(WorkflowWBSModel workflows,
                 Action applyAction, Action reapplyAction) {
             super(resources.getString("Workflow.Apply_Or_Reapply.Menu"));
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, //
                 MacGUIUtils.getCtrlModifier()));
-            this.workflows = (WorkflowWBSModel) workflows;
+            this.workflows = workflows;
             this.applyAction = applyAction;
             this.reapplyAction = reapplyAction;
             applyAction.addPropertyChangeListener(this);

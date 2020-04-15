@@ -48,6 +48,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1084,9 +1085,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         milestonesEditor.show();
     }
 
-    private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows,
-            MilestonesWBSModel milestones, DataTableModel dataModel,
-            String initials) {
+    private JMenuBar buildMenuBar(WBSTabPanel tabPanel,
+            WorkflowWBSModel workflows, MilestonesWBSModel milestones,
+            DataTableModel dataModel, String initials) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
@@ -1171,18 +1172,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    private JMenu buildWorkflowMenu(WBSModel workflows, Action[] workflowActions,
-            Action insertWorkflowAction) {
+    private JMenu buildWorkflowMenu(WorkflowWBSModel workflows,
+            Action[] workflowActions, Action insertWorkflowAction) {
         JMenu result = new JMenu(resources.getString("Workflow.Menu"));
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
         result.add(new ProxyEditorAction());
-        // result.add(new DefineWorkflowAction());
+        int readOnlyItemCount = result.getMenuComponentCount();
         result.addSeparator();
         for (Action a : workflowActions)
             result.add(a);
         result.addSeparator();
-        new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
+        new WorkflowMenuBuilder(result, readOnlyItemCount, workflows,
+                insertWorkflowAction);
         return result;
     }
     private JMenu buildMilestonesMenu(MilestonesWBSModel milestones) {
@@ -2574,27 +2576,27 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class WorkflowMenuBuilder implements TableModelListener {
         private JMenu menu;
         private int initialMenuLength;
-        private WBSModel workflows;
+        private int readOnlyMenuItemCount;
+        private WorkflowWBSModel workflows;
         private Action insertWorkflowAction;
-        private ArrayList itemList;
+        private List itemList;
 
-        public WorkflowMenuBuilder(JMenu menu, WBSModel workflows,
-                                   Action insertWorkflowAction) {
+        public WorkflowMenuBuilder(JMenu menu, int readOnlyMenuItemCount,
+                WorkflowWBSModel workflows, Action insertWorkflowAction) {
             this.menu = menu;
             this.initialMenuLength = menu.getItemCount();
+            this.readOnlyMenuItemCount = readOnlyMenuItemCount;
             this.workflows = workflows;
             this.insertWorkflowAction = insertWorkflowAction;
-            this.itemList = new ArrayList();
+            this.itemList = Collections.singletonList(" needs rebuild ");
             rebuildMenu();
             workflows.addTableModelListener(this);
         }
 
         private void rebuildMenu() {
             ArrayList newList = new ArrayList();
-            WBSNode[] workflowItems =
-                workflows.getChildren(workflows.getRoot());
-            for (int i = 0;   i < workflowItems.length;   i++) {
-                String workflowName = workflowItems[i].getName();
+            for (WBSNode workflow : workflows.getWorkflowNodes()) {
+                String workflowName = workflow.getName();
                 if (!newList.contains(workflowName)
                         && workflowName.trim().length() > 0)
                     newList.add(workflowName);
@@ -2603,12 +2605,19 @@ public class WBSEditor implements WindowListener, SaveListener,
             synchronized (menu) {
                 if (newList.equals(itemList)) return;
 
+                // remove all "insert workflow" items we previously added
                 while (menu.getItemCount() > initialMenuLength)
                     menu.remove(initialMenuLength);
+
+                // hide non-read-only items when no workflows exist
+                boolean haveWorkflows = !newList.isEmpty();
+                for (int i = menu.getItemCount(); i-- > readOnlyMenuItemCount;)
+                    menu.getMenuComponent(i).setVisible(haveWorkflows);
 
                 JMenu destMenu = menu;
                 int menuCapacity = MAX_WORKFLOW_MENU_ITEM_COUNT;
 
+                // add new "insert workflow" menu items for all workflows
                 Iterator i = newList.iterator();
                 while (i.hasNext()) {
                     if (menuCapacity == 0) {

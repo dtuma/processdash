@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,9 @@
 
 package teamdash.wbs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.event.TableModelEvent;
@@ -58,6 +60,17 @@ public class WorkflowWBSModel extends WBSModel {
     /* Nodes at indentation level 1 are defined workflows. */
     public boolean isNodeTypeEditable(WBSNode node) {
         return (!node.isReadOnly() && node.getIndentLevel() > 1);
+    }
+
+    /** Return the nodes that represent non-empty workflows */
+    public List<WBSNode> getWorkflowNodes() {
+        WBSNode[] rootChildren = getChildren(getRoot());
+        List<WBSNode> result = new ArrayList<WBSNode>(rootChildren.length);
+        for (WBSNode child : rootChildren) {
+            if (!isLeaf(child))
+                result.add(child);
+        }
+        return result;
     }
 
     public Map<Integer, WBSNode> getWorkflowNodeMap() {
