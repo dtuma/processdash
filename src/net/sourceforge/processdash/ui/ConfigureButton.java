@@ -150,7 +150,6 @@ public class ConfigureButton extends WindowsFlatMenuBar
             menu.add(new IndivAlterProjectMenu(parent));
             menu.addSeparator();
         }
-        menu.add(makeMenuItem(HIERARCHY_FRAME));
         menu.add(makeMenuItem(TIME_LOG_FRAME));
         menu.add(makeMenuItem(DEFECT_LOG_FRAME));
         menu.add(makeMenuItem(TASK_DIALOG));
@@ -210,8 +209,10 @@ public class ConfigureButton extends WindowsFlatMenuBar
         }
         toolMenu.addSeparator();
 
-        if (personalMode)
+        if (personalMode) {
+            toolMenu.add(makeMenuItem(HIERARCHY_FRAME));
             toolMenu.add(makeMenuItem(PROBE_DIALOG));
+        }
         if (Settings.isReadWrite()) {
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
