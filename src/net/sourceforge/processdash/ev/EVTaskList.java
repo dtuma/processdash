@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -412,7 +412,7 @@ public class EVTaskList extends AbstractTreeTableModel
      * @param projectPath the path to a hierarchy node
      * @return the name of a schedule
      */
-    private static String getRegisteredTaskListForPath(DataRepository data,
+    public static String getRegisteredTaskListForPath(DataRepository data,
             String projectPath) {
         // check to see if one of our parents names a registered schedule.
         StringBuffer path = new StringBuffer(projectPath);

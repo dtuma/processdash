@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -473,12 +473,17 @@ public class DashController {
         return InternalSettings.getSettingsFileName();
     }
     public static void addImportSetting(String prefix, String location) {
+        PERMISSION.checkPermission();
         ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
                 location, prefix);
         ImportManager.getInstance().addInstruction(instr);
     }
+    public static void deleteImportSetting(String projectID) {
+        repairImportSetting(projectID, null, new String[] { " none " });
+    }
     public static void repairImportSetting(String projectID, String prefix,
             String[] locations) {
+        PERMISSION.checkPermission();
         new RepairImportDirInstruction(projectID, prefix, locations).run();
     }
 

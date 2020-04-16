@@ -39,6 +39,9 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
@@ -131,6 +134,9 @@ public class TeamProjectAlterer {
                     hierarchyAlterer.renameNode(projectPath, newPath);
                     deleteChildlessParentsOfNode(hierarchyAlterer, projectNode);
 
+                    // possibly rename the project EV schedule
+                    maybeRenameSchedule(newPath);
+
                     // point the "active task" at the renamed project.
                     PropertyKey newNode = ctx.getHierarchy().findExistingKey(
                         newPath);
@@ -164,6 +170,24 @@ public class TeamProjectAlterer {
         JOptionPane.showMessageDialog(parent, resources.getStrings(resKey),
             resources.getString("Rename.Error_Title"),
             JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void maybeRenameSchedule(String newPath) {
+        // load the EV task list for this project
+        EVTaskList taskList = loadProjectTaskList(newPath);
+        if (taskList == null)
+            return;
+
+        // get the new project name, and see if that schedule name is taken
+        String newName = newPath.substring(newPath.lastIndexOf('/') + 1);
+        if (EVTaskListData.exists(ctx.getData(), newName))
+            return;
+        if (EVTaskListRollup.exists(ctx.getData(), newName))
+            return;
+
+        // save the schedule with the new name, and update internal pointers
+        taskList.save(newName);
+        EVTaskList.getRegisteredTaskListForPath(ctx.getData(), newPath);
     }
 
 
@@ -217,9 +241,20 @@ public class TeamProjectAlterer {
         String templateID = ctx.getHierarchy().getID(selectedNode);
         if (okToDeleteProject(projectPath, templateID)) {
             try {
+                // delete the import instruction for this project
+                DashController.deleteImportSetting(getProjectID(projectPath));
+
+                // retrieve the project task list
+                EVTaskList taskList = loadProjectTaskList(projectPath);
+
+                // delete the project from the hierarchy
                 HierarchyAlterer alt = DashController.getHierarchyAlterer();
                 alt.deleteNode(projectPath);
                 deleteChildlessParentsOfNode(alt, selectedNode);
+
+                // delete the project task list
+                if (taskList != null)
+                    taskList.save(null);
             } catch (HierarchyAlterationException e) {
                 showHierarchyError(e);
             }
@@ -389,5 +424,22 @@ public class TeamProjectAlterer {
         } else
             return null;
     } 
+
+    private String getProjectID(String projectPath) {
+        String dataName = DataRepository.createDataName(projectPath,
+            TeamDataConstants.PROJECT_ID);
+        SimpleData sd = ctx.getData().getSimpleValue(dataName);
+        return (sd == null ? null : sd.format());
+    }
+
+    private EVTaskList loadProjectTaskList(String projectPath) {
+        String taskListName = EVTaskList
+                .getRegisteredTaskListForPath(ctx.getData(), projectPath);
+        if (taskListName == null)
+            return null;
+        else
+            return EVTaskList.openExisting(taskListName, ctx.getData(),
+                ctx.getHierarchy(), ctx.getCache(), false);
+    }
 
 }
