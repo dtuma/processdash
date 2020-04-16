@@ -206,6 +206,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     boolean showActualData = false;
     boolean showActualSize = false;
     boolean readOnly = false;
+    boolean uneditedEmptyProject = false;
     boolean simultaneousEditing = false;
     boolean holdingStartupLock = false;
     boolean indivRestrictedMode = false;
@@ -2232,10 +2233,18 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (this.saveAction != null) {
             this.saveAction.setEnabled(!readOnly && isDirty());
         }
+
+        if (isDirty) {
+            this.uneditedEmptyProject = false;
+        }
     }
 
     public boolean isDirty() {
         return this.dirty;
+    }
+
+    public boolean isUneditedEmptyProject() {
+        return uneditedEmptyProject;
     }
 
     private void initializeChangeHistory() {
@@ -2253,6 +2262,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             // "Save As" operation often creates file modification timestamps
             // that are out of order.)
             Entry lastChangeHistoryEntry = changeHistory.getLastEntry();
+            if (lastChangeHistoryEntry == null)
+                uneditedEmptyProject = true;
             long lastChangeHistoryTime = (lastChangeHistoryEntry == null ? 0
                     : lastChangeHistoryEntry.getTimestamp().getTime());
             long lastFileModTime = teamProject.getFileModificationTime();

@@ -98,6 +98,8 @@ public class WBSReplaceAction extends AbstractAction {
     }
 
     private boolean confirmBeginOperation() {
+        if (wbsEditor.isUneditedEmptyProject())
+            return true;
         String title = resources.getString("Confirm.Title");
         String[] message = resources.getStrings("Confirm.Message");
         int userChoice = JOptionPane.showConfirmDialog(wbsEditor.frame,
@@ -230,6 +232,8 @@ public class WBSReplaceAction extends AbstractAction {
      * to overwrite, and get confirmation that they wish to continue.
      */
     private boolean confirmLostChanges(File srcFile, List<Entry> lostChanges) {
+        if (wbsEditor.isUneditedEmptyProject())
+            return true;
         if (lostChanges == null || lostChanges.isEmpty())
             return true;
 
