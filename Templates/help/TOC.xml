@@ -34,6 +34,7 @@
     </tocitem>
 
     <tocitem image="BookIcon" target="Planning" text="Planning">
+      <tocitem image="PageIcon" target="CreatingProjects" text="Creating Projects"/>
       <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
       <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
       <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>

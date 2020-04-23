@@ -1,0 +1,15 @@
+
+table.comparison {
+    border-collapse: collapse;
+    margin-left: 20px;
+}
+
+table.comparison td.label {
+    text-align: right;
+}
+
+table.comparison td {
+    border: 1px solid silver;
+    text-align: center;
+    padding: 5px 10px;
+}

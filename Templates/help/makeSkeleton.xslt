@@ -20,7 +20,7 @@
 <xsl:template match="/">
 <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text>
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2020 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,6 +47,7 @@
 <HEAD>
 <TITLE>Process Dashboard Users Manual</TITLE>
 <link href="style.css" type="text/css" rel="stylesheet" />
+<link href="style-comp-table.css" type="text/css" rel="stylesheet" />
 <STYLE>
 BODY { color: black; background-color: white }
 .hideInBook { display: none }
