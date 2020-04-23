@@ -50,7 +50,7 @@
   <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
   <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
   <mapID target="UsingSizeEstimatingTemplate.postmortem" url="Topics/Planning/UsingSizeEstimatingTemplate.html#postmortem" />
-  <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
+  <mapID target="DataFreezing" url="Topics/Planning/EnteringData.html#dataFreezing" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
@@ -126,7 +126,7 @@
   <mapID target="PlayPause.sound" url="Topics/Execution/PlayPause.html#sound" />
   <mapID target="GoalsOfPSPAndDashboard.tsp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#tsp" />
   <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
-  <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />
+  <mapID target="CompletionButton.freeze" url="Topics/Planning/EnteringData.html#dataFreezing" />
   <mapID target="AccessingScripts.scriptIcons" url="Topics/Execution/AccessingScripts.html#scriptIcons" />
   <mapID target="CustomLOCCounter" url="Topics/AdvancedTopics/CustomLOCCounter.html"/>
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>

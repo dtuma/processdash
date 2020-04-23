@@ -74,18 +74,6 @@ open, the form will reset and display "<code>NO CONNECTION</code>". You can
 reestablish the connection simply by restarting the dashboard, then telling 
 your browser to reload the HTML page.</P>
 
-<H2>Frozen Calculations</H2>
-
-<P>If you edit the value in an input field, and related data items don't 
-recalculate, the data is probably <I>frozen</I>. Remember that when you mark 
-the planning phase of a PSP project complete, all the Planned data elements 
-are baselined and stop recalculating.  Similarly, when you mark a PSP project 
-complete, the Actual and To Date data elements will freeze and stop 
-recalculating. So if you expect formulas to recalculate and they don't, check 
-to make certain that the planning phase and the entire project are <U>not</U> 
-marked complete. For more information, see the <A 
-HREF="DataFreezing.html">Data Freezing</A> help topic.</P> 
-
 <a name="unlock"></a><h2>Read-only data fields</h2>
 
 <P>The Process Dashboard automatically calculates many data elements for
@@ -112,6 +100,43 @@ that you want the old calculation back.  Just type <code>DEFAULT</code> in
 the input field, and when you leave the field the old calculation will be 
 restored.</p>
 
+<a name="dataFreezing"></a><H2>Frozen Calculations</H2>
+
+<P>For some component types, the dashboard will "freeze" appropriate pieces of
+data when the corresponding process phase is marked as completed.  The two
+points where this happens are at the end of the Planning phase and at the
+completion of the component.</p>
+
+<P>For example, when you are planning your component with a PSP process,
+the dashboard will use your historical data to help you create an estimate of 
+how your total time will be distributed across the process phases.  Once you 
+click the completion checkbox to complete the planning phase, all your 
+Planned data will be baselined. The estimates you entered for size and time, 
+along with all the calculated computed data elements for estimated data, will 
+be frozen so that your planned data will always stay constant.</p>
+
+<P>Similarly, when you mark the component complete, the To Date numbers will be 
+brought up to date and frozen.  This will enable you to view this report 
+again in the future without having the To Date numbers changing in the 
+report.</p>
+
+<P>One side effect of the freezing of data is that if you want to change
+your time or size estimate, you will have to navigate back to the Planning
+phase and mark it as incomplete by clicking the completion checkbox again.
+Once it has been marked as incomplete the dashboard will allow you to enter
+a different estimate.</p>
+
+<p>The same is true of the To Date items on the report.  If you navigate back
+to an old component and start logging time to it, the Actual columns will
+update as required, but the To Date columns will not.  You will need to mark
+the component as incomplete so that the To Date items will thaw out and
+recalculate.</p>
+
+<p>The Project Completion checkbox is located on the Project Plan Summary 
+form.</p>
+
+<p class="figure"><img src="../../Images/QSCheckProjectComplete.png"></p>
+
 <a name="exporting"></a><h2>Exporting form data</h2>
 
 <p>When you open a dashboard form, the form connects to the process dashboard
@@ -136,6 +161,11 @@ data</A> help topic.</p>
 data only.  If you edit values in the Excel spreadsheet, your changes will 
 not be imported back into the Process Dashboard. To change a data value in 
 the Process Dashboard, you must make the change in a dashboard form.</p> 
+
+
+<!-- Add blank space to the bottom of the page, so we can scroll to -->
+<!-- all of the HTML anchors named above -->
+<p class="hideInBook" style="margin-bottom: 8in">&nbsp;</p>
 
 </BODY>
 </HTML>

@@ -35,11 +35,6 @@
 
     <tocitem image="BookIcon" target="Planning" text="Planning">
       <tocitem image="PageIcon" target="CreatingProjects" text="Creating Projects"/>
-      <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
-      <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
-      <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
-      <tocitem image="PageIcon" target="UsingProbeWizard" text="Using the PROBE Wizard"/>
-      <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
       <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
         <tocitem image="PageIcon" target="TaskScheduleSteps" text="Creating a schedule step by step"/>
         <tocitem image="PageIcon" target="TaskScheduleDates" text="Earned value date calculations"/>
@@ -51,7 +46,9 @@
         <tocitem image="PageIcon" target="TaskScheduleDependencies" text="Tracking task dependencies"/>
         <tocitem image="PageIcon" target="TaskScheduleRanges" text="Prediction Ranges in the Task &amp; Schedule Tool"/>
       </tocitem>
-      <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
+      <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
+      <tocitem image="PageIcon" target="UsingProbeWizard" text="Using the PROBE Wizard"/>
+      <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
     </tocitem>
 
     <tocitem image="BookIcon" target="Execution" text="Running the Dashboard">
@@ -59,6 +56,8 @@
       <tocitem image="PageIcon" target="PlayPause" text="Using the Play/Pause button to time your work"/>
       <tocitem image="PageIcon" target="PercentSpentIndicator" text="The Percent Spent Indicator"/>
       <tocitem image="PageIcon" target="AccessingScripts" text="Accessing the online scripts and forms"/>
+      <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
+      <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
       <tocitem image="PageIcon" target="EnteringDefects" text="Entering Defects"/>
       <tocitem image="PageIcon" target="NoteIndicator" text="Entering Notes"/>
       <tocitem image="PageIcon" target="CompletionButton" text="Completing tasks with the completion checkbox"/>
@@ -80,11 +79,11 @@
     <tocitem image="BookIcon" target="AdvancedTopics" text="Advanced Topics">
       <tocitem image="PageIcon" target="TeamUse" text="Team Use"/>
       <tocitem image="PageIcon" target="BackupData" text="Backing up Dashboard Data"/>
-      <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
       <tocitem image="BookIcon" target="PreferencesTool" text="Editing Preferences">
          <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>
       </tocitem>
       <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
+      <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
       <tocitem image="PageIcon" target="DatabaseOverview" text="Database Support"/>
       <tocitem image="PageIcon" target="CustomJSPs" text="Custom JSP Reports"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
