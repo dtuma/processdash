@@ -20,9 +20,8 @@
 
   <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
   <mapID target="ProcessScripts.psp" url="Topics/Overview/ProcessScripts.html#psp" />
-  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
-  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
-  <mapID target="ProcessScripts.custom" url="Topics/Overview/ProcessScripts.html#custom" />
+  <mapID target="ProcessScripts.generic" url="Topics/Planning/UsingHierarchyEditor.html#generic" />
+  <mapID target="ProcessScripts.timer" url="Topics/Planning/UsingHierarchyEditor.html#timer" />
   <mapID target="ChangeLog" url="Topics/Overview/ChangeLog.html" />
   <mapID target="Licenses" url="Topics/Overview/Licenses.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
@@ -102,7 +101,6 @@
   <mapID target="EnteringDefects.fixingMultipleDefects" url="Topics/Execution/EnteringDefects.html#fixingMultipleDefects" />
   <mapID target="EnteringDefects.timing" url="Topics/Execution/EnteringDefects.html#timing" />
   <mapID target="ConfigurationFile.dateFormat" url="Topics/AdvancedTopics/ConfigurationFile.html#dateFormat" />
-  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
   <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
   <mapID target="UsingSizeEstimatingTemplate.newObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#newObjects" />
   <mapID target="UsingSizeEstimatingTemplate.objectLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#objectLOC" />
@@ -126,7 +124,6 @@
   <mapID target="UsingTimeLogEditor.summarize" url="Topics/Execution/UsingTimeLogEditor.html#summarize" />
   <mapID target="ConfigurationFile.timelog.updateInterval" url="Topics/AdvancedTopics/ConfigurationFile.html#timelogUpdateInterval" />
   <mapID target="PlayPause.sound" url="Topics/Execution/PlayPause.html#sound" />
-  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
   <mapID target="GoalsOfPSPAndDashboard.tsp" url="Topics/Overview/GoalsOfPSPAndDashboard.html#tsp" />
   <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
   <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />

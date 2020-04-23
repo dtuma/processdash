@@ -35,7 +35,6 @@
 
     <tocitem image="BookIcon" target="Planning" text="Planning">
       <tocitem image="PageIcon" target="CreatingProjects" text="Creating Projects"/>
-      <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
       <tocitem image="PageIcon" target="ProcessScripts" text="The process scripts" />
       <tocitem image="PageIcon" target="EnteringData" text="Entering data into the dashboard"/>
       <tocitem image="PageIcon" target="UsingSizeEstimatingTemplate" text="Using the Size Estimating Template"/>
@@ -85,6 +84,7 @@
       <tocitem image="BookIcon" target="PreferencesTool" text="Editing Preferences">
          <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>
       </tocitem>
+      <tocitem image="PageIcon" target="UsingHierarchyEditor" text="Using the Hierarchy Editor"/>
       <tocitem image="PageIcon" target="DatabaseOverview" text="Database Support"/>
       <tocitem image="PageIcon" target="CustomJSPs" text="Custom JSP Reports"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>

@@ -1,11 +1,36 @@
 <HTML>
 <head>
-<TITLE>Defining Your Own Processes</TITLE>
+<TITLE>Defining Legacy Processes</TITLE>
 <link rel=stylesheet type="text/css" href="../../../style.css">
 </head>
 <BODY>
 
-<H1>Defining your own processes for use in the Process Dashboard</H1>
+<H1>Defining legacy process templates for use in the Process Dashboard</H1>
+ 
+ 
+<div style="border: 2px solid #ff7070">
+ 
+<h2 style="background-color:#ff7070; text-align:center; margin:0px">Important Note</h2>
+ 
+<div style="padding: 0px 10px">
+ 
+<p>The instructions below describe how to build customized XML process
+templates.  But these templates are now considered <b>legacy
+functionality</b>, because they have a number of serious limitations.  For
+example, they cannot be modified without invalidating historical data, and
+they can only be used for personal work, not by teams.</p>
+ 
+<p>Fortunately,
+<a href="../../../../teamhelp/Topics/EditWorkflows.html">custom workflows</a>
+in <a href="../../Planning/CreatingProjects.html">team/personal projects</a>
+do not have those limitations.  Accordingly, users are strongly encouraged to
+create a team or personal project, then use workflows in their WBS to define
+custom processes.</p>
+ 
+<p style="margin-bottom:16px">The instructions below are provided for
+long-time users who need to maintain their legacy XML process templates.</p>
+ 
+</div></div>
 
 
 <!-- How to define your own custom process
@@ -24,27 +49,9 @@ the tool. Instead, they are dynamically loaded from simple HTML and text
 files.  Thus, it is possible to create your own custom process scripts, 
 forms, and data that will be dynamically integrated into the dashboard.</P>
 
-<P>The dashboard process definition framework provides a great deal of
-flexibility and power for process automation.  Creating a simple, custom
-personal process is not difficult.</p>
-
-<p><span style="font-weight:bold; background-color:#ff7070">&nbsp;Please
-note:&nbsp;</span> the instructions below will allow you to build a
-customized process for <b>personal</b> use.  The resulting process
-<b>will not</b> provide support for team planning or team rollups.  If
-you plan to work as part of a team, and you want to roll data up to view
-team-level aggregate metrics, you should not follow the steps below.
-Instead, you should look into the Process Dashboard's
-<a href="../../../../teamhelp/Topics/Overview.html">team functionality</a>.
-Most teams can use satisfy their process customization needs by building a
-<a href="../../../../teamhelp/Topics/EditWorkflows.html">team workflow</a>.
-A small number of teams may require the more sophisticated process
-customization that comes from defining a
-<a href="../../../../teamhelp/Topics/MetricsCollectionFramework.html">custom
-metrics collection framework</a>.</p>
-
-<p>To create a custom personal process definition, just follow these
-steps:</P>
+<P>The dashboard process definition framework provides a great deal of power
+for process automation.  To create a custom personal process definition, just
+follow these steps:</P>
 
 <OL>
  <LI><A HREF="#ProcessStructure">Identify your process structure</A></LI>
@@ -70,7 +77,7 @@ without losing historical data.</P>
 
 <P>If your process definition is still immature and evolving, it is probably 
 better to use the <A 
-HREF="../../Overview/ProcessScripts.html#generic">Generic process</A> for a 
+HREF="../../Planning/UsingHierarchyEditor.html#generic">Generic process</A> for a 
 while. As you begin creating your own custom process definitions, the 
 flexibility of the generic process will allow you to radically change your 
 process from one task to the next in response to process improvement 
