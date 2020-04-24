@@ -35,6 +35,7 @@
 
     <tocitem image="BookIcon" target="Planning" text="Planning">
       <tocitem image="PageIcon" target="CreatingProjects" text="Creating Projects"/>
+      <tocitem image="PageIcon" target="PersonalProjects" text="Working with Personal Projects"/>
       <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
         <tocitem image="PageIcon" target="TaskScheduleSteps" text="Creating a schedule step by step"/>
         <tocitem image="PageIcon" target="TaskScheduleDates" text="Earned value date calculations"/>

@@ -41,6 +41,7 @@
   <mapID target="CreatingProjects" url="Topics/Planning/CreatingProjects.html" />
   <mapID target="CreatingProjects.team" url="Topics/Planning/CreatingProjects.html#team" />
   <mapID target="CreatingProjects.personal" url="Topics/Planning/CreatingProjects.html#personal" />
+  <mapID target="PersonalProjects" url="Topics/Planning/PersonalProjects.html" />
   <mapID target="UsingHierarchyEditor" url="Topics/Planning/UsingHierarchyEditor.html" />
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
   <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
