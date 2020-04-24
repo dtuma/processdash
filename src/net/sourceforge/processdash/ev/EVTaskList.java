@@ -1723,7 +1723,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public void maybeSaveAutoSnapshot() {
         // if auto-snap functionality is not enabled, abort
         boolean enabled = Settings.getBool("ev.autoSnap.enabled",
-            Settings.isTeamMode());
+            getAutoSnapshotEnabledDefault());
         if (!enabled)
             return;
 
@@ -1738,6 +1738,10 @@ public class EVTaskList extends AbstractTreeTableModel
 
         // if all tests above pass, save a new automatic snapshot.
         saveAutoSnapshot();
+    }
+
+    protected boolean getAutoSnapshotEnabledDefault() {
+        return Settings.isTeamMode();
     }
 
     public void saveAutoSnapshot() {}

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -372,6 +373,20 @@ public class EVTaskListData extends EVTaskList
     @Override
     public List<EVSnapshot.Metadata> getSnapshots() {
         return super.getSnapshots(data);
+    }
+
+    @Override
+    protected boolean getAutoSnapshotEnabledDefault() {
+        // enable auto snapshots by default for personal project schedules
+        if (getSchedule().areDatesLocked()) {
+            for (EVTask child : getTaskRoot().getChildren()) {
+                SimpleData sd = data.getSimpleValue(child.getFullName() + "/"
+                        + TeamDataConstants.PERSONAL_PROJECT_FLAG);
+                if (sd != null && sd.test())
+                    return true;
+            }
+        }
+        return false;
     }
 
     @Override
