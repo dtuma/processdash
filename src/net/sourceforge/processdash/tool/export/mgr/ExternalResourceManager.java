@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiver;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiverXMLv1;
@@ -48,6 +49,10 @@ public class ExternalResourceManager {
     public static final String INITIALIZATION_MODE_ARCHIVE = "fromArchive";
 
     public static final String INITIALIZATION_MODE_AUTO = "autoSearch";
+
+    private static final String DATA_DIR_REDIRECT_SETTING = //
+            ExternalResourceManager.class.getSimpleName()
+                    + ".dataSubdirRedirect";
 
     private static final Logger logger = Logger
             .getLogger(ExternalResourceManager.class.getName());
@@ -133,7 +138,18 @@ public class ExternalResourceManager {
             // "default map data source" functionality at this time.
         }
 
-        mapper.setBaseDirectory(baseDir);
+        // tell the mapper where it should find the "data" subdirectory
+        File dataDirParent = baseDir;
+        String dataDirSetting = Settings.getVal(DATA_DIR_REDIRECT_SETTING);
+        if (dataDirSetting != null && dataDirSetting.length() > 0)
+            dataDirParent = new File(dataDirSetting);
+        mapper.setDataDirParent(dataDirParent);
+    }
+
+    public void redirectDataDirParent(File dataDirParent) {
+        InternalSettings.set(DATA_DIR_REDIRECT_SETTING,
+            dataDirParent.getAbsolutePath());
+        mapper.setDataDirParent(dataDirParent);
     }
 
     private void dispatchAllImportInstructions(ImportInstructionDispatcher d) {

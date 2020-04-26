@@ -94,13 +94,14 @@ public class ExternalLocationMapper {
         return result;
     }
 
-    public void setBaseDirectory(File baseDirectory) {
+    public void setDataDirParent(File dataDirParent) {
         if (pathRemappings == null)
             pathRemappings = new HashMap();
         if (generalizedRemappings == null)
             generalizedRemappings = new HashMap();
 
-        pathRemappings.put(".", baseDirectory.getPath());
+        File dataDir = new File(dataDirParent, "data");
+        pathRemappings.put("./data", dataDir.getPath());
     }
 
     private boolean isEmpty(Map m) {

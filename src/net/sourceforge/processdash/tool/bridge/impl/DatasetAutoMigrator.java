@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
@@ -325,9 +326,25 @@ public class DatasetAutoMigrator {
         // directory. Reload the values from that file.
         InternalSettings.maybeReload();
 
+        // if this dashboard includes personal projects, write settings that
+        // arrange for them to be found and migrated
+        maybeAddPersonalProjectMigrationSettings();
+
         // write a new setting to indicate that we've performed the migration.
         InternalSettings.set(ALREADY_MIGRATED_SETTING, Long.toString(System
                 .currentTimeMillis()));
+    }
+
+    private void maybeAddPersonalProjectMigrationSettings() {
+        // check to see if the source folder had a "data" subdir
+        File sourceDataSubdir = new File(sourceDir, "data");
+        if (!sourceDataSubdir.isDirectory())
+            return;
+
+        // a "data" subdir was found, which could indicate the presence of
+        // personal projects. Register settings to request their migration.
+        ExternalResourceManager.getInstance().redirectDataDirParent(sourceDir);
+        InternalSettings.set("pdesImport.projectMigrationNeeded", "true");
     }
 
     private void flushWorkingData() {

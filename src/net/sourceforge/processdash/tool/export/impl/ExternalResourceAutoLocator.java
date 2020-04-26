@@ -46,7 +46,7 @@ public class ExternalResourceAutoLocator implements
 
     public Map load(File dir) {
         Map result = new HashMap();
-        result.put(".", dir.getPath());
+        result.put("./data", new File(dir, "data").getPath());
         scanForDirectories(result, dir, "");
         scanForDirectories(result, dir.getParentFile(), "");
         return result;
