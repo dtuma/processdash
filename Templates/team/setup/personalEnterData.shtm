@@ -98,8 +98,13 @@ Wizard</title>
       var scheduleElem = document.getElementById("Schedule_Name");
       if (scheduleElem.value == lastNodeName) {
           scheduleElem.value = nodeElem.value;
-          scheduleElem.className = "flat";
-          scheduleElem.title = "You can accept the current value for this field.";
+          if (scheduleElem.value.trim()) {
+              scheduleElem.className = "flat";
+              scheduleElem.title = "You can accept the current value for this field.";
+          } else {
+              scheduleElem.className = "edit";
+              scheduleElem.removeAttribute("title");
+          }
       }
       lastNodeName = nodeElem.value;
    }
