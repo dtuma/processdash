@@ -250,7 +250,7 @@ you would like to use, click the button to join this team project.</p>
    number of projects becomes large, you can organize them into different
    groups in your work hierarchy.<br/><br/>
 
-   Project groups are created by clicking the "&equiv;" menu, choosing "Hierarchy,"
+   Project groups are created by clicking "&equiv; &rarr; Tools &rarr; Hierarchy,"
    and selecting "Edit&nbsp;&rarr;&nbsp;Add Node."  If you have created groups
    in this way, you can select one here to keep your projects organized.
    <!--#if [setup//Node_Location//Class] eq 'flat' -->If you don't have a
