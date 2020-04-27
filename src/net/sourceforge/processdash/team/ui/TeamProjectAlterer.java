@@ -36,6 +36,7 @@ import javax.swing.JTextField;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -48,7 +49,9 @@ import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationExce
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.TeamProjectSetupWizard;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
+import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -241,6 +244,9 @@ public class TeamProjectAlterer {
         String templateID = ctx.getHierarchy().getID(selectedNode);
         if (okToDeleteProject(projectPath, templateID)) {
             try {
+                // if this is an indiv project, clean up the PDASH file
+                maybeCleanupPdashFile(projectPath, templateID);
+
                 // delete the import instruction for this project
                 DashController.deleteImportSetting(getProjectID(projectPath));
 
@@ -255,6 +261,7 @@ public class TeamProjectAlterer {
                 // delete the project task list
                 if (taskList != null)
                     taskList.save(null);
+
             } catch (HierarchyAlterationException e) {
                 showHierarchyError(e);
             }
@@ -332,6 +339,41 @@ public class TeamProjectAlterer {
         String name = projectPath + "/" + listName;
         ListData l = ListData.asListData(ctx.getData().getSimpleValue(name));
         return l != null && l.size() > length;
+    }
+
+    private void maybeCleanupPdashFile(String projectPath, String templateID) {
+        // we only need to clean up the PDASH file for indiv joined projects
+        ProjectType type = getProjectType(projectPath, templateID);
+        if (type != ProjectType.Indiv)
+            return;
+
+        // export one last copy of the file, so it contains all of the most
+        // up-to-date metrics this person has collected.
+        DashController.exportData(projectPath);
+
+        // make a backup copy of our PDASH for recovery purposes
+        DataContext data = ctx.getData().getSubcontext(projectPath);
+        TeamProjectSetupWizard.maybeBackupExistingPdashFile(data, false);
+
+        // Now delete our PDASH file so it doesn't contribute to team rollups.
+        ExportFileStream.deleteExportTarget(getExportFilePath(data), null);
+    }
+
+    private String getExportFilePath(DataContext data) {
+        // retrieve the name of the PDASH export file
+        SimpleData exportFilename = data.getSimpleValue("EXPORT_FILE");
+        if (exportFilename == null || !exportFilename.test())
+            return null;
+        String result = exportFilename.format();
+
+        // if this is a server-based project, the export file will be a simple
+        // name like "abc-data.pdash"  In that case, prepend the data dir URL
+        SimpleData teamDataDirUrl = data
+                .getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
+        if (teamDataDirUrl != null && teamDataDirUrl.test())
+            result = teamDataDirUrl.format() + "/" + result;
+
+        return result;
     }
 
     private void deleteChildlessParentsOfNode(HierarchyAlterer hierarchyAlterer,

@@ -2587,7 +2587,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         boolean addScheduleSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);
         importDisseminatedTeamData();
-        boolean foundBackup = maybeBackupExistingPdashFile();
+        boolean foundBackup = maybeBackupExistingPdashFile(getDataContext(), true);
         DashController.setPath(localProjectName);
 
         showIndivSuccessPage(addScheduleSucceeded, foundBackup);
@@ -2769,21 +2769,34 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
     }
 
-    private boolean maybeBackupExistingPdashFile() {
+    /**
+     * Backup the PDASH export file for an individual if it exists.
+     * 
+     * @param data
+     *            a data context pointing at the root of an indiv project
+     * @param storeBestBackup
+     *            if this flag is true, this will also check to see if the
+     *            backup subdirectory contains any backed up PDASH files for
+     *            this person. If so, find the most recent one with actual data,
+     *            and store its path in the EXPORT_FILE_BACKUP data element.
+     * @return true if an existing PDASH file was found in the WBS directory,
+     *         false otherwise
+     */
+    public static boolean maybeBackupExistingPdashFile(DataContext data,
+            boolean storeBestBackup) {
         // get the name of the backup file used by this individual
-        String pdashFile = getValue("EXPORT_FILE");
+        SimpleData sd = data.getSimpleValue("EXPORT_FILE");
+        String pdashFile = (sd == null ? null : sd.format());
         if (!StringUtils.hasValue(pdashFile))
             return false;
 
-        // if the file doesn't exist, return false
+        // make and/or find a backup copy of the file
         File f = new File(pdashFile);
-        if (!f.isFile())
-            return false;
-
-        // if the file already exists, make a backup copy of it
         try {
             // place the copy in the WBS's "backup" subdirectory
             File wbsDir = f.getParentFile();
+            if (wbsDir == null || !wbsDir.isDirectory())
+                return false;
             File backupDir = new File(wbsDir, "backup");
             backupDir.mkdir();
 
@@ -2796,30 +2809,34 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             filename = prefix + timeStr + "-data.pdash";
             File backup = new File(backupDir, filename);
 
-            // back up the file
-            FileUtils.copyFile(f, backup);
+            // back up the file, if it exists
+            if (f.isFile())
+                FileUtils.copyFile(f, backup);
 
             // scan the backup directory and see if we find a PDASH file for
             // this person that contains actual data. (It could be the file we
             // just copied, or an earlier one.) If so, save the filename.
-            lookForRecentPdashWithActualData(backupDir, prefix);
+            if (storeBestBackup)
+                lookForRecentPdashWithActualData(backupDir, prefix, data);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // return true to indicate that we found an existing pdash file
-        return true;
+        // return true if we found an existing pdash file
+        return f.isFile();
     }
 
-    private void lookForRecentPdashWithActualData(File dir, String prefix) {
+    private static void lookForRecentPdashWithActualData(File dir,
+            String prefix, DataContext data) {
         String[] files = dir.list();
         Arrays.sort(files);
         for (int i = files.length; i-- > 0;) {
             if (files[i].startsWith(prefix)) {
                 File pdashFile = new File(dir, files[i]);
                 if (pdashFileContainsActualData(pdashFile)) {
-                    putValue(EXPORT_FILE_BACKUP, pdashFile.getAbsolutePath());
+                    data.putValue(EXPORT_FILE_BACKUP,
+                        new ImmutableStringData(pdashFile.getAbsolutePath()));
                     break;
                 }
             }
@@ -2827,7 +2844,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     /** @return true if a pdash file appears to contain actual data */
-    private boolean pdashFileContainsActualData(File f) {
+    private static boolean pdashFileContainsActualData(File f) {
         ZipInputStream zip = null;
         try {
             zip = new ZipInputStream(
