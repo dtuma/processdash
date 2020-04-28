@@ -23,7 +23,7 @@ is currently open.  Please close the Hierarchy Editor, then
 
 <!--#elif serverUnavailable -->
 
-To synchronize your hierarchy with a team project, the dashboard must contact
+To synchronize your hierarchy with the WBS, the dashboard must contact
 the server located at
 <pre><!--#echo serverUrl --></pre>
 
@@ -33,7 +33,7 @@ administrator.
 
 <!--#elif teamDirUnavailable -->
 
-To synchronize your hierarchy with a team project, the dashboard must read
+To synchronize your hierarchy with the WBS, the dashboard must read
 project data files from the directory
 <pre><!--#echo teamDir --></pre>
 
@@ -43,14 +43,14 @@ for help.
 
 <!--#elif teamDirMissing -->
 
-To synchronize your hierarchy with a team project, the dashboard must
+To synchronize your hierarchy with the WBS, the dashboard must
 know the directory of the team project.  Before you can synchronize
 your hierarchy, you must first enter this value on the
 
 <!--#elif wbsFileInaccessible -->
 
-To synchronize your hierarchy with a team project, the dashboard must
-read a description of the team work breakdown structure.  The dashboard
+To synchronize your hierarchy with the WBS, the dashboard must
+read a description of the project work breakdown structure.  The dashboard
 attempted to read this description from the file 
 <pre><!--#echo wbsFile --></pre>
 
