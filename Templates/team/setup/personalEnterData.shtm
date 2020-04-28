@@ -113,7 +113,7 @@ Wizard</title>
 </head>
 <body onload="nodeNameChange()">
 
-<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<table><tr><td><img src="/Images/project.png" height="50"></td>
 <td><h1 style="margin:0px">Personal Project
 <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Creation<!--#endif-->
 Wizard</h1></td>

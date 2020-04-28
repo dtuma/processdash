@@ -31,10 +31,11 @@ Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
-<table width='100%'><tr><td width='100%'>
-  <img align="left" src="/Images/team.jpg">
-  <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
-</td></tr></table>
+<table><tr>
+<td><img src="/Images/project.png"></td>
+<td><h1 style="margin: 0px"><!--#echo [setup//Node_Location]
+                        -->/<!--#echo [setup//Node_Name] --></h1></td>
+</tr></table>
 
 <h2>Success</h2>
 

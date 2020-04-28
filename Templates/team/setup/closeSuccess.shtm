@@ -12,11 +12,17 @@ Project Closed</title>
 </head>
 <body>
 
-<div><img align="left" src="/Images/team.jpg"><h1>
+<table><tr>
+<td><!--#if [Personal_Project] -->
+    <img src="/Images/project.png">
+<!--#else-->
+    <img src="/Images/team.jpg">
+<!--#endif--></td>
+<td><h1 style="margin: 0px">
 <!--#if [Personal_Project] -->Personal<!--#else-->Team<!--#endif-->
-Project Closed<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+Project Closed<br><!--#echo var=PATH_TRANSLATED --></h1></td>
+</tr></table>
 
-<div style="clear:both"></div>
 
 <p>This project has been closed.</p>
 

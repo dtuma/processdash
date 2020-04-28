@@ -29,10 +29,11 @@
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
-<table width='100%'><tr><td width='100%'>
-  <img align="left" src="/Images/team.jpg">
-  <h1>Personal Project Creation Wizard</h1>
-</td></tr></table>
+<table><tr>
+<td><img src="/Images/project.png"></td>
+<td><h1 style="margin: 0px">Personal Project Creation Wizard</h1></td>
+</tr></table>
+
 
 <form action='wizard.class' method='post' style='max-width:600px'>
 <input type='hidden' name='page' value='personalStart'>

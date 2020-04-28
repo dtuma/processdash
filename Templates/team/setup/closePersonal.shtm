@@ -10,10 +10,12 @@
 </head>
 <body>
 
-<div><img align="left" src="/Images/team.jpg"><h1>Close Personal
-Project<br><!--#echo var=PATH_TRANSLATED --></h1></div>
+<table><tr>
+<td><img src="/Images/project.png"></td>
+<td><h1 style="margin: 0px">Close Personal
+Project<br><!--#echo var=PATH_TRANSLATED --></h1></td>
+</tr></table>
 
-<div style="clear:both"></div>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='close'>
