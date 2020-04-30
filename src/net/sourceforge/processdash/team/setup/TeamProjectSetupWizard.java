@@ -660,6 +660,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         createTeamSchedule();
         saveTeamSettings();
         exportProjectData();
+        DashController.setPath(getPrefix());
 
         // print a success message!
         printRedirect(TEAM_SUCCESS_URL);
@@ -716,7 +717,6 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         maybeSetProjectRootNodeId(projectID);
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
             teamSchedule, relaunchSourceID, relaunchSourcePath);
-        DashController.setPath(getPrefix());
 
         if (StringUtils.hasValue(relaunchSourcePath)) {
             // after relaunching a project, export an up-to-date dissemination
@@ -1940,6 +1940,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.4b");
         DataVersionChecker.registerDataRequirement("teamTools", "5.1.0");
         exportProjectData();
+        DashController.setPath(getPrefix());
 
         printRedirect(PERSONAL_SUCCESS_URL);
     }
