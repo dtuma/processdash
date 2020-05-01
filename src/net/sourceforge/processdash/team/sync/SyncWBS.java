@@ -689,7 +689,7 @@ public class SyncWBS extends TinyCGIBase {
         out.print("<input type='hidden' name='"+SAVE_PERMS+"' value='1'/>\n");
 
         if (!taskDeletions.isEmpty() || !taskCompletions.isEmpty()) {
-            out.print("<p>Several of the tasks in your hierarchy have been "
+            out.print("<p>Several of the tasks in your personal plan have been "
                 + "deleted from the project's work breakdown structure, "
                 + "have been reassigned to other individuals, or have "
                 + "been deferred until future iterations.  These tasks "
@@ -700,7 +700,7 @@ public class SyncWBS extends TinyCGIBase {
             out.print("<h2>Tasks to Delete</h2>\n");
             out.print("<p>You have not collected any actual metrics against "
                 + "the following tasks, so the synchronization operation can "
-                + "delete them from your hierarchy entirely.  If you wish to "
+                + "delete them from your personal plan entirely.  If you wish to "
                 + "keep any of these tasks, <b>uncheck the boxes</b> next to "
                 + "them.  <span class='important'>Any tasks with checkmarks "
                 + "next to them will be deleted when you press the OK "
@@ -892,20 +892,23 @@ public class SyncWBS extends TinyCGIBase {
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
         if (changeList.isEmpty()) {
-            out.print("<p>Your personal plan is up to date - no changes " +
-                      "were necessary.");
+            String message = (isTeam || isMaster ? "Project data"
+                    : "Your personal plan")
+                    + " is up to date - no changes were necessary.";
+            out.print("<p>" + message + "</p>");
 
             if (parameters.containsKey(TriggerURI.IS_TRIGGERING)) {
                 out.print(TriggerURI.NULL_DOCUMENT_MARKER);
                 JOptionPane.showMessageDialog(getParentComponent(),
-                        "Your personal plan is up to date - no changes were necessary.",
-                        "Synchronization Complete",
+                        message, "Synchronization Complete",
                         JOptionPane.PLAIN_MESSAGE);
             }
 
         } else {
-            out.print("<p>The following changes were made to your hierarchy:");
-            out.print("<ul>");
+            out.print("<p>The following changes were made");
+            if (!isTeam && !isMaster)
+                out.print(" to your personal plan");
+            out.print(":</p>\n<ul>");
             Iterator i = changeList.iterator();
             while (i.hasNext()) {
                 out.print("<li>");
