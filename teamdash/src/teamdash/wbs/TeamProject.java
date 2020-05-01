@@ -636,7 +636,10 @@ public class TeamProject implements WBSFilenameConstants {
 
             SAXParser p = SAXParserFactory.newInstance().newSAXParser();
             WBSModel result = new WBSModel(p, src);
-            projectName = result.getRoot().getName();
+            if (projectSettings == null)
+                projectName = result.getRoot().getName();
+            else
+                result.getRoot().setName(projectName);
             fileModTime = Math.max(fileModTime, file.lastModified());
             return result;
 
