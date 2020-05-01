@@ -50,6 +50,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectSetupWizard;
+import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
 import net.sourceforge.processdash.ui.Browser;
@@ -90,7 +91,8 @@ public class TeamProjectAlterer {
     public PropertyKey maybeRenameProject(PropertyKey projectNode) {
         String projectPath = projectNode.path();
         String templateID = ctx.getHierarchy().getID(projectNode);
-        if (getProjectType(projectPath, templateID) == null)
+        ProjectType projectType = getProjectType(projectPath, templateID);
+        if (projectType == null)
             return null;
 
         // Create objects we will use in a dialog
@@ -137,6 +139,9 @@ public class TeamProjectAlterer {
                     hierarchyAlterer.renameNode(projectPath, newPath);
                     deleteChildlessParentsOfNode(hierarchyAlterer, projectNode);
 
+                    // possibly update the project settings.xml file
+                    maybeRenameProjectInSettingsFile(projectType, newPath);
+
                     // possibly rename the project EV schedule
                     maybeRenameSchedule(newPath);
 
@@ -173,6 +178,31 @@ public class TeamProjectAlterer {
         JOptionPane.showMessageDialog(parent, resources.getStrings(resKey),
             resources.getString("Rename.Error_Title"),
             JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void maybeRenameProjectInSettingsFile(ProjectType projectType,
+            String newPath) {
+        // don't modify the team project settings file when an individual
+        // changes the name of their joined project
+        if (projectType == ProjectType.Indiv)
+            return;
+
+        try {
+            // read the current settings file
+            TeamSettingsFile tsf = new TeamSettingsFile(
+                    getValue(newPath, TeamDataConstants.TEAM_DATA_DIRECTORY),
+                    getValue(newPath, TeamDataConstants.TEAM_DATA_DIRECTORY_URL));
+            tsf.read();
+
+            // if this dataset "owns" the given file, update the project name
+            if (!tsf.isReadOnly() && tsf.isDatasetMatch()) {
+                tsf.setProjectHierarchyPath(newPath);
+                tsf.write();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void maybeRenameSchedule(String newPath) {
@@ -468,8 +498,11 @@ public class TeamProjectAlterer {
     } 
 
     private String getProjectID(String projectPath) {
-        String dataName = DataRepository.createDataName(projectPath,
-            TeamDataConstants.PROJECT_ID);
+        return getValue(projectPath, TeamDataConstants.PROJECT_ID);
+    }
+
+    private String getValue(String projectPath, String name) {
+        String dataName = DataRepository.createDataName(projectPath, name);
         SimpleData sd = ctx.getData().getSimpleValue(dataName);
         return (sd == null ? null : sd.format());
     }

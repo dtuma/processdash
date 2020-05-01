@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -154,7 +154,9 @@ public class TeamSettingsRepublisher {
 
         TeamSettingsFile tsf = new TeamSettingsFile(dir, url);
         tsf.read();
-        if (!tsf.isReadOnly() && (force || tsf.needsRefresh())) {
+        if (!tsf.isReadOnly() && tsf.isDatasetMatch()
+                && (tsf.maybeUpdateProjectNameFromPath(path) || force
+                        || tsf.needsRefresh())) {
             tsf.write();
             logger.fine("Republished settings.xml file for " + path);
         }

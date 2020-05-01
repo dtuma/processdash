@@ -91,6 +91,8 @@ public class TeamSettingsFile {
 
     private String scheduleName;
 
+    private String datasetID;
+
     private boolean isPersonal;
 
     private List masterProjects;
@@ -108,6 +110,7 @@ public class TeamSettingsFile {
         if (this.projDataDir == null && this.projDataUrl == null)
             throw new IllegalArgumentException("No location specified");
 
+        this.datasetID = null;
         this.isPersonal = false;
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
@@ -203,6 +206,32 @@ public class TeamSettingsFile {
         }
     }
 
+    /**
+     * Update the project name if necessary to agree with the provided path.
+     * 
+     * @param path
+     *            the path to the project root
+     * @return true if the project name was changed
+     */
+    public boolean maybeUpdateProjectNameFromPath(String path) {
+        if (path == null)
+            return false;
+        String oldName = projectName;
+        setProjectHierarchyPath(path);
+        return !projectName.equals(oldName);
+    }
+
+    public String getDatasetID() {
+        return datasetID;
+    }
+
+    public boolean isDatasetMatch() {
+        if (datasetID == null)
+            return true;
+        else
+            return datasetID.equals(DashController.getDatasetID());
+    }
+
     public boolean isPersonal() {
         return isPersonal;
     }
@@ -240,6 +269,7 @@ public class TeamSettingsFile {
             this.templatePath = getAttribute(e, TEMPLATE_PATH_ATTR);
             this.scheduleName = getAttribute(e, SCHEDULE_NAME_ATTR);
             this.isPersonal = "true".equals(getAttribute(e, PERSONAL_ATTR));
+            this.datasetID = getAttribute(e, DATASET_ID_ATTR);
 
             readRelatedProjects(e, MASTER_PROJECT_TAG, masterProjects);
             readRelatedProjects(e, SUBPROJECT_TAG, subprojects);
@@ -361,7 +391,9 @@ public class TeamSettingsFile {
             TemplateLoader.getPackageVersion("pspdash"));
         writeAttr(out, indent, TIMESTAMP_ATTR,
             "@" + System.currentTimeMillis());
-        writeAttr(out, indent, DATASET_ID_ATTR, DashController.getDatasetID());
+        if (datasetID == null)
+            datasetID = DashController.getDatasetID();
+        writeAttr(out, indent, DATASET_ID_ATTR, datasetID);
         out.write(">" + NL);
 
         writeRelatedProjects(out, MASTER_PROJECT_TAG, masterProjects);
