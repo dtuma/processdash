@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,24 +28,18 @@ import java.io.File;
 
 import javax.swing.AbstractAction;
 
-import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.team.mcf.ClasspathContentProvider;
 import net.sourceforge.processdash.templates.TemplateLoader;
 
 public class CustomProcessEditorAction extends AbstractAction {
-
-    private DashboardContext context;
 
     public CustomProcessEditorAction() {
         super("Team Metrics Framework Editor");
     }
 
-    public void setDashboardContext(DashboardContext context) {
-        this.context = context;
-    }
-
     public void actionPerformed(ActionEvent e) {
-        CustomProcessEditor editor = new CustomProcessEditor(null, context
-                .getWebServer());
+        CustomProcessEditor editor = new CustomProcessEditor(null,
+                new ClasspathContentProvider());
 
         File defaultTemplatesDir = TemplateLoader.getDefaultTemplatesDir();
         if (defaultTemplatesDir != null)
