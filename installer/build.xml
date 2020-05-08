@@ -69,6 +69,7 @@ Authors:
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
     <property name="launcher.exe" value="Launcher.exe" />
     <property name="quick-launcher.exe" value="QuickLauncher.exe" />
+    <property name="mcf-editor.exe" value="MCF_Editor.exe" />
     <property name="uninstaller.exe" value="uninstaller.exe" />
 
     <!-- the the IZPACK home directory -->
@@ -188,6 +189,16 @@ Authors:
             targetfile="${dist}/${dashboard.exe}">
             <srcfiles dir="files" includes="*-launch4j-config.xml"/>
         </uptodate>
+    </target>
+
+    <target name="mcf-exe" depends="init"
+            description="build windows executable for MCF Editor">
+        <!-- build and sign the MCF editor exe -->
+        <launch4j configFile="files/mcf-editor-launch4j-config.xml"
+            outfile="${dist}/${mcf-editor.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${mcf-editor.exe}"/>
+        </antcall>
     </target>
 
     <target name="maybe-sign-exe" if="sign-exe.alias">

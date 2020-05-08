@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <dontWrapJar>true</dontWrapJar>
+  <errTitle>Metrics Collection Framework Editor</errTitle>
+  <classPath>
+    <mainClass>net.sourceforge.processdash.team.mcf.editor.CustomProcessEditor</mainClass>
+    <cp>%EXEDIR%\pspdash.jar</cp>
+  </classPath>
+  <jre>
+    <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>
+    <minVersion>1.6.0</minVersion>
+    <opt>-Dswing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel</opt>
+  </jre>
+</launch4jConfig>
