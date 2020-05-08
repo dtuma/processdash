@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ public class CustomProcessEditor extends AbstractCustomProcessEditor {
 
     protected void publishProcess(CustomProcess process, File destFile)
             throws IOException {
-        CustomProcessPublisher.publish(process, destFile, contentSource);
+        CustomProcessPublisher.publish(process, destFile, contentSource, null,
+            true);
     }
+
 }
