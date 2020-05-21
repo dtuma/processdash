@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -138,12 +138,21 @@ public class TimeCardDialog {
                                 // set default widths for the columns
         boolean hideColumns = this.hideColumns.isSelected();
         int i = model.getColumnCount() - 1;
-        setColWidth(treeTable.getColumnModel().getColumn(i), 64);
+        setColWidth(treeTable.getColumnModel().getColumn(i),
+            getPreferredColumnWidth(i, 64));
         int daysInMonth = model.getDaysInMonth();
         while (i-- > 0)
             setColWidth(treeTable.getColumnModel().getColumn(i),
-                        (i<daysInMonth &&
-                         (!hideColumns || !model.columnEmpty(i+1))) ? 32 : 0);
+                (i < daysInMonth && (!hideColumns || !model.columnEmpty(i + 1)))
+                        ? getPreferredColumnWidth(i, 32) : 0);
+    }
+
+    private int getPreferredColumnWidth(int col, int minWidth) {
+        Object columnTotal = model.getValueAt(model.getRoot(), col);
+        Component c = treeTable.getCellRenderer(0, col)
+                .getTableCellRendererComponent(treeTable, columnTotal + "X",
+                    false, false, 0, col);
+        return Math.max(minWidth, c.getPreferredSize().width);
     }
 
     private Component buildTopPanel() {
@@ -230,6 +239,7 @@ public class TimeCardDialog {
     public void redraw() {
         format = formatType.getSelectedIndex();
         ((AbstractTableModel) treeTable.getModel()).fireTableDataChanged();
+        resizeColumns();
     }
 
 
