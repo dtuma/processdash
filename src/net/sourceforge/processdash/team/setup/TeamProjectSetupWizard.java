@@ -1763,7 +1763,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         else if (!Settings.isPersonalMode())
             throw new WizardError(PERSONAL_ERR_URL).param("notPersonal")
                     .param("fatal");
-        else if (!TemplateLoader.meetsPackageRequirement("teamTools", "5.1.0"))
+        else if (!TemplateLoader.meetsPackageRequirement("teamTools", "5.1.1"))
             throw new WizardError(PERSONAL_ERR_URL).param("badTeamTools")
                     .param("fatal");
 
@@ -1937,8 +1937,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(PERSONAL_PROJECT_FLAG, TagData.getInstance());
         createIndivSchedule(scheduleName, scheduleHours);
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
-        DataVersionChecker.registerDataRequirement("pspdash", "2.5.4b");
-        DataVersionChecker.registerDataRequirement("teamTools", "5.1.0");
+        DataVersionChecker.registerDataRequirement("pspdash", "2.5.4");
+        DataVersionChecker.registerDataRequirement("teamTools", "5.1.1");
         exportProjectData();
         DashController.setPath(getPrefix());
 

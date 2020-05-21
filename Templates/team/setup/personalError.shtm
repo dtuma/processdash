@@ -71,7 +71,7 @@ instead.</p>
 
 <!--#elif badTeamTools -->
 
-<p>Personal projects rely on logic that was added in version 5.1.0 of the
+<p>Personal projects rely on logic that was added in version 5.1.1 of the
 "Advanced Team Tools" plugin.  Unfortunately, you only have version
 <!--#echo Dash_Package_teamTools -->.</p>
 
