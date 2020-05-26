@@ -20,11 +20,14 @@ Phase_Size_Uses_SizeUnit=true
 <!--#endif--><!--#endfor--><!--#endif--><!--#endfor--><!--#endfor--><!--#endfor-->
 
 
-# is any phase using the DLD Lines metric?  If so, make a note.
+# is any phase using the DLD Lines metric?  Any Compile phase? If so, make a note.
 
 <!--#foreach name=Phase list=Phase_List #-->
 <!--#if Phase_Size_Metric eq 'DLD Lines' || Phase_Size_Metric eq 'Inspected DLD Lines' -->
 Process_Uses_DLD_Lines=true
+<!--#endif-->
+<!--#if Phase_Name eq 'Compile' -->
+Process_Has_Compile=true
 <!--#endif-->
 <!--#endfor-->
 

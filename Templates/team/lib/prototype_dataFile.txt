@@ -10,7 +10,9 @@ undefine([Use_Rollup]);
 [/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
 <!--#endif-->
 [Process_ID] = "PID";
+<!--#if Process_Has_Compile -->
 [Has Compile Phase] = TAG;
+<!--#endif-->
 
 /*
  * Explicitly define each size metric, in case we have size metrics that
