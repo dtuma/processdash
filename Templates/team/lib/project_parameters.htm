@@ -161,7 +161,7 @@
 </table>
 
 
-<!--#if indiv -->
+<!--#if indiv && PSP_Compatible -->
 
 [!--#include file="setup/selectPspRollup" parse=t --]
 [!--#if PSP_ROLLUP_SELECTOR --]
@@ -189,10 +189,12 @@ calculations on this set of "To Date" data:</td>
 
 [!--#endif--]
 
-<!--#endif-->
+<!--#endif indiv && PSP_Compatible -->
 
 
 <!--#if not VVIS -->
+
+<!--#if PSP_Compatible -->
 
 <h2>Quality Profile Parameters</h2>
 
@@ -234,6 +236,8 @@ calculate planned inspection rates and densities
 <!--#endif-->
 
 </table>
+
+<!--#endif PSP_Compatible -->
 
 
 <h2>Estimated Phase Yields</h2>
