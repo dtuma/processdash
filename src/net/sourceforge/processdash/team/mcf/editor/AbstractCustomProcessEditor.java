@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -64,7 +64,6 @@ import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 
 import net.sourceforge.processdash.team.mcf.CustomProcess;
-import net.sourceforge.processdash.team.mcf.CustomProcessPublisher;
 
 public abstract class AbstractCustomProcessEditor {
 
@@ -367,7 +366,7 @@ public abstract class AbstractCustomProcessEditor {
         process.setAbbr(null);
 
         // clear out the parameter that give a custom dashboard package name
-        List itemList = process.getItemList(CustomProcessPublisher.PARAM_ITEM);
+        List itemList = process.getItemList(CustomProcess.PARAM_ITEM);
         for (Iterator i = itemList.iterator(); i.hasNext();) {
             CustomProcess.Item item = (CustomProcess.Item) i.next();
             if ("dashPackageName".equals(item.getAttr("name")))

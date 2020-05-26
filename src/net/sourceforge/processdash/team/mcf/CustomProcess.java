@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ public class CustomProcess {
     public static final String READ_ONLY = "readOnly";
     public static final String IMAGINARY = "imaginary";
 
+    public static final String PARAM_ITEM = "param";
+    public static final String VALUE = "value";
 
     public class Item {
 

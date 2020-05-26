@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -70,10 +70,6 @@ import net.sourceforge.processdash.util.XMLUtils;
 public class CustomProcessPublisher {
 
     private static final String EXT_FILE_PREFIX = "extfile:";
-
-    public static final String PARAM_ITEM = "param";
-
-    private static final String VALUE = "value";
 
     public static void publish(CustomProcess process, File destFile,
             ContentSource contentSource) throws IOException {
@@ -348,7 +344,7 @@ public class CustomProcessPublisher {
 
             if (CustomProcess.PHASE_ITEM.equals(itemType))
                 initPhase(item, itemID);
-            else if (PARAM_ITEM.equals(itemType))
+            else if (CustomProcess.PARAM_ITEM.equals(itemType))
                 initParam(item);
 
             setupItem(item, itemID, itemNum);
@@ -477,7 +473,7 @@ public class CustomProcessPublisher {
         String name = item.getAttr(CustomProcess.NAME);
         name = CustomProcess.bouncyCapsToUnderlines(name);
 
-        String value = item.getAttr(VALUE);
+        String value = item.getAttr(CustomProcess.VALUE);
         if (value == null)
             value = "t";
 
