@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -123,6 +123,7 @@ public class HierarchySynchronizer {
     private String initials, initialsPattern;
     private String ownerName;
     private boolean oldStyleSync;
+    private boolean pspCompatible;
     private String pspToDateSubset;
     private boolean promptForPspToDateSubset;
     private Element projectXML;
@@ -246,6 +247,7 @@ public class HierarchySynchronizer {
                 this.probeNodeID = null;
                 this.oldStyleSync = true;
             }
+            this.pspCompatible = testData(getData(projectPath, "PSP Compatible"));
             this.pspToDateSubset = defaultPspSubset;
             this.promptForPspToDateSubset = promptForPspSubset;
             this.deletionPermissions = Collections.EMPTY_LIST;
@@ -1927,7 +1929,8 @@ public class HierarchySynchronizer {
                 result.put(TASK_TYPE, new SyncOldTaskNode());
             else
                 result.put(TASK_TYPE, new SyncTaskNode());
-            result.put(PSP_TYPE, new SyncPSPTaskNode());
+            if (pspCompatible)
+                result.put(PSP_TYPE, new SyncPSPTaskNode());
         }
 
         return result;

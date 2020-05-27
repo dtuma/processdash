@@ -6,6 +6,7 @@
 undefine([Historical Data Tag]);
 [Exclude Children of Rollup_List for Defects] = tag;
 <!--#if PSP_Compatible -->
+[PSP Compatible] = tag;
 [Quality Profile Capable] = tag;
 <!--#endif-->
 

@@ -22,11 +22,15 @@
           out="/Templates/<!--#echo Process_ID -->-template.xml">
         <param name="PID" replace="true"
                value="<!--#echo var=Process_ID -->"/>
+        <!--#if PSP_Compatible -->
         <param name="PSP_Children"
 	       value="{PSP0.1{PSP1{PSP1.1{PSP2{PSP2.1"/>
 	       <!-- PSP0 is excluded because it has no size metric, which
 	            throws off all kinds of related calculations. -->
 	       <!-- I'm excluding PSP3 for now for defect logging reasons. -->
+        <!--#else-->
+        <param name="PSP_Children" value=""/>
+        <!--#endif-->
     </file>
 
     <!-- localize the stylesheet, to enable process-specific overrides -->
