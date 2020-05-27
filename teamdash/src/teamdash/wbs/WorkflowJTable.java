@@ -109,6 +109,16 @@ public class WorkflowJTable extends WBSJTable {
                 + (taskMenu.getMenuComponent(0) instanceof JMenu ? 1 : 0);
         taskMenu.add(probeItem, pos);
 
+        // if the number of task types is small, embed them directly in the node
+        // menu (rather than using a fly-out)
+        int numTaskTypes = taskMenu.getMenuComponentCount();
+        int numComponentTypes = iconMenu.getMenuComponentCount() - 2;
+        if (numTaskTypes + numComponentTypes < 15) {
+            for (int i = numTaskTypes; i-- > 0;)
+                iconMenu.add(taskMenu.getMenuComponent(i), 1);
+            iconMenu.remove(0);
+        }
+
         return iconMenu;
     }
 

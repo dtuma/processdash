@@ -160,7 +160,8 @@ public class WBSTabPanel extends JLayeredPane implements
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             TaskIDSource idSource, GuiPrefs guiPrefs) {
         this(wbs, data, teamProcess.getIconMap(),
-             teamProcess.getNodeTypeMenu(), workflows, idSource, guiPrefs);
+                tweakIconMenu(teamProcess.getNodeTypeMenu()), workflows,
+                idSource, guiPrefs);
     }
 
     /** Create a WBSTabPanel */
@@ -1000,6 +1001,26 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
 
+
+    /** Reorganize the node type menu if the number of types is small */
+    private static JMenu tweakIconMenu(JMenu iconMenu) {
+        JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
+        int numTaskTypes = taskMenu.getMenuComponentCount();
+        int numComponentTypes = iconMenu.getMenuComponentCount() - 2;
+
+        if (numComponentTypes < 6 && (numTaskTypes + numComponentTypes < 15)) {
+            iconMenu.addSeparator();
+            while (taskMenu.getMenuComponentCount() > 0) {
+                Component item = taskMenu.getMenuComponent(0);
+                taskMenu.remove(0);
+                iconMenu.add(item);
+            }
+            iconMenu.remove(1);
+            iconMenu.remove(0);
+        }
+
+        return iconMenu;
+    }
 
     /** Create the JTables and perform necessary setup */
     private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap,
