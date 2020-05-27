@@ -239,6 +239,17 @@ public class CustomProcess {
         return pspPhases.isEmpty();
     }
 
+    /** @since 2.5.4.1 */
+    public String getParamValue(String paramName) {
+        for (Item param : getItemList(PARAM_ITEM)) {
+            if (paramName.equals(param.getAttr(NAME))) {
+                String value = param.getAttr(VALUE);
+                return value == null ? "t" : value;
+            }
+        }
+        return null;
+    }
+
 
     // Mutator methods
 

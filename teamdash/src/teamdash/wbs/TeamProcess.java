@@ -64,6 +64,9 @@ public class TeamProcess {
     /** True if this process is compatible with PSP tasks */
     private boolean pspCompatible;
 
+    /** True if we should hide the "Software Component" node type */
+    private boolean hideSoftwareComponentNodeType;
+
     /** An immutable list of the names of the size metrics in this
      * process (Strings) */
     private List sizeMetrics;
@@ -198,6 +201,8 @@ public class TeamProcess {
             process = new CustomProcess();
 
         this.pspCompatible = process.isPspCompatible();
+        this.hideSoftwareComponentNodeType = process
+                .getParamValue("hideSoftwareComponent") != null;
 
         buildSizeInfo(process);
         buildPhases(process);
@@ -473,7 +478,8 @@ public class TeamProcess {
         nodeTypeMenu.add(taskSubmenu);
         nodeTypeMenu.addSeparator();
         nodeTypeMenu.add(new JMenuItem(COMPONENT_TYPE));
-        nodeTypeMenu.add(new JMenuItem(SOFTWARE_COMPONENT_TYPE));
+        if (!hideSoftwareComponentNodeType)
+            nodeTypeMenu.add(new JMenuItem(SOFTWARE_COMPONENT_TYPE));
         for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
             CustomProcess.Item item = (CustomProcess.Item) i.next();
             nodeTypeMenu.add(new JMenuItem(item.getAttr("productName")));
@@ -522,7 +528,8 @@ public class TeamProcess {
         List result = new ArrayList();
 
         result.add(COMPONENT_TYPE);
-        result.add(SOFTWARE_COMPONENT_TYPE);
+        if (!hideSoftwareComponentNodeType)
+            result.add(SOFTWARE_COMPONENT_TYPE);
         for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
             CustomProcess.Item item = (CustomProcess.Item) i.next();
             result.add(item.getAttr("productName"));
