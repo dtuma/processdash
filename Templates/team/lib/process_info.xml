@@ -5,19 +5,22 @@
         version="<!--#echo Version_Num -->"
         id="<!--#echo Process_ID -->">
 
-    <!--#foreach name=Phase list=Phase_List -->
+    <!--#foreach name=PHASE list=Phase_List -->
 
-        <phase name="<!--#echo Phase_Name -->"
-               longName="<!--#echo Phase_Long_Name -->"
-               type="<!--#echo Phase_Type -->"
-               isDevelopment="<!--#echo Phase_Is_Development -->"
-               isAfterDevelopment="<!--#echo Phase_Is_After_Development -->"
-               isQuality="<!--#echo Phase_Is_Quality -->"
-               isAppraisal="<!--#echo Phase_Is_Appraisal -->"
-               isInspection="<!--#echo Phase_Is_Inspection -->"
-               isFailure="<!--#echo Phase_Is_Failure -->"
-               isOverhead="<!--#echo Phase_Is_Overhead -->"
-               isPSP="<!--#echo Phase_Is_PSP -->"
+        <phase name="<!--#echo PHASE_Name -->"
+               longName="<!--#echo PHASE_Long_Name -->"
+               type="<!--#echo PHASE_Type -->"
+               isDevelopment="<!--#echo PHASE_Is_Development -->"
+               isAfterDevelopment="<!--#echo PHASE_Is_After_Development -->"
+               isQuality="<!--#echo PHASE_Is_Quality -->"
+               isAppraisal="<!--#echo PHASE_Is_Appraisal -->"
+               isInspection="<!--#echo PHASE_Is_Inspection -->"
+               isFailure="<!--#echo PHASE_Is_Failure -->"
+               isOverhead="<!--#echo PHASE_Is_Overhead -->"
+               isPSP="<!--#echo PHASE_Is_PSP -->"
+               <!--#if PHASE_Name eq Probe_Maps_To_Phase #-->
+                   isProbeTarget="t"
+               <!--#endif#-->
                />
 
     <!--#endfor-->

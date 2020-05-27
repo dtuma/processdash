@@ -11,8 +11,8 @@
 
 [PROBE Task] = tag;
 [<!--#echo Process_ID --> Size Estimating Template Tag] = tag;
-[<!--#echo Process_ID --> /Effective_Phase] == "Planning";
-[Node_Type] == "Planning";
+[<!--#echo Process_ID --> /Effective_Phase] == "<!--#echo Probe_Maps_To_Phase -->";
+[Node_Type] == "<!--#echo Probe_Maps_To_Phase -->";
 
 
 // Provide configuration values for the PROBE Wizard

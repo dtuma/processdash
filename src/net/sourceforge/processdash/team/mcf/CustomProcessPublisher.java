@@ -339,6 +339,9 @@ public class CustomProcessPublisher {
             handleItemList(process, type);
         }
 
+        if (!parameters.containsKey(PROBE_PARAM))
+            setParam(PROBE_PARAM, probePhase);
+
         setParam("Is_Extfile_Allowed", extFileAllowed ? "t" : "");
     }
 
@@ -444,6 +447,13 @@ public class CustomProcessPublisher {
         String phaseID = CustomProcess.makeUltraSafe(phaseName);
         setParam(id + "_ID", phaseID);
 
+        if (phaseName.equalsIgnoreCase("PROBE"))
+            registerPossibleProbePhase(phaseName, ProbePriority.Probe);
+        else if (phaseName.regionMatches(true, 0, "PLAN", 0, 4))
+            registerPossibleProbePhase(phaseName, ProbePriority.Plan);
+        else
+            registerPossibleProbePhase(phaseName, ProbePriority.FirstPhase);
+
         String phaseType = phase.getAttr(CustomProcess.TYPE);
         if (phaseType != null && phaseType.trim().length() != 0)
             phaseType = phaseType.trim().toUpperCase();
@@ -464,6 +474,7 @@ public class CustomProcessPublisher {
         } else if (PhaseUtil.isDevelopmentPhaseType(phaseType)) {
             setParam(id + "_Is_Development", "t");
         } else if (PhaseUtil.isOverheadPhaseType(phaseType)) {
+            registerPossibleProbePhase(phaseName, ProbePriority.Overhead);
             setParam(id + "_Is_Overhead", "t");
         }
         if ("plan".equalsIgnoreCase(phaseType)
@@ -482,6 +493,17 @@ public class CustomProcessPublisher {
             new HashSet(Arrays.asList(new String[] { "planning", "design",
                     "design review", "code", "code review", "compile", "test",
                     "postmortem" })));
+
+    private static final String PROBE_PARAM = "Probe_Maps_To_Phase";
+    private enum ProbePriority { Probe, Plan, Overhead, FirstPhase, Default }
+    private String probePhase = "Planning";
+    private ProbePriority probePriority = ProbePriority.Default;
+    private void registerPossibleProbePhase(String phaseName, ProbePriority p) {
+        if (p.compareTo(probePriority) < 0) {
+            probePhase = phaseName;
+            probePriority = p;
+        }
+    }
 
     private void initParam(CustomProcess.Item item) {
         String name = item.getAttr(CustomProcess.NAME);
