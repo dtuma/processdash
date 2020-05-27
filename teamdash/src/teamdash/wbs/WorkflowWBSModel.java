@@ -42,7 +42,7 @@ public class WorkflowWBSModel extends WBSModel {
     private Map<String, String> workflowTypeMap = new HashMap();
 
     public WorkflowWBSModel()            { super();     }
-    public WorkflowWBSModel(String name) { super(name); }
+    public WorkflowWBSModel(String name) { super(name, "Workflow"); }
     public WorkflowWBSModel(Element e)   { super(e);    }
 
     public ModelType getModelType() {

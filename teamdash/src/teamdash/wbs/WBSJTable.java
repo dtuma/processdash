@@ -1293,7 +1293,7 @@ public class WBSJTable extends JTable {
             if (row == 0) row = 1;
             if (rowToCopy == 0) rowToCopy = 1;
 
-            String type = TeamProcess.SOFTWARE_COMPONENT_TYPE;
+            String type = TeamProcess.COMPONENT_TYPE;
             Object workflowType = null;
             int indentLevel = 1;
             boolean expanded = false;

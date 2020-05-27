@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -147,14 +147,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public WBSModel(String rootNodeName, boolean createDefaultNode) {
+        this(rootNodeName, createDefaultNode ? "Component" : null);
+    }
+
+    public WBSModel(String rootNodeName, String defaultNodeName) {
         wbsNodes = new ArrayList();
         if (rootNodeName == null || rootNodeName.trim().length() == 0)
             rootNodeName = "Team Project";
         add(new WBSNode(this, rootNodeName, "Project", 0, true));
         getRoot().setUniqueID((new Random()).nextInt() & 0xffffff);
-        if (createDefaultNode)
-            add(new WBSNode(this, "Software Component",
-                    TeamProcess.SOFTWARE_COMPONENT_TYPE, 1, true));
+        if (defaultNodeName != null)
+            add(new WBSNode(this, defaultNodeName, TeamProcess.COMPONENT_TYPE,
+                    1, true));
         validator = new WBSModelValidator(this);
     }
 

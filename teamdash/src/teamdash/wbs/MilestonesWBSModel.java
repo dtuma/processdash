@@ -51,8 +51,7 @@ public class MilestonesWBSModel extends WBSModel {
     }
 
     public MilestonesWBSModel(String rootNodeName) {
-        super(rootNodeName, true);
-        getNodeForRow(1).setName("");
+        super(rootNodeName, "");
     }
 
     public ModelType getModelType() {
