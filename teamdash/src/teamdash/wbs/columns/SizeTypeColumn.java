@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ package teamdash.wbs.columns;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -153,10 +152,11 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         private final Object BLANK = new ReadOnlyValue(
                 new HtmlRenderedValue("LOC", ""));
 
-        public NewSizeTypeColumn(DataTableModel m, Map sizeMetrics) {
-            super(m, sizeMetrics);
+        public NewSizeTypeColumn(DataTableModel m, Map workProductSizeMap,
+                List<String> sizeMetrics) {
+            super(m, workProductSizeMap);
 
-            sizeMetricNames = new ArrayList(new HashSet(sizeMetrics.values()));
+            sizeMetricNames = new ArrayList(sizeMetrics);
             sizeMetricNames.remove("LOC");
             sizeMetricNames.add(0, "LOC"); // make sure LOC is in position 0
             int numMetrics = sizeMetricNames.size();
@@ -255,26 +255,26 @@ public class SizeTypeColumn extends AbstractDataColumn implements
      */
     public static void createSizeColumns(DataTableModel dataModel,
             TeamProcess teamProcess) {
-        Map sizeMetrics = teamProcess.getWorkProductSizeMap();
+        Map workProductSizeMap = teamProcess.getWorkProductSizeMap();
 
         if (isUsingNewSizeDataColumns(dataModel.getWBSModel()))
-            createNewSizeColumns(dataModel, teamProcess, sizeMetrics);
+            createNewSizeColumns(dataModel, teamProcess, workProductSizeMap,
+                Arrays.asList(teamProcess.getSizeMetrics()));
         else
-            createOldSizeColumns(dataModel, teamProcess, sizeMetrics);
+            createOldSizeColumns(dataModel, teamProcess, workProductSizeMap);
     }
 
     private static void createNewSizeColumns(DataTableModel dataModel,
-            TeamProcess teamProcess, Map sizeMetrics) {
+            TeamProcess teamProcess, Map workProductSizeMap,
+            List<String> sizeMetrics) {
 
         // create the size type columns.
-        dataModel.addDataColumn(new NewSizeTypeColumn(dataModel, sizeMetrics));
+        dataModel.addDataColumn(new NewSizeTypeColumn(dataModel, //
+                workProductSizeMap, sizeMetrics));
         dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
 
-        Iterator i = new HashSet(sizeMetrics.values()).iterator();
-        while (i.hasNext()) {
-            String metric = (String) i.next();
-
+        for (String metric : sizeMetrics) {
             // add a planned size column for this metric
             dataModel.addDataColumn(
                 new SizeDataColumn(dataModel, teamProcess, metric, true));

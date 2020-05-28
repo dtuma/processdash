@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,8 +42,7 @@ public class TaskSizeColumn extends SizeAliasColumn implements
 
     public TaskSizeColumn(DataTableModel dataModel, TeamProcess teamProcess) {
         super(dataModel, COLUMN_ID, "Task_Size.Name", "N&C-",
-                teamProcess.getSizeMetrics(),
-                teamProcess.getWorkProductSizeMap());
+                teamProcess.getSizeMetrics(), null);
 
         int len = this.dependentColumns.length;
         String [] dependentCols = new String[len+1];
@@ -66,6 +65,7 @@ public class TaskSizeColumn extends SizeAliasColumn implements
         super.resetDependentColumns();
     }
 
+    @Override
     protected String getSizeUnit(WBSNode node) {
         Object result = dataModel.getValueAt(node, unitsColumn);
         return (result == null ? null : String.valueOf(result));

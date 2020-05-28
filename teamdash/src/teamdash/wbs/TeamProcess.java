@@ -208,7 +208,7 @@ public class TeamProcess {
         buildPhases(process);
     }
 
-    private List sizeMetricsItems;
+    private List<CustomProcess.Item> sizeMetricsItems;
     private boolean usingDefaultSizeMetrics;
     private boolean usesDLDLines;
 
@@ -234,17 +234,11 @@ public class TeamProcess {
             sizeMetricsItems.add(newMetric(process, DLD_UNITS,
                     DLD_DOCUMENT_TYPE, null));
 
-        Iterator i = sizeMetricsItems.iterator();
-        while (i.hasNext()) {
-            CustomProcess.Item metric = (CustomProcess.Item) i.next();
+        for (CustomProcess.Item metric : sizeMetricsItems) {
             String name = metric.getAttr(CustomProcess.NAME);
-            String productName = metric.getAttr("productName");
-            if (productName == null) {
-                productName = "Item (" + name + ")";
-                metric.getAttributes().put("productName", productName);
-            }
-
-            workProductSizes.put(productName, name);
+            String productName = metric.getAttr(PRODUCT_NAME);
+            if (productName != null)
+                workProductSizes.put(productName, name);
             sizeMetrics.add(name);
         }
 
@@ -265,7 +259,7 @@ public class TeamProcess {
             String productName, String iconColor) {
         CustomProcess.Item result = process.new Item("sizeMetric");
         result.getAttributes().put("name", name);
-        result.getAttributes().put("productName", productName);
+        result.getAttributes().put(PRODUCT_NAME, productName);
         result.getAttributes().put("iconStyle", "document");
         result.getAttributes().put("iconColor", iconColor);
         return result;
@@ -409,11 +403,11 @@ public class TeamProcess {
         }
 
         // create icons for the various work products.
-        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
-            CustomProcess.Item sizeMetric = (CustomProcess.Item) i.next();
-            String productName = sizeMetric.getAttr("productName");
-            Object icon = getWorkProductIcon(defaultSizeIconColors, sizeMetric);
-            iconMap.put(productName, icon);
+        for (CustomProcess.Item sizeMetric : sizeMetricsItems) {
+            String productName = sizeMetric.getAttr(PRODUCT_NAME);
+            if (productName != null)
+                iconMap.put(productName,
+                    getWorkProductIcon(defaultSizeIconColors, sizeMetric));
         }
 
         // register all icons for zoom-level awareness
@@ -480,9 +474,10 @@ public class TeamProcess {
         nodeTypeMenu.add(new JMenuItem(COMPONENT_TYPE));
         if (!hideSoftwareComponentNodeType)
             nodeTypeMenu.add(new JMenuItem(SOFTWARE_COMPONENT_TYPE));
-        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
-            CustomProcess.Item item = (CustomProcess.Item) i.next();
-            nodeTypeMenu.add(new JMenuItem(item.getAttr("productName")));
+        for (CustomProcess.Item item : sizeMetricsItems) {
+            String productName = item.getAttr(PRODUCT_NAME);
+            if (productName != null)
+                nodeTypeMenu.add(new JMenuItem(productName));
         }
 
         if (pspCompatible)
@@ -530,9 +525,10 @@ public class TeamProcess {
         result.add(COMPONENT_TYPE);
         if (!hideSoftwareComponentNodeType)
             result.add(SOFTWARE_COMPONENT_TYPE);
-        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
-            CustomProcess.Item item = (CustomProcess.Item) i.next();
-            result.add(item.getAttr("productName"));
+        for (CustomProcess.Item item : sizeMetricsItems) {
+            String productName = item.getAttr(PRODUCT_NAME);
+            if (productName != null)
+                result.add(productName);
         }
 
         if (pspCompatible)
@@ -556,6 +552,7 @@ public class TeamProcess {
     public static final String TASK_SUFFIX = " Task";
     static final String WORKFLOW_TASK_SUFFIX = " Workflow Task";
 
+    private static final String PRODUCT_NAME = CustomProcess.PRODUCT_NAME;
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
     private static final String INSPECTED_PREFIX = "Inspected ";
