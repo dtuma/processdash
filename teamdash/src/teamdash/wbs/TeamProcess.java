@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,9 @@ public class TeamProcess {
      * process (Strings) */
     private List phases;
 
+    /** True if this process is compatible with PSP tasks */
+    private boolean pspCompatible;
+
     /** An immutable list of the names of the size metrics in this
      * process (Strings) */
     private List sizeMetrics;
@@ -108,6 +111,10 @@ public class TeamProcess {
     /** Return a list of the phases in this process. */
     public List getPhases() {
         return phases;
+    }
+
+    public boolean isPspCompatible() {
+        return pspCompatible;
     }
 
 
@@ -189,6 +196,8 @@ public class TeamProcess {
         } catch (IOException ioe) {}
         if (process == null)
             process = new CustomProcess();
+
+        this.pspCompatible = process.isPspCompatible();
 
         buildSizeInfo(process);
         buildPhases(process);
@@ -299,7 +308,7 @@ public class TeamProcess {
                 (CustomProcess.Item) i.next();
             // add each phase name to our list.
             String phaseName = phase.getAttr(CustomProcess.NAME);
-                        phases.add(phaseName);
+            phases.add(phaseName);
             // add each phase type to our map.
             String phaseType = phase.getAttr(CustomProcess.TYPE);
             phaseTypes.put(phaseName, phaseType);
@@ -470,7 +479,8 @@ public class TeamProcess {
             nodeTypeMenu.add(new JMenuItem(item.getAttr("productName")));
         }
 
-        taskSubmenu.add(new JMenuItem(PSP_TASK_TYPE));
+        if (pspCompatible)
+            taskSubmenu.add(new JMenuItem(PSP_TASK_TYPE));
         Iterator i = phases.iterator();
         while (i.hasNext()) {
             if (taskSubmenu.getItemCount() >= 15) {
@@ -518,7 +528,8 @@ public class TeamProcess {
             result.add(item.getAttr("productName"));
         }
 
-        result.add(PSP_TASK_TYPE);
+        if (pspCompatible)
+            result.add(PSP_TASK_TYPE);
         Iterator i = phases.iterator();
         while (i.hasNext())
             result.add(i.next() + " Task");

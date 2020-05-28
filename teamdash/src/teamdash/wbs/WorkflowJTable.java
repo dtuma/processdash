@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,7 +48,8 @@ public class WorkflowJTable extends WBSJTable {
     public WorkflowJTable(WorkflowModel workflowModel, TeamProcess process,
             ActionListener probeListener) {
         super(workflowModel, getWorkflowIcons(process.getIconMap()),
-                tweakIconMenu(process.getNodeTypeMenu(), probeListener));
+                tweakIconMenu(process.getNodeTypeMenu(),
+                    process.isPspCompatible(), probeListener));
 
         // configure the renderer for the table
         this.renderer.setRootNodeName(resources.getString("Root_Name"));
@@ -92,7 +93,7 @@ public class WorkflowJTable extends WBSJTable {
     }
 
 
-    private static JMenu tweakIconMenu(JMenu iconMenu,
+    private static JMenu tweakIconMenu(JMenu iconMenu, boolean hasPspTaskType,
             ActionListener probeListener) {
         // create a new menu item for the PROBE task type.
         JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
@@ -101,13 +102,12 @@ public class WorkflowJTable extends WBSJTable {
         if (probeListener != null)
             probeItem.addActionListener(probeListener);
 
-        // insert the PROBE item after the PSP task item. The PSP item is first
-        // in the list unless a "More..." submenu precedes it.
+        // insert the PROBE item after the PSP task item (if it is present). The
+        // PSP item is first in the list unless a "More..." submenu precedes it.
         JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
-        if (taskMenu.getMenuComponent(0) instanceof JMenu)
-            taskMenu.add(probeItem, 2);
-        else
-            taskMenu.add(probeItem, 1);
+        int pos = (hasPspTaskType ? 1 : 0)
+                + (taskMenu.getMenuComponent(0) instanceof JMenu ? 1 : 0);
+        taskMenu.add(probeItem, pos);
 
         return iconMenu;
     }
