@@ -190,6 +190,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.net.http.HTMLPreprocessor"/>
       <root classname="net.sourceforge.processdash.process.PhaseUtil"/>
       <root classname="net.sourceforge.processdash.ui.lib.ProgressDialog"/>
+      <root classname="net.sourceforge.processdash.util.VersionUtils"/>
     </classfileset>
 
     <!-- build the JNLP JAR file containing executable classes -->

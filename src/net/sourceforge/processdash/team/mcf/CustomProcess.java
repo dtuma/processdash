@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -223,6 +224,21 @@ public class CustomProcess {
             errors.add("You must specify a name for the metrics framework.");
     }
 
+    /** @since 2.5.4.1 */
+    public boolean isPspCompatible() {
+        // make a list of the PSP phase names
+        Set<String> pspPhases = new HashSet<String>();
+        for (int i = defaultPhases.length; i-- > 0;)
+            pspPhases.add(defaultPhases[i][1]);
+
+        // remove PSP phases that appear in this custom process
+        for (Item phase : getItemList(PHASE_ITEM))
+            pspPhases.remove(phase.getAttr(NAME));
+
+        // this process is PSP compatible if all the PSP phases were found
+        return pspPhases.isEmpty();
+    }
+
 
     // Mutator methods
 
@@ -236,7 +252,7 @@ public class CustomProcess {
         if (isLegalVersionNum(version))
             processVersion = version;
     }
-    public List getItemList(String type) {
+    public List<Item> getItemList(String type) {
         List result = (List) itemLists.get(type);
         if (result == null) {
             result = new ArrayList();

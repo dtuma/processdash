@@ -64,6 +64,7 @@ import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 
@@ -227,6 +228,9 @@ public class CustomProcessPublisher {
         String scriptStartingJar = script.getDocumentElement().getAttribute(
                 "startingJar");
 
+        if (process.isPspCompatible() == false)
+            scriptReqt = maxVersion(scriptReqt, MIN_NON_PSP_VERSION);
+
         Manifest mf = new Manifest();
         JarInputStream startingJarIn = null;
         if (scriptStartingJar != null) {
@@ -255,6 +259,13 @@ public class CustomProcessPublisher {
         if (startingJarIn != null)
             copyFilesFromStartingJar(startingJarIn);
     }
+    private String maxVersion(String versionA, String versionB) {
+        if (versionA == null) return versionB;
+        if (versionB == null) return versionA;
+        return (VersionUtils.compareVersions(versionA, versionB) > 0 //
+                ? versionA : versionB);
+    }
+    private static final String MIN_NON_PSP_VERSION = "2.5.4.1b";
 
     protected void close() throws IOException {
         out.flush();
@@ -319,6 +330,9 @@ public class CustomProcessPublisher {
         setParam("Version_Num", versionNum);
         setParam("Version_String", versionString);
         setParam("Full_Name", fullName);
+
+        if (process.isPspCompatible())
+            setParam("PSP_Compatible", "t");
 
         for (Iterator iter = process.getItemTypes().iterator(); iter.hasNext();) {
             String type = (String) iter.next();
