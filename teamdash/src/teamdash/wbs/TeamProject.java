@@ -678,6 +678,9 @@ public class TeamProject implements WBSFilenameConstants {
             System.out.println("No "+FLOW_FILENAME+
                                " file found; creating default workflows");
             workflows = new WorkflowWBSModel("Common Workflows");
+            String firstPhaseTaskType = teamProcess.getPhases().get(0)
+                    + TeamProcess.TASK_SUFFIX;
+            workflows.getNodeForPos(1).setType(firstPhaseTaskType);
             setCreatedWithVersionAttribute(workflows);
         }
     }
