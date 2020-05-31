@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,9 @@ public class AbstractLOCDiffReport {
             Integer tabWidth = getInt(args, "-tabWidth");
             if (tabWidth != null)
                 html.setTabWidth(tabWidth);
+            Integer contextLines = getInt(args, "-context");
+            if (contextLines != null)
+                html.setContextLines(contextLines);
             if (getFlag(args, "-noRedlines"))
                 html.setNoRedlines(true);
             engine.addDiffListener(html);

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -66,6 +66,8 @@ public class HtmlDiffReportWriter extends DiffAdapter {
 
     private int tabWidth = 8;
 
+    private int contextLines = 3;
+
     private File redlinesTmpFile;
 
     private OutputStream outStream;
@@ -132,6 +134,14 @@ public class HtmlDiffReportWriter extends DiffAdapter {
         this.tabWidth = tabWidth;
     }
 
+    public int getContextLines() {
+        return contextLines;
+    }
+
+    public void setContextLines(int contextLines) {
+        this.contextLines = contextLines;
+    }
+
     public File getReportFile() {
         return reportFile;
     }
@@ -179,7 +189,7 @@ public class HtmlDiffReportWriter extends DiffAdapter {
 
         out.println("<table class='locDiff' cellpadding=0 cellspacing=0 border=0>");
 
-        for (DiffFragment f : diff.getRedlines()) {
+        for (DiffFragment f : markCollapsibleRegions(diff.getRedlines())) {
             out.write(ROW_BEGIN[f.type.ordinal()]);
 
             String text = f.text;
@@ -199,7 +209,7 @@ public class HtmlDiffReportWriter extends DiffAdapter {
     }
     private static final String[] ROW_BEGIN = {
         // Base
-        "<tr><td>&nbsp;</td><td><pre>",
+        "<tr><td class='locBaseHdr'>&nbsp;</td><td><pre>",
 
         // Deleted
         "<tr><td class='locDelHdr'>&nbsp;</td>"+
@@ -210,7 +220,16 @@ public class HtmlDiffReportWriter extends DiffAdapter {
 
         // Added
         "<tr><td class='locAddHdr'>&nbsp;</td>"+
-            "<td class='locAddBody'><pre>" };
+            "<td class='locAddBody'><pre>",
+
+        // Total - used to flag collapsible sections of base code
+        "<tr class='collapsed'>" +
+            "<td class='expArrowHdr'>" +
+                "<a class='topExpArrow' href='#' onclick='expArrowClicked(this, false); return false'>&nbsp;</a>"+
+                "<a class='botExpArrow' href='#' onclick='expArrowClicked(this, true); return false'>&nbsp;</a>"+
+            "</td><td>"+
+                "<pre class='collapsedPlaceholder'>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</pre>"+
+                "<pre class='collapsibleText'>" };
 
     private int getTabWidth(String options) {
         String tabWidthOption = LocDiffUtils.getOption(options, "-tabWidth");
@@ -220,6 +239,64 @@ public class HtmlDiffReportWriter extends DiffAdapter {
             } catch (NumberFormatException nfe) {}
         }
         return this.tabWidth;
+    }
+
+    private List<DiffFragment> markCollapsibleRegions(
+            List<DiffFragment> redlines) {
+        if (redlines == null || redlines.size() < 2)
+            return redlines;
+
+        DiffFragment first = redlines.get(0);
+        DiffFragment last = redlines.get(redlines.size() - 1);
+        List<DiffFragment> result = new ArrayList(redlines.size() * 2);
+
+        for (DiffFragment block : redlines) {
+            if (block.type != AccountingType.Base) {
+                result.add(block);
+            } else {
+                // split the text into a list of lines
+                String text = block.text;
+                if (text.endsWith("\n"))
+                    text = text.substring(0, text.length() - 1);
+                String[] lines = text.split("\n", -1);
+
+                // determine whether we need context lines at the beginning
+                // and/or end of this block.
+                int numStartLines = (block == first ? 0 : contextLines);
+                int numEndLines = (block == last ? 0 : contextLines);
+
+                // if collapsing this block won't save space, don't bother
+                if (lines.length <= numStartLines + numEndLines + 2) {
+                    result.add(block);
+
+                } else {
+                    // add context lines for the start of the block
+                    if (numStartLines > 0)
+                        result.add(makeFragment(lines, 0, numStartLines,
+                            AccountingType.Base));
+
+                    // add a collapsible region
+                    int end = lines.length - numEndLines;
+                    result.add(makeFragment(lines, numStartLines, end,
+                        AccountingType.Total));
+
+                    // add context lines for the end of the block
+                    if (numEndLines > 0)
+                        result.add(makeFragment(lines, end, lines.length,
+                            AccountingType.Base));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private DiffFragment makeFragment(String[] lines, int beg, int end,
+            AccountingType type) {
+        StringBuilder text = new StringBuilder();
+        for (int i = beg; i < end; i++)
+            text.append(lines[i]).append('\n');
+        return new DiffFragment(type, text.toString());
     }
 
 

@@ -35,8 +35,13 @@ span.comment {
     color: #32cd32;
 }
 
+td.locBaseHdr {
+    width: 9px;
+}
+
 td.locDelHdr {
     background-color: #ff0000;
+    width: 9px;
 }
 td.locDelBody {
     text-decoration: line-through;
@@ -48,8 +53,8 @@ td.locDelBody span.comment {
 
 td.locAddHdr {
     background-color: #0000ff;
+    width: 9px;
 }
-
 td.locAddBody {
     color: #0000ff;
     font-weight: bold;
@@ -57,6 +62,45 @@ td.locAddBody {
 td.locAddBody span.comment {
     color: #32cdcc;
 }
+
+tr.collapsed, td.expArrowHdr {
+    background-color: #e9e9e9;
+}
+pre.collapsedPlaceholder {
+    padding: 6pt 0px 4pt 0px;
+    color: #e9e9e9;
+}
+tr.collapsed pre.collapsibleText, tr.expanded pre.collapsedPlaceholder {
+    display: none;
+}
+
+td.expArrowHdr {
+    position: relative;
+    width: 9px;
+}
+a.topExpArrow, a.botExpArrow {
+    position: absolute;
+    text-decoration: none;
+    width: 9px;
+}
+a.topExpArrow {
+    top: 0px;
+}
+a.botExpArrow {
+    bottom: 0px;
+}
+tr.expanded td.expArrowHdr a {
+    height: 20px;
+}
+
+tr.collapsed a.topExpArrow, tr.expanded a.botExpArrow {
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAUCAYAAABBECfmAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5AUfFDci39PR8QAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAc0lEQVQoz+XQMQ7CQAxE0bcLPZQUNIgLQWGJPWPOREfDHZBC46AQlhNkmpH17RnJzBQR43yuM7BP3/1AXNMvPdgWrmTUAQ9s8MJxGIbndBkJYJvzJ7b5VoMSESfcp4rUiHPNrbK4LLjVTqRu1d8P9bQW+AZ2vRN3KG0GwgAAAABJRU5ErkJggg==") no-repeat top center;
+}
+
+tr.expanded a.topExpArrow, tr.collapsed a.botExpArrow {
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAUCAYAAABBECfmAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5AUfFDcywmTBlQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAcUlEQVQoz+WSuw2AMAxEH5mHdTxjkK6ABaCFngFoYQdQKAhSZAELcI19evJPMhQys1T6wIf+Aiszm4H6gc0BiC+F8YbJgQQ0QdICTA6OkpZ7Id86ltsKOHK+Z39BSSswZNhL2vyd0Y8oYZtj93iYf5MTGsEhc97pjTAAAAAASUVORK5CYII=") no-repeat bottom center;
+}
+
 </style>
 
 <!-- IE 7 and below do not support "data:" URLs, so we offer an alternative -->
@@ -65,3 +109,22 @@ td.locAddBody span.comment {
         background-image: url("http://www.processdash.com/diffSetHelpIcon");
     }
 </style><![endif]-->
+
+<script language="JavaScript">
+
+function expArrowClicked(link, scroll) {
+    var row = link.parentNode.parentNode;
+    var preHeight = row.offsetHeight;
+    var preY = window.scrollY;
+    if (row.className == "collapsed") {
+        row.className = "expanded";
+    } else {
+        row.className = "collapsed";
+    }
+    var postHeight = row.offsetHeight;
+    if (scroll) {
+        window.scrollTo(0, preY + postHeight - preHeight);
+    }
+}
+
+</script>
