@@ -30,6 +30,7 @@
     || [Personal_Project];
 
 [Sync_Full_WBS] = 0;
+[Sync_Require_Delete_Permission] = ![Personal_Project];
 [Autosync_Disabled] = [Project_Is_Done]
     || lookup([Team_Settings_Node] & "Disable_Indiv_Auto_Sync");
 

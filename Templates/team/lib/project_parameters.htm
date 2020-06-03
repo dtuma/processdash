@@ -117,11 +117,21 @@
 <a href="setup/restoreIndivData">click here</a>.</td>
 </tr>
 
+[!--#if ![Personal_Project] --]
+<tr>
+<td COLSPAN=2>"Sync to WBS" should ask for permission before deleting/completing tasks
+<input type=checkbox name="[Sync_Require_Delete_Permission]u"></td>
+</td>
+</tr>
+[!--#endif--]
+
 <tr title="When this box is checked, the dashboard will no longer notify you about the need to sync this project's WBS, and will no longer export data for this project automatically on shutdown.">
 <td COLSPAN=2>If you are no longer working on this project, check this box
 <input type=checkbox name="[Project_Is_Done]d"></td>
 </tr>
+
 <!--#else-->
+
 <tr title="Warning: choosing a nonzero value will greatly increase memory usage and start up times">
 <td COLSPAN=2>Max levels of drill down in archived plan snapshots:<sup>*</sup>
 <input type="text" size="7" class="notTeamSetting" name="Export_Max_Node_Depth"></td>

@@ -120,6 +120,7 @@ public class SyncWBS extends TinyCGIBase {
     /** True if this is a master project rollup */
     private boolean isMaster;
     /** True if this is a personal project */
+    @SuppressWarnings("unused")
     private boolean isPersonal;
     /** true if this is an old-style individual project that needs to be
      * upgraded to the new-style format */
@@ -127,6 +128,8 @@ public class SyncWBS extends TinyCGIBase {
     /** true if this is an individual project that needs to be converted
      * to a different metrics collection framework */
     private boolean conversionNeeded;
+    /** true if we can delete/complete tasks without asking for permission */
+    private boolean noDeletePermissionNeeded;
     /** true if the user wants us to copy all software component and document
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
@@ -295,6 +298,7 @@ public class SyncWBS extends TinyCGIBase {
                     : HierarchySynchronizer.SYNC_TEAM);
             migrationNeeded = conversionNeeded = isPersonal = false;
             pspToDateSubset = pspSubsetSelector = null;
+            noDeletePermissionNeeded = true;
             promptForPspToDateSubset = false;
 
             d = data.getSimpleValue(DataRepository.createDataName
@@ -328,6 +332,11 @@ public class SyncWBS extends TinyCGIBase {
             d = data.getSimpleValue(DataRepository.createDataName
                 (projectRoot, TeamDataConstants.PERSONAL_PROJECT_FLAG));
             isPersonal = (d != null && d.test());
+
+            d = data.getSimpleValue(DataRepository.createDataName
+                (projectRoot, "Sync_Require_Delete_Permission"));
+            noDeletePermissionNeeded = (d == null || !d.test()
+                    || parameters.containsKey("force"));
 
             d = data.getSimpleValue(DataRepository.createDataName
                                     (projectRoot, MIGRATE_DATA_NAME));
@@ -575,9 +584,9 @@ public class SyncWBS extends TinyCGIBase {
         if (synch.getDebugLogInfo() != null)
             maybeDumpDebugLog(synch);
 
-        // in personal mode, we don't need confirmation to complete/delete
-        // tasks, so discard notes about any permissions that might be needed.
-        if (isPersonal) {
+        // if we don't need confirmation to complete/delete tasks, discard
+        // notes about any permissions that might be needed.
+        if (noDeletePermissionNeeded) {
             synch.getTaskDeletions().clear();
             synch.getTaskCompletions().clear();
         }
@@ -802,10 +811,9 @@ public class SyncWBS extends TinyCGIBase {
      */
     private void loadPermissionData(HierarchySynchronizer synch) {
         Object list;
-        if (isPersonal) {
-            // in a personal project, we don't need user confirmation to
-            // delete/complete anything. Presumably they were the one who made
-            // the edit to begin with.
+        if (noDeletePermissionNeeded) {
+            // if we don't need user confirmation to delete/complete anything,
+            // record that decision
             synch.setDeletionPermissions(null);
             synch.setCompletionPermissions(null);
 
