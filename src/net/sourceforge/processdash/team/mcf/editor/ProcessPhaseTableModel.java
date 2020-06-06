@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
     public void initNewProcess() {
         insertItem(0);
         setValueAt(NEW_PROCESS_LONG_NAME, 0, LONG_NAME_COL);
+        markAllItemsInserted();
         clearDirty();
     }
 
@@ -128,7 +129,7 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
                 "Every phase must have a short name.");
         checkForDuplicateFields(errors, new int[] { LONG_NAME_COL, SHORT_NAME_COL },
                 "There is more than one phase named \"{0}\". "
-                        + "Phase names must be unique.");
+                        + "Phase names must be unique.", DISCARDABLE_VALUES);
         checkForSizeMetricsErrors(errors);
     }
 

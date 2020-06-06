@@ -202,8 +202,8 @@ public class CustomProcess {
 
 
     private static final String DLD_LINES = "DLD Lines";
-    private static final String RO = "t"; // uncomment to make PSP phases read-only
-    // private static String RO = null;   // uncomment to make PSP phases editable
+    // private static final String RO = "t"; // uncomment to make PSP phases read-only
+    private static String RO = null;   // uncomment to make PSP phases editable
     private static String[][] defaultPhases = {
         { "Planning",               "Planning",      "PLAN",    null,      RO },
         { "Detailed Design",        "Design",        "DLD",     DLD_LINES, RO },

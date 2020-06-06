@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.team.mcf.editor;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -166,11 +167,11 @@ public class SizeMetricsTableModel extends ItemListTableModel {
     public void checkForErrors(Set errors) {
         checkForMissingField(errors, NAME_COL, DISCARDABLE_VALUES,
                 "Every size metric must have a name.");
-        checkForMissingField(errors, PRODUCT_NAME_COL, DISCARDABLE_VALUES,
-                "Every size metric must have a work product name.");
+        checkForMissingField(errors, PRODUCT_NAME_COL, UNEDITED_PRODUCT_VALUE,
+                "You must edit the work product name for each size metric.");
         checkForDuplicateFields(errors, new int[] { NAME_COL, PRODUCT_NAME_COL },
                 "There is more than one size metric named \"{0}\". "
-                        + "Metric names must be unique.");
+                        + "Metric names must be unique.", DISCARDABLE_VALUES);
     }
 
 
@@ -218,6 +219,8 @@ public class SizeMetricsTableModel extends ItemListTableModel {
     private static final List DISCARDABLE_VALUES = Arrays.asList(new String[] {
             DEFAULT_METRIC_NAME, DEFAULT_PRODUCT_NAME, NEW_PROCESS_LONG_NAME,
             null, "" });
+    private static final List UNEDITED_PRODUCT_VALUE = Collections
+            .singletonList(DEFAULT_PRODUCT_NAME);
 
     protected boolean rowIsDiscardable(int row) {
         if (row >= 0 && row < getRealRowCount()) {

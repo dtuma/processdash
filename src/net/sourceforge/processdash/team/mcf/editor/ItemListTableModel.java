@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,10 @@ public abstract class ItemListTableModel extends AbstractTableModel {
 
     public abstract int insertItem(int pos);
 
+    protected void markAllItemsInserted() {
+        insertedItems.addAll(itemList);
+    }
+
     protected int insertItem(Item newItem, int pos) {
         insertedItems.add(newItem);
         pos = Math.min(pos, itemList.size());
@@ -133,7 +137,7 @@ public abstract class ItemListTableModel extends AbstractTableModel {
             Collection emptyNames, String errMsg) {
         for (int row = 0;  row < getRowCount();  row++) {
             Object val = getValueAt(row, col);
-            if (val == null || emptyNames.contains(val)) {
+            if (emptyNames.contains(val)) {
                 errors.add(errMsg);
                 break;
             }
@@ -141,7 +145,7 @@ public abstract class ItemListTableModel extends AbstractTableModel {
     }
 
     protected void checkForDuplicateFields(Set errors, int[] cols,
-            String errMsgFmt) {
+            String errMsgFmt, Collection emptyNames) {
         Set valuesSeen = new HashSet();
         Set rowValues = new HashSet();
 
@@ -149,6 +153,8 @@ public abstract class ItemListTableModel extends AbstractTableModel {
             rowValues.clear();
             for (int i = 0; i < cols.length; i++) {
                 Object val = getValueAt(row, cols[i]);
+                if (val == null || emptyNames.contains(val))
+                    continue;
                 rowValues.add(val);
                 if (valuesSeen.contains(val)) {
                     String msg = MessageFormat.format(errMsgFmt,
@@ -176,7 +182,7 @@ public abstract class ItemListTableModel extends AbstractTableModel {
         return phase.getAttr(attrName);
     }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return !get(rowIndex).getAttributes().containsKey("readOnly");
+        return !get(rowIndex).getAttributes().containsKey(CustomProcess.READ_ONLY);
     }
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (!isCellEditable(rowIndex, columnIndex)) return;
