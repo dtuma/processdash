@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2014 Tuma Solutions, LLC
+// Copyright (C) 2000-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,11 +27,15 @@ import java.awt.Cursor;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Date;
 import java.util.Vector;
 
 import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
@@ -43,6 +47,8 @@ import net.sourceforge.processdash.data.repository.RemoteException;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.JDateTimeChooser;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 public class CompletionButton extends JCheckBox implements ActionListener,
         PropertyChangeListener, DataListener {
@@ -52,6 +58,7 @@ public class CompletionButton extends JCheckBox implements ActionListener,
     TaskNavigationSelector navSelector;
     String dataName = null;
     Resources resources;
+    Date dateToEdit;
 
     public CompletionButton(ProcessDashboard dash, ActiveTaskModel taskModel) {
         super();
@@ -63,6 +70,10 @@ public class CompletionButton extends JCheckBox implements ActionListener,
         resources = Resources.getDashBundle("ProcessDashboard");
         setMargin(new Insets(0, 2, 0, 2));
         addActionListener(this);
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                checkForCtrlClick(e);
+            }});
         updateAll();
     }
 
@@ -86,32 +97,77 @@ public class CompletionButton extends JCheckBox implements ActionListener,
         if (d == null) {
             setEnabled(true);
             setSelected(false);
-            setToolTipText(resources.getString("Completion_Button_Tooltip"));
+            setToolTip(resources.getString("Completion_Button_Tooltip"));
         } else if (d instanceof DateData) {
             setEnabled(true);
             setSelected(true);
-            setToolTipText(((DateData) d).formatDate());
+            setToolTip(((DateData) d).formatDate());
         } else {
             setSelected(false);
             setEnabled(false);
+            setToolTipText(null);
         }
         if (Settings.isReadOnly())
             setEnabled(false);
     }
 
-    public void actionPerformed(ActionEvent e) {
-        parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        if (isSelected()) {
-            parent.getData().userPutValue(dataName, new DateData());
-            if (selectNextTask() == false) {
-                parent.pauseTimer(); // stop the timer if it is running.
-                update();
-            }
+    private void setToolTip(String tip) {
+        String htmlTip = "<html>" + HTMLUtils.escapeEntities(tip) + "<br/>"
+            + resources.getHTML("Completion_Button_Edit_Tooltip") + "</html>";
+        setToolTipText(htmlTip);
+    }
+
+    private void checkForCtrlClick(MouseEvent e) {
+        if (e.isControlDown()) {
+            Object d = parent.getData().getSimpleValue(dataName);
+            if (d instanceof DateData)
+                dateToEdit = ((DateData) d).getValue();
+            else
+                dateToEdit = new Date();
         } else {
-            parent.getData().userPutValue(dataName, null);
-            setToolTipText(resources.getString("Completion_Button_Tooltip"));
+            dateToEdit = null;
         }
-        parent.setCursor(null);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (dateToEdit == null) {
+            setCompletionDate(isSelected() ? new DateData() : null);
+
+        } else {
+            // The click on the checkbox will have caused its selection status
+            // to toggle. Reset its appearance to match underlying data while
+            // the user edits the date.
+            update();
+
+            // display a dialog to edit the completion date/time
+            JDateTimeChooser dtc = new JDateTimeChooser(dateToEdit);
+            dtc.getJCalendar().setMaxSelectableDate(new Date());
+            int userChoice = JOptionPane.showConfirmDialog(parent, dtc,
+                resources.getString("Completion_Button_Edit_Title"),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            // if the user clicked OK, save the selected completion date/time
+            if (userChoice == JOptionPane.OK_OPTION)
+                setCompletionDate(new DateData(dtc.getDateTime(), true));
+        }
+    }
+
+    private void setCompletionDate(DateData completionDate) {
+        try {
+            parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            if (completionDate != null) {
+                boolean wasPreviouslyComplete = parent.getData()
+                        .getSimpleValue(dataName) != null;
+                parent.getData().userPutValue(dataName, completionDate);
+                if (wasPreviouslyComplete || selectNextTask() == false) {
+                    parent.pauseTimer(); // stop the timer if it is running.
+                }
+            } else {
+                parent.getData().userPutValue(dataName, null);
+            }
+        } finally {
+            parent.setCursor(null);
+        }
     }
 
     private boolean selectNextTask() {

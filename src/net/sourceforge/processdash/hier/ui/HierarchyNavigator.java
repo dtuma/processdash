@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2015 Tuma Solutions, LLC
+// Copyright (C) 1999-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -514,6 +514,8 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             // from a team workflow.
             String path = node.path();
             String parentPath = DataRepository.chopPath(path);
+            if (parentPath == null)
+                return SelectNextResult.REJECTED;
             String dataName = DataRepository.createDataName(parentPath,
                 WORKFLOW_SOURCE_ID);
             SimpleData sd = dash.getData().getSimpleValue(dataName);
