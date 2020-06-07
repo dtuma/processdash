@@ -32,7 +32,6 @@ The author(s) may be contacted at:
 
   <property name="teamtools.version" value="5.1.2b"/>
   <property name="teamtools.requires" value="2.0.4+"/>
-  <property name="framework.version" value="${teamtools.version}"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
@@ -53,10 +52,6 @@ The author(s) may be contacted at:
   <property name="apple-eawt.jar" value="lib/com-apple-eawt.jar"/>
   <property name="servlet.jar" value="lib/servlet-api.jar"/>
   <property name="junit.jar" value="lib/junit-4.3.1.jar"/>
-  <property name="TeamProcessCGI.jar"
-      value="Templates/team/lib/TeamProcessCGI.jar"/>
-  <property name="framework.jar" value="FrameworkMetadata.jar"/>
-  <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
   <property name="teamhelp" value="Templates/teamhelp"/>
   <property name="teamhelp.search" value="${teamhelp}/JavaHelpSearch"/>
   <property name="teamhelp.images" value="${teamhelp}/Images"/>
@@ -84,12 +79,8 @@ The author(s) may be contacted at:
 
   <!-- if the "noBuild" property is set, set all other noBuild vars too -->
   <target name="-noBuild-init" if="noBuild">
-    <property name="noBuild.filelist" value="true"/>
     <property name="noBuild.compile" value="true"/>
-    <property name="noBuild.framework" value="true"/>
     <property name="noBuild.TeamTools" value="true"/>
-    <property name="noBuild.TeamProcess" value="true"/>
-    <property name="noBuild.TeamProcessCGI" value="true"/>
   </target>
 
 
@@ -112,22 +103,6 @@ The author(s) may be contacted at:
 
 
 
-  <target name="filelist.txt"
-          depends="-noBuild-init" unless="noBuild.filelist">
-    <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
-      <path id=".jhbasedir.path" path="Templates/team/setup"/>
-    </pathconvert>
-    <pathconvert property=".filelist" pathsep="," dirsep="/">
-      <path>
-        <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif" excludes="*sizeForm*"/>
-      </path>
-    </pathconvert>
-    <property name="filelist" value="Templates/team/setup/filelist.txt"/>
-    <echo message="&lt;!--#set var='Wizard_File_List' value='LIST=,${.filelist},' --&gt;&#13;&#10;" file="${filelist}"/>
-    <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
-  </target>
-
-
   <target name="compile" depends="-noBuild-init" unless="noBuild.compile">
     <!-- Compile the java code from ${src} into ${build} -->
     <mkdir dir="${build}"/>
@@ -135,85 +110,6 @@ The author(s) may be contacted at:
            source="${compile.target}" target="${compile.target}"
            classpathref="wbs.classpath" includeAntRuntime="no">
     </javac>
-  </target>
-
-  <target name="TeamProcessCGI"
-          depends="-noBuild-init,compile" unless="noBuild.TeamProcessCGI">
-    <!-- Create a signed jarfile of cgi scripts -->  
-    <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
-      <fileset dir="${build}">
-        <include name="teamdash/templates/setup/"/>
-        <include name="teamdash/FilenameMapper*"/>
-      </fileset>
-      <fileset dir="${src}">
-        <include name="teamdash/templates/setup/migrate.properties"/>
-      </fileset>
-    </jar>
-    <antcall target="signjar">
-      <param name="sign.jar" value="${TeamProcessCGI.jar}"/>
-      <param name="sign.alias" value="processdash-full-permissions"/>
-    </antcall>
-  </target>
-
-
-  <target name="framework" depends="-noBuild-init,TeamProcessCGI,filelist.txt"
-      unless="noBuild.framework"
-      description="Build a JAR containing the framework files used by the custom process generator">
-
-    <jar destfile="${framework.jar}">
-      <!-- include the templates -->
-      <fileset dir=".">
-        <include name="Templates/team/lib/" />
-        <exclude name="Templates/team/lib/todo.txt" />
-        <include name="Templates/team/tools/*.link" />
-        <include name="Templates/team/tools/*.shtm" />
-        <include name="Templates/team/setup/*.link" />
-        <include name="Templates/team/setup/*.shtm" />
-        <include name="Templates/team/setup/*.css" />
-        <include name="Templates/team/setup/*.gif" />
-        <include name="Templates/team/setup/filelist.txt" />
-      </fileset>
-      <fileset dir="${processdash.dir}" includes="Templates/style.css"/>
-    </jar>
-  </target>
-
-
-  <target name="jnlp-jars"  depends="compile,framework,-ant-tasks"
-       description="Build the JAR files for the JNLP framework editor app">
-
-    <!-- compute the classes needed for the GUI and process generator -->
-    <classfileset id="jnlpClasses" dir="${build}"
-      rootclass="teamdash.process.CustomProcessEditor"/>
-
-    <!-- also compute the classes needed from processdash packages -->
-    <classfileset id="jnlpDashClasses" dir="${processdash.bin}">
-      <root classname="net.sourceforge.processdash.net.http.HTMLPreprocessor"/>
-      <root classname="net.sourceforge.processdash.process.PhaseUtil"/>
-      <root classname="net.sourceforge.processdash.ui.lib.ProgressDialog"/>
-      <root classname="net.sourceforge.processdash.util.VersionUtils"/>
-    </classfileset>
-
-    <!-- build the JNLP JAR file containing executable classes -->
-    <jar destfile="${jnlp.jar}" duplicate="fail">
-      <!-- specify the manifest file contents -->
-      <manifest>
-        <attribute name="Main-Class" 
-              value="teamdash.process.CustomProcessEditor"/>
-        <attribute name="Application-Name"
-              value="Custom Metrics Framework Editor"/>
-        <attribute name="Permissions" value="all-permissions"/>
-      </manifest>
-      <fileset refid="jnlpClasses"/>
-      <fileset refid="jnlpDashClasses"/>
-      <zipfileset src="${xmlpull.jar}"/>
-    </jar>
-    <maybeSignJar jar="${jnlp.jar}" prefix="jnlpSign"/>
-
-    <!-- build a signed JAR file containing framework metadata -->
-    <property name="jnlp-framework.jar"
-        value="FrameworkMetadata-${framework.version}.jar"/>
-    <copy file="${framework.jar}" tofile="${jnlp-framework.jar}"/>
-    <maybeSignJar jar="${jnlp-framework.jar}" prefix="jnlpSign"/>
   </target>
 
 
@@ -497,21 +393,6 @@ class dependency has been added in a dashboard class?)
     </java>
   </target>
 
-  <target name="TeamProcess" depends="-defaultValues,-noBuild-init,framework"
-          unless="noBuild.TeamProcess">
-    <java classname="teamdash.process.GenerateProcess"
-          fork="true" inputstring="">
-      <classpath>
-        <pathelement location="${framework.jar}"/>
-        <pathelement location="${build}"/>
-        <pathelement location="${processdash.bin}"/>
-        <pathelement location="${xmlpull.jar}"/>
-      </classpath>
-      <arg value="${teamProcess.xml}"/>
-      <arg value="${processdash.dist}"/>
-    </java>
-  </target>
-
   <target name="-installer-props" depends="-defaultValues">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
@@ -545,7 +426,7 @@ class dependency has been added in a dashboard class?)
     <property name="cd-qualifier" value="team"/>
   </target>
 
-  <target name="installer" depends="TeamTools,TeamProcess,-installer-props">
+  <target name="installer" depends="TeamTools,-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="plain">
       <property name="qualifier" value="main"/>
@@ -557,7 +438,7 @@ class dependency has been added in a dashboard class?)
   </target>
 
   <target name="installer-cd"
-          depends="TeamTools,TeamProcess,installer-cd-only"/>
+          depends="TeamTools,installer-cd-only"/>
 
   <target name="installer-cd-only" depends="-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
@@ -631,7 +512,6 @@ class dependency has been added in a dashboard class?)
 
   <target name="clean">
     <delete dir="${build}"/>
-    <delete file="${TeamProcessCGI.jar}"/>
   </target>
 
 </project>

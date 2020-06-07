@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2018 Tuma Solutions, LLC
+Copyright (C) 2001-2020 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -859,6 +859,35 @@ Authors:
       <arg value="${teamProcess.xml}"/>
       <arg value="${dist}/${teamProcess.zip}"/>
     </java>
+  </target>
+
+  <target name="mcfEditor" depends="ant-tasks,compile"
+       description="Build the JAR files for the MCF editor app">
+    <property name="mcfEditor.jar" value="${dist}/MCF_Editor.jar"/>
+
+    <!-- compute the classes needed for the GUI and process generator -->
+    <classfileset id="mcfClasses" dir="${build}"
+      rootclass="net.sourceforge.processdash.team.mcf.editor.CustomProcessEditor"/>
+
+    <!-- build the JNLP JAR file containing executable classes -->
+    <jar destfile="${mcfEditor.jar}" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" 
+              value="net.sourceforge.processdash.team.mcf.editor.CustomProcessEditor"/>
+        <attribute name="Application-Name"
+              value="Custom Metrics Framework Editor"/>
+        <attribute name="Permissions" value="all-permissions"/>
+      </manifest>
+      <fileset refid="mcfClasses"/>
+      <zipfileset src="${kxml.jar}"/>
+      <fileset dir=".">
+        <include name="Templates/team/lib/script-v1-light.xml"/>
+        <include name="Templates/team/lib/properties.txt"/>
+        <include name="Templates/team/lib/process_info.xml"/>
+      </fileset>
+    </jar>
+    <maybeSignJar jar="${mcfEditor.jar}" prefix="mcfSign"/>
   </target>
 
 
