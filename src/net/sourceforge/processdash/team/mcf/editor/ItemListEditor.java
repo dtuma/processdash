@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -112,23 +113,35 @@ public class ItemListEditor extends JPanel {
     }
 
     public void insert() {
+        stopEditing();
         int row = getSelectedRow();
         if (row < 0) row = 0;
         model.insertItem(row);
         selectRow(row);
     }
     public void delete() {
-        int row = getSelectedRow();
-        if (row >= 0) model.deleteItem(row);
+        stopEditing();
+        int[] rows = table.getSelectedRows();
+        Arrays.sort(rows);
+        for (int i = rows.length; i-- > 0;) {
+            if (model.isCellEditable(rows[i], 9))
+                model.deleteItem(rows[i]);
+        }
     }
     public void moveUp()   {
+        stopEditing();
         int row = getSelectedRow();
         model.moveItemUp(row--);
         selectRow(row);
     }
     public void moveDown() {
+        stopEditing();
         int row = getSelectedRow()+1;
         model.moveItemUp(row);
         selectRow(row);
+    }
+    private void stopEditing() {
+        if (table.isEditing())
+            table.getCellEditor().stopCellEditing();
     }
 }

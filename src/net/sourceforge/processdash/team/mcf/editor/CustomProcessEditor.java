@@ -26,6 +26,8 @@ package net.sourceforge.processdash.team.mcf.editor;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.UIManager;
+
 import net.sourceforge.processdash.net.http.ContentSource;
 import net.sourceforge.processdash.team.mcf.ClasspathContentProvider;
 import net.sourceforge.processdash.team.mcf.CustomProcess;
@@ -34,6 +36,13 @@ import net.sourceforge.processdash.team.mcf.CustomProcessPublisher;
 public class CustomProcessEditor extends AbstractCustomProcessEditor {
 
     public static void main(String[] args) {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("windows"))
+                UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+        }
         new CustomProcessEditor(null, new ClasspathContentProvider());
     }
 

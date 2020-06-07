@@ -260,25 +260,31 @@ public abstract class ItemListTableModel extends AbstractTableModel {
         {
             setBackground(null);
             value = getItemDisplay(col, value);
+            isSelected = isSelected && !hasFocus;
 
             Component result = super.getTableCellRendererComponent
                 (table, value, isSelected, hasFocus, row, col);
 
             String tooltip = null;
             if (table.getModel().isCellEditable(row, col)) {
-                result.setForeground(Color.black);
+                result.setForeground(isSelected ? table.getSelectionForeground()
+                        : table.getForeground());
                 if (isStructuralColumn(col)) {
                     if (insertedItems.contains(get(row))) {
-                        if (hasFocus || !isSelected)
+                        if (hasFocus || !isSelected) {
+                            result.setForeground(Color.black);
                             result.setBackground(structuralWarning);
+                        }
                         tooltip = "<html><body>"
                                 + "Choose this value with thought and care.<br>"
                                 + "After you begin collecting data using this<br>"
                                 + "metrics collection framework, you will not<br>"
                                 + "be able to alter this value.</body></html>";
                     } else {
-                        if (hasFocus || !isSelected)
+                        if (hasFocus || !isSelected) {
+                            result.setForeground(Color.black);
                             result.setBackground(structuralColor);
+                        }
                         tooltip = "<html><body>"
                                 + "Changes to this value will result in a new<br>"
                                 + "metrics collection framework that is not<br>"
@@ -287,7 +293,8 @@ public abstract class ItemListTableModel extends AbstractTableModel {
                     }
                 }
             } else {
-                result.setForeground(Color.gray);
+                result.setForeground(
+                    isSelected ? table.getSelectionForeground() : Color.gray);
                 tooltip = "This item is read-only";
             }
 
