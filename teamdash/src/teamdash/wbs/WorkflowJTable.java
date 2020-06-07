@@ -50,6 +50,7 @@ public class WorkflowJTable extends WBSJTable {
         super(workflowModel, getWorkflowIcons(process.getIconMap()),
                 tweakIconMenu(process.getNodeTypeMenu(),
                     process.isPspCompatible(), probeListener));
+        setSafeTaskType(process.getPhases().get(0) + TeamProcess.TASK_SUFFIX);
 
         // configure the renderer for the table
         this.renderer.setRootNodeName(resources.getString("Root_Name"));

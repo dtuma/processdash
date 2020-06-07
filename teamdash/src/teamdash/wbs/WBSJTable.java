@@ -156,6 +156,8 @@ public class WBSJTable extends JTable {
     private JComponent scrollableDelegate = null;
     /** The list of nodes that has been cut */
     private List cutList = null;
+    /** A safe default task type */
+    String safeTaskType = "Planning Task";
 
     /** Should editing of WBS nodes be disabled? */
     private boolean disableEditing = false;
@@ -251,6 +253,15 @@ public class WBSJTable extends JTable {
 
     public void setOptimizeForIndiv(String initials) {
         this.optimizeForIndiv = initials;
+    }
+
+    public String getSafeTaskType() {
+        return safeTaskType;
+    }
+
+    public void setSafeTaskType(String safeTaskType) {
+        if (safeTaskType != null)
+            this.safeTaskType = safeTaskType;
     }
 
 
@@ -1303,7 +1314,7 @@ public class WBSJTable extends JTable {
                 type = nodeToCopy.getType();
                 workflowType = nodeToCopy.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
                 if (TeamProcess.isProbeTask(type)) {
-                    type = "Planning Task";
+                    type = getSafeTaskType();
                     workflowType = null;
                 }
                 indentLevel = nodeToCopy.getIndentLevel();

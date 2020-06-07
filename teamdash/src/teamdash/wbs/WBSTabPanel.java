@@ -162,10 +162,12 @@ public class WBSTabPanel extends JLayeredPane implements
         this(wbs, data, teamProcess.getIconMap(),
                 tweakIconMenu(teamProcess.getNodeTypeMenu()), workflows,
                 idSource, guiPrefs);
+        wbsTable.setSafeTaskType(
+            teamProcess.getPhases().get(0) + TeamProcess.TASK_SUFFIX);
     }
 
     /** Create a WBSTabPanel */
-    public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
+    private WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
             JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource,
             GuiPrefs guiPrefs) {
         setLayout(layout = new GridBagLayout());
