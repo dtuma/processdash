@@ -39,6 +39,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -94,6 +96,9 @@ public class TeamSettingsFile {
     private String datasetID;
 
     private boolean isPersonal;
+
+    /** @since 2.5.6 */
+    private Map<String, String> extraAttributes;
 
     private List masterProjects;
 
@@ -261,15 +266,19 @@ public class TeamSettingsFile {
             Element e = XMLUtils.parse(new BufferedInputStream(
                 getInputStream())).getDocumentElement();
 
-            this.version = getAttribute(e, VERSION_ATTR);
+            Map<String, String> attrs = XMLUtils.getAttributesAsMap(e);
+            this.version = attrs.remove(VERSION_ATTR);
             this.timestamp = XMLUtils.getXMLDate(e, TIMESTAMP_ATTR);
-            this.projectName = getAttribute(e, PROJECT_NAME_ATTR);
-            this.projectID = getAttribute(e, PROJECT_ID_ATTR);
-            this.processID = getAttribute(e, PROCESS_ID_ATTR);
-            this.templatePath = getAttribute(e, TEMPLATE_PATH_ATTR);
-            this.scheduleName = getAttribute(e, SCHEDULE_NAME_ATTR);
-            this.isPersonal = "true".equals(getAttribute(e, PERSONAL_ATTR));
-            this.datasetID = getAttribute(e, DATASET_ID_ATTR);
+            this.projectName = attrs.remove(PROJECT_NAME_ATTR);
+            this.projectID = attrs.remove(PROJECT_ID_ATTR);
+            this.processID = attrs.remove(PROCESS_ID_ATTR);
+            this.templatePath = attrs.remove(TEMPLATE_PATH_ATTR);
+            this.scheduleName = attrs.remove(SCHEDULE_NAME_ATTR);
+            this.isPersonal = "true".equals(attrs.remove(PERSONAL_ATTR));
+            this.datasetID = attrs.remove(DATASET_ID_ATTR);
+
+            attrs.remove(TIMESTAMP_ATTR);
+            this.extraAttributes = attrs;
 
             readRelatedProjects(e, MASTER_PROJECT_TAG, masterProjects);
             readRelatedProjects(e, SUBPROJECT_TAG, subprojects);
@@ -385,6 +394,13 @@ public class TeamSettingsFile {
         writeAttr(out, indent, SCHEDULE_NAME_ATTR, scheduleName);
         if (isPersonal)
             writeAttr(out, indent, PERSONAL_ATTR, "true");
+
+        // write any extra attributes that were present in the original file,
+        // which we didn't recognize during our parsing (since 2.5.6)
+        if (extraAttributes != null && !extraAttributes.isEmpty()) {
+            for (Entry<String, String> e : extraAttributes.entrySet())
+                writeAttr(out, indent, e.getKey(), e.getValue());
+        }
 
         // write global, dashboard-specific attributes
         writeAttr(out, indent, VERSION_ATTR,
