@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -66,7 +66,7 @@ public class WbsPermissionSettingsWriter
 
 
     @Override
-    public Date getDataTimestamp() {
+    public Date getDataTimestamp(String projectID) {
         return PermissionsManager.getInstance().getPermissionsTimestamp();
     }
 

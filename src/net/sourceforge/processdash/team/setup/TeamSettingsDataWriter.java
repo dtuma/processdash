@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ public interface TeamSettingsDataWriter {
      * @return the date when the source data for this writer last changed, or
      *         null if this writer does not have any data to write
      */
-    public Date getDataTimestamp();
+    public Date getDataTimestamp(String projectID);
 
     /**
      * Write a well-formed XML fragment into a team settings file.

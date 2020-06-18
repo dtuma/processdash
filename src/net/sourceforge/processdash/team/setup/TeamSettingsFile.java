@@ -371,7 +371,7 @@ public class TeamSettingsFile {
 
             // if the data written by this writer has changed since the file
             // was written, give it a chance to write its new data.
-            Date oneTime = dataWriter.getDataTimestamp();
+            Date oneTime = dataWriter.getDataTimestamp(this.projectID);
             if (oneTime != null && oneTime.compareTo(this.timestamp) > 0)
                 return true;
         }
@@ -430,7 +430,7 @@ public class TeamSettingsFile {
             XmlSerializer xml = XMLUtils.getXmlSerializer(true);
             xml.setOutput(out);
             for (TeamSettingsDataWriter dataWriter : DATA_WRITERS) {
-                if (dataWriter.getDataTimestamp() != null) {
+                if (dataWriter.getDataTimestamp(projectID) != null) {
                     dataWriter.writeTeamSettings(projectID, xml);
                     xml.flush();
                     out.write(NL);
