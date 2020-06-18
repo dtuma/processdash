@@ -265,7 +265,7 @@ public class CustomProcessPublisher {
         return (VersionUtils.compareVersions(versionA, versionB) > 0 //
                 ? versionA : versionB);
     }
-    private static final String MIN_NON_PSP_VERSION = "2.5.5";
+    private static final String MIN_NON_PSP_VERSION = "2.5.5+";
 
     protected void close() throws IOException {
         out.flush();
