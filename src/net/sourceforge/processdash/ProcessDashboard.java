@@ -133,6 +133,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.group.UserGroupManager;
 import net.sourceforge.processdash.team.group.UserGroupManagerDash;
 import net.sourceforge.processdash.team.group.UserGroupSettingsWriter;
+import net.sourceforge.processdash.team.setup.TeamDirPermissionSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
 import net.sourceforge.processdash.team.setup.WbsPermissionSettingsWriter;
@@ -647,6 +648,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
             TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());
+            TeamSettingsFile.addDataWriter(new TeamDirPermissionSettingsWriter(this));
             TeamSettingsRepublisher.init(this);
         }
         BackgroundTaskManager.initialize(this);

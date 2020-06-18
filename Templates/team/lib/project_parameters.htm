@@ -87,6 +87,12 @@
 <td>TEAM Project Network Directory (URL)</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Data_Directory_URL]s"></td>
 </tr>
+<!--#if !indiv && !master -->
+<tr title="To grant read/write team data access to non-team-members, enter their comma-separated usernames here. (Most teams should leave this blank.)">
+<td>TEAM Project Additional Users</td>
+<td><input type="text" size="50" name="[Team_Data_Directory_Users]s"></td>
+</tr>
+<!--#endif-->
 [!--#endif--]
 
 <tr>

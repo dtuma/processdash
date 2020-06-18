@@ -136,7 +136,7 @@ public class TeamSettingsRepublisher {
         }
     }
 
-    private boolean isTeamProjectRoot(String templateID) {
+    static boolean isTeamProjectRoot(String templateID) {
         if (templateID == null)
             return false;
         else
@@ -147,7 +147,7 @@ public class TeamSettingsRepublisher {
     /**
      * Republish the settings file for a single project.
      */
-    private void republishProject(String path, boolean force)
+    public void republishProject(String path, boolean force)
             throws IOException {
         String dir = getStr(path, TeamDataConstants.TEAM_DATA_DIRECTORY);
         String url = getStr(path, TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
