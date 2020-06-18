@@ -95,6 +95,8 @@ public class TeamSettingsFile {
 
     private String datasetID;
 
+    private String datasetUrl;
+
     private boolean isPersonal;
 
     /** @since 2.5.6 */
@@ -116,6 +118,7 @@ public class TeamSettingsFile {
             throw new IllegalArgumentException("No location specified");
 
         this.datasetID = null;
+        this.datasetUrl = DATA_URL;
         this.isPersonal = false;
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
@@ -237,6 +240,10 @@ public class TeamSettingsFile {
             return datasetID.equals(DashController.getDatasetID());
     }
 
+    public String getDatasetUrl() {
+        return datasetUrl;
+    }
+
     public boolean isPersonal() {
         return isPersonal;
     }
@@ -276,6 +283,7 @@ public class TeamSettingsFile {
             this.scheduleName = attrs.remove(SCHEDULE_NAME_ATTR);
             this.isPersonal = "true".equals(attrs.remove(PERSONAL_ATTR));
             this.datasetID = attrs.remove(DATASET_ID_ATTR);
+            this.datasetUrl = attrs.remove(DATASET_URL_ATTR);
 
             attrs.remove(TIMESTAMP_ATTR);
             this.extraAttributes = attrs;
@@ -410,6 +418,9 @@ public class TeamSettingsFile {
         if (datasetID == null)
             datasetID = DashController.getDatasetID();
         writeAttr(out, indent, DATASET_ID_ATTR, datasetID);
+        if (DATA_URL != null)
+            datasetUrl = DATA_URL;
+        writeAttr(out, indent, DATASET_URL_ATTR, datasetUrl);
         out.write(">" + NL);
 
         writeRelatedProjects(out, MASTER_PROJECT_TAG, masterProjects);
@@ -517,6 +528,13 @@ public class TeamSettingsFile {
     private static List<TeamSettingsDataWriter> DATA_WRITERS = Collections
             .synchronizedList(new ArrayList<TeamSettingsDataWriter>());
 
+    /** @since 2.5.6 */
+    public static void setDataURL(String dataUrl) {
+        DATA_URL = dataUrl;
+    }
+
+    private static String DATA_URL = null;
+
 
     private static final String SETTINGS_FILENAME = "settings.xml";
 
@@ -539,6 +557,8 @@ public class TeamSettingsFile {
     private static final String TIMESTAMP_ATTR = "timestamp";
 
     private static final String DATASET_ID_ATTR = "datasetID";
+
+    private static final String DATASET_URL_ATTR = "datasetURL";
 
     private static final String SHORT_NAME_ATTR = "shortName";
 

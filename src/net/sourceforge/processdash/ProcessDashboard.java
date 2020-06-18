@@ -642,6 +642,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             displayGroupsTamperingError();
             System.exit(1);
         }
+        if (workingDirectory instanceof BridgedWorkingDirectory)
+            TeamSettingsFile.setDataURL(workingDirectory.getDescription());
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
             TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());
