@@ -614,6 +614,9 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.data.repository.DataMessageHandler"/>
 
   <messageHandler
+     class="net.sourceforge.processdash.SettingsMessageHandler"/>
+
+  <messageHandler
      class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
 
   <messageHandler
