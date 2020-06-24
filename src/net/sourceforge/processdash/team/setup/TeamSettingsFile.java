@@ -48,6 +48,7 @@ import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.FileType;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -522,6 +523,7 @@ public class TeamSettingsFile {
     }
 
     public static void addDataWriter(TeamSettingsDataWriter w) {
+        PERMISSION.checkPermission();
         DATA_WRITERS.add(w);
     }
 
@@ -530,11 +532,15 @@ public class TeamSettingsFile {
 
     /** @since 2.5.6 */
     public static void setDataURL(String dataUrl) {
+        PERMISSION.checkPermission();
         DATA_URL = dataUrl;
     }
 
     private static String DATA_URL = null;
 
+
+    private static final DashboardPermission PERMISSION = new DashboardPermission(
+            "teamSettingsFile.config");
 
     private static final String SETTINGS_FILENAME = "settings.xml";
 
