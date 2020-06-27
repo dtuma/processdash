@@ -27,6 +27,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -413,10 +414,13 @@ public class TeamServerSelector {
             // response back.
             URL u = new URL(requestURL.toString());
             URLConnection conn = u.openConnection();
-            InputStream in = new BufferedInputStream(conn.getInputStream());
-            while ((in.read() != -1))
-                ;
-            in.close();
+            int status = ((HttpURLConnection) conn).getResponseCode();
+            if (status != 403) {
+                InputStream in = new BufferedInputStream(conn.getInputStream());
+                while ((in.read() != -1))
+                    ;
+                in.close();
+            }
 
             // make certain we're talking to a dashboard team server, and not
             // some other random web server.
