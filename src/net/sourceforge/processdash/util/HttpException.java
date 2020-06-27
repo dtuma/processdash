@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2018 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLConnection;
 
 public class HttpException extends IOException {
@@ -33,11 +34,14 @@ public class HttpException extends IOException {
 
     private String responseMessage;
 
+    private URL url;
+
     private HttpException(HttpURLConnection conn) throws IOException {
         super("HTTP " + conn.getResponseCode() + " " + conn.getResponseMessage()
                 + " <" + conn.getURL() + ">");
         this.responseCode = conn.getResponseCode();
         this.responseMessage = conn.getResponseMessage();
+        this.url = conn.getURL();
     }
 
     public int getResponseCode() {
@@ -46,6 +50,11 @@ public class HttpException extends IOException {
 
     public String getResponseMessage() {
         return responseMessage;
+    }
+
+    /** @since 2.5.6 */
+    public URL getUrl() {
+        return url;
     }
 
     public static class Unauthorized extends HttpException {
@@ -73,6 +82,18 @@ public class HttpException extends IOException {
             else
                 throw new HttpException(httpConn);
         }
+    }
+
+    /** @since 2.5.6 */
+    public static IOException maybeWrap(URLConnection conn, IOException ioe) {
+        try {
+            checkValid(conn);
+        } catch (HttpException he) {
+            he.initCause(ioe);
+            return he;
+        } catch (Exception e) {
+        }
+        return ioe;
     }
 
 }

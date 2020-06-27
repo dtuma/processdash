@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -809,7 +809,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             return FileUtils.slurpContents(in, true);
         } catch (IOException ioe) {
             checkForLockException(request.getConnection());
-            throw ioe;
+            throw HttpException.maybeWrap(request.getConnection(), ioe);
         }
     }
 
