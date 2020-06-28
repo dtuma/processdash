@@ -54,6 +54,21 @@ public interface ResourceBridgeConstants {
     String SESSION_START_INQUIRY = "newSessionInquiry";
 
     /**
+     * Optional parameter that can be included with a session start inquiry to
+     * ask whether the user has a particular permission level for a given
+     * collection. If they do not, the request will thrown a "403 Forbidden"
+     * error code.
+     * 
+     * @since PDES 3.8.0
+     */
+    String ASSERT_PERMISSION_PARAM = "assertPermission";
+
+    /**
+     * Possible values for the ASSERT_PERMISSION_PARAM parameter.
+     */
+    enum Permission { read, write, admin };
+
+    /**
      * value of action parameter indicating a collection hashcode should be
      * returned
      */

@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,8 +38,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
+import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants.Permission;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpException;
 
 public class TeamServerSelector {
 
@@ -393,6 +395,59 @@ public class TeamServerSelector {
      *         Otherwise, returns null.
      */
     public static URL testServerURL(String serverURL, String minVersion) {
+        try {
+            return testServerURL(serverURL, minVersion, null);
+        } catch (HttpException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Validate that a given URL points to an existing data collection on a team
+     * dashboard server, and the current user has permission to interact with it
+     * 
+     * @param collectionURL
+     *            the URL to validate, in string form
+     * @param minPermission
+     *            a permission we require the user to have
+     * @return true if the collection exists and the user has the required
+     *         permission
+     * @since 2.5.6
+     */
+    public static boolean hasPermission(String collectionURL,
+            Permission minPermission) {
+        try {
+            return testServerURL(collectionURL, null, minPermission) != null;
+        } catch (HttpException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Validate that a given URL points to an existing data collection on a team
+     * dashboard server. Optionally require a minimum version of the server
+     * software, and a specific permission the current user must have on the
+     * collection.
+     * 
+     * @param serverURL
+     *            the URL to validate, in string form
+     * @param minVersion
+     *            the minimum acceptable version number of the server software,
+     *            or null for any version
+     * @param permissionToAssert
+     *            a permission we expect the user to have, or null for no
+     *            permission checks
+     * @return if validation was successful, returns the original URL.
+     *         Otherwise, returns null.
+     * @throws HttpException.Unauthorized
+     *             if the user did not provide valid login credentials
+     * @throws HttpException.Forbidden
+     *             if the current user does not have the desired permission
+     * @since 2.5.6
+     */
+    public static URL testServerURL(String serverURL, String minVersion,
+            Permission permissionToAssert)
+            throws HttpException.Unauthorized, HttpException.Forbidden {
         if (serverURL == null || serverURL.trim().length() == 0)
             return null;
 
@@ -409,11 +464,17 @@ public class TeamServerSelector {
                 ResourceBridgeConstants.SESSION_START_INQUIRY);
             HTMLUtils.appendQuery(requestURL,
                 ResourceBridgeConstants.VERSION_PARAM, CLIENT_VERSION);
+            if (permissionToAssert != null)
+                HTMLUtils.appendQuery(requestURL,
+                    ResourceBridgeConstants.ASSERT_PERMISSION_PARAM,
+                    permissionToAssert.toString());
 
             // make a connection to the server and verify that we get a valid
             // response back.
             URL u = new URL(requestURL.toString());
             URLConnection conn = u.openConnection();
+            if (permissionToAssert != null)
+                HttpException.checkValid(conn);
             int status = ((HttpURLConnection) conn).getResponseCode();
             if (status != 403) {
                 InputStream in = new BufferedInputStream(conn.getInputStream());
@@ -434,6 +495,10 @@ public class TeamServerSelector {
                 return null;
 
             return new URL(serverURL);
+        } catch (HttpException.Unauthorized u) {
+            throw u;
+        } catch (HttpException.Forbidden f) {
+            throw f;
         } catch (Exception ioe) {
             // if the server is not accepting new connections, it will send
             // back an HTTP error code, and we'll catch the IOException here.
