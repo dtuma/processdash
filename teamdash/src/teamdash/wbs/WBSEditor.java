@@ -131,6 +131,7 @@ import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
 import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
+import net.sourceforge.processdash.util.lock.ReadOnlyUrlLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
@@ -509,6 +510,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory.acquireWriteLock(this, owner);
         } catch (ReadOnlyLockFailureException e) {
             if (!showOpenReadOnlyMessage("Errors.Read_Only_Files.Message_FMT"))
+                throw e;
+        } catch (ReadOnlyUrlLockFailureException e) {
+            if (!showOpenReadOnlyMessage("Errors.Read_Only_URL.Message_FMT"))
                 throw e;
         } catch (CannotCreateLockException e) {
             if (!showOpenReadOnlyMessage("Errors.Cannot_Create_Lock.Message_FMT"))
