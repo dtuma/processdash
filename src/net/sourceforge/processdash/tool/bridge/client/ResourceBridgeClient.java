@@ -78,6 +78,7 @@ import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
 import net.sourceforge.processdash.util.lock.NotLockedException;
+import net.sourceforge.processdash.util.lock.ReadOnlyUrlLockFailureException;
 
 public class ResourceBridgeClient implements ResourceBridgeConstants {
 
@@ -753,7 +754,12 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void doLockPostRequest(String action, Object... params)
             throws IOException, LockFailureException {
-        doPostRequest(action, offlineLockStatusResponseAnalyzer, params);
+        try {
+            doPostRequest(action, offlineLockStatusResponseAnalyzer, params);
+        } catch (HttpException.Forbidden f) {
+            setOfflineLockStatus(OfflineLockStatus.NotLocked);
+            throw new ReadOnlyUrlLockFailureException(f);
+        }
     }
 
     private void doPostRequest(String action,
