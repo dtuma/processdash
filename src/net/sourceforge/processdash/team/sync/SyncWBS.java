@@ -62,6 +62,7 @@ import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.Browser;
@@ -69,6 +70,7 @@ import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -206,6 +208,8 @@ public class SyncWBS extends TinyCGIBase {
             // processing;  that exception is caught here and used to draw
             // the error page.
             showErrorPage(e.getTitle(), e.getText());
+        } catch (HttpException.Forbidden f) {
+            showErrorPage("serverForbidden", HttpAuthenticator.getLastUsername());
         } catch (HierarchyAlterationException h) {
             showErrorPage("generalError", h.getMessage());
         } catch (IOException ioe) {

@@ -31,6 +31,26 @@ Unfortunately, the server could not be reached.  Please check your network
 connection and try again.  If the problem persists, contact the server
 administrator.
 
+<!--#elif serverForbidden -->
+
+To synchronize your hierarchy with the WBS, the dashboard must read a
+description of the project work breakdown structure.  Unfortunately, you do
+not have permission to read or write data files for this project.
+
+<p>Contact your team leader for help.  Ask them to make sure that:</p>
+
+<ul>
+
+<li>You've been added to the Team Member List in the WBS Editor, and</li>
+
+<li>Your username (<!--#echo serverForbidden -->) has been registered with
+    your entry there.</li>
+
+</ul>
+
+<p>After these problems have been corrected, you can try the "Sync to WBS"
+operation again.</p>
+
 <!--#elif teamDirUnavailable -->
 
 To synchronize your hierarchy with the WBS, the dashboard must read

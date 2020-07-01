@@ -97,6 +97,7 @@ import net.sourceforge.processdash.team.sync.SyncWorker.DataSyncResult;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -427,6 +428,7 @@ public class HierarchySynchronizer {
         InputStream in = null;
         try {
             conn = wbsLocation.openConnection();
+            HttpException.checkValid(conn);
             in = new BufferedInputStream(conn.getInputStream());
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
@@ -451,6 +453,8 @@ public class HierarchySynchronizer {
             String projClosedAttr = projectXML.getAttribute("projectClosed");
             projectClosed = XMLUtils.hasValue(projClosedAttr);
 
+        } catch (HttpException.Forbidden f) {
+            throw f;
         } catch (Exception e) {
             if (in == null && conn instanceof HttpURLConnection) {
                 HttpURLConnection hConn = (HttpURLConnection) conn;
