@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2018 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.team;
 import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -54,6 +55,7 @@ import javax.swing.Timer;
 
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -93,10 +95,17 @@ public class PersonCellEditor extends DefaultCellEditor {
         super(f);
         this.textField = f;
 
-        personIcon = WBSZoom.icon(new ScalableImageIcon(12,
-                PersonCellRenderer.class, "person-large.png", "person.png"));
+        personIcon = WBSZoom.icon(new ScalableImageIcon(14,
+                PersonCellRenderer.class, "person.png"));
         lookupButton = new JButton(personIcon);
-        lookupButton.setBorder(BorderFactory.createEtchedBorder());
+        lookupButton.setBorderPainted(false);
+        lookupButton.setFocusPainted(false);
+        lookupButton.setContentAreaFilled(false);
+        lookupButton.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
+        lookupButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        lookupButton.setToolTipText(
+            TeamMember.resources.getString("Columns.Username.Register"));
+        ToolTipTimingCustomizer.INSTANCE.install(lookupButton);
         lookupButton.addActionListener(EventHandler.create(
             ActionListener.class, this, "openLookupDialog"));
 

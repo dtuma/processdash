@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,7 +41,6 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupData;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -148,10 +147,7 @@ public class TeamMember implements PersonLookupData, Cloneable {
 
     public void userSetName(String newName) {
         newName = trim(newName);
-        if (!NullSafeObjectUtils.EQ(this.name, newName)) {
-            setName(newName);
-            setServerIdentityInfo(null);
-        }
+        setName(newName);
     }
 
     // getter/setter for the server identity info property.

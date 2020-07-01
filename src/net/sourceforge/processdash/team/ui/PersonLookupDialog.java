@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2017 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -100,7 +100,7 @@ public class PersonLookupDialog {
         dialog = new JDialog(parent, "Team Member Details",
                 ModalityType.APPLICATION_MODAL);
         dialog.getContentPane().add(scrollPane);
-        dialog.setSize(100, 30);
+        dialog.setSize(200, 30);
 
         // ask the editor pane to make the initial connection to the server
         // synchronously, so we can receive the IOException if that fails.
@@ -179,9 +179,9 @@ public class PersonLookupDialog {
 
         // First, test to see if the dialog needs to be taller.  If so,
         // enlarge it.
-        double yDelta = pref.getHeight() - curr.getHeight();
+        double yDelta = pref.getHeight() + 5 - curr.getHeight();
         if (yDelta > 0) {
-            d.height = (int) Math.min(d.height + yDelta + 1, MAX_DIALOG_HEIGHT);
+            d.height = (int) Math.min(d.height + yDelta, MAX_DIALOG_HEIGHT);
             dialog.setSize(d);
             dialog.validate();
             // changing the dialog height could have caused a vertical
@@ -191,9 +191,9 @@ public class PersonLookupDialog {
         }
 
         // Now test to see if the dialog needs to be wider.  If so, enlarge it.
-        double xDelta = pref.getWidth() - curr.getWidth();
+        double xDelta = pref.getWidth() + 5 - curr.getWidth();
         if (xDelta > 0) {
-            d.width = (int) (d.width + xDelta + 4);
+            d.width = (int) (d.width + xDelta);
             dialog.setSize(d);
             dialog.validate();
         }
@@ -285,6 +285,11 @@ public class PersonLookupDialog {
 
     public static boolean isLookupServerConfigured() {
         return getLookupServerUrl() != null;
+    }
+
+    public static boolean isTeamMemberLookupRequired() {
+        String url = getLookupServerUrl();
+        return HTMLUtils.parseQuery(url).containsKey("pa");
     }
 
     private static String getLookupServerUrl() {

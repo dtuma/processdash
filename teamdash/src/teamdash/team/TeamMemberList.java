@@ -400,6 +400,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public void maybeAddEmptyRow() {
         if (isReadOnly())
             return;
+        if (onlyEditableFor != null)
+            return;
         int rows = getRowCount();
         if (singlePersonTeam && rows > 0)
             return;

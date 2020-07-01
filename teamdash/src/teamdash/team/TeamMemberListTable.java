@@ -88,6 +88,7 @@ import com.toedter.calendar.JDateChooser;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.TableFontHandler;
@@ -146,12 +147,18 @@ public class TeamMemberListTable extends JTable {
     public TeamMemberListTable(TeamMemberList teamList) {
         super(teamList);
 
+        // increase row height to make space for icons and data
+        if (getRowHeight() < 19)
+            setRowHeight(19);
+        else
+            setRowHeight(getRowHeight() + 3);
+
         // Set up renderer and editor for the Name column.
-        if (PersonLookupDialog.isLookupServerConfigured()) {
-            TableColumn nameColumn = getColumnModel().getColumn(0);
+        TableColumn nameColumn = getColumnModel().getColumn(0);
+        if (!teamList.isSinglePersonTeam())
             nameColumn.setCellRenderer(new PersonCellRenderer());
+        if (PersonLookupDialog.isLookupServerConfigured())
             nameColumn.setCellEditor(new PersonCellEditor());
-        }
 
         // Set up renderer and editor for the Color column.
         ColorCellRenderer.setUpColorRenderer(this);
@@ -175,6 +182,7 @@ public class TeamMemberListTable extends JTable {
         createButtons();
         setupTableColumnHeader(teamList.isSinglePersonTeam());
         WBSZoom.get().manage(this, "font", "rowHeight", "zoom");
+        ToolTipTimingCustomizer.INSTANCE.install(this);
     }
 
 
