@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,9 +31,11 @@ import java.util.Date;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpException;
 
 
 
@@ -92,7 +94,12 @@ public class ExportNow extends TinyCGIBase {
             interpOut("<HTML><HEAD><TITLE>${ExportError.Title}</TITLE></HEAD>\n"
                     + "<BODY><H1>${ExportError.Title}</H1>\n");
 
-            if (result != null && result.getTarget() != null
+            if (result.getException() instanceof HttpException.Forbidden) {
+                String username = HttpAuthenticator.getLastUsername();
+                out.println(HTMLUtils.escapeEntities(resources.format(
+                    "ExportError.Server_Perm_FMT", username)));
+
+            } else if (result.getTarget() != null
                     && result.getException() instanceof IOException) {
                 String target = result.getTarget().toString();
                 String resKey = TeamServerSelector.isUrlFormat(target)
