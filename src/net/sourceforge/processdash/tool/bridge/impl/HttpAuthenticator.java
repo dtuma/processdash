@@ -82,6 +82,8 @@ public class HttpAuthenticator extends Authenticator {
 
     private char[] lastPassword;
 
+    private boolean passwordDialogVisible;
+
 
     private static final String SETTING_PREFIX = //
             "net.sourceforge.processdash.HttpAuthenticator.";
@@ -220,10 +222,12 @@ public class HttpAuthenticator extends Authenticator {
         try {
             Runnable r = new Runnable() {
                 public void run() {
+                    passwordDialogVisible = true;
                     userChoice[0] = JOptionPane.showConfirmDialog(
                         parentComponent, message, title,
                         JOptionPane.OK_CANCEL_OPTION,
                         JOptionPane.PLAIN_MESSAGE);
+                    passwordDialogVisible = false;
                 }
             };
             if (SwingUtilities.isEventDispatchThread())
@@ -379,6 +383,11 @@ public class HttpAuthenticator extends Authenticator {
             if (c instanceof Frame)
                 INSTANCE.title = ((Frame) c).getTitle();
         }
+    }
+
+    /** @since 2.5.6 */
+    public static boolean isPasswordDialogVisible() {
+        return INSTANCE != null && INSTANCE.passwordDialogVisible;
     }
 
     /** @since 2.1.10 */
