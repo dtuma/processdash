@@ -88,11 +88,13 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -102,6 +104,7 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -222,6 +225,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String IND_DUPL_PROJ_URL = "indivDuplicateProj.shtm";
     private static final String IND_CONNECT_ERR_URL = "indivConnectError.shtm";
     private static final String IND_DATADIR_ERR_URL = "indivDataDirError.shtm";
+    private static final String IND_AUTH_ERR_URL = "indivAuthError.shtm";
 
     // Flag indicating an individual wants to join the team schedule.
     private static final String JOIN_TEAM_SCHED_PAGE = "joinSchedule";
@@ -2670,16 +2674,128 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             }
         }
 
+        putValue(DATA_DIR, f == null ? null : f.getPath());
+        putValue(DATA_DIR_URL, teamDataDirectoryURL);
+
         // if a URL has been provided, try it to see if it is valid.
-        if (TeamServerSelector.testServerURL(teamDataDirectoryURL) != null) {
+        if (new ProjectDataUrlTester(teamDataDirectoryURL).runTest()) {
             joinInfo.put(TEAM_DIRECTORY, "");
             joinInfo.put(TEAM_DIRECTORY_UNC, "");
             return new URL(teamDataDirectoryURL + "/");
         }
 
-        putValue(DATA_DIR, f == null ? null : f.getPath());
-        putValue(DATA_DIR_URL, teamDataDirectoryURL);
         throw new WizardError(IND_DATADIR_ERR_URL);
+    }
+
+    private class ProjectDataUrlTester extends Thread {
+
+        private String urlToTest, baseUrl;
+        private volatile boolean success, finished;
+        private WizardError error;
+
+        public ProjectDataUrlTester(String urlToTest) {
+            super("ProjectDataUrlTester");
+            this.setDaemon(true);
+            this.urlToTest = urlToTest;
+        }
+
+        /**
+         * Test the team data directory URL to see if the collection exists, and
+         * if the current user has permission to write to it.
+         * 
+         * @return true if the collection exists and we have permission to write
+         *         to it; false if the server cannot be reached, or the
+         *         collection does not exist
+         * @throws WizardError
+         *             if any permissions problems are discovered
+         */
+        public boolean runTest() throws WizardError {
+            // if we were given a bad URL, abort
+            if (urlToTest == null)
+                return false;
+            int pos = urlToTest.lastIndexOf("/DataBridge/");
+            if (pos == -1)
+                return false;
+
+            // try contacting the server homepage to see if the server is
+            // running and reachable. If not, return false.
+            try {
+                baseUrl = urlToTest.substring(0, pos+1);
+                URLConnection conn = new URL(baseUrl).openConnection();
+                conn.setConnectTimeout(2000);
+                HttpException.checkValid(conn);
+                conn.getInputStream().close();
+            } catch (Exception e) {
+                return false;
+            }
+
+            // next, we will perform tasks that require server authentication.
+            // if the user has not logged in before, these calls could block
+            // while a password prompt is displayed; so we perform them in a
+            // background thread.
+
+            boolean needsStart = true;
+            while (!finished) {
+                // check to see if the HTTP authenticator is currently asking
+                // the user for a password. If so, abort and tell the user to
+                // check back with the main dashboard window.
+                if (HttpAuthenticator.isPasswordDialogVisible())
+                    throw authError("enterPassword");
+
+                // start this thread for background auth checks if necessary
+                if (needsStart) {
+                    this.start();
+                    needsStart = false;
+                }
+
+                // wait a moment for any results to be computed
+                try {
+                    synchronized (this) {
+                        this.wait(100);
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+
+            // return the result to our caller
+            if (error != null)
+                throw error;
+            else
+                return success;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Check to see if the user has permission to write to this
+                // project collection. If they do not, this will throw an
+                // Unauthorized or Forbidden exception.
+                URL result = TeamServerSelector.testServerURL(urlToTest, null,
+                    ResourceBridgeConstants.Permission.write);
+
+                // the user has permission. Check to see if the named collection
+                // actually exists.
+                success = (result != null);
+
+            } catch (HttpException.Unauthorized u) {
+                error = authError("unauthorized");
+
+            } catch (HttpException.Forbidden f) {
+                error = authError("forbidden").param("username",
+                    HttpAuthenticator.getLastUsername());
+
+            } finally {
+                synchronized (this) {
+                    finished = true;
+                    notifyAll();
+                }
+            }
+        }
+
+        private WizardError authError(String reason) {
+            return new WizardError(IND_AUTH_ERR_URL).param(reason)
+                    .param("serverUrl", baseUrl);
+        }
     }
 
     protected void setPrefix(String newPrefix) {

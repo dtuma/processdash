@@ -1,0 +1,87 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+</head>
+<body>
+
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
+
+
+<!--#if unauthorized -->
+
+<h2>Invalid Login</h2>
+
+<p>To join the team project, the dashboard needs to contact the server at:</p>
+
+<pre>    <a class="plain" target="_top" href="<!--#echo serverUrl
+                      -->"><!--#echo [setup//Data_Directory_URL] --></a></pre>
+
+<p>This server requires you to log in; but you did not supply a valid username
+and password when prompted by the dashboard.</p>
+
+<p>If you do not have a username and password for the server, please contact
+your team leader for assistance. If you have forgotten your password, contact
+the server administrator.</p>
+
+<p>After you obtain your username and password, you can try joining the
+project again.</p>
+
+
+
+<!--#elif forbidden -->
+
+<h2>Insufficient Permission</h2>
+
+<p>You do not have permission to join this project, because you have not been
+added to the project's team member list.</p>
+
+<p>Contact your team leader for help.  Ask them to make sure that:</p>
+
+<ul>
+
+<li>You've been added to the Team Member List in the Work Breakdown Structure
+    Editor, and</li>
+
+<li>Your username (<tt><!--#echo username --></tt>) has been registered with
+    your entry there.</li>
+
+</ul>
+
+<p>After these problems have been corrected, you can try joining the project
+again.</p>
+
+
+
+<!--#elif enterPassword -->
+
+<h2>Enter Username and Password</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivStart'>
+<input type='hidden' name='__POST_TOKEN'
+       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+
+<p>To join the team project, the dashboard needs to contact the server at:</p>
+
+<pre>    <!--#echo [setup//Data_Directory_URL] --></pre>
+
+<p>This server requires you to log in.  Please return to the Process Dashboard
+window; it is currently displaying a username and password prompt.  Enter your
+username and password, then return to this page and press the &quot;Next&quot;
+button.</p>
+
+<p>If you do not have a username and password for the server, please contact
+your team leader for assistance.</p>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+
+<!--#endif-->
+
+</body>
+</html>
