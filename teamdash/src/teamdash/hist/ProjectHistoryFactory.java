@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import net.sourceforge.processdash.api.PDashData;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class ProjectHistoryFactory {
@@ -75,6 +76,9 @@ public class ProjectHistoryFactory {
             URL collectionUrl = new URL(serverUrl.toString() + "/");
             return new ProjectHistoryBridged(collectionUrl, //
                     getBool("wbsChangeHistory.precacheAll", false));
+        } catch (HttpException.Forbidden f) {
+            throw new ProjectHistoryException(f,
+                "Server.No_Permission_HTML_FMT", url);
         } catch (IOException ioe) {
             throw new ProjectHistoryException(ioe,
                     "Server.Cannot_Read_HTML_FMT", url);

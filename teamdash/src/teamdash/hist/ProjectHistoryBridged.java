@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import net.sourceforge.processdash.util.ClientHttpRequest;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FastDateFormat;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.TempFileFactory;
 
 import teamdash.wbs.WBSFilenameConstants;
@@ -68,6 +69,7 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         URL changeHistUrl = new URL(baseUrl,
                 WBSFilenameConstants.CHANGE_HISTORY_FILE);
         URLConnection conn = changeHistUrl.openConnection();
+        HttpException.checkValid(conn);
         conn.connect();
         cookies = extractCookies(conn);
         return conn.getInputStream();
