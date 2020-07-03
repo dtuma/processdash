@@ -69,16 +69,25 @@ public class HttpException extends IOException {
         }
     }
 
+    /** @since 2.5.6 */
+    public static class NotFound extends HttpException {
+        private NotFound(HttpURLConnection conn) throws IOException {
+            super(conn);
+        }
+    }
+
     public static void checkValid(URLConnection conn) throws IOException {
         if (conn instanceof HttpURLConnection) {
             HttpURLConnection httpConn = (HttpURLConnection) conn;
             int status = httpConn.getResponseCode();
             if (status / 100 == 2)
                 ;
-            else if (status == 401)
+            else if (status == HttpURLConnection.HTTP_UNAUTHORIZED)
                 throw new Unauthorized(httpConn);
-            else if (status == 403)
+            else if (status == HttpURLConnection.HTTP_FORBIDDEN)
                 throw new Forbidden(httpConn);
+            else if (status == HttpURLConnection.HTTP_NOT_FOUND)
+                throw new NotFound(httpConn);
             else
                 throw new HttpException(httpConn);
         }
