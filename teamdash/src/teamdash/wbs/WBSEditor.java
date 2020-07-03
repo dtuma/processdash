@@ -2110,7 +2110,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
     private static void displayStartupPermissionError(String resourceKey) {
-        Resources res = Resources.getDashBundle("Authentication.Errors");
+        Resources res = Resources.getDashBundle("WBSEditor.Errors.Server_Auth");
         String title = res.getString(resourceKey + ".Title");
         Object message = res.getStrings(resourceKey + ".Message");
         if (isDumpAndExitMode())
