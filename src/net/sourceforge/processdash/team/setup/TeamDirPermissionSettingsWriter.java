@@ -33,14 +33,17 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+/** @since 2.5.6 */
 public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
 
     private DashboardContext ctx;
@@ -73,7 +76,7 @@ public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
     private static void writeTeamSettings(SimpleData sd, XmlSerializer xml)
             throws IOException {
         if (sd != null && sd.test()) {
-            String[] usernames = sd.format().split("[, \t]+");
+            String[] usernames = sd.format().trim().split("[, \t]+");
             if (usernames.length > 0) {
                 xml.startTag(null, ACCESS_TAG);
                 xml.attribute(null, "type", "read-write");
@@ -118,6 +121,17 @@ public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
             }
         }
         return null;
+    }
+
+
+
+    public static void setExtraUsers(DataContext data, String users) {
+        new DashboardPermission("teamDirExtraUsers").checkPermission();
+        StringData usersVal = StringUtils.hasValue(users)
+                ? StringData.create(users) : null;
+        data.putValue(USER_DATA_NAME, usersVal);
+        data.putValue(PUB_DATA_NAME, usersVal);
+        data.putValue(TS_DATA_NAME, new DateData());
     }
 
 
