@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -36,10 +35,10 @@ public class RepublishTeamSettings extends TinyCGIBase {
 
     @Override
     protected void writeContents() throws IOException {
-        // ensure we are running in a team dashboard
+        // the republisher isn't normally initialized for personal dashboards,
+        // so if we're in a personal dashboard, make sure it's been initialized
         if (!Settings.isTeamMode())
-            throw new TinyCGIException(400,
-                    "Only supported for team dashboards");
+            TeamSettingsRepublisher.init(getDashboardContext());
 
         // perform the requested republish operation
         List<String> errors = TeamSettingsRepublisher.getInstance()
@@ -47,9 +46,9 @@ public class RepublishTeamSettings extends TinyCGIBase {
 
         // write the results
         out.write(
-            "<html><head><title>Republish Team Settings</title></head>\n");
-        out.write("<body><h1>Republish Team Settings</h1>\n");
-        out.write("Team settings files republished at " + new Date());
+            "<html><head><title>Republish Project Settings</title></head>\n");
+        out.write("<body><h1>Republish Project Settings</h1>\n");
+        out.write("Project settings files republished at " + new Date());
 
         // if any errors were encountered, mention them
         if (!errors.isEmpty()) {

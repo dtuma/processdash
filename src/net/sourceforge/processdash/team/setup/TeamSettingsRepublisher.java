@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -61,13 +62,17 @@ public class TeamSettingsRepublisher {
 
     private DashboardContext ctx;
 
+    /** @since 2.5.6 */
+    private boolean team;
+
     private volatile long needDate, publishDate;
 
     private BackgroundRepublisher worker;
 
     private TeamSettingsRepublisher(DashboardContext ctx) {
         this.ctx = ctx;
-        this.needDate = System.currentTimeMillis();
+        this.team = Settings.isTeamMode();
+        this.needDate = team ? System.currentTimeMillis() : -1;
         this.worker = new BackgroundRepublisher();
         this.worker.start();
     }
@@ -118,7 +123,9 @@ public class TeamSettingsRepublisher {
      */
     private void republish(DashHierarchy hier, PropertyKey key, boolean force,
             List<String> errors) {
-        if (isTeamProjectRoot(hier.pget(key).getID())) {
+        String templateID = hier.pget(key).getID();
+        if (team ? isTeamProjectRoot(templateID)
+                 : isPersonalProjectRoot(templateID, key)) {
             String projectPath = key.path();
             try {
                 republishProject(projectPath, force);
@@ -142,6 +149,17 @@ public class TeamSettingsRepublisher {
         else
             return (templateID.endsWith("/TeamRoot")
                     || templateID.endsWith("/MasterRoot"));
+    }
+
+    /** @since 2.5.6 */
+    private boolean isPersonalProjectRoot(String templateID, PropertyKey key) {
+        if (templateID != null && templateID.endsWith("/Indiv2Root")) {
+            String dataName = DataRepository.createDataName(key.path(),
+                TeamDataConstants.PERSONAL_PROJECT_FLAG);
+            SimpleData sd = ctx.getData().getSimpleValue(dataName);
+            return (sd != null && sd.test());
+        }
+        return false;
     }
 
     /**
