@@ -235,7 +235,7 @@ public class TeamSettingsFile {
     }
 
     public boolean isDatasetMatch() {
-        if (datasetID == null)
+        if (datasetID == null || FORCED_DATASET_ID != null || isPersonal)
             return true;
         else
             return datasetID.equals(DashController.getDatasetID());
@@ -416,7 +416,9 @@ public class TeamSettingsFile {
             TemplateLoader.getPackageVersion("pspdash"));
         writeAttr(out, indent, TIMESTAMP_ATTR,
             "@" + System.currentTimeMillis());
-        if (datasetID == null)
+        if (FORCED_DATASET_ID != null)
+            datasetID = FORCED_DATASET_ID;
+        else if (isPersonal || datasetID == null)
             datasetID = DashController.getDatasetID();
         writeAttr(out, indent, DATASET_ID_ATTR, datasetID);
         if (DATA_URL != null)
@@ -537,6 +539,14 @@ public class TeamSettingsFile {
     }
 
     private static String DATA_URL = null;
+
+    /** @since 2.5.6 */
+    public static void setForcedDatasetID(String datasetID) {
+        PERMISSION.checkPermission();
+        FORCED_DATASET_ID = datasetID;
+    }
+
+    private static String FORCED_DATASET_ID = null;
 
 
     private static final DashboardPermission PERMISSION = new DashboardPermission(
