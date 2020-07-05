@@ -119,7 +119,7 @@ public class TeamSettingsFile {
             throw new IllegalArgumentException("No location specified");
 
         this.datasetID = null;
-        this.datasetUrl = DATA_URL;
+        this.datasetUrl = DATASET_URL;
         this.isPersonal = false;
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
@@ -421,8 +421,8 @@ public class TeamSettingsFile {
         else if (isPersonal || datasetID == null)
             datasetID = DashController.getDatasetID();
         writeAttr(out, indent, DATASET_ID_ATTR, datasetID);
-        if (DATA_URL != null)
-            datasetUrl = DATA_URL;
+        if (DATASET_URL != null)
+            datasetUrl = DATASET_URL;
         writeAttr(out, indent, DATASET_URL_ATTR, datasetUrl);
         out.write(">" + NL);
 
@@ -533,12 +533,12 @@ public class TeamSettingsFile {
             .synchronizedList(new ArrayList<TeamSettingsDataWriter>());
 
     /** @since 2.5.6 */
-    public static void setDataURL(String dataUrl) {
+    public static void setDatasetURL(String datasetUrl) {
         PERMISSION.checkPermission();
-        DATA_URL = dataUrl;
+        DATASET_URL = datasetUrl;
     }
 
-    private static String DATA_URL = null;
+    private static String DATASET_URL = null;
 
     /** @since 2.5.6 */
     public static void setForcedDatasetID(String datasetID) {

@@ -644,7 +644,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             System.exit(1);
         }
         if (workingDirectory instanceof BridgedWorkingDirectory)
-            TeamSettingsFile.setDataURL(workingDirectory.getDescription());
+            TeamSettingsFile.setDatasetURL(workingDirectory.getDescription());
         if (Settings.isTeamMode()) {
             TeamSettingsFile.addDataWriter(new UserGroupSettingsWriter());
             TeamSettingsFile.addDataWriter(new WbsPermissionSettingsWriter());
