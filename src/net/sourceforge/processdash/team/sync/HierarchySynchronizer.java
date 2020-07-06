@@ -93,6 +93,7 @@ import net.sourceforge.processdash.log.defects.DefectWorkflowPhaseUpdater;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.WorkflowInfo;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.TeamDirPermissionSettingsWriter;
 import net.sourceforge.processdash.team.sync.SyncWorker.DataSyncResult;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
@@ -995,6 +996,7 @@ public class HierarchySynchronizer {
             getLabelData(projectXML, milestoneNames, labelData, milestoneData);
             saveHierarchyFilterInfo(projectXML);
             saveTeamMemberInfo();
+            maybeClearProgrammaticExtraUsers();
         }
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs(),
             Collections.EMPTY_SET);
@@ -1309,6 +1311,33 @@ public class HierarchySynchronizer {
             l.add(item);
         }
         putData(this.projectPath, TeamDataConstants.TEAM_MEMBER_COLORS, l);
+    }
+
+    private void maybeClearProgrammaticExtraUsers() {
+        // see if an "extra users" value was programmatically set in the past
+        // (most likely by a PDES migration). If not, return.
+        DataContext data = dataRepository.getSubcontext(projectPath);
+        if (!TeamDirPermissionSettingsWriter.hasProgrammaticExtraUsers(data))
+            return;
+
+        // Look at the team members on this project to see if they all have
+        // server identity data.
+        for (Element e : XMLUtils.getChildElements(projectXML)) {
+            if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
+                String sid = e.getAttribute("serverIdentityData");
+                if (!XMLUtils.hasValue(sid))
+                    // we found a team member without identity data. We
+                    // shouldn't clear the "extra users" value, because this
+                    // person could lose access.
+                    return;
+            }
+        }
+
+        // all of the individuals on this project have server identity data.
+        // this would suggest that the team leader has registered usernames
+        // for all of them. We can discard the programmatic "extra users" value
+        // without worrying that we'll lock out any team members.
+        TeamDirPermissionSettingsWriter.setExtraUsers(data, null);
     }
 
 

@@ -131,7 +131,26 @@ public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
                 ? StringData.create(users) : null;
         data.putValue(USER_DATA_NAME, usersVal);
         data.putValue(PUB_DATA_NAME, usersVal);
+        data.putValue(PROG_DATA_NAME, usersVal);
         data.putValue(TS_DATA_NAME, new DateData());
+    }
+
+
+    public static boolean hasProgrammaticExtraUsers(DataContext data) {
+        // see if a value was stored by a previous call to setExtraUsers
+        SimpleData progVal = data.getSimpleValue(PROG_DATA_NAME);
+        if (progVal == null)
+            return false;
+
+        // return true if the programmatic value matches the user-editable value
+        SimpleData userVal = data.getSimpleValue(USER_DATA_NAME);
+        if (eq(progVal, userVal))
+            return true;
+
+        // the user has edited the value since it was programmatically set.
+        // Clear the programmatic value and return false
+        data.putValue(PROG_DATA_NAME, null);
+        return false;
     }
 
 
@@ -175,15 +194,15 @@ public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
             xml.endDocument();
             out.flush();
         }
+    }
 
-        private boolean eq(SimpleData a, SimpleData b) {
-            if (a == b)
-                return true;
-            else if (a == null || b == null)
-                return false;
-            else
-                return a.format().equals(b.format());
-        }
+    private static boolean eq(SimpleData a, SimpleData b) {
+        if (a == b)
+            return true;
+        else if (a == null || b == null)
+            return false;
+        else
+            return a.format().equals(b.format());
     }
 
 
@@ -191,6 +210,8 @@ public class TeamDirPermissionSettingsWriter implements TeamSettingsDataWriter {
     private static final String USER_DATA_NAME = "Team_Data_Directory_Users";
 
     private static final String PUB_DATA_NAME = USER_DATA_NAME + "_Published";
+
+    private static final String PROG_DATA_NAME = USER_DATA_NAME + "_Programmatic";
 
     private static final String TS_DATA_NAME = USER_DATA_NAME + "_Timestamp";
 
