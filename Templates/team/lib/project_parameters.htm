@@ -62,6 +62,13 @@
 <td><input type="text" size="50" class="notTeamSetting" name="[Project_ID]rs"></td>
 </tr>
 
+<tr>
+<td>Project Metrics Framework</td>
+<td><input type="text" size="50" class="notTeamSetting"
+    [!--#if unlock #--] id="MCF_NOT_DATA" value="<!--#echo Full_Name -->" [!--#endif--]
+    name="[Team_Process_Name]rs"></td>
+</tr>
+
 [!--#if showTeamDir || ![Team_Directory_URL_Only] && ![Personal_Project] --]
 <tr>
 <td>TEAM Project Network Directory</td>

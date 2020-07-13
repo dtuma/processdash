@@ -280,9 +280,9 @@
        <!--#endbreak comment-->
 
     <html ID="sump" href="PID/indiv_plan_summary"
-        title="<!--#echo Full_Name --> Project Plan Summary"/>
+        title="Project Plan Summary"/>
     <html ID="size" href="PID/sizeForm.class"
-        title="<!--#echo Full_Name --> Size Inventory"/>
+        title="Project Size Inventory"/>
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"
         inPackage="show-PID-process-script"/>
@@ -440,9 +440,9 @@
        <!--#endbreak comment-->
 
     <html ID="sump" href="PID/plan_summary.shtm"
-        title="<!--#echo Full_Name --> Project Plan Summary"/>
+        title="Project Plan Summary"/>
     <html ID="size" href="PID/sizeForm.class"
-        title="<!--#echo Full_Name --> Size Inventory"/>
+        title="Project Size Inventory"/>
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"
         inPackage="show-PID-process-script"/>
