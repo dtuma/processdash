@@ -402,13 +402,13 @@ public class ExtSynchronizer {
 
         // if the user edited the "remaining time" in the external system,
         // propagate that change as needed
-        boolean remEdited = extRem != null && !eq(extRem, lastSyncRem);
+        boolean remEdited = (extRem != null && !timeEq(extRem, lastSyncRem));
         if (remEdited) {
             // calculate the new total estimated time
             double newTime = extRem + wbsAct;
 
             // update the estimate in the WBS with the new total time
-            if (!eq(wbsTime, newTime)) {
+            if (!timeEq(wbsTime, newTime)) {
                 wbsUtil.changeTimeEstimate(node, wbsTime, newTime);
                 metadata.setNum(newTime, extID, EST_TIME, LAST_SYNC);
                 metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
@@ -416,7 +416,7 @@ public class ExtSynchronizer {
             }
 
             // copy this change back to the external system if needed
-            if (extTime != null && !eq(extTime, newTime)) {
+            if (extTime != null && !timeEq(extTime, newTime)) {
                 recordOutboundChange(extNode, EST_TIME, newTime);
             }
 
@@ -432,16 +432,16 @@ public class ExtSynchronizer {
         // perform a bidirectional sync of total estimated time
         if (extTime != null) {
             // compare value pairs to identify changes that have been made
-            boolean valuesMatch = eq(extTime, wbsTime);
-            boolean extEdited = !eq(extTime, lastSyncTime);
-            boolean wbsEdited = !eq(wbsTime, lastSyncTime);
+            boolean valuesMatch = timeEq(extTime, wbsTime);
+            boolean extEdited = !timeEq(extTime, lastSyncTime);
+            boolean wbsEdited = !timeEq(wbsTime, lastSyncTime);
 
             // compare estimates and determine if changes are needed
             if (valuesMatch) {
                 // the time in the WBS agrees with the external system, so no
                 // changes are needed to the estimates themselves. Update the
                 // tracking metdata if needed.
-                if (!eq(wbsTime, lastSyncTime))
+                if (!timeEq(wbsTime, lastSyncTime))
                     metadata.setNum(wbsTime, extID, EST_TIME, LAST_SYNC);
                 metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
 
@@ -463,7 +463,7 @@ public class ExtSynchronizer {
 
         // update the remaining time in the external system if needed
         if (extRem != null) {
-            boolean remChanged = !eq(newRem, lastSyncRem);
+            boolean remChanged = !timeEq(newRem, lastSyncRem);
             if (remChanged) {
                 recordOutboundChange(extNode, REM_TIME, newRem);
             } else {
@@ -517,7 +517,7 @@ public class ExtSynchronizer {
 
         // retrieve the WBS actual time
         double wbsTime = wbsUtil.getActualTime(node);
-        if (!eq(wbsTime, extTime)) {
+        if (!timeEq(wbsTime, extTime)) {
             // create an object to record the external change that is needed
             ExtChange change = getExtChange(extNode);
             change.attrValues.put(ExtChange.ACT_TIME_ATTR, wbsTime);
@@ -563,9 +563,10 @@ public class ExtSynchronizer {
         return newChange;
     }
 
-    private boolean eq(double a, double b) {
-        return (Math.abs(a - b) < 0.001);
+    private boolean timeEq(double a, double b) {
+        return (Math.abs(a - b) < ONE_MINUTE);
     }
+    private static final double ONE_MINUTE = 1.0/60;
 
 
     public void updateProjDump() throws IOException {
