@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,24 @@ public class ExtSyncCoordinator {
         this.extSystemID = extSystemID;
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
+    }
+
+    /**
+     * Perform one round-trip synchronization run between this WBS and the given
+     * set of external nodes.
+     */
+    public void run(ExtNodeSet nodeSet) throws IOException {
+        // retrieve the list of nodes from the external system
+        List<ExtNode> extNodes = nodeSet.getExtNodes();
+
+        // synchronize external changes into the WBS
+        List<ExtChange> changes = run(extNodes);
+
+        // synchronize WBS changes back to the external system
+        nodeSet.applyWbsChanges(changes, getMetadata());
+
+        // save metadata to record the completed operation
+        saveMetadata();
     }
 
     public List<ExtChange> run(List<ExtNode> extNodes) {
