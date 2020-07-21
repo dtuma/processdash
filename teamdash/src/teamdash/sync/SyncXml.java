@@ -32,6 +32,7 @@ import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlSerializer;
@@ -89,7 +90,7 @@ public class SyncXml implements SyncXmlConstants {
         }
 
         @Override
-        public List<ExtNode> getExtNodes() {
+        public List<ExtNode> getExtNodes(Set<String> ignored) {
             return getExtNodeChildren(xml);
         }
 

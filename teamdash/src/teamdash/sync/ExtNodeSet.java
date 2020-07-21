@@ -25,10 +25,12 @@ package teamdash.sync;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public interface ExtNodeSet {
 
-    public List<ExtNode> getExtNodes() throws IOException;
+    public List<ExtNode> getExtNodes(Set<String> includingIDs)
+            throws IOException;
 
     public void applyWbsChanges(List<ExtChange> changes, SyncMetadata metadata)
             throws IOException;

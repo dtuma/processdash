@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,9 +32,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
@@ -103,10 +105,38 @@ public class ExtSynchronizer {
         return extChangesNeeded;
     }
 
+    /**
+     * Get the IDs of nodes that were copied into the WBS in the past, which the
+     * user has moved out from under the "Incoming" node (implying they are
+     * being used within the project)
+     */
+    public Set<String> getIDsOfNodesUsedInWbs() {
+        // create a set of all known external IDs in the WBS
+        Set<String> result = new HashSet<String>(extNodeMap.keySet());
+
+        // discard the ID of the incoming node
+        result.remove(ExtSyncUtil.INCOMING_PARENT_ID);
+
+        // discard IDs of nodes that appear under the incoming node
+        WBSNode incoming = extNodeMap.get(ExtSyncUtil.INCOMING_PARENT_ID);
+        if (incoming != null) {
+            Map<String, WBSNode> incomingNodeMap = buildExtNodeMap(
+                Arrays.asList(wbs.getDescendants(incoming)));
+            result.removeAll(incomingNodeMap.keySet());
+        }
+
+        // return the result
+        return result;
+    }
+
 
     private Map<String, WBSNode> buildExtNodeMap() {
+        return buildExtNodeMap(wbs.getWbsNodes());
+    }
+
+    private Map<String, WBSNode> buildExtNodeMap(List<WBSNode> nodesToScan) {
         Map<String, WBSNode> result = new HashMap<String, WBSNode>();
-        for (WBSNode node : wbs.getWbsNodes()) {
+        for (WBSNode node : nodesToScan) {
             String oneID = (String) node.getAttribute(extIDAttr);
             if (StringUtils.hasValue(oneID)) {
                 if (result.containsKey(oneID)) {

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,11 +70,8 @@ public class ExtSyncCoordinator {
      * set of external nodes.
      */
     public void run(ExtNodeSet nodeSet) throws IOException {
-        // retrieve the list of nodes from the external system
-        List<ExtNode> extNodes = nodeSet.getExtNodes();
-
         // synchronize external changes into the WBS
-        List<ExtChange> changes = run(extNodes);
+        List<ExtChange> changes = applyExtChanges(nodeSet);
 
         // synchronize WBS changes back to the external system
         nodeSet.applyWbsChanges(changes, getMetadata());
@@ -82,27 +80,27 @@ public class ExtSyncCoordinator {
         saveMetadata();
     }
 
-    public List<ExtChange> run(List<ExtNode> extNodes) {
-        // write the external nodes to the log if requested
-        if (debug.isLoggable(Level.FINEST))
-            debugWriteExtNodes(extNodes);
-
+    private List<ExtChange> applyExtChanges(ExtNodeSet nodeSet)
+            throws IOException {
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
-        try {
-            dataTarget.update();
-            metadata = syncData.getMetadata();
-        } catch (IOException e1) {
-            log.severe(logPrefix + "Could not retrieve current data");
-            return Collections.EMPTY_LIST;
-        }
+        dataTarget.update();
+        metadata = syncData.getMetadata();
         TeamProject teamProject = new QuickTeamProject(dataDir, "");
 
-        // perform a trial sync operation
+        // retrieve the list of nodes from the external system
         ExtSynchronizer sync = new ExtSynchronizer(teamProject, extSystemName,
                 extSystemID, metadata);
+        Set<String> priorIDs = sync.getIDsOfNodesUsedInWbs();
+        List<ExtNode> extNodes = nodeSet.getExtNodes(priorIDs);
+
+        // write the external nodes to the log if requested
+        if (debug.isLoggable(Level.FINEST))
+            debugWriteExtNodes(extNodes);
+
+        // perform a trial sync operation
         sync.sync(extNodes);
         if (sync.wasWbsChanged() == false) {
             // no changes were needed to the WBS
