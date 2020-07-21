@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,24 +59,45 @@ public class SyncXml implements SyncXmlConstants {
         if (!XMLUtils.hasValue(extSystemName))
             extSystemName = extSystemID;
 
-        // parse the node descriptions found in the XML file
-        List<ExtNode> extNodes = getExtNodeChildren(xml);
+        // create an object to manage the list of XML node data
+        XmlNodeSet nodeSet = new XmlNodeSet(xml,
+                args.length > 2 ? args[2] : null);
 
         // perform the synchronization operation
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
                 extSystemName, extSystemID);
-        List<ExtChange> changes = coord.run(extNodes);
+        coord.run(nodeSet);
 
         // dispose of resources
         dataTarget.dispose();
-
-        // write external changes
-        writeChanges(changes, args.length > 2 ? args[2] : null);
 
         // display elapsed time
         long end = System.currentTimeMillis();
         long elapsed = end - start;
         ExtSynchronizer.log.fine("Synchronization took " + elapsed + " ms.");
+    }
+
+
+    private static class XmlNodeSet implements ExtNodeSet {
+
+        private Element xml;
+        private String outFile;
+
+        private XmlNodeSet(Element xml, String outFile) {
+            this.xml = xml;
+            this.outFile = outFile;
+        }
+
+        @Override
+        public List<ExtNode> getExtNodes() {
+            return getExtNodeChildren(xml);
+        }
+
+        @Override
+        public void applyWbsChanges(List<ExtChange> changes,
+                SyncMetadata metadata) throws IOException {
+            writeChanges(changes, outFile);
+        }
     }
 
     private static List<ExtNode> getExtNodeChildren(Element xml) {
