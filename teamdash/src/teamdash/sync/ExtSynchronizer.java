@@ -176,10 +176,18 @@ public class ExtSynchronizer {
             previousSibling = node;
         }
 
-        for (Entry<String, WBSNode> e : oldWbsNodes.entrySet()) {
-            String extID = e.getKey();
-            WBSNode oldNode = e.getValue();
-            scrubOrDeleteNode(parent, extID, oldNode);
+        // if any WBS nodes were created by a previous sync but are no longer
+        // present in the external system, clean them up
+        if (!oldWbsNodes.isEmpty()) {
+            // scan the "incoming" node for children that are no longer needed
+            scrubOrDeleteObsoleteIncomingNodes(incomingNodeParent, oldWbsNodes);
+
+            // scrub unneeded nodes that appear elsewhere in the WBS
+            for (Entry<String, WBSNode> e : oldWbsNodes.entrySet()) {
+                String extID = e.getKey();
+                WBSNode oldNode = e.getValue();
+                scrubOrDeleteNode(false, extID, oldNode);
+            }
         }
     }
 
@@ -333,9 +341,23 @@ public class ExtSynchronizer {
         return false;
     }
 
-    private void scrubOrDeleteNode(WBSNode parent, String extID,
+    private void scrubOrDeleteObsoleteIncomingNodes(WBSNode node,
+            HashMap<String, WBSNode> deletableNodes) {
+        // recurse over children first, deleting any that are no longer needed.
+        // this will enable trees of obsolete nodes to be eligible for deletion
+        for (WBSNode child : wbs.getChildren(node)) {
+            scrubOrDeleteObsoleteIncomingNodes(child, deletableNodes);
+        }
+
+        // if the current node is deletable, clean it up
+        String nodeExtID = (String) node.getAttribute(extIDAttr);
+        if (deletableNodes.remove(nodeExtID) != null)
+            scrubOrDeleteNode(true, nodeExtID, node);
+    }
+
+    private void scrubOrDeleteNode(boolean isIncomingNode, String extID,
             WBSNode oldNode) {
-        if (wbs.getParent(oldNode) == parent && wbs.isLeaf(oldNode)) {
+        if (isIncomingNode && wbs.isLeaf(oldNode)) {
             // if this node is still in the "incoming items" bucket and is
             // still a leaf, delete it from the WBS entirely.
             wbs.deleteNodes(Collections.singletonList(oldNode));
