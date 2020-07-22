@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,6 +76,9 @@ public class ExternalNodeIDColumn extends AbstractDataColumn
 
     @Override
     public Object getValueAt(WBSNode node) {
+        if (ExtSyncUtil.isExtNode(node) == false)
+            return null;
+
         String id = (String) node.getAttribute(idAttr);
         if (ExtSyncUtil.INCOMING_PARENT_ID.equals(id))
             id = null;

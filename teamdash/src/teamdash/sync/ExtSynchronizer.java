@@ -236,6 +236,17 @@ public class ExtSynchronizer {
                 wbsChanged = true;
             }
 
+            // if the node isn't read-only, it represents an external node that
+            // disappeared from our query in the past (and was "scrubbed" as a
+            // result), but has just returned. Add the attributes we need to
+            // mark it as an external node again.
+            if (node.isReadOnly() == false) {
+                node.setType(TeamProcess.COMPONENT_TYPE);
+                node.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
+                node.setReadOnly(true);
+                wbsChanged = true;
+            }
+
             // if the WBS node has the wrong parent, move it under the right
             // parent. Note that we skip this change in certain situations:
             //
@@ -362,11 +373,21 @@ public class ExtSynchronizer {
             // still a leaf, delete it from the WBS entirely.
             wbs.deleteNodes(Collections.singletonList(oldNode));
 
+        } else if (ExtSyncUtil.isExtNode(oldNode) == false) {
+            // if this node was already scrubbed at some time in the past,
+            // return without making any changes to the WBS.
+            return;
+
         } else {
             // if this node has been moved out from the "incoming items" bucket,
             // or if children have been created underneath it, don't delete it.
             // Instead, turn it back into a "normal" node.
             ExtSyncUtil.removeExtNodeAttributes(oldNode);
+
+            // write the extID back into the node. This will make it possible
+            // for a future run to reclaim this WBS node if the given ext node
+            // reappears in the query.
+            oldNode.setAttribute(extIDAttr, extID);
         }
 
         metadata.discardAttrs(extID);
