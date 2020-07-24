@@ -396,6 +396,7 @@ public class ExtSynchronizer {
 
 
     private void syncReadOnlyFields(List<ExtNode> extNodes) {
+        String keyAttr = ExtSyncUtil.getExtKeyAttr(extSystemID);
         String urlAttr = ExtSyncUtil.getExtUrlAttr(extSystemID);
         String ownerAttr = ExtSyncUtil.getExtOwnerAttr(extSystemID);
         for (ExtNode extNode : extNodes) {
@@ -403,6 +404,9 @@ public class ExtSynchronizer {
             WBSNode node = extNodeMap.get(extNode.getID());
             if (node == null)
                 continue;
+
+            // save the user-facing key for the given node
+            saveReadOnlyAttr(node, keyAttr, extNode.getKey());
 
             // save the external URL for the given node
             saveReadOnlyAttr(node, urlAttr, extNode.getUrl());

@@ -50,7 +50,7 @@ import teamdash.wbs.WBSNode;
 public class ExternalNodeIDColumn extends AbstractDataColumn
         implements ExternalSystemPrimaryColumn, CustomEditedColumn, LinkSource {
 
-    private String idAttr, urlAttr;
+    private String idAttr, keyAttr, urlAttr;
 
     private String lastCellEditUrl;
 
@@ -58,6 +58,7 @@ public class ExternalNodeIDColumn extends AbstractDataColumn
         this.columnID = systemID + " ID";
         this.columnName = resources.format("External_ID.Name_FMT", systemName);
         this.idAttr = ExtSyncUtil.getExtIDAttr(systemID);
+        this.keyAttr = ExtSyncUtil.getExtKeyAttr(systemID);
         this.urlAttr = ExtSyncUtil.getExtUrlAttr(systemID);
     }
 
@@ -79,7 +80,9 @@ public class ExternalNodeIDColumn extends AbstractDataColumn
         if (ExtSyncUtil.isExtNode(node) == false)
             return null;
 
-        String id = (String) node.getAttribute(idAttr);
+        String id = (String) node.getAttribute(keyAttr);
+        if (id == null)
+            id = (String) node.getAttribute(idAttr);
         if (ExtSyncUtil.INCOMING_PARENT_ID.equals(id))
             id = null;
         return (id == null ? null : new ReadOnlyValue(id));

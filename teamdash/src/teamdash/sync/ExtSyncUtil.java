@@ -66,6 +66,10 @@ public class ExtSyncUtil {
         return EXT_ATTR_PREFIX + systemID + " ID";
     }
 
+    public static String getExtKeyAttr(String systemID) {
+        return EXT_ATTR_PREFIX + systemID + " Key";
+    }
+
     public static String getExtUrlAttr(String systemID) {
         return EXT_ATTR_PREFIX + systemID + " Script URL";
     }

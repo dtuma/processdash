@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,12 @@ public interface ExtNode {
      * @return the unique ID assigned to this node by the external system
      */
     public String getID();
+
+    /**
+     * @return a user-facing identifier assigned to this node by the external
+     *         system, or null if the system reuses the ID for this purpose
+     */
+    public String getKey();
 
     /**
      * @return the name of this node in the external system
