@@ -80,6 +80,24 @@ public class WBSSynchronizer {
 
     private TeamProject teamProject;
 
+    /**
+     * The data model that performs interdependent data calculations for this
+     * WBS.
+     *
+     * <b>Important:</b> the data model will be null when an external
+     * synchronization task (e.g. between PD and Jira/TFS) is running. As a
+     * result, all logic in this class must be:
+     * 
+     * <ul>
+     * 
+     * <li>Defensively coded to ensure NullPointerExceptions are not thrown when
+     * the dataModel is null</li>
+     * 
+     * <li>Thoughtfully coded to ensure that external sync tasks have all the
+     * accurate data they need to do their work.</li>
+     * 
+     * </ul>
+     */
     private DataTableModel dataModel;
 
     private Element explicitDumpData;
@@ -832,7 +850,25 @@ public class WBSSynchronizer {
                     dataModel.setValueAt(new Double(newUserTime), node,
                         indivTimeColumn);
                 } else {
+                    // retrieve the time that is currently set for this person
+                    double currUserTime = node.getNumericAttribute(timeAttrName);
+                    if (Double.isNaN(currUserTime))
+                        currUserTime = 0;
+                    double delta = newUserTime - currUserTime;
+
+                    // set the new time for this individual
                     node.setNumericAttribute(timeAttrName, newUserTime);
+
+                    // discard the precomputed time-per-person, so the WBS
+                    // Editor can figure it out next time it runs
+                    node.removeAttribute(TeamTimeColumn.TPP_ATTR);
+
+                    // update the total team time based on this change
+                    double currTeamTime = node.getNumericAttribute( //
+                        TeamTimeColumn.TEAM_TIME_ATTR);
+                    double newTeamTime = currTeamTime + delta;
+                    node.setNumericAttribute(TeamTimeColumn.TEAM_TIME_ATTR,
+                        newTeamTime);
                 }
                 node.setNumericAttribute(syncAttrName, newUserTime);
             }

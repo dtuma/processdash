@@ -284,7 +284,7 @@ public class WBSUtil {
         return (Math.abs(a - b) < 0.0001);
     }
 
-    private static final String TEAM_TIME_ATTR = "Time (Top Down)";
+    private static final String TEAM_TIME_ATTR = TeamTimeColumn.TEAM_TIME_ATTR;
 
     private static final String TPP_ATTR = TeamTimeColumn.TPP_ATTR;
 
