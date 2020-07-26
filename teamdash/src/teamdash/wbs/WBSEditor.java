@@ -116,6 +116,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -744,8 +745,37 @@ public class WBSEditor implements WindowListener, SaveListener,
         return !isZipWorkingDirectory();
     }
 
-    private boolean isZipWorkingDirectory() {
+    public boolean isZipWorkingDirectory() {
         return workingDirectory instanceof CompressedWorkingDirectory;
+    }
+
+    private boolean isNullZipWorkingDirectory() {
+        return CompressedWorkingDirectory.isNullZipDir(workingDirectory);
+    }
+
+    protected void setZipTarget(File file) {
+        // if our working directory isn't for a ZIP file, abort
+        if (isZipWorkingDirectory() == false)
+            return;
+
+        // change the ZIP target for our working directory
+        ((CompressedWorkingDirectory) workingDirectory).setTargetZipFile(file);
+
+        // update the window title
+        String windowTitle = workingDirectory.getDescription() + " - "
+                + resources.getString("Window.Title_Suffix");
+        frame.setTitle(windowTitle);
+
+        // try acquiring a process lock for the new ZIP file. This will let
+        // other processes on the computer know that this WBS Editor window can
+        // display data in the given file (in case the user tries reopening it)
+        try {
+            LockMessageDispatcher dispatch = new LockMessageDispatcher();
+            workingDirectory.acquireProcessLock(null, dispatch);
+            dispatch.setEditor(this);
+        } catch (LockFailureException lfe) {
+            // if we can't acquire a process lock on the ZIP, ignore the error
+        }
     }
 
     private boolean isQuicklaunchedZipDirectory() {
@@ -855,8 +885,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void raiseWindow() {
-        frame.setVisible(true);
-        frame.toFront();
+        WindowUtils.showWindowToFront(frame);
     }
 
     public void showTeamListEditor() {
@@ -1116,7 +1145,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         return result;
     }
-    private Action saveAction, replaceAction, importFromCsvAction;
+    private Action saveAction, saveAsAction, replaceAction, importFromCsvAction;
     private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
         JMenu result = new JMenu(resources.getString("Window.File_Menu"));
         result.setMnemonic('F');
@@ -1131,7 +1160,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         if (!isMode(MODE_BOTTOM_UP)) {
             WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
-            result.add(makeMenuItem(new WBSSaveAsAction(this, openAction)));
+            result.add(saveAsAction = new WBSSaveAsAction(this, openAction));
             result.add(makeMenuItem(openAction));
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
@@ -2394,11 +2423,15 @@ public class WBSEditor implements WindowListener, SaveListener,
             putValue(MNEMONIC_KEY, new Integer('S'));
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, //
                 MacGUIUtils.getCtrlModifier()));
-            setEnabled(!readOnly && isDirty());
+            setEnabled(!readOnly && (isDirty() || isNullZipWorkingDirectory()));
             firstSave = true;
         }
         public void actionPerformed(ActionEvent e) {
-            save();
+            if (isNullZipWorkingDirectory()) {
+                saveAsAction.actionPerformed(e);
+            } else {
+                save();
+            }
 
             if (firstSave) {
                 maybeShowProjectClosedMessage();

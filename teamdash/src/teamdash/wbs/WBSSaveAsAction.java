@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,15 +44,21 @@ import net.sourceforge.processdash.util.FileUtils;
 
 public class WBSSaveAsAction extends AbstractAction {
 
+    private boolean saveAsCopyMode;
+
+    private Resources resources;
+
     private WBSEditor wbsEditor;
 
     private WBSOpenFileAction openAction;
 
-    private static final Resources resources = Resources
-            .getDashBundle("WBSEditor.Save_As");
-
     public WBSSaveAsAction(WBSEditor wbsEditor, WBSOpenFileAction openAction) {
-        super(resources.getString("Menu"), IconFactory.getSaveCopyIcon());
+        this.saveAsCopyMode = !wbsEditor.isZipWorkingDirectory();
+        this.resources = Resources.getDashBundle(
+            saveAsCopyMode ? "WBSEditor.Save_Copy" : "WBSEditor.Save_AS");
+        putValue(NAME, resources.getString("Menu"));
+        putValue(SMALL_ICON, saveAsCopyMode ? IconFactory.getSaveCopyIcon()
+                : IconFactory.getSaveAsIcon());
         putValue(MNEMONIC_KEY, new Integer(resources.getString("Mnemonic")
             .charAt(0)));
         this.wbsEditor = wbsEditor;
@@ -96,6 +102,7 @@ public class WBSSaveAsAction extends AbstractAction {
         if (f != null && !f.getName().toLowerCase().endsWith(".zip"))
             f = new File(f.getParentFile(), f.getName() + ".zip");
 
+        // if the file exists, ensure the user wants to overwrite
         if (f.isFile()) {
             String title = resources.getString("Overwrite.Title");
             String message = resources.format("Overwrite.Message_FMT",
@@ -103,8 +110,12 @@ public class WBSSaveAsAction extends AbstractAction {
             userChoice = JOptionPane.showConfirmDialog(wbsEditor.frame,
                 message, title, JOptionPane.OK_CANCEL_OPTION);
             if (userChoice != JOptionPane.OK_OPTION)
-                f = null;
+                return null;
         }
+
+        // if we're not in "save a copy" mode, tell the WBS about the new file
+        if (saveAsCopyMode == false)
+            wbsEditor.setZipTarget(f);
 
         return f;
     }
@@ -117,10 +128,10 @@ public class WBSSaveAsAction extends AbstractAction {
 
 
     private void displayResults(File destFile, WorkerThread workerThread) {
-        if (workerThread.exception == null)
-            displaySuccessMessage(destFile);
-        else
+        if (workerThread.exception != null)
             displayErrorDialog(workerThread.exception);
+        else if (saveAsCopyMode)
+            displaySuccessMessage(destFile);
     }
 
     private void displaySuccessMessage(File destFile) {
@@ -163,6 +174,10 @@ public class WBSSaveAsAction extends AbstractAction {
 
         JDialog progressDialog;
 
+        JLabel prompt;
+
+        JProgressBar progressBar;
+
         IOException exception;
 
 
@@ -185,6 +200,18 @@ public class WBSSaveAsAction extends AbstractAction {
             }
 
             if (progressDialog != null) {
+                // if we're not in save-a-copy mode, arrange for the progress
+                // dialog to display a "Data Saved" message briefly. (This
+                // replaces the "success" message shown by "save a copy" logic)
+                if (saveAsCopyMode == false) {
+                    progressDialog.setTitle(
+                        resources.getString("Window.Data_Saved_Title"));
+                    prompt.setText(
+                        resources.getString("Window.Data_Saved_Message"));
+                    progressBar.setIndeterminate(false);
+                    progressBar.setValue(progressBar.getMaximum());
+                }
+
                 // sleep for one half-second, to accomplish two things:
                 // 1. Ensure that the dialog is visible for at least
                 //    that length of time (a brief flash is unsettling)
@@ -193,7 +220,7 @@ public class WBSSaveAsAction extends AbstractAction {
                 //    in userSetSelectedDestFile, but before it is shown in
                 //    that same method
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(750);
                 } catch (InterruptedException e) {
                 }
             }
@@ -219,7 +246,7 @@ public class WBSSaveAsAction extends AbstractAction {
 
         private void userSetSelectedDestFile(File f) {
             synchronized (this) {
-                if (f != null && waitingForWorker)
+                if (f != null && (waitingForWorker || !saveAsCopyMode))
                     progressDialog = makeProgressDialog();
                 this.destFile = f;
                 this.waitingForUser = false;
@@ -244,11 +271,11 @@ public class WBSSaveAsAction extends AbstractAction {
             JPanel panel = new JPanel(new BorderLayout());
             panel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
 
-            JLabel prompt = new JLabel(resources.getString("Progress.Prompt"));
+            prompt = new JLabel(resources.getString("Progress.Prompt"));
             prompt.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 10));
             panel.add(prompt, BorderLayout.NORTH);
 
-            JProgressBar progressBar = new JProgressBar();
+            progressBar = new JProgressBar();
             progressBar.setIndeterminate(true);
             panel.add(progressBar, BorderLayout.CENTER);
 

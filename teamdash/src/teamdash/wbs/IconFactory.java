@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -294,6 +294,10 @@ public class IconFactory {
 
     public static Icon getSaveIcon() {
         return new WBSImageIcon("save-32.png", "save-16.png");
+    }
+
+    public static Icon getSaveAsIcon() {
+        return new WBSImageIcon("save-as-32.png", "save-as-16.png");
     }
 
     public static Icon getSaveCopyIcon() {
