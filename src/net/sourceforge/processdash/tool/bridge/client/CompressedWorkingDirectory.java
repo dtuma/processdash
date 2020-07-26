@@ -65,6 +65,8 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
 
     public static final String NULL_ZIP = "<null ZIP file>";
 
+    private File workingDirParent;
+
     private File extractDirectory;
 
     protected CompressedWorkingDirectory(File targetZipFile,
@@ -72,6 +74,7 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
         super(targetZipFile, null, strategy, workingDirParent);
         if (!(strategy instanceof TeamDataDirStrategy))
             throw new UnsupportedOperationException();
+        this.workingDirParent = workingDirParent;
     }
 
     @Override
@@ -198,6 +201,18 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
         // the "targetDirectory" data field in the parent class is used to hold
         // the name of the ZIP file, even though it is slightly misnamed.
         return targetDirectory;
+    }
+
+    public void setTargetZipFile(File zipFile) {
+        // release any existing process lock on the old ZIP
+        if (processLock != null)
+            processLock.releaseLock();
+
+        // change the target ZIP file for this object
+        targetDirectory = zipFile;
+
+        // create a new process lock to represent the new ZIP file
+        createWorkingDirAndProcessLock(workingDirParent);
     }
 
     public void releaseLocks() {
