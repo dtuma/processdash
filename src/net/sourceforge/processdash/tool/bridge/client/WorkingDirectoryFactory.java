@@ -85,6 +85,10 @@ public class WorkingDirectoryFactory {
                 if (wd.isOfflineLockEnabled())
                     return wd;
 
+            } else if (CompressedWorkingDirectory.NULL_ZIP.equals(loc)) {
+                // we've been asked to open a ZIP dir for a "null" target
+                return getZip(null, purpose);
+
             } else {
                 // test "regular" locations to see if the directory exists
                 File file;

@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2018 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +63,8 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
  */
 public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
 
+    public static final String NULL_ZIP = "<null ZIP file>";
+
     private File extractDirectory;
 
     protected CompressedWorkingDirectory(File targetZipFile,
@@ -72,9 +75,20 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
     }
 
     @Override
+    protected void createWorkingDirAndProcessLock(File workingDirParent) {
+        if (this.targetDirectory == null) {
+            this.workingDirectory = null;
+            this.processLock = null;
+        } else {
+            super.createWorkingDirAndProcessLock(workingDirParent);
+        }
+    }
+
+    @Override
     public void acquireProcessLock(String msg, LockMessageHandler lockHandler)
             throws SentLockMessageException, LockFailureException {
-        if (Boolean.getBoolean(NO_PROCESS_LOCK_PROPERTY) == false)
+        if (Boolean.getBoolean(NO_PROCESS_LOCK_PROPERTY) == false
+                && workingDirectory != null && processLock != null)
             super.acquireProcessLock(msg, lockHandler);
     }
 
@@ -83,6 +97,8 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
             "pdash-compressed-wd", ".tmp");
 
         File srcZip = getTargetZipFile();
+        if (srcZip == null)
+            return;
         InputStream in = new FileInputStream(srcZip);
         if (isPdbk(srcZip))
             in = new XorInputStream(in, PDBK_XOR_BITS);
@@ -140,6 +156,8 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
             extractDirectory, CWD_FILE_FILTER);
 
         File destZip = getTargetZipFile();
+        if (destZip == null)
+            throw new FileNotFoundException("Target ZIP file is null");
         RobustFileOutputStream rOut = new RobustFileOutputStream(destZip);
         OutputStream out = rOut;
         if (isPdbk(destZip))
@@ -169,6 +187,11 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
 
     public File getDirectory() {
         return extractDirectory;
+    }
+
+    @Override
+    public String getDescription() {
+        return (targetDirectory == null ? null : super.getDescription());
     }
 
     public File getTargetZipFile() {
@@ -217,6 +240,11 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
         }
         FileUtils.safelyClose(in);
         return foundExpectedFile;
+    }
+
+    public static boolean isNullZipDir(WorkingDirectory dir) {
+        return (dir instanceof CompressedWorkingDirectory)
+                && ((CompressedWorkingDirectory) dir).targetDirectory == null;
     }
 
     /**
