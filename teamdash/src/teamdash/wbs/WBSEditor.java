@@ -475,6 +475,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             windowTitle = workingDirectory.getDescription();
         else
             windowTitle = teamProject.getProjectName();
+        if (windowTitle == null)
+            windowTitle = resources.getString("Window.New_Project");
         windowTitle += " - " + resources.getString("Window.Title_Suffix");
         if (HistoricalMode.isHistoricalModeEnabled())
             windowTitle += " @ " + HistoricalMode.getHistoricalDateStr();
@@ -1975,8 +1977,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                 resources = Resources.getDashBundle("WBSEditor");
 
             if (workingDirectory instanceof CompressedWorkingDirectory) {
-                if (!((CompressedWorkingDirectory) workingDirectory)
-                        .getTargetZipFile().canWrite())
+                File zipFile = ((CompressedWorkingDirectory) workingDirectory)
+                        .getTargetZipFile();
+                if (zipFile != null && !zipFile.canWrite())
                     forceReadOnly = true;
             }
         }
@@ -2058,7 +2061,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             workingDirectory.prepare();
             File dir = workingDirectory.getDirectory();
-            if (workingDirectory instanceof CompressedWorkingDirectory) {
+            if (CompressedWorkingDirectory.isNullZipDir(workingDirectory)) {
+                workingDirIsGood = true;
+            } else if (workingDirectory instanceof CompressedWorkingDirectory) {
                 workingDirIsGood = new File(dir, WBS_FILENAME).isFile();
             } else {
                 workingDirIsGood = dir.isDirectory();
