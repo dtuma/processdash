@@ -110,6 +110,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
@@ -2098,6 +2099,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private static WorkingDirectory configureWorkingDirectory(String[] locations,
             String intent, LockMessageHandler handler) {
+        if (locations.length == 0)
+            locations = new String[] { CompressedWorkingDirectory.NULL_ZIP };
+
         DashboardBackupFactory.setKeepBackupsNumDays(30);
         WorkingDirectory workingDirectory = WorkingDirectoryFactory
                 .getInstance().get(WorkingDirectoryFactory.PURPOSE_WBS,
@@ -2359,6 +2363,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         args = maybeParseJnlpArgs(args);
         if (isDumpAndExitMode())
             System.setProperty("java.awt.headless", "true");
+        else
+            LookAndFeelUtil.setDefaultLAF();
 
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
@@ -2417,7 +2423,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String[] PROPS_TO_PROPAGATE = {
         TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
         CustomColumnManager.SYS_PROP_NAME,
-        "teamdash.wbs.owner"
+        "teamdash.wbs.owner", "swing.defaultlaf"
     };
 
     private static void maybeNotifyOpened() {

@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,11 @@ public class LookAndFeelUtil {
         // the system look and feel is currently only supported on Windows
         String os = System.getProperty("os.name").toLowerCase();
         if (!os.contains("windows"))
+            return false;
+
+        // if a look and feel was explicitly specified via system properties,
+        // make no changes
+        if (System.getProperty("swing.defaultlaf") != null)
             return false;
 
         // for development/testing purposes, allow the user to override the
