@@ -425,14 +425,17 @@ public class TeamProject implements WBSFilenameConstants {
                     masterProjectID = elem.getAttribute("projectID");
             }
 
+        } catch (Exception e) {
+            projectSettings = null;
+        }
+
+        try {
             File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
             if (userSettingsFile.canRead()) {
                 loadProperties(userSettings, new FileInputStream(
                         userSettingsFile));
             }
-
         } catch (Exception e) {
-            projectSettings = null;
         }
 
         // if we are loading the primary team project (the one which will be

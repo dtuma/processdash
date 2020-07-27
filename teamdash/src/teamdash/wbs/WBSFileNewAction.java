@@ -24,10 +24,17 @@
 package teamdash.wbs;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.AbstractAction;
 
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
+import net.sourceforge.processdash.util.FileUtils;
 
 public class WBSFileNewAction extends AbstractAction {
 
@@ -41,6 +48,21 @@ public class WBSFileNewAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         openAction.openFile(CompressedWorkingDirectory.NULL_ZIP);
+    }
+
+    public static void initializeEmptyProject(File dir) throws IOException {
+        FilenameFilter f = TeamDataDirStrategy.INSTANCE.getFilenameFilter();
+        ZipInputStream zip = new ZipInputStream(WBSFileNewAction.class
+                .getResourceAsStream("default-project-files.zip"));
+        ZipEntry e;
+        while ((e = zip.getNextEntry()) != null) {
+            String name = e.getName();
+            if (f.accept(null, name)) {
+                File dest = new File(dir, name);
+                FileUtils.copyFile(zip, dest);
+            }
+        }
+        zip.close();
     }
 
 }

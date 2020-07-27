@@ -2126,6 +2126,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory.prepare();
             File dir = workingDirectory.getDirectory();
             if (CompressedWorkingDirectory.isNullZipDir(workingDirectory)) {
+                WBSFileNewAction.initializeEmptyProject(dir);
                 workingDirIsGood = true;
             } else if (workingDirectory instanceof CompressedWorkingDirectory) {
                 workingDirIsGood = new File(dir, WBS_FILENAME).isFile();
