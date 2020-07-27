@@ -150,7 +150,7 @@ public class WBSSaveAsAction extends AbstractAction {
             message, title, JOptionPane.YES_NO_OPTION,
             JOptionPane.PLAIN_MESSAGE);
         if (userChoice == JOptionPane.YES_OPTION)
-            openAction.openFile(destFile);
+            openAction.openFile(destFile.getPath());
     }
 
     private void displayErrorDialog(IOException exceptionEncountered) {

@@ -1161,6 +1161,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         if (!isMode(MODE_BOTTOM_UP)) {
             WBSOpenFileAction openAction = new WBSOpenFileAction(this, frame);
+            if (isZipWorkingDirectory())
+                result.add(new WBSFileNewAction(openAction));
             result.add(saveAsAction = new WBSSaveAsAction(this, openAction));
             result.add(makeMenuItem(openAction));
             result.add(replaceAction = new WBSReplaceAction(this, openAction));

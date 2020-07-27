@@ -62,7 +62,7 @@ public class WBSOpenFileAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         File f = promptForFile();
         if (f != null && !wbsEditor.isCurrentlyShowingFile(f))
-            openFile(f);
+            openFile(f.getPath());
     }
 
     private File promptForFile() {
@@ -94,7 +94,7 @@ public class WBSOpenFileAction extends AbstractAction {
             if (errKey == null) {
                 return f;
             } else {
-                showErrorDialog(errKey, f);
+                showErrorDialog(errKey, f.getPath());
             }
         }
     }
@@ -110,7 +110,7 @@ public class WBSOpenFileAction extends AbstractAction {
         return null;
     }
 
-    void openFile(File f) {
+    public void openFile(String path) {
         List<String> cmdLine = new ArrayList<String>();
         cmdLine.add(RuntimeUtils.getJreExecutable());
         cmdLine.add(RuntimeUtils.getJvmHeapArg());
@@ -124,22 +124,22 @@ public class WBSOpenFileAction extends AbstractAction {
         cmdLine.add(RuntimeUtils.getClasspathFile(WBSEditor.class).getPath());
         cmdLine.add(WBSEditor.class.getName());
 
-        cmdLine.add(f.getPath());
+        cmdLine.add(path);
 
         String[] exec = cmdLine.toArray(new String[cmdLine.size()]);
         try {
             Process proc = Runtime.getRuntime().exec(exec);
-            new ProcessWatcher(f, proc).start();
+            new ProcessWatcher(path, proc).start();
         } catch (IOException ioe) {
             ioe.printStackTrace();
-            showErrorDialog("Unexpected_Error", f);
+            showErrorDialog("Unexpected_Error", path);
         }
     }
 
-    private void showErrorDialog(String resKey, File f) {
+    private void showErrorDialog(String resKey, String path) {
         String title = resources.getString("Error." + resKey + "_Title");
         String[] message = resources.formatStrings("Error." + resKey + "_FMT",
-            f.getPath());
+            path);
         JOptionPane.showMessageDialog(parentFrame, message, title,
             JOptionPane.ERROR_MESSAGE);
     }
@@ -160,14 +160,14 @@ public class WBSOpenFileAction extends AbstractAction {
 
     private class ProcessWatcher extends Thread {
 
-        File f;
+        String path;
 
         Process proc;
 
         long startTime;
 
-        public ProcessWatcher(File f, Process proc) {
-            this.f = f;
+        public ProcessWatcher(String path, Process proc) {
+            this.path = path;
             this.proc = proc;
             this.startTime = System.currentTimeMillis();
             setDaemon(true);
@@ -193,7 +193,7 @@ public class WBSOpenFileAction extends AbstractAction {
                 long elapsed = endTime - startTime;
                 long elapsedMin = elapsed / 60000;
                 if (elapsedMin < 2)
-                    showErrorDialog("Unexpected_Error", f);
+                    showErrorDialog("Unexpected_Error", path);
             }
         }
 
