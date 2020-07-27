@@ -264,6 +264,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         WBSModel model = teamProject.getWBS();
+        model.setRootEditable(isZipWorkingDirectory());
 
         SizeTypeColumn.maybeEnableNewSizeDataColumns(teamProject);
         WorkflowUtil.maybeUpdateWorkflowTypeData(model,

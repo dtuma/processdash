@@ -132,6 +132,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     /** An object which can check the WBS for errors. */
     private WBSModelValidator validator;
 
+    /** True if the user should be allowed to rename the root node */
+    private boolean rootNodeEditable;
+
 
 
     public WBSModel() { this("Team Project"); }
@@ -270,6 +273,14 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     /** Returns the node which is the root of the wbs hierarchy. */
     public WBSNode getRoot() {
         return (WBSNode) wbsNodes.get(0);
+    }
+
+    public boolean isRootEditable() {
+        return rootNodeEditable;
+    }
+
+    public void setRootEditable(boolean rootNodeEditable) {
+        this.rootNodeEditable = rootNodeEditable;
     }
 
     public WBSNode getNodeForRow(int row) {
@@ -572,7 +583,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public String getColumnName(int column) { return "WBS Node"; }
     public Class getColumnClass(int columnIndex) { return WBSNode.class; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return rowIndex != 0;
+        return rootNodeEditable || rowIndex != 0;
     }
     public boolean isNodeTypeEditable(WBSNode node) {
         return !node.isReadOnly() && node.getIndentLevel() > 0;
