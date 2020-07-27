@@ -1147,36 +1147,64 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private Action saveAction, saveAsAction, replaceAction, importFromCsvAction;
+    private WBSOpenFileAction openAction;
     private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
         JMenu result = new JMenu(resources.getString("Window.File_Menu"));
         result.setMnemonic('F');
-        result.add(makeMenuItem(saveAction = new SaveAction()));
+
+        // create several common "File" actions
+        saveAction = new SaveAction();
         tabPanel.addToolbarButton(saveAction, 0);
-        if (mergeCoordinator != null)
-            result.add(makeMenuItem(new RefreshAction()));
-        result.addSeparator();
-        if (mergeDebugger != null && mergeDebugger.supportsZipOfAllMerges()) {
-            result.add(new SaveMergeDebugZipAction());
+        openAction = new WBSOpenFileAction(this, frame);
+        saveAsAction = new WBSSaveAsAction(this, openAction);
+        importFromCsvAction = new ImportFromCsvAction();
+        CloseAction closeAction = new CloseAction();
+
+        if (isZipWorkingDirectory()) {
+            // follow industry-standard menu ordering when editing ZIP files
+            result.add(new WBSFileNewAction(openAction));
+            result.add(openAction);
+            result.add(closeAction);
             result.addSeparator();
-        }
-        if (!isMode(MODE_BOTTOM_UP)) {
-            WBSOpenFileAction openAction = new WBSOpenFileAction(this, frame);
-            if (isZipWorkingDirectory())
-                result.add(new WBSFileNewAction(openAction));
-            result.add(saveAsAction = new WBSSaveAsAction(this, openAction));
-            result.add(makeMenuItem(openAction));
-            result.add(replaceAction = new WBSReplaceAction(this, openAction));
+            result.add(makeMenuItem(saveAction));
+            result.add(saveAsAction);
             result.addSeparator();
-            if (!isZipWorkingDirectory() && !isQuicklaunchedZipDirectory())
-                result.add(new BlameHistoryAction(this, frame, guiPrefs,
-                        workingDirectory.getDescription(), tabPanel, dataModel));
-            result.add(importFromCsvAction = new ImportFromCsvAction());
+            result.add(importFromCsvAction);
+            for (int i = 0; i < fileActions.length; i++)
+                result.add(makeMenuItem(fileActions[i]));
+            result.addSeparator();
+            JMenuItem exit = makeMenuItem(closeAction);
+            exit.setText(resources.getString("Window.File_Exit"));
+            result.add(exit);
+
+        } else {
+            // optimize the menu differently for project WBS editing
+            result.add(makeMenuItem(saveAction));
+            if (mergeCoordinator != null)
+                result.add(makeMenuItem(new RefreshAction()));
+            result.addSeparator();
+            if (mergeDebugger != null && mergeDebugger.supportsZipOfAllMerges()) {
+                result.add(new SaveMergeDebugZipAction());
+                result.addSeparator();
+            }
+            if (!isMode(MODE_BOTTOM_UP)) {
+                result.add(saveAsAction);
+                result.add(openAction);
+                result.add(replaceAction = new WBSReplaceAction(this, openAction));
+                result.addSeparator();
+                if (!isQuicklaunchedZipDirectory())
+                    result.add(new BlameHistoryAction(this, frame, guiPrefs,
+                            workingDirectory.getDescription(), tabPanel,
+                            dataModel));
+                result.add(importFromCsvAction);
+            }
+            for (int i = 0; i < fileActions.length; i++) {
+                result.add(makeMenuItem(fileActions[i]));
+            }
+            result.addSeparator();
+            result.add(closeAction);
         }
-        for (int i = 0; i < fileActions.length; i++) {
-            result.add(makeMenuItem(fileActions[i]));
-        }
-        result.addSeparator();
-        result.add(new CloseAction());
+
         return result;
     }
     private JMenu buildEditMenu(Action[] editingActions) {
