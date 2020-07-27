@@ -101,6 +101,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
+import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
@@ -1159,7 +1160,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.addSeparator();
         }
         if (!isMode(MODE_BOTTOM_UP)) {
-            WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
+            WBSOpenFileAction openAction = new WBSOpenFileAction(this, frame);
             result.add(saveAsAction = new WBSSaveAsAction(this, openAction));
             result.add(makeMenuItem(openAction));
             result.add(replaceAction = new WBSReplaceAction(this, openAction));
@@ -2310,6 +2311,17 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (diff > 6000)
                 changeHistory.addEntry("Various individuals");
         }
+    }
+
+    public boolean isCurrentlyShowingFile(File f) {
+        File currentFile = ((AbstractWorkingDirectory) workingDirectory)
+                .getTargetDirectory();
+        return f != null && f.equals(currentFile);
+    }
+
+    protected void fileWasOpened() {
+        if (exitOnClose && isNullZipWorkingDirectory() && !isDirty())
+            System.exit(0);
     }
 
 

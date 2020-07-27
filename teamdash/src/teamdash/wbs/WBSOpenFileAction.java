@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,22 +43,25 @@ import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class WBSOpenFileAction extends AbstractAction {
 
+    private WBSEditor wbsEditor;
+
     private JFrame parentFrame;
 
     private static final Resources resources = Resources
             .getDashBundle("WBSEditor.File_Open");
 
-    public WBSOpenFileAction(JFrame frame) {
+    public WBSOpenFileAction(WBSEditor wbsEditor, JFrame frame) {
         super(resources.getString("Menu"));
         putValue(SMALL_ICON, IconFactory.getOpenIcon());
         putValue(MNEMONIC_KEY, new Integer(resources.getString("Mnemonic")
                 .charAt(0)));
+        this.wbsEditor = wbsEditor;
         this.parentFrame = frame;
     }
 
     public void actionPerformed(ActionEvent e) {
         File f = promptForFile();
-        if (f != null)
+        if (f != null && !wbsEditor.isCurrentlyShowingFile(f))
             openFile(f);
     }
 
@@ -170,6 +174,11 @@ public class WBSOpenFileAction extends AbstractAction {
         }
 
         public void run() {
+            // wait for the subprocess to write at least a byte of output;
+            // then let the WBS Editor know we opened the file
+            waitForOutput();
+            wbsEditor.fileWasOpened();
+
             // When we launch a subprocess, we must consume the data it writes
             // to stdout and stderr - otherwise it will hang.
             int exitCode = RuntimeUtils.doWaitFor(proc);
@@ -185,6 +194,28 @@ public class WBSOpenFileAction extends AbstractAction {
                 long elapsedMin = elapsed / 60000;
                 if (elapsedMin < 2)
                     showErrorDialog("Unexpected_Error", f);
+            }
+        }
+
+        private void waitForOutput() {
+            InputStream in = proc.getInputStream();
+            InputStream err = proc.getErrorStream();
+            while (true) {
+                try {
+                    // if any output is available, return immediately
+                    if (in.available() > 0 || err.available() > 0)
+                        return;
+
+                    // otherwise, wait a fraction of a second
+                    Thread.sleep(100);
+
+                    // try getting the subprocess exit value. If this returns
+                    // without exception, the process is done and we can exit.
+                    proc.exitValue();
+                    return;
+
+                } catch (Exception e) {
+                }
             }
         }
 
