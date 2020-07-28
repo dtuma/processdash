@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -82,7 +82,8 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
 
 
     public MilestonesEditor(TeamProject teamProject,
-            MilestonesDataModel milestonesModel, GuiPrefs guiPrefs) {
+            MilestonesDataModel milestonesModel, WBSWindowTitle title,
+            GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.milestonesModel = milestonesModel;
         this.milestonesModel.setEditingEnabled(isEditable(teamProject));
@@ -90,8 +91,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         table.setEditingEnabled(isEditable(teamProject));
         guiPrefs.load("milestonesTable", table);
         buildToolbar();
-        frame = new JFrame(teamProject.getProjectName() + " - "
-                + resources.getString("Window_Title"));
+        frame = title.register(new JFrame(resources.getString("Window_Title")));
         WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);

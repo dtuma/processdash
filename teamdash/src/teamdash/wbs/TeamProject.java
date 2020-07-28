@@ -184,7 +184,7 @@ public class TeamProject implements WBSFilenameConstants {
     protected void setProjectName(String projectName) {
         this.projectName = projectName;
         if (wbs != null)
-            wbs.getRoot().setName(projectName);
+            wbs.getRoot().setName(WBSClipSelection.scrubName(projectName));
     }
 
     /** Return the ID of the project */

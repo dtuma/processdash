@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ui.lib.GuiPrefs;
 
 import teamdash.SaveListener;
 import teamdash.XMLUtils;
+import teamdash.wbs.WBSWindowTitle;
 
 /** Simple test editor for the team member list
  */
@@ -59,8 +60,9 @@ public class TeamMemberListEditorTest implements TableModelListener {
         }
 
         teamList.addTableModelListener(this);
-        TeamMemberListEditor editor = new TeamMemberListEditor("Team Project",
-                teamList, null, new GuiPrefs("teamListTest"));
+        TeamMemberListEditor editor = new TeamMemberListEditor(teamList, null,
+                new WBSWindowTitle("Team Project"),
+                new GuiPrefs("teamListTest"));
         editor.addSaveListener((SaveListener) EventHandler.create(
             SaveListener.class, this, "quit"));
         editor.setCommitButtonIsSave(true);

@@ -191,6 +191,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     MilestonesDataModel milestonesModel;
     JFrame frame;
     WBSTabPanel tabPanel;
+    WBSWindowTitle wbsWindowTitle;
     GuiPrefs guiPrefs;
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
@@ -475,19 +476,24 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         String windowTitle;
-        if (workingDirectory instanceof CompressedWorkingDirectory)
-            windowTitle = workingDirectory.getDescription();
-        else
+        if (workingDirectory instanceof CompressedWorkingDirectory) {
+            windowTitle = getWindowTitleForZip(workingDirectory);
+            if (windowTitle == null) {
+                String newProject = resources.getString("Window.New_Project");
+                teamProject.setProjectName(newProject);
+                windowTitle = newProject;
+            }
+        } else {
             windowTitle = teamProject.getProjectName();
-        if (windowTitle == null)
-            windowTitle = resources.getString("Window.New_Project");
+        }
+        wbsWindowTitle = new WBSWindowTitle(windowTitle);
         windowTitle += " - " + resources.getString("Window.Title_Suffix");
         if (HistoricalMode.isHistoricalModeEnabled())
             windowTitle += " @ " + HistoricalMode.getHistoricalDateStr();
         else if (teamProject.isReadOnly())
             windowTitle += " " + resources.getString("Window.Read_Only");
 
-        frame = new JFrame(windowTitle);
+        frame = wbsWindowTitle.register(new JFrame(windowTitle));
         WBSEditorIcon.setWindowIcon(frame);
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
             teamProject.getMilestones(), data, initials));
@@ -764,10 +770,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         // change the ZIP target for our working directory
         ((CompressedWorkingDirectory) workingDirectory).setTargetZipFile(file);
 
-        // update the window title
-        String windowTitle = workingDirectory.getDescription() + " - "
-                + resources.getString("Window.Title_Suffix");
-        frame.setTitle(windowTitle);
+        // update the titles of all application windows
+        wbsWindowTitle.setTitle(getWindowTitleForZip(workingDirectory));
 
         // try acquiring a process lock for the new ZIP file. This will let
         // other processes on the computer know that this WBS Editor window can
@@ -779,6 +783,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         } catch (LockFailureException lfe) {
             // if we can't acquire a process lock on the ZIP, ignore the error
         }
+    }
+
+    private String getWindowTitleForZip(WorkingDirectory dir) {
+        String zipFilePath = dir.getDescription();
+        if (zipFilePath == null)
+            return null;
+        int slashPos = Math.max(zipFilePath.lastIndexOf('/'),
+            zipFilePath.lastIndexOf('\\'));
+        return zipFilePath.substring(slashPos + 1);
     }
 
     private boolean isQuicklaunchedZipDirectory() {
@@ -905,10 +918,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void maybeCreateTeamListEditor() {
         if (teamListEditor == null) {
             teamListEditor = new TeamMemberListEditor(
-                    teamProject.getProjectName(),
                     teamProject.getTeamMemberList(),
                     teamProject.getUserSetting(INITIALS_POLICY_SETTING),
-                    guiPrefs);
+                    wbsWindowTitle, guiPrefs);
             teamListEditor.addSaveListener(this);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.TeamList,
@@ -1087,7 +1099,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (workflowEditor != null)
             workflowEditor.show();
         else {
-            workflowEditor = new WorkflowEditor(teamProject, guiPrefs);
+            workflowEditor = new WorkflowEditor(teamProject, wbsWindowTitle,
+                    guiPrefs);
             workflowEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null) {
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Workflows,
@@ -1102,7 +1115,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (proxyEditor != null)
             proxyEditor.show();
         else {
-            proxyEditor = new ProxyEditor(teamProject, proxyModel, guiPrefs);
+            proxyEditor = new ProxyEditor(teamProject, proxyModel,
+                    wbsWindowTitle, guiPrefs);
             proxyEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Proxies,
@@ -1116,7 +1130,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             milestonesEditor.show();
         else {
             milestonesEditor = new MilestonesEditor(teamProject,
-                    milestonesModel, guiPrefs);
+                    milestonesModel, wbsWindowTitle, guiPrefs);
             milestonesEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Milestones,

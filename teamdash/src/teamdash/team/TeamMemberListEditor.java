@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,7 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import teamdash.SaveListener;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.WBSZoom;
+import teamdash.wbs.WBSWindowTitle;
 import teamdash.wbs.icons.WBSEditorIcon;
 
 
@@ -75,8 +76,8 @@ public class TeamMemberListEditor implements WindowListener,
     private static final Resources resources = TeamMember.resources;
 
 
-    public TeamMemberListEditor(String projectName, TeamMemberList teamList,
-            String initialsPolicy, GuiPrefs guiPrefs) {
+    public TeamMemberListEditor(TeamMemberList teamList, String initialsPolicy,
+            WBSWindowTitle title, GuiPrefs guiPrefs) {
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.setInitialsPolicyName(initialsPolicy);
         teamMemberList.addTableModelListener(this);
@@ -86,8 +87,7 @@ public class TeamMemberListEditor implements WindowListener,
         addedTeamMemberIDs = new HashSet();
         JPanel buttons = buildButtons();
 
-        frame = new JFrame(projectName + " - " //
-                + resources.getString("Window_Title"));
+        frame = title.register(new JFrame(resources.getString("Window_Title")));
         WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(makeScrollPane(table));
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);

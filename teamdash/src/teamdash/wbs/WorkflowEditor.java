@@ -83,7 +83,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             .getDashBundle("WBSEditor.Workflows");
 
 
-    public WorkflowEditor(TeamProject teamProject, GuiPrefs guiPrefs) {
+    public WorkflowEditor(TeamProject teamProject, WBSWindowTitle title,
+            GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
@@ -103,8 +104,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
         table.setEditingEnabled(isEditable(teamProject));
         buildToolbar(columnSelector.getAction());
-        frame = new JFrame(teamProject.getProjectName() + " - "
-                + resources.getString("Window_Title"));
+        frame = title.register(new JFrame(resources.getString("Window_Title")));
         WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);

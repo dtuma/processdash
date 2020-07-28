@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2019 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
 
     public ProxyEditor(TeamProject teamProject, ProxyDataModel proxyModel,
-            GuiPrefs guiPrefs) {
+            WBSWindowTitle title, GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.proxyModel = proxyModel;
         this.proxyModel.setEditingEnabled(isEditable(teamProject));
@@ -80,8 +80,7 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         buildToolbar();
 
-        frame = new JFrame(teamProject.getProjectName() + " - "
-                + resources.getString("Window_Title"));
+        frame = title.register(new JFrame(resources.getString("Window_Title")));
         WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);

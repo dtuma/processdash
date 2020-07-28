@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -132,7 +132,7 @@ public abstract class AbstractLibraryEditor {
         dirtyFlag = false;
 
         String title = resources.format(resKey("Window_Title_FMT"),
-            teamProject.getProjectName());
+            WBSWindowTitle.extractTitle(parent));
         dialog = new JDialog(parent, title, true);
         buildContents();
         dialog.setSize(800, 600);
@@ -209,7 +209,7 @@ public abstract class AbstractLibraryEditor {
         panel.add(addAllButton);
 
         JLabel label = new JLabel(resources.format("Project_Heading_FMT",
-            teamProject.getProjectName()));
+            teamProject.getWBS().getRoot().getName()));
         initConstraints(c, 0, 0, 1, 1, GridBagConstraints.NONE, 0, 0, GridBagConstraints.WEST, insets0);
         layout.setConstraints(label, c);
         panel.add(label);
