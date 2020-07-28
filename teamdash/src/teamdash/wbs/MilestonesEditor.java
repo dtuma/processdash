@@ -169,8 +169,12 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         // customize the display and editing of the "Defer Sync" column.
         col = table.getColumnModel().getColumn(
             milestonesModel.findColumn(MilestoneDeferredColumn.COLUMN_ID));
-        col.setCellRenderer(MilestoneDeferredColumn.CELL_RENDERER);
-        col.setPreferredWidth(45);
+        if (teamProject.getBoolUserSetting("hideDeferSync")) {
+            table.getColumnModel().removeColumn(col);
+        } else {
+            col.setCellRenderer(MilestoneDeferredColumn.CELL_RENDERER);
+            col.setPreferredWidth(45);
+        }
 
         undoList = new UndoList(milestonesModel.getWBSModel());
         undoList.setForComponent(table);
