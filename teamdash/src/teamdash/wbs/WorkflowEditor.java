@@ -89,9 +89,10 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(isEditable(teamProject));
 
+        boolean hideProbe = teamProject.getBoolUserSetting("hideProbeTask");
         UnitsColumnVisibilityMgr unitsColMgr = new UnitsColumnVisibilityMgr();
         table = new WorkflowJTable(workflowModel, teamProject.getTeamProcess(),
-                unitsColMgr);
+                hideProbe == false, unitsColMgr);
         unitsColMgr.init();
         JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
         guiPrefs.load("workflowTable", table);

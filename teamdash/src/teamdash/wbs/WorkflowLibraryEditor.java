@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     @Override
     protected WBSJTable buildJTable(DataTableModel model) {
         WBSJTable table = new WorkflowJTable((WorkflowModel) model,
-                teamProject.getTeamProcess(), null);
+                teamProject.getTeamProcess(), true, null);
         for (int i = table.getColumnCount(); i-- > 0; ) {
             DataColumn column = model.getColumn(i);
             if (column instanceof WorkflowOptionalColumn

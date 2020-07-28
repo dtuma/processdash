@@ -46,10 +46,11 @@ public class WorkflowJTable extends WBSJTable {
 
 
     public WorkflowJTable(WorkflowModel workflowModel, TeamProcess process,
-            ActionListener probeListener) {
+            boolean hasProbeTaskType, ActionListener probeListener) {
         super(workflowModel, getWorkflowIcons(process.getIconMap()),
                 tweakIconMenu(process.getNodeTypeMenu(),
-                    process.isPspCompatible(), probeListener));
+                    process.isPspCompatible(), hasProbeTaskType,
+                    probeListener));
         setSafeTaskType(process.getPhases().get(0) + TeamProcess.TASK_SUFFIX);
 
         // configure the renderer for the table
@@ -95,20 +96,24 @@ public class WorkflowJTable extends WBSJTable {
 
 
     private static JMenu tweakIconMenu(JMenu iconMenu, boolean hasPspTaskType,
-            ActionListener probeListener) {
-        // create a new menu item for the PROBE task type.
-        JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
-        probeItem.setFont(iconMenu.getFont());
-        probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
-        if (probeListener != null)
-            probeItem.addActionListener(probeListener);
-
-        // insert the PROBE item after the PSP task item (if it is present). The
-        // PSP item is first in the list unless a "More..." submenu precedes it.
+            boolean hasProbeTaskType, ActionListener probeListener) {
         JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
-        int pos = (hasPspTaskType ? 1 : 0)
-                + (taskMenu.getMenuComponent(0) instanceof JMenu ? 1 : 0);
-        taskMenu.add(probeItem, pos);
+
+        if (hasProbeTaskType) {
+            // create a new menu item for the PROBE task type.
+            JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
+            probeItem.setFont(iconMenu.getFont());
+            probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
+            if (probeListener != null)
+                probeItem.addActionListener(probeListener);
+    
+            // insert the PROBE item after the PSP task item (if it is present).
+            // The PSP item is first in the list unless a "More..." submenu
+            // precedes it.
+            int pos = (hasPspTaskType ? 1 : 0)
+                    + (taskMenu.getMenuComponent(0) instanceof JMenu ? 1 : 0);
+            taskMenu.add(probeItem, pos);
+        }
 
         // if the number of task types is small, embed them directly in the node
         // menu (rather than using a fly-out)
