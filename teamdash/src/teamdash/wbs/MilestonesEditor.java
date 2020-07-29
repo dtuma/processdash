@@ -210,9 +210,9 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(table.COPY_ACTION);
         addToolbarButton(table.PASTE_ACTION);
         addToolbarButton(table.INSERT_AFTER_ACTION);
+        addToolbarButton(table.DELETE_ACTION);
         addToolbarButton(table.MOVEUP_ACTION);
         addToolbarButton(table.MOVEDOWN_ACTION);
-        addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
         addToolbarButton(new SortMilestonesAction());
     }

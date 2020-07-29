@@ -488,9 +488,10 @@ public class WBSJTable extends JTable {
     /** Return a list of actions useful for editing the wbs */
     public Action[] getEditingActions() {
         return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
-            PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
-            EXPAND_ALL_ACTION, COLLAPSE_ALL_ACTION, MOVEUP_ACTION,
-            MOVEDOWN_ACTION, INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
+                INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION,
+                MOVEUP_ACTION, MOVEDOWN_ACTION, PROMOTE_ACTION, DEMOTE_ACTION,
+                EXPAND_ACTION, COLLAPSE_ACTION, EXPAND_ALL_ACTION,
+                COLLAPSE_ALL_ACTION };
     }
 
     public void tweakClipboardActions(Resources res, Icon copyIcon,

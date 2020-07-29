@@ -124,9 +124,9 @@ public class WBSTabPanel extends JLayeredPane implements
                       WBSZoomAction.WBS_ACTION_CATEGORY_ZOOM,
                       WBSJTable.WBS_ACTION_CATEGORY_CLIPBOARD,
                       DataJTable.DATA_ACTION_CATEGORY_CLIPBOARD,
+                      WBSJTable.WBS_ACTION_CATEGORY_STRUCTURE,
                       WBSJTable.WBS_ACTION_CATEGORY_INDENT,
-                      WBSJTable.WBS_ACTION_CATEGORY_EXPANSION,
-                      WBSJTable.WBS_ACTION_CATEGORY_STRUCTURE);
+                      WBSJTable.WBS_ACTION_CATEGORY_EXPANSION);
 
     public static final String TEAM_MEMBER_PLAN_TIMES_ID = "TeamMemberTimes";
     public static final String TEAM_MEMBER_ACTUAL_TIMES_ID = "TeamMemberActualTimes";
@@ -563,8 +563,8 @@ public class WBSTabPanel extends JLayeredPane implements
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
         result.add(findAction);
         result.add(findAction.replaceAction);
-        result.add(openLinkAction);
         result.add(wbsTable.FILTER_ACTION);
+        result.add(openLinkAction);
 
         Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);
         Collections.sort(result, comparator);
@@ -1134,15 +1134,17 @@ public class WBSTabPanel extends JLayeredPane implements
         addToolbarButton(undoList.getRedoAction());
 
         Action[] editingActions = wbsTable.getEditingActions();
-        for (int i = 0;   i < editingActions.length;   i++)
+        for (int i = 0;   i < editingActions.length;   i++) {
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
-        addToolbarButton(findAction = new WBSFindAction(this));
+            if (editingActions[i] == wbsTable.MOVEDOWN_ACTION)
+                addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);
+        }
         addToolbarButton(zoomAction = new WBSZoomAction(this));
-        addToolbarButton(openLinkAction = new WBSOpenLinkAction(this));
+        addToolbarButton(findAction = new WBSFindAction(this));
         addToolbarButton(wbsTable.FILTER_ACTION);
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);
-        addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);
+        addToolbarButton(openLinkAction = new WBSOpenLinkAction(this));
 
         // add the tool bar to the panel
         GridBagConstraints c = new GridBagConstraints();
