@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <outfile>file.exe</outfile>
+  <errTitle>Work Breakdown Structure Editor</errTitle>
+  <icon>wbs-editor.ico</icon>
+  <jre>
+    <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>
+    <minVersion>1.6.0</minVersion>
+  </jre>
+</launch4jConfig>

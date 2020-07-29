@@ -69,6 +69,7 @@ Authors:
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
     <property name="launcher.exe" value="Launcher.exe" />
     <property name="quick-launcher.exe" value="QuickLauncher.exe" />
+    <property name="wbs-editor.exe" value="WBS-Editor.exe" />
     <property name="mcf-editor.exe" value="MCF_Editor.exe" />
     <property name="uninstaller.exe" value="uninstaller.exe" />
 
@@ -173,6 +174,13 @@ Authors:
             outfile="${dist}/${quick-launcher.exe}"/>
         <antcall target="maybe-sign-exe">
             <param name="sign-exe.file" value="${dist}/${quick-launcher.exe}"/>
+        </antcall>
+        <!-- build and sign the WBS editor exe -->
+        <launch4j configFile="files/wbs-editor-launch4j-config.xml"
+            jar="${dist}/TeamTools.jar"
+            outfile="${dist}/${wbs-editor.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${wbs-editor.exe}"/>
         </antcall>
         <!-- build and sign the uninstaller exe -->
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
