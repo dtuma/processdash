@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -36,6 +37,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
@@ -80,6 +82,8 @@ public class DataJTable extends JTable {
 
     public DataJTable(DataTableModel model, int rowHeight) {
         super(model);
+
+        setTableHeader(new DataTableHeader());
 
         setDefaultEditor  (Object.class, new DefaultCellEditor(new JTextField()));
         setDefaultRenderer(Object.class, new DataTableCellRenderer());
@@ -267,6 +271,10 @@ public class DataJTable extends JTable {
         return result;
     }
 
+    public void setMinHeaderHeight(int h) {
+        ((DataTableHeader) getTableHeader()).minHeight = h;
+    }
+
     private final BlameModelDataListener BLAME_LISTENER = //
             new BlameComponentRepainter(this);
 
@@ -291,6 +299,19 @@ public class DataJTable extends JTable {
                         DataJTable.this))
                 return;
             selectAllColumns();
+        }
+
+    }
+
+    private class DataTableHeader extends JTableHeader {
+
+        int minHeight;
+
+        @Override
+        public Dimension getPreferredSize() {
+            Dimension result = super.getPreferredSize();
+            result.height = Math.max(result.height, minHeight);
+            return result;
         }
 
     }

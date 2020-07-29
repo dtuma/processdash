@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -88,6 +89,7 @@ import org.xml.sax.SAXException;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ColumnSelectorIcon;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
+import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -179,15 +181,18 @@ public class WBSTabPanel extends JLayeredPane implements
 
         // build the components to display in this panel
         makeTables(wbs, data, iconMap, iconMenu, workflows, idSource);
+        makeToolBar();
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
-        makeToolBar();
         installKeyboardShortcuts();
 
         // set the default divider location, then load user's last location
-        splitPane.setDividerLocation((int) toolBar.getPreferredSize().getWidth() + 10);
+        int minSplitPos = splitPane.getLeftComponent().getMinimumSize().width;
+        splitPane.setDividerLocation(minSplitPos);
         guiPrefs.load(splitPane);
+        if (splitPane.getDividerLocation() < minSplitPos)
+            splitPane.setDividerLocation(minSplitPos);
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -1041,26 +1046,26 @@ public class WBSTabPanel extends JLayeredPane implements
 
     /** Create and install the splitter component. */
     private void makeSplitter() {
-        splitPane =
-            new MagicSplitter(JSplitPane.HORIZONTAL_SPLIT, false, 70, 70);
+        int minLeftWidth = toolBar.getPreferredSize().width + 30;
+        splitPane = new MagicSplitter(minLeftWidth, 70);
         splitPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         splitPane.setDividerLocation(205);
         splitPane.addPropertyChangeListener(
             JSplitPane.DIVIDER_LOCATION_PROPERTY,
             new DividerListener());
-        //splitPane.setDividerSize(3);
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = c.gridy = 0;
         c.weightx = c.weighty = 1.0;
         c.fill = GridBagConstraints.BOTH;
         c.insets.left = c.insets.right = 10;
-        c.insets.top = 25;
+        c.insets.top = SPLITTER_TOP;
         c.insets.bottom = 1;
         add(splitPane);
-        setLayer(splitPane, 30);
+        setLayer(splitPane, 40);
         layout.setConstraints(splitPane, c);
     }
+    private static final int SPLITTER_TOP = 25;
 
     /** Create and install the scroll pane component. */
     private void makeScrollPane() {
@@ -1096,11 +1101,12 @@ public class WBSTabPanel extends JLayeredPane implements
         c.weightx = c.weighty = 1.0;
         c.fill = GridBagConstraints.BOTH;
         c.insets.left = c.insets.right = c.insets.bottom = 10;
-        c.insets.top = 30;
+        c.insets.top = SCROLLPANE_TOP;
         add(scrollPane);
         setLayer(scrollPane, 20);
         layout.setConstraints(scrollPane, c);
     }
+    private static final int SCROLLPANE_TOP = SPLITTER_TOP + 5;
 
     /** Create and install the tabbed pane component. */
     private void makeTabbedPane() {
@@ -1128,6 +1134,8 @@ public class WBSTabPanel extends JLayeredPane implements
     /** Create and install the tool bar component. */
     private void makeToolBar() {
         toolBar = new JToolBar();
+        int gap = WindowsGUIUtils.isWindowsLAF() ? 1 : 0;
+        toolBar.setLayout(new GridLayout(2, 0, gap, gap * 3));
         toolBar.setFloatable(false);
         toolBar.setMargin(new Insets(0,0,0,0));
         addToolbarButton(undoList.getUndoAction());
@@ -1146,6 +1154,11 @@ public class WBSTabPanel extends JLayeredPane implements
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);
         addToolbarButton(openLinkAction = new WBSOpenLinkAction(this));
 
+        // allocate a minimum height to the data table header, to ensure the
+        // left WBS table doesn't overlap the two-row toolbar
+        dataTable.setMinHeaderHeight(
+            toolBar.getPreferredSize().height - SCROLLPANE_TOP);
+
         // add the tool bar to the panel
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = c.gridy = 0;
@@ -1154,7 +1167,7 @@ public class WBSTabPanel extends JLayeredPane implements
         c.insets.left = 10;
         c.insets.right = c.insets.bottom = c.insets.top = 0;
         add(toolBar);
-        setLayer(toolBar, 0);
+        setLayer(toolBar, 30);
         layout.setConstraints(toolBar, c);
     }
 
@@ -1219,14 +1232,8 @@ public class WBSTabPanel extends JLayeredPane implements
      * areas are transparent, allowing other components to show through.
      */
     private final class MagicSplitter extends JSplitPane {
-        public MagicSplitter(
-            int newOrientation,
-            boolean newContinuousLayout,
-            int firstCompMinSize,
-            int secondCompMinSize) {
-            super(
-                newOrientation,
-                newContinuousLayout,
+        public MagicSplitter(int firstCompMinSize, int secondCompMinSize) {
+            super(JSplitPane.HORIZONTAL_SPLIT, false,
                 new EmptyComponent(
                     new Dimension(firstCompMinSize, firstCompMinSize)),
                 new EmptyComponent(
