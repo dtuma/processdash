@@ -1362,6 +1362,8 @@ public class WBSJTable extends JTable {
         private Action alternateAction;
         public InsertAfterAction() {
             super(resources.getString("Edit.Insert_After"));
+            putValue(SMALL_ICON, IconFactory.getAddRowIcon());
+            putValue(SHORT_DESCRIPTION, resources.getString("Edit.Add_Row"));
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
 
             try {

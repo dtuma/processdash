@@ -1167,9 +1167,9 @@ public class WBSTabPanel extends JLayeredPane implements
         button.setMargin(new Insets(p,p,p,p));
         button.setFocusPainted(false);
         button.putClientProperty("hideActionText", Boolean.TRUE);
-        String toolTip = (String) a.getValue(Action.NAME);
+        String toolTip = (String) a.getValue(Action.SHORT_DESCRIPTION);
         if (toolTip == null || toolTip.length() == 0)
-            toolTip = (String) a.getValue(Action.SHORT_DESCRIPTION);
+            toolTip = (String) a.getValue(Action.NAME);
         button.setToolTipText(toolTip);
         button.setText(null);
         IconFactory.setDisabledIcon(button);

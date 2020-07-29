@@ -49,6 +49,7 @@ import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.RecolorableIcon;
 
 import teamdash.wbs.icons.AddColumnIcon;
+import teamdash.wbs.icons.AddRowIcon;
 import teamdash.wbs.icons.BlockArrowIcon;
 import teamdash.wbs.icons.CollapseAllIcon;
 import teamdash.wbs.icons.CollapseIcon;
@@ -360,6 +361,10 @@ public class IconFactory {
 
     public static Icon getAddColumnIcon() {
         return new AddColumnIcon();
+    }
+
+    public static Icon getAddRowIcon() {
+        return new AddRowIcon();
     }
 
     public static Icon getSortDatesIcon() {
