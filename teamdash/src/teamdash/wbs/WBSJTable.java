@@ -2249,6 +2249,7 @@ public class WBSJTable extends JTable {
                 && !isFiltered()
                 && selectedRows != null
                 && isParentAndChildren(selectedRows)
+                && selectedRows[0] > 0
                 && selectedRows[selectedRows.length-1] + 1 < getRowCount());
         }
     }
