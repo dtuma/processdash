@@ -402,7 +402,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                      new String[] { getRes("Columns.Total_Planned_Time.Name"), "",
                                     getRes("Columns.Unassigned_Time.Short_Name") });
 
-        tabPanel.addTab(getRes("Tabs.Task_Time"),
+        int taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
                 new String[] {
                         PhaseColumn.COLUMN_ID,
                         TaskSizeColumn.COLUMN_ID,
@@ -445,6 +445,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         } catch (LoadTabsException e) {
         }
         tabPanel.wbsTable.loadGuiPrefs(guiPrefs);
+        tabPanel.tabbedPane.setSelectedIndex(taskTimeTabPos);
         guiPrefs.load(tabPanel.tabbedPane);
 
         tabPanel.addChangeListener(this.dirtyListener);
