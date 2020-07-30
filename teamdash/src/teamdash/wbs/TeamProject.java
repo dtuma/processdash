@@ -434,6 +434,8 @@ public class TeamProject implements WBSFilenameConstants {
             if (userSettingsFile.canRead()) {
                 loadProperties(userSettings, new FileInputStream(
                         userSettingsFile));
+                if (projectSettings == null)
+                    projectID = getUserSetting("projectID");
             }
         } catch (Exception e) {
         }
