@@ -1163,7 +1163,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         return result;
     }
-    private Action saveAction, saveAsAction, replaceAction, importFromCsvAction;
+    private Action saveAction, replaceAction, importFromCsvAction;
+    private WBSSaveAsAction saveAsAction;
     private WBSOpenFileAction openAction;
     private JMenu buildFileMenu(DataTableModel dataModel, Action[] fileActions) {
         JMenu result = new JMenu(resources.getString("Window.File_Menu"));
@@ -1576,6 +1577,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         stopAllCellEditingSessions();
         if (maybeSaveTeamMemberList() == false)
             return false;
+
+        // if this is a standalone WBS and no ZIP has been selected yet, ask
+        // the "Save As" action to handle the work.
+        if (isNullZipWorkingDirectory())
+            return saveAsAction.run();
 
         JDialog dialog = createWaitDialog(frame,
             resources.getString("Window.Saving_Data"));
@@ -2505,11 +2511,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             firstSave = true;
         }
         public void actionPerformed(ActionEvent e) {
-            if (isNullZipWorkingDirectory()) {
-                saveAsAction.actionPerformed(e);
-            } else {
-                save();
-            }
+            save();
 
             if (firstSave) {
                 maybeShowProjectClosedMessage();

@@ -69,7 +69,7 @@ public class WBSSaveAsAction extends AbstractAction {
         run();
     }
 
-    private void run() {
+    public boolean run() {
         // Start an asynchronous thread to perform the "Save As" work.
         WorkerThread workerThread = new WorkerThread();
         workerThread.start();
@@ -85,6 +85,9 @@ public class WBSSaveAsAction extends AbstractAction {
         // the operation
         if (destFile != null)
             displayResults(destFile, workerThread);
+
+        // return true if the file was saved successfully
+        return destFile != null && workerThread.exception == null;
     }
 
 
