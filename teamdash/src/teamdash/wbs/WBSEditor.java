@@ -1958,12 +1958,23 @@ public class WBSEditor implements WindowListener, SaveListener,
     protected void maybeClose() {
         tabPanel.stopCellEditing();
         if (!isDirty() || maybeSave(true)) {
-            // Set expanded nodes preference
-            Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
-            setExpandedNodesPref(expandedNodes);
+            // save the user's preferred zoom level
             getGlobalPrefs().putDouble("wbsZoomLevel",
                 WBSZoom.get().getZoomLevel());
-            guiPrefs.saveAll();
+
+            if (isNullZipWorkingDirectory()) {
+                // if this is showing a new/empty project that has never been
+                // saved, discard the prefs nodes created by our guiPrefs. No
+                // future code will ever read those values.
+                guiPrefs.discardAll();
+
+            } else {
+                // Set expanded nodes preference
+                Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
+                setExpandedNodesPref(expandedNodes);
+                // save other GUI-related preferences
+                guiPrefs.saveAll();
+            }
 
             shutDown();
         }
@@ -2371,8 +2382,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     protected void fileWasOpened() {
-        if (exitOnClose && isNullZipWorkingDirectory() && !isDirty())
+        if (exitOnClose && isNullZipWorkingDirectory() && !isDirty()) {
+            guiPrefs.discardAll();
             System.exit(0);
+        }
     }
 
 
