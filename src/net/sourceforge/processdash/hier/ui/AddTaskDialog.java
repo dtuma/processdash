@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 Tuma Solutions, LLC
+// Copyright (C) 2016-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -137,6 +137,11 @@ public class AddTaskDialog {
     private String identifyTargetLocationAndHandler() {
         activeTask = previousSibling = dash.getCurrentPhase();
         targetParent = activeTask.getParent();
+
+        // if the active "leaf" task is a first-level node like "Non Project,"
+        // use it as the target parent.
+        if (PropertyKey.ROOT.equals(targetParent))
+            targetParent = activeTask;
 
         StringBuffer path = new StringBuffer(activeTask.path());
         while (true) {
