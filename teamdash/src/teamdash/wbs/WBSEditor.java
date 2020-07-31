@@ -1161,6 +1161,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         else if (!isMode(MODE_MASTER))
             result.add(buildTeamMenu(initials, dataModel));
 
+        if (isZipWorkingDirectory()) {
+            result.add(Box.createHorizontalGlue());
+            result.add(buildHelpMenu());
+        }
+
         return result;
     }
     private Action saveAction, replaceAction, importFromCsvAction;
@@ -1355,6 +1360,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamTimePanel.setShowMilestoneMarks(true);
         teamTimePanel.setColorByMilestone(true);
         teamTimePanel.setHighlightMilestoneOnHover(false);
+    }
+
+    private JMenu buildHelpMenu() {
+        JMenu result = new JMenu(resources.getString("Help"));
+        result.add(new HelpAboutAction());
+        return result;
     }
 
     private JMenuItem makeMenuItem(Action a) {
@@ -3250,6 +3261,25 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         protected void load(String prefsKey) {
             guiPrefs.load(prefsKey, getModel());
+        }
+    }
+
+    private class HelpAboutAction extends AbstractAction {
+        public HelpAboutAction() {
+            super(resources.getString("Window.Help_About"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Component msg = BoxUtils.hbox(10,
+                new JLabel(new WBSEditorIcon(48)), 20,
+                BoxUtils.vbox(BoxUtils.GLUE,
+                    resources.getString("Window.App_Name"), BoxUtils.GLUE,
+                    resources.format("Window.Version_FMT", //
+                        getClass().getPackage().getImplementationVersion()),
+                    BoxUtils.GLUE));
+            JOptionPane.showMessageDialog(frame, msg,
+                resources.getString("Window.Help_About"),
+                JOptionPane.PLAIN_MESSAGE);
         }
     }
 
