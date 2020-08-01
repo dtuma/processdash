@@ -213,6 +213,10 @@ public abstract class ExtSyncDaemon {
                 long elapsed = end - start;
                 log.fine("Synchronization took " + elapsed + " ms.");
 
+            } catch (SyncDataFile.ComodificationException sdfce) {
+                // another sync daemon process has started; we should exit
+                log.info("A new sync daemon has started; old daemon will exit");
+                return;
             } catch (Exception e) {
                 log.log(errCount == 0 ? Level.SEVERE : Level.FINE,
                     "Encountered problem while synchronizing", e);

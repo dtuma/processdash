@@ -87,6 +87,7 @@ public class ExtSyncCoordinator {
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
         log.fine(logPrefix + "Checking for changes");
         dataTarget.update();
+        syncData.checkComodification();
         metadata = syncData.getMetadata();
         TeamProject teamProject = new QuickTeamProject(dataDir, "");
 

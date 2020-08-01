@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,24 +48,32 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
+    public class ComodificationException extends IOException {}
+
+
     private TeamProjectDataTarget target;
 
     private File file;
+
+    private String processToken;
+
+    private long fileTimestamp;
 
     private ZipFile zip;
 
     private SyncMetadata syncMetadata;
 
+
     public SyncDataFile(TeamProjectDataTarget target, String filename) {
         this.target = target;
         this.file = new File(target.getDirectory(), filename);
+        this.processToken = Long.toString(System.currentTimeMillis());
+        this.fileTimestamp = 0;
     }
 
     public void dispose() throws IOException {
-        if (zip != null) {
-            zip.close();
-            zip = null;
-        }
+        fileTimestamp = 0;
+        closeZip();
         syncMetadata = null;
     }
 
@@ -74,10 +82,30 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
             saveFile();
             target.saveSyncData(file.getName());
             syncMetadata.clearChanged();
+        } else {
+            closeZip();
         }
     }
 
-    public InputStream openEntry(String entryName) throws IOException {
+    public void checkComodification() throws IOException {
+        if (fileTimestamp == 0) {
+            // we haven't saved the file for the first time yet
+        } else if (fileTimestamp == file.lastModified()) {
+            // the filesystem time agrees with our records
+        } else {
+            // timestamp doesn't match. Look inside the file to be sure
+            SyncMetadata currentMetadata = loadMetadata();
+            String currentToken = currentMetadata.getStr(DAEMON_PROCESS_TOKEN);
+            if (!processToken.equals(currentToken)) {
+                closeZip();
+                throw new ComodificationException();
+            } else {
+                fileTimestamp = file.lastModified();
+            }
+        }
+    }
+
+    private InputStream openEntry(String entryName) throws IOException {
         // if the file does not exist, it doesn't have any entries
         if (!file.isFile())
             return null;
@@ -91,10 +119,19 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         return (entry == null ? null : zip.getInputStream(entry));
     }
 
+    private void closeZip() throws IOException {
+        if (zip != null) {
+            zip.close();
+            zip = null;
+        }
+    }
+
     public SyncMetadata getMetadata() throws IOException {
         // if the metadata hasn't been loaded yet, do so now
-        if (syncMetadata == null)
+        if (syncMetadata == null) {
             syncMetadata = loadMetadata();
+            syncMetadata.setStr(processToken, DAEMON_PROCESS_TOKEN);
+        }
         return syncMetadata;
     }
 
@@ -128,12 +165,10 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         writeManifest(zipOut, fileEntries);
 
         // finalize the ZIP file
-        if (zip != null) {
-            zip.close();
-            zip = null;
-        }
+        closeZip();
         zipOut.finish();
         zipOut.close();
+        fileTimestamp = file.lastModified();
     }
 
 
@@ -229,6 +264,8 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
             xml.attribute(null, VERSION_ATTR, version);
         xml.endTag(null, FILE_ELEM);
     }
+
+    private static final String DAEMON_PROCESS_TOKEN = "daemon.processToken";
 
     private static final String METADATA_FILE_TYPE = "syncMetadata";
 
