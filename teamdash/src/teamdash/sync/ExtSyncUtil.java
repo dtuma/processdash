@@ -145,4 +145,28 @@ public class ExtSyncUtil {
             p.put(prop, value);
     }
 
+    /**
+     * Retrieve a named property, interpret it as fractional seconds, and return
+     * the equivalent number of milliseconds.
+     * 
+     * @param properties
+     *            a set of Properties to consult
+     * @param propName
+     *            the name of the desired property
+     * @param defaultMillis
+     *            a default value to return, if the the properties are null, if
+     *            they don't contain the named property, or if the property
+     *            value can't be parsed as a number.
+     * @since 2.5.7
+     */
+    public static int getParamAsMillis(Properties properties, String propName,
+            int defaultMillis) {
+        try {
+            String value = properties.getProperty(propName);
+            return (int) (Double.parseDouble(value) * 1000);
+        } catch (Exception e) {
+            return defaultMillis;
+        }
+    }
+
 }

@@ -61,8 +61,6 @@ public abstract class ExtSyncDaemon {
 
     protected String systemName, systemID;
 
-    protected int loopDelay;
-
     protected ExtSystemConnection connection;
 
 
@@ -75,10 +73,6 @@ public abstract class ExtSyncDaemon {
         this.globalConfig = loadGlobalConfig(globalConfigFilename);
         this.systemName = globalConfig.getProperty(EXT_SYSTEM_NAME);
         this.systemID = globalConfig.getProperty(EXT_SYSTEM_ID);
-
-        // read preferences for looped execution
-        String loopDelay = globalConfig.getProperty("loop.delay");
-        this.loopDelay = (loopDelay == null ? -1 : Integer.parseInt(loopDelay));
 
         // save and pass session cookies for improved performance
         CookieHandler
@@ -189,6 +183,10 @@ public abstract class ExtSyncDaemon {
         // run the sync operation, potentially multiple times
         long heartbeat = System.currentTimeMillis() + DateUtils.HOUR;
         int errCount = 0;
+        int loopDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
+            "loop.syncInterval", -1);
+        int retryDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
+            "loop.retryDelay", 5000);
 
         do {
             long start = System.currentTimeMillis();
@@ -226,7 +224,7 @@ public abstract class ExtSyncDaemon {
 
             // delay before repeating the loop again
             long nextStart = start
-                    + 1000 * loopDelay * errDelayFactor(errCount);
+                    + loopDelayMillis(loopDelay, errCount, retryDelay);
             long wait = nextStart - System.currentTimeMillis();
             if (loopDelay == 0) {
                 log.info("Press enter to repeat.");
@@ -268,13 +266,15 @@ public abstract class ExtSyncDaemon {
         return null;
     }
 
-    private static int errDelayFactor(int errCount) {
-        if (errCount < 2)
-            return 1;
+    private int loopDelayMillis(int loopDelay, int errCount, int retryDelay) {
+        if (loopDelay <= 0 || errCount == 0)
+            return loopDelay;
+        else if (errCount < 2)
+            return retryDelay;
         else if (errCount < 4)
-            return 5;
+            return 5 * retryDelay;
         else
-            return 10;
+            return 10 * retryDelay;
     }
 
 }
