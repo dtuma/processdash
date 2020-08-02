@@ -178,13 +178,14 @@ public abstract class ExtSyncDaemon {
         // create objects to perform the synchronization of this target
         ExtNodeSet nodeSet = connection.getNodeSet(targetConfig);
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                systemName, systemID);
+                systemName, systemID, globalConfig);
 
         // run the sync operation, potentially multiple times
         long heartbeat = System.currentTimeMillis() + DateUtils.HOUR;
         int errCount = 0;
+        int ldd = coord.isActiveSleepSupported() ? (int) DateUtils.HOUR : 5000;
         int loopDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
-            "loop.syncInterval", -1);
+            "loop.syncInterval", ldd);
         int retryDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
             "loop.retryDelay", 5000);
 

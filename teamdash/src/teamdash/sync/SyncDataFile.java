@@ -105,6 +105,10 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         }
     }
 
+    public long getFileTimestamp() {
+        return fileTimestamp;
+    }
+
     private InputStream openEntry(String entryName) throws IOException {
         // if the file does not exist, it doesn't have any entries
         if (!file.isFile())

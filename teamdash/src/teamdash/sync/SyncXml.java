@@ -66,7 +66,7 @@ public class SyncXml implements SyncXmlConstants {
 
         // perform the synchronization operation
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                extSystemName, extSystemID);
+                extSystemName, extSystemID, null);
         coord.run(nodeSet);
 
         // dispose of resources

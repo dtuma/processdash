@@ -45,7 +45,11 @@ public class DaemonMetadata {
 
     private static final String NEXT_TIMESTAMP_ATTR = "until";
 
+    private static final String REFRESH_ATTR = "refreshInterval";
+
     private File metadataDir;
+
+    private File syncRequestFile;
 
     private File daemonStateFile;
 
@@ -57,11 +61,48 @@ public class DaemonMetadata {
     public DaemonMetadata(String systemID, File wbsDir) {
         if (wbsDir != null) {
             metadataDir = new File(wbsDir, "sync");
+            syncRequestFile = new File(metadataDir,
+                    systemID + "-sync-requested.txt");
             daemonStateFile = new File(metadataDir,
                     systemID + "-sync-daemon-state.txt");
         }
         this.stateProps = new Properties();
         this.log = Logger.getLogger(getClass().getName() + "." + systemID);
+    }
+
+
+    public boolean isSyncRequestSupported() {
+        return syncRequestFile != null;
+    }
+
+    public void setSyncRequestPending(boolean pending) throws IOException {
+        if (syncRequestFile == null) {
+            // if we can't support sync requests, abort
+        } else if (pending) {
+            metadataDir.mkdir();
+            FileOutputStream out = new FileOutputStream(syncRequestFile);
+            out.write(tstamp(0).getBytes("UTF-8"));
+            out.close();
+        } else {
+            syncRequestFile.delete();
+        }
+    }
+
+    public boolean isSyncRequestPending() throws IOException {
+        return syncRequestFile != null && syncRequestFile.isFile();
+    }
+
+
+    public void setRefreshInterval(int milliseconds) {
+        stateProps.put(REFRESH_ATTR, Integer.toString(milliseconds));
+    }
+
+    public int getRefreshInterval() {
+        try {
+            return Integer.parseInt(((String) stateProps.get(REFRESH_ATTR)));
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
 
@@ -102,6 +143,7 @@ public class DaemonMetadata {
             return -1;
         }
     }
+
 
     public void load() throws IOException {
         if (daemonStateFile != null && daemonStateFile.isFile()) {
