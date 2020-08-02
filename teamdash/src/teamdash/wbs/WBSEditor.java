@@ -144,6 +144,7 @@ import teamdash.hist.ui.BlameHistoryAction;
 import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.sync.ExtRefreshCoordinator;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
@@ -2175,6 +2176,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             } else if (workingDirectory instanceof CompressedWorkingDirectory) {
                 workingDirIsGood = new File(dir, WBS_FILENAME).isFile();
             } else {
+                ExtRefreshCoordinator.runExtRefresh(workingDirectory, false, 5);
                 workingDirIsGood = dir.isDirectory();
             }
         } catch (HttpException.Unauthorized e) {
@@ -2592,6 +2594,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             try {
                 // do the work.
                 tabPanel.saveOrderOfProjectSpecificCustomColumns();
+                ExtRefreshCoordinator.runExtRefresh(workingDirectory, true, 20);
                 dataWasMerged = mergeExternalChanges(forceReverseSync);
             } catch (Exception e) {
                 mergeException = e;
