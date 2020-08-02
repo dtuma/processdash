@@ -230,7 +230,7 @@ public abstract class ExtSyncDaemon {
                 log.info("Press enter to repeat.");
                 System.console().readLine();
             } else if (wait > 0) {
-                Thread.sleep(wait);
+                coord.sleep(wait);
             }
 
         } while (loopDelay >= 0);

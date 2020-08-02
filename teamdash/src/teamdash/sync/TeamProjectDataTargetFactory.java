@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.Random;
 
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
@@ -62,6 +63,14 @@ public class TeamProjectDataTargetFactory {
         @Override
         public File getDirectory() {
             return workingDir.getDirectory();
+        }
+
+        @Override
+        public DaemonMetadata getDaemonMetadata(String systemID) {
+            File filesystemWbsDir = null;
+            if (workingDir instanceof LocalWorkingDirectory)
+                filesystemWbsDir = getDirectory();
+            return new DaemonMetadata(systemID, filesystemWbsDir);
         }
 
         @Override

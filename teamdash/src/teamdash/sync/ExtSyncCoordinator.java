@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 
+import teamdash.sync.DaemonMetadata.State;
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.TeamProject;
 
@@ -48,6 +49,10 @@ public class ExtSyncCoordinator {
     private String extSystemID;
 
     private SyncDataFile syncData;
+
+    private DaemonMetadata daemonMetadata;
+
+    private ElapsedTimeMonitor inboundTime, outboundTime;
 
     private SyncMetadata metadata;
 
@@ -63,6 +68,9 @@ public class ExtSyncCoordinator {
         this.extSystemID = extSystemID;
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
+        this.daemonMetadata = dataTarget.getDaemonMetadata(extSystemID);
+        this.inboundTime = new ElapsedTimeMonitor(20, 5000);
+        this.outboundTime = new ElapsedTimeMonitor(20, 1000);
     }
 
     /**
@@ -71,17 +79,20 @@ public class ExtSyncCoordinator {
      */
     public void run(ExtNodeSet nodeSet) throws IOException {
         // synchronize external changes into the WBS
-        List<ExtChange> changes = applyExtChanges(nodeSet);
+        List<ExtChange> changes = applyInboundExtChanges(nodeSet);
 
         // synchronize WBS changes back to the external system
-        nodeSet.applyWbsChanges(changes, getMetadata());
+        applyOutboundWbsChanges(nodeSet, changes);
 
         // save metadata to record the completed operation
         saveMetadata();
     }
 
-    private List<ExtChange> applyExtChanges(ExtNodeSet nodeSet)
+    private List<ExtChange> applyInboundExtChanges(ExtNodeSet nodeSet)
             throws IOException {
+        // start tracking the time required for inbound sync
+        inboundTime.start();
+
         // get the most recent data and load the team project
         File dataDir = dataTarget.getDirectory();
         String logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
@@ -90,6 +101,9 @@ public class ExtSyncCoordinator {
         syncData.checkComodification();
         metadata = syncData.getMetadata();
         TeamProject teamProject = new QuickTeamProject(dataDir, "");
+
+        // let clients know we're starting an inbound sync
+        daemonMetadata.setState(State.Inbound, inboundTime.getMaxTime());
 
         // retrieve the list of nodes from the external system
         ExtSynchronizer sync = new ExtSynchronizer(teamProject, extSystemName,
@@ -161,6 +175,9 @@ public class ExtSyncCoordinator {
             log.log(Level.SEVERE, logPrefix + "Error saving metadata", ioe);
         }
 
+        // stop measuring elapsed time for inbound sync
+        inboundTime.finish();
+
         // return the list of reverse sync changes that are needed
         return sync.getExtChangesNeeded();
     }
@@ -173,6 +190,32 @@ public class ExtSyncCoordinator {
         } catch (IOException ioe) {
             // can't happen
         }
+    }
+
+    private void applyOutboundWbsChanges(ExtNodeSet nodeSet,
+            List<ExtChange> changes) throws IOException {
+        if (!changes.isEmpty()) {
+            // start tracking the time required for outbound sync
+            outboundTime.start();
+
+            // let clients know we're starting an outbound sync
+            long expectedDuration = outboundTime.getMaxTime() * changes.size();
+            daemonMetadata.setState(State.Outbound, expectedDuration);
+
+            // ask our nodeSet to make the changes
+            nodeSet.applyWbsChanges(changes, getMetadata());
+
+            // stop measuring elapsed time for outbound sync
+            outboundTime.finish(changes.size());
+        }
+    }
+
+
+    public void sleep(long duration) throws IOException {
+        daemonMetadata.setState(State.Sleep, duration);
+        try {
+            Thread.sleep(duration);
+        } catch (InterruptedException ie) {}
     }
 
 
