@@ -56,6 +56,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
@@ -177,6 +178,9 @@ public class SyncWBS extends TinyCGIBase {
                 printMigrationRedirect();
                 return;
             }
+
+            // synchronize data with external systems if needed
+            maybePerformExtRefresh();
 
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
@@ -522,6 +526,15 @@ public class SyncWBS extends TinyCGIBase {
             return false;
 
         return !Settings.getBool(DISABLE_TEAM_IMPORT_REPAIR_SETTING, false);
+    }
+
+    private void maybePerformExtRefresh() {
+        try {
+            String uri = WebServer.urlEncodePath(projectRoot)
+                    + "//team/tools/runExtRefresh?timeout=10";
+            getTinyWebServer().getRequest(uri, true);
+        } catch (Exception e) {
+        }
     }
 
     private boolean checkForMismatchedIndivInitials(HierarchySynchronizer synch)
