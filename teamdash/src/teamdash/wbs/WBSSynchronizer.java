@@ -114,6 +114,8 @@ public class WBSSynchronizer {
 
     private boolean needsWbsEvent = false;
 
+    private boolean changedTimeEstimates = false;
+
     private boolean createdNewTasks = false;
 
     private boolean foundActualData = false;
@@ -174,6 +176,7 @@ public class WBSSynchronizer {
 
     public void run() {
         effectiveDate = new Date(0);
+        changedTimeEstimates = false;
         createdNewTasks = foundActualData = needsWbsEvent = false;
         foundActualSizeData = sizeDataIncomplete = false;
         Element directDumpData = getDirectDumpData();
@@ -276,6 +279,13 @@ public class WBSSynchronizer {
         return !reloadedMemberNames.isEmpty();
     }
 
+
+    /**
+     * Return true if any time estimates were changed during the reverse-sync.
+     */
+    public boolean getChangedTimeEstimates() {
+        return changedTimeEstimates;
+    }
 
     /**
      * Return true if any new tasks were created during the reverse-sync.
@@ -871,6 +881,7 @@ public class WBSSynchronizer {
                         newTeamTime);
                 }
                 node.setNumericAttribute(syncAttrName, newUserTime);
+                changedTimeEstimates = true;
             }
         }
 

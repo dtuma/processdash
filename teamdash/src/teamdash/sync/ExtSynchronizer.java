@@ -75,6 +75,8 @@ public class ExtSynchronizer {
 
     private Map<String, String> timeChanges;
 
+    private boolean reverseSyncedTime;
+
     private boolean wbsChanged;
 
     public ExtSynchronizer(TeamProject teamProject, String extSystemName,
@@ -85,6 +87,7 @@ public class ExtSynchronizer {
         this.extSystemID = extSystemID;
         this.extIDAttr = ExtSyncUtil.getExtIDAttr(extSystemID);
         this.metadata = metadata;
+        this.reverseSyncedTime = false;
         this.wbsChanged = false;
         this.extNodeMap = buildExtNodeMap();
     }
@@ -159,6 +162,7 @@ public class ExtSynchronizer {
         // most up-to-date values.
         WBSSynchronizer reverseSync = new WBSSynchronizer(teamProject, null);
         reverseSync.run();
+        reverseSyncedTime = reverseSync.getChangedTimeEstimates();
     }
 
 
@@ -495,6 +499,7 @@ public class ExtSynchronizer {
             // copy this change back to the external system if needed
             if (extTime != null && !timeEq(extTime, newTime)) {
                 recordOutboundChange(extNode, EST_TIME, newTime);
+                wbsChanged |= reverseSyncedTime;
             }
 
             // record new metadata values for remaining time
@@ -535,6 +540,7 @@ public class ExtSynchronizer {
                 // if the value in the WBS has been edited since the last sync,
                 // copy that value back to the external system.
                 recordOutboundChange(extNode, EST_TIME, wbsTime);
+                wbsChanged |= reverseSyncedTime;
             }
         }
 
@@ -543,6 +549,7 @@ public class ExtSynchronizer {
             boolean remChanged = !timeEq(newRem, lastSyncRem);
             if (remChanged) {
                 recordOutboundChange(extNode, REM_TIME, newRem);
+                wbsChanged |= reverseSyncedTime;
             } else {
                 metadata.setNum(null, extID, REM_TIME, OUTBOUND_VALUE);
             }
