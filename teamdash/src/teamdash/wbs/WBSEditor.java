@@ -275,7 +275,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamProject.getWorkflows());
 
         TaskDependencySource taskDependencySource = getTaskDependencySource();
-        DataTableModel data = new DataTableModel
+        WBSDataModel data = new WBSDataModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getWorkflows(),
              teamProject.getProxies(), teamProject.getMilestones(),

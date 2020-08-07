@@ -36,45 +36,20 @@ import java.util.Set;
 
 import javax.swing.JTable;
 import javax.swing.Timer;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
-import teamdash.team.TeamMemberList;
-import teamdash.wbs.columns.CustomColumnManager;
-import teamdash.wbs.columns.CustomColumnSpecs;
-import teamdash.wbs.columns.ErrorNotesColumn;
-import teamdash.wbs.columns.LabelSource;
-import teamdash.wbs.columns.MilestoneColumn;
-import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.NullDataColumn;
-import teamdash.wbs.columns.PhaseColumn;
-import teamdash.wbs.columns.PlanTimeWatcher;
-import teamdash.wbs.columns.ProxyEstBucketColumn;
-import teamdash.wbs.columns.ProxyEstTypeColumn;
-import teamdash.wbs.columns.SizeTypeColumn;
-import teamdash.wbs.columns.TaskDependencyColumn;
-import teamdash.wbs.columns.TaskLabelColumn;
-import teamdash.wbs.columns.TaskSizeColumn;
-import teamdash.wbs.columns.TaskSizeUnitsColumn;
-import teamdash.wbs.columns.TeamActualTimeColumn;
-import teamdash.wbs.columns.TeamMemberColumnManager;
-import teamdash.wbs.columns.TeamTimeColumn;
-import teamdash.wbs.columns.WBSNodeColumn;
-import teamdash.wbs.columns.WbsNodeAttributeSource;
 
 
-public class DataTableModel extends AbstractTableModel {
+public class DataTableModel<WbsT extends WBSModel> extends AbstractTableModel {
 
     public static final int WBS_NODE_COLUMN = 0;
 
     /** The wbs model which this is displaying data for */
-    protected WBSModel wbsModel;
-    /** The team process in use
-    protected TeamProcess teamProcess;
+    protected WbsT wbsModel;
     /** The list of columns in this data model */
     private ArrayList columns;
     /** A list of the calculated columns in the model */
@@ -84,44 +59,22 @@ public class DataTableModel extends AbstractTableModel {
     private boolean[][] dependencies;
     /** A set of columns that need recalculating */
     private Set dirtyColumns;
-    /** A list of the columns which are sources of label data */
-    private Set<Integer> labelSources;
-    /** A list of the columns which are sources of attribute data */
-    private Set<Integer> attrSources;
     /** A timer for triggering recalculations */
     private Timer recalcJanitorTimer;
-    /** Object which manages columns for team members */
-    private TeamMemberColumnManager memberColumnManager;
-    /** Object which manages custom columns */
-    private CustomColumnManager customColumnManager;
 
     /** Should editing be disabled? */
     private boolean disableEditing = false;
 
-    public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
-                          TeamProcess teamProcess,
-                          WorkflowWBSModel workflows,
-                          ProxyWBSModel proxies,
-                          MilestonesWBSModel milestones,
-                          CustomColumnSpecs customColumns,
-                          TaskDependencySource dependencySource,
-                          String currentUser)
-    {
+    public DataTableModel(WbsT wbsModel) {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(new TableModelEventRepeater());
 
         columns = new ArrayList();
         dirtyColumns = new HashSet();
-        labelSources = new HashSet<Integer>();
-        attrSources = new HashSet<Integer>();
 
         recalcJanitorTimer = new Timer(1000, new RecalcJanitor());
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
-
-        buildDataColumns(teamList, teamProcess, workflows, proxies, milestones,
-            customColumns, dependencySource, currentUser);
-        initializeColumnDependencies();
     }
 
     public void setEditingEnabled(boolean enabled) {
@@ -132,7 +85,7 @@ public class DataTableModel extends AbstractTableModel {
         return !disableEditing;
     }
 
-    private void initializeColumnDependencies() {
+    protected void initializeColumnDependencies() {
         // create the dependency matrix and populate it with "false" values.
         int numColumns = columns.size();
         dependencies = new boolean[numColumns][numColumns];
@@ -234,33 +187,34 @@ public class DataTableModel extends AbstractTableModel {
     }
 
     /** Add a single data column to the data model */
-    public void addDataColumn(DataColumn column) {
+    public int addDataColumn(DataColumn column) {
         int newColumnIndex = columns.size();
         columns.add(column);
         if (column instanceof IndexAwareDataColumn)
             ((IndexAwareDataColumn) column).setColumnIndex(newColumnIndex);
-        if (column instanceof LabelSource)
-            labelSources.add(newColumnIndex);
-        if (column instanceof WbsNodeAttributeSource)
-            attrSources.add(newColumnIndex);
 
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
+
+        // return the index of the new column
+        return newColumnIndex;
     }
 
     /** Remove a single data column from the data model */
-    public void removeDataColumn(DataColumn column) {
+    public int removeDataColumn(DataColumn column) {
         int pos = findIndexOfColumn(column);
-        if (pos == -1) return;
+        if (pos == -1) return -1;
         if (column instanceof IndexAwareDataColumn)
             ((IndexAwareDataColumn) column).setColumnIndex(-1);
         columns.set(pos, new NullDataColumn());
-        labelSources.remove(pos);
-        attrSources.remove(pos);
+
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
+
+        // return the index of the column we removed
+        return pos;
     }
 
     public int findIndexOfColumn(Object column) {
@@ -268,14 +222,6 @@ public class DataTableModel extends AbstractTableModel {
             return ((IndexAwareDataColumn) column).getColumnIndex();
         else
             return columns.indexOf(column);
-    }
-
-    public Integer[] getLabelSourceColumns() {
-        return labelSources.toArray(new Integer[labelSources.size()]);
-    }
-
-    public Integer[] getAttributeSourceColumns() {
-        return attrSources.toArray(new Integer[attrSources.size()]);
     }
 
     /** Add a list of data columns and remove another list of data columns.
@@ -318,74 +264,9 @@ public class DataTableModel extends AbstractTableModel {
     }
 
 
-    /** Add time columns for each team member to the given column model. */
-    public void addTeamMemberPlanTimes(TableColumnModel columnModel) {
-        memberColumnManager.addPlanTimesToColumnModel(columnModel);
-    }
-
-    /** Add time columns for each team member to the given column model. */
-    public void addTeamMemberActualTimes(TableColumnModel columnModel) {
-        memberColumnManager.addActualTimesToColumnModel(columnModel);
-    }
-
-    /** Get a list of the column numbers for each team member column. */
-    public IntList getTeamMemberColumnIDs() {
-        IntList result = new IntList();
-        Iterator i = memberColumnManager.getPlanTimeColumns().iterator();
-        while (i.hasNext())
-            result.add(findIndexOfColumn(i.next()));
-
-        return result;
-    }
-
-    /** Register a listener that should be notified about team member column
-     * changes */
-    public void addTeamMemberColumnListener(ChangeListener l) {
-        memberColumnManager.addTeamMemberColumnListener(l);
-    }
-
-    /** Add all custom columns to the given column model. */
-    public void addCustomColumns(TableColumnModel columnModel) {
-        customColumnManager.addColumnsToColumnModel(columnModel);
-    }
-
-    public CustomColumnManager getCustomColumnManager() {
-        return customColumnManager;
-    }
-
-    /** Create a set of data columns for this data model. */
-    protected void buildDataColumns(TeamMemberList teamList,
-            TeamProcess teamProcess, WorkflowWBSModel workflows,
-            ProxyWBSModel proxies, MilestonesWBSModel milestones,
-            CustomColumnSpecs projectColumns,
-            TaskDependencySource dependencySource, String currentUser)
-    {
-        addDataColumn(new WBSNodeColumn(wbsModel));
-        SizeTypeColumn.createSizeColumns(this, teamProcess);
-        addDataColumn(new PhaseColumn(this, teamProcess, workflows));
-        memberColumnManager = new TeamMemberColumnManager(this, workflows,
-                teamList);
-        addDataColumn(new TaskSizeColumn(this, teamProcess));
-        addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
-        addDataColumn(new TeamTimeColumn(this, milestones,
-                teamList.isSinglePersonTeam()));
-        addDataColumn(new TeamActualTimeColumn(this, milestones, teamList));
-        addDataColumn(new TaskLabelColumn(this));
-        addDataColumn(new MilestoneColumn(this, milestones));
-        addDataColumn(new ProxyEstTypeColumn(this, proxies));
-        addDataColumn(new ProxyEstBucketColumn(this, proxies, teamProcess));
-        addDataColumn(new TaskDependencyColumn(this, dependencySource,
-                teamProcess.getIconMap()));
-        addDataColumn(new NotesColumn(currentUser));
-        addDataColumn(new ErrorNotesColumn(currentUser));
-        addDataColumn(new PlanTimeWatcher(this, teamProcess));
-        customColumnManager = new CustomColumnManager(this, projectColumns,
-                teamProcess.getProcessID());
-    }
-
     /** Return the work breakdown structure model that this data model
      * represents. */
-    public WBSModel getWBSModel() { return wbsModel; }
+    public WbsT getWBSModel() { return wbsModel; }
 
 
     /** This class listens for table model events fired by the work

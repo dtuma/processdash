@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -317,7 +317,7 @@ public class WBSFilterAction extends AbstractAction
             if (c instanceof CustomColumn)
                 columnAdded(c.getColumnID(), c);
         }
-        tabPanel.wbsTable.dataModel.getCustomColumnManager()
+        tabPanel.getWBSDataModel().getCustomColumnManager()
                 .addCustomColumnListener(this);
     }
 

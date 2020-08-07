@@ -88,7 +88,7 @@ public class WBSDataWriter {
     /** The work breakdown structure */
     private WBSModel wbsModel;
     /** Calculated data associated with the work breakdown structure */
-    private DataTableModel dataModel;
+    private WBSDataModel dataModel;
     /** The team process */
     private TeamProcess process;
     /** The ID of the team project */
@@ -142,7 +142,7 @@ public class WBSDataWriter {
 
     /** Create a new WBSDataWriter.
      */
-    public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
+    public WBSDataWriter(WBSModel wbsModel, WBSDataModel dataModel,
                          TeamProcess process, String projectID,
                          TeamMemberList teamList,
                          WorkflowWBSModel workflows,

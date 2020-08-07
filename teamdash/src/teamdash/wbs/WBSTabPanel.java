@@ -158,7 +158,7 @@ public class WBSTabPanel extends JLayeredPane implements
     List enablementCalculations = new LinkedList();
 
     /** Create a WBSTabPanel */
-    public WBSTabPanel(WBSModel wbs, DataTableModel data,
+    public WBSTabPanel(WBSModel wbs, WBSDataModel data,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             TaskIDSource idSource, GuiPrefs guiPrefs) {
         this(wbs, data, teamProcess.getIconMap(),
@@ -169,7 +169,7 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     /** Create a WBSTabPanel */
-    private WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
+    private WBSTabPanel(WBSModel wbs, WBSDataModel data, Map iconMap,
             JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource,
             GuiPrefs guiPrefs) {
         setLayout(layout = new GridBagLayout());
@@ -203,6 +203,10 @@ public class WBSTabPanel extends JLayeredPane implements
 
     public void stopCellEditing() {
         UndoList.stopCellEditing(this);
+    }
+
+    public WBSDataModel getWBSDataModel() {
+        return (WBSDataModel) wbsTable.dataModel;
     }
 
     protected boolean isTabEditable(int tabIndex) {
@@ -247,7 +251,7 @@ public class WBSTabPanel extends JLayeredPane implements
         boolean isEditable,
         boolean isProtected) {
 
-        DataTableModel tableModel = (DataTableModel) dataTable.getModel();
+        WBSDataModel tableModel = getWBSDataModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
 
         for (int i = 0; i < columnIDs.length; i++) {
@@ -381,7 +385,7 @@ public class WBSTabPanel extends JLayeredPane implements
         int selectedColumnPos = Math.max(0, columns.indexOf(selectedColumnID));
 
         // cache column indexes for better performance
-        DataTableModel dataModel = (DataTableModel) dataTable.getModel();
+        WBSDataModel dataModel = getWBSDataModel();
         int[] columnIdx = new int[columns.size()];
         for (int i = columns.size(); i-- > 0;)
             columnIdx[i] = dataModel.findColumn(columns.get(i));
@@ -635,7 +639,7 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private CustomColumnsAction makeCustomColumnsAction() {
-        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        CustomColumnManager colMgr = getWBSDataModel().getCustomColumnManager();
         colMgr.addCustomColumnListener(this);
         if (!WBSPermissionManager.hasPerm("wbs.columns", "2.3.1.2"))
             return null;
@@ -956,7 +960,7 @@ public class WBSTabPanel extends JLayeredPane implements
 
 
     public void replaceCustomColumns(CustomColumnSpecs columns) {
-        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        CustomColumnManager colMgr = getWBSDataModel().getCustomColumnManager();
         try {
             currentlyReplacingCustomColumns = true;
             colMgr.replaceProjectSpecificColumns(columns);
@@ -990,7 +994,7 @@ public class WBSTabPanel extends JLayeredPane implements
             return;
 
         // get the IDs of project-specific custom columns
-        CustomColumnManager colMgr = wbsTable.dataModel.getCustomColumnManager();
+        CustomColumnManager colMgr = getWBSDataModel().getCustomColumnManager();
         Set<String> customColumnIDs = colMgr.getProjectSpecificColumnIDs();
         if (customColumnIDs.isEmpty())
             return;
@@ -1030,7 +1034,7 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     /** Create the JTables and perform necessary setup */
-    private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap,
+    private void makeTables(WBSModel wbs, WBSDataModel data, Map iconMap,
             JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource) {
         // create the WBS table to display the hierarchy
         wbsTable = new WBSJTable(wbs, iconMap, iconMenu, workflows, idSource);

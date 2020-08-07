@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.Set;
 
 import teamdash.wbs.CalculatedDataColumn;
-import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WBSSynchronizer;
 
@@ -81,7 +81,7 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         public void discrepancyNoted(PlanTimeDiscrepancyEvent e);
     }
 
-    private DataTableModel dataModel;
+    private WBSDataModel dataModel;
     private TeamProcess process;
     private IntList teamMemberColumns;
     private String[] teamMemberAttrs;
@@ -92,7 +92,7 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     private boolean watchPspAndProbeTasks;
     private Set<PlanTimeDiscrepancyListener> listeners;
 
-    public PlanTimeWatcher(DataTableModel m, TeamProcess p) {
+    public PlanTimeWatcher(WBSDataModel m, TeamProcess p) {
         this.dataModel = m;
         this.process = p;
         this.columnName = this.columnID = COLUMN_ID;

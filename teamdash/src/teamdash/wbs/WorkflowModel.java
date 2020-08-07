@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
-import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -48,26 +47,18 @@ import teamdash.wbs.columns.WorkflowYieldColumn;
 /** A customized DataTableModel containing only the columns pertinent
  * to editing workflows.
  */
-public class WorkflowModel extends DataTableModel {
+public class WorkflowModel extends DataTableModel<WorkflowWBSModel> {
 
 
-    public WorkflowModel(WBSModel workflows, TeamProcess teamProcess,
+    public WorkflowModel(WorkflowWBSModel workflows, TeamProcess teamProcess,
             TeamMemberList teamList) {
-        super(workflows, teamList, teamProcess, null, null, null, null, null, null);
+        super(workflows);
+        buildDataColumns(teamList, teamProcess);
+        initializeColumnDependencies();
     }
 
-    /** override and create only the columns we're interested in.
-     */
-    @Override
-    protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess,
-                                    WorkflowWBSModel workflows,
-                                    ProxyWBSModel proxies,
-                                    MilestonesWBSModel milestones,
-                                    CustomColumnSpecs columns,
-                                    TaskDependencySource dependencySource,
-                                    String currentUser)
-    {
+    private void buildDataColumns(TeamMemberList teamList,
+            TeamProcess teamProcess) {
         addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new WorkflowPercentageColumn(wbsModel));
         addDataColumn(new WorkflowRateColumn(this));

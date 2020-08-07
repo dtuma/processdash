@@ -23,35 +23,24 @@
 
 package teamdash.wbs;
 
-import teamdash.team.TeamMemberList;
-import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 
-public class MilestonesDataModel extends DataTableModel {
+public class MilestonesDataModel extends DataTableModel<MilestonesWBSModel> {
 
     public MilestonesDataModel(MilestonesWBSModel milestones) {
-        super(milestones, null, null, null, null, milestones, null, null, null);
+        super(milestones);
+        buildDataColumns();
+        initializeColumnDependencies();
     }
 
-    /** override and create only the columns we're interested in.
-     */
-    @Override
-    protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess,
-                                    WorkflowWBSModel workflows,
-                                    ProxyWBSModel proxies,
-                                    MilestonesWBSModel milestones,
-                                    CustomColumnSpecs columns,
-                                    TaskDependencySource dependencySource,
-                                    String currentUser)
-    {
-        addDataColumn(new WBSNodeColumn(milestones));
+    private void buildDataColumns() {
+        addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new MilestoneCommitDateColumn());
-        addDataColumn(new MilestoneColorColumn(milestones));
+        addDataColumn(new MilestoneColorColumn(wbsModel));
         addDataColumn(new MilestoneVisibilityColumn());
         addDataColumn(new MilestoneDeferredColumn());
     }
@@ -60,11 +49,6 @@ public class MilestonesDataModel extends DataTableModel {
     public void setValueAt(Object value, int rowIndex, int columnIndex) {
         super.setValueAt(value, rowIndex, columnIndex);
         fireTableCellUpdated(rowIndex, columnIndex);
-    }
-
-    @Override
-    public MilestonesWBSModel getWBSModel() {
-        return (MilestonesWBSModel) super.getWBSModel();
     }
 
     public boolean hasCommitDates() {

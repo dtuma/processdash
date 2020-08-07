@@ -73,7 +73,6 @@ import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
 import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
@@ -82,6 +81,7 @@ import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReplaceAwareColumn;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
@@ -110,7 +110,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
     UnassignedTimeColumn unassignedTimeColumn;
 
 
-    public TeamTimeColumn(DataTableModel m, MilestonesWBSModel milestones,
+    public TeamTimeColumn(WBSDataModel m, MilestonesWBSModel milestones,
             boolean singlePersonTeam) {
         super(m, resources.getString("Team_Time.Name"), COLUMN_ID);
         this.singlePersonTeam = singlePersonTeam;
@@ -139,17 +139,21 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             sizeColumn = columnNumber;
         else if (TaskSizeUnitsColumn.COLUMN_ID.equals(ID)) {
             unitsColumn = columnNumber;
-            setTeamMemberColumns(dataModel.getTeamMemberColumnIDs());
+            setTeamMemberColumns(getTeamMemberColumnIDs());
         }
     }
 
     // messaged when the list of team member columns changes
     public void stateChanged(ChangeEvent e) {
-        IntList newCols = dataModel.getTeamMemberColumnIDs();
+        IntList newCols = getTeamMemberColumnIDs();
         if (!newCols.equals(teamMemberColumns)) {
             setTeamMemberColumns(newCols);
             dataModel.columnChanged(this);
         }
+    }
+
+    private IntList getTeamMemberColumnIDs() {
+        return ((WBSDataModel) dataModel).getTeamMemberColumnIDs();
     }
 
 
