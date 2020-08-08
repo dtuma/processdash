@@ -1,12 +1,11 @@
 /.settings/
+/antbin/
+/bin/
+/dist/
 /misc/
 
 /Templates/team/setup/filelist.txt
 /build.properties
-
-antbin/
-bin/
-dist/
 
 *.class
 Thumbs.db
