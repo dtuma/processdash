@@ -1578,7 +1578,7 @@ public class WBSJTable extends JTable {
                 WBSNode node = wbsModel.getNodeForRow(rows[i]);
                 List<WBSNode> inserted = WorkflowUtil.insertWorkflow(wbsModel,
                     node, workflowName, workflows,
-                    WorkflowModel.WORKFLOW_ATTRS,
+                    WorkflowDataModel.WORKFLOW_ATTRS,
                     getInsertWorkflowExtraAttrs(node), true);
                 if (inserted != null)
                     insertedNodes.addAll(inserted);
@@ -1885,7 +1885,7 @@ public class WBSJTable extends JTable {
                     // update the tasks in the WBS based on the workflow
                     List<WBSNode> workflowSteps = WorkflowUtil.insertWorkflow(
                         wbsModel, e.wbsNode, e.workflowName, workflows,
-                        WorkflowModel.WORKFLOW_ATTRS,
+                        WorkflowDataModel.WORKFLOW_ATTRS,
                         getInsertWorkflowExtraAttrs(e.wbsNode), false);
                     affectedNodes.add(e.wbsNode);
                     affectedNodes.addAll(workflowSteps);

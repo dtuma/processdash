@@ -33,7 +33,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowDataModel;
 
 public class WorkflowRateColumn extends AbstractNumericColumn implements
         CalculatedDataColumn, CustomRenderedColumn, WorkflowOptionalColumn {
@@ -124,7 +124,7 @@ public class WorkflowRateColumn extends AbstractNumericColumn implements
     public void storeDependentColumn(String ID, int columnNumber) {
     }
 
-    public boolean shouldHideColumn(WorkflowModel model) {
+    public boolean shouldHideColumn(WorkflowDataModel model) {
         WBSModel wbsModel = model.getWBSModel();
         for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot())) {
             if (node.getIndentLevel() > 1

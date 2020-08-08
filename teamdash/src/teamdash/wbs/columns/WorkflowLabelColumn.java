@@ -25,7 +25,7 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowDataModel;
 
 public class WorkflowLabelColumn extends TaskLabelColumn implements
         WorkflowOptionalColumn {
@@ -43,7 +43,7 @@ public class WorkflowLabelColumn extends TaskLabelColumn implements
         return node.getIndentLevel() > 0 && super.isCellEditable(node);
     }
 
-    public boolean shouldHideColumn(WorkflowModel model) {
+    public boolean shouldHideColumn(WorkflowDataModel model) {
         return !model.getWBSModel().containsAttr(VALUE_ATTR);
     }
 

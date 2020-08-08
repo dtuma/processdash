@@ -47,10 +47,10 @@ import teamdash.wbs.columns.WorkflowYieldColumn;
 /** A customized DataTableModel containing only the columns pertinent
  * to editing workflows.
  */
-public class WorkflowModel extends DataTableModel<WorkflowWBSModel> {
+public class WorkflowDataModel extends DataTableModel<WorkflowWBSModel> {
 
 
-    public WorkflowModel(WorkflowWBSModel workflows, TeamProcess teamProcess,
+    public WorkflowDataModel(WorkflowWBSModel workflows, TeamProcess teamProcess,
             TeamMemberList teamList) {
         super(workflows);
         buildDataColumns(teamList, teamProcess);

@@ -55,8 +55,8 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     @Override
     protected void openModels() {
         TeamProcess process = teamProject.getTeamProcess();
-        libraryModel = new WorkflowModel((WorkflowWBSModel) library, process,
-                null);
+        libraryModel = new WorkflowDataModel((WorkflowWBSModel) library,
+                process, null);
 
         projectWbs = new WorkflowWBSModel();
         projectWbs.copyFrom(teamProject.getWorkflows());
@@ -64,13 +64,13 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
             projectWbs.removeAttributes(new PatternList().addLiteralStartsWith( //
                     WorkflowMappingManager.PHASE_MAPPING_PREFIX));
         }
-        projectModel = new WorkflowModel((WorkflowWBSModel) this.projectWbs,
+        projectModel = new WorkflowDataModel((WorkflowWBSModel) this.projectWbs,
                 process, null);
     }
 
     @Override
     protected WBSJTable buildJTable(DataTableModel model) {
-        WBSJTable table = new WorkflowJTable((WorkflowModel) model,
+        WBSJTable table = new WorkflowJTable((WorkflowDataModel) model,
                 teamProject.getTeamProcess(), true, null);
         for (int i = table.getColumnCount(); i-- > 0; ) {
             DataColumn column = model.getColumn(i);

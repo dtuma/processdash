@@ -32,7 +32,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowDataModel;
 
 public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
         CustomRenderedColumn, WorkflowOptionalColumn {
@@ -100,7 +100,7 @@ public class WorkflowMinTimeColumn extends AbstractNumericColumn implements
         node.removeAttribute(REPL_ATTR_NAME);
     }
 
-    public boolean shouldHideColumn(WorkflowModel model) {
+    public boolean shouldHideColumn(WorkflowDataModel model) {
         return !model.getWBSModel().containsAttr(ATTR_NAME);
     }
 

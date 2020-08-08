@@ -23,10 +23,10 @@
 
 package teamdash.wbs.columns;
 
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowDataModel;
 
 public interface WorkflowOptionalColumn {
 
-    public boolean shouldHideColumn(WorkflowModel model);
+    public boolean shouldHideColumn(WorkflowDataModel model);
 
 }

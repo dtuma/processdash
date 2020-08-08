@@ -67,7 +67,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     /** The team project that these workflows belong to. */
     TeamProject teamProject;
     /** The data model for the workflows */
-    WorkflowModel workflowModel;
+    WorkflowDataModel workflowModel;
     /** The table to display the workflows in */
     WorkflowJTable table;
     /** The total preferred width of visible optional columns */
@@ -86,7 +86,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     public WorkflowEditor(TeamProject teamProject, WBSWindowTitle title,
             GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
-        this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
+        this.workflowModel = new WorkflowDataModel(teamProject.getWorkflows(),
                 teamProject.getTeamProcess(), teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(isEditable(teamProject));
 

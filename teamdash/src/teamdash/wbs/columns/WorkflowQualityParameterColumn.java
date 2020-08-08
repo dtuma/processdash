@@ -27,7 +27,7 @@ import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowDataModel;
 import teamdash.wbs.WorkflowWBSModel;
 
 public abstract class WorkflowQualityParameterColumn
@@ -55,7 +55,7 @@ public abstract class WorkflowQualityParameterColumn
     }
 
     @Override
-    public boolean shouldHideColumn(WorkflowModel model) {
+    public boolean shouldHideColumn(WorkflowDataModel model) {
         // quality parameters are expert-level columns. Most team members won't
         // need to see them...just coaches and quality managers. So we hide
         // the column by default unless a user explicitly enables it.

@@ -45,7 +45,7 @@ public class WorkflowJTable extends WBSJTable {
     private static final Resources resources = WorkflowEditor.resources;
 
 
-    public WorkflowJTable(WorkflowModel workflowModel, TeamProcess process,
+    public WorkflowJTable(WorkflowDataModel workflowModel, TeamProcess process,
             boolean hasProbeTaskType, ActionListener probeListener) {
         super(workflowModel, getWorkflowIcons(process.getIconMap()),
                 tweakIconMenu(process.getNodeTypeMenu(),
