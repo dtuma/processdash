@@ -74,6 +74,8 @@ public class GitIDBrowser {
     public RevCommit browseForCommit() {
         if (browser == null)
             createUI();
+        else
+            branchSelector.refresh();
 
         Repository repo = panel.getRepo();
         if (repo == null)
