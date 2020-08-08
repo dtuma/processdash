@@ -996,7 +996,7 @@ public class WBSSynchronizer {
                     && !newUserType.equals(workflowType)) {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
-                node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);
+                node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
                 needsWbsEvent = true;
             }
         }
@@ -1271,7 +1271,7 @@ public class WBSSynchronizer {
 
             // create and insert a node for the new task
             WBSNode newNode = new WBSNode(wbs, name, type, indentLevel, false);
-            newNode.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, workflowID);
+            newNode.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, workflowID);
             newNode.setAttribute(CLIENT_ID_ATTR, clientID);
             newNode.setAttribute(assignedZeroAttrName, "t");
             wbs.insertNodesAt(Collections.singletonList(newNode), pos, false);

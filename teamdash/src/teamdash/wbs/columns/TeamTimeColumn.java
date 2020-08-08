@@ -25,7 +25,7 @@ package teamdash.wbs.columns;
 
 import static net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.SEPARATOR;
 import static net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument.SEPARATOR_SPACE;
-import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+import static teamdash.wbs.WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_BEG;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_END;
 
@@ -84,7 +84,6 @@ import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
 
 /** This column manages the calculation and interrelationship of several
  * tightly related columns dealing with team time.
@@ -402,7 +401,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
             return false;
 
         // Check to see if a workflow has been applied to this (parent) node.
-        if (node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
+        if (node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) == null)
             return false;
 
         // Next, we get a list of the leaf tasks underneath this node, and add
@@ -697,8 +696,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         // find the parent node which bounds this workflow instantiation.
         while (true) {
             WBSNode parent = wbsModel.getParent(node);
-            if (parent == null || parent.getAttribute(
-                    WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
+            if (parent == null
+                    || parent.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) == null)
                 break;
             else
                 node = parent;

@@ -34,7 +34,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowUtil;
 
 public class SizeAccountingColumnSet {
 
@@ -114,7 +114,7 @@ public class SizeAccountingColumnSet {
             //   * we have more than one child.  This filters out the scenario
             //     during normal editing when the first child is created
             //     underneath a particular parent.
-            if (node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) != null
+            if (node.getAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR) != null
                     && bottomUpValue == 0 && children.length > 1) {
                 WBSNode delegate = getSingleLeafForNode(node, false);
                 if (delegate != null) {

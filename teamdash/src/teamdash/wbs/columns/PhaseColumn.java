@@ -43,7 +43,6 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WorkflowModel;
 import teamdash.wbs.WorkflowUtil;
 import teamdash.wbs.WorkflowWBSModel;
 
@@ -117,7 +116,7 @@ public class PhaseColumn extends AbstractDataColumn
 
         // save the new type of the node.
         node.setType(type);
-        node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);
+        node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
         EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
     }
 
@@ -130,7 +129,7 @@ public class PhaseColumn extends AbstractDataColumn
         // workflow step type
         if (step != null && step.getIndentLevel() > 1) {
             node.setType(step.getType());
-            node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR,
+            node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR,
                 Integer.toString(step.getUniqueID()));
             EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
         }

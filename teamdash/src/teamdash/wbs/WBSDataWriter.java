@@ -59,8 +59,8 @@ import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeDataColumn;
-import teamdash.wbs.columns.SizeOwnerColumn;
 import teamdash.wbs.columns.SizeDataColumn.Value;
+import teamdash.wbs.columns.SizeOwnerColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -403,7 +403,7 @@ public class WBSDataWriter {
 
 
     private String getWorkflowIdSaveString(WBSNode node) {
-        Object result = node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR);
+        Object result = node.getAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR);
         return (result == null ? null : result.toString());
     }
 

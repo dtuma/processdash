@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,8 @@ import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class WorkflowUtil {
+
+    public static final String WORKFLOW_SOURCE_IDS_ATTR = "workflowSourceIDs";
 
     /**
      * Modify a WBS by applying the contents of a workflow to a particular row.
@@ -1102,8 +1104,7 @@ public class WorkflowUtil {
     }
 
 
-    private static final String WFLOW_SRC_IDS = //
-            WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+    private static final String WFLOW_SRC_IDS = WORKFLOW_SOURCE_IDS_ATTR;
 
     private static final String WORKFLOW_IDS_SCRUBBED_FLAG = //
             "workflowIDsScrubbed";

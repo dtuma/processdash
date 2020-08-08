@@ -23,7 +23,7 @@
 
 package teamdash.wbs.columns;
 
-import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+import static teamdash.wbs.WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.Component;
 import java.util.Collections;

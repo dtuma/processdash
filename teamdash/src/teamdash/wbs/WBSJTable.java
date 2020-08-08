@@ -24,7 +24,7 @@
 
 package teamdash.wbs;
 
-import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+import static teamdash.wbs.WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.CardLayout;
 import java.awt.Color;
