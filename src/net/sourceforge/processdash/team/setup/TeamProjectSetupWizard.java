@@ -1643,7 +1643,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private void copyRelaunchFiles(File srcDir, File destDir)
             throws IOException {
         copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
-            "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml");
+            "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml",
+            "sizeMetrics.xml");
         writeMergedUserDump(srcDir, destDir);
     }
 

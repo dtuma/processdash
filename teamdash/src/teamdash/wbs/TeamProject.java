@@ -65,6 +65,7 @@ public class TeamProject implements WBSFilenameConstants {
     private WBSModel wbs;
     private WorkflowWBSModel workflows;
     private ProxyWBSModel proxies;
+    private SizeMetricsWBSModel sizeMetrics;
     private MilestonesWBSModel milestones;
     private CustomColumnSpecs columnSpecs;
     private long fileModTime;
@@ -122,6 +123,7 @@ public class TeamProject implements WBSFilenameConstants {
         openTeamProcess();
         openWorkflows();
         openProxies();
+        openSizeMetrics();
         openMilestones();
         openColumns();
         openWBS();
@@ -171,6 +173,7 @@ public class TeamProject implements WBSFilenameConstants {
         result = saveWBS(directory) && result;
         result = saveWorkflows(directory) && result;
         result = saveProxies(directory) && result;
+        result = saveSizeMetrics(directory) && result;
         result = saveMilestones(directory) && result;
         result = saveColumns(directory) && result;
         return result;
@@ -223,6 +226,11 @@ public class TeamProject implements WBSFilenameConstants {
     /** Get the size estimating proxies for this project */
     public ProxyWBSModel getProxies() {
         return proxies;
+    }
+
+    /** Get the dynamic size metrics for this project */
+    public SizeMetricsWBSModel getSizeMetrics() {
+        return sizeMetrics;
     }
 
     /** Get the milestones for this project */
@@ -720,6 +728,27 @@ public class TeamProject implements WBSFilenameConstants {
 
 
 
+    /** Open the file containing dynamic size metrics definitions */
+    private void openSizeMetrics() {
+        try {
+            Element xml = openXML(checkEditable(new File(directory,
+                SIZE_METRICS_FILENAME)));
+            if (xml != null)
+                sizeMetrics = new SizeMetricsWBSModel(xml);
+        } catch (Exception e) {
+        }
+    }
+
+    /** Save the dynamic size metrics definitions */
+    private boolean saveSizeMetrics(File directory) {
+        if (sizeMetrics == null)
+            return true;
+        else
+            return saveXML(sizeMetrics, directory, SIZE_METRICS_FILENAME);
+    }
+
+
+
     /** Open the file containing the project milestones */
     private void openMilestones() {
         try {
@@ -811,6 +840,7 @@ public class TeamProject implements WBSFilenameConstants {
         WBS_FILENAME,
         FLOW_FILENAME,
         PROXY_FILENAME,
+        SIZE_METRICS_FILENAME,
         MILESTONES_FILENAME,
         PROCESS_FILENAME,
         SETTINGS_FILENAME
