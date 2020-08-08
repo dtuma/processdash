@@ -90,6 +90,7 @@ public class WBSFileNewAction extends AbstractAction {
         p.put("hideDeferSync", "true");
         p.put("hideProbeTask", "true");
         p.put("wbsManagedSize", "true");
+        p.put("dynamicSizeMetrics", "true");
 
         // generate a random ID for this project. This follows the same pattern
         // as team project IDs (e.g. base 36 encoding of the current timestamp),

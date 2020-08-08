@@ -737,6 +737,18 @@ public class TeamProject implements WBSFilenameConstants {
                 sizeMetrics = new SizeMetricsWBSModel(xml);
         } catch (Exception e) {
         }
+        if (sizeMetrics == null && shouldCreateSizeMetricsModel()) {
+            System.out.println("No " + SIZE_METRICS_FILENAME
+                    + " file found; creating from process");
+            sizeMetrics = new SizeMetricsWBSModel(teamProcess);
+            setCreatedWithVersionAttribute(sizeMetrics);
+        }
+    }
+
+    private boolean shouldCreateSizeMetricsModel() {
+        if (getBoolUserSetting("dynamicSizeMetrics"))
+            return true;
+        return false;
     }
 
     /** Save the dynamic size metrics definitions */

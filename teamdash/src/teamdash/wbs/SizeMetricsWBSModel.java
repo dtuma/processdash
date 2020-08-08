@@ -55,6 +55,13 @@ public class SizeMetricsWBSModel extends WBSModel {
         super(e);
     }
 
+    public SizeMetricsWBSModel(TeamProcess process) {
+        super(METRIC_LIST_TYPE, false);
+        for (String metric : process.getSizeMetrics()) {
+            add(new WBSNode(this, metric, SIZE_METRIC_TYPE, 1, false));
+        }
+    }
+
     public ModelType getModelType() {
         return ModelType.SizeMetrics;
     }
