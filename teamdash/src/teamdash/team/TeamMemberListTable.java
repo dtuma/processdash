@@ -347,8 +347,13 @@ public class TeamMemberListTable extends JTable {
 
     /** Create and configure the column header for the table */
     private void setupTableColumnHeader(boolean isSinglePersonTeam) {
+        // increase the preferred height of the header
+        Dimension d = getTableHeader().getPreferredSize();
+        d.height = Math.max(d.height, (int) (getRowHeight() * 1.5));
+        getTableHeader().setPreferredSize(d);
+
         // scale the table header along with the global zoom settings
-        WBSZoom.get().manage(getTableHeader(), "font");
+        WBSZoom.get().manage(getTableHeader(), "font", "preferredSize");
 
         // do not allow columns to be reordered. (That wouldn't make sense for
         // our weekly data columns, which appear in chronological order.
