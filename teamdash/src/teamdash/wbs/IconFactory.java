@@ -66,6 +66,7 @@ import teamdash.wbs.icons.MilestoneIcon;
 import teamdash.wbs.icons.PasteIcon;
 import teamdash.wbs.icons.ProxyBucketIcon;
 import teamdash.wbs.icons.ProxyTableIcon;
+import teamdash.wbs.icons.SizeMetricIcon;
 import teamdash.wbs.icons.SortDatesIcon;
 import teamdash.wbs.icons.TrashCanIcon;
 import teamdash.wbs.icons.UndoIcon;
@@ -91,6 +92,14 @@ public class IconFactory {
 
     public static Icon getWorkflowIcon() {
         return new WorkflowIcon(DEFAULT_COLOR);
+    }
+
+    public static Icon getSizeMetricListIcon() {
+        return new CommonWorkflowsIcon(DEFAULT_COLOR);
+    }
+
+    public static Icon getSizeMetricIcon() {
+        return new SizeMetricIcon(DEFAULT_COLOR);
     }
 
     public static Icon getProxyListIcon() {

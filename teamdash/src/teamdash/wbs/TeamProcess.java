@@ -593,6 +593,7 @@ public class TeamProcess {
         return (!isLOCNode(type) && !type.endsWith(" Task")
                 && !type.equals(ProxyWBSModel.PROXY_TYPE)
                 && !type.equals(ProxyWBSModel.BUCKET_TYPE)
+                && !type.startsWith(SizeMetricsWBSModel.SIZE_METRIC_TYPE)
                 && !type.endsWith("Milestone"));
     }
 }

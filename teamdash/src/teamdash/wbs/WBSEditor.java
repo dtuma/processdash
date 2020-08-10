@@ -190,6 +190,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     WorkingDirectory workingDirectory;
     TeamProject teamProject;
+    SizeMetricsDataModel sizeMetricsModel;
     ProxyDataModel proxyModel;
     MilestonesDataModel milestonesModel;
     JFrame frame;
@@ -226,6 +227,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
+    private SizeMetricsEditor sizeMetricsEditor = null;
     private ProxyEditor proxyEditor = null;
     private MilestonesEditor milestonesEditor = null;
 
@@ -281,6 +283,9 @@ public class WBSEditor implements WindowListener, SaveListener,
              teamProject.getProxies(), teamProject.getMilestones(),
              teamProject.getColumns(), taskDependencySource, owner);
 
+        if (teamProject.getSizeMetrics() != null)
+            sizeMetricsModel = new SizeMetricsDataModel(
+                    teamProject.getSizeMetrics());
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
                 teamProject.getTeamProcess());
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
@@ -351,6 +356,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             mergeConflictDialog.setDataModel(ModelType.Wbs, data);
             mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
             mergeConflictDialog.setDataModel(ModelType.Proxies, proxyModel);
+            mergeConflictDialog.setDataModel(ModelType.SizeMetrics,
+                sizeMetricsModel);
             mergeConflictDialog.setDataModel(ModelType.Milestones,
                 milestonesModel);
         }
@@ -1118,6 +1125,20 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
+    private void showSizeMetricsEditor() {
+        if (sizeMetricsEditor != null)
+            sizeMetricsEditor.show();
+        else if (sizeMetricsModel != null) {
+            sizeMetricsEditor = new SizeMetricsEditor(teamProject,
+                    sizeMetricsModel, wbsWindowTitle, guiPrefs);
+            sizeMetricsEditor.addChangeListener(this.dirtyListener);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.SizeMetrics,
+                    sizeMetricsEditor);
+            sizeMetricsEditor.show();
+        }
+    }
+
     private void showProxyEditor() {
         if (proxyEditor != null)
             proxyEditor.show();
@@ -1275,6 +1296,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu(resources.getString("Workflow.Menu"));
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
+        if (sizeMetricsModel != null)
+            result.add(new SizeMetricsEditorAction());
         result.add(new ProxyEditorAction());
         int readOnlyItemCount = result.getMenuComponentCount();
         result.addSeparator();
@@ -1438,6 +1461,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         replaceTeamMemberList(srcProject);
         replaceWorkflows(srcProject);
+        replaceSizeMetrics(srcProject);
         replaceProxies(srcProject);
         replaceMilestones(srcProject);
         replaceWBS(srcProject);
@@ -1474,6 +1498,18 @@ public class WBSEditor implements WindowListener, SaveListener,
             workflowEditor.undoList.clear();
     }
 
+    private void replaceSizeMetrics(TeamProject src) {
+        WBSJTable table = null;
+        if (sizeMetricsEditor != null) {
+            sizeMetricsEditor.stopEditing();
+            table = sizeMetricsEditor.table;
+        }
+        replaceWBSModel(teamProject.getSizeMetrics(), src.getSizeMetrics(),
+            table);
+        if (sizeMetricsEditor != null)
+            sizeMetricsEditor.undoList.clear();
+    }
+
     private void replaceProxies(TeamProject src) {
         WBSJTable table = null;
         if (proxyEditor != null) {
@@ -1505,6 +1541,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void replaceWBSModel(WBSModel dest, WBSModel src, WBSJTable table) {
+        // abort if either model is missing
+        if (dest == null || src == null)
+            return;
+
         // record the WBS nodes that are currently selected, and arrange
         // for them to be restored later
         if (table != null)
@@ -1614,6 +1654,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         tabPanel.stopCellEditing();
         if (teamListEditor != null) teamListEditor.stopEditing();
         if (workflowEditor != null) workflowEditor.stopEditing();
+        if (sizeMetricsEditor != null) sizeMetricsEditor.stopEditing();
         if (proxyEditor != null) proxyEditor.stopEditing();
         if (milestonesEditor != null) milestonesEditor.stopEditing();
     }
@@ -2013,6 +2054,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             if (teamListEditor != null) teamListEditor.hide();
             if (workflowEditor != null) workflowEditor.hide();
+            if (sizeMetricsEditor != null) sizeMetricsEditor.hide();
             if (proxyEditor != null) proxyEditor.hide();
             if (milestonesEditor != null) milestonesEditor.hide();
             frame.dispose();
@@ -2823,6 +2865,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
     private static final int MAX_WORKFLOW_MENU_ITEM_COUNT = 20;
+
+
+    private class SizeMetricsEditorAction extends AbstractAction {
+        public SizeMetricsEditorAction() {
+            super(resources.getString(SizeMetricsEditor.isEditable(teamProject)
+                    ? "SizeMetrics.Menu" : "SizeMetrics.Menu_View"));
+            putValue(MNEMONIC_KEY, new Integer('S'));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showSizeMetricsEditor();
+        }
+    }
 
 
     private class ProxyEditorAction extends AbstractAction {
