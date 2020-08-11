@@ -73,6 +73,7 @@ public class SizeMetricsEditor implements MergeConflictHyperlinkHandler {
 
         table = createSizeMetricsJTable();
         table.setEditingEnabled(isEditable(teamProject));
+        int tableHeight = table.getRowHeight() * table.getRowCount();
         guiPrefs.load("sizeMetricsTable", table);
 
         buildToolbar();
@@ -82,7 +83,7 @@ public class SizeMetricsEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(400, 200);
+        frame.setSize(400, Math.min(400, 150 + tableHeight));
         WBSZoom.get().manage(frame, "size~");
         guiPrefs.load("sizeMetricsWindow", frame);
     }
@@ -132,8 +133,9 @@ public class SizeMetricsEditor implements MergeConflictHyperlinkHandler {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
-        addToolbarButton(table.INSERT_AFTER_ACTION);
-        addToolbarButton(table.DELETE_ACTION);
+        addToolbarButton(table.ADD_METRIC_ACTION);
+        addToolbarButton(table.RENAME_METRIC_ACTION);
+        addToolbarButton(table.DELETE_METRIC_ACTION);
         addToolbarButton(table.MOVEUP_ACTION);
         addToolbarButton(table.MOVEDOWN_ACTION);
     }

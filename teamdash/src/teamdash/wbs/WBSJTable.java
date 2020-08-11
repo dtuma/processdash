@@ -238,6 +238,10 @@ public class WBSJTable extends JTable {
         recalculateEnablement();
     }
 
+    public boolean isEditingEnabled() {
+        return !disableEditing;
+    }
+
     public void setIndentationDisabled(boolean disabled) {
         disableIndentation = disabled;
         recalculateEnablement();
