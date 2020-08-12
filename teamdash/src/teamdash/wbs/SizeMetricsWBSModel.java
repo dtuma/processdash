@@ -45,6 +45,10 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     public static final String SIZE_METRIC_TYPE = "Size Metric";
 
+    public static final String HIST_ID_ATTR_PREFIX = "Prev ID ";
+
+    public static final int LOC_ID = 1;
+
 
     private Map<Integer, String> nameMap = null;
 
@@ -79,7 +83,63 @@ public class SizeMetricsWBSModel extends WBSModel {
             // all other nodes
             node.setIndentLevel(1);
             node.setType(SIZE_METRIC_TYPE);
+            node.setUniqueID(getDefaultIdForMetric(node));
         }
+    }
+
+    private int getDefaultIdForMetric(WBSNode node) {
+        // assign a standard/constant unique ID for LOC
+        String nameLC = node.getName().toLowerCase();
+        if ("loc".equals(nameLC))
+            return LOC_ID;
+
+        // if this metric existed in the past but was deleted, try to
+        // reuse the same ID it had before.
+        String prevIdAttr = HIST_ID_ATTR_PREFIX + nameLC;
+        Integer prevId = getRoot().getIntegerAttribute(prevIdAttr);
+        if (prevId != null) {
+            getRoot().removeAttribute(prevIdAttr);
+            return prevId;
+        }
+
+        // use a deterministic formula to choose a default ID for the metric
+        int result = nameLC.hashCode() & 0xffffff;
+        return (result == LOC_ID ? 100 : result);
+    }
+
+    public void renameMetric(WBSNode node, String newName) {
+        String oldName = node.getName();
+        int nodePos = getIndexOfNode(node);
+        if (newName == null || newName.equals(oldName) || nodePos == -1)
+            return;
+
+        if ("LOC".equalsIgnoreCase(oldName) || "LOC".equalsIgnoreCase(newName)) {
+            // if we are changing to or from "LOC", the assigned unique ID
+            // should change. Use delete/reinsert operations to accomplish that
+            deleteNodes(Collections.singletonList(node), false);
+            node.setName(newName);
+            add(nodePos, node);
+        } else {
+            // if neither name is "LOC", perform the rename normally
+            node.setName(newName);
+        }
+
+        // fire a table event to signal the name change
+        int row = getRowForNode(node);
+        fireNodeAppearanceChanged(row, row);
+    }
+
+    @Override
+    public boolean deleteNodes(List<WBSNode> nodesToDelete, boolean notify) {
+        // store away the ID that was used for each metric before we delete it
+        for (WBSNode node : nodesToDelete) {
+            String nameLC = node.getName().toLowerCase();
+            String prevIdAttr = HIST_ID_ATTR_PREFIX + nameLC;
+            getRoot().setAttribute(prevIdAttr, node.getUniqueID());
+        }
+
+        // call the superclass method to perform the actual deletion
+        return super.deleteNodes(nodesToDelete, notify);
     }
 
     public List<String> getMetricNames() {

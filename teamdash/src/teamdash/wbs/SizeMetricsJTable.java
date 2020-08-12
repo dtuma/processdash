@@ -227,8 +227,7 @@ public class SizeMetricsJTable extends WBSJTable {
 
             // if the user entered a valid new name, apply it
             if (newName != null && !newName.equals(oldName)) {
-                node.setName(newName);
-                wbsModel.fireNodeAppearanceChanged(row, row);
+                ((SizeMetricsWBSModel) wbsModel).renameMetric(node, newName);
                 UndoList.madeChange(SizeMetricsJTable.this,
                     "Rename size metric");
             }
