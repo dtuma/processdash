@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,10 @@
 
 package teamdash.wbs;
 
+import java.util.Collections;
 import java.util.Map;
+
+import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
@@ -47,6 +50,11 @@ public class TeamProjectNodeIDMatcher {
         // First, remap node IDs in the workflow model
         Map<Integer, Integer> workflowIDMappings = matchWBS(
             base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
+
+        // Next, remap node IDs in the size metrics model
+        Map<Integer, Integer> sizeMetricIDMappings = matchSizeMetricsWBS(
+            base.getSizeMetrics(), main.getSizeMetrics(),
+            incoming.getSizeMetrics());
 
         // Next, remap node IDs in the proxies model
         Map<Integer, Integer> proxyIDMappings = matchWBS(base.getProxies(),
@@ -85,5 +93,41 @@ public class TeamProjectNodeIDMatcher {
     private static final String[] WBS_ALIAS_ATTRS = {
         MasterWBSUtil.MASTER_NODE_ID, WBSSynchronizer.CLIENT_ID_ATTR
     };
+
+    private static Map<Integer, Integer> matchSizeMetricsWBS(
+            SizeMetricsWBSModel base, SizeMetricsWBSModel main,
+            SizeMetricsWBSModel incoming) {
+        // if this project doesn't have size metrics, do nothing
+        if (base == null || main == null || incoming == null)
+            return Collections.EMPTY_MAP;
+
+        // assign a case-insensitive alias for each metric
+        assignSizeMetricAliasAttr(base);
+        assignSizeMetricAliasAttr(main);
+        assignSizeMetricAliasAttr(incoming);
+
+        // perform the match, using our case insensitive alias to merge nodes
+        Map<Integer, Integer> result = matchWBS(base, main, incoming,
+            SIZE_METRIC_ALIAS);
+
+        // discard our temporary alias attribute from each model
+        base.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+        main.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+        incoming.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+
+        // return the result
+        return result;
+    }
+
+    private static void assignSizeMetricAliasAttr(SizeMetricsWBSModel model) {
+        for (WBSNode node : model.getDescendants(model.getRoot())) {
+            String nameLC = node.getName().toLowerCase();
+            node.setAttribute(SIZE_METRIC_ALIAS, nameLC);
+        }
+    }
+
+    private static final String SIZE_METRIC_ALIAS = "Size_Metric_LC_Name";
+    private static final PatternList SIZE_METRIC_ALIAS_PAT = new PatternList()
+            .addLiteralEquals(SIZE_METRIC_ALIAS);
 
 }

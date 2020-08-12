@@ -93,7 +93,8 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     TeamProject(File directory, String projectName, TeamMemberList teamList,
-            WBSModel wbs, WorkflowWBSModel workflows, ProxyWBSModel proxies,
+            WBSModel wbs, WorkflowWBSModel workflows,
+            SizeMetricsWBSModel sizeMetrics, ProxyWBSModel proxies,
             MilestonesWBSModel milestones, CustomColumnSpecs columnSpecs,
             Map<String, String> userSettings) {
         this.projectName = projectName;
@@ -102,6 +103,7 @@ public class TeamProject implements WBSFilenameConstants {
         this.teamList = teamList;
         this.wbs = wbs;
         this.workflows = workflows;
+        this.sizeMetrics = sizeMetrics;
         this.proxies = proxies;
         this.milestones = milestones;
         this.columnSpecs = columnSpecs;

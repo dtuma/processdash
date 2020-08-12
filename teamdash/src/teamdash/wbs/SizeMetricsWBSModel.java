@@ -55,12 +55,16 @@ public class SizeMetricsWBSModel extends WBSModel {
     private Map<String, Integer> idMap = null;
 
 
+    protected SizeMetricsWBSModel() {
+        super(METRIC_LIST_TYPE, false);
+    }
+
     public SizeMetricsWBSModel(Element e) {
         super(e);
     }
 
     public SizeMetricsWBSModel(TeamProcess process) {
-        super(METRIC_LIST_TYPE, false);
+        this();
         for (String metric : process.getSizeMetrics()) {
             add(new WBSNode(this, metric, SIZE_METRIC_TYPE, 1, false));
         }
