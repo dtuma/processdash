@@ -49,6 +49,8 @@ public class SizeMetricsWBSModel extends WBSModel {
     public static final int LOC_ID = 1;
 
 
+    private TeamProcess processToUpdate = null;
+
     private Map<String, String> idToNameMap = null;
 
     private Map<String, String> nameToIdMap = null;
@@ -64,9 +66,19 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     public SizeMetricsWBSModel(TeamProcess process) {
         this();
-        for (String metric : process.getSizeMetrics()) {
-            add(new WBSNode(this, metric, SIZE_METRIC_TYPE, 1, false));
+        for (String metricName : process.getSizeMetricMap().values()) {
+            add(new WBSNode(this, metricName, SIZE_METRIC_TYPE, 1, false));
         }
+    }
+
+    void registerProcessToUpdate(TeamProcess process) {
+        this.processToUpdate = process;
+        maybeUpdateProcess();
+    }
+
+    private void maybeUpdateProcess() {
+        if (processToUpdate != null)
+            processToUpdate.setSizeMetricMap(getMetricIdToNameMap());
     }
 
     public ModelType getModelType() {
@@ -162,6 +174,7 @@ public class SizeMetricsWBSModel extends WBSModel {
     @Override
     public void fireTableChanged(TableModelEvent e) {
         idToNameMap = nameToIdMap = null;
+        maybeUpdateProcess();
         super.fireTableChanged(e);
     }
 

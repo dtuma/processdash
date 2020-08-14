@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -67,9 +68,8 @@ public class TeamProcess {
     /** True if we should hide the "Software Component" node type */
     private boolean hideSoftwareComponentNodeType;
 
-    /** An immutable list of the names of the size metrics in this
-     * process (Strings) */
-    private List sizeMetrics;
+    /** A map from size metricIDs to size metric names */
+    private Map<String, String> sizeMetrics, sizeMetricsReadOnly;
 
     /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
@@ -163,8 +163,24 @@ public class TeamProcess {
         return (result == null ? 0 : result);
     }
 
+    /** @deprecated */
     public String[] getSizeMetrics() {
-        return (String[]) sizeMetrics.toArray(new String[0]);
+        return new ArrayList<String>(sizeMetrics.values()).toArray(new String[0]);
+    }
+
+    /**
+     * @return a map of the known size metrics. The keys in the map are
+     *         metricIDs, and the values are metric names.
+     */
+    public Map<String, String> getSizeMetricMap() {
+        return sizeMetricsReadOnly;
+    }
+
+    void setSizeMetricMap(Map<String, String> newSizeMetrics) {
+        // load the new metrics into our own map (rather than replacing the
+        // reference altogether) so clients don't have to re-fetch the map.
+        sizeMetrics.clear();
+        sizeMetrics.putAll(newSizeMetrics);
     }
 
     public Map getWorkProductSizeMap() {
@@ -220,8 +236,8 @@ public class TeamProcess {
         workProductSizes.put(PSP_TASK_TYPE, "LOC");
         workProductSizes.put(CODE_TASK_TYPE, "LOC");
 
-        sizeMetrics = new ArrayList();
-        sizeMetrics.add("LOC");
+        sizeMetrics = new LinkedHashMap<String, String>();
+        sizeMetrics.put("LOC", "LOC");
 
         usingDefaultSizeMetrics = false;
         sizeMetricsItems = process.getItemList(CustomProcess.SIZE_METRIC);
@@ -239,11 +255,11 @@ public class TeamProcess {
             String productName = metric.getAttr(PRODUCT_NAME);
             if (productName != null)
                 workProductSizes.put(productName, name);
-            sizeMetrics.add(name);
+            sizeMetrics.put(name, name);
         }
 
         workProductSizes = Collections.unmodifiableMap(workProductSizes);
-        sizeMetrics = Collections.unmodifiableList(sizeMetrics);
+        sizeMetricsReadOnly = Collections.unmodifiableMap(sizeMetrics);
     }
 
     private List generateDefaultSizeMetrics(CustomProcess p) {

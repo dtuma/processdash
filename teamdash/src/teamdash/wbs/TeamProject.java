@@ -745,6 +745,8 @@ public class TeamProject implements WBSFilenameConstants {
             sizeMetrics = new SizeMetricsWBSModel(teamProcess);
             setCreatedWithVersionAttribute(sizeMetrics);
         }
+        if (sizeMetrics != null)
+            sizeMetrics.registerProcessToUpdate(teamProcess);
     }
 
     private boolean shouldCreateSizeMetricsModel() {
