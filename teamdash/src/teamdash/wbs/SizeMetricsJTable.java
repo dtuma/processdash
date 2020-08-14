@@ -147,7 +147,7 @@ public class SizeMetricsJTable extends WBSJTable {
         public void actionPerformed(ActionEvent e) {
             // ask the user to enter a name for the new metric
             String newName = promptForMetricName(this,
-                resources.getString("Add.Prompt"), "", -1);
+                resources.getString("Add.Prompt"), "", null);
 
             // if a valid name was entered, add a new metric to our model.
             if (newName != null) {
@@ -223,7 +223,7 @@ public class SizeMetricsJTable extends WBSJTable {
             // prompt the user to enter a new name
             String newName = promptForMetricName(this,
                 resources.format("Rename.Prompt_FMT", oldName), //
-                oldName, node.getUniqueID());
+                oldName, SizeMetricsWBSModel.getMetricID(node));
 
             // if the user entered a valid new name, apply it
             if (newName != null && !newName.equals(oldName)) {
@@ -267,7 +267,7 @@ public class SizeMetricsJTable extends WBSJTable {
 
 
     private String promptForMetricName(Action action, String prompt,
-            String defaultMetricName, int acceptableID) {
+            String defaultMetricName, String acceptableID) {
         // create a text field for the user to enter a size metric name
         JTextField name = new JTextField(defaultMetricName);
 
@@ -294,9 +294,9 @@ public class SizeMetricsJTable extends WBSJTable {
                 return null;
 
             // see if there is already another metric with this name
-            Integer existingID = ((SizeMetricsWBSModel) wbsModel)
+            String existingID = ((SizeMetricsWBSModel) wbsModel)
                     .getIdForMetric(newName);
-            if (existingID == null || existingID == acceptableID) {
+            if (existingID == null || existingID.equals(acceptableID)) {
                 return newName;
             } else {
                 // show an error, then repeat the loop to get a different name

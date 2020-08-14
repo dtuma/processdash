@@ -23,12 +23,11 @@
 
 package teamdash.wbs;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.event.TableModelEvent;
 
@@ -50,9 +49,9 @@ public class SizeMetricsWBSModel extends WBSModel {
     public static final int LOC_ID = 1;
 
 
-    private Map<Integer, String> nameMap = null;
+    private Map<String, String> idToNameMap = null;
 
-    private Map<String, Integer> idMap = null;
+    private Map<String, String> nameToIdMap = null;
 
 
     protected SizeMetricsWBSModel() {
@@ -146,49 +145,47 @@ public class SizeMetricsWBSModel extends WBSModel {
         return super.deleteNodes(nodesToDelete, notify);
     }
 
-    public List<String> getMetricNames() {
-        return new ArrayList(getMetricNameMap().values());
-    }
-
-    public String getNameForMetric(Integer id) {
-        return getMetricNameMap().get(id);
-    }
-
-    public Map<Integer, String> getMetricNameMap() {
-        if (nameMap == null)
+    public Map<String, String> getMetricIdToNameMap() {
+        if (idToNameMap == null)
             rebuildMaps();
-        return nameMap;
+        return idToNameMap;
     }
 
-    public Integer getIdForMetric(String name) {
+    public String getIdForMetric(String name) {
         if (!StringUtils.hasValue(name))
             return null;
-        if (idMap == null)
+        if (nameToIdMap == null)
             rebuildMaps();
-        return idMap.get(name.toLowerCase());
+        return nameToIdMap.get(name);
     }
 
     @Override
     public void fireTableChanged(TableModelEvent e) {
-        nameMap = null;
-        idMap = null;
+        idToNameMap = nameToIdMap = null;
         super.fireTableChanged(e);
     }
 
     private void rebuildMaps() {
-        Map<Integer, String> newNameMap = new LinkedHashMap<Integer, String>();
-        Map<String, Integer> newIdMap = new HashMap<String, Integer>();
+        Map<String, String> newIdToNameMap = new LinkedHashMap<String, String>();
+        Map<String, String> newNameToIdMap = new TreeMap<String, String>(
+                String.CASE_INSENSITIVE_ORDER);
         for (WBSNode node : getChildren(getRoot())) {
-            int id = node.getUniqueID();
+            String metricID = getMetricID(node);
             String name = node.getName();
-            String nameLC = name.toLowerCase();
-            if (StringUtils.hasValue(name) && !newIdMap.containsKey(nameLC)) {
-                newNameMap.put(id, name);
-                newIdMap.put(nameLC, id);
+            if (StringUtils.hasValue(name) && !newNameToIdMap.containsKey(name)) {
+                newIdToNameMap.put(metricID, name);
+                newNameToIdMap.put(name, metricID);
             }
         }
-        this.nameMap = Collections.unmodifiableMap(newNameMap);
-        this.idMap = Collections.unmodifiableMap(newIdMap);
+        this.idToNameMap = Collections.unmodifiableMap(newIdToNameMap);
+        this.nameToIdMap = Collections.unmodifiableMap(newNameToIdMap);
+    }
+
+    public static String getMetricID(WBSNode node) {
+        if ("LOC".equalsIgnoreCase(node.getName()))
+            return "LOC";
+        else
+            return "Size-" + node.getUniqueID();
     }
 
 }
