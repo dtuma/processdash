@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2017 Tuma Solutions, LLC
+// Copyright (C) 2011-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -159,8 +159,7 @@ public class CustomColumnManager {
         fireColumnEvent(oldColumn, newColumn);
     }
 
-    protected void fireColumnEvent(CustomColumn oldColumn,
-            CustomColumn newColumn) {
+    protected void fireColumnEvent(DataColumn oldColumn, DataColumn newColumn) {
         for (CustomColumnListener listener : listeners) {
             if (newColumn == null)
                 listener.columnDeleted(oldColumn.getColumnID(), oldColumn);
@@ -170,6 +169,11 @@ public class CustomColumnManager {
                 listener.columnChanged(newColumn.getColumnID(), oldColumn,
                     newColumn);
         }
+    }
+
+    protected void fireColumnsRenamed() {
+        for (CustomColumnListener listener : listeners)
+            listener.columnsRenamed();
     }
 
     protected void removeOldColumn(CustomColumn oldColumn) {

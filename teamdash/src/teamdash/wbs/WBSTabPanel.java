@@ -969,6 +969,36 @@ public class WBSTabPanel extends JLayeredPane implements
         undoList.notifyAllChangeListeners();
     }
 
+    @Override
+    public void columnsRenamed() {
+        for (int i = tableColumnModels.size(); i-- > 0;) {
+            // only update names on editable tabs
+            if (!isTabEditable(i))
+                continue;
+
+            // scan the table columns in this tab
+            TableColumnModel tcm = tableColumnModels.get(i);
+            for (int col = tcm.getColumnCount(); col-- > 0;) {
+                // get the column objects for the JTable and the data model
+                TableColumn tc = tcm.getColumn(col);
+                int idx = tc.getModelIndex();
+                DataColumn dc = getWBSDataModel().getColumn(idx);
+
+                // update the header name of the JTable column
+                if (dc instanceof CustomNamedColumn
+                        && tc instanceof DataTableColumn) {
+                    String ccn = ((CustomNamedColumn) dc).getCustomColumnName();
+                    ((DataTableColumn) tc).setCustomColumnName(ccn);
+                }
+                tc.setHeaderValue(dc.getColumnName());
+            }
+
+            // ask the data table to repaint the header
+            if (i == tabbedPane.getSelectedIndex())
+                dataTable.getTableHeader().repaint();
+        }
+    }
+
     private void selectCustomColumnsTab() {
         if (customColumnsTab != null && !currentlyReplacingCustomColumns) {
             int pos = tableColumnModels.indexOf(customColumnsTab);

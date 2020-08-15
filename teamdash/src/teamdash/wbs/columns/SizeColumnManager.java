@@ -162,13 +162,18 @@ public class SizeColumnManager {
         }
 
         // make the changes to the columns in the data model.
+        CustomColumnManager ccm = wbsDataModel.getCustomColumnManager();
         if (!newColumns.isEmpty() || !obsoleteColumns[PLAN].isEmpty()
                 || !obsoleteColumns[ACT].isEmpty()) {
             List<DataColumn> columnsToRemove = new ArrayList();
             columnsToRemove.addAll(obsoleteColumns[PLAN].values());
             columnsToRemove.addAll(obsoleteColumns[ACT].values());
             wbsDataModel.addRemoveDataColumns(newColumns, columnsToRemove);
+            for (DataColumn dc : columnsToRemove)
+                ccm.fireColumnEvent(dc, null);
         }
+        if (ccm != null)
+            ccm.fireColumnsRenamed();
 
         // update our maps of the column indexes
         lookupColumnIndexes(sizeColumnIndexes[PLAN], sizeColumns[PLAN]);

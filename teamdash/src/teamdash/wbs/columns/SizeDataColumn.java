@@ -543,6 +543,10 @@ public class SizeDataColumn extends AbstractNumericColumn implements
                 int column) {
             String display = "", tooltip = null;
 
+            if (!(value instanceof Value))
+                return super.getTableCellRendererComponent(table, display,
+                    isSelected, hasFocus, row, column);
+
             Value v = (Value) value;
             if (v.bottomUp > 0) {
                 display = NumericDataValue.format(v.bottomUp);
