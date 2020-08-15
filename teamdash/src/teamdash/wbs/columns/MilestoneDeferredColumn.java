@@ -25,9 +25,11 @@ package teamdash.wbs.columns;
 
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.WBSNode;
 
-public class MilestoneDeferredColumn extends MilestoneBooleanColumn {
+public class MilestoneDeferredColumn extends AbstractBooleanColumn
+        implements CustomRenderedColumn {
 
     public static final String COLUMN_ID = "Milestone Deferred";
 
