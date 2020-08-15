@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2019 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,8 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
         this.columnID = getColumnID(units, plan);
         this.resultAttrName = getResultAttrName(units, plan);
         this.nodeAttrName = getNodeAttrName(units, plan);
+        if (plan == false)
+            this.affectedColumns = new String[] { SizeColumnGroup.ACTUAL };
     }
 
     public String getCustomColumnName() {

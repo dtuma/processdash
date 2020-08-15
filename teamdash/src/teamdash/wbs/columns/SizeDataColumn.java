@@ -146,6 +146,8 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
         this.lowerCaseCache = new HashMap<String, String>();
         this.columnID = getColumnID(metricID, plan);
+        this.affectedColumns = new String[] {
+                SizeColumnGroup.getColumnID(plan) };
 
         String attr = getAttrBaseName(metricID, plan);
         nodeValueAttrName = TopDownBottomUpColumn.getTopDownAttrName(attr);

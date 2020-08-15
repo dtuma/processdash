@@ -262,6 +262,9 @@ public class SizeTypeColumn extends AbstractDataColumn implements
                 Arrays.asList(teamProcess.getSizeMetrics()));
         else
             createOldSizeColumns(dataModel, teamProcess, workProductSizeMap);
+
+        dataModel.addDataColumn(new SizeColumnGroup(true));
+        dataModel.addDataColumn(new SizeColumnGroup(false));
     }
 
     private static void createNewSizeColumns(DataTableModel dataModel,

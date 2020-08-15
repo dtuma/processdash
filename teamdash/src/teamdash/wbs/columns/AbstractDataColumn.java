@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,11 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn,
      * of dependent columns */
     protected String[] dependentColumns = null;
 
+    /** For {@link teamdash.wbs.CalculatedDataColumn CalculatedDataColumn}
+     * objects, the value of this field will be returned as the list
+     * of affected columns */
+    protected String[] affectedColumns = null;
+
     /** The value of this field will be returned as the preferred
      * column width */
     protected int preferredWidth = -1;
@@ -65,7 +70,7 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn,
     public int getColumnIndex()   { return dataColumnIndex; }
     public void setColumnIndex(int index) { dataColumnIndex = index; }
     public String[] getDependentColumnIDs() { return dependentColumns; }
-    public String[] getAffectedColumnIDs() { return null; }
+    public String[] getAffectedColumnIDs() { return affectedColumns; }
     public void resetDependentColumns() {}
     public int getPreferredWidth() { return preferredWidth; }
     public PatternList getConflictAttributeNamePattern() {
