@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -216,6 +215,13 @@ public class WBSTabPanel extends JLayeredPane implements
             return ((TabProperties) tabProperties.get(tabIndex)).isEditable();
     }
 
+    protected boolean hasEditAction(int tabIndex) {
+        if (tabIndex < 0 || tabIndex >= tabProperties.size())
+            return false;
+        else
+            return ((TabProperties) tabProperties.get(tabIndex)).getEditAction() != null;
+    }
+
     protected boolean isTabProtected(int tabIndex) {
         if (tabIndex < 0 || tabIndex >= tabProperties.size())
             return false;
@@ -286,8 +292,8 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     public int addTab(String tabName, TableColumnModel columnModel,
-            boolean isEditable, boolean isProtected) {
-        return addTab(tabName, columnModel, new TabProperties(isEditable, isProtected));
+            Action editAction, boolean isProtected) {
+        return addTab(tabName, columnModel, new TabProperties(editAction, isProtected));
     }
 
     protected int addTab(String tabName, TableColumnModel columnModel, TabProperties properties) {
@@ -771,13 +777,20 @@ public class WBSTabPanel extends JLayeredPane implements
         }
 
         public void actionPerformed(ActionEvent e) {
-            customTabsDirty = true;
-            showColumnSelector();
-            notifyAllListeners();
+            int tabIndex = tabbedPane.getSelectedIndex();
+            if (hasEditAction(tabIndex)) {
+                ((TabProperties) tabProperties.get(tabIndex)).getEditAction()
+                        .actionPerformed(e);
+            } else {
+                customTabsDirty = true;
+                showColumnSelector();
+                notifyAllListeners();
+            }
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
-            setEnabled(isTabEditable(selectedTabIndex));
+            setEnabled(isTabEditable(selectedTabIndex)
+                    || hasEditAction(selectedTabIndex));
         }
     }
     final ChangeTabColumnsAction CHANGE_TAB_COLUMNS_ACTION = new ChangeTabColumnsAction();
@@ -1624,30 +1637,33 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private class TabProperties {
-        private static final String TAB_PROTECTED_PROPERTY = "protected";
-        private static final String TAB_EDITABLE_PROPERTY = "editable";
 
-        private HashMap properties = new HashMap();
+        private Action editAction;
+
+        private boolean editable, protect;
 
         public TabProperties(boolean editable, boolean protect) {
-            setEditable(editable);
-            setProtected(protect);
+            this.editable = editable;
+            this.protect = protect;
+        }
+
+        public TabProperties(Action editAction, boolean protect) {
+            this.editAction = editAction;
+            this.editable = false;
+            this.protect = protect;
         }
 
         public boolean isEditable() {
-            return ((Boolean) properties.get(TAB_EDITABLE_PROPERTY)).booleanValue();
-        }
-
-        public void setEditable(boolean editable) {
-            properties.put(TAB_EDITABLE_PROPERTY, new Boolean(editable));
+            return editable;
         }
 
         public boolean isProtected() {
-            return ((Boolean) properties.get(TAB_PROTECTED_PROPERTY)).booleanValue();
+            return protect;
         }
 
-        public void setProtected(boolean protect) {
-            properties.put(TAB_PROTECTED_PROPERTY, new Boolean(protect));
+        public Action getEditAction() {
+            return editAction;
         }
     }
+
 }

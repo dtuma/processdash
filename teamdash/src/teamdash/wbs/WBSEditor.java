@@ -403,8 +403,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (sizeMetricsModel != null) {
             SizeColumnManager scm = data.getSizeColumnManager();
-            tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true), false, false);
-            tabPanel.addTab(getRes("Tabs.Actual_Size"), scm.getTableColumns(false), false, false);
+            Action editSizeAction = null;
+            if (SizeMetricsEditor.isEditable(teamProject))
+                editSizeAction = new SizeMetricsEditorAction();
+            tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true),
+                editSizeAction, false);
+            tabPanel.addTab(getRes("Tabs.Actual_Size"),
+                scm.getTableColumns(false), editSizeAction, false);
         } else if ((newSizeColumns || showActualSize) && !isMode(MODE_MASTER)) {
             tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
             tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
