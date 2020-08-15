@@ -24,9 +24,11 @@
 package teamdash.wbs;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.event.TableModelEvent;
@@ -67,7 +69,15 @@ public class SizeMetricsWBSModel extends WBSModel {
     public SizeMetricsWBSModel(TeamProcess process) {
         this();
         for (String metricName : process.getSizeMetricMap().values()) {
-            add(new WBSNode(this, metricName, SIZE_METRIC_TYPE, 1, false));
+            WBSNode metric = new WBSNode(this, metricName, SIZE_METRIC_TYPE, 1,
+                    false);
+            if (!"LOC".equals(metricName)) {
+                metric.setAttribute(WORK_PRODUCTS_ATTR, getKeysMappingTo(
+                    process.getWorkProductSizeMap(), metricName));
+                metric.setAttribute(PHASE_LIST_ATTR, getKeysMappingTo(
+                    process.getPhaseSizeMap(), metricName));
+            }
+            add(metric);
         }
     }
 
@@ -78,7 +88,9 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     private void maybeUpdateProcess() {
         if (processToUpdate != null)
-            processToUpdate.setSizeMetricMap(getMetricIdToNameMap());
+            processToUpdate.setSizeMetricMaps(getMetricIdToNameMap(),
+                getProcessSizeMetricsMap(WORK_PRODUCTS_ATTR),
+                getProcessSizeMetricsMap(PHASE_LIST_ATTR));
     }
 
     public ModelType getModelType() {
@@ -193,6 +205,34 @@ public class SizeMetricsWBSModel extends WBSModel {
         this.idToNameMap = Collections.unmodifiableMap(newIdToNameMap);
         this.nameToIdMap = Collections.unmodifiableMap(newNameToIdMap);
     }
+
+
+    private static final String WORK_PRODUCTS_ATTR = "Work Product List";
+
+    private static final String PHASE_LIST_ATTR = "Phase List";
+
+    private static String getKeysMappingTo(Map<String, String> map,
+            String metricName) {
+        StringBuilder result = new StringBuilder();
+        for (Entry<String, String> e : map.entrySet()) {
+            if (metricName.equals(e.getValue()))
+                result.append("/").append(e.getKey());
+        }
+        return (result.length() == 0 ? null : result.substring(1));
+    }
+
+    private Map<String, String> getProcessSizeMetricsMap(String attr) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (WBSNode node : getChildren(getRoot())) {
+            String itemList = (String) node.getAttribute(attr);
+            if (StringUtils.hasValue(itemList)) {
+                for (String item : itemList.split("/"))
+                    result.put(item, getMetricID(node));
+            }
+        }
+        return result;
+    }
+
 
     public static String getMetricID(WBSNode node) {
         if ("LOC".equalsIgnoreCase(node.getName()))

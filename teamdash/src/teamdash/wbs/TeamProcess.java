@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.swing.JMenu;
@@ -77,11 +78,11 @@ public class TeamProcess {
     /** An immutable map of node types to node icons. */
     private Map iconMap;
 
-    /** An immutable map of work product node types to size metrics */
-    private Map workProductSizes;
+    /** Maps of work product node types to size metrics */
+    private Map workProductSizes, workProductSizesReadOnly;
 
-    /** An immutable map of the size metric for each phase type */
-    private Map phaseSizeMetrics;
+    /** Maps of the size metric for each phase type */
+    private Map phaseSizeMetrics, phaseSizeMetricsReadOnly;
 
     /** An immutable map of the estimated yields for each phase */
     private Map<String, Double> phaseYields;
@@ -137,7 +138,7 @@ public class TeamProcess {
     public String getPhaseSizeMetric(String phase) {
         if (phase != null && phase.endsWith(" Task"))
             phase = phase.substring(0, phase.length()-5);
-        String result = (String) phaseSizeMetrics.get(phase);
+        String result = (String) phaseSizeMetricsReadOnly.get(phase);
         if (result == null)
             result = "LOC";
         return result;
@@ -179,15 +180,34 @@ public class TeamProcess {
         return sizeMetricsReadOnly;
     }
 
-    void setSizeMetricMap(Map<String, String> newSizeMetrics) {
+    void setSizeMetricMaps(Map<String, String> newSizeMetrics,
+            Map<String, String> newWorkProductSizeMap,
+            Map<String, String> newPhaseSizeMap) {
         // load the new metrics into our own map (rather than replacing the
         // reference altogether) so clients don't have to re-fetch the map.
         sizeMetrics.clear();
         sizeMetrics.putAll(newSizeMetrics);
+
+        // update the size maps for phases and work products
+        updateProcessSizeMetricMap(workProductSizes, newWorkProductSizeMap);
+        updateProcessSizeMetricMap(phaseSizeMetrics, newPhaseSizeMap);
+    }
+
+    private void updateProcessSizeMetricMap(Map<String, String> dest,
+            Map<String, String> src) {
+        for (Entry<String, String> e : dest.entrySet()) {
+            String key = e.getKey();
+            String newValue = src.get(key);
+            e.setValue(newValue == null ? "LOC" : newValue);
+        }
     }
 
     public Map getWorkProductSizeMap() {
-        return workProductSizes;
+        return workProductSizesReadOnly;
+    }
+
+    public Map getPhaseSizeMap() {
+        return phaseSizeMetricsReadOnly;
     }
 
 
@@ -261,7 +281,7 @@ public class TeamProcess {
             sizeMetrics.put(name, name);
         }
 
-        workProductSizes = Collections.unmodifiableMap(workProductSizes);
+        workProductSizesReadOnly = Collections.unmodifiableMap(workProductSizes);
         sizeMetricsReadOnly = Collections.unmodifiableMap(sizeMetrics);
     }
 
@@ -348,7 +368,7 @@ public class TeamProcess {
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
-        phaseSizeMetrics = Collections.unmodifiableMap(phaseSizeMetrics);
+        phaseSizeMetricsReadOnly = Collections.unmodifiableMap(phaseSizeMetrics);
         phaseYields = Collections.unmodifiableMap(phaseYields);
         phaseInjRates = Collections.unmodifiableMap(phaseInjRates);
     }
