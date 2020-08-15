@@ -26,6 +26,7 @@ package teamdash.wbs;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.event.ChangeListener;
@@ -42,6 +43,7 @@ import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
+import teamdash.wbs.columns.SizeColumnManager;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -65,20 +67,23 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
     /** Object which manages columns for team members */
     private TeamMemberColumnManager memberColumnManager;
 
+    /** Object which manages columns for planned & actual size */
+    private SizeColumnManager sizeColumnManager;
+
     /** Object which manages custom columns */
     private CustomColumnManager customColumnManager;
 
 
     public WBSDataModel(WBSModel wbsModel, TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
-            ProxyWBSModel proxies, MilestonesWBSModel milestones,
-            CustomColumnSpecs customColumns,
+            SizeMetricsWBSModel sizeMetrics, ProxyWBSModel proxies,
+            MilestonesWBSModel milestones, CustomColumnSpecs customColumns,
             TaskDependencySource dependencySource, String currentUser) {
         super(wbsModel);
         labelSources = new HashSet<Integer>();
         attrSources = new HashSet<Integer>();
-        buildDataColumns(teamList, teamProcess, workflows, proxies, milestones,
-            customColumns, dependencySource, currentUser);
+        buildDataColumns(teamList, teamProcess, workflows, sizeMetrics, proxies,
+            milestones, customColumns, dependencySource, currentUser);
         initializeColumnDependencies();
     }
 
@@ -141,6 +146,18 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
         customColumnManager.addColumnsToColumnModel(columnModel);
     }
 
+    public SizeColumnManager getSizeColumnManager() {
+        return sizeColumnManager;
+    }
+
+    public Map<String, DataColumn> getSizeColumns(boolean plan) {
+        return sizeColumnManager.getSizeColumns(plan);
+    }
+
+    public Map<String, Integer> getSizeColumnIndexes(boolean plan) {
+        return sizeColumnManager.getSizeColumnIndexes(plan);
+    }
+
     public CustomColumnManager getCustomColumnManager() {
         return customColumnManager;
     }
@@ -148,12 +165,14 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
     /** Create a set of data columns for this data model. */
     private void buildDataColumns(TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
-            ProxyWBSModel proxies, MilestonesWBSModel milestones,
-            CustomColumnSpecs projectColumns,
+            SizeMetricsWBSModel sizeMetrics, ProxyWBSModel proxies,
+            MilestonesWBSModel milestones, CustomColumnSpecs projectColumns,
             TaskDependencySource dependencySource, String currentUser)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));
         SizeTypeColumn.createSizeColumns(this, teamProcess);
+        sizeColumnManager = new SizeColumnManager(this, teamProcess,
+                sizeMetrics);
         addDataColumn(new PhaseColumn(this, teamProcess, workflows));
         memberColumnManager = new TeamMemberColumnManager(this, workflows,
                 teamList);

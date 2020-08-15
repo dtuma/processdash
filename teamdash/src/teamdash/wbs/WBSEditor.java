@@ -169,6 +169,7 @@ import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
+import teamdash.wbs.columns.SizeColumnManager;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
@@ -277,11 +278,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamProject.getWorkflows());
 
         TaskDependencySource taskDependencySource = getTaskDependencySource();
-        WBSDataModel data = new WBSDataModel
-            (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), teamProject.getWorkflows(),
-             teamProject.getProxies(), teamProject.getMilestones(),
-             teamProject.getColumns(), taskDependencySource, owner);
+        WBSDataModel data = new WBSDataModel(model,
+                teamProject.getTeamMemberList(), teamProject.getTeamProcess(),
+                teamProject.getWorkflows(), teamProject.getSizeMetrics(),
+                teamProject.getProxies(), teamProject.getMilestones(),
+                teamProject.getColumns(), taskDependencySource, owner);
 
         if (teamProject.getSizeMetrics() != null)
             sizeMetricsModel = new SizeMetricsDataModel(
@@ -362,7 +363,10 @@ public class WBSEditor implements WindowListener, SaveListener,
                 milestonesModel);
         }
 
-        String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
+        String[] sizeMetrics = new String[0];
+        if (sizeMetricsModel == null)
+            sizeMetrics = new ArrayList<String>(teamProject.getTeamProcess() //
+                    .getSizeMetricMap().keySet()).toArray(sizeMetrics);
         String[] sizeTabColIDs = new String[sizeMetrics.length+2];
         String[] sizeTabColNames = new String[sizeMetrics.length+2];
         String[] planSizeTabColIDs = new String[sizeMetrics.length];
@@ -397,7 +401,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                 null);
         }
 
-        if ((newSizeColumns || showActualSize) && !isMode(MODE_MASTER)) {
+        if (sizeMetricsModel != null) {
+            SizeColumnManager scm = data.getSizeColumnManager();
+            tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true), false, false);
+            tabPanel.addTab(getRes("Tabs.Actual_Size"), scm.getTableColumns(false), false, false);
+        } else if ((newSizeColumns || showActualSize) && !isMode(MODE_MASTER)) {
             tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
             tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
         }

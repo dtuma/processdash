@@ -165,7 +165,10 @@ public class TeamProcess {
 
     /** @deprecated */
     public String[] getSizeMetrics() {
-        return new ArrayList<String>(sizeMetrics.values()).toArray(new String[0]);
+        // This method is obsolete - all clients must use getSizeMetricsMap for
+        // proper operation going forward. This temporary stub implementation
+        // will prevent those clients from breaking until they can be recoded.
+        return new String[] { "LOC" };
     }
 
     /**

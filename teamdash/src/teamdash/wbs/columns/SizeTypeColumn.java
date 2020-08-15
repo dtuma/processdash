@@ -273,16 +273,6 @@ public class SizeTypeColumn extends AbstractDataColumn implements
                 workProductSizeMap, sizeMetrics));
         dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
-
-        for (String metric : sizeMetrics) {
-            // add a planned size column for this metric
-            dataModel.addDataColumn(
-                new SizeDataColumn(dataModel, teamProcess, metric, true));
-
-            // add an actual size column for this metric
-            dataModel.addDataColumn(
-                new SizeDataColumn(dataModel, teamProcess, metric, false));
-        }
     }
 
     private static void createOldSizeColumns(DataTableModel dataModel,

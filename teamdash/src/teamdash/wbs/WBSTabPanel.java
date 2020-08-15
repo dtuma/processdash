@@ -285,6 +285,11 @@ public class WBSTabPanel extends JLayeredPane implements
         return tabIndex;
     }
 
+    public int addTab(String tabName, TableColumnModel columnModel,
+            boolean isEditable, boolean isProtected) {
+        return addTab(tabName, columnModel, new TabProperties(isEditable, isProtected));
+    }
+
     protected int addTab(String tabName, TableColumnModel columnModel, TabProperties properties) {
         // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
