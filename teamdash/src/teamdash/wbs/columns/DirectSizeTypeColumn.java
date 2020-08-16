@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,14 +23,14 @@
 
 package teamdash.wbs.columns;
 
-import java.util.Map;
-
-import teamdash.wbs.DataTableModel;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
 /**
- * This class echoes the value of the SizeTypeColumn, but only if:
+ * This class echoes the metricID value from the SizeTypeColumn, but only if:
  * <ul>
  * <li>a top-down size estimate has been entered for a particular node, or</li>
  * <li>the node is a PROBE task.</li>
@@ -41,24 +41,29 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
 
     public static final String COLUMN_ID = "Direct Size Units";
 
-    public DirectSizeTypeColumn(DataTableModel m, Map sizeMetrics) {
-        super(m, sizeMetrics);
+    public DirectSizeTypeColumn(WBSDataModel m) {
+        super(m);
         this.columnID = this.columnName = COLUMN_ID;
     }
 
     public Object getValueAt(WBSNode node) {
         Object result = super.getValueAt(node);
-        if (result == null) return null;
-        String units = String.valueOf(result);
-        String addedAttr = TopDownBottomUpColumn.getTopDownAttrName
-            (SizeAccountingColumnSet.getAddedID(units));
-        String modifiedAttr = TopDownBottomUpColumn.getTopDownAttrName
-            (SizeAccountingColumnSet.getModifiedID(units));
+        result = WrappedValue.unwrap(result);
+        if (!(result instanceof SizeMetric))
+            return null;
 
-        if (node.getAttribute(addedAttr) != null ||
-            node.getAttribute(modifiedAttr) != null ||
-            TeamProcess.isProbeTask(node.getType()))
-            return units;
+        String metricID = ((SizeMetric) result).getMetricID();
+        if (TeamProcess.isProbeTask(node.getType()))
+            return metricID;
+
+        String addedAttr = TopDownBottomUpColumn.getTopDownAttrName(
+            SizeAccountingColumnSet.getAddedID(metricID));
+        String modifiedAttr = TopDownBottomUpColumn.getTopDownAttrName(
+            SizeAccountingColumnSet.getModifiedID(metricID));
+
+        if (node.getAttribute(addedAttr) != null
+                || node.getAttribute(modifiedAttr) != null)
+            return metricID;
         else
             return null;
     }

@@ -58,6 +58,9 @@ import teamdash.wbs.columns.WbsNodeAttributeSource;
 
 public class WBSDataModel extends DataTableModel<WBSModel> {
 
+    /** The team process that governs this WBS */
+    private TeamProcess teamProcess;
+
     /** A list of the columns which are sources of label data */
     private Set<Integer> labelSources;
 
@@ -80,6 +83,7 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
             MilestonesWBSModel milestones, CustomColumnSpecs customColumns,
             TaskDependencySource dependencySource, String currentUser) {
         super(wbsModel);
+        this.teamProcess = teamProcess;
         labelSources = new HashSet<Integer>();
         attrSources = new HashSet<Integer>();
         buildDataColumns(teamList, teamProcess, workflows, sizeMetrics, proxies,
@@ -105,6 +109,10 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
         labelSources.remove(pos);
         attrSources.remove(pos);
         return pos;
+    }
+
+    public TeamProcess getTeamProcess() {
+        return teamProcess;
     }
 
     public Integer[] getLabelSourceColumns() {
