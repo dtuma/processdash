@@ -171,7 +171,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
     }
 
     public String getMetricDisplayName() {
-        return teamProcess.getSizeMetricMap().get(metricID);
+        return String.valueOf(teamProcess.getSizeMetricMap().get(metricID));
     }
 
     public Object getValueAt(WBSNode node) {

@@ -69,8 +69,8 @@ public class TeamProcess {
     /** True if we should hide the "Software Component" node type */
     private boolean hideSoftwareComponentNodeType;
 
-    /** A map from size metricIDs to size metric names */
-    private Map<String, String> sizeMetrics, sizeMetricsReadOnly;
+    /** A map from size metricIDs to SizeMetric objects */
+    private Map<String, SizeMetric> sizeMetrics, sizeMetricsReadOnly;
 
     /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
@@ -176,11 +176,11 @@ public class TeamProcess {
      * @return a map of the known size metrics. The keys in the map are
      *         metricIDs, and the values are metric names.
      */
-    public Map<String, String> getSizeMetricMap() {
+    public Map<String, SizeMetric> getSizeMetricMap() {
         return sizeMetricsReadOnly;
     }
 
-    void setSizeMetricMaps(Map<String, String> newSizeMetrics,
+    void setSizeMetricMaps(Map<String, SizeMetric> newSizeMetrics,
             Map<String, String> newWorkProductSizeMap,
             Map<String, String> newPhaseSizeMap) {
         // load the new metrics into our own map (rather than replacing the
@@ -259,8 +259,8 @@ public class TeamProcess {
         workProductSizes.put(PSP_TASK_TYPE, "LOC");
         workProductSizes.put(CODE_TASK_TYPE, "LOC");
 
-        sizeMetrics = new LinkedHashMap<String, String>();
-        sizeMetrics.put("LOC", "LOC");
+        sizeMetrics = new LinkedHashMap<String, SizeMetric>();
+        sizeMetrics.put("LOC", new SizeMetric("LOC", "LOC"));
 
         usingDefaultSizeMetrics = false;
         sizeMetricsItems = process.getItemList(CustomProcess.SIZE_METRIC);
@@ -278,7 +278,7 @@ public class TeamProcess {
             String productName = metric.getAttr(PRODUCT_NAME);
             if (productName != null)
                 workProductSizes.put(productName, name);
-            sizeMetrics.put(name, name);
+            sizeMetrics.put(name, new SizeMetric(name, name));
         }
 
         workProductSizesReadOnly = Collections.unmodifiableMap(workProductSizes);

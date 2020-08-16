@@ -53,7 +53,7 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     private TeamProcess processToUpdate = null;
 
-    private Map<String, String> idToNameMap = null;
+    private Map<String, SizeMetric> idToMetricMap = null;
 
     private Map<String, String> nameToIdMap = null;
 
@@ -68,16 +68,17 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     public SizeMetricsWBSModel(TeamProcess process) {
         this();
-        for (String metricName : process.getSizeMetricMap().values()) {
-            WBSNode metric = new WBSNode(this, metricName, SIZE_METRIC_TYPE, 1,
-                    false);
+        for (SizeMetric sm : process.getSizeMetricMap().values()) {
+            String metricName = sm.getName();
+            WBSNode metricNode = new WBSNode(this, metricName, SIZE_METRIC_TYPE,
+                    1, false);
             if (!"LOC".equals(metricName)) {
-                metric.setAttribute(WORK_PRODUCTS_ATTR, getKeysMappingTo(
+                metricNode.setAttribute(WORK_PRODUCTS_ATTR, getKeysMappingTo(
                     process.getWorkProductSizeMap(), metricName));
-                metric.setAttribute(PHASE_LIST_ATTR, getKeysMappingTo(
+                metricNode.setAttribute(PHASE_LIST_ATTR, getKeysMappingTo(
                     process.getPhaseSizeMap(), metricName));
             }
-            add(metric);
+            add(metricNode);
         }
     }
 
@@ -88,7 +89,7 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     private void maybeUpdateProcess() {
         if (processToUpdate != null)
-            processToUpdate.setSizeMetricMaps(getMetricIdToNameMap(),
+            processToUpdate.setSizeMetricMaps(getIdToMetricMap(),
                 getProcessSizeMetricsMap(WORK_PRODUCTS_ATTR),
                 getProcessSizeMetricsMap(PHASE_LIST_ATTR));
     }
@@ -169,10 +170,10 @@ public class SizeMetricsWBSModel extends WBSModel {
         return super.deleteNodes(nodesToDelete, notify);
     }
 
-    public Map<String, String> getMetricIdToNameMap() {
-        if (idToNameMap == null)
+    public Map<String, SizeMetric> getIdToMetricMap() {
+        if (idToMetricMap == null)
             rebuildMaps();
-        return idToNameMap;
+        return idToMetricMap;
     }
 
     public String getIdForMetric(String name) {
@@ -185,24 +186,25 @@ public class SizeMetricsWBSModel extends WBSModel {
 
     @Override
     public void fireTableChanged(TableModelEvent e) {
-        idToNameMap = nameToIdMap = null;
+        idToMetricMap = null;
+        nameToIdMap = null;
         maybeUpdateProcess();
         super.fireTableChanged(e);
     }
 
     private void rebuildMaps() {
-        Map<String, String> newIdToNameMap = new LinkedHashMap<String, String>();
+        Map<String, SizeMetric> newIdToMetricMap = new LinkedHashMap<String, SizeMetric>();
         Map<String, String> newNameToIdMap = new TreeMap<String, String>(
                 String.CASE_INSENSITIVE_ORDER);
         for (WBSNode node : getChildren(getRoot())) {
             String metricID = getMetricID(node);
             String name = node.getName();
             if (StringUtils.hasValue(name) && !newNameToIdMap.containsKey(name)) {
-                newIdToNameMap.put(metricID, name);
+                newIdToMetricMap.put(metricID, new SizeMetric(metricID, name));
                 newNameToIdMap.put(name, metricID);
             }
         }
-        this.idToNameMap = Collections.unmodifiableMap(newIdToNameMap);
+        this.idToMetricMap = Collections.unmodifiableMap(newIdToMetricMap);
         this.nameToIdMap = Collections.unmodifiableMap(newNameToIdMap);
     }
 
