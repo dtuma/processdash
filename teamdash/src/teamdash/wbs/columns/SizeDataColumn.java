@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JTable;
@@ -761,6 +762,40 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return result;
         }
     }
+
+
+
+    /**
+     * After the IDs of metrics are changed by a merge operation, propagate
+     * those ID changes into the attribute names used for holding size data
+     * 
+     * @param sizeMetricIDMappings
+     *            a map whose keys are the old size metricIDs, and whose values
+     *            are the new metricIDs
+     */
+    public static void remapSizeDataAttrs(WBSModel wbs,
+            Map<String, String> sizeMetricIDMappings) {
+        // if there are no remappings to perform, return
+        if (sizeMetricIDMappings == null || sizeMetricIDMappings.isEmpty())
+            return;
+
+        // create a map of attribute names that need changing
+        Map<String, String> attrRemappings = new HashMap();
+        for (Entry<String, String> e : sizeMetricIDMappings.entrySet()) {
+            // iterate over planned and actual
+            for (boolean plan : BOOLEANS) {
+                // remap size attribute names for this plan/actual metric
+                String oldAttr = getNodeValueAttrName(e.getKey(), plan);
+                String newAttr = getNodeValueAttrName(e.getValue(), plan);
+                attrRemappings.put(oldAttr, newAttr);
+            }
+        }
+
+        // rename the size attributes throughout the model
+        wbs.renameAttributes(attrRemappings);
+    }
+
+    private static final boolean BOOLEANS[] = new boolean[] { true, false };
 
 
 

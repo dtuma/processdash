@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -255,6 +256,21 @@ public class WBSNode implements Cloneable {
     /** Get a list of the attributes on this node */
     public Set<String> listAttributeNames() {
         return Collections.unmodifiableSet(attributes.keySet());
+    }
+
+    /** Rename attributes within this node */
+    public boolean renameAttributes(Map<String, String> attrRenames) {
+        boolean madeChange = false;
+        for (Entry<String, String> e : attrRenames.entrySet()) {
+            String oldAttrName = e.getKey();
+            String newAttrName = e.getValue();
+            Object attrVal = removeAttribute(oldAttrName);
+            if (attrVal != null) {
+                setAttribute(newAttrName, attrVal);
+                madeChange = true;
+            }
+        }
+        return madeChange;
     }
 
 

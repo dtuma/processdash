@@ -30,6 +30,7 @@ import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 
 public class TeamProjectNodeIDMatcher {
@@ -52,9 +53,11 @@ public class TeamProjectNodeIDMatcher {
             base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
 
         // Next, remap node IDs in the size metrics model
-        Map<Integer, Integer> sizeMetricIDMappings = matchSizeMetricsWBS(
+        Map<Integer, Integer> sizeMetricNodeIDMappings = matchSizeMetricsWBS(
             base.getSizeMetrics(), main.getSizeMetrics(),
             incoming.getSizeMetrics());
+        Map<String, String> sizeMetricIDMappings = SizeMetricsWBSModel
+                .getMetricIdRemappings(sizeMetricNodeIDMappings);
 
         // Next, remap node IDs in the proxies model
         Map<Integer, Integer> proxyIDMappings = matchWBS(base.getProxies(),
@@ -74,11 +77,14 @@ public class TeamProjectNodeIDMatcher {
         WorkflowUtil.remapWorkflowSourceIDs(incoming.getWBS(), workflowIDMappings);
         ProxyEstTypeColumn.remapNodeIDs(incoming.getWBS(), proxyIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
+        SizeDataColumn.remapSizeDataAttrs(incoming.getWBS(), sizeMetricIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);
 
         // return true if any node IDs were remapped
         return !workflowIDMappings.isEmpty()
+                || !sizeMetricNodeIDMappings.isEmpty()
+                || !proxyIDMappings.isEmpty()
                 || !milestoneIDMappings.isEmpty()
                 || !wbsIDMappings.isEmpty();
     }

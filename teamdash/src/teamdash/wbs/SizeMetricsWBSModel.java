@@ -236,11 +236,46 @@ public class SizeMetricsWBSModel extends WBSModel {
     }
 
 
+    public static Map<String, String> getMetricIdRemappings(
+            Map<Integer, Integer> nodeIdMap) {
+        // if there are no remappings, return null
+        if (nodeIdMap == null || nodeIdMap.isEmpty())
+            return null;
+
+        // create a map of metric ID remappings
+        Map<String, String> metricIdMap = new HashMap();
+        for (Entry<Integer, Integer> e : nodeIdMap.entrySet())
+            metricIdMap.put(getMetricID(e.getKey()), getMetricID(e.getValue()));
+
+        // return the map of metric ID remappings
+        return metricIdMap;
+    }
+
+    public static void remapSizeMetricIdAttrValues(WBSModel model,
+            Map<String, String> metricIdMap, String attrName) {
+        // if there are no remappings, return
+        if (metricIdMap == null || metricIdMap.isEmpty())
+            return;
+
+        // look for occurrences of old metric IDs and remap them to new
+        for (WBSNode node : model.getWbsNodes()) {
+            Object currentVal = node.getAttribute(attrName);
+            Object remappedVal = metricIdMap.get(currentVal);
+            if (currentVal != null && remappedVal != null)
+                node.setAttribute(attrName, remappedVal);
+        }
+    }
+
+
     public static String getMetricID(WBSNode node) {
         if ("LOC".equalsIgnoreCase(node.getName()))
             return "LOC";
         else
-            return "Size-" + node.getUniqueID();
+            return getMetricID(node.getUniqueID());
+    }
+
+    private static String getMetricID(int nodeID) {
+        return "Size-" + nodeID;
     }
 
 }
