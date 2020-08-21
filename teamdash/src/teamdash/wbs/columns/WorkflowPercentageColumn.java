@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -99,10 +99,8 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
             if (ndv.value == 100) {
                 return null;
             } else {
-                String key = isRatePresent(table, row)
-                        ? "Workflow.Percent.Rate_FMT"
-                        : "Workflow.Percent.Num_FMT";
-                return resources.format(key, String.valueOf(ndv));
+                return resources.format("Workflow.Percent.Num_FMT",
+                    String.valueOf(ndv));
             }
         }
 

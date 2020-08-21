@@ -50,15 +50,4 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
         return ndv;
     }
 
-    protected boolean isRatePresent(JTable table, int row) {
-        Object value = table.getModel().getValueAt(row, RATE_COLUMN);
-        if (value instanceof NumericDataValue) {
-            NumericDataValue ndv = (NumericDataValue) value;
-            return ndv.value > 0;
-        }
-        return false;
-    }
-
-    private static final int RATE_COLUMN = 2;
-
 }

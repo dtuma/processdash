@@ -52,7 +52,6 @@ import teamdash.wbs.columns.WorkflowLabelColumn;
 import teamdash.wbs.columns.WorkflowMinTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
-import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class WorkflowUtil {
 
@@ -99,11 +98,8 @@ public class WorkflowUtil {
         List<WBSNode> currentDestNodes = Arrays.asList(destWbs
                 .getDescendants(destNode));
         Set<Integer> srcWorkflowIDs = new HashSet();
-        boolean workflowHasRate = false;
         for (WBSNode n : workflows.getDescendants(srcNode)) {
             srcWorkflowIDs.add(n.getUniqueID());
-            if (n.getNumericAttribute(RATE_ATTR) > 0)
-                workflowHasRate = true;
         }
         int destPos = getWorkflowInsertionPos(destWbs, destNode,
             currentDestNodes, srcWorkflowIDs);
@@ -112,7 +108,7 @@ public class WorkflowUtil {
         // perform the workflow apply operation
         applyWorkflow(destWbs, destNode, destPos, currentDestNodes, destLabels,
             workflows, srcNode, srcWorkflowIDs, attrsToKeep, extraDefaultAttrs,
-            workflowHasRate, sawProbe);
+            sawProbe);
 
         // update the workflow source ID of the destination node.
         addWorkflowSourceID(destNode, srcNode.getUniqueID());
@@ -173,7 +169,7 @@ public class WorkflowUtil {
             int destPos, List<WBSNode> currentDestNodes, String destLabels,
             WBSModel workflows, WBSNode srcNode, Set<Integer> srcWorkflowIDs,
             PatternList attrsToKeep, Map extraDefaultAttrs,
-            boolean setFixedTimes, AtomicBoolean sawProbe) {
+            AtomicBoolean sawProbe) {
 
         Map<WBSNode, WBSNode> nodesWithSrcChildren = new LinkedHashMap();
         if (destPos == -1)
@@ -224,7 +220,7 @@ public class WorkflowUtil {
                 // if we don't find a node to move, create a new one and
                 // insert it.
                 WBSNode newNode = createNewWorkflowNodeToInsert(srcChild,
-                    destLabels, attrsToKeep, extraDefaultAttrs, setFixedTimes);
+                    destLabels, attrsToKeep, extraDefaultAttrs);
                 newNode.setIndentLevel(targetIndent);
                 destWbs.insertNodesAtImpl(Collections.singletonList(newNode),
                     destPos);
@@ -246,7 +242,7 @@ public class WorkflowUtil {
             WBSNode destChild = e.getValue();
             applyWorkflow(destWbs, destChild, -1, currentDestNodes, destLabels,
                 workflows, srcChild, srcWorkflowIDs, attrsToKeep,
-                extraDefaultAttrs, setFixedTimes, sawProbe);
+                extraDefaultAttrs, sawProbe);
         }
     }
 
@@ -403,8 +399,7 @@ public class WorkflowUtil {
     }
 
     private static WBSNode createNewWorkflowNodeToInsert(WBSNode srcNode,
-            String destLabels, PatternList attrsToKeep, Map extraDefaultAttrs,
-            boolean setFixedTime) {
+            String destLabels, PatternList attrsToKeep, Map extraDefaultAttrs) {
 
         // make a copy of the workflow source node.
         WBSNode node = (WBSNode) srcNode.clone();
@@ -439,15 +434,6 @@ public class WorkflowUtil {
             mergedLabels = TaskLabelColumn.mergeLabels(srcLabels, destLabels);
         }
         node.setAttribute(TaskLabelColumn.VALUE_ATTR, mergedLabels);
-
-        // possibly record a fixed time on the node.
-        if (setFixedTime) {
-            double minTime = WorkflowMinTimeColumn.getMinTimeAt(srcNode);
-            double rate = srcNode.getNumericAttribute(RATE_ATTR);
-            if (minTime > 0 && !(rate > 0))
-                node.setNumericAttribute(TeamTimeColumn.RATE_ATTR,
-                    Double.POSITIVE_INFINITY);
-        }
 
         // possibly clear extraneous attributes that are undesirable to keep.
         if (attrsToKeep != null)
@@ -526,7 +512,7 @@ public class WorkflowUtil {
 
 
     /**
-     * Redistribute time across a set of workflow tasks based on the rates and
+     * Redistribute time across a set of workflow tasks based on the
      * percentages that are currently defined in the workflow.
      * 
      * @param dataModel
@@ -544,7 +530,7 @@ public class WorkflowUtil {
      * @param workflows
      *            the set of defined workflows in this project
      */
-    public static void reapplyRatesAndPercentages(DataTableModel dataModel,
+    public static void reapplyPercentages(DataTableModel dataModel,
             WBSModel destWbs, WBSNode destNode, List<WBSNode> destChildren,
             String workflowName, WBSModel workflows) {
 
@@ -558,14 +544,11 @@ public class WorkflowUtil {
         // find the leaf nodes in our destChildren set, and sort them into a
         // Map according to the workflow step they belong to.
         Map<WBSNode, Set<WBSNode>> nodesToTweak = new HashMap();
-        boolean sawRate = false;
         for (WBSNode oneChild : destChildren) {
             if (destWbs.isLeaf(oneChild)) {
                 for (String id : getWorkflowSourceIDs(oneChild)) {
                     WBSNode workflowNode = workflowNodes.get(id);
                     if (workflowNode != null) {
-                        if (workflowNode.getNumericAttribute(RATE_ATTR) > 0)
-                            sawRate = true;
                         Set<WBSNode> steps = nodesToTweak.get(workflowNode);
                         if (steps == null) {
                             steps = new HashSet();
@@ -578,48 +561,6 @@ public class WorkflowUtil {
             }
         }
 
-        // redistribute the times accordingly
-        if (sawRate)
-            reapplyRates(dataModel, nodesToTweak);
-        else
-            reapplyPercentages(dataModel, destWbs, destNode, destChildren,
-                nodesToTweak);
-    }
-
-    // when a workflow uses rates, reapply those rates to the tasks.
-    private static void reapplyRates(DataTableModel dataModel,
-            Map<WBSNode, Set<WBSNode>> nodesToTweak) {
-        int unitsCol = dataModel.findColumn(TaskSizeUnitsColumn.COLUMN_ID);
-        int rateCol = dataModel.findColumn(TeamTimeColumn.RATE_COL_ID);
-        for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
-            WBSNode workflowNode = e.getKey();
-
-            double minTime = WorkflowMinTimeColumn.getMinTimeAt(workflowNode);
-            for (WBSNode destNode : e.getValue())
-                WorkflowMinTimeColumn.storeMinTimeAt(destNode, minTime);
-
-            Object units = workflowNode.getAttribute(UNITS_ATTR);
-            double rate = workflowNode.getNumericAttribute(RATE_ATTR);
-            if (minTime > 0 && !(rate > 0))
-                rate = Double.POSITIVE_INFINITY;
-
-            if (rate > 0) {
-                for (WBSNode destNode : e.getValue()) {
-                    dataModel.setValueAt(units, destNode, unitsCol);
-                    dataModel.setValueAt(rate, destNode, rateCol);
-                }
-            }
-        }
-    }
-    private static final String UNITS_ATTR = WorkflowSizeUnitsColumn.ATTR_NAME;
-    private static final String RATE_ATTR = TeamTimeColumn.RATE_ATTR;
-
-
-
-    // for a percentage-driven workflow, redistribute task time based on %-s
-    private static void reapplyPercentages(DataTableModel dataModel,
-            WBSModel destWbs, WBSNode destNode, List<WBSNode> destChildren,
-            Map<WBSNode, Set<WBSNode>> nodesToTweak) {
         // determine the total amount of time we should redistribute.
         int timeCol = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
         double totalTime = getTotalTimeToRedistribute(dataModel, timeCol,
