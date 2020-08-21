@@ -288,7 +288,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             sizeMetricsModel = new SizeMetricsDataModel(
                     teamProject.getSizeMetrics());
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
-                teamProject.getTeamProcess());
+                teamProject.getSizeMetrics());
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
         if (isMode(MODE_PLAIN)) {

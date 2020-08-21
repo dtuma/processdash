@@ -184,6 +184,28 @@ public class SizeMetricsWBSModel extends WBSModel {
         return nameToIdMap.get(name);
     }
 
+    public SizeMetric getMetric(String name, boolean createIfMissing) {
+        // return null if we weren't given a name.
+        if (!StringUtils.hasValue(name))
+            return null;
+
+        // if we have a metric with the given name, return it.
+        String metricID = getIdForMetric(name);
+        if (metricID != null)
+            return getIdToMetricMap().get(metricID);
+
+        // if we weren't asked to create the missing metric, return
+        if (createIfMissing == false)
+            return null;
+
+        // create a new metric and return it
+        WBSNode metricNode = new WBSNode(this, name, SIZE_METRIC_TYPE, 1,
+                false);
+        add(metricNode);
+        rebuildMaps();
+        return idToMetricMap.get(getMetricID(metricNode));
+    }
+
     @Override
     public void fireTableChanged(TableModelEvent e) {
         idToMetricMap = null;

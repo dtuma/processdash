@@ -30,6 +30,7 @@ import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
+import teamdash.wbs.columns.ProxySizeColumn;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 
@@ -71,6 +72,10 @@ public class TeamProjectNodeIDMatcher {
         // Next, remap node IDs in the main WBS
         Map<Integer, Integer> wbsIDMappings = matchWBS(base.getWBS(),
             main.getWBS(), incoming.getWBS(), WBS_ALIAS_ATTRS);
+
+        // propagate size metric ID changes into various affected models
+        ProxySizeColumn.remapNodeIDs(incoming.getProxies(),
+            sizeMetricIDMappings);
 
         // Finally, apply these remapped IDs to the affected attributes in
         // the main WBS.

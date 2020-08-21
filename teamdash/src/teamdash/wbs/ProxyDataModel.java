@@ -30,15 +30,16 @@ import teamdash.wbs.columns.WBSNodeColumn;
 
 public class ProxyDataModel extends DataTableModel<ProxyWBSModel> {
 
-    public ProxyDataModel(ProxyWBSModel proxies, TeamProcess process) {
+    public ProxyDataModel(ProxyWBSModel proxies,
+            SizeMetricsWBSModel sizeMetrics) {
         super(proxies);
-        buildDataColumns(process);
+        buildDataColumns(sizeMetrics);
         initializeColumnDependencies();
     }
 
-    private void buildDataColumns(TeamProcess teamProcess) {
+    private void buildDataColumns(SizeMetricsWBSModel sizeMetrics) {
         addDataColumn(new WBSNodeColumn(wbsModel));
-        ProxySizeColumn size = new ProxySizeColumn(this, teamProcess);
+        ProxySizeColumn size = new ProxySizeColumn(this, sizeMetrics);
         ProxyRateColumn rate = new ProxyRateColumn(this, size);
         ProxyTimeColumn time = new ProxyTimeColumn(this, size, rate);
         rate.setTimeColumn(time);

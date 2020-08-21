@@ -75,7 +75,7 @@ public class TeamProjectMergeTester {
             if (p.getSizeMetrics() != null)
                 sizeMetrics = new SizeMetricsDataModel(p.getSizeMetrics());
             workflows = new WorkflowDataModel(p.getWorkflows(), process, null);
-            proxies = new ProxyDataModel(p.getProxies(), process);
+            proxies = new ProxyDataModel(p.getProxies(), p.getSizeMetrics());
             milestones = new MilestonesDataModel(p.getMilestones());
         }
 

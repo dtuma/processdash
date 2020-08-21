@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,29 +24,28 @@
 package teamdash.wbs.columns;
 
 import java.awt.Component;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 
-import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
+import teamdash.wbs.ForeignAttrCleaningColumn;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ProxyDataModel;
 import teamdash.wbs.ProxyWBSModel;
-import teamdash.wbs.TeamProcess;
+import teamdash.wbs.SizeMetric;
+import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.WBSNode;
 
 public class ProxySizeColumn extends AbstractNumericColumn implements
-        CalculatedDataColumn, CustomRenderedColumn {
+        CalculatedDataColumn, CustomRenderedColumn, ForeignAttrCleaningColumn {
 
     /** Attribute to store the numeric size estimate for a bucket */
     private static final String ATTR_NAME = "Proxy Size";
@@ -55,8 +54,11 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     private static final String EXTRAPOLATED_ATTR_NAME = "_Extrapolated "
             + ATTR_NAME;
 
-    /** Attribute to store the size metric for a proxy category */
-    private static final String METRIC_ATTR_NAME = "Proxy Size Metric";
+    /** Attribute to store the size metric name for a proxy category */
+    public static final String METRIC_NAME_ATTR = "Proxy Size Metric";
+
+    /** Attribute to store the size metric ID for a proxy category */
+    public static final String METRIC_ID_ATTR = "Proxy Size Metric ID";
 
     /** Attribute to hold a flag forcing the display of size-related values for
      * a proxy category, even when no size metric has been entered */
@@ -84,21 +86,23 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
 
     private ProxyWBSModel proxyModel;
 
-    private Set sizeMetrics;
+    private SizeMetricsWBSModel sizeMetrics;
 
-    private TableCellEditor sizeMetricsEditor;
+    private SizeMetricCellEditor sizeMetricsEditor;
 
 
-    public ProxySizeColumn(ProxyDataModel dataModel, TeamProcess process) {
+    public ProxySizeColumn(ProxyDataModel dataModel,
+            SizeMetricsWBSModel sizeMetrics) {
         this.dataModel = dataModel;
         this.proxyModel = dataModel.getWBSModel();
+        this.sizeMetrics = sizeMetrics;
         this.columnName = resources.getString("Proxy_Size.Name");
         this.columnID = COLUMN_ID;
-        this.sizeMetrics = new HashSet(Arrays.asList(process.getSizeMetrics()));
-        this.sizeMetricsEditor = new AutocompletingDataTableCellEditor(
-                new JComboBox(process.getSizeMetrics()));
+        if (sizeMetrics != null)
+            this.sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics,
+                    dataModel, this);
         setConflictAttributeName(ATTR_NAME);
-        conflictAttributeNamePattern.addLiteralEquals(METRIC_ATTR_NAME);
+        conflictAttributeNamePattern.addLiteralEquals(METRIC_ID_ATTR);
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -107,10 +111,7 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
 
     public Object getValueAt(WBSNode node) {
         if (ProxyWBSModel.isProxy(node)) {
-            Object value = node.getAttribute(METRIC_ATTR_NAME);
-            if (value == null && node.getAttribute(FORCED_ATTR_NAME) != null)
-                value = MISSING_METRIC_MSG;
-            return new SizeMetricValue(value);
+            return getSizeMetricValueAt(node);
 
         } else if (ProxyWBSModel.isBucket(node)) {
             return getSizeValueAt(node);
@@ -118,6 +119,25 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         } else {
             return null;
         }
+    }
+
+    protected Object getSizeMetricValueAt(WBSNode node) {
+        String metricName = (String) node.getAttribute(METRIC_NAME_ATTR);
+        if (sizeMetrics == null)
+            return new SizeMetricValue(null, metricName, null);
+ 
+        String metricID = (String) node.getAttribute(METRIC_ID_ATTR);
+        SizeMetric metric = sizeMetrics.getIdToMetricMap().get(metricID);
+        if (metric != null)
+            return new SizeMetricValue(metric, null, null);
+        else if (StringUtils.hasValue(metricName))
+            return new SizeMetricValue(null, metricName + " ",
+                    BAD_METRIC_TOOLTIP);
+        else if (node.getAttribute(FORCED_ATTR_NAME) != null)
+            return new SizeMetricValue(null, MISSING_METRIC_MSG,
+                    MISSING_METRIC_TOOLTIP);
+        else
+            return null;
     }
 
     public static NumericDataValue getSizeValueAt(WBSNode bucket) {
@@ -152,15 +172,15 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     }
 
     private void storeProxySizeMetric(Object aValue, WBSNode proxy) {
-        String metric = null;
-        if (aValue != null)
-            metric = aValue.toString().trim();
-        if ("".equals(metric))
-            metric = null;
-        if (metric == null || sizeMetrics.contains(metric)) {
-            proxy.setAttribute(METRIC_ATTR_NAME, metric);
-            proxy.removeAttribute(FORCED_ATTR_NAME);
+        SizeMetric metric = sizeMetricsEditor.parseValue(aValue, true);
+        if (metric != null) {
+            proxy.setAttribute(METRIC_NAME_ATTR, metric.getName());
+            proxy.setAttribute(METRIC_ID_ATTR, metric.getMetricID());
+        } else {
+            proxy.removeAttribute(METRIC_NAME_ATTR);
+            proxy.removeAttribute(METRIC_ID_ATTR);
         }
+        proxy.removeAttribute(FORCED_ATTR_NAME);
     }
 
     private void storeBucketSize(Object aValue, WBSNode bucket) {
@@ -171,6 +191,19 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         } else if (numValue == 0) {
             bucket.setAttribute(ATTR_NAME, null);
         }
+    }
+
+    @Override
+    public void cleanForeignNodeAttributes(WBSNode node) {
+        node.removeAttribute(METRIC_ID_ATTR);
+    }
+
+    @Override
+    public void storeConflictResolutionValue(Object value, WBSNode node) {
+        if (ProxyWBSModel.isProxy(node))
+            node.setAttribute(METRIC_ID_ATTR, value);
+        else
+            storeBucketSize(value, node);
     }
 
     /**
@@ -188,7 +221,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             return false;
         if (ProxyWBSModel.isBucket(node))
             node = node.getWbsModel().getParent(node);
-        return node.getAttribute(METRIC_ATTR_NAME) != null
+        return node.getAttribute(METRIC_NAME_ATTR) != null
+                || node.getAttribute(METRIC_ID_ATTR) != null
                 || node.getAttribute(FORCED_ATTR_NAME) != null;
     }
 
@@ -202,12 +236,12 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
      * @return the size units set on this proxy category, or null if no size
      *         metric has been set.
      */
-    public static String getSizeMetric(WBSNode node) {
+    public static String getSizeMetricIdAt(WBSNode node) {
         if (node == null)
             return null;
         if (ProxyWBSModel.isBucket(node))
             node = node.getWbsModel().getParent(node);
-        return (String) node.getAttribute(METRIC_ATTR_NAME);
+        return (String) node.getAttribute(METRIC_ID_ATTR);
     }
 
     /**
@@ -226,7 +260,7 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             return;
         if (ProxyWBSModel.isBucket(node))
             node = node.getWbsModel().getParent(node);
-        if (node.getAttribute(METRIC_ATTR_NAME) == null
+        if (node.getAttribute(METRIC_NAME_ATTR) == null
                 && node.getAttribute(FORCED_ATTR_NAME) == null) {
             node.setAttribute(FORCED_ATTR_NAME, "t");
             dataModel.columnChanged(this);
@@ -236,6 +270,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     public void storeDependentColumn(String ID, int columnNumber) {}
 
     public boolean recalculate() {
+        if (sizeMetrics == null)
+            return false;
         WBSNode[] proxies = proxyModel.getChildren(proxyModel.getRoot());
         for (WBSNode proxy : proxies) {
             if (hasSizeMetric(proxy))
@@ -246,6 +282,28 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
 
 
     private void recalcProxy(WBSNode proxy) {
+        // read the values for this metric from the proxy node
+        String metricName = (String) proxy.getAttribute(METRIC_NAME_ATTR);
+        String metricID = (String) proxy.getAttribute(METRIC_ID_ATTR);
+        SizeMetric metric = sizeMetrics.getIdToMetricMap().get(metricID);
+        if (metric != null) {
+            // if we found a metric with the given ID, make sure the correct
+            // name is stored in the proxy node (in case it changed elsewhere)
+            proxy.setAttribute(METRIC_NAME_ATTR, metric.getName());
+
+        } else if (metricID != null) {
+            // this proxy has a metric ID, but the ID'd metric was not found.
+            // Set the error flag on this node.
+            proxy.setAttribute(FORCED_ATTR_NAME, "t");
+
+        } else if (StringUtils.hasValue(metricName)) {
+            // this node has a metric name, but no ID. This is the pattern for
+            // a node from an external/legacy source. Lookup or create the named
+            // size metric and store its data on the proxy.
+            storeProxySizeMetric(metricName, proxy);
+        }
+
+        // recalculate all extrapolations within this table
         WBSNode[] buckets = proxyModel.getChildren(proxy);
         extrapolateMissingValues(this, buckets, EXTRAPOLATED_ATTR_NAME);
     }
@@ -301,20 +359,21 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
      */
     private class SizeMetricValue extends NumericDataValue {
 
+        private SizeMetric metric;
+
         private String display;
 
-        protected SizeMetricValue(Object value) {
+        protected SizeMetricValue(SizeMetric metric, String display,
+                String errorMessage) {
             super(0);
-            this.display = (value == null ? "" : value.toString());
-            if (MISSING_METRIC_MSG.equals(value))
-                this.errorMessage = MISSING_METRIC_TOOLTIP;
-            else if (!sizeMetrics.contains(this.display))
-                this.errorMessage = BAD_METRIC_TOOLTIP;
+            this.metric = metric;
+            this.display = display;
+            this.errorMessage = errorMessage;
         }
 
         @Override
         public String toString() {
-            return display;
+            return metric == null ? display : metric.getName();
         }
 
     }
@@ -423,5 +482,12 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     }
 
     private static final double DEFAULT_SCALING_FACTOR = 2.5;
+
+
+    public static void remapNodeIDs(ProxyWBSModel model,
+            Map<String, String> sizeMetricIDMappings) {
+        SizeMetricsWBSModel.remapSizeMetricIdAttrValues(model,
+            sizeMetricIDMappings, METRIC_ID_ATTR);
+    }
 
 }
