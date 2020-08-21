@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2019 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,8 +26,6 @@ package teamdash.wbs.columns;
 import static teamdash.wbs.WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.Component;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,11 +37,11 @@ import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCe
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
-import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSNode;
 
 public class ProxyEstBucketColumn extends AbstractDataColumn implements
@@ -54,11 +52,9 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
     public static final String COLUMN_ID = ATTR_NAME;
 
 
-    private DataTableModel dataModel;
+    private WBSDataModel dataModel;
 
     private ProxyWBSModel proxyModel;
-
-    private String[] sizeMetrics;
 
     private Map<String, String> componentTypes;
 
@@ -66,21 +62,14 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
 
     private int nodeTypeColumn;
 
-    private boolean newSizeDataColumns;
 
-    private Map<String, Integer> sizeColumns;
-
-
-    public ProxyEstBucketColumn(DataTableModel dataModel,
+    public ProxyEstBucketColumn(WBSDataModel dataModel,
             ProxyWBSModel proxyModel, TeamProcess process) {
         this.dataModel = dataModel;
         this.proxyModel = proxyModel;
-        this.sizeMetrics = process.getSizeMetrics();
         this.componentTypes = process.getWorkProductSizeMap();
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Proxy_Est_Bucket.Name");
-        this.newSizeDataColumns = SizeTypeColumn
-                .isUsingNewSizeDataColumns(dataModel.getWBSModel());
         setConflictAttributeName(ATTR_NAME);
 
         this.dependentColumns = new String[] { ProxyEstTypeColumn.COLUMN_ID };
@@ -130,10 +119,10 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
 
     private void maybeStoreSizeEstimate(WBSNode node, WBSNode bucket) {
         // check for a valid size estimate on this bucket; abort if absent
-        String sizeMetric = ProxySizeColumn.getSizeMetric(bucket);
+        String metricID = ProxySizeColumn.getSizeMetricIdAt(bucket);
         NumericDataValue size = ProxySizeColumn.getSizeValueAt(bucket);
-        Integer sizeCol = sizeColumns.get(sizeMetric);
-        if (sizeMetric == null || size == null || sizeCol == null)
+        Integer sizeCol = dataModel.getSizeColumnIndexes(true).get(metricID);
+        if (metricID == null || size == null || sizeCol == null)
             return;
 
         // only change size estimates for components, not for tasks.
@@ -143,22 +132,10 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
         if (currentMetric == null)
             return;
 
-        // clear out top-down size estimates of other types for this node
-        if (newSizeDataColumns == false) {
-            for (Integer col : sizeColumns.values()) {
-                if (col != sizeCol) {
-                    NumericDataValue oneSize = (NumericDataValue) dataModel
-                            .getValueAt(node, col);
-                    if (oneSize != null && oneSize.value > 0)
-                        dataModel.setValueAt("", node, col);
-                }
-            }
-        }
-
         // change the type of this node if necessary.
-        if (!currentMetric.equals(sizeMetric)) {
+        if (!currentMetric.equals(metricID)) {
             Object workflowSrcId = node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
-            dataModel.setValueAt(getTypeForSizeMetric(sizeMetric), node,
+            dataModel.setValueAt(getTypeForSizeMetric(metricID), node,
                 nodeTypeColumn);
             node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, workflowSrcId);
         }
@@ -200,28 +177,7 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
     @Override
     public void resetDependentColumns() {
         timeColumnPos = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
-
         nodeTypeColumn = dataModel.findColumn(PhaseColumn.COLUMN_ID);
-
-        sizeColumns = new HashMap();
-        for (String sizeMetric : sizeMetrics) {
-            if (newSizeDataColumns) {
-                lookupSizeColumn(sizeMetric,
-                    SizeDataColumn.getColumnID(sizeMetric, true));
-            } else {
-                lookupSizeColumn(sizeMetric,
-                    SizeAccountingColumnSet.getAddedID(sizeMetric));
-                lookupSizeColumn(sizeMetric + " (Modified)",
-                    SizeAccountingColumnSet.getModifiedID(sizeMetric));
-            }
-        }
-        sizeColumns = Collections.unmodifiableMap(sizeColumns);
-    }
-
-    private void lookupSizeColumn(String key, String columnId) {
-        int columnPos = dataModel.findColumn(columnId);
-        if (columnPos != -1)
-            sizeColumns.put(key, columnPos);
     }
 
     private WBSNode[] getBuckets(WBSNode node) {
