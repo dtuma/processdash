@@ -74,6 +74,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
@@ -293,7 +296,12 @@ public class WBSTabPanel extends JLayeredPane implements
 
     public int addTab(String tabName, TableColumnModel columnModel,
             Action editAction, boolean isProtected) {
-        return addTab(tabName, columnModel, new TabProperties(editAction, isProtected));
+        TabProperties tabProps = new TabProperties(editAction, isProtected);
+        TabHider hider = new TabHider(tabName, columnModel, tabProps);
+        if (hider.visible)
+            return addTab(tabName, columnModel, tabProps);
+        else
+            return -1;
     }
 
     protected int addTab(String tabName, TableColumnModel columnModel, TabProperties properties) {
@@ -332,9 +340,18 @@ public class WBSTabPanel extends JLayeredPane implements
     protected void removeTab(int index) {
         tabProperties.remove(index);
         tableColumnModels.remove(index);
-        if (tabbedPane.getSelectedIndex() == index)
+        if (tabbedPane.getSelectedIndex() == index && index > 0)
             tabbedPane.setSelectedIndex(index-1);
         tabbedPane.remove(index);
+    }
+
+    private void reinsertTab(String tabName, TableColumnModel columnModel,
+            TabProperties properties) {
+        int pos = properties.getReinsertionPos();
+        tabProperties.add(pos, properties);
+        tableColumnModels.add(pos, columnModel);
+        tabbedPane.insertTab(tabName, null,
+            new EmptyComponent(new Dimension(10, 10)), null, pos);
     }
 
     public LinkedHashMap<String, TableColumnModel> getTabData() {
@@ -1279,6 +1296,61 @@ public class WBSTabPanel extends JLayeredPane implements
         }
     }
 
+    /** Watches a read-only column model and hides the corresponding tab if
+     * the model contains no columns */
+    private class TabHider implements TableColumnModelListener, Runnable {
+
+        private String tabName;
+        private TableColumnModel columnModel;
+        private TabProperties tabProps;
+        private boolean visible;
+
+        public TabHider(String tabName, TableColumnModel columnModel,
+                TabProperties tabProps) {
+            this.tabName = tabName;
+            this.columnModel = columnModel;
+            this.tabProps = tabProps;
+            this.visible = shouldBeVisible();
+            columnModel.addColumnModelListener(this);
+        }
+
+        public void columnAdded(TableColumnModelEvent e) {
+            SwingUtilities.invokeLater(this);
+        }
+        public void columnRemoved(TableColumnModelEvent e) {
+            SwingUtilities.invokeLater(this);
+        }
+        public void columnMoved(TableColumnModelEvent e) {}
+        public void columnMarginChanged(ChangeEvent e) {}
+        public void columnSelectionChanged(ListSelectionEvent e) {}
+
+        public void run() {
+            boolean shouldBeVisible = shouldBeVisible();
+            if (visible == shouldBeVisible)
+                return;
+            else if (shouldBeVisible)
+                showTab();
+            else
+                hideTab();
+        }
+
+        private boolean shouldBeVisible() {
+            return columnModel.getColumnCount() > 0;
+        }
+
+        private void showTab() {
+            reinsertTab(tabName, columnModel, tabProps);
+            visible = true;
+        }
+
+        private void hideTab() {
+            int pos = tableColumnModels.indexOf(columnModel);
+            if (pos != -1)
+                removeTab(pos);
+            visible = false;
+        }
+    }
+
     /** This component displays a splitter bar (along the lines of JSplitPane)
      * but doesn't display anything on either side of the bar. Instead, these
      * areas are transparent, allowing other components to show through.
@@ -1672,15 +1744,19 @@ public class WBSTabPanel extends JLayeredPane implements
 
         private boolean editable, protect;
 
+        private int index;
+
         public TabProperties(boolean editable, boolean protect) {
             this.editable = editable;
             this.protect = protect;
+            this.index = tabPropIndex++;
         }
 
         public TabProperties(Action editAction, boolean protect) {
             this.editAction = editAction;
             this.editable = false;
             this.protect = protect;
+            this.index = tabPropIndex++;
         }
 
         public boolean isEditable() {
@@ -1694,6 +1770,16 @@ public class WBSTabPanel extends JLayeredPane implements
         public Action getEditAction() {
             return editAction;
         }
+
+        public int getReinsertionPos() {
+            for (int i = 0; i < tabProperties.size(); i++) {
+                TabProperties p = (TabProperties) tabProperties.get(i);
+                if (p.index > this.index)
+                    return i;
+            }
+            return tabProperties.size();
+        }
     }
+    private int tabPropIndex = 0;
 
 }
