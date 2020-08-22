@@ -250,7 +250,8 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     private static void createNewSizeColumns(WBSDataModel dataModel) {
         // create the size type columns.
         dataModel.addDataColumn(new NewSizeTypeColumn(dataModel));
-        dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
+        dataModel.addDataColumn(new DirectSizeTypeColumn.Simple(
+                dataModel.getTeamProcess().getSizeMetricMap()));
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
     }
 

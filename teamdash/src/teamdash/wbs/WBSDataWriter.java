@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -61,7 +62,6 @@ import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeDataColumn.Value;
 import teamdash.wbs.columns.SizeOwnerColumn;
-import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -114,13 +114,11 @@ public class WBSDataWriter {
     /** The column number of the unassigned time column */
     private int unassignedTimeColumn;
     /** The list of size metrics in the process */
-    private String[] sizeMetrics;
-    /** The list of column numbers for each top-level size accounting column */
-    private int[] sizeAccountingColumns;
+    private Map<String, SizeMetric> sizeMetrics;
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
     /** The numbers of plan & actual size data columns */
-    private int[] planSizeDataColumns, actualSizeDataColumns;
+    Map<String, Integer> planSizeDataColumns, actualSizeDataColumns;
     /** This column number of the size owner column */
     private int sizeOwnerColumn;
     /** The column numbers of the task labels column */
@@ -158,26 +156,10 @@ public class WBSDataWriter {
         this.userSettings = userSettings;
 
         if (dataModel != null) {
-            sizeMetrics = process.getSizeMetrics();
-            if (SizeTypeColumn.isUsingNewSizeDataColumns(wbsModel)) {
-                sizeAccountingColumns = new int[0];
-                planSizeDataColumns = new int[sizeMetrics.length];
-                actualSizeDataColumns = new int[sizeMetrics.length];
-                for (int i = sizeMetrics.length; i-- > 0;) {
-                    String sm = sizeMetrics[i];
-                    planSizeDataColumns[i] = dataModel
-                            .findColumn(SizeDataColumn.getColumnID(sm, true));
-                    actualSizeDataColumns[i] = dataModel
-                            .findColumn(SizeDataColumn.getColumnID(sm, false));
-                }
-                sizeOwnerColumn = dataModel
-                        .findColumn(SizeOwnerColumn.COLUMN_ID);
-            } else {
-                sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
-                for (int i = 0; i < SIZE_COLUMN_IDS.length; i++)
-                    sizeAccountingColumns[i] = dataModel
-                            .findColumn(SIZE_COLUMN_IDS[i]);
-            }
+            sizeMetrics = process.getSizeMetricMap();
+            planSizeDataColumns = dataModel.getSizeColumnIndexes(true);
+            actualSizeDataColumns = dataModel.getSizeColumnIndexes(false);
+            sizeOwnerColumn = dataModel.findColumn(SizeOwnerColumn.COLUMN_ID);
             directSizeUnitsColumn =
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
             dependencyColumn =
@@ -311,6 +293,7 @@ public class WBSDataWriter {
             out.write(">\n");
             if (depth == 0) {
                 writeWbsNodeAttributeSpecs(out);
+                writeSizeMetrics(out);
                 writeTeamMembers(out);
                 writeMilestoneMetadata(out);
             }
@@ -500,14 +483,17 @@ public class WBSDataWriter {
 
         List<NodeSizeData> result = new ArrayList();
         String owner = (String) dataModel.getValueAt(node, sizeOwnerColumn);
-        for (int i = 0; i < sizeMetrics.length; i++) {
-            SizeDataColumn.Value plan = (Value) dataModel.getValueAt(node,
-                planSizeDataColumns[i]);
-            SizeDataColumn.Value actual = (Value) dataModel.getValueAt(node,
-                actualSizeDataColumns[i]);
+        for (SizeMetric metric : sizeMetrics.values()) {
+            String metricID = metric.getMetricID();
+            Integer planPos = planSizeDataColumns.get(metricID);
+            SizeDataColumn.Value plan = (planPos == null ? SIZE_ZERO
+                    : (Value) dataModel.getValueAt(node, planPos));
+            Integer actPos = actualSizeDataColumns.get(metricID);
+            SizeDataColumn.Value actual = (actPos == null ? SIZE_ZERO
+                    : (Value) dataModel.getValueAt(node, actPos));
             if (hasNodeSizeValue(plan) || hasNodeSizeValue(actual)) {
                 NodeSizeData nsd = new NodeSizeData();
-                nsd.metric = sizeMetrics[i];
+                nsd.metric = metric.getName();
                 nsd.plan = plan.nodeValue;
                 nsd.planTS = plan.revSyncTime;
                 nsd.actual = actual.nodeValue;
@@ -518,6 +504,7 @@ public class WBSDataWriter {
         }
         return result;
     }
+    private final Value SIZE_ZERO =  new Value(0, 0, 0, null, null);
 
     private boolean hasNodeSizeValue(Value v) {
         return v.nodeValue > 0 || v.revSyncTime != null;
@@ -539,6 +526,20 @@ public class WBSDataWriter {
                 writeAttr(out, OWNER_ATTR, nsd.owner);
                 out.write("/>\n");
             }
+        }
+    }
+
+
+
+    private void writeSizeMetrics(Writer out) throws IOException {
+        if (sizeMetrics == null)
+            return;
+
+        for (SizeMetric metric : sizeMetrics.values()) {
+            out.write("  <" + SIZE_METRIC_TAG);
+            writeAttr(out, SIZE_METRIC_ID_ATTR, metric.getMetricID());
+            writeAttr(out, NAME_ATTR, metric.getName());
+            out.write("/>\n");
         }
     }
 
@@ -787,12 +788,6 @@ public class WBSDataWriter {
 
             // write an XML attribute for the size units
             writeAttr(out, UNITS_ATTR, String.valueOf(units));
-            // write out XML attributes for each size accounting number
-            for (int i = 0;   i < sizeAccountingColumns.length;   i++){
-                Object size =
-                    dataModel.getValueAt(node, sizeAccountingColumns[i]);
-                writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatNumber(size));
-            }
         }
     }
 
@@ -971,18 +966,11 @@ public class WBSDataWriter {
     private static final String TASK_TAG = "task";
     private static final String ATTRIBUTE_TAG = "attrType";
     private static final String ATTRIBUTE_VALUE_TAG = "attrValue";
+    private static final String SIZE_METRIC_TAG = "sizeMetric";
     private static final String MILESTONE_TAG = "milestone";
     private static final String DEPENDENCY_TAG = "dependency";
     private static final String NOTE_TAG = "note";
     private static final String SIZE_TAG = "size";
-
-    /** A list of column IDs for the top-level size accounting columns */
-    private static final String[] SIZE_COLUMN_IDS = new String[] {
-        "Base", "Deleted", "Modified", "Added", "Reused", "N&C" };
-    /** XML attribute names we will use to store data extracted from the
-     * size accounting columns listed on the previous line */
-    private static final String[] SIZE_ACCOUNTING_ATTRS = new String[] {
-        "sizeBase", "sizeDel", "sizeMod", "sizeAdd", "sizeReu", "sizeNC" };
 
     // strings naming each XML attribute we will output
     private static final String NAME_ATTR = "name";
@@ -993,6 +981,7 @@ public class WBSDataWriter {
     private static final String RELAUNCH_SOURCE_ID_ATTR = "rsid";
     private static final String LABELS_ATTR = "labels";
     private static final String WORKFLOW_ID_ATTR = "wid";
+    private static final String SIZE_METRIC_ID_ATTR = "metricID";
     private static final String MILESTONE_ID_ATTR = "mid";
     private static final String MILESTONE_FULL_ID_ATTR = "fullMid";
     private static final String MILESTONE_LABEL_ATTR = "labelName";

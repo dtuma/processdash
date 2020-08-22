@@ -173,6 +173,12 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
         return sizeMetricsEditor;
     }
 
+    public static SizeMetric getSizeMetricForProbeTask(WBSNode node,
+            Map<String, SizeMetric> sizeMetrics) {
+        String metricID = (String) node.getAttribute(METRIC_ID_ATTR);
+        return sizeMetrics.get(metricID);
+    }
+
     public static void remapNodeIDs(WorkflowWBSModel model,
             Map<String, String> sizeMetricIDMappings) {
         SizeMetricsWBSModel.remapSizeMetricIdAttrValues(model,

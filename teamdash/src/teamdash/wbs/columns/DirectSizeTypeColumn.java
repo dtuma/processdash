@@ -23,6 +23,8 @@
 
 package teamdash.wbs.columns;
 
+import java.util.Map;
+
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSDataModel;
@@ -70,7 +72,10 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
 
     public static class Simple extends AbstractDataColumn {
 
-        public Simple() {
+        private Map<String, SizeMetric> sizeMetrics;
+
+        public Simple(Map<String, SizeMetric> sizeMetrics) {
+            this.sizeMetrics = sizeMetrics;
             this.columnID = this.columnName = COLUMN_ID;
         }
 
@@ -79,7 +84,8 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
 
         public Object getValueAt(WBSNode node) {
             if (TeamProcess.isProbeTask(node.getType())) {
-                return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node);
+                return WorkflowSizeUnitsColumn.getSizeMetricForProbeTask(node,
+                    sizeMetrics);
 
             } else if (TeamProcess.isPSPTask(node.getType())) {
                 return "LOC";

@@ -79,7 +79,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
 
-    public class Value extends NumericDataValue {
+    public static class Value extends NumericDataValue {
 
         /** The size value that is entered directly on a given node */
         public double nodeValue;
