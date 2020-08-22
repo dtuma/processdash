@@ -33,6 +33,7 @@ import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.ProxySizeColumn;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class TeamProjectNodeIDMatcher {
 
@@ -75,6 +76,8 @@ public class TeamProjectNodeIDMatcher {
 
         // propagate size metric ID changes into various affected models
         ProxySizeColumn.remapNodeIDs(incoming.getProxies(),
+            sizeMetricIDMappings);
+        WorkflowSizeUnitsColumn.remapNodeIDs(incoming.getWorkflows(),
             sizeMetricIDMappings);
 
         // Finally, apply these remapped IDs to the affected attributes in

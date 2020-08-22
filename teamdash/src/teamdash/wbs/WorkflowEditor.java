@@ -81,7 +81,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowDataModel(teamProject.getWorkflows(),
-                teamProject.getTeamProcess(), teamProject.getTeamMemberList());
+                teamProject.getTeamProcess(), teamProject.getSizeMetrics(),
+                teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(isEditable(teamProject));
 
         boolean hideProbe = teamProject.getBoolUserSetting("hideProbeTask");

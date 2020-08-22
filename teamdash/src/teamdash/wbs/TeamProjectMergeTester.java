@@ -74,7 +74,8 @@ public class TeamProjectMergeTester {
                     new TaskDependencySourceSimple(p), "Owner");
             if (p.getSizeMetrics() != null)
                 sizeMetrics = new SizeMetricsDataModel(p.getSizeMetrics());
-            workflows = new WorkflowDataModel(p.getWorkflows(), process, null);
+            workflows = new WorkflowDataModel(p.getWorkflows(), process,
+                    p.getSizeMetrics(), null);
             proxies = new ProxyDataModel(p.getProxies(), p.getSizeMetrics());
             milestones = new MilestonesDataModel(p.getMilestones());
         }
