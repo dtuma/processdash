@@ -77,6 +77,8 @@ public class SizeMetricsWBSModel extends WBSModel {
                     process.getWorkProductSizeMap(), metricName));
                 metricNode.setAttribute(PHASE_LIST_ATTR, getKeysMappingTo(
                     process.getPhaseSizeMap(), metricName));
+            } else if (process.isPspCompatible()) {
+                metricNode.setReadOnly(true);
             }
             add(metricNode);
         }

@@ -198,7 +198,8 @@ public class SizeMetricsJTable extends WBSJTable {
             setEnabled(isEditingEnabled() //
                     && selectedRows != null //
                     && selectedRows.length == 1 //
-                    && selectedRows[0] != 0);
+                    && selectedRows[0] != 0 //
+                    && !wbsModel.getNodeForRow(selectedRows[0]).isReadOnly());
         }
     }
 
