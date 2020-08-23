@@ -37,10 +37,13 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
+
 
 public class WBSSaveAsAction extends AbstractAction {
 
@@ -52,7 +55,10 @@ public class WBSSaveAsAction extends AbstractAction {
 
     private WBSOpenFileAction openAction;
 
-    public WBSSaveAsAction(WBSEditor wbsEditor, WBSOpenFileAction openAction) {
+    private ChangeListener dirtyListener;
+
+    public WBSSaveAsAction(WBSEditor wbsEditor, WBSOpenFileAction openAction,
+            ChangeListener dirtyListener) {
         this.saveAsCopyMode = !wbsEditor.isZipWorkingDirectory();
         this.resources = Resources.getDashBundle(
             saveAsCopyMode ? "WBSEditor.Save_Copy" : "WBSEditor.Save_AS");
@@ -63,6 +69,7 @@ public class WBSSaveAsAction extends AbstractAction {
             .charAt(0)));
         this.wbsEditor = wbsEditor;
         this.openAction = openAction;
+        this.dirtyListener = dirtyListener;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -135,6 +142,8 @@ public class WBSSaveAsAction extends AbstractAction {
             displayErrorDialog(workerThread.exception);
         else if (saveAsCopyMode)
             displaySuccessMessage(destFile);
+        else
+            dirtyListener.stateChanged(new ChangeEvent(this));
     }
 
     private void displaySuccessMessage(File destFile) {

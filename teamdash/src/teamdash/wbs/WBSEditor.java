@@ -1180,7 +1180,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         saveAction = new SaveAction();
         tabPanel.addToolbarButton(saveAction, 0);
         openAction = new WBSOpenFileAction(this, frame);
-        saveAsAction = new WBSSaveAsAction(this, openAction);
+        saveAsAction = new WBSSaveAsAction(this, openAction, dirtyListener);
         importFromCsvAction = new ImportFromCsvAction();
         CloseAction closeAction = new CloseAction();
 
@@ -3288,7 +3288,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class DirtyListener implements ChangeListener {
         public void stateChanged(ChangeEvent e) {
-            setDirty(true);
+            if (e.getSource() == saveAsAction)
+                setDirty(false);
+            else
+                setDirty(true);
         }
     }
 
