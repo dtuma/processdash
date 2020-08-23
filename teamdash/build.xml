@@ -215,6 +215,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
       <root classname="net.sourceforge.processdash.tool.perm.WhoAmI"/>
+      <root classname="net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager"/>
       <root classname="net.sourceforge.processdash.ui.LookAndFeelUtil"/>
       <root classname="net.sourceforge.processdash.ui.icons.ExternalLinkIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor"/>
@@ -273,7 +274,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 165) {
+        if (classCount > 166) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

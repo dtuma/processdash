@@ -110,6 +110,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
@@ -127,6 +128,7 @@ import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.UsageLogger;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.CannotCreateLockException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -2191,7 +2193,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         if (workingDirIsGood) {
-            return workingDirectory;
+            if (checkVersionRequirement(workingDirectory))
+                return workingDirectory;
+            else
+                return null;
         }
         else {
             showCannotOpenError(workingDirectory);
@@ -2200,7 +2205,27 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static void showLockFailureError() {
-        showCannotOpenError("Lock", null);
+        showCannotOpenError("Lock", (String) null);
+    }
+    /** @since 2.5.7.2 */
+    private static boolean checkVersionRequirement(WorkingDirectory dir) {
+        // get the min required version setting, and the current version
+        String requiredVersion = TeamToolsVersionManager
+                .getRequiredWBSEditorVersion(dir.getDirectory());
+        String currentVersion = WBSEditor.class.getPackage()
+                .getImplementationVersion();
+
+        // return true if either version is missing, or if the current
+        // version meets the requirement
+        if (requiredVersion == null || currentVersion == null)
+            return true;
+        if (VersionUtils.compareVersions(currentVersion, requiredVersion) >= 0)
+            return true;
+
+        // display an error message and return false
+        showCannotOpenError("Version", dir.getDescription(), requiredVersion,
+            currentVersion);
+        return false;
     }
     private static void showCannotOpenError(WorkingDirectory workingDirectory) {
         showCannotOpenError(workingDirResKey(workingDirectory),
@@ -2209,10 +2234,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static void showCannotOpenError(String location) {
         showCannotOpenError(workingDirResKey(location), location);
     }
-    private static void showCannotOpenError(String resKey, String description) {
+    private static void showCannotOpenError(String resKey, String... args) {
         String title = resources.getString("Errors.Cannot_Open.Title");
         String[] message = resources.formatStrings("Errors.Cannot_Open."
-                + resKey + "_FMT", description);
+                + resKey + "_FMT", args);
         maybeDumpStartupError(title, message);
         JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.ERROR_MESSAGE);
