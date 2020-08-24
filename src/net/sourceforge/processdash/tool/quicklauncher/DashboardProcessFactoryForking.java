@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2018 Tuma Solutions, LLC
+// Copyright (C) 2006-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,7 +83,8 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
     @Override
     public Process launchWBS(File wbsFile, List extraVmArgs, List extraArgs)
             throws Exception {
-        return launchProcess(getWbsClasspath(), WBS_EDITOR_MAIN_CLASS, null,
+        String teamToolsJar = getWbsClasspath(wbsFile);
+        return launchProcess(teamToolsJar, WBS_EDITOR_MAIN_CLASS, null,
             extraVmArgs, Collections.singletonList(wbsFile.getAbsolutePath()));
     }
 
@@ -148,28 +149,17 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         return result.toString();
     }
 
-    private String getWbsClasspath() {
-        // if the classpath is a list of several files/directories, extract
-        // just the first one.
-        String basePath = classpath;
-        int sepPos = basePath.indexOf(System.getProperty("path.separator"));
-        if (sepPos > 0)
-            basePath = basePath.substring(0, sepPos);
-
-        File teamToolsJarDir;
-        File dashboardClasspath = new File(basePath);
-        File parentDir = dashboardClasspath.getParentFile();
-        if (dashboardClasspath.isFile()) {
-            // if the dashboard is a JAR file, we'll expect the TeamTools.jar
-            // file to be present in the same directory.
-            teamToolsJarDir = parentDir;
-        } else {
-            // if the dashboard classes were in a "bin" directory, we'll
-            // expect the TeamTools.jar file to be in a sibling "dist" directory
-            teamToolsJarDir = new File(parentDir, "dist");
+    private String getWbsClasspath(File wbsFile) {
+        File jarDir = null;
+        if (classpath != null && classpath.toLowerCase().endsWith("pspdash.jar")) {
+            String parentPath = classpath.substring(0, classpath.length() - 12);
+            File parentDir = new File(parentPath);
+            if (parentDir.isDirectory())
+                jarDir = parentDir;
         }
-
-        return new File(teamToolsJarDir, "TeamTools.jar").getAbsolutePath();
+        File jarFile = TeamToolsVersionManager.getBestTeamToolsJarFor(wbsFile,
+            jarDir);
+        return jarFile.getAbsolutePath();
     }
 
 }
