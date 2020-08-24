@@ -38,6 +38,7 @@ import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
+import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
@@ -111,17 +112,18 @@ public class WBSOpenFileAction extends AbstractAction {
     }
 
     public void openFile(String path) {
+        // find the team tools JAR file that should be used to open this file
+        File teamToolsJar = TeamToolsVersionManager
+                .getBestTeamToolsJarFor(new File(path), null);
+        if (teamToolsJar == null)
+            teamToolsJar = RuntimeUtils.getClasspathFile(WBSEditor.class);
+
         List<String> cmdLine = new ArrayList<String>();
         cmdLine.add(RuntimeUtils.getJreExecutable());
         cmdLine.add(RuntimeUtils.getJvmHeapArg());
         cmdLine.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
-
-        // provide the classpath for the new JVM.  Note this assumes that the
-        // WBS Editor code is packaged up into the TeamTools.jar file, so only
-        // one classpath entry is needed.  As such, this "Open" action will
-        // not work when the WBS Editor is run in a development environment.
         cmdLine.add("-cp");
-        cmdLine.add(RuntimeUtils.getClasspathFile(WBSEditor.class).getPath());
+        cmdLine.add(teamToolsJar.getPath());
         cmdLine.add(WBSEditor.class.getName());
 
         cmdLine.add(path);
