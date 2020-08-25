@@ -174,8 +174,6 @@ import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
-import teamdash.wbs.columns.TaskSizeColumn;
-import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -428,9 +426,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         int taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
                 new String[] {
                         PhaseColumn.COLUMN_ID,
-                        TaskSizeColumn.COLUMN_ID,
-                        TaskSizeUnitsColumn.COLUMN_ID,
-                        TeamTimeColumn.RATE_COL_ID,
                         ifMode(plainNotPersonal, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
                         ifMode(plainNotPersonal, TeamTimeColumn.NUM_PEOPLE_COL_ID),
                         (isMode(MODE_MASTER) ? TeamTimeColumn.TIME_NO_ERR_COL_ID
