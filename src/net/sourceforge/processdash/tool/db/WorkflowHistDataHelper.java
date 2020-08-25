@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2018 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -401,9 +401,11 @@ public class WorkflowHistDataHelper {
                 enactments = query(TEAM_ENACTMENT_QUERY, workflowKeys);
             else if (workflowHasProbePhase())
                 enactments = query(PERSONAL_ENACTMENT_QUERY_PROBE, workflowKeys);
-            else
+            else if (workflowHasConstructionPhase())
                 enactments = query(PERSONAL_ENACTMENT_QUERY_NONPROBE,
                     workflowKey, workflowKeys);
+            else
+                enactments = query(TEAM_ENACTMENT_QUERY, workflowKeys);
             filterEnactments();
         }
         return enactments;
@@ -888,6 +890,18 @@ public class WorkflowHistDataHelper {
             + "join p.mapsToPhase probePhase " //
             + "where p.process.key = ? " //
             + "and probePhase.identifier = '*PROBE*/PROBE'";
+
+
+    private boolean workflowHasConstructionPhase() {
+        Object test = QueryUtils.singleValue(query(WORKFLOW_CONSTRUCTION_TEST,
+            workflowKey));
+        return test != null;
+    }
+
+    private static final String WORKFLOW_CONSTRUCTION_TEST = //
+    "select distinct 1 from Phase p " //
+            + "where p.process.key = ? " //
+            + "and p.typeName = 'Construction'";
 
 
 
