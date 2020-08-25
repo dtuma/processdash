@@ -23,7 +23,6 @@
 
 package teamdash;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
@@ -68,12 +67,6 @@ public class XMLUtils {
             result = builder.parse(in);
         }
         return result;
-    }
-
-    public static Document parse(String document)
-        throws SAXException, IOException
-    {
-        return parse(new ByteArrayInputStream(document.getBytes()));
     }
 
     public static String escapeAttribute(String value) {
