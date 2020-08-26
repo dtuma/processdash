@@ -45,9 +45,11 @@ import org.xml.sax.InputSource;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
@@ -449,6 +451,9 @@ public class TeamProject implements WBSFilenameConstants {
             }
         } catch (Exception e) {
         }
+        requireVersion(TeamToolsVersionManager.DATA_VERSION, "3");
+        requireVersion(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT,
+            "6.0a");
 
         // if we are loading the primary team project (the one which will be
         // displayed in all the WBS Editor windows), and it is a personal
@@ -467,6 +472,13 @@ public class TeamProject implements WBSFilenameConstants {
         } finally {
             FileUtils.safelyClose(in);
         }
+    }
+
+    private void requireVersion(String attr, String minVersion) {
+        String currVersion = userSettings.getProperty(attr);
+        if (currVersion == null
+                || VersionUtils.compareVersions(currVersion, minVersion) < 0)
+            userSettings.put(attr, minVersion);
     }
 
     protected ImportDirectory getProjectDataDirectory(Element e, boolean checkExists) {
@@ -739,20 +751,13 @@ public class TeamProject implements WBSFilenameConstants {
                 sizeMetrics = new SizeMetricsWBSModel(xml);
         } catch (Exception e) {
         }
-        if (sizeMetrics == null && shouldCreateSizeMetricsModel()) {
+        if (sizeMetrics == null) {
             System.out.println("No " + SIZE_METRICS_FILENAME
                     + " file found; creating from process");
             sizeMetrics = new SizeMetricsWBSModel(teamProcess);
             setCreatedWithVersionAttribute(sizeMetrics);
         }
-        if (sizeMetrics != null)
-            sizeMetrics.registerProcessToUpdate(teamProcess);
-    }
-
-    private boolean shouldCreateSizeMetricsModel() {
-        if (getBoolUserSetting("dynamicSizeMetrics"))
-            return true;
-        return false;
+        sizeMetrics.registerProcessToUpdate(teamProcess);
     }
 
     /** Save the dynamic size metrics definitions */
