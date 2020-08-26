@@ -40,6 +40,11 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.JTextComponent;
 
 import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.i18n.Resources;
@@ -271,6 +276,7 @@ public class SizeMetricsJTable extends WBSJTable {
             String defaultMetricName, String acceptableID) {
         // create a text field for the user to enter a size metric name
         JTextField name = new JTextField(defaultMetricName);
+        new SizeMetricNameAllowedCharsFilter().install(name);
 
         // prepare the contents of the confirmation dialog
         String title = (String) action.getValue(Action.NAME);
@@ -290,7 +296,6 @@ public class SizeMetricsJTable extends WBSJTable {
 
             // if the user didn't enter a name, abort
             String newName = name.getText().trim();
-            newName = WBSClipSelection.scrubName(newName);
             if (newName.length() == 0)
                 return null;
 
@@ -312,6 +317,29 @@ public class SizeMetricsJTable extends WBSJTable {
     private static Icon getLargeIcon(Action action) {
         Icon icon = (Icon) action.getValue(Action.SMALL_ICON);
         return new ScaledIcon(icon, 1.75);
+    }
+
+
+    private static class SizeMetricNameAllowedCharsFilter extends DocumentFilter {
+
+        public void install(JTextComponent textComp) {
+            ((AbstractDocument) textComp.getDocument()).setDocumentFilter(this);
+        }
+
+        @Override
+        public void insertString(FilterBypass fb, int offset, String text,
+                AttributeSet attr) throws BadLocationException {
+            String filtered = SizeMetricsWBSModel.scrubMetricName(text);
+            super.insertString(fb, offset, filtered, attr);
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length,
+                String text, AttributeSet attrs) throws BadLocationException {
+            String filtered = SizeMetricsWBSModel.scrubMetricName(text);
+            super.replace(fb, offset, length, filtered, attrs);
+        }
+
     }
 
 }

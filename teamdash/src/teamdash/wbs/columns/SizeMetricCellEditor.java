@@ -89,7 +89,8 @@ public class SizeMetricCellEditor extends AutocompletingDataTableCellEditor
             return (SizeMetric) aValue;
 
         } else if (aValue instanceof String) {
-            String text = ((String) aValue).trim();
+            String text = SizeMetricsWBSModel.scrubMetricName((String) aValue)
+                    .trim();
             if ("".equals(text) || text.startsWith("?"))
                 return null;
             else

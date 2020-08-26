@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import java.util.TreeMap;
 
 import javax.swing.event.TableModelEvent;
@@ -301,5 +302,17 @@ public class SizeMetricsWBSModel extends WBSModel {
     private static String getMetricID(int nodeID) {
         return "Size-" + nodeID;
     }
+
+    public static String scrubMetricName(String name) {
+        if (name != null) {
+            // disallow characters that are invalid in a WBS node name
+            name = WBSClipSelection.scrubName(name);
+            // strip numbers, which may interfere with future functionality
+            name = NUMBER_PAT.matcher(name).replaceAll("");
+        }
+        return name;
+    }
+
+    private static final Pattern NUMBER_PAT = Pattern.compile("\\d+");
 
 }
