@@ -89,7 +89,6 @@ public class WBSFileNewAction extends AbstractAction {
         // properties that are appropriate for all standalone WBS ZIP files
         p.put("hideDeferSync", "true");
         p.put("hideProbeTask", "true");
-        p.put("wbsManagedSize", "true");
 
         // generate a random ID for this project. This follows the same pattern
         // as team project IDs (e.g. base 36 encoding of the current timestamp),

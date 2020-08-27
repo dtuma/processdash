@@ -200,33 +200,20 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
 
     /**
-     * Copy the new-style size flag from team project settings to the WBS
+     * Set the new-style size flag on the given WBS, on behalf of older versions
+     * of the WBS Editor that might inadvertently open this project.
      */
-    public static void maybeEnableNewSizeDataColumns(TeamProject proj) {
-        maybeEnableNewSizeDataColumns(proj, proj.getWBS());
+    public static void enableNewSizeDataColumns(WBSModel wbs) {
+        wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
     }
 
     /**
-     * Set the new-style size flag on the given WBS if project settings dictate
-     */
-    public static void maybeEnableNewSizeDataColumns(TeamProject proj,
-            WBSModel wbs) {
-        if (proj.getBoolUserSetting(NEW_SIZE_SETTING_NAME)
-                && !isUsingNewSizeDataColumns(wbs)) {
-            wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
-        }
-    }
-
-    /**
-     * Return true if this WBS is using the new-style size columns (provided by
-     * the SizeDataColumn class), false if it is using the old size accounting
-     * columns.
+     * @deprecated
      */
     public static boolean isUsingNewSizeDataColumns(WBSModel wbsModel) {
-        return wbsModel.getRoot().getAttribute(NEW_SIZE_ATTR_NAME) != null;
+        return true;
     }
 
-    private static final String NEW_SIZE_SETTING_NAME = "wbsManagedSize";
     private static final String NEW_SIZE_ATTR_NAME = "WBS Managed Size Data";
 
 

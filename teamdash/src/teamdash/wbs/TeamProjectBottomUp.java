@@ -191,7 +191,7 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private WBSModel makeStartingWBS() {
         WBSModel result = new WBSModel(getProjectName());
-        SizeTypeColumn.maybeEnableNewSizeDataColumns(this, result);
+        SizeTypeColumn.enableNewSizeDataColumns(result);
         WBSNode[] descendants = result.getDescendants(result.getRoot());
         result.deleteNodes(Arrays.asList(descendants));
         MasterWBSUtil.mergeFromMaster(super.readWBS(), getProjectID(), result);
