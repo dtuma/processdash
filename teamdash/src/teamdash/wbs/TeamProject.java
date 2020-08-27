@@ -54,6 +54,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnSpecs;
+import teamdash.wbs.columns.SizeDataColumn;
 
 public class TeamProject implements WBSFilenameConstants {
 
@@ -127,10 +128,10 @@ public class TeamProject implements WBSFilenameConstants {
         openTeamProcess();
         openWorkflows();
         openProxies();
-        openSizeMetrics();
         openMilestones();
         openColumns();
         openWBS();
+        openSizeMetrics();
     }
 
     /** Check to see if any files have changed since we opened them.  If so,
@@ -756,6 +757,8 @@ public class TeamProject implements WBSFilenameConstants {
                     + " file found; creating from process");
             sizeMetrics = new SizeMetricsWBSModel(teamProcess);
             setCreatedWithVersionAttribute(sizeMetrics);
+            SizeDataColumn.renameLegacySizeDataAttrs(wbs,
+                sizeMetrics.getIdToMetricMap().values());
         }
         sizeMetrics.registerProcessToUpdate(teamProcess);
     }

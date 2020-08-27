@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import teamdash.wbs.CustomNamedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -793,6 +795,39 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
         // rename the size attributes throughout the model
         wbs.renameAttributes(attrRemappings);
+    }
+
+
+    /**
+     * After legacy project data has been loaded, rename the size data
+     * attributes from the old legacy names to their new metricID-based names.
+     */
+    public static void renameLegacySizeDataAttrs(WBSModel wbs,
+            Collection<SizeMetric> sizeMetrics) {
+        // create a map of attribute names that need changing
+        Map<String, String> attrRenames = new HashMap();
+        for (SizeMetric sm : sizeMetrics) {
+            // no need to rename size data attributes for the LOC metric
+            if ("LOC".equals(sm.getMetricID()))
+                continue;
+            // rename both planned and actual size data attributes
+            for (boolean plan : BOOLEANS) {
+                // get attribute base names for this plan/actual metric
+                String oldBase = getAttrBaseName(sm.getName(), plan);
+                String newBase = getAttrBaseName(sm.getMetricID(), plan);
+                // remap attributes for top-down size values
+                attrRenames.put( //
+                    TopDownBottomUpColumn.getTopDownAttrName(oldBase),
+                    TopDownBottomUpColumn.getTopDownAttrName(newBase));
+                // remap attributes for last sync timestamps
+                attrRenames.put( //
+                    oldBase + REV_SYNC_SUFFIX, //
+                    newBase + REV_SYNC_SUFFIX);
+            }
+        }
+
+        // rename the size attributes throughout the model
+        wbs.renameAttributes(attrRenames);
     }
 
     private static final boolean BOOLEANS[] = new boolean[] { true, false };
