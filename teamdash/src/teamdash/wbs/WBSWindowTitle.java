@@ -71,7 +71,7 @@ public class WBSWindowTitle {
 
     private void updateTitle(JFrame frame) {
         String oldWindowTitle = frame.getTitle(), newWindowTitle;
-        int sepPos = oldWindowTitle.indexOf(SEPARATOR);
+        int sepPos = oldWindowTitle.lastIndexOf(SEPARATOR);
         if (sepPos == -1)
             newWindowTitle = getTitle() + SEPARATOR + oldWindowTitle;
         else
@@ -81,7 +81,7 @@ public class WBSWindowTitle {
 
     public static String extractTitle(JFrame f) {
         String title = f.getTitle();
-        int sepPos = title.indexOf(SEPARATOR);
+        int sepPos = title.lastIndexOf(SEPARATOR);
         if (sepPos == -1)
             return title;
         else
