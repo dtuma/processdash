@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.process.ui;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -31,6 +33,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -54,8 +57,10 @@ import net.sourceforge.processdash.process.ScriptEnumeratorListener;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.icons.PencilIcon;
 import net.sourceforge.processdash.ui.icons.ReportsAndToolsIcon;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.JHotspotMenuItem;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -180,13 +185,22 @@ public class ScriptButton extends DropDownButton implements
 
     /** ScriptMenuItem is an extended JMenuItem class with built-in
      * logic for displaying a script item. */
-    public class ScriptMenuItem extends JMenuItem implements ActionListener,
-              ScriptID.DisplayNameListener {
+    public class ScriptMenuItem extends JHotspotMenuItem
+            implements ActionListener, ScriptID.DisplayNameListener {
+
         ScriptID id;
 
         public ScriptMenuItem(ScriptID id) {
             this.id = id;
             setText(id.getDisplayName(this));
+            Action editAction = id.getEditAction();
+            if (editAction != null) {
+                if (EDIT_ICON == null)
+                    EDIT_ICON = new PencilIcon(MacGUIUtils.isMacOSX() //
+                            ? Color.white : getForeground());
+                editAction.putValue(Action.SMALL_ICON, EDIT_ICON);
+                setHotspot(editAction);
+            }
             addActionListener(this);
         }
 
@@ -198,6 +212,8 @@ public class ScriptButton extends DropDownButton implements
             setText(displayName);
         }
     }
+
+    private static Icon EDIT_ICON;
 
     private class ScriptMenuSeparator extends JPanel {
         public ScriptMenuSeparator(String path) {
@@ -213,6 +229,11 @@ public class ScriptButton extends DropDownButton implements
             Font f = l.getFont();
             l.setFont(f.deriveFont(f.getSize2D() * 0.8f));
             l.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 10));
+            Dimension d = l.getPreferredSize();
+            if (d.width > 500) {
+                d.width = Math.min(d.width, 500);
+                l.setPreferredSize(d);
+            }
             add(l);
         }
     }
