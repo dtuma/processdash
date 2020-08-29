@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2016 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,57 @@ public class HTMLMarkup {
         markupHyperlinks(html, extraLinkAttrs, null);
         markupFormatting(html);
         return html.toString();
+    }
+
+
+    /**
+     * Alter a set of markup to remove/replace/append a link
+     * 
+     * @param markup
+     *            the current markup text
+     * @param oldUrl
+     *            a URL within the current markup to replace, or null if the new
+     *            link should be appended
+     * @param newUrl
+     *            the new URL to store in the markup, or null to remove the
+     *            existing hyperlink
+     * @param newLinkText
+     *            the text that should be displayed for the new link, or null to
+     *            specify no special display text
+     * @return a new set of markup with the link removed/replaced/appended
+     */
+    public static String replaceHyperlink(String markup, String oldUrl,
+            String newUrl, String newLinkText) {
+        // build the contents of the new link to store
+        String newLink = (newUrl == null ? "" : newUrl);
+        if (StringUtils.hasValue(newUrl) && StringUtils.hasValue(newLinkText)) {
+            newLinkText = StringUtils.findAndReplace(newLinkText, "[", "{");
+            newLinkText = StringUtils.findAndReplace(newLinkText, "]", "}");
+            newLink = "[" + newUrl + " " + newLinkText + "]";
+        }
+
+        // if the current markup is empty, just return the new link
+        if (!StringUtils.hasValue(markup))
+            return newLink;
+
+        // find the old URL within the markup. If not found, append new link
+        int pos = (oldUrl == null ? -1 : markup.indexOf(oldUrl));
+        if (pos == -1) {
+            return markup + "\n" + newLink;
+        }
+
+        // find the beginning and end of the old link in the current markup
+        int beg = pos, end = pos + oldUrl.length();
+        if (beg > 0 && markup.charAt(beg - 1) == '[') {
+            int linkEnd = markup.indexOf(']', end);
+            if (linkEnd != -1) {
+                beg = beg - 1;
+                end = linkEnd + 1;
+            }
+        }
+
+        // perform the replacement and return the result
+        return markup.substring(0, beg) + newLink + markup.substring(end);
     }
 
 

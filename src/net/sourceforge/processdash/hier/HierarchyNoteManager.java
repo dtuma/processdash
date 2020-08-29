@@ -182,6 +182,51 @@ public class HierarchyNoteManager {
         notifyListeners(path);
     }
 
+    /**
+     * Alter the hierarchy note on a given node to remove/replace/append a link
+     * 
+     * @param data
+     *            the data repository
+     * @param path
+     *            the full path of the node in the hierarchy whose note should
+     *            be modified
+     * @param oldUrl
+     *            a URL within the current note to replace, or null if the new
+     *            hyperlink should be appended
+     * @param newUrl
+     *            the new URL to store in the note, or null to remove the
+     *            existing hyperlink
+     * @param newLinkText
+     *            the text that should be displayed for the new link, or null to
+     *            specify no special display text
+     */
+    public static void replaceHyperlink(DataContext data, String path,
+            String oldUrl, String newUrl, String newLinkText) {
+        // retrieve the notes that are currently stored on the hierarchy node
+        Map<String, HierarchyNote> notes = getNotesForPath(data, path, false);
+        if (notes == null)
+            notes = new HashMap<String, HierarchyNote>();
+
+        // retrieve the primary note and its format
+        HierarchyNote note = notes.get(NOTE_KEY);
+        HierarchyNoteFormat format;
+        if (note != null) {
+            String formatID = note.getFormat();
+            format = getNoteFormat(formatID);
+        } else {
+            format = getDefaultNoteFormat(data, path);
+            note = new HierarchyNote();
+            note.setContent("", format.getID());
+            notes.put(NOTE_KEY, note);
+        }
+
+        // ask the format to perform the hyperlink replacement
+        format.replaceHyperlink(note, oldUrl, newUrl, newLinkText);
+
+        // save the changes to the note
+        saveNotesForPath(data, path, notes);
+    }
+
     public static String getDefaultNoteFormatID(DataContext data,
             String path) {
         SimpleData val = InheritedValue.get(data, path,

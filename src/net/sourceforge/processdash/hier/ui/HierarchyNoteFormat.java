@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,5 +33,8 @@ public interface HierarchyNoteFormat {
 
     public HierarchyNoteEditor getEditor(HierarchyNote note,
             HierarchyNote conflict, HierarchyNote base);
+
+    public void replaceHyperlink(HierarchyNote note, String oldUrl,
+            String newUrl, String newLinkText);
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,9 @@ public class ReadOnlyMessageNoteFormat implements HierarchyNoteFormat {
             HierarchyNote conflict, HierarchyNote base) {
         return new Editor();
     }
+
+    public void replaceHyperlink(HierarchyNote note, String oldUrl,
+            String newUrl, String newLinkText) {}
 
     public String getID() {
         return formatID;

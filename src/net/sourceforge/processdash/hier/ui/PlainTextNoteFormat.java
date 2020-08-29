@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2016 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -71,6 +71,14 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             return null;
         else
             return HTMLMarkup.textToHtml(getNoteText(note));
+    }
+
+    public void replaceHyperlink(HierarchyNote note, String oldUrl,
+            String newUrl, String newLinkText) {
+        String oldContent = note.getContent();
+        String newContent = HTMLMarkup.replaceHyperlink(oldContent, oldUrl,
+            newUrl, newLinkText).trim();
+        note.setContent(newContent, FORMAT_ID);
     }
 
     private String getNoteText(HierarchyNote note) {
