@@ -150,7 +150,7 @@ public class ScriptButton extends DropDownButton implements
 
             ScriptMenuBuilder b = new ScriptMenuBuilder(paths);
             addMenuItems(destMenu, b.isMultiLevel(), b.getMenuItems());
-            getMenu().addSeparator();
+            getMenu().add(new JSeparator());
         }
 
         getMenu().add(addLinkItem);
