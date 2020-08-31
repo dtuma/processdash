@@ -3,6 +3,3 @@
 
    <file targetdir="$INSTALL_PATH" override="true" 
 	 src="${pdash.dist.dir}/${teamProcess2.zip}"/>
-
-   <file targetdir="$INSTALL_PATH" override="true" 
-         src="${pdash.dist.dir}/TeamTools.jar"/>

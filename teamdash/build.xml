@@ -502,9 +502,9 @@ class dependency has been added in a dashboard class?)
   </target>
 
 
-  <target name="dist" depends="installer-cd"/>
-  <target name="dist-all" depends="installer-cd"/>
-  <target name="os-dist" depends="installer-cd"/>
+  <target name="dist"
+       depends="clean,verify16,TeamTools,verifyResourceOverrides"/>
+
 
   <target name="signjar" if="sign.storepass">
     <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe"

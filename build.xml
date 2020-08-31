@@ -847,6 +847,15 @@ Authors:
 
 
   <!-- =================================================================== -->
+  <!-- Team Tools                                                          -->
+  <!-- =================================================================== -->
+
+  <target name="team-tools-dist">
+    <ant antfile="teamdash/build.xml" target="dist" inheritAll="false"/>
+  </target>
+
+
+  <!-- =================================================================== -->
   <!-- Team Process                                                        -->
   <!-- =================================================================== -->
 
@@ -1017,7 +1026,7 @@ Authors:
     </zip>
   </target>
 
-  <target name="dist-all" depends="dist,dist-src,launcher-jar,launcher-installer,installer"/>
+  <target name="dist-all" depends="dist,dist-src,launcher-jar,launcher-installer,team-tools-dist,installer"/>
 
   <!-- =================================================================== -->
   <!-- Create miscellaneous other items                                    -->
