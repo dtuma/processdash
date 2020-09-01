@@ -311,7 +311,7 @@ Authors:
 		  srcFile="files/custom-install-pfe.ini"/>
         <antcall target="install-CD">
             <param name="install.flags"
-                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspTsp,noProc"/>
 	    <param name="qualifier" value="pfe-student"/>
 	    <param name="custom-install.extra" value="${custom-inst-pfe}"/>
 	    <param name="delete-cd-file" value="t"/>
@@ -323,7 +323,7 @@ Authors:
 		  srcFile="files/custom-install-pfa.ini"/>
         <antcall target="install-CD">
             <param name="install.flags"
-                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspTsp,noProc"/>
 	    <param name="qualifier" value="pfa-student"/>
 	    <param name="custom-install.extra" value="${custom-inst-pfa}"/>
 	    <param name="delete-cd-file" value="t"/>
@@ -334,7 +334,7 @@ Authors:
         <antcall target="install.xml">
             <param name="install.file" value="install-instr.xml"/>
             <param name="install.flags"
-                   value="pspForEng,pspFundAdv,pspForEngInstr,pspInstrTools,noProc"/>
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspInstrTools,pspTsp,noProc"/>
 	</antcall>
         <antcall target="-izpack">
             <param name="izpack.input" value="install-instr.xml"/>
@@ -346,7 +346,7 @@ Authors:
         <antcall target="install.xml">
             <param name="install.file" value="install-student.xml"/>
             <param name="install.flags"
-                   value="pspForEng,pspFundAdv,pspForEngInstr"/>
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspTsp"/>
 	</antcall>
         <antcall target="-izpack">
             <param name="izpack.input" value="install-student.xml"/>
@@ -436,6 +436,11 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 	<available file="../dist/pspProc2.jar" property="have.pspProc.jar"/>
 	<fail unless="have.pspProc.jar"
 	    message="pspProc2.jar is missing - to ignore, run &quot;ant plain&quot;"/>
+
+	<!-- print an error unless the TSP MCF file is built -->
+	<available file="../dist/TSP.zip" property="have.tsp.zip"/>
+	<fail unless="have.tsp.zip"
+	    message="TSP.zip is missing - to ignore, run &quot;ant plain&quot;"/>
 
 	<!-- print an error unless the PSP for Engineers file is built -->
 	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>

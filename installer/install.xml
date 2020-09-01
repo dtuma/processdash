@@ -223,6 +223,8 @@
 	          src="../dist/importPSP.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/TSP.zip" />
 		  
             <!-- copy the pspForEng data files into the data directory. -->
             <fileset targetdir="$DATA_PATH" override="false"
@@ -247,6 +249,8 @@
 	          src="../dist/importPSP.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/TSP.zip" />
 		  
             <!-- copy the pspFundAdv data files into the data directory. -->
             <fileset targetdir="$DATA_PATH" override="false"
@@ -269,6 +273,8 @@
 	          src="../dist/pspForEng.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng-instr.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/TSP.zip" />
 
             <!-- Create Quick Launcher application on Mac OS X --> 
             <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
