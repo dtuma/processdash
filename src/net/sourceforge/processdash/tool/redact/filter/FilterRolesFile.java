@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ public class FilterRolesFile extends AbstractLineBasedFilter {
 
     public FilterRolesFile() {
         setFilenamePatterns("^roles.dat$",
+            "!accesspermissions.xml$",
             "externalresources/.*/settings.xml$");
     }
 
@@ -42,14 +43,15 @@ public class FilterRolesFile extends AbstractLineBasedFilter {
     public String getString(String line) {
 
         // is this an opening tag for a role definition?
-        if (line.contains("<role ")) {
+        if (line.contains("<role ") || line.contains("<access ")) {
 
             // if this isn't the "standard user" role, hash the role name.
             if (!STANDARD_ROLE_ID.equals(getXmlAttr(line, "id")))
                 line = replaceXmlAttr(line, "name", HASH_ROLE_NAME);
 
             // in the WBS settings.xml file, hash the list of assigned users
-            line = replaceXmlAttr(line, "users", HASH_USERNAME_LIST);
+            line = replaceXmlAttr(line, "users",
+                FilterUsersFile.HASH_USERNAME_LIST);
         }
 
         return line;
@@ -57,8 +59,5 @@ public class FilterRolesFile extends AbstractLineBasedFilter {
 
     private static final StringMapper HASH_ROLE_NAME = RedactFilterUtils
             .hashPrefixMapper("Role ");
-
-    private static final StringMapper HASH_USERNAME_LIST = RedactFilterUtils
-            .hashListMapper(FilterUsersFile.HASH_USERNAME);
 
 }

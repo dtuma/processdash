@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import net.sourceforge.processdash.tool.perm.WhoAmI;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.PersonMapper;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.util.StringMapper;
 
 @EnabledFor(RedactFilterIDs.USERS)
@@ -57,5 +58,8 @@ public class FilterUsersFile extends AbstractLineBasedFilter {
             return WhoAmI.hashUsername(username);
         }
     };
+
+    public static final StringMapper HASH_USERNAME_LIST = RedactFilterUtils
+            .hashListMapper(HASH_USERNAME);
 
 }

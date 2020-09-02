@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ public class FilterDataContainingTaskNames extends AbstractDataStringFilter {
 
     private TaskListMapper taskListMapper;
 
-    @EnabledFor({ "PROBE_LIST", "Subproject_Path_List" })
+    @EnabledFor({ "PROBE_LIST", "Subproject_Path_List", "^Workflow_Task_Paths" })
     public String scrambleProbeList(String value) {
         if (value == null || value.length() == 0)
             return value;
@@ -54,6 +54,11 @@ public class FilterDataContainingTaskNames extends AbstractDataStringFilter {
         for (String elem : list)
             newVal.add(pathNameMapper.getString(elem));
         return newVal.saveString().substring(1);
+    }
+
+    @EnabledFor("^Workflow_Root_Path$")
+    public String hashProbeWorkflowRoot(String value) {
+        return pathNameMapper.getString(value);
     }
 
     @EnabledFor("^Subproject_.*/Hierarchy_Path$")
