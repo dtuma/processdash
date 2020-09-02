@@ -49,6 +49,9 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
     @EnabledFor(RedactFilterIDs.LABELS)
     private boolean filterLabels;
 
+    @EnabledFor(RedactFilterIDs.EXT_LINKS)
+    private boolean filterExtLinks;
+
     private TeamProjectInfo teamProjectInfo;
 
     private HierarchyNameMapper nameMapper;
@@ -198,6 +201,8 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
             line = replaceXmlAttr(line, "deferredTime", timeListMapper);
             line = replaceXmlAttr(line, "cid", clientIdMapper);
         }
+        if (filterExtLinks)
+            line = replaceXmlAttr(line, "url", null);
         line = filterLabels(line);
 
         return line;

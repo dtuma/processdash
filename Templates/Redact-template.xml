@@ -41,6 +41,7 @@ The author(s) may be contacted at:
   <redact-filter-set ordinal="500" id="workflows"/>
   <redact-filter-set ordinal="550" id="defectTypes"/>
   <redact-filter-set ordinal="575" id="users"/>
+  <redact-filter-set ordinal="585" id="extLinks"/>
   <redact-filter-set ordinal="600" id="logFiles"/>
 
   <redact-filter class="&pkg;FilterCensoredFiles"/>
@@ -72,6 +73,7 @@ The author(s) may be contacted at:
 
   <redact-datafile-filter class="&pkg;FilterCensoredData"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingDefectTypes"/>
+  <redact-datafile-filter class="&pkg;FilterDataContainingExtLinks"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingLabels"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingLocations"/>
   <redact-datafile-filter class="&pkg;FilterDataContainingNotes"/>
@@ -96,6 +98,7 @@ The author(s) may be contacted at:
       " Review Checklist Template$"
   </redact-filter-censored-data>
 
+  <redact-wbs-attr-filter class="&pkg;FilterWbsExtLinkAttrs"/>
   <redact-wbs-attr-filter class="&pkg;FilterWbsLabelAttrs"/>
   <redact-wbs-attr-filter class="&pkg;FilterWbsNoteAttrs"/>
   <redact-wbs-attr-filter class="&pkg;FilterWbsPeopleAttrs"/>
