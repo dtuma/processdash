@@ -164,9 +164,11 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
         if (filterNotes)
             return null;
 
-        // otherwise, possibly hash the name of the author.
+        // otherwise, possibly hash the name of the author, and embedded URLs
         if (hashPersonNames)
             line = replaceXmlAttr(line, "author", PersonMapper.HASH_PERSON_NAME);
+        if (filterExtLinks)
+            line = RedactFilterUtils.STRIP_URLS.getString(line);
 
         return line;
     }

@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.redact.filter;
 
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 
 @EnabledFor(RedactFilterIDs.EXT_LINKS)
 public class FilterWbsExtLinkAttrs extends AbstractWbsAttrFilter {
@@ -37,6 +38,11 @@ public class FilterWbsExtLinkAttrs extends AbstractWbsAttrFilter {
     @EnabledFor({ "^Workflow URL$", " Script URL$" })
     public String discardScriptUrls(String attr) {
         return null;
+    }
+
+    @EnabledFor({ "^(Error |Workflow )?Notes$", "-CustomText$" })
+    public String discardUrlsInNotes(String notesAttr) {
+        return RedactFilterUtils.STRIP_URLS.getString(notesAttr);
     }
 
 }

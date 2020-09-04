@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.StringMapper;
@@ -297,5 +298,14 @@ public class RedactFilterUtils {
             return new BufferedReader(r);
         }
     }
+
+
+    public static final StringMapper STRIP_URLS = new StringMapper() {
+        private final Pattern HYPERLINK_PATTERN = Pattern.compile("http\\S+");
+        public String getString(String str) {
+            return (str == null ? null
+                    : HYPERLINK_PATTERN.matcher(str).replaceAll("#"));
+        }
+    };
 
 }

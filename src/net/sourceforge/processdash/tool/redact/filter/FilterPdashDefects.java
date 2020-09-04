@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,9 +27,11 @@ import net.sourceforge.processdash.tool.redact.DefectWorkflowPhaseMapper;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.HierarchyPathMapper;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 
 @EnabledFor({ RedactFilterIDs.TASK_NAMES, RedactFilterIDs.NOTES,
-        RedactFilterIDs.DEFECT_TYPES, RedactFilterIDs.WORKFLOWS })
+        RedactFilterIDs.DEFECT_TYPES, RedactFilterIDs.WORKFLOWS,
+        RedactFilterIDs.EXT_LINKS })
 public class FilterPdashDefects extends AbstractLineBasedFilter {
 
     @EnabledFor(RedactFilterIDs.DEFECT_TYPES)
@@ -37,6 +39,9 @@ public class FilterPdashDefects extends AbstractLineBasedFilter {
 
     @EnabledFor(RedactFilterIDs.NOTES)
     private boolean stripDescriptions;
+
+    @EnabledFor(RedactFilterIDs.EXT_LINKS)
+    private boolean stripExtLinks;
 
     @EnabledFor(RedactFilterIDs.TASK_NAMES)
     private boolean hashPaths;
@@ -59,6 +64,8 @@ public class FilterPdashDefects extends AbstractLineBasedFilter {
             line = replaceXmlAttr(line, "type", FilterDefectTypes.TYPE_MAPPER);
         if (stripDescriptions)
             line = discardXmlAttr(line, "desc");
+        else if (stripExtLinks)
+            line = replaceXmlAttr(line, "desc", RedactFilterUtils.STRIP_URLS);
         if (hashWorkflows) {
             line = replaceXmlAttr(line, "injName", workflowPhaseMapper);
             line = replaceXmlAttr(line, "remName", workflowPhaseMapper);

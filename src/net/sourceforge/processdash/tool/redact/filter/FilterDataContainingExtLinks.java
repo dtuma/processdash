@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.redact.filter;
 
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 
 @EnabledFor(RedactFilterIDs.EXT_LINKS)
 public class FilterDataContainingExtLinks extends AbstractDataStringFilter {
@@ -33,6 +34,11 @@ public class FilterDataContainingExtLinks extends AbstractDataStringFilter {
             "/Project_Workflow_URL_List$" })
     public String discardExtLinksAndURLs(String value) {
         return null;
+    }
+
+    @EnabledFor({ "^Team_Note", "/Team_Note" })
+    public String deleteUrlsInNotes(String note) {
+        return RedactFilterUtils.STRIP_URLS.getString(note);
     }
 
 }

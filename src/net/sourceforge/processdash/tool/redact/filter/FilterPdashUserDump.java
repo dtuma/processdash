@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,14 +24,19 @@
 package net.sourceforge.processdash.tool.redact.filter;
 
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.PersonMapper;
 
-@EnabledFor({ RedactFilterIDs.PEOPLE, RedactFilterIDs.NOTES })
+@EnabledFor({ RedactFilterIDs.PEOPLE, RedactFilterIDs.NOTES,
+        RedactFilterIDs.EXT_LINKS })
 public class FilterPdashUserDump extends AbstractLineBasedFilter {
 
     @EnabledFor(RedactFilterIDs.NOTES)
     private boolean stripNotes;
+
+    @EnabledFor(RedactFilterIDs.EXT_LINKS)
+    private boolean stripExtLinks;
 
     @EnabledFor(RedactFilterIDs.PEOPLE)
     private boolean hashPeople;
@@ -52,18 +57,22 @@ public class FilterPdashUserDump extends AbstractLineBasedFilter {
         if (line == null)
             return null;
 
-        if (stripNotes && !inNoteChange && line.contains("<noteChange ")) {
+        if (line.contains("<noteChange ")) {
             inNoteChange = true;
+            if (hashPeople && !stripNotes)
+                line = replaceXmlAttr(line, "author",
+                    PersonMapper.HASH_PERSON_NAME);
         }
 
         if (inNoteChange) {
             if (line.contains("</noteChange>"))
                 inNoteChange = false;
-            return null;
+            if (stripNotes)
+                return null;
+            else if (stripExtLinks)
+                line = RedactFilterUtils.STRIP_URLS.getString(line);
         }
 
-        if (hashPeople && !stripNotes && line.contains("<noteChange "))
-            return replaceXmlAttr(line, "author", PersonMapper.HASH_PERSON_NAME);
 
         if (hashPeople && line.startsWith("<userData ")) {
             line = discardXmlAttr(line, "userName");
