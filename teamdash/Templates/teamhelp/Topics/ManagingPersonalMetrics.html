@@ -75,20 +75,46 @@ should also enter the defect data into the dashboard.</p>
 
 <h2><a name="size"></a>Entering Size Data</h2>
 
-<p>You are encouraged to use a high-maturity PSP process (like PSP2.1)
-to develop code in support of your team project. As you complete a
-particular component, you should count the new and changed lines of
-code and enter them in the PSP Plan Summary form, as described in the
-Postmortem script for the PSP process you are using.</p>
+<p>Size metrics are extremely valuable in the analysis of historical data and
+the creation of future plans.  Accordingly, it is important to capture size
+data on various artifacts as you complete them.</p>
 
-<p>However, some teams prefer not to use the PSP process. In that
-case, you may have "Code" tasks in your personal plan.  And during
-your project you may create many types of documents (for example,
-requirements documents, design documents, or users manuals). As you
-write code and create documents, you should record their actual
-finished size in the dashboard.  To do this, navigate to the team
-project using the dashboard Hierarchy Menus and click the script button.
-From the popup menu that appears, choose the Size Inventory form.</p>
+<p>The first step is to measure the size. For software, the dashboard's
+<a href="../../help/Topics/PostmortemAnalysis/LOCCounter.html">LOC
+counter</a> can help with this task.</p>
+
+<p>If your personal plan contains
+<a href="EditWorkflows.html#highMaturityPersonal">high-maturity<a> PSP or
+PROBE tasks, you should 
+<a href="../../help/Topics/Planning/UsingSizeEstimatingTemplate.html#postmortem">enter
+the actual size</a> on the task's Plan Summary Form and/or Size Estimating
+Template.</p>
+
+<p>For other components and tasks, you can enter size data by opening the
+WBS Editor and entering values on the Actual Size tab.</p>
+
+<p class="figure"><img src="../Images/indiv-size-wbs.png"></p>
+
+<p>You can enter values in more than one size column for a given item.
+For example, the image above shows an actual size of 3 SDD pages, 12 Test
+Cases, and 234 lines of code for component C1.  You can also enter actual
+sizes on parent components and their children. The image above shows 3
+SDD pages for component C1, 2 for component C2, and an additional SDD
+page for the parent Component C (for a total of 6 pages overall).</p>
+
+<p>It best to capture and enter size data as you work.  But if you forgot
+to enter the size of some component, you can go back and enter it later
+(and even if the project is finished).  If needed, you can also enter
+size data for components written by other team members.</p>
+
+<h3>Entering Size Data on Older Projects</h3>
+
+<p>On older projects (created with Process Dashboard 2.5 and earlier),
+the WBS Editor will not allow you to edit the values on the Actual Size
+tab.  For those projects, you'll need to enter actual size data on the
+Project Size Inventory Form.  You can open this form by selecting a task
+within the project, clicking the script button, and choosing "Project
+Size Inventory" from the menu:</p>
 
 <p class="figure"><img src="../Images/indiv-scripts-size-inventory.png"></p>
 
@@ -120,12 +146,6 @@ Description field to describe the specific section of the document
 that you wrote.)  Only enter a value in the Actual field describing
 portions of the document that <i>you</i> produced - do not enter
 values describing document pages written by other team members.</p>
-
-<p>You will find that the Size Units field also includes options that
-begin with the word Inspected (for example, Inspected SRS Pages or
-Inspected LOC). If you participate in an inspection, you may select
-one of these options to record the size of the product you
-inspected.</p>
 
 
 

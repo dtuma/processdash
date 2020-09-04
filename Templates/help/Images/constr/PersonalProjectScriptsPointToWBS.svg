@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="588"
-   height="384"
+   width="615"
+   height="418"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,8 +37,8 @@
      width="588px"
      inkscape:window-width="1738"
      inkscape:window-height="980"
-     inkscape:window-x="706"
-     inkscape:window-y="359" />
+     inkscape:window-x="655"
+     inkscape:window-y="337" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -54,20 +54,19 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-150.5905,-8.362183)">
+     transform="translate(-142.5905,18.63782)">
     <rect
-       style="fill:silver;stroke:none;stroke-width:3;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       style="fill:silver;fill-opacity:1;stroke:none;stroke-width:3;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect2125"
        width="615"
-       height="401"
-       x="-8"
-       y="-10"
-       transform="translate(150.5905,8.362183)" />
+       height="418"
+       x="142.5905"
+       y="-18.637817" />
     <image
-       y="8.3621826"
+       y="-9.6378174"
        x="163.5905"
        id="image1930"
-       height="384"
+       height="402"
        width="575"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\PersonalProjectScriptsPointToWBS.png"
        xlink:href="PersonalProjectScriptsPointToWBS.png" />
@@ -75,39 +74,39 @@
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="280.5329"
-       y="140.93361"
+       y="126.93361"
        id="text1933"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1935"
          x="280.5329"
-         y="140.93361">Project reports,</tspan><tspan
+         y="126.93361">Project reports,</tspan><tspan
          sodipodi:role="line"
          x="280.5329"
-         y="163.43361"
+         y="149.43361"
          id="tspan2051">forms, and tools</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:125%;writing-mode:lr-tb;text-anchor:end;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="292.85712"
-       y="312.93359"
+       y="296.93359"
        id="text2045"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          x="292.85712"
-         y="312.93359"
+         y="296.93359"
          id="tspan2053">Open WBS Editor</tspan><tspan
          sodipodi:role="line"
          x="292.85712"
-         y="335.43359"
+         y="319.43359"
          id="tspan2057">to plan your work</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 316,53.362183 L 231,125.36218"
+       d="M 316,39.362183 L 231,111.36218"
        id="path2049" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 323,235.36218 L 259,296.36218"
+       d="M 323,219.36218 L 259,280.36218"
        id="path2059" />
   </g>
 </svg>

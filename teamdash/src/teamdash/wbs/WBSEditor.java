@@ -480,7 +480,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         String windowTitle;
-        if (workingDirectory instanceof CompressedWorkingDirectory) {
+        String forcedTitle = teamProject.getUserSetting("forcedWindowTitle");
+        if (forcedTitle != null) {
+            windowTitle = forcedTitle;
+        } else if (workingDirectory instanceof CompressedWorkingDirectory) {
             windowTitle = getWindowTitleForZip(workingDirectory);
             if (windowTitle == null) {
                 String newProject = resources.getString("Window.New_Project");
@@ -1164,7 +1167,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         else if (!isMode(MODE_MASTER))
             result.add(buildTeamMenu(initials, dataModel));
 
-        if (isZipWorkingDirectory()) {
+        if (isZipWorkingDirectory()
+                && !teamProject.getBoolUserSetting("hideHelpMenu")) {
             result.add(Box.createHorizontalGlue());
             result.add(buildHelpMenu());
         }

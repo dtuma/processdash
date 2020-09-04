@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="634"
-   height="176"
+   height="194"
    id="svg20349"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -36,10 +36,10 @@
      inkscape:current-layer="layer1"
      inkscape:window-width="1123"
      inkscape:window-height="751"
-     inkscape:window-x="701"
-     inkscape:window-y="79"
+     inkscape:window-x="956"
+     inkscape:window-y="1649"
      width="610px"
-     height="175px" />
+     height="194px" />
   <metadata
      id="metadata20354">
     <rdf:RDF>
@@ -55,12 +55,12 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(5,9)">
+     transform="translate(5,27)">
     <image
-       y="-9"
+       y="-27"
        x="-5"
        id="image20364"
-       height="176"
+       height="194"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ChooseEditDataRollupFilter.png"
        xlink:href="ChooseEditDataRollupFilter.png"
        width="634" />
@@ -68,20 +68,20 @@
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="497.20547"
-       y="92.814713"
+       y="72.814713"
        id="text20367"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20369"
          x="497.20547"
-         y="92.814713">Edit the rollup filter</tspan><tspan
+         y="72.814713">Edit the rollup filter</tspan><tspan
          sodipodi:role="line"
          x="497.20547"
-         y="111.56471"
+         y="91.564713"
          id="tspan1971">for the dataset</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999934px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 301.57727,118.18592 L 491.37437,89.63067"
+       d="M 301.57727,98.18592 L 491.37437,69.63067"
        id="path20371" />
   </g>
 </svg>
