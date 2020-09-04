@@ -34,4 +34,9 @@ public class FilterWbsExtLinkAttrs extends AbstractWbsAttrFilter {
         return null;
     }
 
+    @EnabledFor({ "^Workflow URL$", " Script URL$" })
+    public String discardScriptUrls(String attr) {
+        return null;
+    }
+
 }

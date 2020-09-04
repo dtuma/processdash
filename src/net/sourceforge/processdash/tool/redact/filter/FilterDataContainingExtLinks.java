@@ -29,8 +29,9 @@ import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 @EnabledFor(RedactFilterIDs.EXT_LINKS)
 public class FilterDataContainingExtLinks extends AbstractDataStringFilter {
 
-    @EnabledFor({ "^WBS Node URLs$" })
-    public String discardExtLinks(String value) {
+    @EnabledFor({ "^Process_URLs$", "^User URLs$", "^WBS Node URLs$",
+            "/Project_Workflow_URL_List$" })
+    public String discardExtLinksAndURLs(String value) {
         return null;
     }
 
