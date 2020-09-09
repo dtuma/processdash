@@ -5,6 +5,7 @@
   <outfile>file.exe</outfile>
   <dontWrapJar>true</dontWrapJar>
   <errTitle>Process Dashboard Quick Launcher</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <icon>../../src/net/sourceforge/processdash/ui/launcher.ico</icon>
   <classPath>
     <mainClass>net.sourceforge.processdash.tool.quicklauncher.QuickLauncher</mainClass>

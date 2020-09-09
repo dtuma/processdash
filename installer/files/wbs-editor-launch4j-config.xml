@@ -4,6 +4,7 @@
   <headerType>gui</headerType>
   <outfile>file.exe</outfile>
   <errTitle>Work Breakdown Structure Editor</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <icon>wbs-editor.ico</icon>
   <jre>
     <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>

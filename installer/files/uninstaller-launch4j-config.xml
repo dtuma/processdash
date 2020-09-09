@@ -6,6 +6,7 @@
   <jar>uninstaller.jar</jar>
   <dontWrapJar>true</dontWrapJar>
   <errTitle>Process Dashboard</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <manifest>installer-launch4j-manifest.xml</manifest>
   <jre>
     <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>

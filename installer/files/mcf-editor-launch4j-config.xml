@@ -5,6 +5,7 @@
   <outfile>file.exe</outfile>
   <dontWrapJar>true</dontWrapJar>
   <errTitle>Metrics Collection Framework Editor</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <classPath>
     <mainClass>net.sourceforge.processdash.team.mcf.editor.CustomProcessEditor</mainClass>
     <cp>%EXEDIR%\pspdash.jar</cp>

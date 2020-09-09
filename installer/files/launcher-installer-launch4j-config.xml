@@ -4,6 +4,7 @@
   <headerType>gui</headerType>
   <outfile>file.exe</outfile>
   <errTitle>Process Dashboard Launcher Installer</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <manifest>launcher-installer-launch4j-manifest.xml</manifest>
   <icon>dashicon.ico</icon>
   <jre>

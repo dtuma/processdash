@@ -5,6 +5,7 @@
   <outfile>file.exe</outfile>
   <dontWrapJar>true</dontWrapJar>
   <errTitle>Process Dashboard</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <jar>launcher.jar</jar>
   <icon>dashicon.ico</icon>
   <jre>

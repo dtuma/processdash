@@ -5,6 +5,7 @@
   <outfile>file.exe</outfile>
   <dontWrapJar>true</dontWrapJar>
   <errTitle>Process Dashboard</errTitle>
+  <downloadUrl>http://processdash.com/java</downloadUrl>
   <jar>pspdash.jar</jar>
   <icon>../../src/net/sourceforge/processdash/ui/dashicon.ico</icon>
   <jre>
