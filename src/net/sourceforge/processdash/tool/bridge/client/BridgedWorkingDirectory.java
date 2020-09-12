@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
         collection = new FileResourceCollection(workingDirectory, false);
         collection.setStrategy(strategy);
+        collection.loadFileDataCache(getFileDataCacheFile());
 
         client = new ResourceBridgeClient(collection, remoteURL, strategy
                 .getUnlockedFilter());
@@ -358,6 +359,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     }
 
     public void releaseLocks() {
+        collection.saveFileDataCache(getFileDataCacheFile());
         if (worker != null)
             worker.shutDown();
         if (isOfflineLockEnabled() == false)
@@ -661,6 +663,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                         } else {
                             // once an hour, save the log.txt file as well
                             client.saveDefaultExcludedFiles();
+                            collection.saveFileDataCache(getFileDataCacheFile());
                             fullFlushCountdown = FULL_FLUSH_FREQUENCY;
                         }
                     }
@@ -703,6 +706,11 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
     }
 
+
+    private File getFileDataCacheFile() {
+        File metadataDir = new File(workingDirectory, "metadata");
+        return new File(metadataDir, "fileDataCache.xml");
+    }
 
     public static File getLocalCacheDir(String url) {
         return DirectoryPreferences.getLocalCacheDir(url);

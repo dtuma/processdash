@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2015 Tuma Solutions, LLC
+// Copyright (C) 2008-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.zip.Adler32;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
+import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
+import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.TimedInputStream;
@@ -198,6 +201,41 @@ public class FileResourceCollection implements ResourceCollection,
 
     public void recheckAllFileTimestamps() {
         cacheInvalidationTimestamp = System.currentTimeMillis() + 1;
+    }
+
+    public void loadFileDataCache(File cacheFile) {
+        try {
+            if (!cacheFile.isFile())
+                return;
+            ResourceCollectionInfo info = XmlCollectionListing.parseListing(
+                new BufferedInputStream(new FileInputStream(cacheFile)));
+            for (String fileName : info.listResourceNames()) {
+                CachedFileData fileData = getFileData(fileName);
+                if (fileData != null) {
+                    fileData.lastModified = info.getLastModified(fileName);
+                    fileData.checksum = info.getChecksum(fileName);
+                }
+            }
+        } catch (IOException ioe) {
+        }
+    }
+
+    public void saveFileDataCache(File cacheFile) {
+        RobustFileOutputStream rOut = null;
+        try {
+            rOut = new RobustFileOutputStream(cacheFile);
+            OutputStream out = new BufferedOutputStream(rOut);
+            XmlCollectionListing.INSTANCE.runReport(this,
+                new ArrayList<String>(cachedData.keySet()), out);
+            out.close();
+        } catch (IOException ioe) {
+            if (rOut != null) {
+                try {
+                    rOut.abort();
+                } catch (Exception e) {
+                }
+            }
+        }
     }
 
     // Methods for resource change notification
