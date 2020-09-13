@@ -176,9 +176,10 @@ public abstract class ExtSyncDaemon {
         }
 
         // create objects to perform the synchronization of this target
-        ExtNodeSet nodeSet = connection.getNodeSet(targetConfig);
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
                 systemName, systemID, globalConfig);
+        ExtNodeSet nodeSet = connection.getNodeSet(targetConfig,
+            coord.syncData);
 
         // run the sync operation, potentially multiple times
         long heartbeat = System.currentTimeMillis() + DateUtils.HOUR;

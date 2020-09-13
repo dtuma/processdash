@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
 
 public interface ExtSystemConnection {
 
-    public ExtNodeSet getNodeSet(Element configXml);
+    public ExtNodeSet getNodeSet(Element configXml, SyncDataFile syncData);
 
     public void disconnect();
 

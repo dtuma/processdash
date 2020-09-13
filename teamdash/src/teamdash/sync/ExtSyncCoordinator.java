@@ -50,7 +50,7 @@ public class ExtSyncCoordinator {
 
     private String extSystemID;
 
-    private SyncDataFile syncData;
+    protected SyncDataFile syncData;
 
     private int refreshDelay, fileScanDelay, stateDelay;
 
