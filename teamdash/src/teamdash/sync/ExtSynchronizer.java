@@ -204,6 +204,7 @@ public class ExtSynchronizer {
             result.setAttribute(extIDAttr, ExtSyncUtil.INCOMING_PARENT_ID);
             wbs.add(result);
         }
+        result.setAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR, "Incoming Items");
         result.setReadOnly(true);
         return result;
     }
@@ -411,6 +412,12 @@ public class ExtSynchronizer {
 
             // save the user-facing key for the given node
             saveReadOnlyAttr(node, keyAttr, extNode.getKey());
+
+            // save the external type of the given node
+            saveReadOnlyAttr(node, ExtSyncUtil.EXT_NODE_TYPE_ATTR,
+                extNode.getType());
+            saveReadOnlyAttr(node, ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR,
+                extNode.getTypeID());
 
             // save the external URL for the given node
             saveReadOnlyAttr(node, urlAttr, extNode.getUrl());

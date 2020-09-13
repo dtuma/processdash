@@ -48,6 +48,16 @@ public interface ExtNode {
     public String getName();
 
     /**
+     * @return the human-readable type of this node in the external system
+     */
+    public String getType();
+
+    /**
+     * @return the ID in the external system for the type of this node
+     */
+    public String getTypeID();
+
+    /**
      * @return a list of the children of this node, in the external system
      */
     public List<ExtNode> getChildren();

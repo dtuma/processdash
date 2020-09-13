@@ -45,6 +45,10 @@ public class ExtSyncUtil {
 
     public static final String EXT_SYSTEM_ID_ATTR = "External System ID";
 
+    public static final String EXT_NODE_TYPE_ATTR = "External Node Type";
+
+    public static final String EXT_NODE_TYPE_ID_ATTR = "External Node Type ID";
+
     public static final String INCOMING_PARENT_ID = "incoming";
 
     static final String EXT_ATTR_PREFIX = "Ext-";
@@ -60,6 +64,8 @@ public class ExtSyncUtil {
                 EXT_ATTR_PREFIX + extSystemID + " "));
             node.setReadOnly(false);
         }
+        node.removeAttribute(EXT_NODE_TYPE_ATTR);
+        node.removeAttribute(EXT_NODE_TYPE_ID_ATTR);
     }
 
     public static String getExtIDAttr(String systemID) {
