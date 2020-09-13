@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.columns.ExternalNodeIDColumn;
 import teamdash.wbs.columns.ExternalNodeOwnerColumn;
+import teamdash.wbs.columns.ExternalNodeTypeColumn;
 
 public class ExternalSystemManager {
 
@@ -56,6 +57,10 @@ public class ExternalSystemManager {
 
                     // create a data column to display the external node ID
                     DataColumn col = new ExternalNodeIDColumn(sysID, sysName);
+                    data.addDataColumn(col);
+
+                    // create a data column to display the external node type
+                    col = new ExternalNodeTypeColumn(sysID, sysName);
                     data.addDataColumn(col);
 
                     // create a data column to display the external node owner
