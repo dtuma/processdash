@@ -25,14 +25,21 @@ package teamdash.wbs;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.sync.ExtSyncUtil;
+import teamdash.sync.SyncDataFile;
+import teamdash.sync.SyncMetadata;
 import teamdash.wbs.columns.ExternalNodeIDColumn;
 import teamdash.wbs.columns.ExternalNodeOwnerColumn;
 import teamdash.wbs.columns.ExternalNodeTypeColumn;
@@ -87,18 +94,97 @@ public class ExternalSystemManager {
     }
 
 
+    public List<ExtNodeType> getNodeTypes(String extSystemID) {
+        ExtSystem ext = extSystems.get(extSystemID);
+        if (ext == null)
+            return Collections.EMPTY_LIST;
+        else
+            return getNodeTypes(ext);
+    }
 
-    private class ExtSystem {
+    private List<ExtNodeType> getNodeTypes(ExtSystem ext) {
+        // return the node types we loaded in the past, if available
+        if (ext.nodeTypes != null)
+            return ext.nodeTypes;
+
+        // read node type info from the external metadata file
+        List<ExtNodeType> result = new ArrayList<ExtNodeType>();
+        try {
+            SyncMetadata metadata = ext.syncData.getMetadata();
+            Map<String, String> types = metadata.getKeyedItems(
+                ExtSyncUtil.NODE_TYPE_PREFIX, ExtSyncUtil.NAME_ATTR);
+            for (Entry<String, String> e : types.entrySet()) {
+                result.add(new ExtNodeType(ext, e.getKey(), e.getValue()));
+            }
+            ext.syncData.dispose();
+        } catch (IOException e) {
+        }
+
+        // save the node types and return them
+        ext.nodeTypes = result;
+        return result;
+    }
+
+
+
+    public class ExtSystem {
 
         private String type, sysID, sysName;
 
-        ExtSystem(Element ext) {
+        private SyncDataFile syncData;
+
+        private List<ExtNodeType> nodeTypes;
+
+        private ExtSystem(Element ext) {
             // read the specification of an external system from the XML tag
             this.type = ext.getAttribute("type");
             this.sysID = XMLUtils.getAttribute(ext, "id", type);
             this.sysName = XMLUtils.getAttribute(ext, "name", type);
+            this.syncData = new SyncDataFile(wbsDir, sysID + "-sync.pdash");
             extSystems.put(sysID, this);
         }
+
+        public final String getID() {
+            return sysID;
+        }
+
+        public final String getName() {
+            return sysName;
+        }
+
+    }
+
+
+
+    public class ExtNodeType {
+
+        private ExtSystem extSystem;
+
+        private String id, name;
+
+        private ExtNodeType(ExtSystem extSystem, String id, String name) {
+            this.extSystem = extSystem;
+            this.id = id;
+            this.name = name;
+        }
+
+        public final ExtSystem getExtSystem() {
+            return extSystem;
+        }
+
+        public final String getId() {
+            return id;
+        }
+
+        public final String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name + "@" + id;
+        }
+
     }
 
 }

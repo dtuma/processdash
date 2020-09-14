@@ -65,8 +65,12 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
 
     public SyncDataFile(TeamProjectDataTarget target, String filename) {
+        this(target.getDirectory(), filename);
         this.target = target;
-        this.file = new File(target.getDirectory(), filename);
+    }
+
+    public SyncDataFile(File directory, String filename) {
+        this.file = new File(directory, filename);
         this.processToken = Long.toString(System.currentTimeMillis());
         this.fileTimestamp = 0;
     }
@@ -78,7 +82,9 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
     }
 
     public void saveChanges() throws IOException {
-        if (syncMetadata.isChanged()) {
+        if (target == null) {
+            throw new IllegalStateException();
+        } else if (syncMetadata.isChanged()) {
             saveFile();
             target.saveSyncData(file.getName());
             syncMetadata.clearChanged();

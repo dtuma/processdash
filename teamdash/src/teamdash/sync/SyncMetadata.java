@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
 
@@ -125,6 +127,59 @@ public class SyncMetadata extends Properties {
         ArrayList l = Collections.list(super.keys());
         Collections.sort(l);
         return Collections.enumeration(l);
+    }
+
+    /**
+     * Store a set of key-value pairs into this object, for later retrieval by
+     * the {@link #getKeyedItems(String, String)} method.
+     * 
+     * @param items
+     *            a set of key-value item pairs to store
+     * @param attrPrefix
+     *            a prefix to use when creating metadata keys
+     * @param valueAttrSuffix
+     *            a suffix to use when creating metadata keys for storing the
+     *            item values
+     */
+    public void storeKeyedItems(Map<String, String> items, String attrPrefix,
+            String valueAttrSuffix) {
+        // iterate over the list of items
+        StringBuilder itemKeys = new StringBuilder();
+        for (Entry<String, String> e : items.entrySet()) {
+            // append this item's key to our list
+            String key = e.getKey();
+            itemKeys.append(',').append(key);
+
+            // store the value for this particular item
+            setStr(e.getValue(), attrPrefix, key, valueAttrSuffix);
+        }
+
+        // store the list of keys in an attribute we can load later
+        String keyListValue = items.isEmpty() ? null : itemKeys.substring(1);
+        setStr(keyListValue, attrPrefix, "keyList");
+    }
+
+    /**
+     * Retrieve a set of key-value pairs that were saved earlier by
+     * {@link #storeKeyedItems(Map, String, String)}
+     * 
+     * @param attrPrefix
+     *            the prefix that was used for creating metadata keys
+     * @param valueAttrSuffix
+     *            the suffix that was used for creating metadata value keys
+     * @return a map of items equal to the one that was stored earlier, and in
+     *         the same order
+     */
+    public Map<String, String> getKeyedItems(String attrPrefix,
+            String valueAttrSuffix) {
+        String keyList = getStr(attrPrefix, "keyList");
+        if (!StringUtils.hasValue(keyList))
+            return Collections.EMPTY_MAP;
+
+        Map<String, String> result = new LinkedHashMap<String, String>();
+        for (String key : keyList.split(","))
+            result.put(key, getStr(attrPrefix, key, valueAttrSuffix));
+        return result;
     }
 
 }

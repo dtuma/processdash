@@ -51,6 +51,10 @@ public class ExtSyncUtil {
 
     public static final String INCOMING_PARENT_ID = "incoming";
 
+    public static final String NODE_TYPE_PREFIX = "nodeType";
+
+    public static final String NAME_ATTR = "name";
+
     static final String EXT_ATTR_PREFIX = "Ext-";
 
     public static boolean isExtNode(WBSNode node) {
