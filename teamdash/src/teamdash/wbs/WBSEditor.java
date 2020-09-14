@@ -274,12 +274,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         WorkflowUtil.maybeUpdateWorkflowTypeData(model,
             teamProject.getWorkflows());
 
+        ExternalSystemManager extSysMgr = new ExternalSystemManager(storageDir);
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         WBSDataModel data = new WBSDataModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getWorkflows(),
              teamProject.getProxies(), teamProject.getMilestones(),
-             teamProject.getColumns(), taskDependencySource, owner);
+             teamProject.getColumns(), extSysMgr, taskDependencySource, owner);
 
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
                 teamProject.getTeamProcess());
@@ -338,8 +339,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (expandedNodes != null) {
             model.setExpandedNodeIDs(expandedNodes);
         }
-
-        ExternalSystemManager.createDataColumns(storageDir, data);
 
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 teamProject.getWorkflows(), taskDependencySource, guiPrefs);

@@ -70,7 +70,7 @@ public class TeamProjectMergeTester {
         private DMS(TeamProject p, TeamProcess process) {
             wbs = new WBSDataModel(p.getWBS(), p.getTeamMemberList(),
                     process, p.getWorkflows(), p.getProxies(),
-                    p.getMilestones(), new CustomColumnSpecs(),
+                    p.getMilestones(), new CustomColumnSpecs(), null,
                     new TaskDependencySourceSimple(p), "Owner");
             workflows = new WorkflowDataModel(p.getWorkflows(), process, null);
             proxies = new ProxyDataModel(p.getProxies(), process);

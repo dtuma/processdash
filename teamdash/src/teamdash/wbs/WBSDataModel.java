@@ -62,6 +62,9 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
     /** A list of the columns which are sources of attribute data */
     private Set<Integer> attrSources;
 
+    /** The manager of integrations with external systems */
+    private ExternalSystemManager extSysMgr;
+
     /** Object which manages columns for team members */
     private TeamMemberColumnManager memberColumnManager;
 
@@ -72,11 +75,12 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
     public WBSDataModel(WBSModel wbsModel, TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             ProxyWBSModel proxies, MilestonesWBSModel milestones,
-            CustomColumnSpecs customColumns,
+            CustomColumnSpecs customColumns, ExternalSystemManager extSysMgr,
             TaskDependencySource dependencySource, String currentUser) {
         super(wbsModel);
         labelSources = new HashSet<Integer>();
         attrSources = new HashSet<Integer>();
+        this.extSysMgr = extSysMgr;
         buildDataColumns(teamList, teamProcess, workflows, proxies, milestones,
             customColumns, dependencySource, currentUser);
         initializeColumnDependencies();
@@ -108,6 +112,10 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
 
     public Integer[] getAttributeSourceColumns() {
         return attrSources.toArray(new Integer[attrSources.size()]);
+    }
+
+    public final ExternalSystemManager getExternalSystemManager() {
+        return extSysMgr;
     }
 
     /** Add time columns for each team member to the given column model. */
@@ -171,6 +179,7 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
         addDataColumn(new NotesColumn(currentUser));
         addDataColumn(new ErrorNotesColumn(currentUser));
         addDataColumn(new PlanTimeWatcher(this, teamProcess));
+        extSysMgr.createDataColumns(this);
         customColumnManager = new CustomColumnManager(this, projectColumns,
                 teamProcess.getProcessID());
     }

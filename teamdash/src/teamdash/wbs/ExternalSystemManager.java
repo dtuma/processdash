@@ -25,6 +25,8 @@ package teamdash.wbs;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
@@ -37,7 +39,18 @@ import teamdash.wbs.columns.ExternalNodeTypeColumn;
 
 public class ExternalSystemManager {
 
-    public static void createDataColumns(File wbsDir, DataTableModel data) {
+    private File wbsDir;
+
+    private Map<String, ExtSystem> extSystems;
+
+    public ExternalSystemManager(File wbsDir) {
+        this.wbsDir = wbsDir;
+        loadExtSystems();
+    }
+
+    private void loadExtSystems() {
+        this.extSystems = new LinkedHashMap();
+
         // check for an external spec file in the WBS storage directory.
         File externalSpecFile = new File(wbsDir, ExtSyncUtil.EXT_SPEC_FILE);
         if (!externalSpecFile.isFile())
@@ -49,26 +62,42 @@ public class ExternalSystemManager {
             Element xml = XMLUtils.parse(new FileInputStream(externalSpecFile))
                     .getDocumentElement();
             for (Element ext : XMLUtils.getChildElements(xml)) {
-                if ("extSync".equals(ext.getTagName())) {
-                    // read the specification of this external system
-                    String type = ext.getAttribute("type");
-                    String sysID = XMLUtils.getAttribute(ext, "id", type);
-                    String sysName = XMLUtils.getAttribute(ext, "name", type);
-
-                    // create a data column to display the external node ID
-                    DataColumn col = new ExternalNodeIDColumn(sysID, sysName);
-                    data.addDataColumn(col);
-
-                    // create a data column to display the external node type
-                    col = new ExternalNodeTypeColumn(sysID, sysName);
-                    data.addDataColumn(col);
-
-                    // create a data column to display the external node owner
-                    col = new ExternalNodeOwnerColumn(sysID, sysName);
-                    data.addDataColumn(col);
-                }
+                if ("extSync".equals(ext.getTagName()))
+                    new ExtSystem(ext);
             }
         } catch (Exception e) {
+        }
+    }
+
+
+    public void createDataColumns(WBSDataModel data) {
+        for (ExtSystem ext : extSystems.values()) {
+            // create a data column to display the external node ID
+            DataColumn col = new ExternalNodeIDColumn(ext.sysID, ext.sysName);
+            data.addDataColumn(col);
+
+            // create a data column to display the external node type
+            col = new ExternalNodeTypeColumn(ext.sysID, ext.sysName);
+            data.addDataColumn(col);
+
+            // create a data column to display the external node owner
+            col = new ExternalNodeOwnerColumn(ext.sysID, ext.sysName);
+            data.addDataColumn(col);
+        }
+    }
+
+
+
+    private class ExtSystem {
+
+        private String type, sysID, sysName;
+
+        ExtSystem(Element ext) {
+            // read the specification of an external system from the XML tag
+            this.type = ext.getAttribute("type");
+            this.sysID = XMLUtils.getAttribute(ext, "id", type);
+            this.sysName = XMLUtils.getAttribute(ext, "name", type);
+            extSystems.put(sysID, this);
         }
     }
 
