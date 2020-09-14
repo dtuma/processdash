@@ -39,6 +39,7 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.util.DateUtils;
 
 import teamdash.sync.DaemonMetadata.State;
+import teamdash.sync.ExtNodeSet.LifecycleAware;
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.TeamProject;
 
@@ -91,11 +92,19 @@ public class ExtSyncCoordinator {
      * set of external nodes.
      */
     public void run(ExtNodeSet nodeSet) throws IOException {
+        // inform the node set that a sync pass is starting
+        if (nodeSet instanceof LifecycleAware)
+            ((LifecycleAware) nodeSet).syncStarting();
+
         // synchronize external changes into the WBS
         List<ExtChange> changes = applyInboundExtChanges(nodeSet);
 
         // synchronize WBS changes back to the external system
         applyOutboundWbsChanges(nodeSet, changes);
+
+        // inform the node set that a sync pass is finishing
+        if (nodeSet instanceof LifecycleAware)
+            ((LifecycleAware) nodeSet).syncFinishing();
 
         // save metadata to record the completed operation
         saveMetadata();

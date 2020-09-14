@@ -29,6 +29,14 @@ import java.util.Set;
 
 public interface ExtNodeSet {
 
+    public interface LifecycleAware {
+
+        public void syncStarting() throws IOException;
+
+        public void syncFinishing() throws IOException;
+
+    }
+
     public List<ExtNode> getExtNodes(Set<String> includingIDs)
             throws IOException;
 
