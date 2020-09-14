@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -117,6 +117,7 @@ public class PhaseColumn extends AbstractDataColumn
         // save the new type of the node.
         node.setType(type);
         node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
+        ExternalNodeTypeColumn.storeType(node, null);
         EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
     }
 
@@ -131,6 +132,7 @@ public class PhaseColumn extends AbstractDataColumn
             node.setType(step.getType());
             node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR,
                 Integer.toString(step.getUniqueID()));
+            ExternalNodeTypeColumn.storeType(node, null);
             EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
         }
     }

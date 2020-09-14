@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.PlainDocument;
+
+import teamdash.wbs.columns.ExternalNodeTypeColumn;
 
 
 /** Custom editor for {@link WBSJTable}
@@ -922,6 +924,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             // save the new type of the node.
             editingNode.setType(type);
             editingNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, null);
+            ExternalNodeTypeColumn.storeType(editingNode, null);
 
             // we must update not just the icon, but also the icons
             // below it in the table (since they may now be invalid
