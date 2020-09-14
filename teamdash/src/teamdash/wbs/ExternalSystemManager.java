@@ -84,7 +84,8 @@ public class ExternalSystemManager {
             data.addDataColumn(col);
 
             // create a data column to display the external node type
-            col = new ExternalNodeTypeColumn(ext.sysID, ext.sysName);
+            col = new ExternalNodeTypeColumn(ext.sysID, ext.sysName,
+                    getNodeTypes(ext));
             data.addDataColumn(col);
 
             // create a data column to display the external node owner

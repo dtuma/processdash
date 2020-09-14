@@ -72,6 +72,12 @@ public class ExtSyncUtil {
         node.removeAttribute(EXT_NODE_TYPE_ID_ATTR);
     }
 
+    public static void removeExtIDAttributes(WBSNode node) {
+        node.removeAttributes(EXT_ID_ATTR_PAT);
+    }
+    private static final PatternList EXT_ID_ATTR_PAT = new PatternList(
+            "^" + EXT_ATTR_PREFIX + ".* (ID|Key)$");
+
     public static String getExtIDAttr(String systemID) {
         return EXT_ATTR_PREFIX + systemID + " ID";
     }

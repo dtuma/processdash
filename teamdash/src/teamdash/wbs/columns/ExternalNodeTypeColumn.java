@@ -23,22 +23,39 @@
 
 package teamdash.wbs.columns;
 
+import java.awt.Component;
+import java.util.List;
+
+import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
+
+import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+
 import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomEditedColumn;
+import teamdash.wbs.ExternalSystemManager.ExtNodeType;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
-public class ExternalNodeTypeColumn extends AbstractDataColumn
-        implements ExternalSystemPrimaryColumn, CalculatedDataColumn {
+
+public class ExternalNodeTypeColumn extends AbstractDataColumn implements
+        ExternalSystemPrimaryColumn, CustomEditedColumn, CalculatedDataColumn {
 
     private String systemID;
 
-    public ExternalNodeTypeColumn(String systemID, String systemName) {
+    private List<ExtNodeType> nodeTypes;
+
+    public ExternalNodeTypeColumn(String systemID, String systemName,
+            List<ExtNodeType> nodeTypes) {
         this.systemID = systemID;
         this.columnID = systemID + " Type";
         this.columnName = resources.format("External_Type.Name_FMT",
             systemName);
         this.preferredWidth = 80;
+        this.nodeTypes = nodeTypes.isEmpty() ? null : nodeTypes;
     }
 
     private boolean systemMatches(WBSNode node) {
@@ -48,7 +65,9 @@ public class ExternalNodeTypeColumn extends AbstractDataColumn
 
     @Override
     public boolean isCellEditable(WBSNode node) {
-        return false;
+        return nodeTypes != null //
+                && TeamProcess.COMPONENT_TYPE.equals(node.getType()) //
+                && !node.isReadOnly();
     }
 
     @Override
@@ -56,16 +75,73 @@ public class ExternalNodeTypeColumn extends AbstractDataColumn
         if (!systemMatches(node))
             return null;
         Object value = node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR);
-        return (value == null ? null : new ReadOnlyValue(value));
+        if (value != null && !isCellEditable(node))
+            value = new ReadOnlyValue(value);
+        return value;
     }
 
     @Override
-    public void setValueAt(Object aValue, WBSNode node) {}
+    public void setValueAt(Object aValue, WBSNode node) {
+        if (!isCellEditable(node))
+            return;
+
+        if (aValue == null || aValue instanceof ExtNodeType) {
+            storeType(node, (ExtNodeType) aValue);
+        } else if (aValue instanceof String) {
+            String name = ((String) aValue).trim();
+            if (name.length() == 0) {
+                storeType(node, null);
+            } else {
+                for (ExtNodeType type : nodeTypes)
+                    if (type.getName().equals(name))
+                        storeType(node, type);
+            }
+        }
+    }
+
+    public static void storeType(WBSNode node, ExtNodeType type) {
+        if (type == null) {
+            node.removeAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR);
+            node.removeAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR);
+            node.removeAttribute(ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR);
+        } else {
+            ExtSyncUtil.removeExtIDAttributes(node);
+            node.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR,
+                type.getExtSystem().getID());
+            node.setAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR, type.getName());
+            node.setAttribute(ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR, type.getId());
+        }
+    }
 
     public boolean recalculate() {
         return true;
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {}
+
+    @Override
+    public TableCellEditor getCellEditor() {
+        return new ExtNodeTypeCellEditor();
+    }
+
+    private class ExtNodeTypeCellEditor
+            extends AutocompletingDataTableCellEditor {
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+
+            // load the combo with node type names
+            getComboBox().removeAllItems();
+            if (nodeTypes != null) {
+                for (ExtNodeType type : nodeTypes)
+                    getComboBox().addItem(type.getName());
+            }
+
+            return super.getTableCellEditorComponent(table,
+                WrappedValue.unwrap(value), isSelected, row, column);
+        }
+
+    }
 
 }
