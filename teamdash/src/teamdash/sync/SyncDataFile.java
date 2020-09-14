@@ -28,9 +28,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -63,6 +67,8 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     private SyncMetadata syncMetadata;
 
+    private Map<ExportFileEntry, byte[]> explicitEntries;
+
 
     public SyncDataFile(TeamProjectDataTarget target, String filename) {
         this(target.getDirectory(), filename);
@@ -84,10 +90,11 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
     public void saveChanges() throws IOException {
         if (target == null) {
             throw new IllegalStateException();
-        } else if (syncMetadata.isChanged()) {
+        } else if (syncMetadata.isChanged() || explicitEntries != null) {
             saveFile();
             target.saveSyncData(file.getName());
             syncMetadata.clearChanged();
+            explicitEntries = null;
         } else {
             closeZip();
         }
@@ -115,7 +122,7 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         return fileTimestamp;
     }
 
-    private InputStream openEntry(String entryName) throws IOException {
+    public InputStream openEntry(String entryName) throws IOException {
         // if the file does not exist, it doesn't have any entries
         if (!file.isFile())
             return null;
@@ -127,6 +134,14 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         // find and return the named entry
         ZipEntry entry = zip.getEntry(entryName);
         return (entry == null ? null : zip.getInputStream(entry));
+    }
+
+    public void addEntry(ExportFileEntry entry, byte[] data) {
+        if (explicitEntries == null)
+            explicitEntries = new LinkedHashMap<ExportFileEntry, byte[]>();
+        else
+            discardEntryWithName(explicitEntries.keySet(), entry.getFilename());
+        explicitEntries.put(entry, data);
     }
 
     private void closeZip() throws IOException {
@@ -168,6 +183,9 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         // write the sync metadata file
         writeSyncMetadataFile(zipOut);
 
+        // save any newly added entries
+        writeExplicitEntries(fileEntries, zipOut);
+
         // copy other file entries from src to dest
         copyExistingFileEntries(fileEntries, zipOut);
 
@@ -182,10 +200,10 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
     }
 
 
-    private List<ExportFileEntry> readExistingManifestEntries()
+    public List<ExportFileEntry> readExistingManifestEntries()
             throws IOException {
         if (!file.isFile())
-            return Collections.EMPTY_LIST;
+            return new ArrayList<ExportFileEntry>();
 
         // read the manifest from the existing file
         Element manifest;
@@ -214,6 +232,39 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         zipOut.putNextEntry(new ZipEntry(METADATA_ENTRY_NAME));
         syncMetadata.storeToXML(zipOut, null);
         zipOut.closeEntry();
+    }
+
+    private void writeExplicitEntries(List<ExportFileEntry> fileEntries,
+            ZipOutputStream zipOut) throws IOException {
+        if (explicitEntries == null)
+            return;
+
+        // iterate over the explicit entries
+        for (Entry<ExportFileEntry, byte[]> e : explicitEntries.entrySet()) {
+            ExportFileEntry entry = e.getKey();
+            String entryName = entry.getFilename();
+            byte[] data = e.getValue();
+
+            // add the file to the output ZIP
+            if (data != null) {
+                zipOut.putNextEntry(new ZipEntry(entryName));
+                zipOut.write(data);
+                zipOut.closeEntry();
+            }
+
+            // if this entry replaces one that was already in the data file,
+            // remove that existing entry from the fileEntries list
+            discardEntryWithName(fileEntries, entryName);
+        }
+    }
+
+    private void discardEntryWithName(Collection<ExportFileEntry> fileEntries,
+            String entryName) {
+        for (Iterator i = fileEntries.iterator(); i.hasNext();) {
+            ExportFileEntry efe = (ExportFileEntry) i.next();
+            if (entryName.equals(efe.getFilename()))
+                i.remove();
+        }
     }
 
     private void copyExistingFileEntries(List<ExportFileEntry> fileEntries,
@@ -252,6 +303,8 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         writeManifestFileTag(xml, METADATA_ENTRY_NAME, METADATA_FILE_TYPE, "1");
 
         // write entries for each other file in the archive
+        if (explicitEntries != null)
+            additionalEntries.addAll(explicitEntries.keySet());
         for (ExportFileEntry e : additionalEntries) {
             writeManifestFileTag(xml, e.getFilename(), e.getType(),
                 e.getVersion());
