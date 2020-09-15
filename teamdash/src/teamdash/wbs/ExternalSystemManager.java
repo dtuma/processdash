@@ -93,7 +93,7 @@ public class ExternalSystemManager {
             data.addDataColumn(col);
 
             // create a data column to display the external node type
-            col = new ExternalNodeTypeColumn(ext.sysID, ext.sysName,
+            col = new ExternalNodeTypeColumn(data, ext.sysID, ext.sysName,
                     getNodeTypes(ext));
             data.addDataColumn(col);
 
@@ -101,6 +101,24 @@ public class ExternalSystemManager {
             col = new ExternalNodeOwnerColumn(ext.sysID, ext.sysName);
             data.addDataColumn(col);
         }
+    }
+
+
+    public Icon getExtNodeTypeIcon(WBSNode node) {
+        // identify which external system this node is using
+        String sysID = (String) node.getAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR);
+        if (sysID == null)
+            return null;
+
+        // get the node type ID, and use it to look up a node type
+        Object typeID = node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR);
+        for (ExtNodeType type : getNodeTypes(sysID)) {
+            if (type.getId().equals(typeID))
+                return type.getIcon();
+        }
+
+        // no matching type was found. Return a default icon
+        return DEFAULT_NODE_TYPE_ICON;
     }
 
 

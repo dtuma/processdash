@@ -24,9 +24,12 @@
 package teamdash.wbs.columns;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JTable;
+import javax.swing.Timer;
 import javax.swing.table.TableCellEditor;
 
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
@@ -37,6 +40,8 @@ import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.ExternalSystemManager.ExtNodeType;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WrappedValue;
 
@@ -44,12 +49,15 @@ import teamdash.wbs.WrappedValue;
 public class ExternalNodeTypeColumn extends AbstractDataColumn implements
         ExternalSystemPrimaryColumn, CustomEditedColumn, CalculatedDataColumn {
 
+    private WBSModel wbsModel;
+
     private String systemID;
 
     private List<ExtNodeType> nodeTypes;
 
-    public ExternalNodeTypeColumn(String systemID, String systemName,
-            List<ExtNodeType> nodeTypes) {
+    public ExternalNodeTypeColumn(WBSDataModel data, String systemID,
+            String systemName, List<ExtNodeType> nodeTypes) {
+        this.wbsModel = data.getWBSModel();
         this.systemID = systemID;
         this.columnID = systemID + " Type";
         this.columnName = resources.format("External_Type.Name_FMT",
@@ -97,6 +105,7 @@ public class ExternalNodeTypeColumn extends AbstractDataColumn implements
                         storeType(node, type);
             }
         }
+        EVENT_CONSOLIDATOR.needEvent(node);
     }
 
     public static void storeType(WBSNode node, ExtNodeType type) {
@@ -143,5 +152,46 @@ public class ExternalNodeTypeColumn extends AbstractDataColumn implements
         }
 
     }
+
+    /** If the user pastes a long string of values into this column, each
+     * one will change the type of a different WBS node.  Rather than firing
+     * change events on the WBS for each pasted value, send one event at the
+     * end of the entire operation.  Since WBS change events trigger broad
+     * recalculation operations, consolidating these events can save a lot
+     * of churn downstream.
+     */
+    private class EventConsolidator implements ActionListener {
+        private int row;
+        private Timer timer;
+        public EventConsolidator() {
+            this.timer = new Timer(20, this);
+            this.timer.setRepeats(false);
+            this.row = Integer.MAX_VALUE;
+        }
+        public synchronized void needEvent(WBSNode node) {
+            int row = wbsModel.getRowForNode(node);
+            if (row != -1) {
+                this.row = Math.min(this.row, row);
+                timer.restart();
+            }
+        }
+        public void actionPerformed(ActionEvent e) {
+            int rowNumber;
+            synchronized (this) {
+                rowNumber = row;
+                row = Integer.MAX_VALUE;
+            }
+
+            // we must update not just the given row, but also the rows
+            // below it in the table (since they may now be invalid
+            // because of the change).  Although only descendants of
+            // this node could be affected, just repaint all the
+            // remaining rows (lazy).
+            int rowCount = wbsModel.getRowCount();
+            if (rowNumber < rowCount)
+                wbsModel.fireTableRowsUpdated(rowNumber, rowCount-1);
+        }
+    }
+    private EventConsolidator EVENT_CONSOLIDATOR = new EventConsolidator();
 
 }

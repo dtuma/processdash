@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 
+import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
@@ -159,10 +160,19 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     public static Object getIconForNode(JTable table, Map iconMap,
             WBSNode node, WBSModel model, WorkflowWBSModel workflows)
     {
-        String nodeType = WorkflowUtil.getWorkflowTaskType(node, workflows);
+        ErrorValue extNodeType = getExtNodeTypeIcon(table, node);
+
+        String nodeType = null;
+        if (extNodeType != null)
+            nodeType = extNodeType.error;
+        if (nodeType == null)
+            nodeType = WorkflowUtil.getWorkflowTaskType(node, workflows);
         if (nodeType == null)
             nodeType = model.filterNodeType(node);
-        Icon icon = (Icon) iconMap.get(nodeType);
+
+        Icon icon = null;
+        if (extNodeType != null) icon = (Icon) extNodeType.value;
+        if (icon == null) icon = (Icon) iconMap.get(nodeType);
         if (icon == null) icon = (Icon) iconMap.get(null);
 
         String iconError = WBSModelValidator.getNodeTypeError(node);
@@ -176,10 +186,36 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         if (modFlags != 0)
             icon = IconFactory.getModifiedIcon(icon, modFlags);
 
-        if (iconError == null)
-            return icon;
-        else
+        if (iconError != null)
             return new ErrorValue(icon, iconError);
+        else if (extNodeType != null)
+            return new ErrorValue(icon, extNodeType.error);
+        else
+            return icon;
+    }
+
+    private static ErrorValue getExtNodeTypeIcon(JTable table, WBSNode node) {
+        if (!ExtSyncUtil.isExtNode(node))
+            return null;
+
+        ExternalSystemManager extSys = getExtSysMgr(table);
+        if (extSys == null)
+            return null;
+
+        Icon icon = extSys.getExtNodeTypeIcon(node);
+        String type = (String) node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR);
+        return new ErrorValue(icon, type);
+    }
+
+    private static ExternalSystemManager getExtSysMgr(JTable table) {
+        if (table instanceof WBSJTable) {
+            WBSJTable wbsTable = (WBSJTable) table;
+            if (wbsTable.dataModel instanceof WBSDataModel) {
+                WBSDataModel data = (WBSDataModel) wbsTable.dataModel;
+                return data.getExternalSystemManager();
+            }
+        }
+        return null;
     }
 
 
