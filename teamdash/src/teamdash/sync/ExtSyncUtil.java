@@ -55,6 +55,8 @@ public class ExtSyncUtil {
 
     public static final String NAME_ATTR = "name";
 
+    public static final String NODE_TYPE_ICON = "nodeTypeIcon";
+
     static final String EXT_ATTR_PREFIX = "Ext-";
 
     public static boolean isExtNode(WBSNode node) {

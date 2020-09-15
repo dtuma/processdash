@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -33,8 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
+import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.sync.ExtSyncUtil;
@@ -43,6 +50,8 @@ import teamdash.sync.SyncMetadata;
 import teamdash.wbs.columns.ExternalNodeIDColumn;
 import teamdash.wbs.columns.ExternalNodeOwnerColumn;
 import teamdash.wbs.columns.ExternalNodeTypeColumn;
+import teamdash.wbs.icons.ScalableSvgIcon;
+
 
 public class ExternalSystemManager {
 
@@ -112,10 +121,16 @@ public class ExternalSystemManager {
         List<ExtNodeType> result = new ArrayList<ExtNodeType>();
         try {
             SyncMetadata metadata = ext.syncData.getMetadata();
+            List<ExportFileEntry> entries = ext.syncData
+                    .readExistingManifestEntries();
             Map<String, String> types = metadata.getKeyedItems(
                 ExtSyncUtil.NODE_TYPE_PREFIX, ExtSyncUtil.NAME_ATTR);
             for (Entry<String, String> e : types.entrySet()) {
-                result.add(new ExtNodeType(ext, e.getKey(), e.getValue()));
+                String typeID = e.getKey();
+                String typeName = e.getValue();
+                Icon typeIcon = getIcon(ext.syncData, entries,
+                    ExtSyncUtil.NODE_TYPE_ICON, typeID);
+                result.add(new ExtNodeType(ext, typeID, typeName, typeIcon));
             }
             ext.syncData.dispose();
         } catch (IOException e) {
@@ -125,6 +140,33 @@ public class ExternalSystemManager {
         ext.nodeTypes = result;
         return result;
     }
+
+    private Icon getIcon(SyncDataFile syncData, List<ExportFileEntry> entries,
+            String entryType, String typeID) {
+        String namePat = "/" + typeID + ".";
+        for (ExportFileEntry e : entries) {
+            String entryName = e.getFilename();
+            if (e.getType().equals(entryType) && entryName.contains(namePat)) {
+                try {
+                    return WBSZoom.icon(
+                        readIcon(entryName, syncData.openEntry(entryName)));
+                } catch (Exception ex) {
+                }
+            }
+        }
+        return DEFAULT_NODE_TYPE_ICON;
+    }
+
+    private Icon readIcon(String entryName, InputStream in) throws Exception {
+        byte[] data = FileUtils.slurpContents(in, true);
+        if (entryName.endsWith(".svg"))
+            return new ScalableSvgIcon(16, data);
+        else
+            return new ScalableImageIcon(16, new ImageIcon(data));
+    }
+
+    private static final Icon DEFAULT_NODE_TYPE_ICON = WBSZoom
+            .icon(IconFactory.getExtNodeIcon());
 
 
 
@@ -163,10 +205,14 @@ public class ExternalSystemManager {
 
         private String id, name;
 
-        private ExtNodeType(ExtSystem extSystem, String id, String name) {
+        private Icon icon;
+
+        private ExtNodeType(ExtSystem extSystem, String id, String name,
+                Icon icon) {
             this.extSystem = extSystem;
             this.id = id;
             this.name = name;
+            this.icon = icon;
         }
 
         public final ExtSystem getExtSystem() {
@@ -179,6 +225,10 @@ public class ExternalSystemManager {
 
         public final String getName() {
             return name;
+        }
+
+        public final Icon getIcon() {
+            return icon;
         }
 
         @Override

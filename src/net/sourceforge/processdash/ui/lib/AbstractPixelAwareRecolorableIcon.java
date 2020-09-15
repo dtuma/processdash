@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,13 +28,21 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.RGBImageFilter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractPixelAwareRecolorableIcon
         extends AbstractRecolorableIcon {
 
     protected Image buffered;
+
+    protected List<RGBImageFilter> colorFilters;
 
     protected int bufferedWidth = -1, bufferedHeight = -1;
 
@@ -63,6 +71,12 @@ public abstract class AbstractPixelAwareRecolorableIcon
 
             paintIcon(gb, pixelWidth, pixelHeight, (float) t.getScaleX());
 
+            if (colorFilters != null) {
+                for (RGBImageFilter f : colorFilters)
+                    buffered = Toolkit.getDefaultToolkit().createImage(
+                        new FilteredImageSource(buffered.getSource(), f));
+            }
+
             bufferedWidth = pixelWidth;
             bufferedHeight = pixelHeight;
         }
@@ -79,6 +93,15 @@ public abstract class AbstractPixelAwareRecolorableIcon
         AbstractRecolorableIcon result = super.clone();
         ((AbstractPixelAwareRecolorableIcon) result).bufferedWidth = -1;
         return result;
+    }
+
+    protected void addColorFilter(RGBImageFilter filter) {
+        if (colorFilters == null) {
+            colorFilters = Collections.singletonList(filter);
+        } else {
+            colorFilters = new ArrayList(colorFilters);
+            colorFilters.add(filter);
+        }
     }
 
 }

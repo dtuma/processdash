@@ -71,6 +71,7 @@ The author(s) may be contacted at:
     <pathelement location="${pspdash.jar}"/>
     <pathelement location="${swingx.jar}"/>
     <pathelement location="${poi.jar}"/>
+    <pathelement location="${svg.jar}"/>
     <pathelement location="${apple-eawt.jar}"/>
     <pathelement location="${servlet.jar}"/>
     <pathelement location="${junit.jar}"/>
@@ -371,6 +372,7 @@ class dependency has been added in a dashboard class?)
       <zipfileset src="${swingx.jar}"
           includes="org/jdesktop/swingx/autocomplete/"/>
       <zipfileset src="${poi.jar}" excludes="${gpl.exclude}"/>
+      <zipfileset src="${svg.jar}" excludes="META-INF/**"/>
       <zipfileset src="${xmlpull.jar}"/>
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${jna.jar}"/>
