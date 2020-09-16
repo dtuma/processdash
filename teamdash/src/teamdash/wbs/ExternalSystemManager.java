@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -148,12 +149,19 @@ public class ExternalSystemManager {
                     .readExistingManifestEntries();
             Map<String, String> types = metadata.getKeyedItems(
                 ExtSyncUtil.NODE_TYPE_PREFIX, ExtSyncUtil.NAME_ATTR);
+            String createKeyList = metadata.getStr(ExtSyncUtil.NODE_TYPE_PREFIX,
+                ExtSyncUtil.CREATABLE_ATTR);
+            List<String> creatableKeys = (createKeyList == null
+                    ? Collections.EMPTY_LIST
+                    : Arrays.asList(createKeyList.split(",")));
             for (Entry<String, String> e : types.entrySet()) {
                 String typeID = e.getKey();
                 String typeName = e.getValue();
                 Icon typeIcon = getIcon(ext.syncData, entries,
                     ExtSyncUtil.NODE_TYPE_ICON, typeID);
-                result.add(new ExtNodeType(ext, typeID, typeName, typeIcon));
+                boolean creatable = creatableKeys.contains(typeID);
+                result.add(new ExtNodeType(ext, typeID, typeName, typeIcon,
+                        creatable));
             }
             ext.syncData.dispose();
         } catch (IOException e) {
@@ -234,12 +242,15 @@ public class ExternalSystemManager {
 
         private Icon icon;
 
+        private boolean creatable;
+
         private ExtNodeType(ExtSystem extSystem, String id, String name,
-                Icon icon) {
+                Icon icon, boolean creatable) {
             this.extSystem = extSystem;
             this.id = id;
             this.name = name;
             this.icon = icon;
+            this.creatable = creatable;
         }
 
         public final ExtSystem getExtSystem() {
@@ -256,6 +267,10 @@ public class ExternalSystemManager {
 
         public final Icon getIcon() {
             return icon;
+        }
+
+        public final boolean isCreatable() {
+            return creatable;
         }
 
         @Override

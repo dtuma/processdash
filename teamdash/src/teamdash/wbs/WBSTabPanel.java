@@ -1068,16 +1068,19 @@ public class WBSTabPanel extends JLayeredPane implements
         List<JMenu> result = new ArrayList<JMenu>();
         ExternalSystemManager extSysMgr = data.getExternalSystemManager();
         for (ExtSystem ext : extSysMgr.getExternalSystems()) {
-            if (!ext.getNodeTypes().isEmpty())
-                result.add(buildExternalNodeTypeMenu(ext));
+            JMenu menu = buildExternalNodeTypeMenu(ext);
+            if (menu.getMenuComponentCount() > 0)
+                result.add(menu);
         }
         return result;
     }
 
     private static JMenu buildExternalNodeTypeMenu(ExtSystem ext) {
         JMenu result = new TeamProcess.NodeTypeMenu(ext.getName());
-        for (ExtNodeType type : ext.getNodeTypes())
-            result.add(makeExtNodeTypeMenu(type));
+        for (ExtNodeType type : ext.getNodeTypes()) {
+            if (type.isCreatable())
+                result.add(makeExtNodeTypeMenu(type));
+        }
         return result;
     }
 

@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTable;
@@ -63,7 +64,16 @@ public class ExternalNodeTypeColumn extends AbstractDataColumn implements
         this.columnName = resources.format("External_Type.Name_FMT",
             systemName);
         this.preferredWidth = 80;
-        this.nodeTypes = nodeTypes.isEmpty() ? null : nodeTypes;
+        this.nodeTypes = getCreatableTypes(nodeTypes);
+    }
+
+    private List<ExtNodeType> getCreatableTypes(List<ExtNodeType> types) {
+        List<ExtNodeType> result = new ArrayList<ExtNodeType>();
+        for (ExtNodeType type : types) {
+            if (type.isCreatable())
+                result.add(type);
+        }
+        return result.isEmpty() ? null : result;
     }
 
     private boolean systemMatches(WBSNode node) {

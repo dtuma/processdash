@@ -164,7 +164,7 @@ public class PhaseColumn extends AbstractDataColumn
         ExtNodeType type = lookupExtNodeType(extSysID, typeName);
 
         // if we find a matching external node type, set it on this node
-        if (type != null) {
+        if (type != null && type.isCreatable()) {
             node.setType(TeamProcess.COMPONENT_TYPE);
             node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
             ExternalNodeTypeColumn.storeType(node, type);
