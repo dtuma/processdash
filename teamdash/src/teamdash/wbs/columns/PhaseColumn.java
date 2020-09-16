@@ -35,12 +35,16 @@ import javax.swing.table.TableCellEditor;
 
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
 
+import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.AbstractWBSModelMerger;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
-import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ExternalSystemManager;
+import teamdash.wbs.ExternalSystemManager.ExtNodeType;
+import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowUtil;
@@ -51,13 +55,15 @@ public class PhaseColumn extends AbstractDataColumn
 {
     public static String COLUMN_ID = "Phase";
 
+    private WBSDataModel dataModel;
     private WBSModel wbsModel;
     private WorkflowWBSModel workflows;
     private Set allowedTypes;
     private TableCellEditor cellEditor;
 
-    public PhaseColumn(DataTableModel dataModel, TeamProcess teamProcess,
+    public PhaseColumn(WBSDataModel dataModel, TeamProcess teamProcess,
             WorkflowWBSModel workflows) {
+        this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.workflows = workflows;
         this.columnID = COLUMN_ID;
@@ -68,19 +74,46 @@ public class PhaseColumn extends AbstractDataColumn
     }
 
     public Object getValueAt(WBSNode node) {
-        String workflowType = WorkflowUtil.getWorkflowStepName(node, workflows,
-            "/");
-        if (workflowType != null) {
-            int slashPos = workflowType.indexOf('/');
-            String stepName = workflowType.substring(slashPos + 1);
-            return new AnnotatedValue(stepName, workflowType);
-        }
+        Object result = getValueAtImpl(node);
+        if (result != null && !isCellEditable(node))
+            result = new ReadOnlyValue(result);
+        return result;
+    }
+    
+    private Object getValueAtImpl(WBSNode node) {
+        Object extNodeType = getExtNodeType(node);
+        if (extNodeType != null)
+            return extNodeType;
+
+        Object workflowType = getWorkflowType(node);
+        if (workflowType != null)
+            return workflowType;
 
         String type = node.getType();
         if (allowedTypes.contains(type))
             return type;
         else
             return null;
+    }
+
+    private Object getExtNodeType(WBSNode node) {
+        Object extSysID = node.getAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR);
+        Object extType = node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR);
+        if (extSysID == null || extType == null)
+            return null;
+
+        String fullType = extSysID + ":" + extType;
+        return new AnnotatedValue((String) extType, fullType);
+    }
+
+    private Object getWorkflowType(WBSNode node) {
+        String wfType = WorkflowUtil.getWorkflowStepName(node, workflows, "/");
+        if (wfType == null)
+            return null;
+
+        int slashPos = wfType.indexOf('/');
+        String stepName = wfType.substring(slashPos + 1);
+        return new AnnotatedValue(stepName, wfType);
     }
 
 
@@ -95,6 +128,8 @@ public class PhaseColumn extends AbstractDataColumn
                 changeNodeType(node, s);
             else if (allowedTypes.contains(s + " Task"))
                 changeNodeType(node, s + " Task");
+            else if (s.indexOf(':') > 0)
+                setExtNodeType(node, s);
             else if (s.indexOf('/') > 0)
                 setWorkflowNodeType(node, s);
         }
@@ -118,7 +153,32 @@ public class PhaseColumn extends AbstractDataColumn
         node.setType(type);
         node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
         ExternalNodeTypeColumn.storeType(node, null);
-        EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
+        EVENT_CONSOLIDATOR.needEvent(node);
+    }
+
+    private void setExtNodeType(WBSNode node, String typeFullName) {
+        // parse the value as System:Type, then look up the resulting type
+        int colonPos = typeFullName.indexOf(':');
+        String extSysID = typeFullName.substring(0, colonPos).trim();
+        String typeName = typeFullName.substring(colonPos + 1).trim();
+        ExtNodeType type = lookupExtNodeType(extSysID, typeName);
+
+        // if we find a matching external node type, set it on this node
+        if (type != null) {
+            node.setType(TeamProcess.COMPONENT_TYPE);
+            node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
+            ExternalNodeTypeColumn.storeType(node, type);
+            EVENT_CONSOLIDATOR.needEvent(node);
+        }
+    }
+
+    private ExtNodeType lookupExtNodeType(String extSysID, String typeName) {
+        ExternalSystemManager mgr = dataModel.getExternalSystemManager();
+        for (ExtNodeType type : mgr.getNodeTypes(extSysID)) {
+            if (type.getName().equalsIgnoreCase(typeName))
+                return type;
+        }
+        return null;
     }
 
     private void setWorkflowNodeType(WBSNode node, String stepFullName) {
@@ -133,7 +193,7 @@ public class PhaseColumn extends AbstractDataColumn
             node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR,
                 Integer.toString(step.getUniqueID()));
             ExternalNodeTypeColumn.storeType(node, null);
-            EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
+            EVENT_CONSOLIDATOR.needEvent(node);
         }
     }
 
@@ -167,7 +227,8 @@ public class PhaseColumn extends AbstractDataColumn
             this.timer.setRepeats(false);
             this.row = Integer.MAX_VALUE;
         }
-        public synchronized void needEvent(int row) {
+        public synchronized void needEvent(WBSNode node) {
+            int row = wbsModel.getRowForNode(node);
             if (row != -1) {
                 this.row = Math.min(this.row, row);
                 timer.restart();
