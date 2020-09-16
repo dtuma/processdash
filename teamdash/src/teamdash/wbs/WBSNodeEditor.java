@@ -70,6 +70,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.PlainDocument;
 
+import teamdash.wbs.ExternalSystemManager.ExtNodeType;
 import teamdash.wbs.columns.ExternalNodeTypeColumn;
 
 
@@ -428,9 +429,10 @@ public class WBSNodeEditor extends AbstractCellEditor
             if (item instanceof JMenu)
                 configureMenu((JMenu) item, iconMap);
             else {
-                String nodeType = getNodeTypeForMenuItem(item);
+                Object nodeType = getNodeTypeForMenuItem(item);
                 if (nodeType == null) continue;
-                item.setIcon((Icon) iconMap.get(nodeType));
+                if (nodeType instanceof String)
+                    item.setIcon((Icon) iconMap.get(nodeType));
                 item.addActionListener(ICON_MENU_LISTENER);
             }
         }
@@ -438,9 +440,12 @@ public class WBSNodeEditor extends AbstractCellEditor
     }
 
     /** Extract the node type from an item in an icon menu. */
-    private String getNodeTypeForMenuItem(JMenuItem menuItem) {
+    private Object getNodeTypeForMenuItem(JMenuItem menuItem) {
         if (menuItem == null) return null;
-        String result = menuItem.getActionCommand();
+        Object result = menuItem.getClientProperty(ExtNodeType.class);
+        if (result != null)
+            return result;
+        result = menuItem.getActionCommand();
         if (result == null) result = menuItem.getText();
         if (iconMap.containsKey(result))
             return result;
@@ -903,28 +908,35 @@ public class WBSNodeEditor extends AbstractCellEditor
             if (!(e.getSource() instanceof JMenuItem)) return;
 
             // Get the node type from the JMenuItem's label.
-            String type = getNodeTypeForMenuItem((JMenuItem) e.getSource());
+            Object type = getNodeTypeForMenuItem((JMenuItem) e.getSource());
             // if this menu item doesn't name a node type, do nothing.
             if (type == null) return;
 
             // if the name of the node matches the old node type, update the
             // name of the task to keep it in sync.
-            String oldType = editingNode.getType();
-            String nodeName = editorComponent.getText();
-            nodeName = (nodeName == null ? "" : nodeName.trim());
-            if (nodeName.length() == 0 || oldType.equals(nodeName) ||
-                oldType.equals(nodeName + " Task")) {
-                nodeName = type;
-                if (nodeName.endsWith(" Task"))
-                    nodeName = nodeName.substring(0, nodeName.length() - 5);
-                editorComponent.setText(nodeName);
-                editingNode.setName(nodeName);
+            if (type instanceof String) {
+                String oldType = editingNode.getType();
+                String nodeName = editorComponent.getText();
+                nodeName = (nodeName == null ? "" : nodeName.trim());
+                if (nodeName.length() == 0 || oldType.equals(nodeName) ||
+                    oldType.equals(nodeName + " Task")) {
+                    nodeName = (String) type;
+                    if (nodeName.endsWith(" Task"))
+                        nodeName = nodeName.substring(0, nodeName.length() - 5);
+                    editorComponent.setText(nodeName);
+                    editingNode.setName(nodeName);
+                }
             }
 
             // save the new type of the node.
-            editingNode.setType(type);
+            if (type instanceof ExtNodeType) {
+                editingNode.setType(TeamProcess.COMPONENT_TYPE);
+                ExternalNodeTypeColumn.storeType(editingNode, (ExtNodeType) type);
+            } else {
+                editingNode.setType((String) type);
+                ExternalNodeTypeColumn.storeType(editingNode, null);
+            }
             editingNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, null);
-            ExternalNodeTypeColumn.storeType(editingNode, null);
 
             // we must update not just the icon, but also the icons
             // below it in the table (since they may now be invalid

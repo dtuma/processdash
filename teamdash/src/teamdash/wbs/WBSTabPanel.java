@@ -64,6 +64,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -99,6 +100,8 @@ import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.ExternalSystemManager.ExtNodeType;
+import teamdash.wbs.ExternalSystemManager.ExtSystem;
 import teamdash.wbs.columns.CustomColumnListener;
 import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.CustomColumnSpecs;
@@ -162,7 +165,7 @@ public class WBSTabPanel extends JLayeredPane implements
             TeamProcess teamProcess, WorkflowWBSModel workflows,
             TaskIDSource idSource, GuiPrefs guiPrefs) {
         this(wbs, data, teamProcess.getIconMap(),
-                tweakIconMenu(teamProcess.getNodeTypeMenu()), workflows,
+                tweakIconMenu(teamProcess.getNodeTypeMenu(), data), workflows,
                 idSource, guiPrefs);
         wbsTable.setSafeTaskType(
             teamProcess.getPhases().get(0) + TeamProcess.TASK_SUFFIX);
@@ -1013,24 +1016,75 @@ public class WBSTabPanel extends JLayeredPane implements
 
 
 
-    /** Reorganize the node type menu if the number of types is small */
-    private static JMenu tweakIconMenu(JMenu iconMenu) {
+    /**
+     * Customize the node type menu for use within the tab panel:<ul>
+     * <li>Add submenus for external node types, if applicable</li>
+     * <li>Reorganize the node type menu if the number of types is small</li>
+     * </ul>
+     */
+    private static JMenu tweakIconMenu(JMenu iconMenu, WBSDataModel data) {
         JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
         int numTaskTypes = taskMenu.getMenuComponentCount();
-        int numComponentTypes = iconMenu.getMenuComponentCount() - 2;
+        List<JMenu> extNodeMenus = buildExternalNodeTypeMenus(data);
+        int numExtNodeTypes = 0;
+        for (JMenu m : extNodeMenus)
+            numExtNodeTypes += m.getMenuComponentCount();
+        int numComponentTypes = iconMenu.getMenuComponentCount() - 2
+                + numExtNodeTypes;
 
-        if (numComponentTypes < 6 && (numTaskTypes + numComponentTypes < 15)) {
+        // if the total number of types is small, streamline the menu
+        if (numComponentTypes < 10 && (numTaskTypes + numComponentTypes < 15)) {
+            // add all external node types directly to the main icon menu
+            for (JMenu extMenu : extNodeMenus) {
+                iconMenu.addSeparator();
+                while (extMenu.getMenuComponentCount() > 0) {
+                    JMenuItem item = (JMenuItem) extMenu.getMenuComponent(0);
+                    item.setText(extMenu.getText() + " " + item.getText());
+                    extMenu.remove(item);
+                    iconMenu.add(item);
+                }
+            }
+            // add all task types directly to the main icon menu
             iconMenu.addSeparator();
             while (taskMenu.getMenuComponentCount() > 0) {
                 Component item = taskMenu.getMenuComponent(0);
                 taskMenu.remove(0);
                 iconMenu.add(item);
             }
+            // remove the task submenu and the separator that follows it
             iconMenu.remove(1);
             iconMenu.remove(0);
+        } else {
+            // when the menu cannot be streamlined, add all external node
+            // type menus to the main menu, just after the task menu
+            for (int i = extNodeMenus.size(); i-- > 0;)
+                iconMenu.add(extNodeMenus.get(i), 1);
         }
 
         return iconMenu;
+    }
+
+    private static List<JMenu> buildExternalNodeTypeMenus(WBSDataModel data) {
+        List<JMenu> result = new ArrayList<JMenu>();
+        ExternalSystemManager extSysMgr = data.getExternalSystemManager();
+        for (ExtSystem ext : extSysMgr.getExternalSystems()) {
+            if (!ext.getNodeTypes().isEmpty())
+                result.add(buildExternalNodeTypeMenu(ext));
+        }
+        return result;
+    }
+
+    private static JMenu buildExternalNodeTypeMenu(ExtSystem ext) {
+        JMenu result = new TeamProcess.NodeTypeMenu(ext.getName());
+        for (ExtNodeType type : ext.getNodeTypes())
+            result.add(makeExtNodeTypeMenu(type));
+        return result;
+    }
+
+    private static JMenuItem makeExtNodeTypeMenu(ExtNodeType type) {
+        JMenuItem item = new JMenuItem(type.getName(), type.getIcon());
+        item.putClientProperty(ExtNodeType.class, type);
+        return item;
     }
 
     /** Create the JTables and perform necessary setup */

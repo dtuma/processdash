@@ -86,6 +86,11 @@ public class ExternalSystemManager {
     }
 
 
+    public List<ExtSystem> getExternalSystems() {
+        return new ArrayList<ExtSystem>(extSystems.values());
+    }
+
+
     public void createDataColumns(WBSDataModel data) {
         for (ExtSystem ext : extSystems.values()) {
             // create a data column to display the external node ID
@@ -211,6 +216,10 @@ public class ExternalSystemManager {
 
         public final String getName() {
             return sysName;
+        }
+
+        public List<ExtNodeType> getNodeTypes() {
+            return ExternalSystemManager.this.getNodeTypes(this);
         }
 
     }
