@@ -31,6 +31,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import net.sourceforge.processdash.util.StringUtils;
@@ -93,7 +96,7 @@ public class SyncMetadata extends Properties {
 
     public void discardAttrs(String... initialKeyParts) {
         String prefix = getAttrName(initialKeyParts) + ".";
-        for (Iterator i = keySet().iterator(); i.hasNext();) {
+        for (Iterator i = super.keySet().iterator(); i.hasNext();) {
             String key = (String) i.next();
             if (key.startsWith(prefix)) {
                 i.remove();
@@ -118,13 +121,40 @@ public class SyncMetadata extends Properties {
         }
     }
 
+    // override various methods to return our keys in sorted order. Our goal
+    // is to generate a file that is in sorted order; but we can only hope that
+    // our superclass calls one of the methods below from its storage logic.
+
+    @Override
     public synchronized Enumeration keys() {
-        // return the list of keys in sorted order. This will cause the logic
-        // in the Properties.store method to store items in sorted order.
-        // (This is something of a hack, since we have no guarantee that
-        // Properties.store() will really call this method...but at least
-        // the Oracle implementation currently does.)
-        ArrayList l = Collections.list(super.keys());
+        return sortEnumeration(super.keys());
+    }
+
+    @Override
+    public Set<Object> keySet() {
+        return new TreeSet(super.keySet());
+    }
+
+    @Override
+    public Set<Entry<Object, Object>> entrySet() {
+        TreeMap sortedEntries = new TreeMap();
+        for (Entry<Object, Object> e : super.entrySet())
+            sortedEntries.put(e.getKey(), e.getValue());
+        return sortedEntries.entrySet();
+    }
+
+    @Override
+    public Enumeration<?> propertyNames() {
+        return sortEnumeration(super.propertyNames());
+    }
+
+    @Override
+    public Set<String> stringPropertyNames() {
+        return new TreeSet<String>(super.stringPropertyNames());
+    }
+
+    private Enumeration sortEnumeration(Enumeration e) {
+        ArrayList l = Collections.list(e);
         Collections.sort(l);
         return Collections.enumeration(l);
     }
