@@ -37,6 +37,12 @@ public interface ExtNodeSet {
 
     }
 
+    public interface ExportCreationCapable {
+
+        public void createExportedWbsNodes(List<ExportedWbsNode> nodes);
+
+    }
+
     public List<ExtNode> getExtNodes(Set<String> includingIDs)
             throws IOException;
 

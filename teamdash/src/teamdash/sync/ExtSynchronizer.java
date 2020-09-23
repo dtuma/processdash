@@ -80,7 +80,7 @@ public class ExtSynchronizer {
     private boolean wbsChanged;
 
     public ExtSynchronizer(TeamProject teamProject, String extSystemName,
-            String extSystemID, SyncMetadata metadata) {
+            String extSystemID, SyncMetadata metadata, boolean wbsDirty) {
         this.teamProject = teamProject;
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
@@ -88,9 +88,51 @@ public class ExtSynchronizer {
         this.extIDAttr = ExtSyncUtil.getExtIDAttr(extSystemID);
         this.metadata = metadata;
         this.reverseSyncedTime = false;
-        this.wbsChanged = false;
+        this.wbsChanged = wbsDirty;
+
+        // if the sync metadata holds external ID info for any recently exported
+        // nodes, apply those to the WBS
+        for (ExportedWbsNode node : getWbsNodesToExport()) {
+            if (node.loadExtIDFromMetadata())
+                wbsChanged = true;
+        }
+
         this.extNodeMap = buildExtNodeMap();
     }
+
+
+    public List<ExportedWbsNode> getWbsNodesToExport() {
+        List<ExportedWbsNode> result = new ArrayList();
+        getWbsNodesToExport(result, wbs.getRoot());
+        return result;
+    }
+
+    private void getWbsNodesToExport(List<ExportedWbsNode> result,
+            WBSNode parentNode) {
+        for (WBSNode node : wbs.getChildren(parentNode)) {
+            if (needsExport(node))
+                result.add(new ExportedWbsNode(node, extSystemID, metadata));
+            getWbsNodesToExport(result, node);
+        }
+    }
+
+    private boolean needsExport(WBSNode node) {
+        // abort if this node doesn't belong to our external system
+        Object nodeSystemID = node.getAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR);
+        if (!extSystemID.equals(nodeSystemID))
+            return false;
+
+        // abort if this node already has an ID from the ext system
+        String nodeExtID = (String) node.getAttribute(extIDAttr);
+        if (StringUtils.hasValue(nodeExtID))
+            return false;
+
+        // return true if we have the minimal info needed to create an ext node
+        String nodeName = node.getName();
+        Object nodeType = node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR);
+        return StringUtils.hasValue(nodeName) && nodeType != null;
+    }
+
 
     public void sync(List<ExtNode> extNodes) {
         this.extChangesNeeded = new ArrayList<ExtChange>();

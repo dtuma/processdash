@@ -35,7 +35,7 @@ import net.sourceforge.processdash.util.RobustFileOutputStream;
 public class DaemonMetadata {
 
     public enum State {
-        Sleep, Inbound, Outbound
+        Sleep, Export, Inbound, Outbound
     }
 
 
