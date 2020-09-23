@@ -37,6 +37,7 @@ import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class ExtSyncUtil {
@@ -96,6 +97,32 @@ public class ExtSyncUtil {
 
     public static String getExtOwnerAttr(String systemID) {
         return EXT_ATTR_PREFIX + systemID + " Owner";
+    }
+
+    public static boolean hasPendingExportedNodes(WBSModel wbs) {
+        for (WBSNode node : wbs.getWbsNodes()) {
+            if (isPendingExportedNode(node))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isPendingExportedNode(WBSNode node) {
+        // if this is not an ext node, return false
+        String systemID = (String) node.getAttribute(EXT_SYSTEM_ID_ATTR);
+        if (systemID == null)
+            return false;
+
+        // if this node has an external ID, return false
+        String extIDAttr = getExtIDAttr(systemID);
+        String extID = (String) node.getAttribute(extIDAttr);
+        if (StringUtils.hasValue(extID))
+            return false;
+
+        // return true if we have the minimal info needed to create an ext node
+        String nodeName = node.getName();
+        Object nodeType = node.getAttribute(EXT_NODE_TYPE_ID_ATTR);
+        return StringUtils.hasValue(nodeName) && nodeType != null;
     }
 
     /** @since 5.2.1 */
