@@ -212,6 +212,11 @@ public class SyncXml implements SyncXmlConstants {
         }
 
         @Override
+        public String getSimpleName() {
+            return getName();
+        }
+
+        @Override
         public String getType() {
             return xml.getAttribute(TYPE_ATTR);
         }

@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -212,13 +213,14 @@ public class ExtSynchronizer {
         HashMap<String, WBSNode> oldWbsNodes = new HashMap<String, WBSNode>(
                 extNodeMap);
         oldWbsNodes.remove(ExtSyncUtil.INCOMING_PARENT_ID);
+        List<ExportedWbsNode> exportedNodes = getWbsNodesToExport();
 
         this.nameChanges = new HashMap<String, String>();
         WBSNode parent = incomingNodeParent = getIncomingNodeParent();
         WBSNode previousSibling = null;
         for (ExtNode extNode : extNodes) {
             WBSNode node = createOrRenameNode(extNode, parent, previousSibling,
-                oldWbsNodes);
+                oldWbsNodes, exportedNodes);
             previousSibling = node;
         }
 
@@ -252,7 +254,8 @@ public class ExtSynchronizer {
     }
 
     private WBSNode createOrRenameNode(ExtNode extNode, WBSNode parent,
-            WBSNode previousSibling, HashMap<String, WBSNode> oldWbsNodes) {
+            WBSNode previousSibling, HashMap<String, WBSNode> oldWbsNodes,
+            List<ExportedWbsNode> exportedNodes) {
         // retrieve information about an external node
         String extID = extNode.getID();
         String extName = WBSClipSelection.scrubName(extNode.getName());
@@ -260,6 +263,9 @@ public class ExtSynchronizer {
 
         // look for the external node in our WBS
         WBSNode node = extNodeMap.get(extID);
+        if (node == null)
+            node = findExportedNodeToClaim(extNode, exportedNodes);
+
         if (node == null) {
             // if the node does not exist, create it.
             node = new WBSNode(wbs, extName, TeamProcess.COMPONENT_TYPE, 2,
@@ -327,7 +333,7 @@ public class ExtSynchronizer {
         WBSNode previousChild = null;
         for (ExtNode child : getChildren(extNode)) {
             previousChild = createOrRenameNode(child, node, previousChild,
-                oldWbsNodes);
+                oldWbsNodes, exportedNodes);
         }
 
         // our calling logic uses the return value from this method to track
@@ -342,6 +348,34 @@ public class ExtSynchronizer {
             // the previous sibling it gave us.
             return previousSibling;
         }
+    }
+
+    private WBSNode findExportedNodeToClaim(ExtNode extNode,
+            List<ExportedWbsNode> exportedNodes) {
+        // iterate over the exported nodes, looking for one that could be a
+        // match for the given external node
+        for (Iterator i = exportedNodes.iterator(); i.hasNext();) {
+            ExportedWbsNode expNode = (ExportedWbsNode) i.next();
+            if (extNode.getSimpleName().equals(expNode.getName())
+                    && NullSafeObjectUtils.EQ(extNode.getTypeID(),
+                        expNode.getTypeID())) {
+                // if we find a "pending export" in the WBS that matches this
+                // external node, look up the corresponding WBS node.
+                WBSNode wbsNode = wbs.getNodeMap().get(expNode.getWbsID());
+                if (wbsNode == null)
+                    continue;
+
+                // claim the WBS node as a match, by storing the external ID
+                // and saving it in the extNodeMap.
+                wbsNode.setAttribute(extIDAttr, extNode.getID());
+                extNodeMap.put(extNode.getID(), wbsNode);
+                i.remove();
+                return wbsNode;
+            }
+        }
+
+        // no matching exported node was found.
+        return null;
     }
 
     /**
