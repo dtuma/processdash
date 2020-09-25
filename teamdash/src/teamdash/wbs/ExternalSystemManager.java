@@ -157,7 +157,7 @@ public class ExternalSystemManager {
             for (Entry<String, String> e : types.entrySet()) {
                 String typeID = e.getKey();
                 String typeName = e.getValue();
-                Icon typeIcon = getIcon(ext.syncData, entries,
+                Icon typeIcon = getIcon(ext.syncData, metadata, entries,
                     ExtSyncUtil.NODE_TYPE_ICON, typeID);
                 boolean creatable = creatableKeys.contains(typeID);
                 result.add(new ExtNodeType(ext, typeID, typeName, typeIcon,
@@ -172,15 +172,16 @@ public class ExternalSystemManager {
         return result;
     }
 
-    private Icon getIcon(SyncDataFile syncData, List<ExportFileEntry> entries,
-            String entryType, String typeID) {
+    private Icon getIcon(SyncDataFile syncData, SyncMetadata metadata,
+            List<ExportFileEntry> entries, String entryType, String typeID) {
         String namePat = "/" + typeID + ".";
         for (ExportFileEntry e : entries) {
             String entryName = e.getFilename();
             if (e.getType().equals(entryType) && entryName.contains(namePat)) {
                 try {
-                    return WBSZoom.icon(
-                        readIcon(entryName, syncData.openEntry(entryName)));
+                    return WBSZoom.icon(readIcon(entryName, //
+                        syncData.openEntry(entryName), //
+                        getIconPadding(metadata, typeID)));
                 } catch (Exception ex) {
                 }
             }
@@ -188,12 +189,45 @@ public class ExternalSystemManager {
         return DEFAULT_NODE_TYPE_ICON;
     }
 
-    private Icon readIcon(String entryName, InputStream in) throws Exception {
+    private int[] getIconPadding(SyncMetadata metadata, String typeID) {
+        // retrieve the padding; first for this specific icon, then global
+        String padding = metadata.getStr(ExtSyncUtil.NODE_TYPE_PREFIX, typeID,
+            ExtSyncUtil.NODE_TYPE_ICON_PADDING);
+        if (padding == null)
+            padding = metadata.getStr(ExtSyncUtil.NODE_TYPE_PREFIX,
+                ExtSyncUtil.NODE_TYPE_ICON_PADDING);
+
+        // if no padding is specified, assume 1 pixel padding all around
+        if (padding == null)
+            return STD_ICON_PADDING;
+
+        // parse the padding like CSS, with 1-4 padding components
+        try {
+            String[] p = padding.trim().split("\\D+");
+            int[] result = new int[4];
+            result[0] = Integer.parseInt(p[0]);
+            result[1] = (p.length > 1 ? Integer.parseInt(p[1]) : result[0]);
+            result[2] = (p.length > 2 ? Integer.parseInt(p[2]) : result[0]);
+            result[3] = (p.length > 3 ? Integer.parseInt(p[3]) : result[1]);
+            return result;
+        } catch (Exception e) {
+            return STD_ICON_PADDING;
+        }
+    }
+
+    private static final int[] STD_ICON_PADDING = { 1, 1, 1, 1 };
+
+    private Icon readIcon(String entryName, InputStream in, int[] padding)
+            throws Exception {
+        // in the future, we may honor and apply all padding values; but for
+        // now we just subtract top and bottom padding from the icon height,
+        // then let rendering code center the resulting icon
+        int height = 16 - padding[0] - padding[2];
         byte[] data = FileUtils.slurpContents(in, true);
         if (entryName.endsWith(".svg"))
-            return new ScalableSvgIcon(16, data);
+            return new ScalableSvgIcon(height, data);
         else
-            return new ScalableImageIcon(16, new ImageIcon(data));
+            return new ScalableImageIcon(height, new ImageIcon(data));
     }
 
     private static final Icon DEFAULT_NODE_TYPE_ICON = WBSZoom

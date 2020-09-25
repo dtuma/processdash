@@ -60,6 +60,8 @@ public class ExtSyncUtil {
 
     public static final String NODE_TYPE_ICON = "nodeTypeIcon";
 
+    public static final String NODE_TYPE_ICON_PADDING = "iconPadding";
+
     static final String EXT_ATTR_PREFIX = "Ext-";
 
     public static boolean isExtNode(WBSNode node) {

@@ -45,6 +45,8 @@ public class ExtNodeTypeMetadata {
 
     public String iconUrl;
 
+    public String iconPadding;
+
 
     public static void storeNodeTypeMetadata(SyncDataFile syncData,
             List<ExtNodeTypeMetadata> allNodeTypes) throws IOException {
@@ -101,6 +103,11 @@ public class ExtNodeTypeMetadata {
             ExportFileEntry efe = new ExportFileEntry(iconEntryName,
                     ExtSyncUtil.NODE_TYPE_ICON, "1", null);
             syncData.addEntry(efe, data);
+
+            // store any icon padding value that was specified
+            syncData.getMetadata().setStr(type.iconPadding,
+                ExtSyncUtil.NODE_TYPE_PREFIX, type.id,
+                ExtSyncUtil.NODE_TYPE_ICON_PADDING);
 
         } catch (IOException ioe) {
             // missing icons are not fatal
