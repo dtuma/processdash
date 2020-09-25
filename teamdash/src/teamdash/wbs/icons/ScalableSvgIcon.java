@@ -27,6 +27,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.RGBImageFilter;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import com.kitfox.svg.app.beans.SVGIcon;
 
@@ -42,10 +43,15 @@ public class ScalableSvgIcon extends AbstractPixelAwareRecolorableIcon {
 
     public ScalableSvgIcon(int height, byte[] svgData) {
         this.svgIcon = new SVGIcon();
-        svgIcon.setSvgURI(svgIcon.getSvgUniverse().loadSVG(
-            new ByteArrayInputStream(svgData), "ScaledSvgIcon#" + NAME_IDX++));
+        try {
+            svgIcon.setSvgURI(svgIcon.getSvgUniverse().loadSVG(
+                new ByteArrayInputStream(svgData),
+                "ScaledSvgIcon#" + NAME_IDX++));
+        } catch (IOException ioe) {
+            // can't happen - the data is in memory
+        }
         svgIcon.setAntiAlias(true);
-        svgIcon.setScaleToFit(true);
+        svgIcon.setAutosize(SVGIcon.AUTOSIZE_BESTFIT);
 
         this.height = height;
         this.width = (int) (0.5 + (svgIcon.getIconWidth() * height //
