@@ -81,8 +81,8 @@ public abstract class ExtSyncDaemon {
         // create an object for managing a connection to the external system
         this.connection = openConnection(globalConfig);
 
-        // ensure we can connect to any PDES-based WBS
-        configureWbsCredentials(globalConfig);
+        // ensure we can connect to any PDES-based data
+        configurePdesCredentials(globalConfig);
     }
 
 
@@ -118,10 +118,10 @@ public abstract class ExtSyncDaemon {
     }
 
     /**
-     * Configure credentials for WBS connectivity
+     * Configure credentials for PDES connectivity
      */
-    private void configureWbsCredentials(Properties properties) {
-        String strategy = properties.getProperty("wbs.auth");
+    private void configurePdesCredentials(Properties properties) {
+        String strategy = properties.getProperty("pdes.auth");
         if ("keyring".equalsIgnoreCase(strategy)) {
             // prompt the user for credentials, and save them in OS-provided
             // cryptographically secure storage
@@ -140,8 +140,8 @@ public abstract class ExtSyncDaemon {
         private String username, password;
 
         public HttpAuth(Properties p) {
-            username = p.getProperty("wbs.username");
-            password = p.getProperty("wbs.password");
+            username = p.getProperty("pdes.username");
+            password = p.getProperty("pdes.password");
         }
 
         @Override
