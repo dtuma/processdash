@@ -60,6 +60,10 @@ public abstract class ExtSyncDaemon {
     public ExtSyncDaemon(String globalConfigFilename) throws Exception {
         // create an object for logging
         this.log = Logger.getLogger(getClass().getName());
+        String version = ExtSyncDaemon.class.getPackage().getImplementationVersion();
+        String extVersion = getClass().getPackage().getImplementationVersion();
+        log.info(getClass().getSimpleName() + " version [" + extVersion + " / "
+                + version + "]");
 
         // load global config parameters based on command line arg
         this.globalConfig = loadGlobalConfig(globalConfigFilename);
