@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2019 Tuma Solutions, LLC
+// Copyright (C) 2016-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,11 +31,14 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
 
     private String subdir;
 
+    private SyncFilter filter;
+
     public BridgedImportSubdirectory(BridgedWorkingDirectory base, String subdir) {
         super(new File(base.getDirectory(), subdir));
         if (base.hasAcquiredWriteLock())
             this.base = base;
         this.subdir = subdir;
+        this.filter = new SubdirFilter();
     }
 
     @Override
@@ -43,7 +46,7 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
         try {
             if (base != null && base.hasAcquiredWriteLock()
                     && !ImportDirectoryFactory.getInstance().isCaching()) {
-                base.flushData();
+                base.client.syncUp(filter);
             }
         } catch (Exception e) {
         }
@@ -55,6 +58,15 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
             return null;
         else
             return base.getDescription() + "#" + subdir;
+    }
+
+    private class SubdirFilter implements SyncFilter {
+
+        private String prefix = subdir + "/";
+
+        public boolean shouldSync(String name, long localTS, long remoteTS) {
+            return name.startsWith(prefix);
+        }
     }
 
 }
