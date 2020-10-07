@@ -76,6 +76,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -1855,12 +1856,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (Settings.isReadOnly())
             return unsavedData;
 
-        // First, ask all GUIs to save their dirty data
-        fireApplicationEvent(ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
-
-        // Next, save and close the Hierarchy Editor if it is open/dirty
-        if (configure_button != null)
-            configure_button.saveAndCloseHierarchyEditor();
+        // prompt the user to save changes in various GUIs
+        saveDirtyGuiData();
 
         // save the size of the team dashboard window
         maybeSaveWindowSize();
@@ -1895,6 +1892,30 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             unsavedData.add(flushResult);
 
         return unsavedData;
+    }
+
+    private void saveDirtyGuiData() {
+        Runnable r = new Runnable() {
+            public void run() {
+                // First, ask all GUIs to save their dirty data
+                fireApplicationEvent(
+                    ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
+
+                // Next, save and close the Hierarchy Editor if it is open/dirty
+                if (configure_button != null)
+                    configure_button.saveAndCloseHierarchyEditor();
+            }
+        };
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            r.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(r);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     boolean saveMetricsData() {
