@@ -337,7 +337,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     }
 
     public URL doBackup(String qualifier) throws IOException {
-        if (worker != null) {
+        if (USE_SERVER_BACKUP_ACTION && worker != null) {
             try {
                 // Contact the server and ask it to record a backup.  Note that
                 // we do no contact the server when we are in read-only mode
@@ -716,6 +716,11 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         return DirectoryPreferences.getLocalCacheDir(url);
     }
 
+    public static void setUseServerBackupAction(boolean useServerBackup) {
+        USE_SERVER_BACKUP_ACTION = useServerBackup;
+    }
+
+    private static boolean USE_SERVER_BACKUP_ACTION = false;
 
     private static final long ONE_MINUTE = 60 * 1000;
 

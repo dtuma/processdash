@@ -806,6 +806,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // team server URL as the "default team server."
         TeamServerSelector.maybeSetDefaultTeamServerUrl(workingDirectory);
 
+        // Set a flag to control backups of bridged working directories
+        BridgedWorkingDirectory.setUseServerBackupAction(
+            Settings.getBool("pdes.useServerBackupAction", false));
+
         // Note: the code below has no effect in Java 11 and later. Application
         // logic has been updated to stop relying on the value of the current
         // working directory. The lines below are being left in place in case
