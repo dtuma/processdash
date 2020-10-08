@@ -155,7 +155,6 @@ import teamdash.team.WeeklySchedule;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
-import teamdash.wbs.columns.EditableSizeColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
@@ -167,10 +166,7 @@ import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
-import teamdash.wbs.columns.SizeAccountingColumnSet;
-import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.SizeColumnManager;
-import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -282,9 +278,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 teamProject.getProxies(), teamProject.getMilestones(),
                 teamProject.getColumns(), taskDependencySource, owner);
 
-        if (teamProject.getSizeMetrics() != null)
-            sizeMetricsModel = new SizeMetricsDataModel(
-                    teamProject.getSizeMetrics());
+        sizeMetricsModel = new SizeMetricsDataModel(
+                teamProject.getSizeMetrics());
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
                 teamProject.getSizeMetrics());
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
@@ -361,57 +356,14 @@ public class WBSEditor implements WindowListener, SaveListener,
                 milestonesModel);
         }
 
-        String[] sizeMetrics = new String[0];
-        if (sizeMetricsModel == null)
-            sizeMetrics = new ArrayList<String>(teamProject.getTeamProcess() //
-                    .getSizeMetricMap().keySet()).toArray(sizeMetrics);
-        String[] sizeTabColIDs = new String[sizeMetrics.length+2];
-        String[] sizeTabColNames = new String[sizeMetrics.length+2];
-        String[] planSizeTabColIDs = new String[sizeMetrics.length];
-        String[] actSizeTabColIDs = new String[sizeMetrics.length];
-        String[] sizeDataColNames = new String[sizeMetrics.length];
-        sizeTabColIDs[0] = EditableSizeColumn.COLUMN_ID;
-        sizeTabColIDs[1] = SizeTypeColumn.COLUMN_ID;
-        boolean newSizeColumns = SizeTypeColumn.isUsingNewSizeDataColumns(model);
-        for (int i = 0; i < sizeMetrics.length; i++) {
-            String units = sizeMetrics[i];
-            sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(units);
-            sizeTabColNames[i+2] = units;
-            planSizeTabColIDs[i] = (newSizeColumns
-                    ? SizeDataColumn.getColumnID(units, true)
-                    : SizeActualDataColumn.getColumnID(units, true));
-            actSizeTabColIDs[i] = (newSizeColumns
-                    ? SizeDataColumn.getColumnID(units, false)
-                    : SizeActualDataColumn.getColumnID(units, false));
-            sizeDataColNames[i] = units;
-        }
-
-        if (newSizeColumns == false) {
-            tabPanel.addTab(
-                getRes(showActualSize ? "Tabs.Launch_Size" : "Tabs.Size"),
-                sizeTabColIDs, sizeTabColNames);
-
-            tabPanel.addTab(
-                getRes(showActualSize ? "Tabs.Launch_Size_Accounting"
-                        : "Tabs.Size_Accounting"),
-                new String[] { SizeTypeColumn.COLUMN_ID, "Base", "Deleted",
-                        "Modified", "Added", "Reused", "N&C", "Total" },
-                null);
-        }
-
-        if (sizeMetricsModel != null) {
-            SizeColumnManager scm = data.getSizeColumnManager();
-            Action editSizeAction = null;
-            if (SizeMetricsEditor.isEditable(teamProject))
-                editSizeAction = new SizeMetricsEditorAction();
-            tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true),
-                editSizeAction, false);
-            tabPanel.addTab(getRes("Tabs.Actual_Size"),
-                scm.getTableColumns(false), editSizeAction, false);
-        } else if ((newSizeColumns || showActualSize) && !isMode(MODE_MASTER)) {
-            tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
-            tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
-        }
+        SizeColumnManager scm = data.getSizeColumnManager();
+        Action editSizeAction = null;
+        if (SizeMetricsEditor.isEditable(teamProject))
+            editSizeAction = new SizeMetricsEditorAction();
+        tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true),
+            editSizeAction, false);
+        tabPanel.addTab(getRes("Tabs.Actual_Size"),
+            scm.getTableColumns(false), editSizeAction, false);
 
         boolean plainNotPersonal = isMode(MODE_PLAIN) && !isMode(MODE_PERSONAL);
         boolean notMasterNotPersonal = !isMode(MODE_MASTER) && !isMode(MODE_PERSONAL);
@@ -1136,7 +1088,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void showSizeMetricsEditor() {
         if (sizeMetricsEditor != null)
             sizeMetricsEditor.show();
-        else if (sizeMetricsModel != null) {
+        else {
             sizeMetricsEditor = new SizeMetricsEditor(teamProject,
                     sizeMetricsModel, wbsWindowTitle, guiPrefs);
             sizeMetricsEditor.addChangeListener(this.dirtyListener);
@@ -1304,8 +1256,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu(resources.getString("Workflow.Menu"));
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
-        if (sizeMetricsModel != null)
-            result.add(new SizeMetricsEditorAction());
+        result.add(new SizeMetricsEditorAction());
         result.add(new ProxyEditorAction());
         int readOnlyItemCount = result.getMenuComponentCount();
         result.addSeparator();
