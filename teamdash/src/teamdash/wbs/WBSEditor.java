@@ -147,6 +147,7 @@ import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.sync.ExtRefreshCoordinator;
+import teamdash.sync.ExtSyncUtil;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList.InitialsListener;
@@ -271,12 +272,14 @@ public class WBSEditor implements WindowListener, SaveListener,
         WorkflowUtil.maybeUpdateWorkflowTypeData(model,
             teamProject.getWorkflows());
 
+        ExternalSystemManager extSysMgr = new ExternalSystemManager(storageDir);
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         WBSDataModel data = new WBSDataModel(model,
                 teamProject.getTeamMemberList(), teamProject.getTeamProcess(),
                 teamProject.getWorkflows(), teamProject.getSizeMetrics(),
                 teamProject.getProxies(), teamProject.getMilestones(),
-                teamProject.getColumns(), taskDependencySource, owner);
+                teamProject.getColumns(), extSysMgr, taskDependencySource,
+                owner);
 
         sizeMetricsModel = new SizeMetricsDataModel(
                 teamProject.getSizeMetrics());
@@ -337,8 +340,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (expandedNodes != null) {
             model.setExpandedNodeIDs(expandedNodes);
         }
-
-        ExternalSystemManager.createDataColumns(storageDir, data);
 
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 teamProject.getWorkflows(), taskDependencySource, guiPrefs);
@@ -1715,6 +1716,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         try {
             if (saveData()) {
+                if (ExtSyncUtil.hasPendingExportedNodes(teamProject.getWBS()))
+                    new RefreshWorker().run();
                 maybeTriggerBackgroundSyncOperation();
                 return true;
             }

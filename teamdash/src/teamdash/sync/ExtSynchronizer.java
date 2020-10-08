@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -80,7 +81,7 @@ public class ExtSynchronizer {
     private boolean wbsChanged;
 
     public ExtSynchronizer(TeamProject teamProject, String extSystemName,
-            String extSystemID, SyncMetadata metadata) {
+            String extSystemID, SyncMetadata metadata, boolean wbsDirty) {
         this.teamProject = teamProject;
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
@@ -88,9 +89,51 @@ public class ExtSynchronizer {
         this.extIDAttr = ExtSyncUtil.getExtIDAttr(extSystemID);
         this.metadata = metadata;
         this.reverseSyncedTime = false;
-        this.wbsChanged = false;
+        this.wbsChanged = wbsDirty;
+
+        // if the sync metadata holds external ID info for any recently exported
+        // nodes, apply those to the WBS
+        for (ExportedWbsNode node : getWbsNodesToExport()) {
+            if (node.loadExtIDFromMetadata())
+                wbsChanged = true;
+        }
+
         this.extNodeMap = buildExtNodeMap();
     }
+
+
+    public List<ExportedWbsNode> getWbsNodesToExport() {
+        List<ExportedWbsNode> result = new ArrayList();
+        getWbsNodesToExport(result, wbs.getRoot());
+        return result;
+    }
+
+    private void getWbsNodesToExport(List<ExportedWbsNode> result,
+            WBSNode parentNode) {
+        for (WBSNode node : wbs.getChildren(parentNode)) {
+            if (needsExport(node))
+                result.add(new ExportedWbsNode(node, extSystemID, metadata));
+            getWbsNodesToExport(result, node);
+        }
+    }
+
+    private boolean needsExport(WBSNode node) {
+        // abort if this node doesn't belong to our external system
+        Object nodeSystemID = node.getAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR);
+        if (!extSystemID.equals(nodeSystemID))
+            return false;
+
+        // abort if this node already has an ID from the ext system
+        String nodeExtID = (String) node.getAttribute(extIDAttr);
+        if (StringUtils.hasValue(nodeExtID))
+            return false;
+
+        // return true if we have the minimal info needed to create an ext node
+        String nodeName = node.getName();
+        Object nodeType = node.getAttribute(ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR);
+        return StringUtils.hasValue(nodeName) && nodeType != null;
+    }
+
 
     public void sync(List<ExtNode> extNodes) {
         this.extChangesNeeded = new ArrayList<ExtChange>();
@@ -170,13 +213,14 @@ public class ExtSynchronizer {
         HashMap<String, WBSNode> oldWbsNodes = new HashMap<String, WBSNode>(
                 extNodeMap);
         oldWbsNodes.remove(ExtSyncUtil.INCOMING_PARENT_ID);
+        List<ExportedWbsNode> exportedNodes = getWbsNodesToExport();
 
         this.nameChanges = new HashMap<String, String>();
         WBSNode parent = incomingNodeParent = getIncomingNodeParent();
         WBSNode previousSibling = null;
         for (ExtNode extNode : extNodes) {
             WBSNode node = createOrRenameNode(extNode, parent, previousSibling,
-                oldWbsNodes);
+                oldWbsNodes, exportedNodes);
             previousSibling = node;
         }
 
@@ -204,12 +248,14 @@ public class ExtSynchronizer {
             result.setAttribute(extIDAttr, ExtSyncUtil.INCOMING_PARENT_ID);
             wbs.add(result);
         }
+        result.setAttribute(ExtSyncUtil.EXT_NODE_TYPE_ATTR, "Incoming Items");
         result.setReadOnly(true);
         return result;
     }
 
     private WBSNode createOrRenameNode(ExtNode extNode, WBSNode parent,
-            WBSNode previousSibling, HashMap<String, WBSNode> oldWbsNodes) {
+            WBSNode previousSibling, HashMap<String, WBSNode> oldWbsNodes,
+            List<ExportedWbsNode> exportedNodes) {
         // retrieve information about an external node
         String extID = extNode.getID();
         String extName = WBSClipSelection.scrubName(extNode.getName());
@@ -217,6 +263,9 @@ public class ExtSynchronizer {
 
         // look for the external node in our WBS
         WBSNode node = extNodeMap.get(extID);
+        if (node == null)
+            node = findExportedNodeToClaim(extNode, exportedNodes);
+
         if (node == null) {
             // if the node does not exist, create it.
             node = new WBSNode(wbs, extName, TeamProcess.COMPONENT_TYPE, 2,
@@ -284,7 +333,7 @@ public class ExtSynchronizer {
         WBSNode previousChild = null;
         for (ExtNode child : getChildren(extNode)) {
             previousChild = createOrRenameNode(child, node, previousChild,
-                oldWbsNodes);
+                oldWbsNodes, exportedNodes);
         }
 
         // our calling logic uses the return value from this method to track
@@ -299,6 +348,34 @@ public class ExtSynchronizer {
             // the previous sibling it gave us.
             return previousSibling;
         }
+    }
+
+    private WBSNode findExportedNodeToClaim(ExtNode extNode,
+            List<ExportedWbsNode> exportedNodes) {
+        // iterate over the exported nodes, looking for one that could be a
+        // match for the given external node
+        for (Iterator i = exportedNodes.iterator(); i.hasNext();) {
+            ExportedWbsNode expNode = (ExportedWbsNode) i.next();
+            if (extNode.getSimpleName().equals(expNode.getName())
+                    && NullSafeObjectUtils.EQ(extNode.getTypeID(),
+                        expNode.getTypeID())) {
+                // if we find a "pending export" in the WBS that matches this
+                // external node, look up the corresponding WBS node.
+                WBSNode wbsNode = wbs.getNodeMap().get(expNode.getWbsID());
+                if (wbsNode == null)
+                    continue;
+
+                // claim the WBS node as a match, by storing the external ID
+                // and saving it in the extNodeMap.
+                wbsNode.setAttribute(extIDAttr, extNode.getID());
+                extNodeMap.put(extNode.getID(), wbsNode);
+                i.remove();
+                return wbsNode;
+            }
+        }
+
+        // no matching exported node was found.
+        return null;
     }
 
     /**
@@ -411,6 +488,12 @@ public class ExtSynchronizer {
 
             // save the user-facing key for the given node
             saveReadOnlyAttr(node, keyAttr, extNode.getKey());
+
+            // save the external type of the given node
+            saveReadOnlyAttr(node, ExtSyncUtil.EXT_NODE_TYPE_ATTR,
+                extNode.getType());
+            saveReadOnlyAttr(node, ExtSyncUtil.EXT_NODE_TYPE_ID_ATTR,
+                extNode.getTypeID());
 
             // save the external URL for the given node
             saveReadOnlyAttr(node, urlAttr, extNode.getUrl());

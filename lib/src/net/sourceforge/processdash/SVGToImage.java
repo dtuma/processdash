@@ -2,7 +2,7 @@
 // developed by Mark McKay as part of the SVG Salamander project, and
 // distributed under the LGPL.
 //
-// Changes copyright (C) 2006 Tuma Solutions, LLC
+// Changes copyright (C) 2006-2020 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lessser General Public License
@@ -198,6 +198,7 @@ public class SVGToImage extends Task {
         SVGIcon icon = new SVGIcon();
         icon.setSvgURI(source.toURI());
         icon.setAntiAlias(antiAlias);
+        icon.setInterpolation(SVGIcon.INTERP_BICUBIC);
 
         maybeResizeIcon(icon);
 
@@ -207,7 +208,6 @@ public class SVGToImage extends Task {
         BufferedImage image = new BufferedImage(width, height,
                 BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        g = new ImageResizingGraphics(g);
 
         if (bgColor != null) {
             g.setColor(bgColor);
@@ -256,6 +256,6 @@ public class SVGToImage extends Task {
         int newWidth = (int) Math.round(iconWidth * scale);
         int newHeight = (int) Math.round(iconHeight * scale);
         icon.setPreferredSize(new Dimension(newWidth, newHeight));
-        icon.setScaleToFit(true);
+        icon.setAutosize(SVGIcon.AUTOSIZE_STRETCH);
     }
 }

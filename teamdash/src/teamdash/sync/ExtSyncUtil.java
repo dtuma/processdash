@@ -37,6 +37,7 @@ import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class ExtSyncUtil {
@@ -45,7 +46,21 @@ public class ExtSyncUtil {
 
     public static final String EXT_SYSTEM_ID_ATTR = "External System ID";
 
+    public static final String EXT_NODE_TYPE_ATTR = "External Node Type";
+
+    public static final String EXT_NODE_TYPE_ID_ATTR = "External Node Type ID";
+
     public static final String INCOMING_PARENT_ID = "incoming";
+
+    public static final String NODE_TYPE_PREFIX = "nodeType";
+
+    public static final String NAME_ATTR = "name";
+
+    public static final String CREATABLE_ATTR = "keyList.creatable";
+
+    public static final String NODE_TYPE_ICON = "nodeTypeIcon";
+
+    public static final String NODE_TYPE_ICON_PADDING = "iconPadding";
 
     static final String EXT_ATTR_PREFIX = "Ext-";
 
@@ -60,7 +75,15 @@ public class ExtSyncUtil {
                 EXT_ATTR_PREFIX + extSystemID + " "));
             node.setReadOnly(false);
         }
+        node.removeAttribute(EXT_NODE_TYPE_ATTR);
+        node.removeAttribute(EXT_NODE_TYPE_ID_ATTR);
     }
+
+    public static void removeExtIDAttributes(WBSNode node) {
+        node.removeAttributes(EXT_ID_ATTR_PAT);
+    }
+    private static final PatternList EXT_ID_ATTR_PAT = new PatternList(
+            "^" + EXT_ATTR_PREFIX + ".* (ID|Key)$");
 
     public static String getExtIDAttr(String systemID) {
         return EXT_ATTR_PREFIX + systemID + " ID";
@@ -76,6 +99,32 @@ public class ExtSyncUtil {
 
     public static String getExtOwnerAttr(String systemID) {
         return EXT_ATTR_PREFIX + systemID + " Owner";
+    }
+
+    public static boolean hasPendingExportedNodes(WBSModel wbs) {
+        for (WBSNode node : wbs.getWbsNodes()) {
+            if (isPendingExportedNode(node))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isPendingExportedNode(WBSNode node) {
+        // if this is not an ext node, return false
+        String systemID = (String) node.getAttribute(EXT_SYSTEM_ID_ATTR);
+        if (systemID == null)
+            return false;
+
+        // if this node has an external ID, return false
+        String extIDAttr = getExtIDAttr(systemID);
+        String extID = (String) node.getAttribute(extIDAttr);
+        if (StringUtils.hasValue(extID))
+            return false;
+
+        // return true if we have the minimal info needed to create an ext node
+        String nodeName = node.getName();
+        Object nodeType = node.getAttribute(EXT_NODE_TYPE_ID_ATTR);
+        return StringUtils.hasValue(nodeName) && nodeType != null;
     }
 
     /** @since 5.2.1 */

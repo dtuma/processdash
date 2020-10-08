@@ -48,6 +48,22 @@ public interface ExtNode {
     public String getName();
 
     /**
+     * @return the portion of the name that corresponds directly to the WBS node
+     *         name (without any ID/key prefixes or suffixes)
+     */
+    public String getSimpleName();
+
+    /**
+     * @return the human-readable type of this node in the external system
+     */
+    public String getType();
+
+    /**
+     * @return the ID in the external system for the type of this node
+     */
+    public String getTypeID();
+
+    /**
      * @return a list of the children of this node, in the external system
      */
     public List<ExtNode> getChildren();

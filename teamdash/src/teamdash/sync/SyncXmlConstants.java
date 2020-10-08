@@ -68,6 +68,16 @@ public interface SyncXmlConstants {
     String NODE_NAME_ATTR = "name";
 
     /**
+     * Attribute holding the human-readable type of an external node
+     */
+    String TYPE_ATTR = "type";
+
+    /**
+     * Attribute holding the ID in an external node for a node's type
+     */
+    String TYPE_ID_ATTR = "typeID";
+
+    /**
      * Attribute holding the owner of an external node
      */
     String OWNER_ATTR = "owner";

@@ -127,6 +127,10 @@ public class IconFactory {
         return new MilestoneIcon(DEFAULT_COLOR);
     }
 
+    public static Icon getExtNodeIcon() {
+        return HierarchyIcons.getComponentIcon(Color.WHITE);
+    }
+
     public static Icon getPlusIcon() {
         return PLUS_ICON;
     }

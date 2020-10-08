@@ -29,6 +29,20 @@ import java.util.Set;
 
 public interface ExtNodeSet {
 
+    public interface LifecycleAware {
+
+        public void syncStarting() throws IOException;
+
+        public void syncFinishing() throws IOException;
+
+    }
+
+    public interface ExportCreationCapable {
+
+        public void createExportedWbsNodes(List<ExportedWbsNode> nodes);
+
+    }
+
     public List<ExtNode> getExtNodes(Set<String> includingIDs)
             throws IOException;
 

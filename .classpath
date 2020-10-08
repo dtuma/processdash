@@ -13,7 +13,7 @@
 	<classpathentry kind="var" path="JDK_HOME/jre/lib/plugin.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/kxml-2.2.1-mod.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json_simple.jar"/>
-	<classpathentry kind="lib" path="lib/svgSalamander.jar"/>
+	<classpathentry kind="lib" path="lib/svgSalamander.jar" sourcepath="lib/svgSalamander-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jcalendar-1.3.2.jar" sourcepath="misc/zips/jcalendar-1.3.2.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/datatips.jar" sourcepath="lib/datatips.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/colt.jar" sourcepath="lib/colt.jar"/>

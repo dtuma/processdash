@@ -66,6 +66,7 @@ import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.team.WeeklySchedule;
+import teamdash.wbs.columns.ExternalNodeTypeColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.SizeDataColumn;
@@ -997,6 +998,7 @@ public class WBSSynchronizer {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
                 node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
+                ExternalNodeTypeColumn.storeType(node, null);
                 needsWbsEvent = true;
             }
         }
