@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -22,8 +22,6 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.wbs;
-
-import static teamdash.wbs.columns.SizeTypeColumn.isUsingNewSizeDataColumns;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -297,6 +295,10 @@ public class MasterWBSUtil {
         boolean aSizeFlag = isUsingNewSizeDataColumns(a);
         boolean bSizeFlag = isUsingNewSizeDataColumns(b);
         return aSizeFlag != bSizeFlag;
+    }
+
+    private static boolean isUsingNewSizeDataColumns(WBSModel wbs) {
+        return wbs.getRoot().getAttribute("WBS Managed Size Data") != null;
     }
 
     public static String getNodeID(WBSNode node, String projectID) {

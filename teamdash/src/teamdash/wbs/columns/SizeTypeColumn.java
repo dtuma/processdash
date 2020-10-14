@@ -203,13 +203,6 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
     }
 
-    /**
-     * @deprecated
-     */
-    public static boolean isUsingNewSizeDataColumns(WBSModel wbsModel) {
-        return true;
-    }
-
     private static final String NEW_SIZE_ATTR_NAME = "WBS Managed Size Data";
 
 

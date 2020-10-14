@@ -80,10 +80,7 @@ public class SizeColumnManager {
                 new DefaultTableColumnModel(), new DefaultTableColumnModel() };
         this.listeners = new ArrayList<ChangeListener>();
 
-        if (SizeTypeColumn.isUsingNewSizeDataColumns(wbsDataModel.getWBSModel()))
-            createSizeDataColumns();
-        else
-            lookupOldStyleSizeColumns();
+        createSizeDataColumns();
 
         if (sizeMetrics != null) {
             sizeMetrics.addTableModelListener(new TableModelListener() {
@@ -211,30 +208,6 @@ public class SizeColumnManager {
             DataTableColumn dtc = new DataTableColumn(wbsDataModel, col);
             dtc.setHeaderValue(((SizeDataColumn) col).getMetricDisplayName());
             table.addColumn(dtc);
-        }
-    }
-
-    /**
-     * Look up the planned and actual size columns that were created for a
-     * project that doesn't use WBS-managed size.
-     */
-    private void lookupOldStyleSizeColumns() {
-        // Loop over plan/actual
-        for (int i = 2; i-- > 0;) {
-            boolean plan = (i == PLAN);
-
-            // Loop through the list of size metrics
-            for (String metric : teamProcess.getSizeMetricMap().keySet()) {
-                // look up the index of this size column
-                String columnID = SizeDataColumn.getColumnID(metric, plan);
-                int columnIndex = wbsDataModel.findColumn(columnID);
-                if (columnIndex != -1) {
-                    // look up the column itself
-                    DataColumn column = wbsDataModel.getColumn(columnIndex);
-                    sizeColumns[i].put(metric, column);
-                    sizeColumnIndexes[i].put(metric, columnIndex);
-                }
-            }
         }
     }
 

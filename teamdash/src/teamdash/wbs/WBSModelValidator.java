@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,8 +33,6 @@ import java.util.StringTokenizer;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import teamdash.wbs.columns.SizeTypeColumn;
-
 
 /** Checks a WBSModel for errors, and saves those errors as attributes
  * on the erroneous nodes.
@@ -60,15 +58,10 @@ public class WBSModelValidator implements TableModelListener {
     /** True if we are validating a workflow WBS */
     protected boolean workflowMode;
 
-    /** True if this WBS is using the new SizeDataColumn model */
-    protected boolean newSizeDataColumns;
-
     /** Create a validator for the given WBSModel. */
     public WBSModelValidator(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         this.workflowMode = (wbsModel instanceof WorkflowWBSModel);
-        this.newSizeDataColumns = SizeTypeColumn
-                .isUsingNewSizeDataColumns(wbsModel);
         wbsModel.addTableModelListener(this);
     }
 
@@ -163,33 +156,9 @@ public class WBSModelValidator implements TableModelListener {
         if (type == null) type = "Task";
         if (parentType == null) parentType = "Task";
 
-        if (newSizeDataColumns) {
-
-            // components cannot be children of tasks
-
-            if (parentType.endsWith(" Task") && !type.endsWith(" Task"))
-                return type + "s cannot be children of tasks.";
-
-        } else if (isLOCComponent(type)) {
-
-            // the parent of a software component must be another
-            // software component.
-
-            if (! isLOCComponent(parentType))
-                return "This " + lowerCase(type) + " must be a child either"
-                + " of a component, a software component, or "
-                + (isCodeTask(type) ? "another" : "a") + " code task.";
-
-        } else if (isOtherSizeComponent(type)) {
-
-            // the parent of a non-LOC size object must be another object
-            // of the same type, or a software component.
-
-            if (!isLOCComponent(parentType) && !type.equals(parentType))
-                return "This " + lowerCase(type) + " must be a child either"
-                        + " of a component, a software component, or "
-                        + " another " + lowerCase(type) + ".";
-
+        // components cannot be children of tasks
+        if (parentType.endsWith(" Task") && !type.endsWith(" Task")) {
+            return type + "s cannot be children of tasks.";
         }
 
         if (isPSPTask(parentType) || isProbeTask(parentType)) {

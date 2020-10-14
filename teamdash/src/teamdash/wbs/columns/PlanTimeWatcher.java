@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2019 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -89,7 +89,6 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     private int rateCol;
     private String restrictTo;
     private List<String> discrepantIndividuals;
-    private boolean watchPspAndProbeTasks;
     private Set<PlanTimeDiscrepancyListener> listeners;
 
     public PlanTimeWatcher(WBSDataModel m, TeamProcess p) {
@@ -102,8 +101,6 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         this.numPeopleCol = this.rateCol = -1;
         this.restrictTo = null;
         this.discrepantIndividuals = null;
-        this.watchPspAndProbeTasks = SizeTypeColumn
-                .isUsingNewSizeDataColumns(m.getWBSModel());
         this.listeners = new HashSet<PlanTimeDiscrepancyListener>();
     }
 
@@ -215,7 +212,7 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
 
 
     private void maybeScanPspAndProbeTasks() {
-        if (watchPspAndProbeTasks && numPeopleCol != -1) {
+        if (numPeopleCol != -1) {
             for (WBSNode n : dataModel.getWBSModel().getWbsNodes())
                 scanPspOrProbeTask(n);
         }
