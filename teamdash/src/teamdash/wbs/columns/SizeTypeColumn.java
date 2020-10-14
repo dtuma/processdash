@@ -23,9 +23,6 @@
 
 package teamdash.wbs.columns;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 
 import teamdash.wbs.CalculatedDataColumn;
@@ -34,7 +31,6 @@ import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
-import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -70,7 +66,7 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Units.Name");
         this.dependentColumns = new String[] {
-                SizeAccountingColumnSet.getNCID("LOC") };
+                SizeDataColumn.getColumnID("LOC", true) };
     }
 
 
@@ -223,85 +219,15 @@ public class SizeTypeColumn extends AbstractDataColumn implements
      */
     public static void createSizeColumns(WBSDataModel dataModel,
             TeamProcess teamProcess) {
-        Map workProductSizeMap = teamProcess.getWorkProductSizeMap();
-
-        if (isUsingNewSizeDataColumns(dataModel.getWBSModel()))
-            createNewSizeColumns(dataModel);
-        else
-            createOldSizeColumns(dataModel, teamProcess, workProductSizeMap);
-
-        dataModel.addDataColumn(new SizeColumnGroup(true));
-        dataModel.addDataColumn(new SizeColumnGroup(false));
-    }
-
-    private static void createNewSizeColumns(WBSDataModel dataModel) {
         // create the size type columns.
         dataModel.addDataColumn(new NewSizeTypeColumn(dataModel));
-        dataModel.addDataColumn(new DirectSizeTypeColumn.Simple(
+        dataModel.addDataColumn(new DirectSizeTypeColumn(
                 dataModel.getTeamProcess().getSizeMetricMap()));
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
-    }
 
-    private static void createOldSizeColumns(WBSDataModel dataModel,
-            TeamProcess teamProcess, Map sizeMetrics) {
-
-        // create the size type columns.
-        dataModel.addDataColumn(new SizeTypeColumn(dataModel));
-        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel));
-
-        // create an editable size column.
-        dataModel.addDataColumn(new EditableSizeColumn(dataModel, teamProcess));
-
-        // create LOC accounting columns.
-        SizeAccountingColumnSet.create(dataModel, "LOC",
-                new WorkProductSizePruner(teamProcess, Collections
-                        .singleton("LOC")), null, null);
-
-        // create size accounting columns for various non-LOC size metrics.
-        Iterator i = sizeMetrics.entrySet().iterator();
-        Map.Entry e;
-        while (i.hasNext()) {
-            e = (Map.Entry) i.next();
-            String objType = (String) e.getKey();
-            String metric = (String) e.getValue();
-
-            // add columns for plan/actual size data
-            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
-                    true));
-            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
-                    false));
-
-            if ("LOC".equals(metric)) continue;
-
-            Pruner pruner = new WorkProductSizePruner(teamProcess, Arrays
-                    .asList(new Object[] { "LOC", metric }));
-            SizeAccountingColumnSet.create(dataModel, metric, pruner, objType,
-                metric);
-        }
-
-        // create aliasing columns
-        String[] sizeUnits = teamProcess.getSizeMetrics();
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Base", "Size_Accounting.Base.Name",
-            SizeAccountingColumnSet.getBaseID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Deleted", "Size_Accounting.Deleted.Name",
-            SizeAccountingColumnSet.getDeletedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Modified", "Size_Accounting.Modified.Name",
-            SizeAccountingColumnSet.getModifiedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Added", "Size_Accounting.Added.Name",
-            SizeAccountingColumnSet.getAddedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Reused", "Size_Accounting.Reused.Name",
-            SizeAccountingColumnSet.getReusedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "N&C", "Size_Accounting.New_and_Changed.Name",
-            SizeAccountingColumnSet.getNCID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Total", "Size_Accounting.Total.Name",
-            SizeAccountingColumnSet.getTotalID(""), sizeUnits, sizeMetrics));
+        // create plan/actual size column groups for dependency management
+        dataModel.addDataColumn(new SizeColumnGroup(true));
+        dataModel.addDataColumn(new SizeColumnGroup(false));
     }
 
 }

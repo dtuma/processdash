@@ -839,7 +839,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         // old-style size columns (from earlier versions of the dashboard). This
         // makes it easier for calculated columns to declare their dependencies
         if (plan)
-            return SizeAccountingColumnSet.getNCID(metricID);
+            return "N&C-" + metricID;
         else
             return SizeActualDataColumn.getColumnID(metricID, false);
     }

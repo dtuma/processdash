@@ -27,74 +27,36 @@ import java.util.Map;
 
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
-import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.WrappedValue;
 
 /**
- * This class echoes the metricID value from the SizeTypeColumn, but only if:
- * <ul>
- * <li>a top-down size estimate has been entered for a particular node, or</li>
- * <li>the node is a PROBE task.</li>
- * </ul>
- * If those conditions are not met, it returns null.
+ * This column outputs the metricID value for PSP and PROBE tasks.
  */
-public class DirectSizeTypeColumn extends SizeTypeColumn {
+public class DirectSizeTypeColumn extends AbstractDataColumn {
 
     public static final String COLUMN_ID = "Direct Size Units";
 
-    public DirectSizeTypeColumn(WBSDataModel m) {
-        super(m);
+    private Map<String, SizeMetric> sizeMetrics;
+
+    public DirectSizeTypeColumn(Map<String, SizeMetric> sizeMetrics) {
+        this.sizeMetrics = sizeMetrics;
         this.columnID = this.columnName = COLUMN_ID;
     }
 
+    public boolean isCellEditable(WBSNode node) { return false; }
+    public void setValueAt(Object aValue, WBSNode node) {}
+
     public Object getValueAt(WBSNode node) {
-        Object result = super.getValueAt(node);
-        result = WrappedValue.unwrap(result);
-        if (!(result instanceof SizeMetric))
+        if (TeamProcess.isProbeTask(node.getType())) {
+            return WorkflowSizeUnitsColumn.getSizeMetricForProbeTask(node,
+                sizeMetrics);
+
+        } else if (TeamProcess.isPSPTask(node.getType())) {
+            return "LOC";
+
+        } else {
             return null;
-
-        String metricID = ((SizeMetric) result).getMetricID();
-        if (TeamProcess.isProbeTask(node.getType()))
-            return metricID;
-
-        String addedAttr = TopDownBottomUpColumn.getTopDownAttrName(
-            SizeAccountingColumnSet.getAddedID(metricID));
-        String modifiedAttr = TopDownBottomUpColumn.getTopDownAttrName(
-            SizeAccountingColumnSet.getModifiedID(metricID));
-
-        if (node.getAttribute(addedAttr) != null
-                || node.getAttribute(modifiedAttr) != null)
-            return metricID;
-        else
-            return null;
-    }
-
-    public static class Simple extends AbstractDataColumn {
-
-        private Map<String, SizeMetric> sizeMetrics;
-
-        public Simple(Map<String, SizeMetric> sizeMetrics) {
-            this.sizeMetrics = sizeMetrics;
-            this.columnID = this.columnName = COLUMN_ID;
         }
-
-        public boolean isCellEditable(WBSNode node) { return false; }
-        public void setValueAt(Object aValue, WBSNode node) {}
-
-        public Object getValueAt(WBSNode node) {
-            if (TeamProcess.isProbeTask(node.getType())) {
-                return WorkflowSizeUnitsColumn.getSizeMetricForProbeTask(node,
-                    sizeMetrics);
-
-            } else if (TeamProcess.isPSPTask(node.getType())) {
-                return "LOC";
-
-            } else {
-                return null;
-            }
-        }
-
     }
 
 }

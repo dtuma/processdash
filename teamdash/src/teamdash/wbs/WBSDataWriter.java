@@ -58,7 +58,6 @@ import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
-import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.SizeDataColumn.Value;
 import teamdash.wbs.columns.SizeOwnerColumn;
@@ -842,7 +841,7 @@ public class WBSDataWriter {
             if (!QUALITY_PHASE_TYPES.contains(phaseType.toUpperCase())) return;
 
             String units = process.getPhaseSizeMetric(phase);
-            String colID = SizeAccountingColumnSet.getNCID(units);
+            String colID = SizeDataColumn.getColumnID(units, true);
             int column = dataModel.findColumn(colID);
             if (column == -1) return;
 
