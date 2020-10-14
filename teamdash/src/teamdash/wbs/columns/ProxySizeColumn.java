@@ -98,9 +98,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         this.sizeMetrics = sizeMetrics;
         this.columnName = resources.getString("Proxy_Size.Name");
         this.columnID = COLUMN_ID;
-        if (sizeMetrics != null)
-            this.sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics,
-                    dataModel, this);
+        this.sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics,
+                dataModel, this);
         setConflictAttributeName(ATTR_NAME);
         conflictAttributeNamePattern.addLiteralEquals(METRIC_ID_ATTR);
     }
@@ -123,9 +122,6 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
 
     protected Object getSizeMetricValueAt(WBSNode node) {
         String metricName = (String) node.getAttribute(METRIC_NAME_ATTR);
-        if (sizeMetrics == null)
-            return new SizeMetricValue(null, metricName, null);
- 
         String metricID = (String) node.getAttribute(METRIC_ID_ATTR);
         SizeMetric metric = sizeMetrics.getIdToMetricMap().get(metricID);
         if (metric != null)
@@ -270,8 +266,6 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     public void storeDependentColumn(String ID, int columnNumber) {}
 
     public boolean recalculate() {
-        if (sizeMetrics == null)
-            return false;
         WBSNode[] proxies = proxyModel.getChildren(proxyModel.getRoot());
         for (WBSNode proxy : proxies) {
             if (hasSizeMetric(proxy))

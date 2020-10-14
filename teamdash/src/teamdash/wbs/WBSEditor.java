@@ -1501,10 +1501,6 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void replaceWBSModel(WBSModel dest, WBSModel src, WBSJTable table) {
-        // abort if either model is missing
-        if (dest == null || src == null)
-            return;
-
         // record the WBS nodes that are currently selected, and arrange
         // for them to be restored later
         if (table != null)

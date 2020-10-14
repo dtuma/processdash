@@ -82,13 +82,11 @@ public class SizeColumnManager {
 
         createSizeDataColumns();
 
-        if (sizeMetrics != null) {
-            sizeMetrics.addTableModelListener(new TableModelListener() {
-                public void tableChanged(TableModelEvent e) {
-                    createSizeDataColumns();
-                }
-            });
-        }
+        sizeMetrics.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                createSizeDataColumns();
+            }
+        });
     }
 
     /**

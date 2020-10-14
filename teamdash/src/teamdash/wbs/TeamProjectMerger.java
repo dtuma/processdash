@@ -141,10 +141,6 @@ public class TeamProjectMerger {
     }
 
     private SizeMetricsWBSModel mergeSizeMetrics() {
-        // if this project does not have size metrics, return null
-        if (base.getSizeMetrics() == null)
-            return null;
-
         // calculate the merged size metrics
         SizeMetricsMerger sizeMetricsMerger = new SizeMetricsMerger(base, main,
                 incoming);

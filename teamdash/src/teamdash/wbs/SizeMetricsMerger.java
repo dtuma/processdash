@@ -34,10 +34,7 @@ public class SizeMetricsMerger
     }
 
     private static SizeMetricsWBSModel getModel(TeamProject project) {
-        SizeMetricsWBSModel model = project.getSizeMetrics();
-        if (model == null)
-            model = new SizeMetricsWBSModel(project.getTeamProcess());
-        return model;
+        return project.getSizeMetrics();
     }
 
     public SizeMetricsMerger(SizeMetricsWBSModel base, SizeMetricsWBSModel main,

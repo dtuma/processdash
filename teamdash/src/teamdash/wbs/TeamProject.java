@@ -765,10 +765,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the dynamic size metrics definitions */
     private boolean saveSizeMetrics(File directory) {
-        if (sizeMetrics == null)
-            return true;
-        else
-            return saveXML(sizeMetrics, directory, SIZE_METRICS_FILENAME);
+        return saveXML(sizeMetrics, directory, SIZE_METRICS_FILENAME);
     }
 
 

@@ -23,7 +23,6 @@
 
 package teamdash.wbs;
 
-import java.util.Collections;
 import java.util.Map;
 
 import net.sourceforge.processdash.util.PatternList;
@@ -111,10 +110,6 @@ public class TeamProjectNodeIDMatcher {
     private static Map<Integer, Integer> matchSizeMetricsWBS(
             SizeMetricsWBSModel base, SizeMetricsWBSModel main,
             SizeMetricsWBSModel incoming) {
-        // if this project doesn't have size metrics, do nothing
-        if (base == null || main == null || incoming == null)
-            return Collections.EMPTY_MAP;
-
         // assign a case-insensitive alias for each metric
         assignSizeMetricAliasAttr(base);
         assignSizeMetricAliasAttr(main);
