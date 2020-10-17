@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2018 Tuma Solutions, LLC
+// Copyright (C) 1999-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -130,6 +130,7 @@ public class DefectLogEditor extends Component implements
     protected Hashtable       defectLogs = null;
     protected List forbiddenPaths;
     protected ValidatingTable table;
+    protected TaskPathTableCellRenderer pathRenderer;
     protected JSplitPane      splitPane;
     protected DataRepository  data;
     protected Vector<DefectListEntry> currentLog   = new Vector();
@@ -175,6 +176,7 @@ public class DefectLogEditor extends Component implements
 
         /* Create and show the visual components. */
         panel.setLayout(new BorderLayout());
+        pathRenderer = new TaskPathTableCellRenderer();
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                                    constructTreePanel(), constructEditPanel());
         panel.add("Center", splitPane);
@@ -485,6 +487,7 @@ public class DefectLogEditor extends Component implements
                 }
             }
         }
+        pathRenderer.setImpliedPrefix(key == null ? null : key.path());
         updateImportActions(selectedKey, defectLogKey);
         // apply the filter and load the vector (and the table)
         VTableModel model = (VTableModel)table.table.getModel();
@@ -630,6 +633,7 @@ public class DefectLogEditor extends Component implements
              new boolean[] {false, false, false, // no columns editable
                             false, false, false, false, false,
                             false, false, false});
+        table.table.getColumnModel().getColumn(0).setCellRenderer(pathRenderer);
         DefectCellRenderer rend = new DefectCellRenderer();
         for (int col = 2;  col < 5;  col++)
             table.table.getColumnModel().getColumn(col).setCellRenderer(rend);

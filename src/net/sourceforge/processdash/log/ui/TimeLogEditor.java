@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2019 Tuma Solutions, LLC
+// Copyright (C) 1999-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -127,6 +127,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     protected DashHierarchy useProps;
 
     protected JTable table;
+
+    protected TaskPathTableCellRenderer pathRenderer;
 
     protected JSplitPane splitPane;
 
@@ -447,6 +449,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         if (selected != null) {
             path = treeModel.getPropKey(useProps, selected.getPath()).path();
         }
+        pathRenderer.setImpliedPrefix(path);
         Date from = getFromDate();
         Date to = getToDate(true);
 
@@ -828,6 +831,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         PCSH.enableHelpKey(frame, "UsingTimeLogEditor");
 
+        pathRenderer = new TaskPathTableCellRenderer();
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 constructTreePanel(), constructEditPanel());
         splitPane.setDividerLocation(dividerLocation);
@@ -1080,6 +1084,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         public TimeLogJTable(TimeLogTableModel tableModel) {
             super(tableModel);
+            getColumnModel().getColumn(0).setCellRenderer(pathRenderer);
             setTransferHandler(new TransferSupport());
             MacGUIUtils.tweakTable(this);
         }
