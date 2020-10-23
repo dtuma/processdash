@@ -101,10 +101,13 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         cmd.add(mainClassName);
         if (extraArgs != null)
             cmd.addAll(extraArgs);
+        String[] envp = null;
+        if (MacGUIUtils.isMacOSX())
+            envp = RuntimeUtils.filterEnvp("CFProcessPath", null);
 
         String[] cmdLine = (String[]) cmd.toArray(new String[cmd.size()]);
         Integer maxMem = Integer.getInteger("maxMemory");
-        Process result = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine, null,
+        Process result = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine, envp,
             cwd, maxMem);
         return result;
     }
