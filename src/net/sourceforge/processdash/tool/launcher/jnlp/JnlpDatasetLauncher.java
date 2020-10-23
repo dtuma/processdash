@@ -344,6 +344,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     private void launchAppInNewProcess() throws Exception {
         // build a command line for the subprocess
         List<String> cmdLine = new ArrayList<String>();
+        String[] envp = null;
 
         // add all system properties
         for (Entry<String, String> e : systemProperties.entrySet())
@@ -361,6 +362,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                 if (icon.isFile())
                     cmdLine.add("-Xdock:icon=" + icon.getAbsolutePath());
             }
+            envp = RuntimeUtils.filterEnvp("CFProcessPath", null);
         }
 
         // add the JAR argument
@@ -374,7 +376,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
         // launch the app in a new process
         String[] cmdArray = cmdLine.toArray(new String[cmdLine.size()]);
-        RuntimeUtils.execWithAdaptiveHeapSize(cmdArray, null, null);
+        RuntimeUtils.execWithAdaptiveHeapSize(cmdArray, envp, null);
     }
 
     private void launchAppInCurrentProcess() throws Exception {
