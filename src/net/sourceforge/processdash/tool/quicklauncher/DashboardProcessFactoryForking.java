@@ -31,6 +31,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.tool.launcher.jnlp.JnlpDatasetLauncher;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -86,6 +87,13 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         String teamToolsJar = getWbsClasspath(wbsFile);
         return launchProcess(teamToolsJar, WBS_EDITOR_MAIN_CLASS, null,
             extraVmArgs, Collections.singletonList(wbsFile.getAbsolutePath()));
+    }
+
+    @Override
+    public Process launchJnlp(File f, List extraVmArgs, List extraArgs)
+            throws Exception {
+        return launchProcess(classpath, JnlpDatasetLauncher.class.getName(),
+            null, extraVmArgs, Collections.singletonList(f.getAbsolutePath()));
     }
 
     private Process launchProcess(String classpath, String mainClassName,
