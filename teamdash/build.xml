@@ -481,7 +481,7 @@ class dependency has been added in a dashboard class?)
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
       <fileset dir="${processdash.dist}"
           includes="TeamTools.jar ${launchProfile.files}"/>
-      <fileset dir="${installer.files}" includes="dashicon.* teamicon.*"/>
+      <fileset dir="${installer.files}" includes="dashicon.* teamicon.* wbs-editor.icns"/>
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>

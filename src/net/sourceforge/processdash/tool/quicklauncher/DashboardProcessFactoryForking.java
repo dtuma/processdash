@@ -59,12 +59,6 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         // could be an unhelpful proliferation of identical icons
         addVmArg("-D" + Settings.SYS_PROP_PREFIX
                 + SystemTrayManagement.DISABLED_SETTING + "=true");
-
-        // for instances launched on Mac OS X, set the name to display in the
-        // dock/application menu
-        if (MacGUIUtils.isMacOSX())
-            addVmArg("-Xdock:name="
-                    + resources.getString("/ProcessDashboard:Window_Title"));
     }
 
     public void setClasspath(String classpath) {
@@ -77,27 +71,47 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
     public Process launchDashboard(File pspdataDir, List extraVmArgs, List extraArgs)
             throws Exception {
-        return launchProcess(classpath, mainClassName, pspdataDir, extraVmArgs,
-            extraArgs);
+        return launchProcess(classpath, mainClassName, pspdataDir,
+            "/ProcessDashboard:Window_Title", extraVmArgs, extraArgs);
     }
 
     @Override
     public Process launchWBS(File wbsFile, List extraVmArgs, List extraArgs)
             throws Exception {
         String teamToolsJar = getWbsClasspath(wbsFile);
+
+        if (MacGUIUtils.isMacOSX()) {
+            File parentDir = new File(teamToolsJar).getParentFile();
+            File icon = new File(parentDir, "wbs-editor.icns");
+            if (icon.isFile())
+                extraVmArgs = appendArg(extraVmArgs,
+                    "-Xdock:icon=" + icon.getAbsolutePath());
+        }
+
         return launchProcess(teamToolsJar, WBS_EDITOR_MAIN_CLASS, null,
-            extraVmArgs, Collections.singletonList(wbsFile.getAbsolutePath()));
+            "/WBSEditor:Window.App_Name", extraVmArgs,
+            Collections.singletonList(wbsFile.getAbsolutePath()));
     }
 
     @Override
     public Process launchJnlp(File f, List extraVmArgs, List extraArgs)
             throws Exception {
         return launchProcess(classpath, JnlpDatasetLauncher.class.getName(),
-            null, extraVmArgs, Collections.singletonList(f.getAbsolutePath()));
+            null, "/ProcessDashboard:Window_Title", extraVmArgs,
+            Collections.singletonList(f.getAbsolutePath()));
+    }
+
+    private List appendArg(List args, String newArg) {
+        List result = new ArrayList();
+        if (args != null)
+            result.addAll(args);
+        result.add(newArg);
+        return result;
     }
 
     private Process launchProcess(String classpath, String mainClassName,
-            File cwd, List extraVmArgs, List extraArgs) throws Exception {
+            File cwd, String windowTitleKey, List extraVmArgs, List extraArgs)
+            throws Exception {
         List cmd = new ArrayList();
         cmd.add("-cp");
         cmd.add(classpath);
@@ -106,6 +120,8 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
             cmd.addAll(vmArgs);
         if (extraVmArgs != null)
             cmd.addAll(extraVmArgs);
+        if (MacGUIUtils.isMacOSX())
+            cmd.add("-Xdock:name=" + resources.getString(windowTitleKey));
         cmd.add(mainClassName);
         if (extraArgs != null)
             cmd.addAll(extraArgs);

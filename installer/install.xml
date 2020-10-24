@@ -153,6 +153,8 @@
                   src="files/dashicon.png"/>
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/launcher.png"/>
+            <file targetdir="$INSTALL_PATH" override="true" os="mac"
+                  src="files/wbs-editor.icns"/>
 
             <!-- Write runtime JVM args for launch4j EXE file on Windows -->
             <singlefile src="files/dashboard-launch4j.ini" override="false"
