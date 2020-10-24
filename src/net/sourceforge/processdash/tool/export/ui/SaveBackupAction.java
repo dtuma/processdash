@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2018 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.launcher.jnlp.JnlpUtil;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeEvent;
 import net.sourceforge.processdash.tool.perm.PermissionsChangeListener;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
@@ -336,6 +337,8 @@ public class SaveBackupAction extends AbstractAction
         ExampleFileFilter ff = makeFilter(PDBK);
         for (String type : BACKUP_FILE_TYPES)
             ff.addExtension(type);
+        ff.addSilentExtension(JnlpUtil.PERSONAL_LINK_SUFFIX.substring(1));
+        ff.addSilentExtension(JnlpUtil.TEAM_LINK_SUFFIX.substring(1));
         ff.addFilename("state");
         fc.addChoosableFileFilter(ff);
         fc.setFileFilter(ff);
