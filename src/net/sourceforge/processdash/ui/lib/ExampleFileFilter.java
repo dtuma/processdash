@@ -70,6 +70,7 @@ import javax.swing.filechooser.FileFilter;
 public class ExampleFileFilter extends FileFilter {
 
     private Set filters = null;
+    private Set silentExtensions = null;
     private Set filenames = null;
     private String description = null;
     private String fullDescription = null;
@@ -160,7 +161,13 @@ public class ExampleFileFilter extends FileFilter {
                 return true;
 
             String extension = getExtension(f);
-            return (extension != null && filters.contains(extension));
+            if (extension == null)
+                return false;
+            else if (silentExtensions != null
+                    && silentExtensions.contains(extension))
+                return true;
+            else
+                return filters.contains(extension);
         }
         return false;
     }
@@ -207,6 +214,16 @@ public class ExampleFileFilter extends FileFilter {
              filters = new LinkedHashSet(5);
          filters.add(extension.toLowerCase());
          fullDescription = null;
+    }
+
+    /**
+     * Add an extension that should qualify a file for inclusion in the filter,
+     * but don't display that extension in the user-facing description
+     */
+    public void addSilentExtension(String extension) {
+        if (silentExtensions == null)
+            silentExtensions = new HashSet<String>();
+        silentExtensions.add(extension.toLowerCase());
     }
 
     /**

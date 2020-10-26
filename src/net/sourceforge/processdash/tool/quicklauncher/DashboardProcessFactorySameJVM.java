@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2018 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -87,6 +87,13 @@ public class DashboardProcessFactorySameJVM extends DashboardProcessFactory {
             throws Exception {
         throw new IllegalStateException(
                 "Same-JVM mode does not support the launching of WBS files");
+    }
+
+    @Override
+    public Process launchJnlp(File jnlpFile, List extraVmArgs, List extraArgs)
+            throws Exception {
+        throw new IllegalStateException(
+                "Same-JVM mode does not support the launching of JNLP files");
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2017 Tuma Solutions, LLC
+// Copyright (C) 2016-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.api.PDashContext;
@@ -124,6 +125,16 @@ public class WorkflowReport extends HttpServlet {
     }
 
     private void writeWorkflowSelections(HttpServletRequest req, PrintWriter out) {
+        // in the personal dashboard, export data for the current project so
+        // this report can be up-to-date
+        if (Settings.isPersonalMode()) {
+            PDashContext ctx = PDashServletUtils.getContext(req);
+            DashController.exportDataForPrefix(ctx.getProjectPath());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {}
+        }
+
         // get the list of workflows in this team project.
         Map<String, String> workflows = getWorkflowsForCurrentProject(req);
         if (workflows.isEmpty()) {

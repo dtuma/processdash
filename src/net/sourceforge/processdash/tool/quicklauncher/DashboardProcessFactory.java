@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,9 @@ abstract class DashboardProcessFactory {
             List extraArgs) throws Exception;
 
     public abstract Process launchWBS(File wbsZipFile, List extraVmArgs,
+            List extraArgs) throws Exception;
+
+    public abstract Process launchJnlp(File jnlpFile, List extraVmArgs,
             List extraArgs) throws Exception;
 
 }

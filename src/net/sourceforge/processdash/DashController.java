@@ -279,29 +279,12 @@ public class DashController {
 
     public static void saveAllData() {
         PERMISSION.checkPermission();
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    dash.saveAllData();
-                }
-            });
-        } catch (Exception e) {
-        }
+        dash.saveAllData();
     }
 
     public static boolean saveAllDataWithFeedback() {
         PERMISSION.checkPermission();
-        final boolean[] result = { false };
-        try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    if (dash.saveAllData().isEmpty())
-                        result[0] = true;
-                }
-            });
-        } catch (Exception e) {
-        }
-        return result[0];
+        return dash.saveAllData().isEmpty();
     }
 
     /**

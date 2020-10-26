@@ -70,6 +70,7 @@ import teamdash.wbs.columns.ExternalNodeTypeColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.SizeDataColumn;
+import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
@@ -907,10 +908,10 @@ public class WBSSynchronizer {
             if (node == null)
                 return;
 
-            if (isLockedPspOrProbeTask(node, individual.getInitials()))
+            String metric = sizeChangeTag.getAttribute(UNITS_ATTR);
+            if (isLockedPspOrProbeTask(node, metric, individual.getInitials()))
                 return;
 
-            String metric = sizeChangeTag.getAttribute(UNITS_ATTR);
             boolean plan = "true".equals(sizeChangeTag.getAttribute(PLAN_ATTR));
             String newValue = sizeChangeTag.getAttribute(SIZE_VALUE_ATTR);
             Date timestamp = XMLUtils.getXMLDate(sizeChangeTag, WHEN_ATTR);
@@ -920,10 +921,11 @@ public class WBSSynchronizer {
                 recordNodeWithPlanSizeChange(metric, node);
         }
 
-        private boolean isLockedPspOrProbeTask(WBSNode node, String initials) {
-            // If this isn't a PSP or PROBE task, no further testing is needed
-            String type = node.getType();
-            if (!TeamProcess.isPSPTask(type) && !TeamProcess.isProbeTask(type))
+        private boolean isLockedPspOrProbeTask(WBSNode node, String metric,
+                String initials) {
+            // If this isn't a PSP or PROBE task, or if the metric in question
+            // is different than the PROBE units, no further testing is needed
+            if (!isPspOrProbeTaskWithMatchingMetric(node, metric))
                 return false;
 
             // scan the team member columns for the people assigned to this task
@@ -946,6 +948,18 @@ public class WBSSynchronizer {
             // if the current team member isn't assigned to this task, they
             // don't have a right to change its size via reverse sync
             return isAssigned == false;
+        }
+
+        private boolean isPspOrProbeTaskWithMatchingMetric(WBSNode node,
+                String metric) {
+            String type = node.getType();
+            if (TeamProcess.isPSPTask(type))
+                return "LOC".equals(metric);
+            else if (TeamProcess.isProbeTask(type))
+                return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node)
+                        .equals(metric);
+            else
+                return false;
         }
 
         private void recordNodeWithPlanSizeChange(String metric, WBSNode node) {

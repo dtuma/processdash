@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -458,8 +458,12 @@ public class OpenWBSEditor extends TinyCGIBase {
             cmd.add("-D" + DATA_EFFECTIVE_DATE_PROPERTY + "=" + dataEffDate);
 
         // set a reasonable application menu name on Mac OS X
-        if (MacGUIUtils.isMacOSX())
-            cmd.add("-Xdock:name=WBS Editor");
+        if (MacGUIUtils.isMacOSX()) {
+            cmd.add("-Xdock:name=" + resources.getString("Window.App_Name"));
+            File icon = new File(classpath.getParentFile(), "wbs-editor.icns");
+            if (icon.isFile())
+                cmd.add("-Xdock:icon=" + icon.getAbsolutePath());
+        }
 
         Map<String, String> props = getLaunchProperties(url);
         props.putAll(ExternalResourceManager.getInstance()

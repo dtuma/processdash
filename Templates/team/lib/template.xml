@@ -281,8 +281,10 @@
 
     <html ID="sump" href="PID/indiv_plan_summary"
         title="Project Plan Summary"/>
+    <!--#if not Hide_Size_Inventory -->
     <html ID="size" href="PID/sizeForm.class"
         title="Project Size Inventory"/>
+    <!--#endif-->
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"
         inPackage="show-PID-process-script"/>
@@ -441,8 +443,10 @@
 
     <html ID="sump" href="PID/plan_summary.shtm"
         title="Project Plan Summary"/>
+    <!--#if not Hide_Size_Inventory -->
     <html ID="size" href="PID/sizeForm.class"
         title="Project Size Inventory"/>
+    <!--#endif-->
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"
         inPackage="show-PID-process-script"/>

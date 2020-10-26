@@ -596,7 +596,7 @@ public class UserDataWriter extends TinyCGIBase {
 
     }
 
-    private static final long REFRESH_AGE_CUTOFF = 60 * 1000;
+    private static final long REFRESH_AGE_CUTOFF = 5 * 1000;
 
     private static final String ENCODING = "UTF-8";
 

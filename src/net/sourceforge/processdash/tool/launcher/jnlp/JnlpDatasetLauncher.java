@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2018 Tuma Solutions, LLC
+// Copyright (C) 2009-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,7 +54,10 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
     static Resources res = Resources.getDashBundle("Launcher.Jnlp");
 
+    private static boolean isRunningAsMain = false;
+
     public static void main(String[] args) {
+        isRunningAsMain = true;
         launch(args[0]);
     }
 
@@ -333,7 +336,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         // Mac OS X only runs a single instance of an application at a time.
         // as a result, we must fork and allow the parent process to exit, or
         // the parent process will prevent future datasets from launching.
-        if (isMac)
+        if (isMac && !isRunningAsMain)
             return true;
 
         // otherwise, we fork if the launcher doesn't grant us permission to
@@ -344,6 +347,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     private void launchAppInNewProcess() throws Exception {
         // build a command line for the subprocess
         List<String> cmdLine = new ArrayList<String>();
+        String[] envp = null;
 
         // add all system properties
         for (Entry<String, String> e : systemProperties.entrySet())
@@ -361,6 +365,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                 if (icon.isFile())
                     cmdLine.add("-Xdock:icon=" + icon.getAbsolutePath());
             }
+            envp = RuntimeUtils.filterEnvp("CFProcessPath", null);
         }
 
         // add the JAR argument
@@ -374,7 +379,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
         // launch the app in a new process
         String[] cmdArray = cmdLine.toArray(new String[cmdLine.size()]);
-        RuntimeUtils.execWithAdaptiveHeapSize(cmdArray, null, null);
+        RuntimeUtils.execWithAdaptiveHeapSize(cmdArray, envp, null);
     }
 
     private void launchAppInCurrentProcess() throws Exception {

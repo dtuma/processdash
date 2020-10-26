@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2015 Tuma Solutions, LLC
+// Copyright (C) 2007-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -154,6 +154,36 @@ public class RuntimeUtils {
     private static void checkJvmArgsPermission() {
         if (JVM_ARGS_PERMISSION != null)
             AccessController.checkPermission(JVM_ARGS_PERMISSION);
+    }
+
+    /**
+     * Produce an array, suitable as an envp argument to Runtime.exec, which
+     * modifies the current environment with a set of changes.
+     * 
+     * @param envChanges
+     *            a list of environment variables to change, specified as key,
+     *            value, key, value, etc. A null value means the given
+     *            environment variable should be cleared.
+     * @return an envp array representing the current environment with the
+     *         specified changes
+     * @since 2.6.1.2
+     */
+    public static String[] filterEnvp(String... envChanges) {
+        Map<String, String> env = new HashMap<String, String>(System.getenv());
+        for (int i = 0; i < envChanges.length; i += 2) {
+            String key = envChanges[i];
+            String value = envChanges[i + 1];
+            if (value == null)
+                env.remove(key);
+            else
+                env.put(key, value);
+        }
+        String[] result = new String[env.size()];
+        int i = 0;
+        for (Map.Entry<String, String> e : env.entrySet()) {
+            result[i++] = e.getKey() + "=" + e.getValue();
+        }
+        return result;
     }
 
     /**

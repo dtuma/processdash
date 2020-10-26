@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2019 Tuma Solutions, LLC
+// Copyright (C) 2006-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,6 +103,10 @@ abstract class DashboardInstance {
         return port;
     }
 
+    protected String getLaunchedWindowTitle() {
+        return getDisplay();
+    }
+
     public String getDisplay() {
         return display;
     }
@@ -135,7 +139,7 @@ abstract class DashboardInstance {
                 + ProcessDashboard.NOTIFY_ON_OPEN_ID_PROPERTY + "=" + id;
             extraVmArgs.add(notifyArg);
 
-            String windowTitle = getDisplay();
+            String windowTitle = getLaunchedWindowTitle();
             if (windowTitle != null) {
                 String titleArg = "-D" + Settings.SYS_PROP_PREFIX
                         + ProcessDashboard.WINDOW_TITLE_SETTING + "="

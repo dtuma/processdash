@@ -40,6 +40,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class WBSOpenFileAction extends AbstractAction {
@@ -122,6 +123,15 @@ public class WBSOpenFileAction extends AbstractAction {
         cmdLine.add(RuntimeUtils.getJreExecutable());
         cmdLine.add(RuntimeUtils.getJvmHeapArg());
         cmdLine.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
+
+        // set a reasonable application menu name/icon on Mac OS X
+        if (MacGUIUtils.isMacOSX()) {
+            cmdLine.add("-Xdock:name=" + resources.getString("Window.App_Name"));
+            File icon = new File(teamToolsJar.getParentFile(), "wbs-editor.icns");
+            if (icon.isFile())
+                cmdLine.add("-Xdock:icon=" + icon.getAbsolutePath());
+        }
+
         cmdLine.add("-cp");
         cmdLine.add(teamToolsJar.getPath());
         cmdLine.add(WBSEditor.class.getName());
