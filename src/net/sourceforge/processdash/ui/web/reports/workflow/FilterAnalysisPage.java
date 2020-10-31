@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Tuma Solutions, LLC
+// Copyright (C) 2016-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -140,6 +140,7 @@ public class FilterAnalysisPage extends AnalysisPage {
 
         // see if the user is applying or removing the filter
         boolean isRemoving = req.getParameter("remove") != null;
+        boolean isCancel = req.getParameter("cancel") != null;
 
         // calculate the properties we should save for this filter
         Properties p = new Properties();
@@ -163,7 +164,7 @@ public class FilterAnalysisPage extends AnalysisPage {
             p.remove("outlierVal");
 
         // save these properties into the respository
-        if (!HTTPUtils.isCrossSiteRequest(req)) {
+        if (!HTTPUtils.isCrossSiteRequest(req) && !isCancel) {
             saveFilter(req, p);
         }
 

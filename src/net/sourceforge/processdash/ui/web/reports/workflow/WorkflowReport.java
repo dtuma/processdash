@@ -60,6 +60,8 @@ public class WorkflowReport extends HttpServlet {
 
     protected static final String WORKFLOW_PARAM = "workflow";
 
+    protected static final String PROJECT_ID_PARAM = "projectID";
+
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -129,10 +131,13 @@ public class WorkflowReport extends HttpServlet {
         // this report can be up-to-date
         if (Settings.isPersonalMode()) {
             PDashContext ctx = PDashServletUtils.getContext(req);
-            DashController.exportDataForPrefix(ctx.getProjectPath());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ie) {}
+            String projectPath = ctx.getProjectPath();
+            if (projectPath != null && projectPath.length() > 1) {
+                DashController.exportDataForPrefix(projectPath);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {}
+            }
         }
 
         // get the list of workflows in this team project.
@@ -178,8 +183,11 @@ public class WorkflowReport extends HttpServlet {
         QueryUtils.waitForAllProjects(databasePlugin);
         QueryRunner queryRunner = databasePlugin.getObject(QueryRunner.class);
 
-        PDashContext ctx = PDashServletUtils.getContext(req);
-        String projectID = ctx.getData().getString("Project_ID");
+        String projectID = req.getParameter(PROJECT_ID_PARAM);
+        if (!StringUtils.hasValue(projectID)) {
+            PDashContext ctx = PDashServletUtils.getContext(req);
+            projectID = ctx.getData().getString("Project_ID");
+        }
         String workflowProcessIDPattern = DatabasePluginUtils
                 .getWorkflowPhaseIdentifier(projectID, "%");
         Map<String, String> result = new TreeMap<String, String>();
@@ -255,6 +263,15 @@ public class WorkflowReport extends HttpServlet {
 
         if (req.getParameter("EXPORT") == null) {
             out.write("<hr/>\n");
+
+            try {
+                String selectWorkflowUri = HTMLUtils.appendQuery(SELF_URI,
+                    PROJECT_ID_PARAM, workflowID.split(":")[1]);
+                out.write("<p><a href='" + selectWorkflowUri + "' target='_top'>");
+                out.write(esc(res("Workflow.Analysis.Choose_Workflow_Link")));
+                out.write("</a></p>\n");
+            } catch (Exception e) {}
+
             out.write("<p><a href='../dash/archive.class?uri=/reports/"
                     + SELF_URI + query + "' target='_top'>");
             out.write(esc(res("Archive.Title")));
