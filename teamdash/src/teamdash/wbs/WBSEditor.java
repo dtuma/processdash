@@ -357,14 +357,16 @@ public class WBSEditor implements WindowListener, SaveListener,
                 milestonesModel);
         }
 
-        SizeColumnManager scm = data.getSizeColumnManager();
-        Action editSizeAction = null;
-        if (SizeMetricsEditor.isEditable(teamProject))
-            editSizeAction = new SizeMetricsEditorAction();
-        tabPanel.addTab(getRes("Tabs.Plan_Size"), scm.getTableColumns(true),
-            editSizeAction, false);
-        tabPanel.addTab(getRes("Tabs.Actual_Size"),
-            scm.getTableColumns(false), editSizeAction, false);
+        if (!isMode(MODE_MASTER)) {
+            SizeColumnManager scm = data.getSizeColumnManager();
+            Action editSizeAction = null;
+            if (SizeMetricsEditor.isEditable(teamProject))
+                editSizeAction = new SizeMetricsEditorAction();
+            tabPanel.addTab(getRes("Tabs.Plan_Size"), //
+                scm.getTableColumns(true), editSizeAction, false);
+            tabPanel.addTab(getRes("Tabs.Actual_Size"), //
+                scm.getTableColumns(false), editSizeAction, false);
+        }
 
         boolean plainNotPersonal = isMode(MODE_PLAIN) && !isMode(MODE_PERSONAL);
         boolean notMasterNotPersonal = !isMode(MODE_MASTER) && !isMode(MODE_PERSONAL);
