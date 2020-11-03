@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2003 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -220,6 +220,8 @@ public class FileObjectCache implements ObjectCache,
     /** get a list of ids for all the objects in the cache. */
     public synchronized int[] getObjectIDs() {
         String[] filenames = directory.list(new Filter());
+        if (filenames == null)
+            return new int[0];
         int[] results = new int[filenames.length];
         for (int i = filenames.length;   i-- > 0; ) try {
             String num = filenames[i];
