@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
@@ -82,11 +83,7 @@ public class SizeColumnManager {
 
         createSizeDataColumns();
 
-        sizeMetrics.addTableModelListener(new TableModelListener() {
-            public void tableChanged(TableModelEvent e) {
-                createSizeDataColumns();
-            }
-        });
+        sizeMetrics.addTableModelListener(new SizeModelWatcher());
     }
 
     /**
@@ -129,6 +126,23 @@ public class SizeColumnManager {
 
     public void removeSizeMetricsColumnListener(ChangeListener l) {
         listeners.remove(l);
+    }
+
+    private class SizeModelWatcher implements TableModelListener, Runnable {
+
+        public void tableChanged(TableModelEvent e) {
+            if (SwingUtilities.isEventDispatchThread()) {
+                this.run();
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(this);
+                } catch (Exception ex) {}
+            }
+        }
+
+        public void run() {
+            createSizeDataColumns();
+        }
     }
 
     private void createSizeDataColumns() {

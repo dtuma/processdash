@@ -260,17 +260,20 @@ public class WBSNode implements Cloneable {
 
     /** Rename attributes within this node */
     public boolean renameAttributes(Map<String, String> attrRenames) {
-        boolean madeChange = false;
+        Map<String, Object> renamedValues = null;
         for (Entry<String, String> e : attrRenames.entrySet()) {
             String oldAttrName = e.getKey();
             String newAttrName = e.getValue();
             Object attrVal = removeAttribute(oldAttrName);
             if (attrVal != null) {
-                setAttribute(newAttrName, attrVal);
-                madeChange = true;
+                if (renamedValues == null)
+                    renamedValues = new HashMap<String, Object>();
+                renamedValues.put(newAttrName, attrVal);
             }
         }
-        return madeChange;
+        if (renamedValues != null)
+            attributes.putAll(renamedValues);
+        return renamedValues != null;
     }
 
 
@@ -470,6 +473,36 @@ public class WBSNode implements Cloneable {
         }
         structure = null;
     }
+
+    /**
+     * Remove a set of attributes from this node that match a given criteria,
+     * unless they also match a second criteria.
+     * 
+     * @param discardCriteria
+     *            a filter describing attributes to discard. This can be a
+     *            String (indicating a single attribute to discard), a
+     *            Collection of Strings (indicating several attributes to
+     *            discard), or a PatternList (to discard attributes matching a
+     *            pattern). An array of such filters is also allowed; it will
+     *            match if any of the array elements match.
+     * @param unlessCriteria
+     *            a filter describing attributes that should be kept, regardless
+     *            of whether they match the discardCriteria. This parameter
+     *            accepts the same types as the discardCriteria. In addition,
+     *            the value null is allowed, indicating the discardCriteria does
+     *            not need to be overridden.
+     */
+    public void discardAttributes(Object discardCriteria,
+            Object unlessCriteria) {
+        Iterator i = attributes.keySet().iterator();
+        while (i.hasNext()) {
+            String attrName = (String) i.next();
+            if (attrNameMatchesTest(attrName, discardCriteria)
+                    && !attrNameMatchesTest(attrName, unlessCriteria))
+                i.remove();
+        }
+    }
+
     private boolean attrNameMatchesTests(String attrName, Object[] tests) {
         for (Object t : tests)
             if (attrNameMatchesTest(attrName, t))

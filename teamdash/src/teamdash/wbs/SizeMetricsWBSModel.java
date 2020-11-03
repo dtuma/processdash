@@ -23,14 +23,16 @@
 
 package teamdash.wbs;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import javax.swing.event.TableModelEvent;
 
@@ -171,6 +173,32 @@ public class SizeMetricsWBSModel extends WBSModel {
 
         // call the superclass method to perform the actual deletion
         return super.deleteNodes(nodesToDelete, notify);
+    }
+
+    public void deleteMetricsExcept(Collection<String> metricNames) {
+        List<WBSNode> metricsToDelete = new ArrayList<WBSNode>();
+        for (WBSNode sizeNode : getWbsNodes()) {
+            if (sizeNode.getIndentLevel() > 0) {
+                if (!containsIgnoreCase(metricNames, sizeNode.getName()))
+                    metricsToDelete.add(sizeNode);
+            }
+        }
+
+        if (!metricsToDelete.isEmpty())
+            deleteNodes(metricsToDelete);
+    }
+
+    private boolean containsIgnoreCase(Collection<String> names, String name) {
+        for (String oneName : names) {
+            if (oneName.equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
+    }
+
+
+    public Collection<SizeMetric> getMetrics() {
+        return getIdToMetricMap().values();
     }
 
     public Map<String, SizeMetric> getIdToMetricMap() {

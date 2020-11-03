@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -68,7 +68,6 @@ public class TeamProjectBottomUp extends TeamProject {
         this.ignoredSubprojects = (ignoredSubprojects != null
                 ? ignoredSubprojects : Collections.EMPTY_SET);
 
-        MasterWBSUtil.setSizeMetrics(getTeamProcess().getSizeMetrics());
         reloadBottomUpData();
         if (autoReload)
             watcher = new FileWatcher();
@@ -170,18 +169,23 @@ public class TeamProjectBottomUp extends TeamProject {
     private void recalculateBottomUpData() {
         WBSModel newWbs = makeStartingWBS();
         TeamMemberList newTeam = new TeamMemberList();
+        Set<String> sizeMetricNamesSeen = new HashSet<String>();
 
         for (Iterator i = subprojects.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String shortName = (String) e.getKey();
             TeamProject subproject = (TeamProject) e.getValue();
 
+            sizeMetricNamesSeen.addAll(
+                MasterWBSUtil.mergeSizeMetricsFromSubproject(subproject, this));
             String subprojInitials = TeamMember.convertToInitials(shortName);
             addWBSItems(newWbs, shortName, subproject, subprojInitials);
             double totalSubprojectTime = sumUpTime(newWbs, subprojInitials);
             addTeamMember(newTeam, shortName, subproject, totalSubprojectTime);
         }
 
+        // discard size metrics that are no longer present in any subproject
+        getSizeMetrics().deleteMetricsExcept(sizeMetricNamesSeen);
         newWbs.copyNodeExpansionStates(getWBS(),
                 MasterWBSUtil.NODE_ID_COMPARATOR);
         getWBS().copyFrom(newWbs);
