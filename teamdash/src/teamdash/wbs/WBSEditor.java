@@ -368,8 +368,10 @@ public class WBSEditor implements WindowListener, SaveListener,
                 scm.getTableColumns(false), editSizeAction, false);
         }
 
-        boolean plainNotPersonal = isMode(MODE_PLAIN) && !isMode(MODE_PERSONAL);
-        boolean notMasterNotPersonal = !isMode(MODE_MASTER) && !isMode(MODE_PERSONAL);
+        boolean isMaster = isMode(MODE_MASTER);
+        boolean isPlain = isMode(MODE_PLAIN);
+        boolean plainNotPersonal = isPlain && !isMode(MODE_PERSONAL);
+        boolean notMasterNotPersonal = !isMaster && !isMode(MODE_PERSONAL);
         if (notMasterNotPersonal)
             tabPanel.addTab(getRes("Tabs.Planned_Time"),
                      new String[] { TeamTimeColumn.COLUMN_ID,
@@ -378,7 +380,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                      new String[] { getRes("Columns.Total_Planned_Time.Name"), "",
                                     getRes("Columns.Unassigned_Time.Short_Name") });
 
-        int taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
+        int taskTimeTabPos = 0;
+        if (!isMaster)
+            taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
                 new String[] {
                         PhaseColumn.COLUMN_ID,
                         ifMode(plainNotPersonal, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
@@ -393,17 +397,18 @@ public class WBSEditor implements WindowListener, SaveListener,
                 null);
 
         tabPanel.addTab(getRes("Tabs.Task_Details"),
-                new String[] { MilestoneColumn.COLUMN_ID,
+                new String[] { isMaster ? PhaseColumn.COLUMN_ID : null,
+                               MilestoneColumn.COLUMN_ID,
                                TaskLabelColumn.COLUMN_ID,
-                               ProxyEstTypeColumn.COLUMN_ID,
-                               ProxyEstBucketColumn.COLUMN_ID,
+                               isPlain ? ProxyEstTypeColumn.COLUMN_ID : null,
+                               isPlain ? ProxyEstBucketColumn.COLUMN_ID : null,
                                WBSTabPanel.CUSTOM_COLUMNS_ID,
                                TaskDependencyColumn.COLUMN_ID,
                                NotesColumn.COLUMN_ID,
-                               ErrorNotesColumn.COLUMN_ID },
+                               isMaster ? null : ErrorNotesColumn.COLUMN_ID },
                 null);
 
-        if (showActualData && !isMode(MODE_PERSONAL))
+        if (showActualData && notMasterNotPersonal)
             tabPanel.addTab(getRes("Tabs.Actual_Time"),
                 new String[] { TeamActualTimeColumn.COLUMN_ID,
                                WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
@@ -1138,7 +1143,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
-        if (!isMode(MODE_BOTTOM_UP))
+        if (isMode(MODE_PLAIN))
             result.add(buildWorkflowMenu(workflows,
                 tabPanel.getWorkflowActions(workflows),
                 tabPanel.getInsertWorkflowAction(workflows)));
