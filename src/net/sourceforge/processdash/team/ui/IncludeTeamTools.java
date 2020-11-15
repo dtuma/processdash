@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -36,6 +37,8 @@ public class IncludeTeamTools extends TinyCGIBase {
 
     private static final String WBS_EDITOR_URL =
         "../../team/tools/index.shtm?directory=";
+    private static final String WBS_EDITOR_URL_B =
+        "../../team/toolsB/index.shtm?directory=";
     private static final String MASTER_PARAM = "&master";
     private static final String SYNC_PARAM = "&syncURL=";
     private static final String SYNC_URL = "sync.class?run";
@@ -51,7 +54,9 @@ public class IncludeTeamTools extends TinyCGIBase {
                 return;
             }
 
-            String wbsURL = WBS_EDITOR_URL + HTMLUtils.urlEncode(directory);
+            String wbsURL = isLegacySizeMetricsProject() //
+                    ? WBS_EDITOR_URL : WBS_EDITOR_URL_B;
+            wbsURL = wbsURL + HTMLUtils.urlEncode(directory);
             String scriptPath = (String) env.get("SCRIPT_PATH");
             String uri = resolveRelativeURI(scriptPath, wbsURL);
 
@@ -65,6 +70,12 @@ public class IncludeTeamTools extends TinyCGIBase {
         } catch (Exception e) {
             out.print(TOOLS_MISSING_MSG);
         }
+    }
+
+    private boolean isLegacySizeMetricsProject() {
+        String flag = getValue(TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME);
+        String master = getValue(TeamDataConstants.MASTER_PROJECT_TAG);
+        return flag == null && master == null;
     }
 
     private String getTeamDataDirectory() {
