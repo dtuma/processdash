@@ -438,7 +438,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private String[] getProcessCmdLine(String url, String directory) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
-        File classpath = findTeamToolsJarFile();
+        File classpath = findWbsEditorJarFile();
         if (jreExecutable == null || classpath == null)
             return null;
 
@@ -597,7 +597,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         String path = (String) env.get("SCRIPT_NAME");
         int pos = path.lastIndexOf('/');
-        String jarPath = path.substring(1, pos+1) + "TeamTools.jar";
+        String jarPath = path.substring(1, pos+1) + "WBSEditor.jar";
         out.print("<resources>\n");
         out.print("<j2se version='1.6+' initial-heap-size='2M' max-heap-size='800M'/>\n");
         out.print("<jar href='");
@@ -644,9 +644,9 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void serveJar() throws IOException {
-        File jarFile = findTeamToolsJarFile();
+        File jarFile = findWbsEditorJarFile();
         if (jarFile == null)
-            throw new IOException("Cannot locate TeamTools.jar file");
+            throw new IOException("Cannot locate WBSEditor.jar file");
         
         long modTime = jarFile.lastModified();
         InputStream in = new FileInputStream(jarFile);
@@ -672,7 +672,7 @@ public class OpenWBSEditor extends TinyCGIBase {
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
-    private File findTeamToolsJarFile() {
+    private File findWbsEditorJarFile() {
         // first, try to locate the JAR file that holds this class definition
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (classpath != null && classpath.isFile())
@@ -680,7 +680,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         // when running in development mode, the definition of this class will
         // be located in a "bin" directory instead of a JAR. In that case, find
-        // TeamTools.jar by searching for a "template" file we know it contains.
+        // WBSEditor.jar by searching for a "template" file we know it contains.
         URL myURL = TemplateLoader
                 .resolveURL("/team/tools/OpenWBSEditor.class.link");
         if (myURL == null)
