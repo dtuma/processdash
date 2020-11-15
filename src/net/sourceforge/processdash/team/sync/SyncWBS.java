@@ -531,7 +531,7 @@ public class SyncWBS extends TinyCGIBase {
     private void maybePerformExtRefresh() {
         try {
             String uri = WebServer.urlEncodePath(projectRoot)
-                    + "//team/tools/runExtRefresh?timeout=10";
+                    + "//team/toolsB/runExtRefresh?timeout=10";
             getTinyWebServer().getRequest(uri, true);
         } catch (Exception e) {
         }

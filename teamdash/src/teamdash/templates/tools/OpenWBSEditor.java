@@ -179,7 +179,7 @@ public class OpenWBSEditor extends TinyCGIBase {
             writeHtmlHeader();
             out.print("<html><head>");
             out.print("<meta http-equiv='Refresh' CONTENT='0;URL=" +
-                        "/team/tools/OpenWBSEditor.class?useJNLP&");
+                    getScriptUri() + "?useJNLP&");
             out.print(env.get("QUERY_STRING"));
             out.print("'></head></html>");
         }
@@ -252,7 +252,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         if (isJsonRequest()) {
             StringBuffer errUri = new StringBuffer();
-            errUri.append("/team/tools/OpenWBSEditor.class");
+            errUri.append(getScriptUri());
             HTMLUtils.appendQuery(errUri, "err", resKey);
             for (String l : location)
                 HTMLUtils.appendQuery(errUri, "location", l);
@@ -575,7 +575,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         String query = (String) env.get("QUERY_STRING");
         query = StringUtils.findAndReplace(query, "isTriggering", "isTr");
         query = StringUtils.findAndReplace(query, "trigger", "tr");
-        String jnlpUri = "/team/tools/OpenWBSEditor.class?useJNLP&" + query;
+        String jnlpUri = getScriptUri() + "?useJNLP&" + query;
         return Browser.mapURL(jnlpUri);
     }
 
@@ -595,7 +595,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         out.print("<security><all-permissions/></security>\n");
 
-        String path = (String) env.get("SCRIPT_NAME");
+        String path = getScriptUri();
         int pos = path.lastIndexOf('/');
         String jarPath = path.substring(1, pos+1) + "WBSEditor.jar";
         out.print("<resources>\n");
@@ -681,8 +681,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         // when running in development mode, the definition of this class will
         // be located in a "bin" directory instead of a JAR. In that case, find
         // WBSEditor.jar by searching for a "template" file we know it contains.
-        URL myURL = TemplateLoader
-                .resolveURL("/team/tools/OpenWBSEditor.class.link");
+        URL myURL = TemplateLoader.resolveURL(getScriptUri() + ".link");
         if (myURL == null)
             return null;
 
@@ -702,6 +701,10 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         File jarFile = new File(jarFileName).getAbsoluteFile();
         return (jarFile.isFile() ? jarFile : null);
+    }
+
+    private String getScriptUri() {
+        return (String) env.get("SCRIPT_NAME");
     }
 
 }
