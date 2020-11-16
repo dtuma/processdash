@@ -304,8 +304,8 @@ class dependency has been added in a dashboard class?)
 	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
 	<attribute name="Dash-Pkg-Requires-Version"
                    value="${teamtools.requires}"/>
-        <attribute name="Dash-Pkg-Localizable" value="true"/>
-	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
+        <attribute name="Dash-Pkg-Localizable" value="false"/>
+	<attribute name="Dash-Pkg-Name" value="Legacy WBS Editor"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
         <attribute name="Specification-Title" value="Work Breakdown Structure Editor"/>
@@ -351,21 +351,8 @@ class dependency has been added in a dashboard class?)
 
       <!-- include the wbs-editor-related templates -->
       <fileset dir=".">
-        <include name="Templates/WEB-INF/" />
-        <include name="Templates/team/" />
+        <include name="Templates/team/tools/" />
         <include name="Templates/resources/WBSEditor*" />
-      </fileset>
-
-      <!-- include the helpset for team functionality -->
-      <fileset dir=".">
-        <include name="Templates/TeamTools-template.xml" />
-        <include name="${teamhelp}/" />
-        <exclude name="**/.gitignore" />
-        <exclude name="${teamhelp}/teamhelp-review.html" />
-        <exclude name="${teamhelp}/help.config" />
-        <exclude name="${teamhelp}/makeSkeleton.xslt" />
-        <exclude name="${teamhelp.imgsrc}/" />
-        <exclude name="${teamhelp.images}/Thumbs.db" />
       </fileset>
 
       <!-- include files from libraries we use -->
@@ -379,9 +366,6 @@ class dependency has been added in a dashboard class?)
       <zipfileset src="${json.jar}"/>
       <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
       <zipfileset src="${tamper.jar}" includes="com/ META-INF/services/"/>
-
-      <!-- include certain metadata files -->
-      <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
     </jar>
 
     <maybeSignJar jar="TeamTools.jar" prefix="jnlpSign"/>
