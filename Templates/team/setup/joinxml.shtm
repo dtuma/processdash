@@ -52,7 +52,12 @@
 <!--#if [WBS_Managed_Size_Data] -->
     Continuation_URI="/TPID/setup/probeUpgradeNeeded.shtm"
     Continuation_URI2="/TPID/setup/wizard.class?page=indiv"
-    Requires_Package="pspdash version 2.5.3; teamTools version 5.0.0"
+    <!--#if [WBS_Custom_Size_Metrics] -->
+        Requires_Package="pspdash version 2.6.3; teamToolsB version 6.0.0"
+        WBS_Custom_Size_Metrics="true"
+    <!--#else-->
+        Requires_Package="pspdash version 2.5.3; teamTools version 5.0.0"
+    <!--#endif-->
     WBS_Managed_Size_Data="true"
 <!--#else-->
     Continuation_URI="/TPID/setup/wizard.class?page=indiv"

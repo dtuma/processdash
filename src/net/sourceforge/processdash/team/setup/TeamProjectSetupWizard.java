@@ -2579,6 +2579,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
         String teamDataDirectoryURL = joinInfo.get(TEAM_DATA_DIRECTORY_URL);
         String indivTemplateID = joinInfo.get("Template_ID");
+        boolean wbsCustomSizeMetrics = "true"
+                .equals(joinInfo.get("WBS_Custom_Size_Metrics"));
         boolean wbsManagedSizeData = "true"
                 .equals(joinInfo.get("WBS_Managed_Size_Data"));
         boolean teamDashSupportsScheduleMessages = "true".equals(joinInfo
@@ -2602,7 +2604,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String scheduleID = createIndivSchedule(scheduleName, 12);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
-        if (wbsManagedSizeData)
+        if (wbsCustomSizeMetrics)
+            enableWbsCustomSizeMetrics();
+        else if (wbsManagedSizeData)
             enableWbsManagedSizeData();
         maybeSetProjectRootNodeId(projectID);
         boolean addScheduleSucceeded = teamDashSupportsScheduleMessages
