@@ -1090,8 +1090,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             copyRelaunchableSettingsFrom(relaunchSourcePath);
         }
 
-        if (shouldEnableWbsManagedSizeData())
-            enableWbsManagedSizeData();
+        if (shouldEnableWbsManagedSizeData()) {
+            if (shouldEnableWbsCustomSizeMetrics())
+                enableWbsCustomSizeMetrics();
+            else
+                enableWbsManagedSizeData();
+        }
     }
 
     private static boolean shouldEnableWbsManagedSizeData() {
@@ -1102,6 +1106,17 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.3");
         DataVersionChecker.registerDataRequirement("teamTools", "5.0.0");
+    }
+
+    private boolean shouldEnableWbsCustomSizeMetrics() {
+        return Settings.getBool("wbsCustomSizeMetrics.enabled", true);
+    }
+
+    private void enableWbsCustomSizeMetrics() {
+        putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
+        putValue(WBS_CUSTOM_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
+        DataVersionChecker.registerDataRequirement("pspdash", "2.6.3");
+        DataVersionChecker.registerDataRequirement("teamToolsB", "6.0.0");
     }
 
     private void copyRelaunchableSettingsFrom(String relaunchSourcePath) {
