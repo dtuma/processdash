@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2017 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.columns.PercentCompleteColumn;
@@ -78,6 +79,7 @@ public class RelaunchWorkerNew {
         File historicalDumpFile = loadHistoricalTeamMemberData();
         updateProjectName();
         moveScheduleStartDates();
+        deleteWorkflowRates();
         deleteCompletedItems();
         adjustInProgressItems();
         writeRelaunchSourceIDs();
@@ -123,6 +125,18 @@ public class RelaunchWorkerNew {
      */
     private void moveScheduleStartDates() {
         teamProject.getTeamMemberList().moveAllStartDates(new Date());
+    }
+
+
+    /**
+     * Delete task rates from workflow definitions
+     */
+    private void deleteWorkflowRates() {
+        PatternList attrs = new PatternList() //
+                .addLiteralEquals("Workflow Rate") //
+                .addLiteralEquals("Rate");
+        teamProject.getWorkflows().removeAttributes(attrs);
+        wbs.removeAttributes(attrs);
     }
 
 
