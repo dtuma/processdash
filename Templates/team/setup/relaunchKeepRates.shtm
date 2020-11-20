@@ -1,0 +1,64 @@
+<html>
+<head>
+<title>Team Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width="50" height="50">
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Workflow Rates Detected</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='keepRates'>
+
+<p>In the project you are relaunching, the following workflows use
+size-driven task rates (entered in the "Rate" column):</p>
+
+<ul>
+<!--#foreach name="WORKFLOW" list=[setup//Relaunch_Rate_Workflows] -->
+    <li><!--#echo value='WORKFLOW' --></li>
+<!--#endfor-->
+</ul>
+
+<p>The use of workflow task rates is <b>no longer recommended</b>.
+The current best practice is to create proxy estimation tables that
+capture these rates, then clear the "Rate" column for all of your
+workflow steps.</p>
+
+<p>Newly relaunched projects are encouraged to migrate away from
+workflow task rates, because they prevent you from using the latest
+project features and enhancements.</p>
+
+<p>Which would you like to do?</p>
+
+<table>
+
+<tr>
+<td align=center><input type='submit' name='upgrade'
+    style='margin:0px 30px; padding:4px; width:220px'
+    value='Upgrade Project (Recommended)'></td>
+<td>Upgrade the '<!--#echo var=PATH_TRANSLATED -->' project to use the
+    latest features and enhancements.  In this new project, the
+    workflows listed above will no longer auto-generate time estimates
+    based on sizes and rates.</td>
+</tr>
+
+<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+<tr>
+<td align=center><input type='submit' name='legacy'
+    style='margin:0px 30px; padding:4px; width:220px'
+    value='Use Legacy Functionality'></td>
+<td>Keep the task rates for the workflows listed above, even though it
+    will prevent '<!--#echo var=PATH_TRANSLATED -->' from using the
+    latest project features and enhancements.</td>
+</tr>
+
+</table>
+
+</form>
+</body>
+</html>
