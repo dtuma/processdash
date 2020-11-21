@@ -43,6 +43,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.Map;
@@ -88,6 +89,10 @@ public class WBSNodeEditor extends AbstractCellEditor
     private WorkflowWBSModel workflows;
     /** A map translating node types to appropriate icons */
     private Map iconMap;
+    /** A Map with special display values for selected node types */
+    private Map<String, String> typeNameMap;
+    /** A Map with special task names for selected node types */
+    private Map<String, String> typeTaskNameMap;
 
     /** the component we use for editing */
     private EditorComponent editorComponent;
@@ -111,6 +116,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         this.wbsModel = wbsModel;
         this.workflows = workflows;
         this.iconMap = iconMap;
+        this.typeNameMap = this.typeTaskNameMap = Collections.EMPTY_MAP;
 
         if (iconMenu == null)
             this.iconMenu = buildDefaultIconMenu(iconMap);
@@ -128,6 +134,13 @@ public class WBSNodeEditor extends AbstractCellEditor
     }
     public boolean isEditingEnabled() {
         return !disableEditing;
+    }
+
+    public final void setTypeNameMap(Map<String, String> typeNameMap) {
+        this.typeNameMap = typeNameMap;
+    }
+    public final void setTypeTaskNameMap(Map<String, String> typeTaskNameMap) {
+        this.typeTaskNameMap = typeTaskNameMap;
     }
 
 
@@ -556,6 +569,9 @@ public class WBSNodeEditor extends AbstractCellEditor
                     workflows, ": ");
                 if (iconToolTip == null)
                     iconToolTip = wbsModel.filterNodeType(editingNode);
+                String typeName = typeNameMap.get(iconToolTip);
+                if (typeName != null)
+                    iconToolTip = typeName;
                 nodeIcon = (Icon) iconObj;
             }
             iconListener.setToolTipText(iconToolTip);
@@ -915,14 +931,11 @@ public class WBSNodeEditor extends AbstractCellEditor
             // if the name of the node matches the old node type, update the
             // name of the task to keep it in sync.
             if (type instanceof String) {
-                String oldType = editingNode.getType();
+                String oldTypeName = typeToTaskName(editingNode.getType());
                 String nodeName = editorComponent.getText();
                 nodeName = (nodeName == null ? "" : nodeName.trim());
-                if (nodeName.length() == 0 || oldType.equals(nodeName) ||
-                    oldType.equals(nodeName + " Task")) {
-                    nodeName = (String) type;
-                    if (nodeName.endsWith(" Task"))
-                        nodeName = nodeName.substring(0, nodeName.length() - 5);
+                if (nodeName.length() == 0 || oldTypeName.equals(nodeName)) {
+                    nodeName = typeToTaskName((String) type);
                     editorComponent.setText(nodeName);
                     editingNode.setName(nodeName);
                 }
@@ -949,6 +962,15 @@ public class WBSNodeEditor extends AbstractCellEditor
             updateIconAppearance();
 
             UndoList.madeChange(table, "Change type of WBS element");
+        }
+        private String typeToTaskName(String type) {
+            String rename = typeTaskNameMap.get(type);
+            if (rename != null)
+                return rename;
+            else if (type.endsWith(" Task"))
+                return type.substring(0, type.length() - 5);
+            else
+                return type;
         }
     }
     final IconMenuListener ICON_MENU_LISTENER = new IconMenuListener();
