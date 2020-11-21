@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ package teamdash.wbs.columns;
 
 import java.awt.Component;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.swing.JComboBox;
@@ -94,9 +94,7 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         this.proxyModel = dataModel.getWBSModel();
         this.columnName = resources.getString("Proxy_Size.Name");
         this.columnID = COLUMN_ID;
-        this.sizeMetrics = new HashSet(Arrays.asList(process.getSizeMetrics()));
-        this.sizeMetricsEditor = new AutocompletingDataTableCellEditor(
-                new JComboBox(process.getSizeMetrics()));
+        this.sizeMetrics = new LinkedHashSet(Arrays.asList(process.getSizeMetrics()));
         setConflictAttributeName(ATTR_NAME);
         conflictAttributeNamePattern.addLiteralEquals(METRIC_ATTR_NAME);
     }
@@ -251,6 +249,10 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     }
 
     public TableCellEditor getCellEditorForRow(int row) {
+        if (sizeMetricsEditor == null) {
+            sizeMetricsEditor = new AutocompletingDataTableCellEditor(
+                    new JComboBox(sizeMetrics.toArray()));
+        }
         WBSNode node = proxyModel.getNodeForRow(row);
         return (ProxyWBSModel.isProxy(node) ? sizeMetricsEditor : null);
     }

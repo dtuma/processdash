@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,20 +30,16 @@ import java.util.Date;
 
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
 
-import teamdash.wbs.CustomEditedColumn;
-import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellRenderer;
 import teamdash.wbs.ErrorValue;
 import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WrappedValue;
 
-public class MilestoneCommitDateColumn extends AbstractDataColumn implements
-        CustomRenderedColumn, CustomEditedColumn {
+public class MilestoneCommitDateColumn extends AbstractDataColumn {
 
     public static final String COLUMN_ID = "Commit Date";
 
@@ -149,14 +145,6 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
             "yyyy-MM-dd");
 
 
-    public TableCellRenderer getCellRenderer() {
-        return CELL_RENDERER;
-    }
-
-    public TableCellEditor getCellEditor() {
-        return CELL_EDITOR;
-    }
-
     private static class CellRenderer extends DataTableCellRenderer {
 
         @Override
@@ -196,7 +184,9 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
 
     }
 
-    public static final TableCellEditor CELL_EDITOR = new CellEditor();
+    public static TableCellEditor getCellEditor() {
+        return new CellEditor();
+    }
 
     private static String getDateFormatString() {
         if (DISPLAY_FMT instanceof SimpleDateFormat) {

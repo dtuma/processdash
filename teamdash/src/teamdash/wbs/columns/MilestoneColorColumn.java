@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,16 +27,11 @@ import java.awt.Color;
 import java.util.HashSet;
 import java.util.Random;
 
-import javax.swing.JButton;
-import javax.swing.table.TableCellEditor;
-
 import teamdash.team.ColorCellEditor;
-import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.WBSNode;
 
-public class MilestoneColorColumn extends AbstractDataColumn implements
-        CustomEditedColumn {
+public class MilestoneColorColumn extends AbstractDataColumn {
 
     public static final String COLUMN_ID = "Color";
 
@@ -105,10 +100,6 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
         node.setAttribute(CACHED_COLOR_ATTR, colorVal);
     }
 
-    public TableCellEditor getCellEditor() {
-        return CELL_EDITOR;
-    }
-
     private String getFirstUnusedColor() {
         HashSet usedColors = new HashSet();
         for (WBSNode node : milestones.getMilestones())
@@ -132,8 +123,5 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
         "#ff69b4", // hot pink
         "#989797", // grey
     };
-
-    private static final TableCellEditor CELL_EDITOR = new ColorCellEditor(
-            new JButton());
 
 }

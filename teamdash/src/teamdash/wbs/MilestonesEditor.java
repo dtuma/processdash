@@ -149,7 +149,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         // customize the display and editing of the "Commit Date" column.
         col = table.getColumnModel().getColumn(
             milestonesModel.findColumn(MilestoneCommitDateColumn.COLUMN_ID));
-        col.setCellEditor(MilestoneCommitDateColumn.CELL_EDITOR);
+        col.setCellEditor(MilestoneCommitDateColumn.getCellEditor());
         col.setCellRenderer(MilestoneCommitDateColumn.CELL_RENDERER);
         col.setPreferredWidth(60);
 
