@@ -84,7 +84,8 @@ public class SizeMetricCellEditor extends AutocompletingDataTableCellEditor
         return result;
     }
 
-    public SizeMetric parseValue(Object aValue, boolean createIfMissing) {
+    public static SizeMetric parseValue(SizeMetricsWBSModel sizeMetrics,
+            Object aValue, boolean createIfMissing) {
         if (aValue instanceof SizeMetric) {
             return (SizeMetric) aValue;
 

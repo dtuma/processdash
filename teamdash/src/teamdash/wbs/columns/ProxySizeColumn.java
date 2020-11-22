@@ -98,8 +98,6 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         this.sizeMetrics = sizeMetrics;
         this.columnName = resources.getString("Proxy_Size.Name");
         this.columnID = COLUMN_ID;
-        this.sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics,
-                dataModel, this);
         setConflictAttributeName(ATTR_NAME);
         conflictAttributeNamePattern.addLiteralEquals(METRIC_ID_ATTR);
     }
@@ -168,7 +166,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     }
 
     private void storeProxySizeMetric(Object aValue, WBSNode proxy) {
-        SizeMetric metric = sizeMetricsEditor.parseValue(aValue, true);
+        SizeMetric metric = SizeMetricCellEditor.parseValue(sizeMetrics, aValue,
+            true);
         if (metric != null) {
             proxy.setAttribute(METRIC_NAME_ATTR, metric.getName());
             proxy.setAttribute(METRIC_ID_ATTR, metric.getMetricID());
@@ -303,6 +302,9 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     }
 
     public TableCellEditor getCellEditorForRow(int row) {
+        if (sizeMetricsEditor == null)
+            sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics, dataModel,
+                    this);
         WBSNode node = proxyModel.getNodeForRow(row);
         return (ProxyWBSModel.isProxy(node) ? sizeMetricsEditor : null);
     }

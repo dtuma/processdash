@@ -61,8 +61,6 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
         this.columnName = resources.getString("Workflow.Units.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 80;
-        this.sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics,
-                dataModel, this);
         setConflictAttributeName(METRIC_ID_ATTR);
     }
 
@@ -109,7 +107,8 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
                 return;
         }
 
-        SizeMetric metric = sizeMetricsEditor.parseValue(aValue, true);
+        SizeMetric metric = SizeMetricCellEditor.parseValue(sizeMetrics, aValue,
+            true);
         if (metric != null) {
             node.setAttribute(METRIC_NAME_ATTR, metric.getName());
             node.setAttribute(METRIC_ID_ATTR, metric.getMetricID());
@@ -164,6 +163,9 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
 
     @Override
     public TableCellEditor getCellEditor() {
+        if (sizeMetricsEditor == null)
+            sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics, dataModel,
+                    this);
         return sizeMetricsEditor;
     }
 
