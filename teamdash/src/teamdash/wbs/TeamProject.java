@@ -453,8 +453,7 @@ public class TeamProject implements WBSFilenameConstants {
         } catch (Exception e) {
         }
         requireVersion(TeamToolsVersionManager.DATA_VERSION, "3");
-        requireVersion(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT,
-            "6.0a");
+        requireVersion(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT, "6");
 
         // if we are loading the primary team project (the one which will be
         // displayed in all the WBS Editor windows), and it is a personal
