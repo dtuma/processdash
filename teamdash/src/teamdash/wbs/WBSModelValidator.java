@@ -89,7 +89,7 @@ public class WBSModelValidator implements TableModelListener {
         WBSNode parent = wbsModel.getParent(node);
         String typeError = null;
         if (isDuplicateProbeTask(node, probeIDs)) {
-            typeError = "A workflow can only contain one PROBE task.";
+            typeError = "A workflow can only contain one high-maturity planning task.";
         } else if (parent != null) {
             String parentType = wbsModel.filterNodeType(parent);
             typeError = checkParentType(type, parentType);
@@ -248,7 +248,7 @@ public class WBSModelValidator implements TableModelListener {
         if (isPSPTask(type))
             return "PSP task";
         else if (isProbeTask(type))
-            return "PROBE task";
+            return "high-maturity planning task";
         else
             return type.toLowerCase();
     }

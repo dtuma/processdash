@@ -27,6 +27,7 @@
 <p class="submitFilter">
 <input type="submit" name="apply" value="${resources.html['Apply']}"/>
 <input type="submit" name="remove" value="${resources.html['Remove']}"/>
+<input type="submit" name="cancel" value="${resources.html['Cancel']}"/>
 </p>
 
 <table id="data">

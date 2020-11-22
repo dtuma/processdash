@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.Map;
 
 import javax.swing.Icon;
@@ -50,6 +51,8 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private WBSModel wbsModel;
     /** A Map translating node types to their designated icons */
     private Map iconMap;
+    /** A Map with special display values for selected node types */
+    private Map<String, String> typeNameMap;
     /** A workflow model for resolving workflow type icons */
     private WorkflowWBSModel workflows;
     /** An optional override for the name of the root node */
@@ -69,6 +72,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             WorkflowWBSModel workflows) {
         this.wbsModel = wbsModel;
         this.iconMap = iconMap;
+        this.typeNameMap = Collections.EMPTY_MAP;
         this.workflows = workflows;
         setIconTextGap(4);
         updateGeometry();
@@ -80,6 +84,14 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
     public void setRootNodeName(String rootNodeName) {
         this.rootNodeName = rootNodeName;
+    }
+
+    public final Map<String, String> getTypeNameMap() {
+        return typeNameMap;
+    }
+
+    public final void setTypeNameMap(Map<String, String> typeNameMap) {
+        this.typeNameMap = typeNameMap;
     }
 
 
@@ -127,6 +139,9 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
                 ": ");
             if (iconToolTip == null)
                 iconToolTip = wbsModel.filterNodeType(node);
+            String typeName = typeNameMap.get(iconToolTip);
+            if (typeName != null)
+                iconToolTip = typeName;
             expansionIcon.realIcon = (Icon) iconObj;
         }
         // install the expansion icon

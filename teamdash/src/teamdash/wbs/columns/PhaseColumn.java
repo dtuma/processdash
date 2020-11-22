@@ -25,8 +25,7 @@ package teamdash.wbs.columns;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.swing.JComboBox;
@@ -69,8 +68,9 @@ public class PhaseColumn extends AbstractDataColumn
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Phase.Name");
         this.preferredWidth = 100;
+        this.allowedTypes = new LinkedHashSet(
+                teamProcess.getChoosableNodeTypes());
         setConflictAttributeName(AbstractWBSModelMerger.NODE_TYPE);
-        buildEditor(teamProcess);
     }
 
     public Object getValueAt(WBSNode node) {
@@ -200,15 +200,11 @@ public class PhaseColumn extends AbstractDataColumn
     public boolean recalculate() { return true; }
     public void storeDependentColumn(String ID, int columnNumber) {}
 
-    private void buildEditor(TeamProcess teamProcess) {
-        List nodeTypes = teamProcess.getChoosableNodeTypes();
-        allowedTypes = new HashSet(nodeTypes);
-
-        JComboBox comboBox = new JComboBox(nodeTypes.toArray());
-        this.cellEditor = new AutocompletingDataTableCellEditor(comboBox);
-    }
-
     public TableCellEditor getCellEditor() {
+        if (cellEditor == null) {
+            JComboBox cb = new JComboBox(allowedTypes.toArray());
+            cellEditor = new AutocompletingDataTableCellEditor(cb);
+        }
         return cellEditor;
     }
 

@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,13 @@ public class WorkflowJTable extends WBSJTable {
 
         // configure the renderer for the table
         this.renderer.setRootNodeName(resources.getString("Root_Name"));
+        this.renderer.setTypeNameMap(Collections.singletonMap(
+            TeamProcess.PROBE_TASK_TYPE, resources.getString("PROBE")));
+
+        // configure the editor for WBS nodes
+        this.editor.setTypeNameMap(this.renderer.getTypeNameMap());
+        this.editor.setTypeTaskNameMap(Collections.singletonMap( //
+            TeamProcess.PROBE_TASK_TYPE, "Planning"));
 
         // install the default editor for table data.
         this.setDefaultEditor(Object.class, new WorkflowCellEditor());
@@ -101,7 +109,7 @@ public class WorkflowJTable extends WBSJTable {
 
         if (hasProbeTaskType) {
             // create a new menu item for the PROBE task type.
-            JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
+            JMenuItem probeItem = new JMenuItem(resources.getString("PROBE"));
             probeItem.setFont(iconMenu.getFont());
             probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
             if (probeListener != null)

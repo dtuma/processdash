@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -135,8 +135,7 @@ public class DataImporter extends Thread {
         }
     }
     public static void shutDown() {
-        for (Iterator i = importers.values().iterator(); i.hasNext();) {
-            DataImporter imp = (DataImporter) i.next();
+        for (DataImporter imp : listImporters())  {
             imp.quit();
         }
         importers.clear();
@@ -161,10 +160,7 @@ public class DataImporter extends Thread {
     public static List<String> refreshPrefixWithFeedback(String prefix) {
         List<String> result = new ArrayList<String>();
         prefix = massagePrefix(prefix);
-        Iterator i = importers.values().iterator();
-        DataImporter importer;
-        while (i.hasNext()) {
-            importer = (DataImporter) i.next();
+        for (DataImporter importer : listImporters()) {
             if (importer.importPrefix != null &&
                 importer.importPrefix.startsWith(prefix)) {
                 logger.info("checking " + importer.importPrefix + "=>"
@@ -177,7 +173,7 @@ public class DataImporter extends Thread {
     public static List<String> refreshLocation(String location) {
         location = massagePrefix(location);
         List<String> result = new ArrayList<String>();
-        for (DataImporter importer : importers.values()) {
+        for (DataImporter importer : listImporters()) {
             String oneLoc = massagePrefix(importer.directory.getDescription());
             if (oneLoc.endsWith(location)) {
                 logger.info("checking " + importer.importPrefix + "=>"
@@ -188,8 +184,12 @@ public class DataImporter extends Thread {
         return result;
     }
     public static void refreshCachedFiles() {
-        for (DataImporter importer : importers.values())
+        for (DataImporter importer : listImporters())
             importer.refreshIfCached();
+    }
+
+    private static List<DataImporter> listImporters() {
+        return new ArrayList<DataImporter>(importers.values());
     }
 
     private DataImporter(DataRepository data, String prefix,
