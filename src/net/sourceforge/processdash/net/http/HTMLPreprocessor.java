@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1158,8 +1158,8 @@ public class HTMLPreprocessor {
 
                                 // try for an environment variable first.
             Object envVal = env.get(listName);
-            if (envVal instanceof String) {
-                result.add((String) envVal);
+            if (envVal != null) {
+                result.addAll(envVal);
                 return result;
             }
                                 // if this file doesn't want us to iterate

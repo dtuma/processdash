@@ -231,6 +231,7 @@
     <file in="sizeForm.class.link" encoding="none"/>
     <file in="sizeForm.htm"  encoding="html" out="sizeForm.shtm"/>
     <file in="sizeForm2.htm" encoding="html" out="sizeForm2.shtm"/>
+    <file in="sizeForm3.htm" encoding="html" out="sizeForm3.shtm"/>
 
     <!-- write process metadata for use by the export logic. -->
     <file in="process_info.xml" encoding="xml" out="/process_info.xml" />

@@ -414,13 +414,18 @@ public class HierarchySynchronizer {
     private void loadCustomSizeMetricsFromWbs() {
         // load the custom list of size metrics defined in this project
         NodeList nl = projectXML.getElementsByTagName("sizeMetric");
+        ListData metricNames = new ListData(), metricIDs = new ListData();
         for (int i = 0; i < nl.getLength(); i++) {
             Element metric = (Element) nl.item(i);
             String name = metric.getAttribute("name");
             String id = metric.getAttribute("metricID");
             sizeMetrics.add(name);
             sizeMetricNameToId.put(name, id);
+            metricNames.add(name);
+            metricIDs.add(id);
         }
+        forceData(projectPath, "Size_Metric_Name_List", metricNames);
+        forceData(projectPath, "Size_Metric_ID_List", metricIDs);
 
         // the following data structures are only used for old-style projects.
         // initialize them with empty values

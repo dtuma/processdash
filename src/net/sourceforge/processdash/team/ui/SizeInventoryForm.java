@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,8 +24,11 @@
 package net.sourceforge.processdash.team.ui;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
@@ -46,8 +49,9 @@ public class SizeInventoryForm extends TinyCGIBase {
 
     private static final String EXTRA_ROWS_PARAM = "addRows";
     private static final int NUM_EXTRA_ROWS = 5;
-    private boolean newSizeData;
+    private boolean newSizeData, customSizeMetrics;
     private List<String> sizeMetrics;
+    private Map requestEnv;
     private long highlightTimestamp;
     private StringBuffer expansionText;
 
@@ -58,6 +62,7 @@ public class SizeInventoryForm extends TinyCGIBase {
         DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(prefix);
 
+        requestEnv = new HashMap();
         loadProjectSizeMetadata();
         String uri = getURI();
         highlightTimestamp = getHighlightTimestamp();
@@ -96,17 +101,34 @@ public class SizeInventoryForm extends TinyCGIBase {
         DataContext data = getDataContext();
         SimpleData flag = data.getSimpleValue(TeamDataConstants.WBS_SIZE_DATA_NAME);
         newSizeData = (flag != null && flag.test());
+        flag = data.getSimpleValue(TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME);
+        customSizeMetrics = (flag != null && flag.test());
 
-        sizeMetrics = new ProcessUtil(data)
-                .getProcessListPlain("Custom_Size_Metric_List");
-        sizeMetrics.add(0, "LOC");
-        sizeMetrics.add("DLD Lines");
+        ProcessUtil proc = new ProcessUtil(data);
+        if (customSizeMetrics) {
+            sizeMetrics = proc.getProcessListPlain("Size_Metric_ID_List");
+            List names = proc.getProcessListPlain("Size_Metric_Name_List");
+            List keys = new ArrayList();
+            for (int i = 0; i < sizeMetrics.size(); i++) {
+                String key = "SizeMetric_" + i;
+                requestEnv.put(key + "_ID", sizeMetrics.get(i));
+                requestEnv.put(key + "_Name", names.get(i));
+                keys.add(key);
+            }
+            requestEnv.put("Size_Metric_List", keys);
+
+        } else {
+            sizeMetrics = proc.getProcessListPlain("Custom_Size_Metric_List");
+            sizeMetrics.add(0, "LOC");
+            sizeMetrics.add("DLD Lines");
+        }
     }
 
     protected String getURI() {
         String script = (String) env.get("SCRIPT_NAME");
         int pos = script.indexOf(".class");
-        return script.substring(0, pos) + (newSizeData ? "2" : "") + ".shtm";
+        return script.substring(0, pos) //
+                + (customSizeMetrics ? "3" : (newSizeData ? "2" : "")) + ".shtm";
     }
 
     private long getHighlightTimestamp() {
@@ -151,11 +173,10 @@ public class SizeInventoryForm extends TinyCGIBase {
             if (rowNums.length() > 0) {
                 Object replacements = Collections.singletonMap("#####",
                     rowNums.substring(1));
-                byte[] text =
-                        getTinyWebServer().getRequest(url.toString(), true,
-                            Collections.singletonMap(
-                                HTMLPreprocessor.REPLACEMENTS_PARAM,
-                                replacements));
+                requestEnv.put(HTMLPreprocessor.REPLACEMENTS_PARAM,
+                    replacements);
+                byte[] text = getTinyWebServer().getRequest(url.toString(),
+                    true, requestEnv);
                 outStream.write(text);
                 outStream.flush();
             }
