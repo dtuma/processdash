@@ -82,7 +82,6 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     }
 
     private WBSDataModel dataModel;
-    private TeamProcess process;
     private IntList teamMemberColumns;
     private String[] teamMemberAttrs;
     private int numPeopleCol;
@@ -91,9 +90,8 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     private List<String> discrepantIndividuals;
     private Set<PlanTimeDiscrepancyListener> listeners;
 
-    public PlanTimeWatcher(WBSDataModel m, TeamProcess p) {
+    public PlanTimeWatcher(WBSDataModel m) {
         this.dataModel = m;
-        this.process = p;
         this.columnName = this.columnID = COLUMN_ID;
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID };
         this.teamMemberColumns = new IntList();
@@ -234,16 +232,18 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         Object multiFlag = node.getAttribute(PROBE_MULTI_FLAG_ATTR);
         if (isMulti == false && multiFlag == null)
             return;
-        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, process);
-        if (isMulti == true && units.equals(multiFlag))
+        String metricID = SizeDataColumn.getSizeMetricIdForPspOrProbeTask(node);
+        if (metricID == null)
+            metricID = "LOC";
+        if (isMulti == true && metricID.equals(multiFlag))
             return;
 
         // set the flag on the node. If the task is assigned to multiple people,
         // the flag hold the units of the PSP/PROBE task. Otherwise null
-        node.setAttribute(PROBE_MULTI_FLAG_ATTR, isMulti ? units : null);
+        node.setAttribute(PROBE_MULTI_FLAG_ATTR, isMulti ? metricID : null);
 
         // alert the affected columns
-        Set<String> affectedMetrics = new HashSet(Collections.singleton(units));
+        Set<String> affectedMetrics = new HashSet(Collections.singleton(metricID));
         if (multiFlag instanceof String)
             affectedMetrics.add((String) multiFlag);
         for (String metric : affectedMetrics) {

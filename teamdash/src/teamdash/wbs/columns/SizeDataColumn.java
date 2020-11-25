@@ -233,8 +233,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         if (node.getAttribute(attr) == null)
             return false;
 
-        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, teamProcess);
-        return metricID.equals(units);
+        return isPspOrProbeTaskWithMatchingMetric(node, metricID);
     }
 
     /** @return true if node is a PSP/PROBE task assigned to multiple people */
@@ -491,24 +490,33 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             if (!isCellEditable(child) || child.isHidden())
                 continue;
 
-            String type = child.getType();
-
-            // if this is a PROBE task, and it uses the same size metric as this
-            // column, return it.
-            if (TeamProcess.isProbeTask(type)) {
-                String probeTaskSizeMetric = TaskSizeUnitsColumn
-                        .getSizeUnitsForProbeTask(child);
-                if (metricID.equals(probeTaskSizeMetric))
-                    return child;
-            }
-
-            // if this is a PSP task, and this column is showing LOC, return it
-            if (TeamProcess.isPSPTask(type) && metricID.equals("LOC")) {
+            // if this is a PSP or PROBE task with a matching size metric,
+            // return it
+            if (isPspOrProbeTaskWithMatchingMetric(child, metricID))
                 return child;
-            }
         }
 
         // we didn't find a size delegate child directly under this node.
+        return null;
+    }
+
+    public static boolean isPspOrProbeTaskWithMatchingMetric(WBSNode node,
+            String metricID) {
+        return metricID.equals(getSizeMetricIdForPspOrProbeTask(node));
+    }
+
+    public static String getSizeMetricIdForPspOrProbeTask(WBSNode node) {
+        // if this is a PSP task, and this column is showing LOC, it's a match
+        String type = node.getType();
+        if (TeamProcess.isPSPTask(type))
+            return "LOC";
+
+        // if this is a PROBE task, and it uses the same size metric as this
+        // column, it's a match
+        if (TeamProcess.isProbeTask(type))
+            return WorkflowSizeUnitsColumn.getSizeMetricIdForProbeTask(node);
+
+        // this task is not PROBE-related.
         return null;
     }
 

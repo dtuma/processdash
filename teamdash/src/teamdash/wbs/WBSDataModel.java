@@ -206,7 +206,7 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
                 teamProcess.getIconMap()));
         addDataColumn(new NotesColumn(currentUser));
         addDataColumn(new ErrorNotesColumn(currentUser));
-        addDataColumn(new PlanTimeWatcher(this, teamProcess));
+        addDataColumn(new PlanTimeWatcher(this));
         extSysMgr.createDataColumns(this);
         customColumnManager = new CustomColumnManager(this, projectColumns,
                 teamProcess.getProcessID());
