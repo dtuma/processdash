@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -318,7 +318,8 @@ public class UserDataWriter extends TinyCGIBase {
             double planSize = getNumberData(getData(path, EST_NC_LOC));
             double actualSize = getNumberData(getData(path, NC_LOC));
             String wbsId = getInheritedWbsIdForPath(path);
-            writeSizeDataTag(ser, wbsId, "LOC", planSize, actualSize, null);
+            writeSizeDataTag(ser, wbsId, "LOC", "LOC", planSize, actualSize,
+                null);
 
         } else {
             for (int i = hier.getNumChildren(node);  i-- > 0; )
@@ -330,16 +331,18 @@ public class UserDataWriter extends TinyCGIBase {
             throws IOException {
         String description = getStringValue(path + "/Description");
         String units = getStringValue(path + "/Sized_Object_Units");
+        String unitsID = getStringValue(path + "/Sized_Object_Units_ID");
         double planSize = getNumberData(path + "/Estimated Size");
         double actualSize = getNumberData(path + "/Size");
         String wbsId = getInheritedWbsIdForPath(path);
 
-        writeSizeDataTag(ser, wbsId, units, planSize, actualSize, description);
+        writeSizeDataTag(ser, wbsId, units, unitsID, planSize, actualSize,
+            description);
     }
 
-    private void writeSizeDataTag(XmlSerializer ser, String wbsId,
-            String units, double planSize, double actualSize, String description)
-            throws IOException {
+    private void writeSizeDataTag(XmlSerializer ser, String wbsId, String units,
+            String unitsID, double planSize, double actualSize,
+            String description) throws IOException {
         boolean hasSize = (planSize > 0 || actualSize > 0);
         boolean hasUnits = (hasValue(units) && !units.startsWith("Inspected "));
         boolean hasWbsId = hasValue(wbsId);
@@ -350,6 +353,8 @@ public class UserDataWriter extends TinyCGIBase {
             ser.startTag(null, SIZE_DATA_TAG);
             ser.attribute(null, WBS_ID_ATTR, wbsId);
             ser.attribute(null, UNITS_ATTR, units);
+            if (hasValue(unitsID))
+                ser.attribute(null, UNITS_ID_ATTR, unitsID);
             if (planSize > 0)
                 ser.attribute(null, EST_SIZE_ATTR, Double.toString(planSize));
             if (actualSize > 0)
@@ -525,6 +530,8 @@ public class UserDataWriter extends TinyCGIBase {
                 ser.attribute(null, PATH_ATTR, s.getPath());
                 ser.attribute(null, WBS_ID_ATTR, s.getWbsId());
                 ser.attribute(null, UNITS_ATTR, s.getMetric());
+                if (XMLUtils.hasValue(s.getMetricID()))
+                    ser.attribute(null, UNITS_ID_ATTR, s.getMetricID());
                 ser.attribute(null, PLAN_ATTR, Boolean.toString(s.isPlan()));
                 ser.attribute(null, SIZE_VALUE_ATTR, Double.toString(s.getValue()));
                 ser.attribute(null, WHEN_ATTR, "@" + s.getTimestamp());
@@ -649,6 +656,8 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String DESCRIPTION_ATTR = "description";
 
     private static final String UNITS_ATTR = "units";
+
+    private static final String UNITS_ID_ATTR = "unitsID";
 
     private static final String EST_SIZE_ATTR = "estSize";
 

@@ -71,6 +71,7 @@
         <include>{PROBE Task}/(Estimated )?Added &amp; Modified Size$</include>
         <include>{PROBE Task}/(Estimated )?Proxy Size$</include>
         <include>{PROBE Task}/Size Units$</include>
+        <include>{PROBE Task}/Size Units ID$</include>
 
   </metricsFilter>
 </exportMetricsFile>
