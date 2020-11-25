@@ -189,7 +189,9 @@ public class HierarchySynchronizer {
     private List completionsPerformed;
     private List pspTasksNeedingSubsetPrompt;
 
+    private boolean customSizeMetrics;
     private List<String> sizeMetrics;
+    private Map<String, String> sizeMetricNameToId;
     private Map sizeConstrPhases;
     private List allConstrPhases;
 
@@ -262,8 +264,8 @@ public class HierarchySynchronizer {
                     && Settings.getBool("syncWBS.copyInspectedSizes", false);
         }
 
-        loadProcessData();
         openWBS(wbsLocation);
+        loadProcessData();
         this.fullCopyMode = fullCopyMode;
         this.workflowURLsSupported = false;
     }
@@ -396,8 +398,38 @@ public class HierarchySynchronizer {
 
 
     private void loadProcessData() {
-        List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
+        // read the project flag indicating use of custom size metrics
+        customSizeMetrics = testData(getData(projectPath, //
+            TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME));
+
+        // initialize size metrics statically or dynamically as appropriate
         sizeMetrics = new ArrayList<String>();
+        sizeMetricNameToId = new HashMap();
+        if (customSizeMetrics)
+            loadCustomSizeMetricsFromWbs();
+        else
+            loadStaticSizeMetricsFromMcf();
+    }
+
+    private void loadCustomSizeMetricsFromWbs() {
+        // load the custom list of size metrics defined in this project
+        NodeList nl = projectXML.getElementsByTagName("sizeMetric");
+        for (int i = 0; i < nl.getLength(); i++) {
+            Element metric = (Element) nl.item(i);
+            String name = metric.getAttribute("name");
+            String id = metric.getAttribute("metricID");
+            sizeMetrics.add(name);
+            sizeMetricNameToId.put(name, id);
+        }
+
+        // the following data structures are only used for old-style projects.
+        // initialize them with empty values
+        sizeConstrPhases = Collections.EMPTY_MAP;
+        allConstrPhases = Collections.EMPTY_LIST;
+    }
+
+    private void loadStaticSizeMetricsFromMcf() {
+        List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
         sizeMetrics.add("LOC");
         sizeMetrics.addAll(sizeMetricsList);
         sizeMetrics.add("DLD Lines");
@@ -2650,8 +2682,12 @@ public class HierarchySynchronizer {
         private void saveNewStyleNodeSize(SyncWorker worker, String path,
                 String units, boolean plan, Double value,
                 String wbsRevSyncTime) {
+            // for custom-size projects, use the metric ID for storage
+            String metricID = sizeMetricNameToId.get(units);
+            String storageName = (metricID != null ? metricID : units);
+
             // write the value into the repository
-            String dataName = path + SIZE_DATA_NAME_PREFIX + units
+            String dataName = path + SIZE_DATA_NAME_PREFIX + storageName
                     + (plan ? SIZE_DATA_NAME_PLAN_SUFFIX
                             : SIZE_DATA_NAME_ACTUAL_SUFFIX);
             DoubleData dataValue = value == null ? null : new DoubleData(value);
@@ -2672,7 +2708,7 @@ public class HierarchySynchronizer {
                 // reverse-sync instruction for it
                 double val = asDouble(sdr.localValue);
                 discrepancies.add(new SyncDiscrepancy.SizeData(path,
-                        getWbsIdForPath(path), units, plan, val,
+                        getWbsIdForPath(path), units, metricID, plan, val,
                         sdr.localTimestamp.getValue().getTime()));
             }
         }
@@ -2680,7 +2716,12 @@ public class HierarchySynchronizer {
 
         private void saveNewStyleNodeSizeOwnerFlag(String path, String units,
                 boolean isOwner) {
-            String prefix = path + SIZE_DATA_NAME_PREFIX + units;
+            // for custom-size projects, use the metric ID for storage
+            String storageName = sizeMetricNameToId.get(units);
+            if (storageName == null)
+                storageName = units;
+
+            String prefix = path + SIZE_DATA_NAME_PREFIX + storageName;
             putData(prefix, SIZE_OWNER_DATA_NAME_SUFFIX,
                 isOwner ? TagData.getInstance() : null);
         }
@@ -3206,8 +3247,9 @@ public class HierarchySynchronizer {
             // if a locally edited value needs to be copied back, build a
             // reverse-sync instruction for it
             double val = asDouble(syncResult.localValue);
+            String smID = sizeMetricNameToId.get(units);
             discrepancies.add(new SyncDiscrepancy.SizeData(path,
-                    getWbsIdForPath(path), units, true, val,
+                    getWbsIdForPath(path), units, smID, true, val,
                     syncResult.localTimestamp.getValue().getTime()));
         }
     }
@@ -3332,8 +3374,9 @@ public class HierarchySynchronizer {
             // if a locally edited value needs to be copied back, build a
             // reverse-sync instruction for it
             double val = asDouble(syncResult.localValue);
+            String smID = sizeMetricNameToId.get(units);
             discrepancies.add(new SyncDiscrepancy.SizeData(path,
-                    getWbsIdForPath(path), units, false, val - syncDelta,
+                    getWbsIdForPath(path), units, smID, false, val - syncDelta,
                     syncResult.localTimestamp.getValue().getTime()));
         }
     }
@@ -3440,18 +3483,24 @@ public class HierarchySynchronizer {
                 Element node) {
             // save the unit of size measurement to the project
             String units = node.getAttribute(OLD_SIZE_UNITS_ATTR);
-            String currentUnits = getStringData(
-                getData(path, PROBE_SIZE_UNITS_DATA_NAME));
-            if (XMLUtils.hasValue(units) && !units.equals(currentUnits)) {
-                StringData value = StringData.create(units);
-                value.setEditable(false);
-                putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
-            }
+            setStringIfChanged(path, PROBE_SIZE_UNITS_DATA_NAME, units);
+            String unitsID = sizeMetricNameToId.get(units);
+            setStringIfChanged(path, PROBE_SIZE_UNITS_ID_DATA_NAME, unitsID);
 
             Element probeSizeData = super.saveNewStyleNodeSizes(worker, path,
                 node);
             syncProbeSizeData(worker, path, node, probeSizeData, pdn);
             return probeSizeData;
+        }
+
+        private void setStringIfChanged(String path, String dataName,
+                String newValue) {
+            String currentValue = getStringData(getData(path, dataName));
+            if (XMLUtils.hasValue(newValue) && !newValue.equals(currentValue)) {
+                StringData value = StringData.create(newValue);
+                value.setEditable(false);
+                putData(path, dataName, value);
+            }
         }
 
         @Override
@@ -3522,6 +3571,7 @@ public class HierarchySynchronizer {
     private static final String SIZE_UNITS_DATA_NAME =
         "Sized_Objects/0/Sized_Object_Units";
     private static final String PROBE_SIZE_UNITS_DATA_NAME = "Size Units";
+    private static final String PROBE_SIZE_UNITS_ID_DATA_NAME = "Size Units ID";
     private static final String[] PROBE_SIZE_DATA_ELEMENT_NAMES = {
             "Estimated Proxy Size", "Estimated Size", "Size", "Total Size" };
     private static final String[] PROBE_SIZE_ACCT_DATA_NAMES = new String[] {
