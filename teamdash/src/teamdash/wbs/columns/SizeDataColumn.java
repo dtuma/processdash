@@ -745,6 +745,10 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             TeamProcess process, String metricID, String attr,
             Set<WBSNode> changedNodes) {
 
+        // rates are currently unsupported, so nothing needs to be done
+        if (TeamTimeColumn.RATES_DISABLED)
+            return false;
+
         // if this node is not in the "changed" list, and it has a size
         // estimate of its own, that size estimate will shield it from
         // "inheriting" a size from any changed parent. We can prune our
@@ -754,9 +758,9 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
         // if this node is a leaf task that uses the same task units as
         // the changed estimate, clear its rate attribute.
+        // FIXME when rate support is reimplemented in the WBS
         if (TeamTimeColumn.isLeafTask(wbs, node)) {
-            String taskUnits = TaskSizeUnitsColumn.getSizeUnitsForTask(node,
-                process);
+            String taskUnits = null;
             if (metricID.equals(taskUnits))
                 return node.removeAttribute(TeamTimeColumn.RATE_ATTR) != null;
             else
