@@ -48,7 +48,6 @@
     <!--#endfor-->
 
     <!-- html pages for the individual project root node -->
-    <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
     <file in="project_parameters.htm" encoding="html" 
           out="indiv_project_parameters.shtm">
 	<param name="indiv" value="true" />
@@ -180,13 +179,6 @@
           out="quality-profile-act.rpt">
 	  <param name="Estimated_" value="" replace="true"/>
     </file>
-
-    <!-- the html page displaying charts -->
-    <!--#if not VVIS -->
-    <file in="charts.htm" encoding="none" out="charts.shtm">
-        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
-    </file>
-    <!--#endif-->
 
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />
