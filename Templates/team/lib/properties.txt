@@ -8,18 +8,6 @@ Size_Metric_Data_Names=LIST=,\
     DLD Lines,New & Changed LOC,
 
 
-# make a note of the size metric units used by each phase
-
-<!--#foreach name=Phase list=Phase_List #-->
-<!--#foreach name=SizeMetric list=Size_Metric_List #-->
-<!--#foreach name=DataElem list=SizeMetric_Name #-->
-<!--#if Phase_Size_Metric eq 'DataElem' || Phase_Size_Metric eq 'Inspected DataElem' -->
-<!--#foreach name=SizeUnit list=Size_Units_List #-->
-<!--#if SizeMetric_Units eq SizeUnit_Id #-->
-Phase_Size_Uses_SizeUnit=true
-<!--#endif--><!--#endfor--><!--#endif--><!--#endfor--><!--#endfor--><!--#endfor-->
-
-
 # is any phase using the DLD Lines metric?  Any Compile phase? If so, make a note.
 
 <!--#foreach name=Phase list=Phase_List #-->
