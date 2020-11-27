@@ -46,9 +46,4 @@ Phase_Size_Metric=Inspected New & Changed LOC
 
 # Record the filename of the team project plan summary
 
-<!--#if Old_Style_Plan_Summary -->
-Team_Plan_Summary=<!--#echo Process_ID -->/team_summary.shtm
-<!--#else-->
 Team_Plan_Summary=cms/<!--#echo Process_ID -->/rollup_plan_summary
-<!--#endif-->
-

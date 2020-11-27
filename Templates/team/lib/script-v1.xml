@@ -126,22 +126,6 @@
 
 
     <!-- forms shared by team nodes and rollup templates -->
-    <!--#if Old_Style_Plan_Summary -->
-    <file in="plan_summary.htm" encoding="html"
-          out="rollup_plan_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <file in="quality_summary.htm" encoding="html"
-          out="rollup_quality_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <!--#elif VVIS -->
-    <file in="matrix_plan_summary.htm" encoding="html"
-          out="rollup_plan_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <file in="phasePie.rpt" encoding="none" />
-    <!--#endif-->
     <!--#if Rollup_Summary_Filename -->
     <file in="extfile:<!--#echo Rollup_Summary_Filename -->"
           out="rollup_plan_summary.xml" encoding="xml"/>
@@ -161,17 +145,8 @@
           out="version_error.shtm"/>
 
     <!-- forms and reports for the team plan summary -->
-    <!--#if Old_Style_Plan_Summary || VVIS -->
-    <file in="summary_top_frame.htm" encoding="html"
-          out="team_summary.shtm"/>
-    <file in="summary_frame.htm" encoding="html"
-          out="summary_frame.shtm"/>
-    <file in="summary_toc.htm" encoding="html"
-          out="summary_toc.shtm"/>
-    <!--#else-->
     <file in="team_summary_redirect.htm" encoding="html"
           out="team_summary.shtm"/>
-    <!--#endif-->
 
     <!-- files used by the team data rollup filter -->
     <file in="rollup_filter.htm" out="rollup_filter.shtm" encoding="none"/>
