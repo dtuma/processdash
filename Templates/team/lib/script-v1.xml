@@ -113,10 +113,6 @@
     </file>
     <file in="indiv_plan_summary.link"/>
     <file in="sizeest.class.link"/>
-    <!--#if not VVIS -->
-    <file in="quality_summary.htm" encoding="html"
-          out="quality_summary.shtm"/>
-    <!--#endif-->
 
     <!-- scripts for use on the individual side -->
     <file in="process_script.htm" encoding="html" out="script.htm"/>
