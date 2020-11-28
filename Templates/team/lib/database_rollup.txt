@@ -98,15 +98,18 @@
 
 <!--#foreach name=METRIC list=Size_Metric_Data_Names -->
 <!--#if 'METRIC' eq 'New & Changed LOC' -->
-[Estimated METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=LOC", "Type=Plan", "A&M"), 0);
-[METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=LOC", "Type=Actual", "A&M"), 0);
+[LOC/Is_Present] = indexOf("LOC", [Size_Metric_Name_List]) >= 0;
+[New & Changed LOC/Is_Present] = [LOC/Is_Present];
+[Estimated METRIC] = iff([LOC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Plan", "A&M"), 0), NaN);
+[METRIC] = iff([LOC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Actual", "A&M"), 0), NaN);
 <!--#else-->
-[Estimated METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=METRIC", "Type=Plan", "A&M"), 0);
-[METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=METRIC", "Type=Actual", "A&M"), 0);
+[METRIC/Is_Present] = indexOf("METRIC", [Size_Metric_Name_List]) >= 0;
+[Estimated METRIC] = iff([METRIC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Plan", "A&M"), 0), NaN);
+[METRIC] = iff([METRIC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Actual", "A&M"), 0), NaN);
 <!--#endif-->
 <!--#endfor-->
 
