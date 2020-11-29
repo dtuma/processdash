@@ -427,11 +427,20 @@ public class HierarchySynchronizer {
         forceData(projectPath, "Size_Metric_Name_List", metricNames);
         forceData(projectPath, "Size_Metric_ID_List", metricIDs);
 
+        // if this project has exceeded the maximum expected number of size
+        // metrics, store a setting to allocate more for the future
+        int maxNumMetrics = Settings.getInt(MAX_NUM_SIZE_METRICS, 0);
+        if (maxNumMetrics < metricNames.size()) {
+            int newMax = metricNames.size() * 3 / 2;
+            InternalSettings.set(MAX_NUM_SIZE_METRICS, Integer.toString(newMax));
+        }
+
         // the following data structures are only used for old-style projects.
         // initialize them with empty values
         sizeConstrPhases = Collections.EMPTY_MAP;
         allConstrPhases = Collections.EMPTY_LIST;
     }
+    private static final String MAX_NUM_SIZE_METRICS = "sizeMetrics.maxNumPerProject";
 
     private void loadStaticSizeMetricsFromMcf() {
         List sizeMetricsList = getProcessDataList("Custom_Size_Metric_List");
