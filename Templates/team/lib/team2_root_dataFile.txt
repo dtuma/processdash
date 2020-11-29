@@ -27,6 +27,6 @@ undefine([Simple Project Tag]);
 [IMPORT_FILE/Instructions] = list([Project_ID],
     "file:/<!--#echo Process_ID -->/importFilterSpecDB.xml");
 
-<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->
-
 #endif
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

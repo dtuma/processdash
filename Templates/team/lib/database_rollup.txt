@@ -127,6 +127,20 @@
 
 
 /*
+ * Calculate rollups for custom size metrics
+ */
+
+<!--#foreach index=II count=sizeMetrics.maxNumPerProject -->
+[Size/II/Metric_Name] = index(II, [Size_Metric_Name_List]);
+[Size/II/Plan Size] = nvl(dbGetResultValue([DB_Size_Data],
+    "Metric=" & [Size/II/Metric_Name], "Type=Plan", "A&M"), 0);
+[Size/II/Actual Size] = nvl(dbGetResultValue([DB_Size_Data],
+    "Metric=" & [Size/II/Metric_Name], "Type=Actual", "A&M"), 0);
+<!--#endfor-->
+[Size/Max_Num] == <!--#echo sizeMetrics.maxNumPerProject -->;
+
+
+/*
  * A small number of low-value metrics cannot be calculated using the data
  * that is in the warehouse today.  Disable those calculations for now,
  * and focus on providing value to users.
