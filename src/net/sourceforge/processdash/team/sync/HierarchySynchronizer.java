@@ -325,6 +325,10 @@ public class HierarchySynchronizer {
         return initials == SYNC_TEAM || initials == SYNC_MASTER;
     }
 
+    public boolean isMaster() {
+        return initials == SYNC_MASTER;
+    }
+
     public List getChanges() {
         return changes;
     }
@@ -405,10 +409,21 @@ public class HierarchySynchronizer {
         // initialize size metrics statically or dynamically as appropriate
         sizeMetrics = new ArrayList<String>();
         sizeMetricNameToId = new HashMap();
-        if (customSizeMetrics)
+        if (isMaster())
+            loadCustomSizeMetricsFromSubprojects();
+        else if (customSizeMetrics)
             loadCustomSizeMetricsFromWbs();
         else
             loadStaticSizeMetricsFromMcf();
+    }
+
+    private void loadCustomSizeMetricsFromSubprojects() {
+        // the master project root datafile calculates the set of all size
+        // metrics used by this project's subprojects
+        ListData metricNames = ListData
+                .asListData(getData(projectPath, "Size_Metric_Name_List"));
+        sizeMetrics.addAll(metricNames.asList());
+        setCustomSizeMetricMetadata(metricNames);
     }
 
     private void loadCustomSizeMetricsFromWbs() {
@@ -427,6 +442,10 @@ public class HierarchySynchronizer {
         forceData(projectPath, "Size_Metric_Name_List", metricNames);
         forceData(projectPath, "Size_Metric_ID_List", metricIDs);
 
+        setCustomSizeMetricMetadata(metricNames);
+    }
+
+    private void setCustomSizeMetricMetadata(ListData metricNames) {
         // if this project has exceeded the maximum expected number of size
         // metrics, store a setting to allocate more for the future
         int maxNumMetrics = Settings.getInt(MAX_NUM_SIZE_METRICS, 0);
