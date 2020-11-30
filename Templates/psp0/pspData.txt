@@ -91,6 +91,14 @@
 [New & Changed LOC] = [Added LOC] + [Modified LOC];
 [Added LOC] = [Total LOC] - [Base LOC] + [Deleted LOC] - [Reused LOC];
 
+// arrange for size data to be accessible to custom size rollups
+
+[Sized_Objects/0/Description] == "PSP-Entered Size";
+[Sized_Objects/0/Estimated Size] = nvl([Estimated Size] + 0, 0);
+[Sized_Objects/0/Size] = nvl([Size] + 0, 0);
+[Sized_Objects/0/Sized_Object_Units] == "New & Changed LOC";
+[Sized_Objects/0/Sized_Object_Units_ID] == "LOC";
+
 
 /*
  * Defect Injection/Removal by phase metrics

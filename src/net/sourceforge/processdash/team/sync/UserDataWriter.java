@@ -298,32 +298,11 @@ public class UserDataWriter extends TinyCGIBase {
     }
 
     private void writeSizeData(XmlSerializer ser) throws IOException {
-        DashHierarchy hier = getPSPProperties();
-        PropertyKey projectRoot = hier.findExistingKey(getPrefix());
-        if (projectRoot != null)
-            writePspSizeData(ser, hier, projectRoot);
-
         ListData sizedObjects = ListData
                 .asListData(getData("Sized_Object_List"));
         if (sizedObjects != null) {
             for (int i = sizedObjects.size(); i-- > 0;)
                 writeLocalObjectSizeData(ser, (String) sizedObjects.get(i));
-        }
-    }
-
-    private void writePspSizeData(XmlSerializer ser, DashHierarchy hier,
-            PropertyKey node) throws IOException {
-        String path = node.path();
-        if (getData(path, "PSP Project") != null) {
-            double planSize = getNumberData(getData(path, EST_NC_LOC));
-            double actualSize = getNumberData(getData(path, NC_LOC));
-            String wbsId = getInheritedWbsIdForPath(path);
-            writeSizeDataTag(ser, wbsId, "LOC", "LOC", planSize, actualSize,
-                null);
-
-        } else {
-            for (int i = hier.getNumChildren(node);  i-- > 0; )
-                writePspSizeData(ser, hier, hier.getChildKey(node, i));
         }
     }
 
@@ -648,8 +627,6 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String PRUNED_ATTR = "pruned";
 
     private static final String NC_LOC = "New & Changed LOC";
-
-    private static final String EST_NC_LOC = "Estimated " + NC_LOC;
 
     private static final String SIZE_DATA_TAG = "sizeData";
 
