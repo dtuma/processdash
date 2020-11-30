@@ -52,21 +52,18 @@ undefine([Simple Project Tag]);
 /*
  * Modify the rollup calculations for size metrics in the personal dashboard
  */
-<!--#foreach name=Metric list=Size_Metric_Data_Names -->
+<!--#foreach name=METRIC list=Size_Metric_Data_Names -->
 
 /*
- * Include new-style size inventory entries in the size rollups
+ * Define legacy size data calculations as aliases to rollups of custom size
  */
-<!--#set var='Size_Prefix' inline='t' --><!--#replace token="New & Changed LOC"
-         value="LOC" -->Sized_Objects/Metric<!--#endreplace--><!--#endset#-->
-[Metric/Owned_List] = iff(![WBS_Managed_Size_Data], list(),
-    filter(lookup([_] &/ "<!--#echo Size_Prefix -->/Is Owner"), [Rollup_List]));
+[METRIC/Size_Index] = indexOf("METRIC", [Size_Metric_Name_List]);
 
-[Estimated Metric] = 0 + sumFor ("Estimated Metric", [Rollup_List])
-    + sumFor ("<!--#echo Size_Prefix -->/Plan Size", [Metric/Owned_List]);
+[Estimated METRIC] = iff([METRIC/Size_Index] < 0, NaN,
+    lookup("Size/" & [METRIC/Size_Index] & "/Plan Size"));
 
-[Metric] = 0 + sumFor ("Metric", [Rollup_List])
-    + sumFor ("<!--#echo Size_Prefix -->/Actual Size", [Metric/Owned_List]);
+[METRIC] = iff([METRIC/Size_Index] < 0, NaN,
+    lookup("Size/" & [METRIC/Size_Index] & "/Actual Size"));
 
 /*
  * On the team side, the calculations assume that the team inspects
@@ -76,7 +73,46 @@ undefine([Simple Project Tag]);
  * "Inspected" items from the Size Inventory form.
  */
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
-[Estimated_Inspected Metric] = 0 + sumFor ("Estimated_Inspected Metric" , [Rollup_List]);
+[Estimated_Inspected METRIC] = 0 + iff([WBS_Managed_Size_Data], 0,
+    sumFor ("Estimated_Inspected METRIC" , [Rollup_List]));
 <!--#endfor-->
+
+<!--#endfor-->
+
+// For LOC, the metric name differs from the legacy data name. Fix
+// the equation that was generated above to reflect this difference.
+
+[New & Changed LOC/Size_Index] = indexOf("LOC", [Size_Metric_Name_List]);
+
+
+/*
+ * Calculate rollups for custom size metrics
+ */
+
+[Size_Metric_Eff_Units_List] = map(
+    iff([_] == "LOC", "New & Changed LOC", [_]),
+    [Size_Metric_Name_List]);
+[Filtered_Sized_Object_List] = filterDataNames([Sized_Object_List],
+    "/Sized_Objects/", [Rollup_List]);
+
+[Size/Max_Num] == <!--#echo sizeMetrics.maxNumPerProject -->;
+
+<!--#foreach index=II count=sizeMetrics.maxNumPerProject -->
+[Size/II/Metric_ID]        = index(II, [Size_Metric_ID_List]);
+[Size/II/Metric_Name]      = index(II, [Size_Metric_Name_List]);
+[Size/II/Metric_Eff_Units] = index(II, [Size_Metric_Eff_Units_List]);
+[Size/II/Unmanaged_List] = filter(
+    lookup([_] & "/Sized_Object_Units") == [Size/II/Metric_Eff_Units],
+    [Filtered_Sized_Object_List]);
+[Size/II/Managed_Prefix] = "Sized_Objects/" & [Size/II/Metric_ID];
+[Size/II/Managed_Owned_List] =
+    iff(![WBS_Managed_Size_Data], list(),
+    iff([Personal_Project], [Rollup_List],
+    filter(lookup([_] &/ [Size/II/Managed_Prefix] & "/Is Owner"),
+           [Rollup_List])));
+[Size/II/Plan Size] = 0 + sumFor ("Estimated Size", [Size/II/Unmanaged_List])
+    + sumFor ([Size/II/Managed_Prefix] & "/Plan Size", [Size/II/Managed_Owned_List]);
+[Size/II/Actual Size] = 0 + sumFor ("Size", [Size/II/Unmanaged_List])
+    + sumFor ([Size/II/Managed_Prefix] & "/Actual Size", [Size/II/Managed_Owned_List]);
 
 <!--#endfor-->

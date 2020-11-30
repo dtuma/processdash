@@ -237,6 +237,7 @@ undefine([Use_Rollup]);
 
 [/PID/Custom_Size_Metric_List] = "<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor-->";
 [Size_Metric_Name_List] == "LOC<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor--><!--#if Process_Uses_DLD_Lines -->DLD Lines<!--#endif-->";
+[Size_Metric_ID_List]   == "LOC<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor--><!--#if Process_Uses_DLD_Lines -->DLD Lines<!--#endif-->";
 
 
 
