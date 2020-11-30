@@ -24,6 +24,7 @@ undefine([Simple Project Tag]);
 
 [Size_Metric_Name_List] =
     setUnion(listFor("Size_Metric_Name_List", [Subproject_Path_List]));
+[Size_Metric_Long_Name_List] = [Size_Metric_Name_List];
 
 [Task_Labels] = list(
     [Synchronized_Task_Labels],

@@ -100,6 +100,7 @@ undefine([Simple Project Tag]);
 <!--#foreach index=II count=sizeMetrics.maxNumPerProject -->
 [Size/II/Metric_ID]        = index(II, [Size_Metric_ID_List]);
 [Size/II/Metric_Name]      = index(II, [Size_Metric_Name_List]);
+[Size/II/Metric_Long_Name] = index(II, [Size_Metric_Long_Name_List]);
 [Size/II/Metric_Eff_Units] = index(II, [Size_Metric_Eff_Units_List]);
 [Size/II/Unmanaged_List] = filter(
     lookup([_] & "/Sized_Object_Units") == [Size/II/Metric_Eff_Units],

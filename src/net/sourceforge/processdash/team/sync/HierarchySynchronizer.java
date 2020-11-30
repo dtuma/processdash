@@ -429,7 +429,8 @@ public class HierarchySynchronizer {
     private void loadCustomSizeMetricsFromWbs() {
         // load the custom list of size metrics defined in this project
         NodeList nl = projectXML.getElementsByTagName("sizeMetric");
-        ListData metricNames = new ListData(), metricIDs = new ListData();
+        ListData metricNames = new ListData(), metricIDs = new ListData(),
+                metricLongNames = new ListData();
         for (int i = 0; i < nl.getLength(); i++) {
             Element metric = (Element) nl.item(i);
             String name = metric.getAttribute("name");
@@ -438,11 +439,22 @@ public class HierarchySynchronizer {
             sizeMetricNameToId.put(name, id);
             metricNames.add(name);
             metricIDs.add(id);
+            metricLongNames.add(getMetricLongName(name));
         }
         forceData(projectPath, "Size_Metric_Name_List", metricNames);
         forceData(projectPath, "Size_Metric_ID_List", metricIDs);
+        forceData(projectPath, "Size_Metric_Long_Name_List", metricLongNames);
 
         setCustomSizeMetricMetadata(metricNames);
+    }
+
+    private String getMetricLongName(String name) {
+        try {
+            return resources.getString(
+                "SizeMetric." + name.replace(' ', '_') + ".Long_Name");
+        } catch (Exception e) {
+            return name;
+        }
     }
 
     private void setCustomSizeMetricMetadata(ListData metricNames) {

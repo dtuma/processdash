@@ -1,11 +1,11 @@
 
 # make a list of the data elements used for all the size metrics
 
-Size_Metric_Data_Names=LIST=,\
+Size_Metric_Data_Names=LIST=,New & Changed LOC,\
 <!--#foreach name=Metric list=Size_Metric_List #-->
     <!--#echo Metric_Name -->,\
 <!--#endfor#-->
-    DLD Lines,New & Changed LOC,
+    DLD Lines,
 
 
 # is any phase using the DLD Lines metric?  Any Compile phase? If so, make a note.

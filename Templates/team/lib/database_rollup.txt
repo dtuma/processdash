@@ -132,6 +132,7 @@
 
 <!--#foreach index=II count=sizeMetrics.maxNumPerProject -->
 [Size/II/Metric_Name] = index(II, [Size_Metric_Name_List]);
+[Size/II/Metric_Long_Name] = index(II, [Size_Metric_Long_Name_List]);
 [Size/II/Plan Size] = nvl(dbGetResultValue([DB_Size_Data],
     "Metric=" & [Size/II/Metric_Name], "Type=Plan", "A&M"), 0);
 [Size/II/Actual Size] = nvl(dbGetResultValue([DB_Size_Data],
