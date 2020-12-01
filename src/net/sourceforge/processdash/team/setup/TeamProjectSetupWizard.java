@@ -1194,6 +1194,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     private static boolean shouldEnableWbsManagedSizeData() {
+        // the dashboard requires the data warehouse plugin to compute team
+        // rollups of WBS-managed size data. If this is a team dashboard and
+        // the plugin is not installed, create an old-style project.
+        if (Settings.isTeamMode() && !TemplateLoader
+                .meetsPackageRequirement("tpidw-embedded", "1.6.2"))
+            return false;
+
+        // create WBS-managed size projects unless the user has disabled them
         return Settings.getBool("wbsManagedSize.enabled", true);
     }
 
@@ -1201,6 +1209,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.3");
         DataVersionChecker.registerDataRequirement("teamTools", "5.0.0");
+        if (Settings.isTeamMode())
+            DataVersionChecker.registerDataRequirement("tpidw-embedded", "1.6.2");
     }
 
     private boolean shouldEnableWbsCustomSizeMetrics() {
@@ -1214,6 +1224,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(WBS_CUSTOM_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
         DataVersionChecker.registerDataRequirement("pspdash", "2.6.3");
         DataVersionChecker.registerDataRequirement("teamToolsB", "6.0.0");
+        if (Settings.isTeamMode())
+            DataVersionChecker.registerDataRequirement("tpidw-embedded", "1.6.2");
     }
 
     private void copyRelaunchableSettingsFrom(String relaunchSourcePath) {
