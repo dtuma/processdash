@@ -510,10 +510,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame.addWindowListener(this);
         frame.pack();
 
-        // try loading the previous size/location of the window. If no saved
-        // data is found from any prior session, maximize the window by default.
-        if (!guiPrefs.load("wbsWindow", frame))
-            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        // try loading the previous size/location of the window
+        guiPrefs.load("wbsWindow", frame);
     }
 
     private void acquireLock(String owner) throws LockFailureException {
