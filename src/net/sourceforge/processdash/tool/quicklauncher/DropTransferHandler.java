@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2019 Tuma Solutions, LLC
+// Copyright (C) 2006-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -70,6 +70,9 @@ public class DropTransferHandler extends TransferHandler {
 
             if ("pspdash.jar".equals(f.getName())) {
                 launcher.useDashboardJarFile(f);
+                continue;
+            } else if (f.isDirectory() && new File(f, "pspdash.jar").isFile()) {
+                launcher.useDashboardJarFile(new File(f, "pspdash.jar"));
                 continue;
             } else if (f.getName().toLowerCase().endsWith(".pdash")) {
                 launcher.publishPdashFile(f, f.getPath());
