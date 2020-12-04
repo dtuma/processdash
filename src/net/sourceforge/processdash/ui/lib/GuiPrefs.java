@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.ui.lib;
 
+import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -191,7 +192,9 @@ public class GuiPrefs {
      *         found
      */
     public boolean load(String windowId, Window window) {
-        return load(new RegisteredWindow(windowId, window));
+        return load(window instanceof Frame
+                ? new RegisteredFrame(windowId, (Frame) window)
+                : new RegisteredWindow(windowId, window));
     }
 
     /**
@@ -567,7 +570,7 @@ public class GuiPrefs {
             int x = getInt("x");
             int y = getInt("y");
 
-            if (width <= 0 || height <= 0)
+            if (width < 150 || height < 75)
                 return false;
 
             w.setSize(width, height);
@@ -610,10 +613,44 @@ public class GuiPrefs {
         @Override
         void save() {
             Rectangle b = w.getBounds();
-            putInt("width", b.width);
-            putInt("height", b.height);
+            if (b.width > 150) putInt("width", b.width);
+            if (b.height > 75) putInt("height", b.height);
             putInt("x", b.x);
             putInt("y", b.y);
+        }
+    }
+
+
+    private class RegisteredFrame extends RegisteredWindow {
+        Frame f;
+
+        public RegisteredFrame(String id, Frame f) {
+            super(id, f);
+            this.f = f;
+        }
+
+        @Override
+        boolean load() {
+            boolean result = super.load();
+
+            int state = getInt("maximized");
+            if (state > 0) {
+                f.setExtendedState(state);
+                result = true;
+            }
+
+            return result;
+        }
+
+        @Override
+        void save() {
+            int state = f.getExtendedState();
+            if (state == Frame.NORMAL) {
+                super.save();
+                putInt("maximized", 0);
+            } else if ((state & Frame.ICONIFIED) == 0) {
+                putInt("maximized", state);
+            }
         }
     }
 
