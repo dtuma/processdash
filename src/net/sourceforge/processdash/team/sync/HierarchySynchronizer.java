@@ -96,6 +96,8 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamDirPermissionSettingsWriter;
 import net.sourceforge.processdash.team.sync.SyncWorker.DataSyncResult;
 import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HttpException;
@@ -190,6 +192,7 @@ public class HierarchySynchronizer {
     private List pspTasksNeedingSubsetPrompt;
 
     private boolean customSizeMetrics;
+    private boolean upgradeToCustomSizeMetrics;
     private List<String> sizeMetrics;
     private Map<String, String> sizeMetricNameToId;
     private Map sizeConstrPhases;
@@ -402,9 +405,9 @@ public class HierarchySynchronizer {
 
 
     private void loadProcessData() {
-        // read the project flag indicating use of custom size metrics
-        customSizeMetrics = testData(getData(projectPath, //
-            TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME));
+        // check to see if this WBS is using custom size metrics
+        customSizeMetrics = DashPackage.compareVersions(dumpFileVersion, "6.0") >= 0;
+        checkForUpgradeToCustomSizeMetrics();
 
         // initialize size metrics statically or dynamically as appropriate
         sizeMetrics = new ArrayList<String>();
@@ -415,6 +418,28 @@ public class HierarchySynchronizer {
             loadCustomSizeMetricsFromWbs();
         else
             loadStaticSizeMetricsFromMcf();
+    }
+
+    private void checkForUpgradeToCustomSizeMetrics() {
+        // consider upgrading this project to use custom size metrics if:
+        upgradeToCustomSizeMetrics = true
+        // 1) custom size metrics are not already in effect;
+                && !hasProjectFlag(TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME)
+        // 2) this is a personal project with wbs-managed size
+                && Settings.isPersonalMode() //
+                && hasProjectFlag(TeamDataConstants.PERSONAL_PROJECT_FLAG)
+                && hasProjectFlag(TeamDataConstants.WBS_SIZE_DATA_NAME)
+        // 3) the necessary version of the WBS Editor is installed
+                && TemplateLoader.meetsPackageRequirement("teamToolsB", "6.0");
+    }
+
+    private void maybeUpgradeToCustomSizeMetrics() {
+        if (upgradeToCustomSizeMetrics) {
+            forceData(projectPath, TeamDataConstants.WBS_CUSTOM_SIZE_DATA_NAME,
+                ImmutableDoubleData.TRUE);
+            DataVersionChecker.registerDataRequirement("pspdash", "2.6.3");
+            DataVersionChecker.registerDataRequirement("teamToolsB", "6.0.0");
+        }
     }
 
     private void loadCustomSizeMetricsFromSubprojects() {
@@ -1131,6 +1156,8 @@ public class HierarchySynchronizer {
         String discrepancyDataName = DataRepository.createDataName(projectPath,
             SyncDiscrepancy.DISCREPANCIES_DATANAME);
         dataRepository.putValue(discrepancyDataName, discrepancies);
+
+        maybeUpgradeToCustomSizeMetrics();
 
         if (!whatIfMode || changes.isEmpty()) {
             String timestampDataName = DataRepository.createDataName(
@@ -2755,6 +2782,7 @@ public class HierarchySynchronizer {
                 discrepancies.add(new SyncDiscrepancy.SizeData(path,
                         getWbsIdForPath(path), units, metricID, plan, val,
                         sdr.localTimestamp.getValue().getTime()));
+                upgradeToCustomSizeMetrics = false;
             }
         }
         private static final String SIZE_INV_MSG = "Updated values on the Size Inventory Form";
@@ -2934,6 +2962,10 @@ public class HierarchySynchronizer {
 
     private boolean testData(SimpleData d) {
         return (d == null ? false : d.test());
+    }
+
+    private boolean hasProjectFlag(String name) {
+        return testData(getData(projectPath, name));
     }
 
     private static ListData asListData(String d) {
@@ -3296,6 +3328,7 @@ public class HierarchySynchronizer {
             discrepancies.add(new SyncDiscrepancy.SizeData(path,
                     getWbsIdForPath(path), units, smID, true, val,
                     syncResult.localTimestamp.getValue().getTime()));
+            upgradeToCustomSizeMetrics = false;
         }
     }
 
@@ -3423,6 +3456,7 @@ public class HierarchySynchronizer {
             discrepancies.add(new SyncDiscrepancy.SizeData(path,
                     getWbsIdForPath(path), units, smID, false, val - syncDelta,
                     syncResult.localTimestamp.getValue().getTime()));
+            upgradeToCustomSizeMetrics = false;
         }
     }
 
