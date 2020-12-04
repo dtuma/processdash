@@ -103,8 +103,9 @@ public class ScriptButton extends DropDownButton implements
         getButton().setFocusPainted(false);
         parent = dash;
 
-        addLinkItem = new JMenuItem(new HierarchyNoteAddLinkAction(this, dash,
-                dash.getActiveTaskModel()));
+        if (Settings.isReadWrite())
+            addLinkItem = new JMenuItem(new HierarchyNoteAddLinkAction(this,
+                    dash, dash.getActiveTaskModel()));
         moreItem = new JMenuItem(resources.getString("More_Menu"));
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -153,7 +154,8 @@ public class ScriptButton extends DropDownButton implements
             getMenu().add(new JSeparator());
         }
 
-        getMenu().add(addLinkItem);
+        if (addLinkItem != null)
+            getMenu().add(addLinkItem);
         getMenu().add(moreItem);
     }
 
@@ -193,7 +195,7 @@ public class ScriptButton extends DropDownButton implements
         public ScriptMenuItem(ScriptID id) {
             this.id = id;
             setText(id.getDisplayName(this));
-            Action editAction = id.getEditAction();
+            Action editAction = Settings.isReadOnly() ? null : id.getEditAction();
             if (editAction != null) {
                 if (EDIT_ICON == null)
                     EDIT_ICON = new PencilIcon(MacGUIUtils.isMacOSX() //
