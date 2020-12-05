@@ -1002,6 +1002,10 @@ Authors:
     <delete><fileset dir="${installSrc}" includes="**/*.class"/></delete>
   </target>
 
+  <target name="simple-clean">
+    <delete quiet="true" dir="${build}"/>
+  </target>
+
 
   <!-- =================================================================== -->
   <!-- Create distributable files                                          -->
@@ -1027,6 +1031,9 @@ Authors:
   </target>
 
   <target name="dist-all" depends="dist,dist-src,launcher-jar,launcher-installer,team-tools-dist,installer"/>
+
+  <target name="rebuild" depends="simple-clean,dist"/>
+
 
   <!-- =================================================================== -->
   <!-- Create miscellaneous other items                                    -->

@@ -524,4 +524,6 @@ class dependency has been added in a dashboard class?)
     <delete dir="${build}"/>
   </target>
 
+  <target name="rebuild" depends="clean,TeamTools"/>
+
 </project>
