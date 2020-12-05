@@ -1,7 +1,7 @@
-<!--#echo defaultEncoding=xml #-->
 <?xml version='1.0' standalone='yes' ?>
 
 <exportMetricsFile>
+  <!--#echo defaultEncoding=xml #-->
   <!--#if not oldStyle #-->
     <addEntry name="userDump.xml" href="PID/setup/userData" type="PID-reverseSync"/>
     <addEntry name="addSchedule.xml" type="messages" version="1"
