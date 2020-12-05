@@ -35,12 +35,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
@@ -56,7 +51,6 @@ import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.AbstractLibraryEditor.Mode;
 import teamdash.wbs.columns.WorkflowNonpersonalColumn;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
-import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 import teamdash.wbs.icons.WBSEditorIcon;
 
@@ -87,15 +81,16 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             GuiPrefs guiPrefs) {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowDataModel(teamProject.getWorkflows(),
-                teamProject.getTeamProcess(), teamProject.getTeamMemberList());
+                teamProject.getTeamProcess(), teamProject.getSizeMetrics(),
+                teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(isEditable(teamProject));
 
         boolean hideProbe = teamProject.getBoolUserSetting("hideProbeTask");
         UnitsColumnVisibilityMgr unitsColMgr = new UnitsColumnVisibilityMgr();
         table = new WorkflowJTable(workflowModel, teamProject.getTeamProcess(),
                 hideProbe == false, unitsColMgr);
-        unitsColMgr.init();
         JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
+        unitsColMgr.init();
         guiPrefs.load("workflowTable", table);
 
         undoList = new UndoList(workflowModel.getWBSModel());
@@ -320,17 +315,13 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     }
 
-    private class UnitsColumnVisibilityMgr implements
-            TableColumnModelListener, ActionListener, Runnable {
+    private class UnitsColumnVisibilityMgr implements ActionListener {
 
-        private int rateModelPos, unitsModelPos;
+        private int unitsModelPos;
         private TableColumn unitsColumn;
         private boolean hasProbe;
-        private boolean currentlyMakingChange;
 
         public void init() {
-            rateModelPos = workflowModel
-                    .findColumn(WorkflowRateColumn.COLUMN_ID);
             unitsModelPos = workflowModel
                     .findColumn(WorkflowSizeUnitsColumn.COLUMN_ID);
             int unitsViewPos = table.convertColumnIndexToView(unitsModelPos);
@@ -342,28 +333,6 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
                         && TeamProcess.isProbeTask(node.getType()))
                     hasProbe = true;
             }
-
-            table.getColumnModel().addColumnModelListener(this);
-        }
-
-        @Override public void columnMoved(TableColumnModelEvent e) {}
-        @Override public void columnMarginChanged(ChangeEvent e) {}
-        @Override public void columnSelectionChanged(ListSelectionEvent e) {}
-
-        @Override
-        public void columnAdded(TableColumnModelEvent e) {
-            if (!currentlyMakingChange)
-                SwingUtilities.invokeLater(this);
-        }
-
-        @Override
-        public void columnRemoved(TableColumnModelEvent e) {
-            if (!currentlyMakingChange)
-                adjustVisibility();
-        }
-
-        @Override
-        public void run() {
             adjustVisibility();
         }
 
@@ -374,33 +343,24 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
 
         private void adjustVisibility() {
-            int rateViewPos = table.convertColumnIndexToView(rateModelPos);
             int unitsViewPos = table.convertColumnIndexToView(unitsModelPos);
-            boolean rateIsVisible = (rateViewPos != -1);
             boolean unitsIsVisible = (unitsViewPos != -1);
 
-            boolean unitsShouldBeVisible = (rateIsVisible || hasProbe);
+            boolean unitsShouldBeVisible = hasProbe;
             if (unitsIsVisible == unitsShouldBeVisible)
                 return;
-
-            try {
-                currentlyMakingChange = true;
-                if (unitsShouldBeVisible)
-                    showUnitsColumn();
-                else
-                    hideUnitsColumn();
-            } finally {
-                currentlyMakingChange = false;
-            }
+            else if (unitsShouldBeVisible)
+                showUnitsColumn();
+            else
+                hideUnitsColumn();
         }
 
         private void showUnitsColumn() {
             TableColumnModel columnModel = table.getColumnModel();
             columnModel.addColumn(unitsColumn);
 
-            int rateViewPos = table.convertColumnIndexToView(rateModelPos);
             int srcPos = table.convertColumnIndexToView(unitsModelPos);
-            int destPos = (rateViewPos == -1 ? 2 : 3);
+            int destPos = 2;
             if (srcPos != destPos)
                 columnModel.moveColumn(srcPos, destPos);
         }

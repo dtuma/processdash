@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,9 +25,14 @@ package teamdash.wbs;
 
 import java.util.Map;
 
+import net.sourceforge.processdash.util.PatternList;
+
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
+import teamdash.wbs.columns.ProxySizeColumn;
+import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class TeamProjectNodeIDMatcher {
 
@@ -48,6 +53,13 @@ public class TeamProjectNodeIDMatcher {
         Map<Integer, Integer> workflowIDMappings = matchWBS(
             base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
 
+        // Next, remap node IDs in the size metrics model
+        Map<Integer, Integer> sizeMetricNodeIDMappings = matchSizeMetricsWBS(
+            base.getSizeMetrics(), main.getSizeMetrics(),
+            incoming.getSizeMetrics());
+        Map<String, String> sizeMetricIDMappings = SizeMetricsWBSModel
+                .getMetricIdRemappings(sizeMetricNodeIDMappings);
+
         // Next, remap node IDs in the proxies model
         Map<Integer, Integer> proxyIDMappings = matchWBS(base.getProxies(),
             main.getProxies(), incoming.getProxies());
@@ -61,16 +73,25 @@ public class TeamProjectNodeIDMatcher {
         Map<Integer, Integer> wbsIDMappings = matchWBS(base.getWBS(),
             main.getWBS(), incoming.getWBS(), WBS_ALIAS_ATTRS);
 
+        // propagate size metric ID changes into various affected models
+        ProxySizeColumn.remapNodeIDs(incoming.getProxies(),
+            sizeMetricIDMappings);
+        WorkflowSizeUnitsColumn.remapNodeIDs(incoming.getWorkflows(),
+            sizeMetricIDMappings);
+
         // Finally, apply these remapped IDs to the affected attributes in
         // the main WBS.
         WorkflowUtil.remapWorkflowSourceIDs(incoming.getWBS(), workflowIDMappings);
         ProxyEstTypeColumn.remapNodeIDs(incoming.getWBS(), proxyIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
+        SizeDataColumn.remapSizeDataAttrs(incoming.getWBS(), sizeMetricIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);
 
         // return true if any node IDs were remapped
         return !workflowIDMappings.isEmpty()
+                || !sizeMetricNodeIDMappings.isEmpty()
+                || !proxyIDMappings.isEmpty()
                 || !milestoneIDMappings.isEmpty()
                 || !wbsIDMappings.isEmpty();
     }
@@ -85,5 +106,37 @@ public class TeamProjectNodeIDMatcher {
     private static final String[] WBS_ALIAS_ATTRS = {
         MasterWBSUtil.MASTER_NODE_ID, WBSSynchronizer.CLIENT_ID_ATTR
     };
+
+    private static Map<Integer, Integer> matchSizeMetricsWBS(
+            SizeMetricsWBSModel base, SizeMetricsWBSModel main,
+            SizeMetricsWBSModel incoming) {
+        // assign a case-insensitive alias for each metric
+        assignSizeMetricAliasAttr(base);
+        assignSizeMetricAliasAttr(main);
+        assignSizeMetricAliasAttr(incoming);
+
+        // perform the match, using our case insensitive alias to merge nodes
+        Map<Integer, Integer> result = matchWBS(base, main, incoming,
+            SIZE_METRIC_ALIAS);
+
+        // discard our temporary alias attribute from each model
+        base.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+        main.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+        incoming.removeAttributes(SIZE_METRIC_ALIAS_PAT);
+
+        // return the result
+        return result;
+    }
+
+    private static void assignSizeMetricAliasAttr(SizeMetricsWBSModel model) {
+        for (WBSNode node : model.getDescendants(model.getRoot())) {
+            String nameLC = node.getName().toLowerCase();
+            node.setAttribute(SIZE_METRIC_ALIAS, nameLC);
+        }
+    }
+
+    private static final String SIZE_METRIC_ALIAS = "Size_Metric_LC_Name";
+    private static final PatternList SIZE_METRIC_ALIAS_PAT = new PatternList()
+            .addLiteralEquals(SIZE_METRIC_ALIAS);
 
 }

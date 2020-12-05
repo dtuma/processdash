@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,16 +30,13 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.MilestonesWBSModel;
 import teamdash.wbs.WBSNode;
 
-public abstract class MilestoneBooleanColumn extends AbstractDataColumn
-        implements CustomRenderedColumn {
+public abstract class AbstractBooleanColumn extends AbstractDataColumn {
 
     private String attr;
 
-    public MilestoneBooleanColumn(String attr) {
+    public AbstractBooleanColumn(String attr) {
         this.attr = attr;
     }
 
@@ -53,7 +50,7 @@ public abstract class MilestoneBooleanColumn extends AbstractDataColumn
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return MilestonesWBSModel.MILESTONE_TYPE.equals(node.getType());
+        return node.getIndentLevel() > 0;
     }
 
     public void setValueAt(Object value, WBSNode node) {
@@ -63,10 +60,8 @@ public abstract class MilestoneBooleanColumn extends AbstractDataColumn
             node.setAttribute(attr, null);
     }
 
-    public abstract TableCellRenderer getCellRenderer();
 
-    protected static class CellRenderer extends DefaultTableCellRenderer
-            implements TableCellRenderer {
+    protected static class CellRenderer extends DefaultTableCellRenderer {
 
         private String tooltipHtml;
 

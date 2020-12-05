@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Tuma Solutions, LLC
+// Copyright (C) 2019-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,13 @@ package teamdash.wbs.columns;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JTable;
@@ -45,6 +47,7 @@ import teamdash.wbs.CustomNamedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -78,7 +81,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
 
-    public class Value extends NumericDataValue {
+    public static class Value extends NumericDataValue {
 
         /** The size value that is entered directly on a given node */
         public double nodeValue;
@@ -127,7 +130,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
     private TeamProcess teamProcess;
 
-    private String metricName;
+    private String metricID;
 
     private boolean plan;
 
@@ -138,30 +141,40 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
     public SizeDataColumn(DataTableModel dataModel, TeamProcess teamProcess,
-            String metricName, boolean plan) {
+            String metricID, boolean plan) {
         this.wbsModel = dataModel.getWBSModel();
         this.teamProcess = teamProcess;
-        this.metricName = metricName;
+        this.metricID = metricID;
         this.plan = plan;
 
         this.lowerCaseCache = new HashMap<String, String>();
-        this.columnID = getColumnID(metricName, plan);
-        this.columnName = resources.format(
-            plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT",
-            metricName);
+        this.columnID = getColumnID(metricID, plan);
+        this.affectedColumns = new String[] {
+                SizeColumnGroup.getColumnID(plan) };
 
-        String attr = getAttrBaseName(metricName, plan);
+        String attr = getAttrBaseName(metricID, plan);
         nodeValueAttrName = TopDownBottomUpColumn.getTopDownAttrName(attr);
         bottomUpAttrName = TopDownBottomUpColumn.getBottomUpAttrName(attr);
         inheritedAttrName = TopDownBottomUpColumn.getInheritedAttrName(attr);
         syncTimestampAttrName = attr + REV_SYNC_SUFFIX;
         restoreCandidateAttrName = bottomUpAttrName + " Restore Candidate";
-        pdashSumAttrName = SizeActualDataColumn.getNodeAttrName(metricName, plan);
+        pdashSumAttrName = SizeActualDataColumn.getNodeAttrName(metricID, plan);
         setConflictAttributeName(nodeValueAttrName);
     }
 
+    @Override
+    public String getColumnName() {
+        return resources.format(
+            plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT",
+            getMetricDisplayName());
+    }
+
     public String getCustomColumnName() {
-        return columnName;
+        return getColumnName();
+    }
+
+    public String getMetricDisplayName() {
+        return String.valueOf(teamProcess.getSizeMetricMap().get(metricID));
     }
 
     public Object getValueAt(WBSNode node) {
@@ -188,13 +201,13 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             return resources.format(
                 plan ? "Size_Data.Multi_PROBE_Plan_Tooltip_FMT"
                      : "Size_Data.Multi_PROBE_Actual_Tooltip_FMT",
-                lowerCase(node.getType()), lowerCase(metricName));
+                lowerCase(node.getType()), lowerCase(getMetricDisplayName()));
 
         } else if (isCompletionLocked(node)) {
             return resources.format(
                 plan ? "Size_Data.Completion_Locked_Plan_FMT"
                      : "Size_Data.Completion_Locked_Actual_FMT",
-                lowerCase(node.getType()), lowerCase(metricName));
+                lowerCase(node.getType()), lowerCase(getMetricDisplayName()));
 
         } else if (node.getIndentLevel() == 0) {
             return "";
@@ -220,13 +233,12 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         if (node.getAttribute(attr) == null)
             return false;
 
-        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, teamProcess);
-        return metricName.equals(units);
+        return isPspOrProbeTaskWithMatchingMetric(node, metricID);
     }
 
     /** @return true if node is a PSP/PROBE task assigned to multiple people */
     private boolean isProbeMulti(WBSNode node) {
-        return metricName.equals(node.getAttribute(PROBE_MULTI_FLAG_ATTR));
+        return metricID.equals(node.getAttribute(PROBE_MULTI_FLAG_ATTR));
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -269,7 +281,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             double pdashSum = node.getNumericAttribute(pdashSumAttrName);
             if (plan && !equal(explicitVal, pdashSum, 0.0001)) {
                 clearTaskRatesForNodesAffectedByPlanSizeChange(wbsModel,
-                    teamProcess, metricName, Collections.singleton(node));
+                    teamProcess, metricID, Collections.singleton(node));
             }
 
         } else {
@@ -478,24 +490,33 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             if (!isCellEditable(child) || child.isHidden())
                 continue;
 
-            String type = child.getType();
-
-            // if this is a PROBE task, and it uses the same size metric as this
-            // column, return it.
-            if (TeamProcess.isProbeTask(type)) {
-                String probeTaskSizeMetric = TaskSizeUnitsColumn
-                        .getSizeUnitsForProbeTask(child);
-                if (metricName.equals(probeTaskSizeMetric))
-                    return child;
-            }
-
-            // if this is a PSP task, and this column is showing LOC, return it
-            if (TeamProcess.isPSPTask(type) && metricName.equals("LOC")) {
+            // if this is a PSP or PROBE task with a matching size metric,
+            // return it
+            if (isPspOrProbeTaskWithMatchingMetric(child, metricID))
                 return child;
-            }
         }
 
         // we didn't find a size delegate child directly under this node.
+        return null;
+    }
+
+    public static boolean isPspOrProbeTaskWithMatchingMetric(WBSNode node,
+            String metricID) {
+        return metricID.equals(getSizeMetricIdForPspOrProbeTask(node));
+    }
+
+    public static String getSizeMetricIdForPspOrProbeTask(WBSNode node) {
+        // if this is a PSP task, and this column is showing LOC, it's a match
+        String type = node.getType();
+        if (TeamProcess.isPSPTask(type))
+            return "LOC";
+
+        // if this is a PROBE task, and it uses the same size metric as this
+        // column, it's a match
+        if (TeamProcess.isProbeTask(type))
+            return WorkflowSizeUnitsColumn.getSizeMetricIdForProbeTask(node);
+
+        // this task is not PROBE-related.
         return null;
     }
 
@@ -535,6 +556,10 @@ public class SizeDataColumn extends AbstractNumericColumn implements
                 int column) {
             String display = "", tooltip = null;
 
+            if (!(value instanceof Value))
+                return super.getTableCellRendererComponent(table, display,
+                    isSelected, hasFocus, row, column);
+
             Value v = (Value) value;
             if (v.bottomUp > 0) {
                 display = NumericDataValue.format(v.bottomUp);
@@ -548,7 +573,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
                     tooltip = resources.format(
                         "Size_Data.Node_Value_Tooltip_FMT", nodeValue, display,
-                        lowerCase(metricName), nodeType);
+                        lowerCase(getMetricDisplayName()), nodeType);
                     display += " (" + nodeValue + ")";
                 }
             }
@@ -612,9 +637,9 @@ public class SizeDataColumn extends AbstractNumericColumn implements
      * @return true if a change was made
      */
     public static boolean maybeStoreReverseSyncValue(WBSNode node,
-            String metric, boolean plan, String newValue, Date timestamp) {
+            String metricID, boolean plan, String newValue, Date timestamp) {
         // calculate the names of attributes we will use
-        String attr = getAttrBaseName(metric, plan);
+        String attr = getAttrBaseName(metricID, plan);
         String nodeAttr = TopDownBottomUpColumn.getTopDownAttrName(attr);
         String timeAttr = attr + REV_SYNC_SUFFIX;
 
@@ -663,9 +688,9 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             if ((plan ? clearPlanSize : clearActualSize) == false)
                 continue;
 
-            for (String metric : process.getSizeMetrics()) {
+            for (String metricID : process.getSizeMetricMap().keySet()) {
                 // get the name of the attribute for this metric
-                String attr = getNodeValueAttrName(metric, plan);
+                String attr = getNodeValueAttrName(metricID, plan);
 
                 // iterate over the nodes we were given, clearing this attribute
                 Set<WBSNode> planChangedNodes = new HashSet<WBSNode>();
@@ -683,7 +708,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
                 // estimates won't get recalculated)
                 if (plan && !planChangedNodes.isEmpty())
                     clearTaskRatesForNodesAffectedByPlanSizeChange(wbs, process,
-                        metric, planChangedNodes);
+                        metricID, planChangedNodes);
             }
         }
     }
@@ -698,7 +723,7 @@ public class SizeDataColumn extends AbstractNumericColumn implements
      * @return true if any rates were cleared
      */
     public static boolean clearTaskRatesForNodesAffectedByPlanSizeChange(
-            WBSModel wbs, TeamProcess process, String metric,
+            WBSModel wbs, TeamProcess process, String metricID,
             Set<WBSNode> directlyChangedNodes) {
 
         // find all ancestors of the changed nodes; their sum was affected too
@@ -711,14 +736,18 @@ public class SizeDataColumn extends AbstractNumericColumn implements
         }
 
         // scan the WBS, clearing task rates as needed
-        String attr = getNodeValueAttrName(metric, true);
-        return clearRateDrivenTasks(wbs, wbs.getRoot(), process, metric, attr,
+        String attr = getNodeValueAttrName(metricID, true);
+        return clearRateDrivenTasks(wbs, wbs.getRoot(), process, metricID, attr,
             allAffectedNodes);
     }
 
     private static boolean clearRateDrivenTasks(WBSModel wbs, WBSNode node,
-            TeamProcess process, String metric, String attr,
+            TeamProcess process, String metricID, String attr,
             Set<WBSNode> changedNodes) {
+
+        // rates are currently unsupported, so nothing needs to be done
+        if (TeamTimeColumn.RATES_DISABLED)
+            return false;
 
         // if this node is not in the "changed" list, and it has a size
         // estimate of its own, that size estimate will shield it from
@@ -729,10 +758,10 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
         // if this node is a leaf task that uses the same task units as
         // the changed estimate, clear its rate attribute.
+        // FIXME when rate support is reimplemented in the WBS
         if (TeamTimeColumn.isLeafTask(wbs, node)) {
-            String taskUnits = TaskSizeUnitsColumn.getSizeUnitsForTask(node,
-                process);
-            if (metric.equals(taskUnits))
+            String taskUnits = null;
+            if (metricID.equals(taskUnits))
                 return node.removeAttribute(TeamTimeColumn.RATE_ATTR) != null;
             else
                 return false;
@@ -741,8 +770,8 @@ public class SizeDataColumn extends AbstractNumericColumn implements
             // recurse over children
             boolean result = false;
             for (WBSNode child : wbs.getChildren(node)) {
-                result = clearRateDrivenTasks(wbs, child, process, metric, attr,
-                    changedNodes) || result;
+                result = clearRateDrivenTasks(wbs, child, process, metricID,
+                    attr, changedNodes) || result;
             }
             return result;
         }
@@ -750,23 +779,90 @@ public class SizeDataColumn extends AbstractNumericColumn implements
 
 
 
-    public static String getColumnID(String metric, boolean plan) {
+    /**
+     * After the IDs of metrics are changed by a merge operation, propagate
+     * those ID changes into the attribute names used for holding size data
+     * 
+     * @param sizeMetricIDMappings
+     *            a map whose keys are the old size metricIDs, and whose values
+     *            are the new metricIDs
+     */
+    public static void remapSizeDataAttrs(WBSModel wbs,
+            Map<String, String> sizeMetricIDMappings) {
+        // if there are no remappings to perform, return
+        if (sizeMetricIDMappings == null || sizeMetricIDMappings.isEmpty())
+            return;
+
+        // create a map of attribute names that need changing
+        Map<String, String> attrRemappings = new HashMap();
+        for (Entry<String, String> e : sizeMetricIDMappings.entrySet()) {
+            // iterate over planned and actual
+            for (boolean plan : BOOLEANS) {
+                // remap size attribute names for this plan/actual metric
+                String oldAttr = getNodeValueAttrName(e.getKey(), plan);
+                String newAttr = getNodeValueAttrName(e.getValue(), plan);
+                attrRemappings.put(oldAttr, newAttr);
+            }
+        }
+
+        // rename the size attributes throughout the model
+        wbs.renameAttributes(attrRemappings);
+    }
+
+
+    /**
+     * After legacy project data has been loaded, rename the size data
+     * attributes from the old legacy names to their new metricID-based names.
+     */
+    public static void renameLegacySizeDataAttrs(WBSModel wbs,
+            Collection<SizeMetric> sizeMetrics) {
+        // create a map of attribute names that need changing
+        Map<String, String> attrRenames = new HashMap();
+        for (SizeMetric sm : sizeMetrics) {
+            // no need to rename size data attributes for the LOC metric
+            if ("LOC".equals(sm.getMetricID()))
+                continue;
+            // rename both planned and actual size data attributes
+            for (boolean plan : BOOLEANS) {
+                // get attribute base names for this plan/actual metric
+                String oldBase = getAttrBaseName(sm.getName(), plan);
+                String newBase = getAttrBaseName(sm.getMetricID(), plan);
+                // remap attributes for top-down size values
+                attrRenames.put( //
+                    TopDownBottomUpColumn.getTopDownAttrName(oldBase),
+                    TopDownBottomUpColumn.getTopDownAttrName(newBase));
+                // remap attributes for last sync timestamps
+                attrRenames.put( //
+                    oldBase + REV_SYNC_SUFFIX, //
+                    newBase + REV_SYNC_SUFFIX);
+            }
+        }
+
+        // rename the size attributes throughout the model
+        wbs.renameAttributes(attrRenames);
+    }
+
+    private static final boolean BOOLEANS[] = new boolean[] { true, false };
+
+
+
+    public static String getColumnID(String metricID, boolean plan) {
         // return column IDs that are backward-compatible with the names of
         // old-style size columns (from earlier versions of the dashboard). This
         // makes it easier for calculated columns to declare their dependencies
         if (plan)
-            return SizeAccountingColumnSet.getNCID(metric);
+            return "N&C-" + metricID;
         else
-            return SizeActualDataColumn.getColumnID(metric, false);
+            return SizeActualDataColumn.getColumnID(metricID, false);
     }
 
-    public static String getNodeValueAttrName(String metricName, boolean plan) {
-        String base = getAttrBaseName(metricName, plan);
+    public static String getNodeValueAttrName(String metricID, boolean plan) {
+        String base = getAttrBaseName(metricID, plan);
         return TopDownBottomUpColumn.getTopDownAttrName(base);
     }
 
-    private static String getAttrBaseName(String metricName, boolean plan) {
-        return (plan ? "Added-" : "Actual-") + metricName.replace('_', '-');
+    private static String getAttrBaseName(String metricID, boolean plan) {
+        return (plan ? "Added-" : "Actual-") + metricID.replace('_', '-');
     }
 
 }

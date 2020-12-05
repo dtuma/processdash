@@ -3,7 +3,7 @@
 
 <!--#if not master -->
 
-<p><form action="/team/tools/OpenWBSEditor.class" method="POST">
+<p><form action="/team/toolsB/OpenWBSEditor.class" method="POST">
 <input type=submit name="submit" value="Edit Team Member List">
 <input type=hidden name="team" value="Edit Team Member List">
 <input type=hidden name="directory" 
@@ -14,7 +14,7 @@
 
 <!--#endif-->
 
-<p><form action="/team/tools/OpenWBSEditor.class" method="POST">
+<p><form action="/team/toolsB/OpenWBSEditor.class" method="POST">
 <input type=submit name="submit" 
  value="Edit <!--#if master -->Top-Down <!--#endif-->Work Breakdown Structure">
 <input type=hidden name="directory" 
@@ -25,7 +25,7 @@
 
 <!--#if master -->
 
-<p><form action="/team/tools/OpenWBSEditor.class" method="POST">
+<p><form action="/team/toolsB/OpenWBSEditor.class" method="POST">
 <input type=submit name="submit" 
        value="View Bottom-Up Work Breakdown Structure">
 <input type=hidden name="bottomUp" value="true">

@@ -70,7 +70,6 @@ import teamdash.wbs.columns.ExternalNodeTypeColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.SizeDataColumn;
-import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
@@ -908,24 +907,24 @@ public class WBSSynchronizer {
             if (node == null)
                 return;
 
-            String metric = sizeChangeTag.getAttribute(UNITS_ATTR);
-            if (isLockedPspOrProbeTask(node, metric, individual.getInitials()))
+            String metricID = sizeChangeTag.getAttribute(SIZE_METRIC_ID_ATTR);
+            if (isLockedPspOrProbeTask(node, metricID, individual.getInitials()))
                 return;
 
             boolean plan = "true".equals(sizeChangeTag.getAttribute(PLAN_ATTR));
             String newValue = sizeChangeTag.getAttribute(SIZE_VALUE_ATTR);
             Date timestamp = XMLUtils.getXMLDate(sizeChangeTag, WHEN_ATTR);
             boolean madeChange = SizeDataColumn.maybeStoreReverseSyncValue(node,
-                metric, plan, newValue, timestamp);
+                metricID, plan, newValue, timestamp);
             if (plan == true && madeChange)
-                recordNodeWithPlanSizeChange(metric, node);
+                recordNodeWithPlanSizeChange(metricID, node);
         }
 
-        private boolean isLockedPspOrProbeTask(WBSNode node, String metric,
+        private boolean isLockedPspOrProbeTask(WBSNode node, String metricID,
                 String initials) {
             // If this isn't a PSP or PROBE task, or if the metric in question
             // is different than the PROBE units, no further testing is needed
-            if (!isPspOrProbeTaskWithMatchingMetric(node, metric))
+            if (!SizeDataColumn.isPspOrProbeTaskWithMatchingMetric(node, metricID))
                 return false;
 
             // scan the team member columns for the people assigned to this task
@@ -950,23 +949,11 @@ public class WBSSynchronizer {
             return isAssigned == false;
         }
 
-        private boolean isPspOrProbeTaskWithMatchingMetric(WBSNode node,
-                String metric) {
-            String type = node.getType();
-            if (TeamProcess.isPSPTask(type))
-                return "LOC".equals(metric);
-            else if (TeamProcess.isProbeTask(type))
-                return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node)
-                        .equals(metric);
-            else
-                return false;
-        }
-
-        private void recordNodeWithPlanSizeChange(String metric, WBSNode node) {
-            Set<WBSNode> changedNodes = planSizeChangedNodes.get(metric);
+        private void recordNodeWithPlanSizeChange(String metricID, WBSNode node) {
+            Set<WBSNode> changedNodes = planSizeChangedNodes.get(metricID);
             if (changedNodes == null) {
                 changedNodes = new HashSet<WBSNode>();
-                planSizeChangedNodes.put(metric, changedNodes);
+                planSizeChangedNodes.put(metricID, changedNodes);
             }
             changedNodes.add(node);
         }
@@ -974,11 +961,11 @@ public class WBSSynchronizer {
         public void finishSync(TeamProject teamProject) {
             for (Entry<String, Set<WBSNode>> e : planSizeChangedNodes
                     .entrySet()) {
-                String metric = e.getKey();
+                String metricID = e.getKey();
                 Set<WBSNode> changedNodes = e.getValue();
                 SizeDataColumn.clearTaskRatesForNodesAffectedByPlanSizeChange(
-                    teamProject.getWBS(), teamProject.getTeamProcess(), metric,
-                    changedNodes);
+                    teamProject.getWBS(), teamProject.getTeamProcess(),
+                    metricID, changedNodes);
             }
             planSizeChangedNodes = null;
         }
@@ -1172,10 +1159,10 @@ public class WBSSynchronizer {
                 // no node with that WBS ID found? log the data to the root.
                 node = nodeMap.get(null);
 
-            String sizeUnits = sizeDataTag.getAttribute(UNITS_ATTR);
+            String metricID = sizeDataTag.getAttribute(SIZE_METRIC_ID_ATTR);
             double planSize = XMLUtils.getXMLNum(sizeDataTag, EST_SIZE_ATTR);
             double actSize = XMLUtils.getXMLNum(sizeDataTag, ACTUAL_SIZE_ATTR);
-            SizeActualDataColumn.storeData(node, sizeUnits, planSize, actSize);
+            SizeActualDataColumn.storeData(node, metricID, planSize, actSize);
 
             if (actSize > 0)
                 foundActualSizeData = true;
@@ -1440,7 +1427,7 @@ public class WBSSynchronizer {
 
     // private static final String DESCRIPTION_ATTR = "description";
 
-    private static final String UNITS_ATTR = "units";
+    private static final String SIZE_METRIC_ID_ATTR = "unitsID";
 
     private static final String EST_SIZE_ATTR = "estSize";
 

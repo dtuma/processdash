@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2019 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -82,19 +82,16 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
     }
 
     private WBSDataModel dataModel;
-    private TeamProcess process;
     private IntList teamMemberColumns;
     private String[] teamMemberAttrs;
     private int numPeopleCol;
     private int rateCol;
     private String restrictTo;
     private List<String> discrepantIndividuals;
-    private boolean watchPspAndProbeTasks;
     private Set<PlanTimeDiscrepancyListener> listeners;
 
-    public PlanTimeWatcher(WBSDataModel m, TeamProcess p) {
+    public PlanTimeWatcher(WBSDataModel m) {
         this.dataModel = m;
-        this.process = p;
         this.columnName = this.columnID = COLUMN_ID;
         this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID };
         this.teamMemberColumns = new IntList();
@@ -102,8 +99,6 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         this.numPeopleCol = this.rateCol = -1;
         this.restrictTo = null;
         this.discrepantIndividuals = null;
-        this.watchPspAndProbeTasks = SizeTypeColumn
-                .isUsingNewSizeDataColumns(m.getWBSModel());
         this.listeners = new HashSet<PlanTimeDiscrepancyListener>();
     }
 
@@ -215,7 +210,7 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
 
 
     private void maybeScanPspAndProbeTasks() {
-        if (watchPspAndProbeTasks && numPeopleCol != -1) {
+        if (numPeopleCol != -1) {
             for (WBSNode n : dataModel.getWBSModel().getWbsNodes())
                 scanPspOrProbeTask(n);
         }
@@ -237,16 +232,18 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
         Object multiFlag = node.getAttribute(PROBE_MULTI_FLAG_ATTR);
         if (isMulti == false && multiFlag == null)
             return;
-        String units = TaskSizeUnitsColumn.getSizeUnitsForTask(node, process);
-        if (isMulti == true && units.equals(multiFlag))
+        String metricID = SizeDataColumn.getSizeMetricIdForPspOrProbeTask(node);
+        if (metricID == null)
+            metricID = "LOC";
+        if (isMulti == true && metricID.equals(multiFlag))
             return;
 
         // set the flag on the node. If the task is assigned to multiple people,
         // the flag hold the units of the PSP/PROBE task. Otherwise null
-        node.setAttribute(PROBE_MULTI_FLAG_ATTR, isMulti ? units : null);
+        node.setAttribute(PROBE_MULTI_FLAG_ATTR, isMulti ? metricID : null);
 
         // alert the affected columns
-        Set<String> affectedMetrics = new HashSet(Collections.singleton(units));
+        Set<String> affectedMetrics = new HashSet(Collections.singleton(metricID));
         if (multiFlag instanceof String)
             affectedMetrics.add((String) multiFlag);
         for (String metric : affectedMetrics) {

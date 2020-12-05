@@ -56,7 +56,7 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     protected void openModels() {
         TeamProcess process = teamProject.getTeamProcess();
         libraryModel = new WorkflowDataModel((WorkflowWBSModel) library,
-                process, null);
+                process, null, null);
 
         projectWbs = new WorkflowWBSModel();
         projectWbs.copyFrom(teamProject.getWorkflows());
@@ -65,7 +65,7 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
                     WorkflowMappingManager.PHASE_MAPPING_PREFIX));
         }
         projectModel = new WorkflowDataModel((WorkflowWBSModel) this.projectWbs,
-                process, null);
+                process, null, null);
     }
 
     @Override

@@ -43,6 +43,7 @@ public interface TeamDataConstants {
     public static final String PROJECT_COMPONENT_INFO = "Project_Component_Info";
     public static final String TEAM_MEMBER_COLORS = "Team_Member_Colors";
     public static final String WORKFLOW_PARAM_PREFIX = "Workflow_Param";
+    public static final String MASTER_PROJECT_TAG = "Master Project Root";
     public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
     public static final String RELAUNCHED_PROJECT_FLAG =
         "Project_Was_Relaunched";
@@ -63,6 +64,7 @@ public interface TeamDataConstants {
     public static final String PROJECT_WORKFLOW_URLS_DATA_NAME =
         "Project_Workflow_URL_List";
     public static final String WBS_SIZE_DATA_NAME = "WBS_Managed_Size_Data";
+    public static final String WBS_CUSTOM_SIZE_DATA_NAME = "WBS_Custom_Size_Metrics";
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
     public static final String USER_ACTIVITY_TIMESTAMP = "Data_Activity_Timestamp";
     public static final String USER_DONE_TIMESTAMP = "Project_Is_Done";

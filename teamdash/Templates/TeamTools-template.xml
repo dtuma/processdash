@@ -31,6 +31,12 @@
         <parent>pdash.standards</parent>
     </permission>
 
+    <permission id="wbs.sizeMetrics" ordinal="3025">
+        <resources>WBSEditor.SizeMetrics.Permission</resources>
+        <parent>pdash.standards</parent>
+        <impliedBy>wbs.all</impliedBy>
+    </permission>
+
     <permission id="wbs.proxies" ordinal="3030">
         <resources>WBSEditor.Proxies.Permission</resources>
         <parent>pdash.standards</parent>

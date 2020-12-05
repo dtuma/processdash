@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -431,27 +431,28 @@ public class HTMLPreprocessor {
             return;
         }
 
-        // get the list of values that we should iterate over. This can be
-        // specified either as a list literal using the "values" attribute,
-        // or via a list variable using the "list" attribute.
-        String values = foreach.getAttribute("values");
-        ListData list;
-        if (isNull(values)) {
-            String listName = foreach.getAttribute("list");
-            list = getList(listName);
-        } else {
-            list = new ListData(values);
-        }
+        // get the list of values that we should iterate over
+        ListData list = getForeachListValues(foreach);
 
         // iterate over the list and calculate the resulting contents.
-        String loopIndex = foreach.getAttribute("name");
+        String loopVar = foreach.getAttribute("name");
+        String loopIndex = foreach.getAttribute("index");
+        Integer loopLimit = getInteger(foreach, "limit");
         String loopContents = text.substring(foreach.end, endfor.begin);
+        int loopEnd = list.size();
+        if (loopLimit != null)
+            loopEnd = Math.min(loopEnd, loopLimit);
         StringBuffer replacement = new StringBuffer();
-        for (int i = 0;   i < list.size();   i++) {
+        for (int i = 0;   i < loopEnd;   i++) {
             Object oneVal = list.get(i);
             String strVal = (oneVal == null ? "" : oneVal.toString());
-            String iterResults = StringUtils.findAndReplace(loopContents,
-                    loopIndex, strVal);
+            String iterResults = loopContents;
+            if (loopVar != null)
+                iterResults = StringUtils.findAndReplace(iterResults, //
+                    loopVar, strVal);
+            if (loopIndex != null)
+                iterResults = StringUtils.findAndReplace(iterResults, //
+                    loopIndex, Integer.toString(i));
             replacement.append(iterResults);
         }
 
@@ -461,6 +462,30 @@ public class HTMLPreprocessor {
         // preprocess method) will process these iterated contents.
         text.replace(foreach.end, endfor.end, replacement.toString());
         foreach.replace("");
+    }
+
+    private ListData getForeachListValues(DirectiveMatch foreach) {
+        // if the directive included a literal list (specified with a "values"
+        // attribute), parse that literal
+        String values = foreach.getAttribute("values");
+        if (!isNull(values))
+            return new ListData(values);
+
+        // if the directive included a "count" attribute, iterate numerically
+        String countVar = foreach.getAttribute("count");
+        if (!isNull(countVar)) {
+            ListData result = new ListData();
+            Integer count = getInteger(countVar);
+            if (count != null) {
+                for (int i = 0; i < count; i++)
+                    result.add(i);
+            }
+            return result;
+        }
+
+        // look for a list variable, named via the "list" attribute
+        String listName = foreach.getAttribute("list");
+        return getList(listName);
     }
 
     /** process a fortree directive within the buffer */
@@ -1158,8 +1183,8 @@ public class HTMLPreprocessor {
 
                                 // try for an environment variable first.
             Object envVal = env.get(listName);
-            if (envVal instanceof String) {
-                result.add((String) envVal);
+            if (envVal != null) {
+                result.addAll(envVal);
                 return result;
             }
                                 // if this file doesn't want us to iterate
@@ -1239,6 +1264,30 @@ public class HTMLPreprocessor {
         }
     }
     private static long uniqueNumber = System.currentTimeMillis();
+
+    private Integer getInteger(DirectiveMatch dir, String attrName) {
+        String attrVal = dir.getAttribute(attrName);
+        if (isNull(attrVal))
+            return null;
+        try {
+            return Integer.valueOf(attrVal);
+        } catch (NumberFormatException nfe) {
+            return getInteger(attrVal);
+        }
+    }
+
+    private Integer getInteger(String name) {
+        String value = null;
+        try {
+            value = getString(name, false);
+            if (!isNull(value))
+                return Double.valueOf(value).intValue();
+        } catch (NumberFormatException nfe) {
+            System.err.println("Invalid number '" + value
+                + "' for variable '" + name + "'.");
+        }
+        return null;
+    }
 
     private String getResource(String name) {
         if (resources != null) {

@@ -2493,4 +2493,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
     public static final String TEAM_TIME_ATTR = getNodeDataAttrName();
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
+
+    /**
+     * Task rates are unsupported in the current version of the WBS. This
+     * constant tracks logic known to be affected by the change.
+     */
+    public static final boolean RATES_DISABLED = true;
 }

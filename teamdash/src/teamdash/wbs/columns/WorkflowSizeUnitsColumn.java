@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2012 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,68 +23,52 @@
 
 package teamdash.wbs.columns;
 
-import java.awt.Component;
+import java.util.Map;
 
-import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.util.StringUtils;
+
+import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.DataTableModel;
-import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.DataTableCellRenderer;
+import teamdash.wbs.ErrorValue;
+import teamdash.wbs.ForeignAttrCleaningColumn;
+import teamdash.wbs.SizeMetric;
+import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowDataModel;
+import teamdash.wbs.WorkflowWBSModel;
 
-public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
-        CustomRenderedColumn {
+public class WorkflowSizeUnitsColumn extends AbstractDataColumn
+        implements CalculatedDataColumn, CustomRenderedColumn,
+        CustomEditedColumn, ForeignAttrCleaningColumn {
 
-    private int rateColumn = -1;
+    private WorkflowDataModel dataModel;
 
-    public WorkflowSizeUnitsColumn(DataTableModel dataModel,
-            TeamProcess teamProcess) {
-        super(dataModel, teamProcess);
-        this.preferredWidth = 130;
-        this.dependentColumns = new String[] { WorkflowRateColumn.COLUMN_ID };
+    private SizeMetricsWBSModel sizeMetrics;
+
+    private SizeMetricCellEditor sizeMetricsEditor;
+
+
+    public WorkflowSizeUnitsColumn(WorkflowDataModel dataModel,
+            SizeMetricsWBSModel sizeMetrics) {
+        this.dataModel = dataModel;
+        this.sizeMetrics = sizeMetrics;
+        this.columnName = resources.getString("Workflow.Units.Name");
+        this.columnID = COLUMN_ID;
+        this.preferredWidth = 80;
+        setConflictAttributeName(METRIC_ID_ATTR);
     }
 
     @Override
-    public void storeDependentColumn(String ID, int columnNumber) {
-        if (WorkflowRateColumn.COLUMN_ID.equals(ID))
-            rateColumn = columnNumber;
-    }
+    public void storeDependentColumn(String ID, int columnNumber) {}
 
     @Override
-    public void setValueAt(Object aValue, WBSNode node) {
-        super.setValueAt(aValue, node);
-
-        if (isProbeTask(node)) {
-            // no special rate handling is required for PROBE tasks
-
-        } else if (valueIsEmpty(aValue)) {
-            // if the user just tried to delete the size units, we should
-            // oblige by setting the rate to zero.  That will cause the
-            // value in the units column to disappear.
-            dataModel.setValueAt(0, node, rateColumn);
-
-        } else {
-            // if the user just selected something in this size units column,
-            // but the rate is currently null or zero, then we need to put
-            // some nonzero value (default "1") in the rate column to make
-            // this column become visible.
-            Object currentRate = dataModel.getValueAt(node, rateColumn);
-            if (currentRate instanceof NumericDataValue) {
-                NumericDataValue ndv = (NumericDataValue) currentRate;
-                if (ndv.value == 0)
-                    currentRate = null;
-            }
-
-            if (currentRate == null)
-                dataModel.setValueAt(1, node, rateColumn);
-        }
-    }
-
-    private static boolean isProbeTask(JTable table, int row) {
-        DataTableModel dataModel = (DataTableModel) table.getModel();
-        WBSNode node = dataModel.getWBSModel().getNodeForRow(row);
+    public boolean isCellEditable(WBSNode node) {
         return isProbeTask(node);
     }
 
@@ -93,33 +77,118 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
                 && TeamProcess.isProbeTask(node.getType());
     }
 
-    public TableCellRenderer getCellRenderer() {
-        return new CellRenderer();
+    @Override
+    public Object getValueAt(WBSNode node) {
+        if (!isProbeTask(node))
+            return null;
+
+        String metricName = (String) node.getAttribute(METRIC_NAME_ATTR);
+        String metricID = (String) node.getAttribute(METRIC_ID_ATTR);
+        SizeMetric metric = sizeMetrics.getIdToMetricMap().get(metricID);
+        if (metric != null)
+            return metric;
+        else if (StringUtils.hasValue(metricName))
+            return new ErrorValue(metricName + " ",
+                    resources.getString("Workflow.Units.Bad_Metric_Tooltip"));
+        else
+            return new ErrorValue(
+                    resources.getString("Workflow.Units.Metric_Missing.Text"),
+                    resources.format("Workflow.Units.Metric_Missing.Tooltip_FMT",
+                        node.getName()));
     }
 
-    private static class CellRenderer extends WorkflowTableCellRenderer {
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                Object value, boolean isSelected, boolean hasFocus, int row,
-                int column) {
-
-            if (value != null) {
-                if (isRatePresent(table, row))
-                    value = resources.format("Workflow.Units.Per_Hour_FMT",
-                        value);
-                else if (isProbeTask(table, row))
-                    value = String.valueOf(value);
-                else
-                    value = null;
-            }
-
-            return super.getTableCellRendererComponent(table, value,
-                isSelected, hasFocus, row, column);
+    @Override
+    public void setValueAt(Object aValue, WBSNode node) {
+        // if the user started an editing session but ultimately made no
+        // changes, do nothing
+        if (aValue instanceof String) {
+            String oldValue = String.valueOf(getValueAt(node));
+            if (aValue.equals(oldValue))
+                return;
         }
 
+        SizeMetric metric = SizeMetricCellEditor.parseValue(sizeMetrics, aValue,
+            true);
+        if (metric != null) {
+            node.setAttribute(METRIC_NAME_ATTR, metric.getName());
+            node.setAttribute(METRIC_ID_ATTR, metric.getMetricID());
+        } else {
+            node.removeAttribute(METRIC_NAME_ATTR);
+            node.removeAttribute(METRIC_ID_ATTR);
+        }
     }
 
-    public static final String ATTR_NAME = COLUMN_ID;
+    @Override
+    public void cleanForeignNodeAttributes(WBSNode node) {
+        node.removeAttribute(METRIC_ID_ATTR);
+    }
+
+    @Override
+    public void storeConflictResolutionValue(Object value, WBSNode node) {
+        node.setAttribute(METRIC_ID_ATTR, value);
+    }
+
+    @Override
+    public boolean recalculate() {
+        for (WBSNode node : dataModel.getWBSModel().getWbsNodes())
+            recalculate(node);
+        return true;
+    }
+
+    private void recalculate(WBSNode node) {
+        if (!isProbeTask(node))
+            return;
+
+        // read the values for this metric from the proxy node
+        String metricName = (String) node.getAttribute(METRIC_NAME_ATTR);
+        String metricID = (String) node.getAttribute(METRIC_ID_ATTR);
+        SizeMetric metric = sizeMetrics.getIdToMetricMap().get(metricID);
+        if (metric != null) {
+            // if we found a metric with the given ID, make sure the correct
+            // name is stored in the node (in case it changed elsewhere)
+            node.setAttribute(METRIC_NAME_ATTR, metric.getName());
+
+        } else if (metricID == null && StringUtils.hasValue(metricName)) {
+            // this node has a metric name, but no ID. This is the pattern for
+            // a node from an external/legacy source. Lookup or create the named
+            // size metric and store its data on the node.
+            setValueAt(metricName, node);
+        }
+    }
+
+    @Override
+    public TableCellRenderer getCellRenderer() {
+        return new DataTableCellRenderer();
+    }
+
+    @Override
+    public TableCellEditor getCellEditor() {
+        if (sizeMetricsEditor == null)
+            sizeMetricsEditor = new SizeMetricCellEditor(sizeMetrics, dataModel,
+                    this);
+        return sizeMetricsEditor;
+    }
+
+    public static SizeMetric getSizeMetricForProbeTask(WBSNode node,
+            Map<String, SizeMetric> sizeMetrics) {
+        String metricID = getSizeMetricIdForProbeTask(node);
+        return sizeMetrics.get(metricID);
+    }
+
+    public static String getSizeMetricIdForProbeTask(WBSNode node) {
+        return (String) node.getAttribute(METRIC_ID_ATTR);
+    }
+
+    public static void remapNodeIDs(WorkflowWBSModel model,
+            Map<String, String> sizeMetricIDMappings) {
+        SizeMetricsWBSModel.remapSizeMetricIdAttrValues(model,
+            sizeMetricIDMappings, METRIC_ID_ATTR);
+    }
+
+    public static final String COLUMN_ID = "Task Size Units";
+
+    public static final String METRIC_NAME_ATTR = COLUMN_ID;
+
+    public static final String METRIC_ID_ATTR = COLUMN_ID + " ID";
 
 }

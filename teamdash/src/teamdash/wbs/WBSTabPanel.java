@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -76,6 +75,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
@@ -219,6 +221,13 @@ public class WBSTabPanel extends JLayeredPane implements
             return ((TabProperties) tabProperties.get(tabIndex)).isEditable();
     }
 
+    protected boolean hasEditAction(int tabIndex) {
+        if (tabIndex < 0 || tabIndex >= tabProperties.size())
+            return false;
+        else
+            return ((TabProperties) tabProperties.get(tabIndex)).getEditAction() != null;
+    }
+
     protected boolean isTabProtected(int tabIndex) {
         if (tabIndex < 0 || tabIndex >= tabProperties.size())
             return false;
@@ -288,6 +297,16 @@ public class WBSTabPanel extends JLayeredPane implements
         return tabIndex;
     }
 
+    public int addTab(String tabName, TableColumnModel columnModel,
+            Action editAction, boolean isProtected) {
+        TabProperties tabProps = new TabProperties(editAction, isProtected);
+        TabHider hider = new TabHider(tabName, columnModel, tabProps);
+        if (hider.visible)
+            return addTab(tabName, columnModel, tabProps);
+        else
+            return -1;
+    }
+
     protected int addTab(String tabName, TableColumnModel columnModel, TabProperties properties) {
         // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
@@ -324,9 +343,18 @@ public class WBSTabPanel extends JLayeredPane implements
     protected void removeTab(int index) {
         tabProperties.remove(index);
         tableColumnModels.remove(index);
-        if (tabbedPane.getSelectedIndex() == index)
+        if (tabbedPane.getSelectedIndex() == index && index > 0)
             tabbedPane.setSelectedIndex(index-1);
         tabbedPane.remove(index);
+    }
+
+    private void reinsertTab(String tabName, TableColumnModel columnModel,
+            TabProperties properties) {
+        int pos = properties.getReinsertionPos();
+        tabProperties.add(pos, properties);
+        tableColumnModels.add(pos, columnModel);
+        tabbedPane.insertTab(tabName, null,
+            new EmptyComponent(new Dimension(10, 10)), null, pos);
     }
 
     public LinkedHashMap<String, TableColumnModel> getTabData() {
@@ -769,13 +797,20 @@ public class WBSTabPanel extends JLayeredPane implements
         }
 
         public void actionPerformed(ActionEvent e) {
-            customTabsDirty = true;
-            showColumnSelector();
-            notifyAllListeners();
+            int tabIndex = tabbedPane.getSelectedIndex();
+            if (hasEditAction(tabIndex)) {
+                ((TabProperties) tabProperties.get(tabIndex)).getEditAction()
+                        .actionPerformed(e);
+            } else {
+                customTabsDirty = true;
+                showColumnSelector();
+                notifyAllListeners();
+            }
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
-            setEnabled(isTabEditable(selectedTabIndex));
+            setEnabled(isTabEditable(selectedTabIndex)
+                    || hasEditAction(selectedTabIndex));
         }
     }
     final ChangeTabColumnsAction CHANGE_TAB_COLUMNS_ACTION = new ChangeTabColumnsAction();
@@ -952,6 +987,36 @@ public class WBSTabPanel extends JLayeredPane implements
         }
         // fire a dirty change event (but without recording an undoable action)
         undoList.notifyAllChangeListeners();
+    }
+
+    @Override
+    public void columnsRenamed() {
+        for (int i = tableColumnModels.size(); i-- > 0;) {
+            // only update names on editable tabs
+            if (!isTabEditable(i))
+                continue;
+
+            // scan the table columns in this tab
+            TableColumnModel tcm = tableColumnModels.get(i);
+            for (int col = tcm.getColumnCount(); col-- > 0;) {
+                // get the column objects for the JTable and the data model
+                TableColumn tc = tcm.getColumn(col);
+                int idx = tc.getModelIndex();
+                DataColumn dc = getWBSDataModel().getColumn(idx);
+
+                // update the header name of the JTable column
+                if (dc instanceof CustomNamedColumn
+                        && tc instanceof DataTableColumn) {
+                    String ccn = ((CustomNamedColumn) dc).getCustomColumnName();
+                    ((DataTableColumn) tc).setCustomColumnName(ccn);
+                }
+                tc.setHeaderValue(dc.getColumnName());
+            }
+
+            // ask the data table to repaint the header
+            if (i == tabbedPane.getSelectedIndex())
+                dataTable.getTableHeader().repaint();
+        }
     }
 
     private void selectCustomColumnsTab() {
@@ -1285,6 +1350,61 @@ public class WBSTabPanel extends JLayeredPane implements
                 EnablementCalculation calc = (EnablementCalculation) i.next();
                 calc.recalculateEnablement(whichTab);
             }
+        }
+    }
+
+    /** Watches a read-only column model and hides the corresponding tab if
+     * the model contains no columns */
+    private class TabHider implements TableColumnModelListener, Runnable {
+
+        private String tabName;
+        private TableColumnModel columnModel;
+        private TabProperties tabProps;
+        private boolean visible;
+
+        public TabHider(String tabName, TableColumnModel columnModel,
+                TabProperties tabProps) {
+            this.tabName = tabName;
+            this.columnModel = columnModel;
+            this.tabProps = tabProps;
+            this.visible = shouldBeVisible();
+            columnModel.addColumnModelListener(this);
+        }
+
+        public void columnAdded(TableColumnModelEvent e) {
+            SwingUtilities.invokeLater(this);
+        }
+        public void columnRemoved(TableColumnModelEvent e) {
+            SwingUtilities.invokeLater(this);
+        }
+        public void columnMoved(TableColumnModelEvent e) {}
+        public void columnMarginChanged(ChangeEvent e) {}
+        public void columnSelectionChanged(ListSelectionEvent e) {}
+
+        public void run() {
+            boolean shouldBeVisible = shouldBeVisible();
+            if (visible == shouldBeVisible)
+                return;
+            else if (shouldBeVisible)
+                showTab();
+            else
+                hideTab();
+        }
+
+        private boolean shouldBeVisible() {
+            return columnModel.getColumnCount() > 0;
+        }
+
+        private void showTab() {
+            reinsertTab(tabName, columnModel, tabProps);
+            visible = true;
+        }
+
+        private void hideTab() {
+            int pos = tableColumnModels.indexOf(columnModel);
+            if (pos != -1)
+                removeTab(pos);
+            visible = false;
         }
     }
 
@@ -1676,30 +1796,47 @@ public class WBSTabPanel extends JLayeredPane implements
     }
 
     private class TabProperties {
-        private static final String TAB_PROTECTED_PROPERTY = "protected";
-        private static final String TAB_EDITABLE_PROPERTY = "editable";
 
-        private HashMap properties = new HashMap();
+        private Action editAction;
+
+        private boolean editable, protect;
+
+        private int index;
 
         public TabProperties(boolean editable, boolean protect) {
-            setEditable(editable);
-            setProtected(protect);
+            this.editable = editable;
+            this.protect = protect;
+            this.index = tabPropIndex++;
+        }
+
+        public TabProperties(Action editAction, boolean protect) {
+            this.editAction = editAction;
+            this.editable = false;
+            this.protect = protect;
+            this.index = tabPropIndex++;
         }
 
         public boolean isEditable() {
-            return ((Boolean) properties.get(TAB_EDITABLE_PROPERTY)).booleanValue();
-        }
-
-        public void setEditable(boolean editable) {
-            properties.put(TAB_EDITABLE_PROPERTY, new Boolean(editable));
+            return editable;
         }
 
         public boolean isProtected() {
-            return ((Boolean) properties.get(TAB_PROTECTED_PROPERTY)).booleanValue();
+            return protect;
         }
 
-        public void setProtected(boolean protect) {
-            properties.put(TAB_PROTECTED_PROPERTY, new Boolean(protect));
+        public Action getEditAction() {
+            return editAction;
+        }
+
+        public int getReinsertionPos() {
+            for (int i = 0; i < tabProperties.size(); i++) {
+                TabProperties p = (TabProperties) tabProperties.get(i);
+                if (p.index > this.index)
+                    return i;
+            }
+            return tabProperties.size();
         }
     }
+    private int tabPropIndex = 0;
+
 }

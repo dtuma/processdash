@@ -25,19 +25,27 @@ undefine([Use_Rollup]);
 [Prefer Actual Size for Inspection Estimates] =
     [/PID/Prefer Actual Size for Inspection Estimates];
 
-<!--#foreach name=Metric list=Size_Metric_Data_Names -->
-[Estimated Metric] = ?0;
-[Metric] = ?0;
-[Metric Estimating Error] = 
-    ([Metric] - [Estimated Metric]) / [Estimated Metric];
-[Estimated Aggregate Metric] = [Estimated Metric];
-[Aggregate Metric] = [Metric];
+<!--#set var="numSizeMetrics" value="0" -->
+<!--#foreach name=METRIC index=II list=Size_Metric_Data_Names -->
+[Estimated METRIC] = ?0;
+[METRIC] = ?0;
+[METRIC Estimating Error] = 
+    ([METRIC] - [Estimated METRIC]) / [Estimated METRIC];
+[Estimated Aggregate METRIC] = [Estimated METRIC];
+[Aggregate METRIC] = [METRIC];
 
-[Estimated Inspected Metric] = iff(
-    [Prefer Actual Size for Inspection Estimates] && [Metric],
-    [Metric], [Estimated Metric]) + 0;
-[Inspected Metric] = [Metric] + 0;
+[Estimated Inspected METRIC] = iff(
+    [Prefer Actual Size for Inspection Estimates] && [METRIC],
+    [METRIC], [Estimated METRIC]) + 0;
+[Inspected METRIC] = [METRIC] + 0;
+
+[Size/II/Metric_Name] = index(II, [Size_Metric_Name_List]);
+[Size/II/Metric_Long_Name] = index(II, [Size_Metric_Long_Name_List]);
+[Size/II/Plan Size] = [Estimated METRIC];
+[Size/II/Actual Size] = [METRIC];
+<!--#incr numSizeMetrics -->
 <!--#endfor-->
+[Size/Max_Num] == 0 + <!--#echo numSizeMetrics -->;
 
 
 /*
@@ -232,10 +240,13 @@ undefine([Use_Rollup]);
 
 
 /*
- * Make a list of the custom size metrics in this process
+ * Make a list of the size metrics defined by this MCF
  */
 
 [/PID/Custom_Size_Metric_List] = "<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor-->";
+[Size_Metric_Name_List] == "LOC<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor--><!--#if Process_Uses_DLD_Lines -->DLD Lines<!--#endif-->";
+[Size_Metric_Long_Name_List] == "New & Changed LOC<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Long_Name --><!--#endfor--><!--#if Process_Uses_DLD_Lines -->Detailed Design Lines<!--#endif-->";
+[Size_Metric_ID_List]   == "LOC<!--#foreach name=SizeMetric list=Size_Metric_List --><!--#echo SizeMetric_Name --><!--#endfor--><!--#if Process_Uses_DLD_Lines -->DLD Lines<!--#endif-->";
 
 
 

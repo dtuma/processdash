@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ public interface WBSFilenameConstants {
     String WBS_FILENAME = "wbs.xml";
 
     String FLOW_FILENAME = "workflow.xml";
+
+    String SIZE_METRICS_FILENAME = "sizeMetrics.xml";
 
     String PROXY_FILENAME = "proxies.xml";
 

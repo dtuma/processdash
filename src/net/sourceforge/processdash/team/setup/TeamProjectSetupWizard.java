@@ -25,11 +25,13 @@
 package net.sourceforge.processdash.team.setup;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -90,6 +92,8 @@ import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -100,6 +104,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -184,6 +189,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String RELAUNCH_NODE_PAGE = "relaunchNode";
     private static final String RELAUNCH_NODE_URL = "relaunchNode.shtm";
     private static final String RELAUNCH_NODE_SELECTED_PAGE = "relaunchNodeSelected";
+    // information for the page asking whether to preserve workflow rates
+    private static final String RELAUNCH_KEEP_RATES_PAGE = "keepRates";
+    private static final String RELAUNCH_KEEP_RATES_URL = "relaunchKeepRates.shtm";
     // URL of a page that chastises the user for attempting to run the
     // relaunch wizard on an invalid path
     private static final String RELAUNCH_INVALID_URL = "relaunchInvalid.shtm";
@@ -246,6 +254,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String RELAUNCH_SOURCE_ID = "setup//Relaunch_Source_ID";
     private static final String RELAUNCH_SOURCE_PATH = "setup//Relaunch_Source_Path";
     private static final String RELAUNCH_SOURCE_DATA = "setup//Relaunch_Source_Data";
+    private static final String RELAUNCH_RATE_WORKFLOWS = "setup//Relaunch_Rate_Workflows";
+    private static final String RELAUNCH_KEEP_RATES = "setup//Relaunch_Keep_Rates";
     private static final String TEAM_TEMPLATE_FLAG = "setup//Is_Importing_Template";
     private static final String SUGG_TEAM_DIR = "setup//Suggested_Team_Dir";
     private static final String TEAM_DIR = "setup//Team_Dir";
@@ -325,6 +335,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         else if (RELAUNCH_START_PAGE.equals(page)) handleRelaunchWelcomePage();
         else if (RELAUNCH_NODE_PAGE.equals(page))  handleRelaunchNodePage();
         else if (RELAUNCH_NODE_SELECTED_PAGE.equals(page)) handleRelaunchNodeSelected();
+        else if (RELAUNCH_KEEP_RATES_PAGE.equals(page)) handleKeepRatesPage();
         else if (CLOSE_PAGE.equals(page))          handleCloseTeamProjectPage();
 
         else if (TEAM_CLOSE_HIERARCHY_PAGE.equals(page)) handleTeamCloseHierPage();
@@ -623,6 +634,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         else if (getValue(TEAM_SCHEDULE) == null)
             showTeamSchedulePage();
 
+        else if (needsWorkflowRateRelaunchDecision())
+            showKeepRatesPage();
+
         else if (DashController.isHierarchyEditorOpen())
             printRedirect(TEAM_CLOSE_HIERARCHY_URL);
 
@@ -630,6 +644,87 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return true;
 
         return false;
+    }
+
+    private boolean needsWorkflowRateRelaunchDecision() {
+        // determine whether we are relaunching a project. if not, abort
+        String relaunchSourcePath = getValue(RELAUNCH_SOURCE_PATH);
+        if (!StringUtils.hasValue(relaunchSourcePath))
+            return false;
+
+        // if the source project was already using custom size metrics, abort
+        if (testValue(relaunchSourcePath + "/" + WBS_CUSTOM_SIZE_DATA_NAME))
+            return false;
+
+        // if the user has already made a decision about workflow rates, abort
+        if (getValue(RELAUNCH_KEEP_RATES) != null)
+            return false;
+
+        // find the directory where the relaunched WBS data is stored
+        ImportDirectory dir = getRelaunchSourceDir();
+        if (dir == null)
+            return false;
+
+        // see if the relaunched project used workflow rates. If so, return
+        // true to let our caller know we need the prompt. If not, record the
+        // fact that rates aren't needed and return false.
+        if (containsWorkflowRates(dir.getDirectory())) {
+            return true;
+        } else {
+            putValue(RELAUNCH_KEEP_RATES, ImmutableDoubleData.FALSE);
+            return false;
+        }
+    }
+
+    private ImportDirectory getRelaunchSourceDir() {
+        ListData relaunchSourceLocations = ListData
+                .asListData(getSimpleValue(RELAUNCH_SOURCE_DATA));
+        if (relaunchSourceLocations == null || !relaunchSourceLocations.test())
+            return null;
+        return ImportDirectoryFactory.getInstance().get(
+            (String[]) relaunchSourceLocations.asList().toArray(new String[0]));
+    }
+
+    private boolean containsWorkflowRates(File wbsDir) {
+        BufferedReader in = null;
+        try {
+            File workflows = new File(wbsDir, "workflow.xml");
+            in = new BufferedReader(new InputStreamReader(
+                    new FileInputStream(workflows), "UTF-8"));
+            ListData workflowsWithRates = new ListData();
+            String currentWorkflowName = null;
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.contains("indentLevel='1'")) {
+                    currentWorkflowName = RedactFilterUtils.getXmlAttr(line,
+                        "name");
+                } else if (currentWorkflowName != null //
+                        && line.contains("<attr ") //
+                        && line.contains("name='Workflow Rate'") //
+                        && !line.contains("value='0")) {
+                    workflowsWithRates.add(currentWorkflowName);
+                    currentWorkflowName = null;
+                }
+            }
+            putValue(RELAUNCH_RATE_WORKFLOWS, workflowsWithRates);
+            return workflowsWithRates.test();
+
+        } catch (Exception e) {
+            return false;
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+    }
+
+    private void showKeepRatesPage() {
+        printRedirect(RELAUNCH_KEEP_RATES_URL);
+    }
+
+    private void handleKeepRatesPage() {
+        boolean keepRates = parameters.containsKey("legacy");
+        putValue(RELAUNCH_KEEP_RATES,
+            keepRates ? ImmutableDoubleData.TRUE : ImmutableDoubleData.FALSE);
+        showTeamConfirmPage();
     }
 
     /** respond to the Next button on the team close hierarchy page */
@@ -1090,11 +1185,23 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             copyRelaunchableSettingsFrom(relaunchSourcePath);
         }
 
-        if (shouldEnableWbsManagedSizeData())
-            enableWbsManagedSizeData();
+        if (shouldEnableWbsManagedSizeData()) {
+            if (shouldEnableWbsCustomSizeMetrics())
+                enableWbsCustomSizeMetrics();
+            else
+                enableWbsManagedSizeData();
+        }
     }
 
     private static boolean shouldEnableWbsManagedSizeData() {
+        // the dashboard requires the data warehouse plugin to compute team
+        // rollups of WBS-managed size data. If this is a team dashboard and
+        // the plugin is not installed, create an old-style project.
+        if (Settings.isTeamMode() && !TemplateLoader
+                .meetsPackageRequirement("tpidw-embedded", "1.6.2"))
+            return false;
+
+        // create WBS-managed size projects unless the user has disabled them
         return Settings.getBool("wbsManagedSize.enabled", true);
     }
 
@@ -1102,6 +1209,23 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
         DataVersionChecker.registerDataRequirement("pspdash", "2.5.3");
         DataVersionChecker.registerDataRequirement("teamTools", "5.0.0");
+        if (Settings.isTeamMode())
+            DataVersionChecker.registerDataRequirement("tpidw-embedded", "1.6.2");
+    }
+
+    private boolean shouldEnableWbsCustomSizeMetrics() {
+        if (testValue(RELAUNCH_KEEP_RATES))
+            return false;
+        return Settings.getBool("wbsCustomSizeMetrics.enabled", true);
+    }
+
+    private void enableWbsCustomSizeMetrics() {
+        putValue(WBS_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
+        putValue(WBS_CUSTOM_SIZE_DATA_NAME, ImmutableDoubleData.TRUE);
+        DataVersionChecker.registerDataRequirement("pspdash", "2.6.3");
+        DataVersionChecker.registerDataRequirement("teamToolsB", "6.0.0");
+        if (Settings.isTeamMode())
+            DataVersionChecker.registerDataRequirement("tpidw-embedded", "1.6.2");
     }
 
     private void copyRelaunchableSettingsFrom(String relaunchSourcePath) {
@@ -1643,7 +1767,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private void copyRelaunchFiles(File srcDir, File destDir)
             throws IOException {
         copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
-            "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml");
+            "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml",
+            "sizeMetrics.xml");
         writeMergedUserDump(srcDir, destDir);
     }
 
@@ -2563,6 +2688,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
         String teamDataDirectoryURL = joinInfo.get(TEAM_DATA_DIRECTORY_URL);
         String indivTemplateID = joinInfo.get("Template_ID");
+        boolean wbsCustomSizeMetrics = "true"
+                .equals(joinInfo.get("WBS_Custom_Size_Metrics"));
         boolean wbsManagedSizeData = "true"
                 .equals(joinInfo.get("WBS_Managed_Size_Data"));
         boolean teamDashSupportsScheduleMessages = "true".equals(joinInfo
@@ -2586,7 +2713,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String scheduleID = createIndivSchedule(scheduleName, 12);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
-        if (wbsManagedSizeData)
+        if (wbsCustomSizeMetrics)
+            enableWbsCustomSizeMetrics();
+        else if (wbsManagedSizeData)
             enableWbsManagedSizeData();
         maybeSetProjectRootNodeId(projectID);
         boolean addScheduleSucceeded = teamDashSupportsScheduleMessages

@@ -23,20 +23,15 @@
 
 package teamdash.wbs.columns;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import teamdash.wbs.CalculatedDataColumn;
-import teamdash.wbs.DataTableModel;
 import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
-import teamdash.wbs.TeamProject;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -58,76 +53,60 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     private static final String ATTR_NAME = "Size Metric";
 
     /** Maps node types to related size units */
-    private Map sizeMetrics;
+    private Map<String, String> workProductSizeMap;
 
-    /** positions of columns that are holding planned size values */
-    int[] sizeColumns;
+    Map<String, SizeMetric> sizeMetrics;
 
-    DataTableModel dataModel;
+    WBSDataModel dataModel;
 
-    public SizeTypeColumn(DataTableModel m, Map sizeMetrics) {
+    public SizeTypeColumn(WBSDataModel m) {
         this.dataModel = m;
-        this.sizeMetrics = sizeMetrics;
+        this.workProductSizeMap = m.getTeamProcess().getWorkProductSizeMap();
+        this.sizeMetrics = m.getTeamProcess().getSizeMetricMap();
         this.columnID = COLUMN_ID;
         this.columnName = resources.getString("Units.Name");
         this.dependentColumns = new String[] {
-                SizeAccountingColumnSet.getNCID("LOC") };
-        this.sizeColumns = new int[] { -1 };
+                SizeDataColumn.getColumnID("LOC", true) };
     }
 
 
-    @Override
-    public void resetDependentColumns() {
-        Arrays.fill(sizeColumns, -1);
-    }
-
-    public void storeDependentColumn(String ID, int columnNumber) {
-        for (int i = sizeColumns.length; i-- > 0;) {
-            if (ID.equals(dependentColumns[i]))
-                sizeColumns[i] = columnNumber;
-        }
-    }
+    public void storeDependentColumn(String ID, int columnNumber) {}
 
     public boolean recalculate() {
         return false;
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return sizeMetrics.get(node.getType()) == null
+        return workProductSizeMap.get(node.getType()) == null
                 && !TeamProcess.isProbeTask(node.getType());
     }
 
 
     public Object getValueAt(WBSNode node) {
-        Object result = getWorkProductSizeMetric(node, sizeMetrics);
-        if (result == null)
-            result = node.getAttribute(ATTR_NAME);
-        else {
-            if (shouldHide(node.getType(), result, node))
+        String metricID = getWorkProductSizeMetric(node, workProductSizeMap);
+        if (metricID == null) {
+            metricID = (String) node.getAttribute(ATTR_NAME);
+            return sizeMetrics.get(metricID);
+        } else {
+            Object result = sizeMetrics.get(metricID);
+            if (shouldHide(node.getType(), metricID, node))
                 result = new HtmlRenderedValue(result, "");
-            result = new ReadOnlyValue(result);
+            return new ReadOnlyValue(result);
         }
-        return result;
     }
 
 
-    private boolean shouldHide(String type, Object units, WBSNode node) {
+    private boolean shouldHide(String type, String metricID, WBSNode node) {
         // only hide the "LOC" size units moniker
-        if (!"LOC".equals(units))
+        if (!"LOC".equals(metricID))
             return false;
 
         // only hide LOC for the project and the generic "Component" type
         if (!"Project".equals(type) && !"Component".equals(type))
             return false;
 
-        // if we don't know the position of the LOC size column, abort.
-        if (sizeColumns[0] == -1)
-            return false;
-
         // If a nonzero LOC value is present, don't hide the LOC moniker
-        Object locSizeVal = dataModel.getValueAt(node, sizeColumns[0]);
-        double locSize = NumericDataValue.parse(locSizeVal);
-        if (locSize > 0)
+        if (getPlannedSize(node, "LOC") > 0)
             return false;
 
         // we apparently have a "Project" or "Component" type with no real
@@ -138,36 +117,34 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     }
 
 
+    protected double getPlannedSize(WBSNode node, String metricID) {
+        int planSizeColumn = dataModel.getSizeColumnIndexes(true).get(metricID);
+        if (planSizeColumn == -1)
+            return 0;
+        Object planSizeVal = dataModel.getValueAt(node, planSizeColumn);
+        return NumericDataValue.parse(planSizeVal);
+    }
+
+
     public void setValueAt(Object aValue, WBSNode node) {
-        node.setAttribute(ATTR_NAME, aValue);
+        String metricID = null;
+        if (aValue instanceof String)
+            metricID = (String) aValue;
+        else if (aValue instanceof SizeMetric)
+            metricID = ((SizeMetric) aValue).getMetricID();
+        node.setAttribute(ATTR_NAME, metricID);
     }
 
 
 
     private static class NewSizeTypeColumn extends SizeTypeColumn {
 
-        /** names of known size metrics */
-        private List<String> sizeMetricNames;
-
         private final Object BLANK = new ReadOnlyValue(
-                new HtmlRenderedValue("LOC", ""));
+                new HtmlRenderedValue(new SizeMetric("LOC", "LOC"), ""));
 
-        public NewSizeTypeColumn(DataTableModel m, Map workProductSizeMap,
-                List<String> sizeMetrics) {
-            super(m, workProductSizeMap);
-
-            sizeMetricNames = new ArrayList(sizeMetrics);
-            sizeMetricNames.remove("LOC");
-            sizeMetricNames.add(0, "LOC"); // make sure LOC is in position 0
-            int numMetrics = sizeMetricNames.size();
-
-            dependentColumns = new String[numMetrics];
-            for (int i = numMetrics; i-- > 0;) {
-                dependentColumns[i] = SizeDataColumn
-                        .getColumnID(sizeMetricNames.get(i), true);
-            }
-            sizeColumns = new int[numMetrics];
-            resetDependentColumns();
+        public NewSizeTypeColumn(WBSDataModel m) {
+            super(m);
+            this.dependentColumns = new String[] { SizeColumnGroup.PLAN };
         }
 
         @Override
@@ -184,11 +161,11 @@ public class SizeTypeColumn extends AbstractDataColumn implements
             // special handling for 'generic components': if only one planned
             // size value has been entered, assume that metric; else null
             Object result = BLANK;
-            for (int i = sizeColumns.length; i-- > 0;) {
-                Object oneSize = dataModel.getValueAt(node, sizeColumns[i]);
-                if (NumericDataValue.parse(oneSize) > 0) {
+            for (SizeMetric metric : sizeMetrics.values()) {
+                double oneSize = getPlannedSize(node, metric.getMetricID());
+                if (oneSize > 0) {
                     if (result == BLANK)
-                        result = sizeMetricNames.get(i);
+                        result = metric;
                     else
                         // more than one metric found: abort
                         return BLANK;
@@ -207,45 +184,25 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     }
 
     public static String getWorkProductSizeMetric(WBSNode node,
-            Map workProductSizeMap) {
+            Map<String, String> workProductSizeMap) {
         String nodeType = node.getType();
         if (TeamProcess.isProbeTask(nodeType)) {
             return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node);
         } else {
-            return (String) workProductSizeMap.get(nodeType);
+            return workProductSizeMap.get(nodeType);
         }
     }
 
 
 
     /**
-     * Copy the new-style size flag from team project settings to the WBS
+     * Set the new-style size flag on the given WBS, on behalf of older versions
+     * of the WBS Editor that might inadvertently open this project.
      */
-    public static void maybeEnableNewSizeDataColumns(TeamProject proj) {
-        maybeEnableNewSizeDataColumns(proj, proj.getWBS());
+    public static void enableNewSizeDataColumns(WBSModel wbs) {
+        wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
     }
 
-    /**
-     * Set the new-style size flag on the given WBS if project settings dictate
-     */
-    public static void maybeEnableNewSizeDataColumns(TeamProject proj,
-            WBSModel wbs) {
-        if (proj.getBoolUserSetting(NEW_SIZE_SETTING_NAME)
-                && !isUsingNewSizeDataColumns(wbs)) {
-            wbs.getRoot().setAttribute(NEW_SIZE_ATTR_NAME, "true");
-        }
-    }
-
-    /**
-     * Return true if this WBS is using the new-style size columns (provided by
-     * the SizeDataColumn class), false if it is using the old size accounting
-     * columns.
-     */
-    public static boolean isUsingNewSizeDataColumns(WBSModel wbsModel) {
-        return wbsModel.getRoot().getAttribute(NEW_SIZE_ATTR_NAME) != null;
-    }
-
-    private static final String NEW_SIZE_SETTING_NAME = "wbsManagedSize";
     private static final String NEW_SIZE_ATTR_NAME = "WBS Managed Size Data";
 
 
@@ -253,98 +210,17 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     /** Create all of the required columns for size metrics, and add them
      * to the given data model.
      */
-    public static void createSizeColumns(DataTableModel dataModel,
+    public static void createSizeColumns(WBSDataModel dataModel,
             TeamProcess teamProcess) {
-        Map workProductSizeMap = teamProcess.getWorkProductSizeMap();
-
-        if (isUsingNewSizeDataColumns(dataModel.getWBSModel()))
-            createNewSizeColumns(dataModel, teamProcess, workProductSizeMap,
-                Arrays.asList(teamProcess.getSizeMetrics()));
-        else
-            createOldSizeColumns(dataModel, teamProcess, workProductSizeMap);
-    }
-
-    private static void createNewSizeColumns(DataTableModel dataModel,
-            TeamProcess teamProcess, Map workProductSizeMap,
-            List<String> sizeMetrics) {
-
         // create the size type columns.
-        dataModel.addDataColumn(new NewSizeTypeColumn(dataModel, //
-                workProductSizeMap, sizeMetrics));
-        dataModel.addDataColumn(new DirectSizeTypeColumn.Simple());
+        dataModel.addDataColumn(new NewSizeTypeColumn(dataModel));
+        dataModel.addDataColumn(new DirectSizeTypeColumn(
+                dataModel.getTeamProcess().getSizeMetricMap()));
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
 
-        for (String metric : sizeMetrics) {
-            // add a planned size column for this metric
-            dataModel.addDataColumn(
-                new SizeDataColumn(dataModel, teamProcess, metric, true));
-
-            // add an actual size column for this metric
-            dataModel.addDataColumn(
-                new SizeDataColumn(dataModel, teamProcess, metric, false));
-        }
-    }
-
-    private static void createOldSizeColumns(DataTableModel dataModel,
-            TeamProcess teamProcess, Map sizeMetrics) {
-
-        // create the size type columns.
-        dataModel.addDataColumn(new SizeTypeColumn(dataModel, sizeMetrics));
-        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel, sizeMetrics));
-
-        // create an editable size column.
-        dataModel.addDataColumn(new EditableSizeColumn(dataModel, teamProcess));
-
-        // create LOC accounting columns.
-        SizeAccountingColumnSet.create(dataModel, "LOC",
-                new WorkProductSizePruner(teamProcess, Collections
-                        .singleton("LOC")), null, null);
-
-        // create size accounting columns for various non-LOC size metrics.
-        Iterator i = sizeMetrics.entrySet().iterator();
-        Map.Entry e;
-        while (i.hasNext()) {
-            e = (Map.Entry) i.next();
-            String objType = (String) e.getKey();
-            String metric = (String) e.getValue();
-
-            // add columns for plan/actual size data
-            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
-                    true));
-            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
-                    false));
-
-            if ("LOC".equals(metric)) continue;
-
-            Pruner pruner = new WorkProductSizePruner(teamProcess, Arrays
-                    .asList(new Object[] { "LOC", metric }));
-            SizeAccountingColumnSet.create(dataModel, metric, pruner, objType,
-                metric);
-        }
-
-        // create aliasing columns
-        String[] sizeUnits = teamProcess.getSizeMetrics();
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Base", "Size_Accounting.Base.Name",
-            SizeAccountingColumnSet.getBaseID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Deleted", "Size_Accounting.Deleted.Name",
-            SizeAccountingColumnSet.getDeletedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Modified", "Size_Accounting.Modified.Name",
-            SizeAccountingColumnSet.getModifiedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Added", "Size_Accounting.Added.Name",
-            SizeAccountingColumnSet.getAddedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Reused", "Size_Accounting.Reused.Name",
-            SizeAccountingColumnSet.getReusedID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "N&C", "Size_Accounting.New_and_Changed.Name",
-            SizeAccountingColumnSet.getNCID(""), sizeUnits, sizeMetrics));
-        dataModel.addDataColumn(new SizeAliasColumn( //
-            dataModel, "Total", "Size_Accounting.Total.Name",
-            SizeAccountingColumnSet.getTotalID(""), sizeUnits, sizeMetrics));
+        // create plan/actual size column groups for dependency management
+        dataModel.addDataColumn(new SizeColumnGroup(true));
+        dataModel.addDataColumn(new SizeColumnGroup(false));
     }
 
 }

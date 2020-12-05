@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -257,6 +258,24 @@ public class WBSNode implements Cloneable {
         return Collections.unmodifiableSet(attributes.keySet());
     }
 
+    /** Rename attributes within this node */
+    public boolean renameAttributes(Map<String, String> attrRenames) {
+        Map<String, Object> renamedValues = null;
+        for (Entry<String, String> e : attrRenames.entrySet()) {
+            String oldAttrName = e.getKey();
+            String newAttrName = e.getValue();
+            Object attrVal = removeAttribute(oldAttrName);
+            if (attrVal != null) {
+                if (renamedValues == null)
+                    renamedValues = new HashMap<String, Object>();
+                renamedValues.put(newAttrName, attrVal);
+            }
+        }
+        if (renamedValues != null)
+            attributes.putAll(renamedValues);
+        return renamedValues != null;
+    }
+
 
     /** Get a numeric attribute.
      * @return <code>Double.NaN</code> if the named attribute is not set,
@@ -454,6 +473,36 @@ public class WBSNode implements Cloneable {
         }
         structure = null;
     }
+
+    /**
+     * Remove a set of attributes from this node that match a given criteria,
+     * unless they also match a second criteria.
+     * 
+     * @param discardCriteria
+     *            a filter describing attributes to discard. This can be a
+     *            String (indicating a single attribute to discard), a
+     *            Collection of Strings (indicating several attributes to
+     *            discard), or a PatternList (to discard attributes matching a
+     *            pattern). An array of such filters is also allowed; it will
+     *            match if any of the array elements match.
+     * @param unlessCriteria
+     *            a filter describing attributes that should be kept, regardless
+     *            of whether they match the discardCriteria. This parameter
+     *            accepts the same types as the discardCriteria. In addition,
+     *            the value null is allowed, indicating the discardCriteria does
+     *            not need to be overridden.
+     */
+    public void discardAttributes(Object discardCriteria,
+            Object unlessCriteria) {
+        Iterator i = attributes.keySet().iterator();
+        while (i.hasNext()) {
+            String attrName = (String) i.next();
+            if (attrNameMatchesTest(attrName, discardCriteria)
+                    && !attrNameMatchesTest(attrName, unlessCriteria))
+                i.remove();
+        }
+    }
+
     private boolean attrNameMatchesTests(String attrName, Object[] tests) {
         for (Object t : tests)
             if (attrNameMatchesTest(attrName, t))

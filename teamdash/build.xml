@@ -30,8 +30,8 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="5.4.5"/>
-  <property name="teamtools.requires" value="2.0.4+"/>
+  <property name="teamtools.version" value="6.0.0"/>
+  <property name="teamtools.requires" value="2.6.3+"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
@@ -239,6 +239,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.LargeFontsHelper"/>
       <root classname="net.sourceforge.processdash.ui.lib.PaddedIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.ScalableImageIcon"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ScaledIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
       <root classname="net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer"/>
       <root classname="net.sourceforge.processdash.ui.lib.WindowUtils"/>
@@ -277,7 +278,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 168) {
+        if (classCount > 169) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -285,7 +286,7 @@ The author(s) may be contacted at:
 
     <!-- abort if the processdash class list was larger than expected -->
     <fail if="dashClasses.overflowing">Unexpected number of
-processdash classes (${dashClasses.overflowCount}) referenced by TeamTools.jar (Perhaps a runaway
+processdash classes (${dashClasses.overflowCount}) referenced by WBSEditor.jar (Perhaps a runaway
 class dependency has been added in a dashboard class?)
     ${dashClasses.overflowing}
     </fail>
@@ -295,17 +296,18 @@ class dependency has been added in a dashboard class?)
       <isset property="GPLv2"/>
     </condition>
 
-    <!-- Now build the TeamTools.jar file -->
-    <jar destfile="TeamTools.jar" duplicate="fail">
+    <!-- Now build the WBSEditor.jar file -->
+    <jar destfile="WBSEditor.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
-	<attribute name="Dash-Pkg-ID" value="teamTools"/>
+	<attribute name="Dash-Pkg-ID" value="teamToolsB"/>
 	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
 	<attribute name="Dash-Pkg-Requires-Version"
                    value="${teamtools.requires}"/>
         <attribute name="Dash-Pkg-Localizable" value="true"/>
-	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
+	<attribute name="Dash-Pkg-Name"
+                   value="Work Breakdown Structure Editor"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
         <attribute name="Specification-Title" value="Work Breakdown Structure Editor"/>
@@ -384,16 +386,16 @@ class dependency has been added in a dashboard class?)
       <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
     </jar>
 
-    <maybeSignJar jar="TeamTools.jar" prefix="jnlpSign"/>
+    <maybeSignJar jar="WBSEditor.jar" prefix="jnlpSign"/>
 
-    <move file="TeamTools.jar" todir="${processdash.dist}"/>
+    <move file="WBSEditor.jar" todir="${processdash.dist}"/>
   </target>
-  <target name="TeamTools.jar" depends="TeamTools"/>
+  <target name="WBSEditor.jar" depends="TeamTools"/>
 
   <target name="verifyResourceOverrides">
   <property name="ResPrefix"
             value="net.sourceforge.processdash.i18n.Resources"/>
-    <java jar="${processdash.dist}/TeamTools.jar"
+    <java jar="${processdash.dist}/WBSEditor.jar"
           fork="true" failonerror="true" inputstring="">
       <jvmarg value="-Dteamdash.wbs.testPersonalResourceOverride=true"/>
       <jvmarg value="-Dteamdash.wbs.dumpAndExit=true"/>
@@ -480,7 +482,7 @@ class dependency has been added in a dashboard class?)
       <fileset dir="${processdash.dist}"
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
       <fileset dir="${processdash.dist}"
-          includes="TeamTools.jar ${launchProfile.files}"/>
+          includes="TeamTools.jar WBSEditor.jar ${launchProfile.files}"/>
       <fileset dir="${installer.files}" includes="dashicon.* teamicon.* wbs-editor.icns"/>
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>

@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -84,6 +84,7 @@ public class TeamProjectMerger {
         // merge the various data structures in the team project.
         TeamMemberList team = mergeTeams();
         WorkflowWBSModel workflows = mergeWorkflows();
+        SizeMetricsWBSModel sizeMetrics = mergeSizeMetrics();
         ProxyWBSModel proxies = mergeProxies();
         MilestonesWBSModel milestones = mergeMilestones();
         CustomColumnSpecs columns = mergeColumns();
@@ -92,8 +93,8 @@ public class TeamProjectMerger {
 
         // create a TeamProject object to hold the merged data.
         File dir = new File("no such directory " + System.currentTimeMillis());
-        merged = new TeamProject(dir, "Unused", team, wbs, workflows, proxies,
-                milestones, columns, userSettings);
+        merged = new TeamProject(dir, "Unused", team, wbs, workflows,
+                sizeMetrics, proxies, milestones, columns, userSettings);
     }
 
     private TeamMemberList mergeTeams() {
@@ -137,6 +138,18 @@ public class TeamProjectMerger {
         conflicts.addAll(workflowMerger.getConflictNotifications());
 
         return workflowMerger.getMerged();
+    }
+
+    private SizeMetricsWBSModel mergeSizeMetrics() {
+        // calculate the merged size metrics
+        SizeMetricsMerger sizeMetricsMerger = new SizeMetricsMerger(base, main,
+                incoming);
+        sizeMetricsMerger.run();
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(sizeMetricsMerger.getConflictNotifications());
+
+        return sizeMetricsMerger.getMerged();
     }
 
     private ProxyWBSModel mergeProxies() {

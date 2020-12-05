@@ -35,7 +35,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 
 /**
- * Finds template resources that appear in the packaged TeamTools.jar file
+ * Finds template resources that appear in the packaged WBSEditor.jar file
  */
 public class WBSRuntimeTemplateClassLoader
         extends AbstractMergingTemplateClassLoader {
@@ -74,7 +74,7 @@ public class WBSRuntimeTemplateClassLoader
     protected URL[] lookupUrlsForResource(String resourceName) {
         String templateName = mapToTemplates(resourceName);
 
-        // look for the resource within the TeamTools.jar file. Files copied
+        // look for the resource within the WBSEditor.jar file. Files copied
         // from the dashboard are in a "resources/dash" subdirectory.
         String localName = templateName;
         if (!localName.startsWith("Templates/resources/WBSEditor"))

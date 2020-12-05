@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,19 +23,23 @@
 
 package teamdash.wbs;
 
-import static teamdash.wbs.columns.SizeTypeColumn.isUsingNewSizeDataColumns;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
+import teamdash.wbs.columns.ProxySizeColumn;
 import teamdash.wbs.columns.SizeDataColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 
 public class MasterWBSUtil {
@@ -120,8 +124,7 @@ public class MasterWBSUtil {
         WBSModel working = new WBSModel();
         working.copyFrom(master);
 
-        visitWBS(working, new MasterNodeTweaker(masterProjectID,
-                isUsingNewSizeDataColumns(dest)));
+        visitWBS(working, new MasterNodeTweaker(masterProjectID));
 
         // copy the master node ID for the overall project
         copyAttr(working.getRoot(), dest.getRoot(), MASTER_NODE_ID, true);
@@ -178,11 +181,9 @@ public class MasterWBSUtil {
 
     private static class MasterNodeTweaker implements WBSNodeVisitor {
         String id;
-        boolean clearSizeData;
 
-        public MasterNodeTweaker(String id, boolean clearSizeData) {
+        public MasterNodeTweaker(String id) {
             this.id = id;
-            this.clearSizeData = clearSizeData;
         }
 
         public void visit(WBSNode parent, WBSNode child) {
@@ -194,8 +195,7 @@ public class MasterWBSUtil {
             child.setAttribute(MASTER_NODE_ID, id + ":" + child.getUniqueID());
             child.setAttribute(MilestoneCommitDateColumn.MASTER_VALUE_ATTR,
                 child.getAttribute(MilestoneCommitDateColumn.VALUE_ATTR));
-            if (clearSizeData && SIZE_DATA_ATTRS != null)
-                child.removeAttributes(SIZE_DATA_ATTRS);
+            child.removeAttributes(SIZE_DATA_ATTRS);
         }
 
     }
@@ -278,16 +278,55 @@ public class MasterWBSUtil {
 
     }
 
-    private static PatternList SIZE_DATA_ATTRS = null;
+    public static Set<String> mergeSizeMetricsFromSubproject(TeamProject src,
+            TeamProject dest) {
+        // create data structures for tracking
+        Set<String> sizeMetricNames = new HashSet<String>();
+        Set<String> sizeMetricSrcAttrs = new HashSet<String>();
+        Map<String, String> idChanges = new HashMap();
 
-    public static void setSizeMetrics(String[] sizeMetrics) {
-        PatternList pl = new PatternList();
-        for (String m : sizeMetrics) {
-            pl.addLiteralEquals(SizeDataColumn.getNodeValueAttrName(m, true));
-            pl.addLiteralEquals(SizeDataColumn.getNodeValueAttrName(m, false));
+        // iterate over the size metrics in the source subproject
+        for (SizeMetric srcMetric : src.getSizeMetrics().getMetrics()) {
+
+            // add the metric to the size metrics model in the dest project
+            SizeMetric destMetric = dest.getSizeMetrics()
+                    .getMetric(srcMetric.getName(), true);
+
+            // if the dest project assigned this metric a different ID than the
+            // source, record this discrepancy
+            if (!srcMetric.getMetricID().equals(destMetric.getMetricID()))
+                idChanges.put(srcMetric.getMetricID(),
+                    destMetric.getMetricID());
+
+            // keep track of all the size metric names/attrs we've seen
+            sizeMetricNames.add(srcMetric.getName());
+            sizeMetricSrcAttrs.add(SizeDataColumn
+                    .getNodeValueAttrName(srcMetric.getMetricID(), true));
+            sizeMetricSrcAttrs.add(SizeDataColumn
+                    .getNodeValueAttrName(srcMetric.getMetricID(), false));
         }
-        SIZE_DATA_ATTRS = pl;
+
+        // discard any leftover, invisible size data from metrics that were
+        // deleted from the source project in the past
+        for (WBSNode node : src.getWBS().getWbsNodes())
+            node.discardAttributes(SIZE_DATA_ATTRS, sizeMetricSrcAttrs);
+
+        // if any metric IDs changed, propagate those changes as needed
+        if (!idChanges.isEmpty()) {
+            ProxySizeColumn.remapNodeIDs(src.getProxies(), idChanges);
+            WorkflowSizeUnitsColumn.remapNodeIDs(src.getWorkflows(), idChanges);
+            SizeDataColumn.remapSizeDataAttrs(src.getWBS(), idChanges);
+        }
+
+        // return the list of size metric names we saw
+        return sizeMetricNames;
     }
+
+    private static final PatternList SIZE_DATA_ATTRS = new PatternList()
+            .addLiteralEquals("Actual-LOC (Top Down)")
+            .addLiteralEquals("Added-LOC (Top Down)")
+            .addLiteralStartsWith("Actual-Size-")
+            .addLiteralStartsWith("Added-Size-");
 
     /**
      * @return true if WBS-managed size is in effect for one of the given WBSes,
@@ -297,6 +336,10 @@ public class MasterWBSUtil {
         boolean aSizeFlag = isUsingNewSizeDataColumns(a);
         boolean bSizeFlag = isUsingNewSizeDataColumns(b);
         return aSizeFlag != bSizeFlag;
+    }
+
+    private static boolean isUsingNewSizeDataColumns(WBSModel wbs) {
+        return wbs.getRoot().getAttribute("WBS Managed Size Data") != null;
     }
 
     public static String getNodeID(WBSNode node, String projectID) {

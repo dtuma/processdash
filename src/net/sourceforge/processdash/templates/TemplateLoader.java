@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2018 Tuma Solutions, LLC
+// Copyright (C) 1998-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -355,6 +355,11 @@ public class TemplateLoader {
 
     private static JarSearchResult searchJarForTemplates(
             DashHierarchy templates, String jarURL, DataRepository data) {
+
+        // special handling for legacy TeamTools.jar file, whose templates
+        // should be overridden by those in WBSEditor.jar
+        if (jarURL.toLowerCase().contains("teamtools.jar"))
+            return JarSearchResult.ContentOnly;
 
         boolean foundTemplates = false;
         boolean foundContent = false;

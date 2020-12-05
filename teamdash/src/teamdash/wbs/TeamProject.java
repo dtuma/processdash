@@ -45,13 +45,16 @@ import org.xml.sax.InputSource;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnSpecs;
+import teamdash.wbs.columns.SizeDataColumn;
 
 public class TeamProject implements WBSFilenameConstants {
 
@@ -65,6 +68,7 @@ public class TeamProject implements WBSFilenameConstants {
     private WBSModel wbs;
     private WorkflowWBSModel workflows;
     private ProxyWBSModel proxies;
+    private SizeMetricsWBSModel sizeMetrics;
     private MilestonesWBSModel milestones;
     private CustomColumnSpecs columnSpecs;
     private long fileModTime;
@@ -92,7 +96,8 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     TeamProject(File directory, String projectName, TeamMemberList teamList,
-            WBSModel wbs, WorkflowWBSModel workflows, ProxyWBSModel proxies,
+            WBSModel wbs, WorkflowWBSModel workflows,
+            SizeMetricsWBSModel sizeMetrics, ProxyWBSModel proxies,
             MilestonesWBSModel milestones, CustomColumnSpecs columnSpecs,
             Map<String, String> userSettings) {
         this.projectName = projectName;
@@ -101,6 +106,7 @@ public class TeamProject implements WBSFilenameConstants {
         this.teamList = teamList;
         this.wbs = wbs;
         this.workflows = workflows;
+        this.sizeMetrics = sizeMetrics;
         this.proxies = proxies;
         this.milestones = milestones;
         this.columnSpecs = columnSpecs;
@@ -125,6 +131,7 @@ public class TeamProject implements WBSFilenameConstants {
         openMilestones();
         openColumns();
         openWBS();
+        openSizeMetrics();
     }
 
     /** Check to see if any files have changed since we opened them.  If so,
@@ -171,6 +178,7 @@ public class TeamProject implements WBSFilenameConstants {
         result = saveWBS(directory) && result;
         result = saveWorkflows(directory) && result;
         result = saveProxies(directory) && result;
+        result = saveSizeMetrics(directory) && result;
         result = saveMilestones(directory) && result;
         result = saveColumns(directory) && result;
         return result;
@@ -223,6 +231,11 @@ public class TeamProject implements WBSFilenameConstants {
     /** Get the size estimating proxies for this project */
     public ProxyWBSModel getProxies() {
         return proxies;
+    }
+
+    /** Get the dynamic size metrics for this project */
+    public SizeMetricsWBSModel getSizeMetrics() {
+        return sizeMetrics;
     }
 
     /** Get the milestones for this project */
@@ -439,6 +452,8 @@ public class TeamProject implements WBSFilenameConstants {
             }
         } catch (Exception e) {
         }
+        requireVersion(TeamToolsVersionManager.DATA_VERSION, "3");
+        requireVersion(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT, "6");
 
         // if we are loading the primary team project (the one which will be
         // displayed in all the WBS Editor windows), and it is a personal
@@ -457,6 +472,13 @@ public class TeamProject implements WBSFilenameConstants {
         } finally {
             FileUtils.safelyClose(in);
         }
+    }
+
+    private void requireVersion(String attr, String minVersion) {
+        String currVersion = userSettings.getProperty(attr);
+        if (currVersion == null
+                || VersionUtils.compareVersions(currVersion, minVersion) < 0)
+            userSettings.put(attr, minVersion);
     }
 
     protected ImportDirectory getProjectDataDirectory(Element e, boolean checkExists) {
@@ -720,6 +742,33 @@ public class TeamProject implements WBSFilenameConstants {
 
 
 
+    /** Open the file containing dynamic size metrics definitions */
+    private void openSizeMetrics() {
+        try {
+            Element xml = openXML(checkEditable(new File(directory,
+                SIZE_METRICS_FILENAME)));
+            if (xml != null)
+                sizeMetrics = new SizeMetricsWBSModel(xml);
+        } catch (Exception e) {
+        }
+        if (sizeMetrics == null) {
+            System.out.println("No " + SIZE_METRICS_FILENAME
+                    + " file found; creating from process");
+            sizeMetrics = new SizeMetricsWBSModel(teamProcess);
+            setCreatedWithVersionAttribute(sizeMetrics);
+            SizeDataColumn.renameLegacySizeDataAttrs(wbs,
+                sizeMetrics.getIdToMetricMap().values());
+        }
+        sizeMetrics.registerProcessToUpdate(teamProcess);
+    }
+
+    /** Save the dynamic size metrics definitions */
+    private boolean saveSizeMetrics(File directory) {
+        return saveXML(sizeMetrics, directory, SIZE_METRICS_FILENAME);
+    }
+
+
+
     /** Open the file containing the project milestones */
     private void openMilestones() {
         try {
@@ -811,6 +860,7 @@ public class TeamProject implements WBSFilenameConstants {
         WBS_FILENAME,
         FLOW_FILENAME,
         PROXY_FILENAME,
+        SIZE_METRICS_FILENAME,
         MILESTONES_FILENAME,
         PROCESS_FILENAME,
         SETTINGS_FILENAME

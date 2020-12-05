@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Tuma Solutions, LLC
+// Copyright (C) 2019-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ import java.util.Set;
 
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.SizeDataColumn;
-import teamdash.wbs.columns.SizeTypeColumn;
 
 /**
  * When a team project has been relaunched, this makes changes to the WBS in the
@@ -72,10 +71,6 @@ public class RelaunchWorkerOld {
      * data from the old WBS to avoid double-counting.
      */
     private void clearRelaunchedNodeSizeData() {
-        // this logic should only run if the old WBS is using WBS-managed size
-        if (SizeTypeColumn.isUsingNewSizeDataColumns(wbs) == false)
-            return;
-
         // make a list of the nodes that survived relaunch, and appear in the
         // relaunched WBS
         Set<WBSNode> relaunchedNodes = new HashSet<WBSNode>();

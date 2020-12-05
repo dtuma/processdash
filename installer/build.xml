@@ -177,7 +177,7 @@ Authors:
         </antcall>
         <!-- build and sign the WBS editor exe -->
         <launch4j configFile="files/wbs-editor-launch4j-config.xml"
-            jar="${dist}/TeamTools.jar"
+            jar="${dist}/WBSEditor.jar"
             outfile="${dist}/${wbs-editor.exe}"/>
         <antcall target="maybe-sign-exe">
             <param name="sign-exe.file" value="${dist}/${wbs-editor.exe}"/>
@@ -453,6 +453,10 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 	<!-- print an error unless the TeamTools.jar file is built -->
 	<available file="../dist/TeamTools.jar" property="have.teamtools.jar"/>
 	<fail unless="have.teamtools.jar" message="TeamTools.jar is missing"/>
+
+	<!-- print an error unless the WBSEditor.jar file is built -->
+	<available file="../dist/WBSEditor.jar" property="have.wbseditor.jar"/>
+	<fail unless="have.wbseditor.jar" message="WBSEditor.jar is missing"/>
 
 	<!-- determine whether the context-sensitive help was built -->
 	<available file="../dist/dashHelp.jar" property="helpFlag" value=" "/>

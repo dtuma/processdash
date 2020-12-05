@@ -179,7 +179,7 @@ public class OpenWBSEditor extends TinyCGIBase {
             writeHtmlHeader();
             out.print("<html><head>");
             out.print("<meta http-equiv='Refresh' CONTENT='0;URL=" +
-                        "/team/tools/OpenWBSEditor.class?useJNLP&");
+                    getScriptUri() + "?useJNLP&");
             out.print(env.get("QUERY_STRING"));
             out.print("'></head></html>");
         }
@@ -252,7 +252,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         if (isJsonRequest()) {
             StringBuffer errUri = new StringBuffer();
-            errUri.append("/team/tools/OpenWBSEditor.class");
+            errUri.append(getScriptUri());
             HTMLUtils.appendQuery(errUri, "err", resKey);
             for (String l : location)
                 HTMLUtils.appendQuery(errUri, "location", l);
@@ -438,7 +438,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private String[] getProcessCmdLine(String url, String directory) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
-        File classpath = findTeamToolsJarFile();
+        File classpath = findWbsEditorJarFile();
         if (jreExecutable == null || classpath == null)
             return null;
 
@@ -575,7 +575,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         String query = (String) env.get("QUERY_STRING");
         query = StringUtils.findAndReplace(query, "isTriggering", "isTr");
         query = StringUtils.findAndReplace(query, "trigger", "tr");
-        String jnlpUri = "/team/tools/OpenWBSEditor.class?useJNLP&" + query;
+        String jnlpUri = getScriptUri() + "?useJNLP&" + query;
         return Browser.mapURL(jnlpUri);
     }
 
@@ -595,9 +595,9 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         out.print("<security><all-permissions/></security>\n");
 
-        String path = (String) env.get("SCRIPT_NAME");
+        String path = getScriptUri();
         int pos = path.lastIndexOf('/');
-        String jarPath = path.substring(1, pos+1) + "TeamTools.jar";
+        String jarPath = path.substring(1, pos+1) + "WBSEditor.jar";
         out.print("<resources>\n");
         out.print("<j2se version='1.6+' initial-heap-size='2M' max-heap-size='800M'/>\n");
         out.print("<jar href='");
@@ -644,9 +644,9 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void serveJar() throws IOException {
-        File jarFile = findTeamToolsJarFile();
+        File jarFile = findWbsEditorJarFile();
         if (jarFile == null)
-            throw new IOException("Cannot locate TeamTools.jar file");
+            throw new IOException("Cannot locate WBSEditor.jar file");
         
         long modTime = jarFile.lastModified();
         InputStream in = new FileInputStream(jarFile);
@@ -672,7 +672,7 @@ public class OpenWBSEditor extends TinyCGIBase {
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
-    private File findTeamToolsJarFile() {
+    private File findWbsEditorJarFile() {
         // first, try to locate the JAR file that holds this class definition
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (classpath != null && classpath.isFile())
@@ -680,9 +680,8 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         // when running in development mode, the definition of this class will
         // be located in a "bin" directory instead of a JAR. In that case, find
-        // TeamTools.jar by searching for a "template" file we know it contains.
-        URL myURL = TemplateLoader
-                .resolveURL("/team/tools/OpenWBSEditor.class.link");
+        // WBSEditor.jar by searching for a "template" file we know it contains.
+        URL myURL = TemplateLoader.resolveURL(getScriptUri() + ".link");
         if (myURL == null)
             return null;
 
@@ -702,6 +701,10 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         File jarFile = new File(jarFileName).getAbsoluteFile();
         return (jarFile.isFile() ? jarFile : null);
+    }
+
+    private String getScriptUri() {
+        return (String) env.get("SCRIPT_NAME");
     }
 
 }

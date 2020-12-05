@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,5 +33,7 @@ public interface CustomColumnListener {
             DataColumn newColumn);
 
     public void columnDeleted(String id, DataColumn oldColumn);
+
+    public void columnsRenamed();
 
 }

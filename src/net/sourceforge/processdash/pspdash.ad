@@ -53,6 +53,12 @@ templates.disableSearchPath=false
 
 
 #
+# The maximum "expected" number of size metrics in any given project
+#
+sizeMetrics.maxNumPerProject=50
+
+
+#
 # If the following property is set to "true", the defect dialog box
 # will come up with the timer already running.  Any other value for
 # this property means the user must manually press the "Start Timing"

@@ -98,15 +98,18 @@
 
 <!--#foreach name=METRIC list=Size_Metric_Data_Names -->
 <!--#if 'METRIC' eq 'New & Changed LOC' -->
-[Estimated METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=LOC", "Type=Plan", "A&M"), 0);
-[METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=LOC", "Type=Actual", "A&M"), 0);
+[LOC/Is_Present] = indexOf("LOC", [Size_Metric_Name_List]) >= 0;
+[New & Changed LOC/Is_Present] = [LOC/Is_Present];
+[Estimated METRIC] = iff([LOC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Plan", "A&M"), 0), NaN);
+[METRIC] = iff([LOC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=LOC", "Type=Actual", "A&M"), 0), NaN);
 <!--#else-->
-[Estimated METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=METRIC", "Type=Plan", "A&M"), 0);
-[METRIC] = nvl(dbGetResultValue(
-    [DB_Size_Data], "Metric=METRIC", "Type=Actual", "A&M"), 0);
+[METRIC/Is_Present] = indexOf("METRIC", [Size_Metric_Name_List]) >= 0;
+[Estimated METRIC] = iff([METRIC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Plan", "A&M"), 0), NaN);
+[METRIC] = iff([METRIC/Is_Present], nvl(dbGetResultValue(
+    [DB_Size_Data], "Metric=METRIC", "Type=Actual", "A&M"), 0), NaN);
 <!--#endif-->
 <!--#endfor-->
 
@@ -121,6 +124,21 @@
 [TypeOf LOC] = nvl(dbGetResultValue(
     [DB_Size_Data], "Metric=LOC", "Type=Actual", "TypeOf"), 0);
 <!--#endfor-->
+
+
+/*
+ * Calculate rollups for custom size metrics
+ */
+
+<!--#foreach index=II count=sizeMetrics.maxNumPerProject -->
+[Size/II/Metric_Name] = index(II, [Size_Metric_Name_List]);
+[Size/II/Metric_Long_Name] = index(II, [Size_Metric_Long_Name_List]);
+[Size/II/Plan Size] = nvl(dbGetResultValue([DB_Size_Data],
+    "Metric=" & [Size/II/Metric_Name], "Type=Plan", "A&M"), 0);
+[Size/II/Actual Size] = nvl(dbGetResultValue([DB_Size_Data],
+    "Metric=" & [Size/II/Metric_Name], "Type=Actual", "A&M"), 0);
+<!--#endfor-->
+[Size/Max_Num] == <!--#echo sizeMetrics.maxNumPerProject -->;
 
 
 /*

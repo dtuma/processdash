@@ -32,8 +32,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.swing.JMenu;
@@ -67,9 +69,8 @@ public class TeamProcess {
     /** True if we should hide the "Software Component" node type */
     private boolean hideSoftwareComponentNodeType;
 
-    /** An immutable list of the names of the size metrics in this
-     * process (Strings) */
-    private List sizeMetrics;
+    /** A map from size metricIDs to SizeMetric objects */
+    private Map<String, SizeMetric> sizeMetrics, sizeMetricsReadOnly;
 
     /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
@@ -77,11 +78,11 @@ public class TeamProcess {
     /** An immutable map of node types to node icons. */
     private Map iconMap;
 
-    /** An immutable map of work product node types to size metrics */
-    private Map workProductSizes;
+    /** Maps of work product node types to size metrics */
+    private Map workProductSizes, workProductSizesReadOnly;
 
-    /** An immutable map of the size metric for each phase type */
-    private Map phaseSizeMetrics;
+    /** Maps of the size metric for each phase type */
+    private Map phaseSizeMetrics, phaseSizeMetricsReadOnly;
 
     /** An immutable map of the estimated yields for each phase */
     private Map<String, Double> phaseYields;
@@ -137,7 +138,7 @@ public class TeamProcess {
     public String getPhaseSizeMetric(String phase) {
         if (phase != null && phase.endsWith(" Task"))
             phase = phase.substring(0, phase.length()-5);
-        String result = (String) phaseSizeMetrics.get(phase);
+        String result = (String) phaseSizeMetricsReadOnly.get(phase);
         if (result == null)
             result = "LOC";
         return result;
@@ -163,12 +164,50 @@ public class TeamProcess {
         return (result == null ? 0 : result);
     }
 
+    /** @deprecated */
     public String[] getSizeMetrics() {
-        return (String[]) sizeMetrics.toArray(new String[0]);
+        // This method is obsolete - all clients must use getSizeMetricsMap for
+        // proper operation going forward. This temporary stub implementation
+        // will prevent those clients from breaking until they can be recoded.
+        return new String[] { "LOC" };
+    }
+
+    /**
+     * @return a map of the known size metrics. The keys in the map are
+     *         metricIDs, and the values are metric names.
+     */
+    public Map<String, SizeMetric> getSizeMetricMap() {
+        return sizeMetricsReadOnly;
+    }
+
+    void setSizeMetricMaps(Map<String, SizeMetric> newSizeMetrics,
+            Map<String, String> newWorkProductSizeMap,
+            Map<String, String> newPhaseSizeMap) {
+        // load the new metrics into our own map (rather than replacing the
+        // reference altogether) so clients don't have to re-fetch the map.
+        sizeMetrics.clear();
+        sizeMetrics.putAll(newSizeMetrics);
+
+        // update the size maps for phases and work products
+        updateProcessSizeMetricMap(workProductSizes, newWorkProductSizeMap);
+        updateProcessSizeMetricMap(phaseSizeMetrics, newPhaseSizeMap);
+    }
+
+    private void updateProcessSizeMetricMap(Map<String, String> dest,
+            Map<String, String> src) {
+        for (Entry<String, String> e : dest.entrySet()) {
+            String key = e.getKey();
+            String newValue = src.get(key);
+            e.setValue(newValue == null ? "LOC" : newValue);
+        }
     }
 
     public Map getWorkProductSizeMap() {
-        return workProductSizes;
+        return workProductSizesReadOnly;
+    }
+
+    public Map getPhaseSizeMap() {
+        return phaseSizeMetricsReadOnly;
     }
 
 
@@ -220,8 +259,8 @@ public class TeamProcess {
         workProductSizes.put(PSP_TASK_TYPE, "LOC");
         workProductSizes.put(CODE_TASK_TYPE, "LOC");
 
-        sizeMetrics = new ArrayList();
-        sizeMetrics.add("LOC");
+        sizeMetrics = new LinkedHashMap<String, SizeMetric>();
+        sizeMetrics.put("LOC", new SizeMetric("LOC", "LOC"));
 
         usingDefaultSizeMetrics = false;
         sizeMetricsItems = process.getItemList(CustomProcess.SIZE_METRIC);
@@ -239,11 +278,11 @@ public class TeamProcess {
             String productName = metric.getAttr(PRODUCT_NAME);
             if (productName != null)
                 workProductSizes.put(productName, name);
-            sizeMetrics.add(name);
+            sizeMetrics.put(name, new SizeMetric(name, name));
         }
 
-        workProductSizes = Collections.unmodifiableMap(workProductSizes);
-        sizeMetrics = Collections.unmodifiableList(sizeMetrics);
+        workProductSizesReadOnly = Collections.unmodifiableMap(workProductSizes);
+        sizeMetricsReadOnly = Collections.unmodifiableMap(sizeMetrics);
     }
 
     private List generateDefaultSizeMetrics(CustomProcess p) {
@@ -329,7 +368,7 @@ public class TeamProcess {
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
-        phaseSizeMetrics = Collections.unmodifiableMap(phaseSizeMetrics);
+        phaseSizeMetricsReadOnly = Collections.unmodifiableMap(phaseSizeMetrics);
         phaseYields = Collections.unmodifiableMap(phaseYields);
         phaseInjRates = Collections.unmodifiableMap(phaseInjRates);
     }
@@ -593,6 +632,7 @@ public class TeamProcess {
         return (!isLOCNode(type) && !type.endsWith(" Task")
                 && !type.equals(ProxyWBSModel.PROXY_TYPE)
                 && !type.equals(ProxyWBSModel.BUCKET_TYPE)
+                && !type.startsWith(SizeMetricsWBSModel.SIZE_METRIC_TYPE)
                 && !type.endsWith("Milestone"));
     }
 }

@@ -30,7 +30,6 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
-import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 import teamdash.wbs.columns.WorkflowDefectInjectionRateColumn;
 import teamdash.wbs.columns.WorkflowLabelColumn;
@@ -38,7 +37,6 @@ import teamdash.wbs.columns.WorkflowMinTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
-import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowResourcesColumn;
 import teamdash.wbs.columns.WorkflowScriptColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
@@ -51,18 +49,17 @@ public class WorkflowDataModel extends DataTableModel<WorkflowWBSModel> {
 
 
     public WorkflowDataModel(WorkflowWBSModel workflows, TeamProcess teamProcess,
-            TeamMemberList teamList) {
+            SizeMetricsWBSModel sizeMetrics, TeamMemberList teamList) {
         super(workflows);
-        buildDataColumns(teamList, teamProcess);
+        buildDataColumns(teamList, teamProcess, sizeMetrics);
         initializeColumnDependencies();
     }
 
     private void buildDataColumns(TeamMemberList teamList,
-            TeamProcess teamProcess) {
+            TeamProcess teamProcess, SizeMetricsWBSModel sizeMetrics) {
         addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new WorkflowPercentageColumn(wbsModel));
-        addDataColumn(new WorkflowRateColumn(this));
-        addDataColumn(new WorkflowSizeUnitsColumn(this, teamProcess));
+        addDataColumn(new WorkflowSizeUnitsColumn(this, sizeMetrics));
         addDataColumn(new WorkflowMinTimeColumn(this));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
         addDataColumn(new WorkflowResourcesColumn(this, teamList));
@@ -97,8 +94,8 @@ public class WorkflowDataModel extends DataTableModel<WorkflowWBSModel> {
 
     public static final PatternList WORKFLOW_ATTRS = new PatternList()
             .addLiteralStartsWith("Workflow ")
-            .addLiteralEquals(TeamTimeColumn.RATE_ATTR)
-            .addLiteralEquals(WorkflowSizeUnitsColumn.ATTR_NAME)
+            .addLiteralEquals(WorkflowSizeUnitsColumn.METRIC_NAME_ATTR)
+            .addLiteralEquals(WorkflowSizeUnitsColumn.METRIC_ID_ATTR)
             .addLiteralEquals(WorkflowNumPeopleColumn.ATTR_NAME)
             .addLiteralEquals(TaskLabelColumn.VALUE_ATTR)
             .addLiteralEquals(NotesColumn.VALUE_ATTR)

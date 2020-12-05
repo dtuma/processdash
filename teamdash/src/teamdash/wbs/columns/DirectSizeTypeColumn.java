@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,65 +25,38 @@ package teamdash.wbs.columns;
 
 import java.util.Map;
 
-import teamdash.wbs.DataTableModel;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 
 /**
- * This class echoes the value of the SizeTypeColumn, but only if:
- * <ul>
- * <li>a top-down size estimate has been entered for a particular node, or</li>
- * <li>the node is a PROBE task.</li>
- * </ul>
- * If those conditions are not met, it returns null.
+ * This column outputs the metricID value for PSP and PROBE tasks.
  */
-public class DirectSizeTypeColumn extends SizeTypeColumn {
+public class DirectSizeTypeColumn extends AbstractDataColumn {
 
     public static final String COLUMN_ID = "Direct Size Units";
 
-    public DirectSizeTypeColumn(DataTableModel m, Map sizeMetrics) {
-        super(m, sizeMetrics);
+    private Map<String, SizeMetric> sizeMetrics;
+
+    public DirectSizeTypeColumn(Map<String, SizeMetric> sizeMetrics) {
+        this.sizeMetrics = sizeMetrics;
         this.columnID = this.columnName = COLUMN_ID;
     }
 
+    public boolean isCellEditable(WBSNode node) { return false; }
+    public void setValueAt(Object aValue, WBSNode node) {}
+
     public Object getValueAt(WBSNode node) {
-        Object result = super.getValueAt(node);
-        if (result == null) return null;
-        String units = String.valueOf(result);
-        String addedAttr = TopDownBottomUpColumn.getTopDownAttrName
-            (SizeAccountingColumnSet.getAddedID(units));
-        String modifiedAttr = TopDownBottomUpColumn.getTopDownAttrName
-            (SizeAccountingColumnSet.getModifiedID(units));
+        if (TeamProcess.isProbeTask(node.getType())) {
+            return WorkflowSizeUnitsColumn.getSizeMetricForProbeTask(node,
+                sizeMetrics);
 
-        if (node.getAttribute(addedAttr) != null ||
-            node.getAttribute(modifiedAttr) != null ||
-            TeamProcess.isProbeTask(node.getType()))
-            return units;
-        else
+        } else if (TeamProcess.isPSPTask(node.getType())) {
+            return "LOC";
+
+        } else {
             return null;
-    }
-
-    public static class Simple extends AbstractDataColumn {
-
-        public Simple() {
-            this.columnID = this.columnName = COLUMN_ID;
         }
-
-        public boolean isCellEditable(WBSNode node) { return false; }
-        public void setValueAt(Object aValue, WBSNode node) {}
-
-        public Object getValueAt(WBSNode node) {
-            if (TeamProcess.isProbeTask(node.getType())) {
-                return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node);
-
-            } else if (TeamProcess.isPSPTask(node.getType())) {
-                return "LOC";
-
-            } else {
-                return null;
-            }
-        }
-
     }
 
 }

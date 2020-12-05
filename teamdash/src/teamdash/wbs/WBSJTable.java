@@ -238,6 +238,10 @@ public class WBSJTable extends JTable {
         recalculateEnablement();
     }
 
+    public boolean isEditingEnabled() {
+        return !disableEditing;
+    }
+
     public void setIndentationDisabled(boolean disabled) {
         disableIndentation = disabled;
         recalculateEnablement();
@@ -1199,6 +1203,8 @@ public class WBSJTable extends JTable {
                 for (WBSNode n : nodesToInsert) {
                     MasterWBSUtil.removeMasterNodeAttrs(n);
                     ExtSyncUtil.removeExtNodeAttributes(n);
+                    if (dataModel != null)
+                        dataModel.cleanForeignNodeAttributes(n);
                 }
                 WorkflowUtil.resolveWorkflowStepNames(nodesToInsert, workflows);
             }
@@ -1893,7 +1899,7 @@ public class WBSJTable extends JTable {
                     // if requested, reapply the rates and percentages to produce
                     // adjusted time estimates for each task
                     if (updateTimes.isSelected())
-                        WorkflowUtil.reapplyRatesAndPercentages(dataModel,
+                        WorkflowUtil.reapplyPercentages(dataModel,
                             wbsModel, e.wbsNode, workflowSteps, e.workflowName,
                             workflows);
                 }

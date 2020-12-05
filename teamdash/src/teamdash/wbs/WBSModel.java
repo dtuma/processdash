@@ -1632,6 +1632,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return node.getType();
     }
 
+    public void renameAttributes(Map<String, String> attrRenames) {
+        for (WBSNode node : wbsNodes)
+            node.renameAttributes(attrRenames);
+    }
+
     public void removeAttributes(PatternList matchingPattern) {
         for (WBSNode node : wbsNodes)
             node.removeAttributes(matchingPattern);

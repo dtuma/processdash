@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package net.sourceforge.processdash.i18n;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
 
@@ -40,7 +42,19 @@ public class MergingTemplateClassLoader
     @Override
     protected URL[] lookupUrlsForResource(String resourceName) {
         // ask the TemplateLoader to find all resources matching the given name
-        return TemplateLoader.resolveURLs(resourceName);
+        URL[] urls = TemplateLoader.resolveURLs(resourceName);
+        if (urls.length < 2)
+            return urls;
+
+        // if we found multiple URLs, and one of them is in the TeamTools.jar
+        // file, discard it. (Those URLs are overridden by WBSEditor.jar)
+        List<URL> result = new ArrayList(urls.length);
+        for (URL url : urls) {
+            if (!url.toString().toLowerCase().contains("teamtools.jar"))
+                result.add(url);
+        }
+
+        return result.toArray(new URL[result.size()]);
     }
 
 }

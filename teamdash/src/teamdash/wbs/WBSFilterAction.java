@@ -378,6 +378,9 @@ public class WBSFilterAction extends AbstractAction
         customColumnFilters.add(f);
     }
 
+    @Override
+    public void columnsRenamed() {}
+
 
     private WBSFilter[] createFilters() {
         List<WBSFilter> filters = new ArrayList<WBSFilter>();

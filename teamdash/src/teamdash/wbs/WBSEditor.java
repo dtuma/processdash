@@ -156,7 +156,6 @@ import teamdash.team.WeeklySchedule;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
-import teamdash.wbs.columns.EditableSizeColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
@@ -168,14 +167,10 @@ import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
-import teamdash.wbs.columns.SizeAccountingColumnSet;
-import teamdash.wbs.columns.SizeActualDataColumn;
-import teamdash.wbs.columns.SizeDataColumn;
+import teamdash.wbs.columns.SizeColumnManager;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
-import teamdash.wbs.columns.TaskSizeColumn;
-import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -191,6 +186,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     WorkingDirectory workingDirectory;
     TeamProject teamProject;
+    SizeMetricsDataModel sizeMetricsModel;
     ProxyDataModel proxyModel;
     MilestonesDataModel milestonesModel;
     JFrame frame;
@@ -227,6 +223,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
+    private SizeMetricsEditor sizeMetricsEditor = null;
     private ProxyEditor proxyEditor = null;
     private MilestonesEditor milestonesEditor = null;
 
@@ -271,20 +268,23 @@ public class WBSEditor implements WindowListener, SaveListener,
         WBSModel model = teamProject.getWBS();
         model.setRootEditable(isZipWorkingDirectory());
 
-        SizeTypeColumn.maybeEnableNewSizeDataColumns(teamProject);
+        SizeTypeColumn.enableNewSizeDataColumns(model);
         WorkflowUtil.maybeUpdateWorkflowTypeData(model,
             teamProject.getWorkflows());
 
         ExternalSystemManager extSysMgr = new ExternalSystemManager(storageDir);
         TaskDependencySource taskDependencySource = getTaskDependencySource();
-        WBSDataModel data = new WBSDataModel
-            (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), teamProject.getWorkflows(),
-             teamProject.getProxies(), teamProject.getMilestones(),
-             teamProject.getColumns(), extSysMgr, taskDependencySource, owner);
+        WBSDataModel data = new WBSDataModel(model,
+                teamProject.getTeamMemberList(), teamProject.getTeamProcess(),
+                teamProject.getWorkflows(), teamProject.getSizeMetrics(),
+                teamProject.getProxies(), teamProject.getMilestones(),
+                teamProject.getColumns(), extSysMgr, taskDependencySource,
+                owner);
 
+        sizeMetricsModel = new SizeMetricsDataModel(
+                teamProject.getSizeMetrics());
         proxyModel = new ProxyDataModel(teamProject.getProxies(),
-                teamProject.getTeamProcess());
+                teamProject.getSizeMetrics());
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
         if (isMode(MODE_PLAIN)) {
@@ -351,52 +351,27 @@ public class WBSEditor implements WindowListener, SaveListener,
             mergeConflictDialog.setDataModel(ModelType.Wbs, data);
             mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
             mergeConflictDialog.setDataModel(ModelType.Proxies, proxyModel);
+            mergeConflictDialog.setDataModel(ModelType.SizeMetrics,
+                sizeMetricsModel);
             mergeConflictDialog.setDataModel(ModelType.Milestones,
                 milestonesModel);
         }
 
-        String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
-        String[] sizeTabColIDs = new String[sizeMetrics.length+2];
-        String[] sizeTabColNames = new String[sizeMetrics.length+2];
-        String[] planSizeTabColIDs = new String[sizeMetrics.length];
-        String[] actSizeTabColIDs = new String[sizeMetrics.length];
-        String[] sizeDataColNames = new String[sizeMetrics.length];
-        sizeTabColIDs[0] = EditableSizeColumn.COLUMN_ID;
-        sizeTabColIDs[1] = SizeTypeColumn.COLUMN_ID;
-        boolean newSizeColumns = SizeTypeColumn.isUsingNewSizeDataColumns(model);
-        for (int i = 0; i < sizeMetrics.length; i++) {
-            String units = sizeMetrics[i];
-            sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(units);
-            sizeTabColNames[i+2] = units;
-            planSizeTabColIDs[i] = (newSizeColumns
-                    ? SizeDataColumn.getColumnID(units, true)
-                    : SizeActualDataColumn.getColumnID(units, true));
-            actSizeTabColIDs[i] = (newSizeColumns
-                    ? SizeDataColumn.getColumnID(units, false)
-                    : SizeActualDataColumn.getColumnID(units, false));
-            sizeDataColNames[i] = units;
+        if (!isMode(MODE_MASTER)) {
+            SizeColumnManager scm = data.getSizeColumnManager();
+            Action editSizeAction = null;
+            if (SizeMetricsEditor.isEditable(teamProject))
+                editSizeAction = new SizeMetricsEditorAction();
+            tabPanel.addTab(getRes("Tabs.Plan_Size"), //
+                scm.getTableColumns(true), editSizeAction, false);
+            tabPanel.addTab(getRes("Tabs.Actual_Size"), //
+                scm.getTableColumns(false), editSizeAction, false);
         }
 
-        if (newSizeColumns == false) {
-            tabPanel.addTab(
-                getRes(showActualSize ? "Tabs.Launch_Size" : "Tabs.Size"),
-                sizeTabColIDs, sizeTabColNames);
-
-            tabPanel.addTab(
-                getRes(showActualSize ? "Tabs.Launch_Size_Accounting"
-                        : "Tabs.Size_Accounting"),
-                new String[] { SizeTypeColumn.COLUMN_ID, "Base", "Deleted",
-                        "Modified", "Added", "Reused", "N&C", "Total" },
-                null);
-        }
-
-        if ((newSizeColumns || showActualSize) && !isMode(MODE_MASTER)) {
-            tabPanel.addTab(getRes("Tabs.Plan_Size"), planSizeTabColIDs, sizeDataColNames);
-            tabPanel.addTab(getRes("Tabs.Actual_Size"), actSizeTabColIDs, sizeDataColNames);
-        }
-
-        boolean plainNotPersonal = isMode(MODE_PLAIN) && !isMode(MODE_PERSONAL);
-        boolean notMasterNotPersonal = !isMode(MODE_MASTER) && !isMode(MODE_PERSONAL);
+        boolean isMaster = isMode(MODE_MASTER);
+        boolean isPlain = isMode(MODE_PLAIN);
+        boolean plainNotPersonal = isPlain && !isMode(MODE_PERSONAL);
+        boolean notMasterNotPersonal = !isMaster && !isMode(MODE_PERSONAL);
         if (notMasterNotPersonal)
             tabPanel.addTab(getRes("Tabs.Planned_Time"),
                      new String[] { TeamTimeColumn.COLUMN_ID,
@@ -405,12 +380,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                      new String[] { getRes("Columns.Total_Planned_Time.Name"), "",
                                     getRes("Columns.Unassigned_Time.Short_Name") });
 
-        int taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
+        int taskTimeTabPos = 0;
+        if (!isMaster)
+            taskTimeTabPos = tabPanel.addTab(getRes("Tabs.Task_Time"),
                 new String[] {
                         PhaseColumn.COLUMN_ID,
-                        TaskSizeColumn.COLUMN_ID,
-                        TaskSizeUnitsColumn.COLUMN_ID,
-                        TeamTimeColumn.RATE_COL_ID,
                         ifMode(plainNotPersonal, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
                         ifMode(plainNotPersonal, TeamTimeColumn.NUM_PEOPLE_COL_ID),
                         (isMode(MODE_MASTER) ? TeamTimeColumn.TIME_NO_ERR_COL_ID
@@ -423,17 +397,18 @@ public class WBSEditor implements WindowListener, SaveListener,
                 null);
 
         tabPanel.addTab(getRes("Tabs.Task_Details"),
-                new String[] { MilestoneColumn.COLUMN_ID,
+                new String[] { isMaster ? PhaseColumn.COLUMN_ID : null,
+                               MilestoneColumn.COLUMN_ID,
                                TaskLabelColumn.COLUMN_ID,
-                               ProxyEstTypeColumn.COLUMN_ID,
-                               ProxyEstBucketColumn.COLUMN_ID,
+                               isPlain ? ProxyEstTypeColumn.COLUMN_ID : null,
+                               isPlain ? ProxyEstBucketColumn.COLUMN_ID : null,
                                WBSTabPanel.CUSTOM_COLUMNS_ID,
                                TaskDependencyColumn.COLUMN_ID,
                                NotesColumn.COLUMN_ID,
-                               ErrorNotesColumn.COLUMN_ID },
+                               isMaster ? null : ErrorNotesColumn.COLUMN_ID },
                 null);
 
-        if (showActualData && !isMode(MODE_PERSONAL))
+        if (showActualData && notMasterNotPersonal)
             tabPanel.addTab(getRes("Tabs.Actual_Time"),
                 new String[] { TeamActualTimeColumn.COLUMN_ID,
                                WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
@@ -1116,6 +1091,20 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
+    private void showSizeMetricsEditor() {
+        if (sizeMetricsEditor != null)
+            sizeMetricsEditor.show();
+        else {
+            sizeMetricsEditor = new SizeMetricsEditor(teamProject,
+                    sizeMetricsModel, wbsWindowTitle, guiPrefs);
+            sizeMetricsEditor.addChangeListener(this.dirtyListener);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.SizeMetrics,
+                    sizeMetricsEditor);
+            sizeMetricsEditor.show();
+        }
+    }
+
     private void showProxyEditor() {
         if (proxyEditor != null)
             proxyEditor.show();
@@ -1152,7 +1141,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
-        if (!isMode(MODE_BOTTOM_UP))
+        if (isMode(MODE_PLAIN))
             result.add(buildWorkflowMenu(workflows,
                 tabPanel.getWorkflowActions(workflows),
                 tabPanel.getInsertWorkflowAction(workflows)));
@@ -1273,6 +1262,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu(resources.getString("Workflow.Menu"));
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
+        result.add(new SizeMetricsEditorAction());
         result.add(new ProxyEditorAction());
         int readOnlyItemCount = result.getMenuComponentCount();
         result.addSeparator();
@@ -1436,6 +1426,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         replaceTeamMemberList(srcProject);
         replaceWorkflows(srcProject);
+        replaceSizeMetrics(srcProject);
         replaceProxies(srcProject);
         replaceMilestones(srcProject);
         replaceWBS(srcProject);
@@ -1470,6 +1461,18 @@ public class WBSEditor implements WindowListener, SaveListener,
         replaceWBSModel(teamProject.getWorkflows(), src.getWorkflows(), table);
         if (workflowEditor != null)
             workflowEditor.undoList.clear();
+    }
+
+    private void replaceSizeMetrics(TeamProject src) {
+        WBSJTable table = null;
+        if (sizeMetricsEditor != null) {
+            sizeMetricsEditor.stopEditing();
+            table = sizeMetricsEditor.table;
+        }
+        replaceWBSModel(teamProject.getSizeMetrics(), src.getSizeMetrics(),
+            table);
+        if (sizeMetricsEditor != null)
+            sizeMetricsEditor.undoList.clear();
     }
 
     private void replaceProxies(TeamProject src) {
@@ -1612,6 +1615,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         tabPanel.stopCellEditing();
         if (teamListEditor != null) teamListEditor.stopEditing();
         if (workflowEditor != null) workflowEditor.stopEditing();
+        if (sizeMetricsEditor != null) sizeMetricsEditor.stopEditing();
         if (proxyEditor != null) proxyEditor.stopEditing();
         if (milestonesEditor != null) milestonesEditor.stopEditing();
     }
@@ -2013,6 +2017,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             if (teamListEditor != null) teamListEditor.hide();
             if (workflowEditor != null) workflowEditor.hide();
+            if (sizeMetricsEditor != null) sizeMetricsEditor.hide();
             if (proxyEditor != null) proxyEditor.hide();
             if (milestonesEditor != null) milestonesEditor.hide();
             frame.dispose();
@@ -2823,6 +2828,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
     private static final int MAX_WORKFLOW_MENU_ITEM_COUNT = 20;
+
+
+    private class SizeMetricsEditorAction extends AbstractAction {
+        public SizeMetricsEditorAction() {
+            super(resources.getString(SizeMetricsEditor.isEditable(teamProject)
+                    ? "SizeMetrics.Menu" : "SizeMetrics.Menu_View"));
+            putValue(MNEMONIC_KEY, new Integer('S'));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showSizeMetricsEditor();
+        }
+    }
 
 
     private class ProxyEditorAction extends AbstractAction {

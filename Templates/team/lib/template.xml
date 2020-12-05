@@ -101,17 +101,6 @@
 	 node into their hierarchy manually.
        <!--#endbreak comment-->
 
-    <!--#if enableSubcomponentForms -->
-    <!--#if not VVIS -->
-    <html ID="sump" href="PID/rollup_plan_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
-    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
-    <html ID="charts" href="PID/charts.shtm"
-        title="<!--#echo Full_Name --> Analysis Charts"/>
-    <!--#endif-->
-    <!--#endif enableSubcomponentForms -->
-
   </template>
 
 
@@ -198,17 +187,6 @@
 	 which makes it impossible for users to instantiate this
 	 node into their hierarchy manually.
        <!--#endbreak comment-->
-
-    <!--#if enableSubcomponentForms -->
-    <!--#if not VVIS -->
-    <html ID="sump" href="PID/rollup_plan_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
-    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
-    <html ID="charts" href="PID/charts.shtm"
-        title="<!--#echo Full_Name --> Analysis Charts"/>
-    <!--#endif-->
-    <!--#endif enableSubcomponentForms -->
 
   </template>
 
@@ -498,14 +476,6 @@
 	 for legacy purposes.)
        <!--#endbreak comment-->
 
-    <!--#if enableSubcomponentForms -->
-    <html ID="sump" href="PID/plan_summary.shtm"
-        title="<!--#echo Full_Name --> Project Plan Summary"/>
-    <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"
-        inPackage="show-PID-process-script"/>
-    <!--#endif enableSubcomponentForms -->
-
 <!--#foreach name=Phase list=Phase_List -->
 
 <!--#break GTACS_disabled -->
@@ -544,16 +514,6 @@
                    <!--#echo parentable_indiv_nodes -->"
       >
 
-    <!--#if enableSubcomponentForms -->
-    <html ID="sump" href="PID/plan_summary.shtm"
-        title="<!--#echo Full_Name --> Project Plan Summary"/>
-    <!-- html ID="sumq" href="PID/quality_summary.shtm"
-        title="<!--#echo Full_Name --> Project Quality Summary"/ -->
-    <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"
-        inPackage="show-PID-process-script"/>
-    <!--#endif enableSubcomponentForms -->
-
   </template>
 
 
@@ -577,14 +537,6 @@
 	 which makes it impossible for users to instantiate this
 	 node into their hierarchy manually.
        <!--#endbreak comment-->
-
-    <!--#if enableSubcomponentForms -->
-    <html ID="sump" href="PID/plan_summary.shtm"
-        title="<!--#echo Full_Name --> Project Plan Summary"/>
-    <html ID="top" href="PID/script.htm"
-        title="<!--#echo Full_Name --> Process Script"
-        inPackage="show-PID-process-script"/>
-    <!--#endif enableSubcomponentForms -->
 
   </template>
 

@@ -1,5 +1,5 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
-// Team Functionality Add-ons for the Process Dashboard
+// Copyright (C) 2020 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,35 +21,40 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs.columns;
+package net.sourceforge.processdash.ui.lib;
 
-import java.util.Collection;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
-import teamdash.wbs.TeamProcess;
-import teamdash.wbs.WBSNode;
+import javax.swing.Icon;
 
-public class WorkProductSizePruner implements Pruner {
+public class ScaledIcon implements Icon {
 
-    private TeamProcess teamProcess;
+    private Icon delegate;
 
-    private Collection sizesToKeep;
+    private double scale;
 
-    public WorkProductSizePruner(TeamProcess teamProcess, Collection sizesToKeep) {
-        this.teamProcess = teamProcess;
-        this.sizesToKeep = sizesToKeep;
-    }
-
-    public boolean shouldPrune(WBSNode node) {
-        Object size = SizeTypeColumn.getWorkProductSizeMetric(node, teamProcess);
-        return size == null || !sizesToKeep.contains(size);
+    public ScaledIcon(Icon delegate, double scale) {
+        this.delegate = delegate;
+        this.scale = scale;
     }
 
     @Override
-    public boolean shouldIncludeHidden(WBSNode node) {
-        String type = node.getType();
-        return TeamProcess.isCodeTask(type) //
-                || TeamProcess.isProbeTask(type) //
-                || TeamProcess.isPSPTask(type);
+    public int getIconWidth() {
+        return (int) (delegate.getIconWidth() * scale + 0.5);
+    }
+
+    @Override
+    public int getIconHeight() {
+        return (int) (delegate.getIconHeight() * scale + 0.5);
+    }
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        g.translate(x, y);
+        ((Graphics2D) g).scale(scale, scale);
+        delegate.paintIcon(c, g, 0, 0);
     }
 
 }

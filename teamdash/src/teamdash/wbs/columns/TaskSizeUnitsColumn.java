@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ReadOnlyValue;
+import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
@@ -106,7 +107,9 @@ implements CalculatedDataColumn, CustomEditedColumn {
     public Object getValueAt(WBSNode node) {
         if (isCellEditable(node)) {
             // for editable cells (i.e. leaf tasks), use the simple logic
-            return getSizeUnitsForTask(node, teamProcess);
+            String metricID = getSizeUnitsForTask(node, teamProcess);
+            SizeMetric metric = teamProcess.getSizeMetricMap().get(metricID);
+            return metric != null ? metric : metricID;
 
         } else if (mainSizeUnitsColumn != -1) {
             // for non-leaf tasks, defer to the wisdom of the main
@@ -127,6 +130,10 @@ implements CalculatedDataColumn, CustomEditedColumn {
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
+        // if we were given a size metric, extract its metricID
+        if (aValue instanceof SizeMetric)
+            aValue = ((SizeMetric) aValue).getMetricID();
+
         if (valueIsEmpty(aValue) || aValue.equals(getDefaultValue(node)))
             node.setAttribute(ATTR_NAME, null);
         else

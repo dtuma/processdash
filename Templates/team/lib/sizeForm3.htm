@@ -1,0 +1,40 @@
+<p><a name="[!--#echo ANCHOR --]"><span class='node'>[!--#echo
+    SUB_PATH --]</span>
+
+[!--#set var="expand" value="#####" --]
+
+<table cellpadding="2" cellspacing="0">
+
+<tr>
+<td class="spacer">&nbsp;</td>
+<td class="header">Size Units</td>
+<td class="header">Plan</td>
+<td class="header">Actual</td>
+</tr>
+
+[!--#foreach name=Metric list=Size_Metric_List #--]
+[!--#replace token=MID var='Metric_ID' --]
+[!--#if [PSP Project] && Metric_Name eq 'LOC' --]
+[!--#elif [<!--#echo Process_ID --> Size Estimating Template Tag]
+     && [Size Units] eq Metric_Name --]
+[!--#elif expand
+     || [Sized_Objects/MID/Plan Size]
+     || [Sized_Objects/MID/Actual Size] --]
+<tr>
+<td class="spacer">&nbsp;</td>
+<td>[!--#if Metric_Name eq 'LOC' --]Lines of Code (LOC)[!--#else#--]
+    [!--#echo Metric_Name --][!--#endif--]&nbsp;</td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/MID/Plan Size	on"
+    type="text" size="7"></td>
+<td><input 
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/MID/Actual Size	on"
+    type="text" size="7"></td>
+</tr>
+
+[!--#endif--]
+[!--#endreplace--]
+[!--#endfor #--]
+
+</table>
+

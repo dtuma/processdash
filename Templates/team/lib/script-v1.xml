@@ -48,7 +48,6 @@
     <!--#endfor-->
 
     <!-- html pages for the individual project root node -->
-    <file in="indiv_tools.htm" encoding="html" out="indiv_tools.shtm"/>
     <file in="project_parameters.htm" encoding="html" 
           out="indiv_project_parameters.shtm">
 	<param name="indiv" value="true" />
@@ -104,6 +103,10 @@
     <file in="metricsExportFilter.xml">
         <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
     </file>
+    <file in="metricsExportFilter.xml" out="metricsExportFilterManaged.xml">
+        <param name="managed" value="true"/>
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
 
     <!-- forms for use on the individual side -->
     <file in="expanding_indiv_plan_summary.htm" encoding="html"
@@ -113,10 +116,6 @@
     </file>
     <file in="indiv_plan_summary.link"/>
     <file in="sizeest.class.link"/>
-    <!--#if not VVIS -->
-    <file in="quality_summary.htm" encoding="html"
-          out="quality_summary.shtm"/>
-    <!--#endif-->
 
     <!-- scripts for use on the individual side -->
     <file in="process_script.htm" encoding="html" out="script.htm"/>
@@ -130,22 +129,6 @@
 
 
     <!-- forms shared by team nodes and rollup templates -->
-    <!--#if Old_Style_Plan_Summary -->
-    <file in="plan_summary.htm" encoding="html"
-          out="rollup_plan_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <file in="quality_summary.htm" encoding="html"
-          out="rollup_quality_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <!--#elif VVIS -->
-    <file in="matrix_plan_summary.htm" encoding="html"
-          out="rollup_plan_summary.shtm">
-	<param name="rollup" value="true"/>
-    </file>
-    <file in="phasePie.rpt" encoding="none" />
-    <!--#endif-->
     <!--#if Rollup_Summary_Filename -->
     <file in="extfile:<!--#echo Rollup_Summary_Filename -->"
           out="rollup_plan_summary.xml" encoding="xml"/>
@@ -165,17 +148,8 @@
           out="version_error.shtm"/>
 
     <!-- forms and reports for the team plan summary -->
-    <!--#if Old_Style_Plan_Summary || VVIS -->
-    <file in="summary_top_frame.htm" encoding="html"
-          out="team_summary.shtm"/>
-    <file in="summary_frame.htm" encoding="html"
-          out="summary_frame.shtm"/>
-    <file in="summary_toc.htm" encoding="html"
-          out="summary_toc.shtm"/>
-    <!--#else-->
     <file in="team_summary_redirect.htm" encoding="html"
           out="team_summary.shtm"/>
-    <!--#endif-->
 
     <!-- files used by the team data rollup filter -->
     <file in="rollup_filter.htm" out="rollup_filter.shtm" encoding="none"/>
@@ -210,13 +184,6 @@
 	  <param name="Estimated_" value="" replace="true"/>
     </file>
 
-    <!-- the html page displaying charts -->
-    <!--#if not VVIS -->
-    <file in="charts.htm" encoding="none" out="charts.shtm">
-        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
-    </file>
-    <!--#endif-->
-
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />
 
@@ -231,6 +198,7 @@
     <file in="sizeForm.class.link" encoding="none"/>
     <file in="sizeForm.htm"  encoding="html" out="sizeForm.shtm"/>
     <file in="sizeForm2.htm" encoding="html" out="sizeForm2.shtm"/>
+    <file in="sizeForm3.htm" encoding="html" out="sizeForm3.shtm"/>
 
     <!-- write process metadata for use by the export logic. -->
     <file in="process_info.xml" encoding="xml" out="/process_info.xml" />

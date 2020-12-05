@@ -24,6 +24,9 @@
     <!--#if [Reverse_Sync_New_Members] -->true<!--#else-->false<!--#endif#-->
 <!--#endset-->
 
+<!--#replace token="/tools/" value="/toolsB/"
+    if="[WBS_Custom_Size_Metrics] || [Master Project Root] " -->
+
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="httpAccept" var="HTTP_ACCEPT" -->
@@ -37,4 +40,5 @@
     <!--#parameter name="reverseSyncNewMembers" var="reverseSyncNewMembers" -->
     <!--#parameter name="globalInitialsPolicy" var="[/Team_Project_Policy/Initials_Policy]" -->
 
+<!--#endreplace-->
 <!--#endif-->

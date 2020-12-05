@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2019 Tuma Solutions, LLC
+// Copyright (C) 2010-2020 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,9 +25,9 @@ package teamdash.wbs.columns;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomNamedColumn;
-import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -40,14 +40,16 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
 
     private String nodeAttrName;
 
-    public SizeActualDataColumn(DataTableModel dataModel, String units,
-            boolean plan) {
+    public SizeActualDataColumn(WBSDataModel dataModel, String metricName,
+            String metricID, boolean plan) {
         this.wbsModel = dataModel.getWBSModel();
         this.columnName = resources.format(
-            plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT", units);
-        this.columnID = getColumnID(units, plan);
-        this.resultAttrName = getResultAttrName(units, plan);
-        this.nodeAttrName = getNodeAttrName(units, plan);
+            plan ? "Planned_Size.Name_FMT" : "Actual_Size.Name_FMT", metricName);
+        this.columnID = getColumnID(metricID, plan);
+        this.resultAttrName = getResultAttrName(metricID, plan);
+        this.nodeAttrName = getNodeAttrName(metricID, plan);
+        if (plan == false)
+            this.affectedColumns = new String[] { SizeColumnGroup.ACTUAL };
     }
 
     public String getCustomColumnName() {
@@ -91,13 +93,13 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
         return false;
     }
 
-    public static void storeData(WBSNode node, String units, double plan,
+    public static void storeData(WBSNode node, String metricID, double plan,
             double actual) {
         if (node != null) {
             if (plan > 0)
-                storeData(node, getNodeAttrName(units, true), plan);
+                storeData(node, getNodeAttrName(metricID, true), plan);
             if (actual > 0)
-                storeData(node, getNodeAttrName(units, false), actual);
+                storeData(node, getNodeAttrName(metricID, false), actual);
         }
     }
 
@@ -112,16 +114,16 @@ public class SizeActualDataColumn extends AbstractNumericColumn implements
     }
 
 
-    public static final String getColumnID(String units, boolean plan) {
-        return (plan ? "Plan" : "Actual") + " Size " + units;
+    public static final String getColumnID(String metricID, boolean plan) {
+        return (plan ? "Plan" : "Actual") + " Size " + metricID;
     }
 
-    static final String getNodeAttrName(String units, boolean plan) {
-        return (plan ? "@Plan" : "@Actual") + "_Node_Size_" + units;
+    static final String getNodeAttrName(String metricID, boolean plan) {
+        return (plan ? "@Plan" : "@Actual") + "_Node_Size_" + metricID;
     }
 
-    private static final String getResultAttrName(String units, boolean plan) {
-        return (plan ? "Plan" : "Actual") + "-Size_" + units;
+    private static final String getResultAttrName(String metricID, boolean plan) {
+        return (plan ? "Plan" : "Actual") + "-Size_" + metricID;
     }
 
 }

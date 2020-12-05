@@ -56,21 +56,25 @@
 
 
     <!-- include several flavors of size metrics -->
-    <include>/(Estimated )?(Aggregate )?Size$</include>
+ 
+    <!--#if not managed -->
+        <include>/(Estimated )?(Aggregate )?Size$</include>
 
-    <!--#foreach name=Metric list=Size_Metric_Data_Names -->
+      <!--#foreach name=Metric list=Size_Metric_Data_Names -->
         <include>/(Estimated )?<!--#echo value="Metric" -->$</include>
-    <!--#endfor-->
+      <!--#endfor-->
+    <!--#endif -->
 
     <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,Total,New Reused," -->
-        <include>/(Estimated )?<!--#echo value="TypeOf" --> LOC$</include>
+        <include>{PSP Project}/(Estimated )?<!--#echo value="TypeOf" --> LOC$</include>
         <include>{PROBE Task}/(Estimated )?<!--#echo value="TypeOf" --> Size$</include>
     <!--#endfor-->
-        <include>/(Estimated )?New &amp; Changed LOC$</include>
-        <include>/(Estimated )?Object LOC$</include>
+        <include>{PSP Project}/(Estimated )?New &amp; Changed LOC$</include>
+        <include>{PSP Project}/(Estimated )?Object LOC$</include>
         <include>{PROBE Task}/(Estimated )?Added &amp; Modified Size$</include>
         <include>{PROBE Task}/(Estimated )?Proxy Size$</include>
         <include>{PROBE Task}/Size Units$</include>
+        <include>{PROBE Task}/Size Units ID$</include>
 
   </metricsFilter>
 </exportMetricsFile>

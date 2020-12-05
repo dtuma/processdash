@@ -30,6 +30,7 @@
 [Sized_Objects/0/Estimated Size] = nvl([Estimated Added & Modified Size] + 0, 0);
 [Sized_Objects/0/Size] = nvl([Added & Modified Size] + 0, 0);
 [Sized_Objects/0/Sized_Object_Units] = [Effective_Size_Units];
+[Sized_Objects/0/Sized_Object_Units_ID] = [Size Units ID];
 
 [Effective_Size_Units] = iff([Size Units] == "LOC",
     "New & Changed LOC", [Size Units]);
