@@ -175,13 +175,6 @@ Authors:
         <antcall target="maybe-sign-exe">
             <param name="sign-exe.file" value="${dist}/${quick-launcher.exe}"/>
         </antcall>
-        <!-- build and sign the WBS editor exe -->
-        <launch4j configFile="files/wbs-editor-launch4j-config.xml"
-            jar="${dist}/WBSEditor.jar"
-            outfile="${dist}/${wbs-editor.exe}"/>
-        <antcall target="maybe-sign-exe">
-            <param name="sign-exe.file" value="${dist}/${wbs-editor.exe}"/>
-        </antcall>
         <!-- build and sign the uninstaller exe -->
         <launch4j configFile="files/uninstaller-launch4j-config.xml"
             outfile="${dist}/${uninstaller.exe}"/>
@@ -197,6 +190,17 @@ Authors:
             targetfile="${dist}/${dashboard.exe}">
             <srcfiles dir="files" includes="*-launch4j-config.xml"/>
         </uptodate>
+    </target>
+
+    <target name="wbs-exe" depends="init"
+            description="build windows executable for WBS Editor">
+        <!-- build and sign the WBS editor exe -->
+        <launch4j configFile="files/wbs-editor-launch4j-config.xml"
+            jar="${dist}/WBSEditor.jar"
+            outfile="${dist}/${wbs-editor.exe}"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="${dist}/${wbs-editor.exe}"/>
+        </antcall>
     </target>
 
     <target name="mcf-exe" depends="init"

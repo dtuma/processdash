@@ -507,9 +507,13 @@ class dependency has been added in a dashboard class?)
     <echo message="Successfully builds against Java 1.6!"/>
   </target>
 
+  <target name="wbs-exe" depends="TeamTools">
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="wbs-exe"/>
+  </target>
 
   <target name="dist"
-       depends="clean,verify16,TeamTools,verifyResourceOverrides"/>
+       depends="clean,verify16,TeamTools,verifyResourceOverrides,wbs-exe"/>
 
 
   <target name="signjar" if="sign.storepass">
