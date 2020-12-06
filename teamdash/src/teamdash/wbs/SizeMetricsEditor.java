@@ -90,7 +90,7 @@ public class SizeMetricsEditor implements MergeConflictHyperlinkHandler {
 
     public static boolean isEditable(TeamProject teamProject) {
         return teamProject.isReadOnly() == false
-                && WBSPermissionManager.hasPerm("wbs.sizeMetrics", "2.5.8");
+                && WBSPermissionManager.hasPerm("wbs.sizeMetrics", "2.6.3");
     }
 
     public void show() {
