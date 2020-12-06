@@ -2549,8 +2549,6 @@ public class HierarchySynchronizer {
             String taskID = node.getAttribute(TASK_ID_ATTR);
             String workflowID = node.getAttribute(WORKFLOW_ID_ATTR);
             String relaunchID = node.getAttribute(RELAUNCH_SOURCE_ID_ATTR);
-            if (StringUtils.hasValue(taskID) && StringUtils.hasValue(relaunchID))
-                taskID = taskID + "," + relaunchID;
             try {
                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));

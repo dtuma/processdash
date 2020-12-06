@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2017 Tuma Solutions, LLC
+// Copyright (C) 2001-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 //     processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.ev;
+
+import static net.sourceforge.processdash.team.TeamDataConstants.RELAUNCH_SOURCE_WBS_ID;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -82,6 +84,7 @@ public class EVTask implements Cloneable, DataListener {
     ArrayList<EVTask> children = new ArrayList<EVTask>();
     String flag;
     List<String> taskIDs = null;
+    String relaunchSourceID = null;
     List<EVTaskDependency> dependencies = null;
     List<String> assignedTo = null;
 
@@ -400,6 +403,8 @@ public class EVTask implements Cloneable, DataListener {
         if (e.hasAttribute("prune"))
             pruningFlag = (int) EVSchedule.getXMLNum(e, "prune");
         taskIDs = parseListAttr(e, "tid");
+        if (e.hasAttribute("rsid"))
+            relaunchSourceID = e.getAttribute("rsid");
         assignedTo = parseListAttr(e, "who");
         flag = e.getAttribute("flag");
         if (!XMLUtils.hasValue(flag))
@@ -603,6 +608,8 @@ public class EVTask implements Cloneable, DataListener {
 
     protected void loadDependencyInformation() {
         this.taskIDs = EVTaskDependency.getTaskIDs(data, fullName);
+        SimpleData rsid = getValue(RELAUNCH_SOURCE_WBS_ID, false);
+        this.relaunchSourceID = rsid == null ? null : rsid.format();
         this.dependencies = EVTaskDependency.getDependencies(data, fullName);
     }
 
@@ -871,6 +878,10 @@ public class EVTask implements Cloneable, DataListener {
 
         String taskID = t.taskIDs.get(0);
         return EVTaskDependencyResolver.getTaskListIdFromPseudoTaskId(taskID);
+    }
+
+    public String getRelaunchSourceID() {
+        return relaunchSourceID;
     }
 
     /** Returns the flag associated with this task node.
@@ -1748,6 +1759,9 @@ public class EVTask implements Cloneable, DataListener {
         if (hasValue(taskIDs))
             result.append("' tid='").append(XMLUtils.escapeAttribute(
                     StringUtils.join(taskIDs, ",")));
+        if (relaunchSourceID != null)
+            result.append("' rsid='").append(XMLUtils.escapeAttribute(
+                    relaunchSourceID));
         if (hasValue(assignedTo))
             result.append("' who='").append(XMLUtils.escapeAttribute(
                     StringUtils.join(assignedTo, ",")));

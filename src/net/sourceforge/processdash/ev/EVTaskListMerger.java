@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2010 Tuma Solutions, LLC
+// Copyright (C) 2006-2020 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -218,7 +218,7 @@ public class EVTaskListMerger {
     private void addTaskKey(Map cache, EVTask task) {
         TaskKey key = null;
 
-        List taskIDs = task.getTaskIDs();
+        List taskIDs = getTaskIDsIncludingRelaunchSource(task);
         if (taskIDs != null) {
             //  TaskKey objects represent distinct nodes in our merged model.
             // Thus, if we find any distinct EVTask objects which share one
@@ -253,6 +253,20 @@ public class EVTaskListMerger {
         key.addTask(task);
         // reregister the key in the cache to reflect merging operations above
         registerTaskKey(cache, key);
+    }
+
+    private List getTaskIDsIncludingRelaunchSource(EVTask task) {
+        List taskIDs = task.getTaskIDs();
+        String relaunchSourceID = task.getRelaunchSourceID();
+        if (!StringUtils.hasValue(relaunchSourceID)) {
+            return taskIDs;
+        } else if (!hasValue(taskIDs)) {
+            return Collections.singletonList(relaunchSourceID);
+        } else {
+            List<String> result = new ArrayList<String>(taskIDs);
+            result.add(relaunchSourceID);
+            return result;
+        }
     }
 
 
@@ -330,8 +344,11 @@ public class EVTaskListMerger {
     private void registerTaskKey(Map cache, TaskKey key) {
         for (Iterator i = key.getTaskIDs().iterator(); i.hasNext();)
             cache.put(i.next(), key);
-        for (Iterator i = key.getEvNodes().iterator(); i.hasNext();)
-            cache.put(i.next(), key);
+        for (EVTask task : key.getEvNodes()) {
+            cache.put(task, key);
+            if (task.getRelaunchSourceID() != null)
+                cache.put(task.getRelaunchSourceID(), key);
+        }
     }
 
     /** Set the "parent" attributes of all the TaskKeys in the map
@@ -1082,7 +1099,7 @@ public class EVTaskListMerger {
 
         private LightweightSet children = new LightweightSet();
 
-        public Set getEvNodes() {
+        public Set<EVTask> getEvNodes() {
             return evNodes;
         }
 
