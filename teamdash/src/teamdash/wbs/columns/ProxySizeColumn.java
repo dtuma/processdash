@@ -35,7 +35,6 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.ForeignAttrCleaningColumn;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ProxyDataModel;
@@ -45,7 +44,7 @@ import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.WBSNode;
 
 public class ProxySizeColumn extends AbstractNumericColumn implements
-        CalculatedDataColumn, CustomRenderedColumn, ForeignAttrCleaningColumn {
+        CalculatedDataColumn, CustomRenderedColumn {
 
     /** Attribute to store the numeric size estimate for a bucket */
     private static final String ATTR_NAME = "Proxy Size";
@@ -186,11 +185,6 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         } else if (numValue == 0) {
             bucket.setAttribute(ATTR_NAME, null);
         }
-    }
-
-    @Override
-    public void cleanForeignNodeAttributes(WBSNode node) {
-        node.removeAttribute(METRIC_ID_ATTR);
     }
 
     @Override

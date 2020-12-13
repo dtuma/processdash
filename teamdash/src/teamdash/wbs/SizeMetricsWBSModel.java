@@ -38,9 +38,12 @@ import javax.swing.event.TableModelEvent;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ModelType;
+import teamdash.wbs.columns.ProxySizeColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 
 public class SizeMetricsWBSModel extends WBSModel {
@@ -342,5 +345,25 @@ public class SizeMetricsWBSModel extends WBSModel {
     }
 
     private static final Pattern NUMBER_PAT = Pattern.compile("\\d+");
+
+    /**
+     * When copying nodes between different sources (for example, between two
+     * projects, or between a project and a library), the size metric IDs in the
+     * two sources probably won't match. This method discards any node
+     * attributes which are known to hold size metric IDs, allowing those IDs to
+     * be repopulated from the size metrics model in the target.
+     */
+    public static void removeMetricIDAttrs(Collection<WBSNode> nodesToClean) {
+        for (WBSNode node : nodesToClean)
+            node.removeAttributes(METRIC_ID_ATTRS);
+    }
+
+    public static void removeMetricIDAttrs(WBSModel model) {
+        removeMetricIDAttrs(model.getWbsNodes());
+    }
+
+    private static final PatternList METRIC_ID_ATTRS = new PatternList()
+            .addLiteralEquals(ProxySizeColumn.METRIC_ID_ATTR)
+            .addLiteralEquals(WorkflowSizeUnitsColumn.METRIC_ID_ATTR);
 
 }

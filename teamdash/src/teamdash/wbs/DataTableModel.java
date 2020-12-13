@@ -269,34 +269,6 @@ public class DataTableModel<WbsT extends WBSModel> extends AbstractTableModel {
     public WbsT getWBSModel() { return wbsModel; }
 
 
-    /**
-     * Discard any attributes in the given node that represent attributes from a
-     * foreign source, which we don't want to insert in our own model
-     * 
-     * @param node
-     *            a node from some external source (e.g. the clipboard, a
-     *            library, etc) that is about to be inserted into our WBS
-     */
-    public void cleanForeignNodeAttributes(WBSNode node) {
-        for (Object col : columns) {
-            if (col instanceof ForeignAttrCleaningColumn) {
-                ((ForeignAttrCleaningColumn) col)
-                        .cleanForeignNodeAttributes(node);
-            }
-        }
-    }
-
-
-    /**
-     * Discard any attributes in our WBS model that represent attributes from a
-     * foreign source (for example, another project WBS)
-     */
-    public void cleanForeignNodeAttributes() {
-        for (WBSNode node : wbsModel.getWbsNodes())
-            cleanForeignNodeAttributes(node);
-    }
-
-
     /** This class listens for table model events fired by the work
      * breakdown structure, and sends them to our listeners as well.
      */

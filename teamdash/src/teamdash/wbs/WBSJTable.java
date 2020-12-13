@@ -1203,9 +1203,8 @@ public class WBSJTable extends JTable {
                 for (WBSNode n : nodesToInsert) {
                     MasterWBSUtil.removeMasterNodeAttrs(n);
                     ExtSyncUtil.removeExtNodeAttributes(n);
-                    if (dataModel != null)
-                        dataModel.cleanForeignNodeAttributes(n);
                 }
+                SizeMetricsWBSModel.removeMetricIDAttrs(nodesToInsert);
                 WorkflowUtil.resolveWorkflowStepNames(nodesToInsert, workflows);
             }
             cutList = null;

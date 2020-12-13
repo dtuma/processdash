@@ -35,7 +35,6 @@ import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellRenderer;
 import teamdash.wbs.ErrorValue;
-import teamdash.wbs.ForeignAttrCleaningColumn;
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.TeamProcess;
@@ -45,7 +44,7 @@ import teamdash.wbs.WorkflowWBSModel;
 
 public class WorkflowSizeUnitsColumn extends AbstractDataColumn
         implements CalculatedDataColumn, CustomRenderedColumn,
-        CustomEditedColumn, ForeignAttrCleaningColumn {
+        CustomEditedColumn {
 
     private WorkflowDataModel dataModel;
 
@@ -116,11 +115,6 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
             node.removeAttribute(METRIC_NAME_ATTR);
             node.removeAttribute(METRIC_ID_ATTR);
         }
-    }
-
-    @Override
-    public void cleanForeignNodeAttributes(WBSNode node) {
-        node.removeAttribute(METRIC_ID_ATTR);
     }
 
     @Override
