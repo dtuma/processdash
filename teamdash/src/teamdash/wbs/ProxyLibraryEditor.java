@@ -81,6 +81,13 @@ public class ProxyLibraryEditor extends AbstractLibraryEditor {
     }
 
     @Override
+    protected boolean libraryIsCompatible(WBSLibrary library) {
+        // now that size metrics are customizable, any proxy table is usable
+        // with any MCF
+        return true;
+    }
+
+    @Override
     public boolean doImport() {
         SizeMetricsWBSModel.removeMetricIDAttrs(projectWbs);
         teamProject.getProxies().copyFrom(projectWbs);

@@ -445,7 +445,7 @@ public abstract class AbstractLibraryEditor {
             return false;
         }
 
-        if (!result.compatible(teamProject.getTeamProcess())) {
+        if (!libraryIsCompatible(result)) {
             String title = resources.getString("Errors.Process_Mismatch");
             String message = resources.format(
                 "Errors.Process_Mismatch_Msg_FMT", file.getPath()).trim()
@@ -457,6 +457,10 @@ public abstract class AbstractLibraryEditor {
         }
 
         return true;
+    }
+
+    protected boolean libraryIsCompatible(WBSLibrary library) {
+        return library.compatible(teamProject.getTeamProcess());
     }
 
     private void showFileError(Component parent, String resKey, File file) throws UserCancelledException {
