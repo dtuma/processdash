@@ -49,11 +49,15 @@ public class ProxyLibraryEditor extends AbstractLibraryEditor {
 
     @Override
     protected void openModels() {
-        libraryModel =  new ProxyDataModel((ProxyWBSModel) library, null);
+        SizeMetricsWBSModel.removeMetricIDAttrs(library);
+        SizeMetricsWBSModel sizeMetrics = new SizeMetricsWBSModel();
+        libraryModel = new ProxyDataModel((ProxyWBSModel) library, sizeMetrics);
 
         projectWbs = new ProxyWBSModel();
         projectWbs.copyFrom(teamProject.getProxies());
-        projectModel = new ProxyDataModel((ProxyWBSModel) this.projectWbs, null);
+        SizeMetricsWBSModel.removeMetricIDAttrs(projectWbs);
+        projectModel = new ProxyDataModel((ProxyWBSModel) this.projectWbs,
+            sizeMetrics);
     }
 
     @Override
@@ -78,8 +82,15 @@ public class ProxyLibraryEditor extends AbstractLibraryEditor {
 
     @Override
     public boolean doImport() {
+        SizeMetricsWBSModel.removeMetricIDAttrs(projectWbs);
         teamProject.getProxies().copyFrom(projectWbs);
         return true;
+    }
+
+    @Override
+    public boolean doExport() {
+        SizeMetricsWBSModel.removeMetricIDAttrs(library);
+        return super.doExport();
     }
 
     public static boolean orgAssetsAreAvailable(TeamProcess process) {

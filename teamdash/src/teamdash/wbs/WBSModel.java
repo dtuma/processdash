@@ -1092,6 +1092,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (newContents == null || newContents.isEmpty())
             return;
         newContents = WBSNode.cloneNodeList(newContents, this);
+        SizeMetricsWBSModel.removeMetricIDAttrs(newContents);
 
         int insertBeforeRow = Integer.MAX_VALUE;
         if (currentContents != null && !currentContents.isEmpty()) {

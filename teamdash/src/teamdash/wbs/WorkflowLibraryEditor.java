@@ -54,18 +54,21 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
 
     @Override
     protected void openModels() {
+        SizeMetricsWBSModel.removeMetricIDAttrs(library);
         TeamProcess process = teamProject.getTeamProcess();
+        SizeMetricsWBSModel sizeMetrics = new SizeMetricsWBSModel();
         libraryModel = new WorkflowDataModel((WorkflowWBSModel) library,
-                process, null, null);
+                process, sizeMetrics, null);
 
         projectWbs = new WorkflowWBSModel();
         projectWbs.copyFrom(teamProject.getWorkflows());
+        SizeMetricsWBSModel.removeMetricIDAttrs(projectWbs);
         if (export) {
             projectWbs.removeAttributes(new PatternList().addLiteralStartsWith( //
                     WorkflowMappingManager.PHASE_MAPPING_PREFIX));
         }
         projectModel = new WorkflowDataModel((WorkflowWBSModel) this.projectWbs,
-                process, null, null);
+                process, sizeMetrics, null);
     }
 
     @Override
@@ -98,8 +101,15 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
 
     @Override
     public boolean doImport() {
+        SizeMetricsWBSModel.removeMetricIDAttrs(projectWbs);
         teamProject.getWorkflows().copyFrom(projectWbs);
         return true;
+    }
+
+    @Override
+    public boolean doExport() {
+        SizeMetricsWBSModel.removeMetricIDAttrs(library);
+        return super.doExport();
     }
 
     public static boolean orgAssetsAreAvailable(TeamProcess process) {

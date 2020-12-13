@@ -126,9 +126,6 @@ public abstract class AbstractLibraryEditor {
         openModels();
         if (export) {
             setExportSourceIDs();
-            projectModel.cleanForeignNodeAttributes();
-        } else {
-            libraryModel.cleanForeignNodeAttributes();
         }
         libraryModel.setEditingEnabled(false);
         projectModel.setEditingEnabled(false);
