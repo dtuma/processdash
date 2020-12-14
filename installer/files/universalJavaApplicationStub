@@ -404,8 +404,8 @@ if [ -n "$JAVA_HOME" ] ; then
 elif [ ! -z ${JVMVersion} ] ; then
 
 	# first check "/usr/libexec/java_home" symlinks
-	if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home -F -v ${JVMVersion} > /dev/null 2>&1 ; then
-		JAVACMD="`/usr/libexec/java_home -F -v ${JVMVersion} 2> /dev/null`/bin/java"
+	if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home -v ${JVMVersion} > /dev/null 2>&1 ; then
+		JAVACMD="`/usr/libexec/java_home -v ${JVMVersion} 2> /dev/null`/bin/java"
 		JAVACMD_version=$(comparableJavaVersionNumber $(extractJavaVersionString "${JAVACMD}"))
 	fi
 
@@ -444,7 +444,7 @@ elif [ ! -z ${JVMVersion} ] ; then
 else
 
 	# first check "/usr/libexec/java_home" symlinks
-	if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home -F > /dev/null 2>&1 ; then
+	if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home > /dev/null 2>&1 ; then
 		JAVACMD="`/usr/libexec/java_home 2> /dev/null`/bin/java"
 		JAVACMD_version=$(comparableJavaVersionNumber $(extractJavaVersionString "${JAVACMD}"))
 	fi
