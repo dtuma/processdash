@@ -180,6 +180,10 @@
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
+            <file src="files/universalJavaApplicationStub" override="true"
+                  targetdir="$MAC_APPL/Process Dashboard.app/Contents/MacOS">
+                <os name="Mac OS X"/>
+            </file>
             <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>
@@ -286,6 +290,10 @@
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
+            <file src="files/universalJavaApplicationStub" override="true"
+                  targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS">
+                <os name="Mac OS X"/>
+            </file>
             <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>
@@ -352,6 +360,10 @@
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
+            <file src="files/universalJavaApplicationStub" override="true"
+                  targetdir="$MAC_APPL/Team Dashboard.app/Contents/MacOS">
+                <os name="Mac OS X"/>
+            </file>
             <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>
@@ -372,6 +384,10 @@
                 <os name="Mac OS X"/>
                 <include name="Contents/"/>
             </fileset>
+            <file src="files/universalJavaApplicationStub" override="true"
+                  targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS">
+                <os name="Mac OS X"/>
+            </file>
             <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
                 <os name="Mac OS X"/>
             </parsable>

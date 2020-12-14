@@ -103,6 +103,8 @@
             <!-- files needed on Mac OS X -->
             <fileset targetdir="$INSTALL_PATH" override="true" condition="isMac"
                   dir="files/launcher_app" includes="Contents/"/>
+            <singlefile src="files/universalJavaApplicationStub" override="true" condition="isMac"
+                  target="$INSTALL_PATH/Contents/MacOS/Process Dashboard"/>
             <executable stage="never" condition="isMac"
                   targetfile="$INSTALL_PATH/Contents/MacOS/Process Dashboard"/>
             <executable targetfile="/usr/bin/touch" stage="postinstall" condition="isMac">
