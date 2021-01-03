@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1768,7 +1768,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             throws IOException {
         copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
             "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml",
-            "sizeMetrics.xml");
+            "sizeMetrics.xml", "columns.xml");
         writeMergedUserDump(srcDir, destDir);
     }
 
