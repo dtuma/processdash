@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,12 +23,15 @@
 
 package teamdash.sync;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,9 +41,11 @@ import org.w3c.dom.Element;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.sync.DaemonMetadata.State;
+import teamdash.wbs.WBSFilenameConstants;
 
 /**
  * A helper object that can request an external refresh on behalf of a dashboard
@@ -108,6 +113,10 @@ public class ExtRefreshCoordinator {
         if (extSystemIDs.isEmpty())
             return true;
 
+        // if the project is closed, no sync is needed
+        if (isProjectClosed(wbsDirectory))
+            return true;
+
         // start worker threads to simultaneously refresh each external system
         CountDownLatch semaphore = new CountDownLatch(extSystemIDs.size());
         AtomicBoolean success = new AtomicBoolean(true);
@@ -151,6 +160,28 @@ public class ExtRefreshCoordinator {
         } catch (Exception e) {
         }
         return result;
+    }
+
+
+
+    private static boolean isProjectClosed(File wbsDir) {
+        InputStream in = null;
+        try {
+            // open the project settings file
+            File settingsFile = new File(wbsDir,
+                    WBSFilenameConstants.USER_SETTINGS_FILENAME);
+            in = new BufferedInputStream(new FileInputStream(settingsFile));
+
+            // read the settings file and check the projectClosed setting
+            Properties p = new Properties();
+            p.load(in);
+            return "true".equals(p.getProperty("projectClosed"));
+
+        } catch (IOException ioe) {
+            return false;
+        } finally {
+            FileUtils.safelyClose(in);
+        }
     }
 
 
