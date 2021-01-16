@@ -558,8 +558,12 @@ public class ExtSynchronizer {
             return;
 
         // retrieve the WBS time estimate and the last sync values
-        double wbsTime = wbsUtil.getEstimatedTime(node);
-        double wbsAct = wbsUtil.getActualTime(node);
+        double wbsPriorTime = ExtSyncUtil.getPriorProjectTime(node, true);
+        double wbsPriorAct = ExtSyncUtil.getPriorProjectTime(node, false);
+        double wbsCurrTime = wbsUtil.getEstimatedTime(node);
+        double wbsCurrAct = wbsUtil.getActualTime(node);
+        double wbsTime = wbsCurrTime + wbsPriorTime;
+        double wbsAct = wbsCurrAct + wbsPriorAct;
         double newRem = Math.max(0, wbsTime - wbsAct);
         double lastSyncTime = metadata.getNum(0.0, extID, EST_TIME, LAST_SYNC);
         double lastSyncRem = metadata.getNum(0.0, extID, REM_TIME, LAST_SYNC);
@@ -571,9 +575,24 @@ public class ExtSynchronizer {
             // calculate the new total estimated time
             double newTime = extRem + wbsAct;
 
+            // if this new time estimate is less than the total estimates for
+            // prior projects, bump it back up to that min value
+            if (newTime < wbsPriorTime) {
+                newTime = wbsPriorTime;
+                newRem = Math.max(0, newTime - wbsAct);
+                recordOutboundChange(extNode, REM_TIME, newRem);
+                wbsChanged |= reverseSyncedTime;
+            } else {
+                // if we were able to honor the new remaining time value,
+                // write metadata to record that fact
+                metadata.setNum(extRem, extID, REM_TIME, LAST_SYNC);
+                metadata.setNum(null, extID, REM_TIME, OUTBOUND_VALUE);
+            }
+
             // update the estimate in the WBS with the new total time
             if (!timeEq(wbsTime, newTime)) {
-                wbsUtil.changeTimeEstimate(node, wbsTime, newTime);
+                double newCurrTime = Math.max(0, newTime - wbsPriorTime);
+                wbsUtil.changeTimeEstimate(node, wbsCurrTime, newCurrTime);
                 metadata.setNum(newTime, extID, EST_TIME, LAST_SYNC);
                 metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
                 wbsChanged = true;
@@ -584,10 +603,6 @@ public class ExtSynchronizer {
                 recordOutboundChange(extNode, EST_TIME, newTime);
                 wbsChanged |= reverseSyncedTime;
             }
-
-            // record new metadata values for remaining time
-            metadata.setNum(extRem, extID, REM_TIME, LAST_SYNC);
-            metadata.setNum(null, extID, REM_TIME, OUTBOUND_VALUE);
 
             // this new change has been propagated everywhere, so no additional
             // synchronization logic is needed.
@@ -613,10 +628,18 @@ public class ExtSynchronizer {
             } else if (extEdited) {
                 // the value in the external system has been edited since the
                 // last sync. Copy the new value into the WBS.
-                wbsUtil.changeTimeEstimate(node, wbsTime, extTime);
+                double newCurrTime = Math.max(0, extTime - wbsPriorTime);
+                wbsUtil.changeTimeEstimate(node, wbsCurrTime, newCurrTime);
                 metadata.setNum(extTime, extID, EST_TIME, LAST_SYNC);
-                metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
-                newRem = Math.max(0, extTime - wbsAct);
+                // if the new external estimate is lower than total estimates
+                // for prior projects, bump it back up to that min value
+                if (wbsPriorTime > extTime) {
+                    recordOutboundChange(extNode, EST_TIME, wbsPriorTime);
+                    newRem = Math.max(0, wbsPriorTime - wbsAct);
+                } else {
+                    metadata.setNum(null, extID, EST_TIME, OUTBOUND_VALUE);
+                    newRem = Math.max(0, extTime - wbsAct);
+                }
                 wbsChanged = true;
 
             } else if (wbsEdited) {
@@ -683,7 +706,9 @@ public class ExtSynchronizer {
             return;
 
         // retrieve the WBS actual time
-        double wbsTime = wbsUtil.getActualTime(node);
+        double wbsPriorTime = ExtSyncUtil.getPriorProjectTime(node, false);
+        double wbsCurrTime = wbsUtil.getActualTime(node);
+        double wbsTime = wbsCurrTime + wbsPriorTime;
         if (!timeEq(wbsTime, extTime)) {
             // create an object to record the external change that is needed
             ExtChange change = getExtChange(extNode);

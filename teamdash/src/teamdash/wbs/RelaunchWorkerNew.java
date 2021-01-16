@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2020 Tuma Solutions, LLC
+// Copyright (C) 2014-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,7 +38,9 @@ import org.xml.sax.SAXException;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.columns.PercentCompleteColumn;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
 /**
@@ -80,8 +82,10 @@ public class RelaunchWorkerNew {
         updateProjectName();
         moveScheduleStartDates();
         deleteWorkflowRates();
+        scanPriorProjectTimeForExtNodes();
         deleteCompletedItems();
         adjustInProgressItems();
+        storePriorProjectTimeForExtNodes();
         writeRelaunchSourceIDs();
         discardHistoricalDataAttributes();
         cleanUp(historicalDumpFile);
@@ -138,6 +142,56 @@ public class RelaunchWorkerNew {
         teamProject.getWorkflows().removeAttributes(attrs);
         wbs.removeAttributes(attrs);
     }
+
+
+    /**
+     * Look at the external nodes in the project, and make a note of the planned
+     * and actual time they held before relaunch
+     */
+    private void scanPriorProjectTimeForExtNodes() {
+        // find the columns for planned/actual team time
+        int estTimeCol = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
+        int actTimeCol = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
+
+        // scan the ext nodes in the WBS and make a note of the time values
+        // they have before any relaunch changes are made
+        for (WBSNode node : wbs.getWbsNodes()) {
+            if (ExtSyncUtil.isExtNode(node)) {
+                node.setNumericAttribute(PRIOR_EST_TIME_TMP_ATTR,
+                    getNumericValue(node, estTimeCol));
+                node.setNumericAttribute(PRIOR_ACT_TIME_TMP_ATTR,
+                    getNumericValue(node, actTimeCol));
+            }
+        }
+    }
+
+    private void storePriorProjectTimeForExtNodes() {
+        // find and recalculate the columns for planned/actual team time
+        int estTimeCol = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
+        int actTimeCol = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
+        dataModel.columnChanged(dataModel.getColumn(estTimeCol));
+        dataModel.columnChanged(dataModel.getColumn(actTimeCol));
+
+        // scan the ext nodes and see if relaunch ops changed their plan/actual
+        // times. If so, record the delta as time for the prior iteration
+        for (WBSNode node : wbs.getWbsNodes()) {
+            if (ExtSyncUtil.isExtNode(node)) {
+                double oldTime, newTime;
+                oldTime = node.getNumericAttribute(PRIOR_EST_TIME_TMP_ATTR);
+                newTime = getNumericValue(node, estTimeCol);
+                ExtSyncUtil.addPriorProjectTime(node, true, oldTime - newTime);
+                oldTime = node.getNumericAttribute(PRIOR_ACT_TIME_TMP_ATTR);
+                ExtSyncUtil.addPriorProjectTime(node, false, oldTime);
+            }
+        }
+    }
+
+    private double getNumericValue(WBSNode node, int column) {
+        return NumericDataValue.parse(dataModel.getValueAt(node, column));
+    }
+
+    private static final String PRIOR_EST_TIME_TMP_ATTR = "@_Prior_Est_Time";
+    private static final String PRIOR_ACT_TIME_TMP_ATTR = "@_Prior_Act_Time";
 
 
     /**

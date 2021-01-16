@@ -92,6 +92,7 @@ import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
@@ -1052,19 +1053,30 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
-    private class CopyRelaunchFiles implements WriteFileTask {
+    private class CopyRelaunchFiles implements WriteFileTask2 {
         private File sourceDir;
+        private URL workingDirUrl;
         public CopyRelaunchFiles(File sourceDir) {
             this.sourceDir = sourceDir;
         }
+        public void setWorkingDir(WorkingDirectory dir) {
+            try {
+                if (dir instanceof BridgedWorkingDirectory)
+                    workingDirUrl = new URL(dir.getDescription());
+            } catch (IOException ioe) {
+            }
+        }
         public void write(File destDir) throws IOException {
-            copyRelaunchFiles(sourceDir, destDir);
+            copyRelaunchFiles(sourceDir, destDir, workingDirUrl);
         }
     }
 
 
     private interface WriteFileTask {
         public void write(File dir) throws IOException;
+    }
+    private interface WriteFileTask2 extends WriteFileTask {
+        public void setWorkingDir(WorkingDirectory dir);
     }
 
     private void writeFilesToWbsDir(Collection<? extends WriteFileTask> files,
@@ -1080,8 +1092,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             dir.prepare();
             acquireWriteLock(dir);
 
-            for (WriteFileTask task : files)
+            for (WriteFileTask task : files) {
+                if (task instanceof WriteFileTask2)
+                    ((WriteFileTask2) task).setWorkingDir(dir);
                 task.write(dir.getDirectory());
+            }
 
             dir.flushData();
 
@@ -1764,11 +1779,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
-    private void copyRelaunchFiles(File srcDir, File destDir)
+    private void copyRelaunchFiles(File srcDir, File destDir, URL destDirUrl)
             throws IOException {
         copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
             "workflow.xml", "proxies.xml", "milestones.xml", "tabs.xml",
-            "sizeMetrics.xml", "columns.xml");
+            "sizeMetrics.xml", "columns.xml", "externals.xml");
+        copyExtSyncDataFiles(srcDir, destDir, destDirUrl);
         writeMergedUserDump(srcDir, destDir);
     }
 
@@ -1779,6 +1795,32 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             File destFile = new File(destDir, name);
             if (srcFile.isFile())
                 FileUtils.copyFile(srcFile, destFile);
+        }
+    }
+
+    private void copyExtSyncDataFiles(File srcDir, File destDir, URL destDirUrl)
+            throws IOException {
+        // scan the directory looking for ext sync PDASH files
+        for (String name : srcDir.list()) {
+            if (name.toLowerCase().endsWith("-sync.pdash")) {
+                // copy ext sync PDASH files to the new location
+                copyRelaunchFiles(srcDir, destDir, name);
+
+                // for bridged working directories, the file must be copied to
+                // the server explicitly. (PDASH files aren't uploaded by a
+                // syncUp operation)
+                if (destDirUrl != null) {
+                    try {
+                        InputStream in = new BufferedInputStream(
+                                new FileInputStream(new File(srcDir, name)));
+                        ResourceBridgeClient.uploadSingleFile(destDirUrl, name,
+                            in);
+                        in.close();
+                    } catch (LockFailureException lfe) {
+                        // can't happen - locks aren't required for PDASH files
+                    }
+                }
+            }
         }
     }
 

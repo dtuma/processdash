@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2020 Tuma Solutions, LLC
+// Copyright (C) 2017-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -216,6 +216,29 @@ public class ExtSyncUtil {
         } catch (Exception e) {
             return defaultMillis;
         }
+    }
+
+    /**
+     * Retrieve the amount of plan/actual time for a node from prior iterations
+     * of a relaunched project.
+     */
+    public static double getPriorProjectTime(WBSNode node, boolean plan) {
+        String attrName = getPriorTimeAttr(plan);
+        double result = node.getNumericAttribute(attrName);
+        return (result > 0 ? result : 0);
+    }
+
+    public static void addPriorProjectTime(WBSNode node, boolean plan,
+            double addedTime) {
+        if (addedTime > 0) {
+            String attrName = getPriorTimeAttr(plan);
+            double newTime = getPriorProjectTime(node, plan) + addedTime;
+            node.setNumericAttribute(attrName, newTime);
+        }
+    }
+
+    private static String getPriorTimeAttr(boolean plan) {
+        return plan ? "Prior Estimated Time" : "Prior Actual Time";
     }
 
 }
