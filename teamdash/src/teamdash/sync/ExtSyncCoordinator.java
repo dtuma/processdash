@@ -70,7 +70,7 @@ public class ExtSyncCoordinator {
 
     private String logPrefix;
 
-    private static final Logger log = ExtSynchronizer.log;
+    private Logger log;
 
     private static final Logger debug = ExtSynchronizer.debug;
 
@@ -82,6 +82,8 @@ public class ExtSyncCoordinator {
         this.extSystemID = extSystemID;
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
+        this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
+        this.log = syncData.getLogger();
         this.refreshDelay = ExtSyncUtil.getParamAsMillis(config,
             "loop.refreshInterval", (int) DateUtils.SECONDS);
         this.fileScanDelay = ExtSyncUtil.getParamAsMillis(config,
@@ -159,6 +161,7 @@ public class ExtSyncCoordinator {
         long expectedDuration = exportTime.getMaxTime() * numExportedNodes;
         daemonMetadata.setState(State.Export, expectedDuration);
         daemonMetadata.setSyncRequestPending(false);
+        log.info(logPrefix + "Publishing new exported nodes");
 
         // ask the node set to create the exported nodes
         nodeSet.createExportedWbsNodes(exportedNodes);
@@ -275,6 +278,7 @@ public class ExtSyncCoordinator {
             // let clients know we're starting an outbound sync
             long expectedDuration = outboundTime.getMaxTime() * changes.size();
             daemonMetadata.setState(State.Outbound, expectedDuration);
+            log.info(logPrefix + "Applying WBS changes to external system");
 
             // ask our nodeSet to make the changes
             nodeSet.applyWbsChanges(changes, getMetadata());
@@ -399,5 +403,7 @@ public class ExtSyncCoordinator {
         }
 
     }
+
+    static final String GLOBAL_LOG_SETTING = "log.global";
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2020 Tuma Solutions, LLC
+// Copyright (C) 2018-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,9 @@
 
 package teamdash.sync;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +37,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -69,6 +76,12 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     private Map<ExportFileEntry, byte[]> explicitEntries;
 
+    private ByteArrayOutputStream logData;
+
+    private Handler logHandler;
+
+    private Logger logger;
+
 
     public SyncDataFile(TeamProjectDataTarget target, String filename) {
         this(target.getDirectory(), filename);
@@ -79,6 +92,13 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         this.file = new File(directory, filename);
         this.processToken = Long.toString(System.currentTimeMillis());
         this.fileTimestamp = 0;
+        this.logData = new ByteArrayOutputStream();
+        this.logHandler = new StreamHandler(logData, new SimpleFormatter());
+        this.logHandler.setLevel(Level.ALL);
+        this.logger = Logger.getAnonymousLogger();
+        logger.setParent(ExtSynchronizer.log);
+        logger.setLevel(Level.INFO);
+        logger.addHandler(logHandler);
     }
 
     public void dispose() throws IOException {
@@ -95,6 +115,8 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
             target.saveSyncData(file.getName());
             syncMetadata.clearChanged();
             explicitEntries = null;
+            logHandler.flush();
+            logData.reset();
         } else {
             closeZip();
         }
@@ -120,6 +142,22 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     public long getFileTimestamp() {
         return fileTimestamp;
+    }
+
+    public void setLogGlobal(String global) {
+        logger.setUseParentHandlers("true".equals(global));
+    }
+
+    public void setLogLevel(String level) {
+        try {
+            if (level != null)
+                logger.setLevel(Level.parse(level));
+        } catch (Exception e) {
+        }
+    }
+
+    public final Logger getLogger() {
+        return logger;
     }
 
     public InputStream openEntry(String entryName) throws IOException {
@@ -183,6 +221,9 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         // write the sync metadata file
         writeSyncMetadataFile(zipOut);
 
+        // append data to the log file
+        writeSyncLogFile(zipOut);
+
         // save any newly added entries
         writeExplicitEntries(fileEntries, zipOut);
 
@@ -219,7 +260,8 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         for (Element xml : XMLUtils.getChildElements(manifest)) {
             if (FILE_ELEM.equals(xml.getTagName())) {
                 ExportFileEntry efe = new ExportFileEntry(xml);
-                if (!METADATA_ENTRY_NAME.equals(efe.getFilename()))
+                if (!METADATA_ENTRY_NAME.equals(efe.getFilename())
+                        &&!LOGFILE_ENTRY_NAME.equals(efe.getFilename()))
                     entries.add(efe);
             }
         }
@@ -231,6 +273,28 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         // save the sync metadata file
         zipOut.putNextEntry(new ZipEntry(METADATA_ENTRY_NAME));
         syncMetadata.storeToXML(zipOut, null);
+        zipOut.closeEntry();
+    }
+
+    private void writeSyncLogFile(ZipOutputStream zipOut) throws IOException {
+        // create an entry for the the sync log file
+        zipOut.putNextEntry(new ZipEntry(LOGFILE_ENTRY_NAME));
+
+        // copy data from the old log file
+        ZipEntry src = zip.getEntry(LOGFILE_ENTRY_NAME);
+        if (src != null) {
+            InputStream in = new BufferedInputStream(zip.getInputStream(src));
+            long discardBytes = src.getSize() - MAX_HIST_LOG_SIZE;
+            while (discardBytes-- > 0)
+                in.read();
+            FileUtils.copyFile(in, zipOut);
+            in.close();
+        }
+
+        // append new log data from this sync run
+        logHandler.flush();
+        logData.writeTo(zipOut);
+
         zipOut.closeEntry();
     }
 
@@ -299,8 +363,9 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         xml.attribute(null, WHEN_ATTR, XMLUtils.saveDate(new Date()));
         xml.endTag(null, EXPORTED_TAG);
 
-        // write a file entry for the sync metadata
+        // write entries for the sync metadata & log files
         writeManifestFileTag(xml, METADATA_ENTRY_NAME, METADATA_FILE_TYPE, "1");
+        writeManifestFileTag(xml, LOGFILE_ENTRY_NAME, "syncLog", "1");
 
         // write entries for each other file in the archive
         if (explicitEntries != null)
@@ -334,5 +399,9 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     private static final String METADATA_ENTRY_NAME = METADATA_FILE_TYPE
             + ".xml";
+
+    private static final String LOGFILE_ENTRY_NAME = "syncLog.txt";
+
+    private static final int MAX_HIST_LOG_SIZE = 500000;
 
 }

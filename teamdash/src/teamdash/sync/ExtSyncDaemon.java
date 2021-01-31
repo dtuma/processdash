@@ -107,6 +107,7 @@ public abstract class ExtSyncDaemon {
     private Properties loadGlobalConfig(String propertiesFile)
             throws FileNotFoundException, IOException {
         Properties properties = new Properties(getGlobalDefaults());
+        properties.put(ExtSyncCoordinator.GLOBAL_LOG_SETTING, "true");
         InputStream in = new FileInputStream(propertiesFile);
         properties.load(in);
         in.close();
