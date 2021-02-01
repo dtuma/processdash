@@ -124,9 +124,14 @@ public class WBSOpenFileAction extends AbstractAction {
         cmdLine.add(RuntimeUtils.getJvmHeapArg());
         cmdLine.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
 
+        boolean standalone = isStandaloneZipFile(path);
+        if (standalone)
+            cmdLine.add("-Dteamdash.wbs.standaloneMode=true");
+
         // set a reasonable application menu name/icon on Mac OS X
         if (MacGUIUtils.isMacOSX()) {
-            cmdLine.add("-Xdock:name=" + resources.getString("Window.App_Name"));
+            String res = "Window.App_Name" + (standalone ? "_Standalone" : "");
+            cmdLine.add("-Xdock:name=" + resources.getString(res));
             File icon = new File(teamToolsJar.getParentFile(), "wbs-editor.icns");
             if (icon.isFile())
                 cmdLine.add("-Xdock:icon=" + icon.getAbsolutePath());
@@ -146,6 +151,25 @@ public class WBSOpenFileAction extends AbstractAction {
             ioe.printStackTrace();
             showErrorDialog("Unexpected_Error", path);
         }
+    }
+
+    private boolean isStandaloneZipFile(String path) {
+        // if we are being asked to open a new empty ZIP file, return true
+        if (CompressedWorkingDirectory.NULL_ZIP.equals(path))
+            return true;
+
+        // if the file exists, read the project ID from it. If the project ID
+        // exists and starts with 0, its a standalone project
+        File file = new File(path);
+        if (file.isFile() && file.canRead()) {
+            String projectID = TeamToolsVersionManager.getProjectProperty(file,
+                "projectID");
+            return projectID != null && projectID.startsWith("0");
+        }
+
+        // the file doesn't exist, or can't be read, or is a dir. When in doubt,
+        // inherit the same standalone status as the current process
+        return Boolean.getBoolean("teamdash.wbs.standaloneMode");
     }
 
     private void showErrorDialog(String resKey, String path) {
