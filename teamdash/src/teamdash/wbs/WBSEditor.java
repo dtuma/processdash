@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -469,7 +469,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             windowTitle = teamProject.getProjectName();
         }
         wbsWindowTitle = new WBSWindowTitle(windowTitle);
-        windowTitle += " - " + resources.getString("Window.Title_Suffix");
+        windowTitle += " - " + resources.getString("Window.Title_Suffix_Eff");
         if (HistoricalMode.isHistoricalModeEnabled())
             windowTitle += " @ " + HistoricalMode.getHistoricalDateStr();
         else if (teamProject.isReadOnly())
