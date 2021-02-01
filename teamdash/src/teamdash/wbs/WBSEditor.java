@@ -3325,7 +3325,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             Component msg = BoxUtils.hbox(10,
                 new JLabel(new WBSEditorIcon(48)), 20,
                 BoxUtils.vbox(BoxUtils.GLUE,
-                    resources.getString("Window.App_Name"), BoxUtils.GLUE,
+                    resources.getString("App_Name_Eff"), BoxUtils.GLUE,
                     resources.format("Window.Version_FMT", //
                         getClass().getPackage().getImplementationVersion()),
                     BoxUtils.GLUE));
