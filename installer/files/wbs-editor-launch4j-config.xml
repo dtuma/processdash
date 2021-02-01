@@ -3,11 +3,12 @@
 <launch4jConfig>
   <headerType>gui</headerType>
   <outfile>file.exe</outfile>
-  <errTitle>Work Breakdown Structure Editor</errTitle>
+  <errTitle>Planning Accelerator</errTitle>
   <downloadUrl>http://processdash.com/java</downloadUrl>
   <icon>wbs-editor.ico</icon>
   <jre>
     <path>jre;%PDASH_JAVA_HOME%;%JRE_HOME%;%JAVA_HOME%;%PATH%</path>
     <minVersion>1.6.0</minVersion>
+    <opt>-Dteamdash.wbs.standaloneMode=true</opt>
   </jre>
 </launch4jConfig>

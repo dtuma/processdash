@@ -2462,6 +2462,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         String[] locations = args;
 
+        TeamProject.setUsingStandaloneResources(
+            Boolean.getBoolean("teamdash.wbs.standaloneMode"));
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean indivMode = Boolean.getBoolean("teamdash.wbs.indiv");
         String indivInitials = System.getProperty("teamdash.wbs.indivInitials");

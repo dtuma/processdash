@@ -469,6 +469,14 @@ public class TeamProject implements WBSFilenameConstants {
         if ((isPrimaryProject && isPersonalProject())
                 || Boolean.getBoolean("teamdash.wbs.testPersonalResourceOverride"))
             Resources.registerDashBundleOverride("WBSEditor", "WBSEditorPersonal");
+
+        // set a resource var to indicate if this is a standalone project
+        if (isPrimaryProject)
+            setUsingStandaloneResources(isStandaloneProject());
+    }
+
+    static void setUsingStandaloneResources(boolean use) {
+        Resources.setGlobalVariable("STANDALONE", use ? "_Standalone" : "");
     }
 
     private void loadProperties(Properties p, InputStream in) {

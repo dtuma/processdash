@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2020 Tuma Solutions, LLC
+// Copyright (C) 2003-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,10 @@ public class Resources extends ResourceBundle implements StringMapper {
         int pos = key.indexOf(':', 1);
         String redirectBundleName = key.substring(1, pos);
         String redirectKey = key.substring(pos+1);
+        if ("%".equals(redirectBundleName)) {
+            String value = GLOBAL_VARIABLES.get(redirectKey);
+            return (value == null ? "" : value);
+        }
         ResourceBundle redirectBundle = getDashBundle(redirectBundleName);
         return redirectBundle.getString(redirectKey);
     }
@@ -323,6 +327,13 @@ public class Resources extends ResourceBundle implements StringMapper {
         Resources.class.getName() + ".Override_Test_Expected_Count", 0);
     private static int OVERRIDE_TEST_ACTUAL_COUNT = 0;
 
+
+    /** @since 2.6.4 */
+    public static void setGlobalVariable(String varName, String value) {
+        GLOBAL_VARIABLES.put(varName, value);
+    }
+    private static final Map<String, String> GLOBAL_VARIABLES = Collections
+            .synchronizedMap(new HashMap());
 
 
     public String format(String key, Object[] args) {
