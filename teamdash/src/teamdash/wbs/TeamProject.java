@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -274,6 +274,14 @@ public class TeamProject implements WBSFilenameConstants {
             return false;
         else
             return "true".equals(projectSettings.getAttribute("personal"));
+    }
+
+    /** Return true if this project is "standalone" (not associated with any
+     * team/personal dashboard project).
+     */
+    public boolean isStandaloneProject() {
+        return projectSettings == null
+                || (projectID != null && projectID.startsWith("0"));
     }
 
     /** Get the read-only status of this team project */
