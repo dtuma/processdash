@@ -2042,7 +2042,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         LargeFontsHelper.maybeInitialize();
         try {
-            HttpAuthenticator.maybeInitialize(resources.getString("Window.App_Name"));
+            HttpAuthenticator.maybeInitialize(resources.getString("App_Name_Eff"));
         } catch (Exception e) {}
         TamperDeterrent.init();
 
