@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2020 Tuma Solutions, LLC
+Copyright (C) 2002-2021 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -508,13 +508,33 @@ class dependency has been added in a dashboard class?)
     <echo message="Successfully builds against Java 1.6!"/>
   </target>
 
-  <target name="wbs-exe" depends="TeamTools">
+  <target name="plan-accel" depends="-ant-tasks">
+    <!-- Make sure the license file exists and is signed -->
+    <java classname="com.tuma_solutions.license.LicenseSigner"
+          dir="." failonerror="true" fork="true" inputstring="">
+       <classpath>
+          <pathelement location="${processdash.dist}/extras.jar"/>
+          <pathelement location="${processdash.dist}/pspdash.jar"/>
+       </classpath>
+       <arg value="${license-signing-file}"/>
+       <arg value="${plan-accel-license-dir}/planning-accelerator-license.xml"/>
+    </java>
+    <!-- create a JAR that includes the license file -->
+    <property name="plan-accel.jar" value="Planning-Accelerator.jar"/>
+    <jar destfile="${processdash.dist}/${plan-accel.jar}"
+         filesetmanifest="merge">
+       <zipfileset src="${processdash.dist}/WBSEditor.jar"/>
+       <fileset dir="${plan-accel-license-dir}"
+                includes="planning-accelerator-license.xml"/>
+    </jar>
+    <maybeSignJar jar="${processdash.dist}/${plan-accel.jar}" prefix="jnlpSign"/>
+    <!-- create an executable version of that JAR -->
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
-         target="wbs-exe"/>
+         target="plan-accel-exe"/>
   </target>
 
   <target name="dist"
-       depends="clean,verify16,TeamTools,verifyResourceOverrides,wbs-exe"/>
+       depends="clean,verify16,TeamTools,verifyResourceOverrides"/>
 
 
   <target name="signjar" if="sign.storepass">
