@@ -143,6 +143,8 @@ import teamdash.SaveListener;
 import teamdash.hist.BlameCaretPos;
 import teamdash.hist.BlameData;
 import teamdash.hist.ui.BlameHistoryAction;
+import teamdash.license.StandaloneLicense;
+import teamdash.license.StandaloneLicenseManager;
 import teamdash.merge.ModelType;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
@@ -233,6 +235,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final int MODE_BOTTOM_UP = 8;
     private static final int MODE_PERSONAL = 16;
 
+    static StandaloneLicense license;
     static Resources resources = Resources.getDashBundle("WBSEditor");
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
@@ -1154,8 +1157,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         else if (!isMode(MODE_MASTER))
             result.add(buildTeamMenu(initials, dataModel));
 
-        if (isZipWorkingDirectory()
-                && !teamProject.getBoolUserSetting("hideHelpMenu")) {
+        if (teamProject.isStandaloneProject()) {
             result.add(Box.createHorizontalGlue());
             result.add(buildHelpMenu());
         }
@@ -2098,6 +2100,18 @@ public class WBSEditor implements WindowListener, SaveListener,
                         .getTargetZipFile();
                 if (zipFile != null && !zipFile.canWrite())
                     forceReadOnly = true;
+            }
+        }
+
+        if (Boolean.getBoolean("teamdash.wbs.standaloneMode")
+                || proj.isStandaloneProject()) {
+            license = StandaloneLicenseManager.getLicense();
+            if (license == null || !license.isValid()) {
+                if (!CompressedWorkingDirectory.isNullZipDir(workingDirectory))
+                    showCannotOpenError("Not_Planning_Accelerator",
+                        workingDirectory.getDescription());
+                waitFrame.dispose();
+                return null;
             }
         }
 
