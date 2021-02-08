@@ -3339,13 +3339,29 @@ public class WBSEditor implements WindowListener, SaveListener,
             Component msg = BoxUtils.hbox(10,
                 new JLabel(new WBSEditorIcon(48)), 20,
                 BoxUtils.vbox(BoxUtils.GLUE,
-                    resources.getString("App_Name_Eff"), BoxUtils.GLUE,
+                    resources.getString("App_Name_Eff"), //
                     resources.format("Window.Version_FMT", //
                         getClass().getPackage().getImplementationVersion()),
-                    BoxUtils.GLUE));
+                    getLicenseInfo(), BoxUtils.GLUE));
             JOptionPane.showMessageDialog(frame, msg,
                 resources.getString("Window.Help_About"),
                 JOptionPane.PLAIN_MESSAGE);
+        }
+
+        private List getLicenseInfo() {
+            if (license == null)
+                return Collections.EMPTY_LIST;
+
+            String resPrefix = license.isTrial() ? "License.Trial."
+                    : "License.Regular.";
+            List result = new ArrayList();
+            result.add(10);
+            result.add(resources.getString(resPrefix + "To"));
+            result.add("    " + license.getValue("issuedTo", "organization"));
+            Date expires = license.getExpirationDate();
+            if (expires != null)
+                result.add(resources.format(resPrefix + "Expires", expires));
+            return result;
         }
     }
 

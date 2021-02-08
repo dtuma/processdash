@@ -64,6 +64,14 @@ public final class StandaloneLicense {
         return getValue(SIGNATURE_TAG);
     }
 
+    public boolean isTrial() {
+        return getValue("trial") != null;
+    }
+
+    public Date getExpirationDate() {
+        return getDate("expires");
+    }
+
 
     /** parse the XML fragment that makes up this license */
     private Element parseXmlText() throws StandaloneLicenseException {
