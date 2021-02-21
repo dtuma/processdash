@@ -83,11 +83,13 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -683,6 +685,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public void showApplicableStartupMessages() {
         maybeShowProjectClosedMessage();
+        maybeShowLicenseMessage();
     }
 
     private void maybeShowProjectClosedMessage() {
@@ -708,6 +711,46 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         JOptionPane.showMessageDialog(frame, message,
             resources.getString("Project_Closed.Title"),
+            JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void maybeShowLicenseMessage() {
+        if (license == null) {
+            // only display license messages in standalone mode
+
+        } else if (isNullZipWorkingDirectory() == false) {
+            // only display a license message on initial startup of the
+            // application (when an implicit null ZIP file is opened). This
+            // avoids redisplaying the message each time the user chooses
+            // "File > Open"
+
+        } else if (license.isExpired()) {
+            showLicenseExpiredMessage();
+        }
+    }
+
+    private void showLicenseExpiredMessage() {
+        String resPrefix = license.isTrial() ? "License.Trial."
+                : "License.Regular.";
+        String title = resources.getString(resPrefix + "Expired_Title");
+        String header = resources.getString(resPrefix + "Expired_Header");
+        String[] footer = resources.getStrings("License.Read_Only_Message");
+        showLicenseMessage(title, header, footer);
+    }
+
+    private void showLicenseMessage(String title, String header,
+            String[] footer) {
+        // display contact info in a JTextArea to allow copy/paste
+        String contactMsg = resources.getString("License.Contact_Instructions");
+        JTextArea contactInfo = new JTextArea(license.getContactInfo());
+        contactInfo.setBorder(BorderFactory.createEmptyBorder(5, 30, 10, 0));
+        contactInfo.setFont(UIManager.getFont("Label.font"));
+        contactInfo.setBackground(null);
+        contactInfo.setEditable(false);
+
+        Object message = new Object[] { header, contactMsg, contactInfo,
+                footer };
+        JOptionPane.showMessageDialog(frame, message, title,
             JOptionPane.WARNING_MESSAGE);
     }
 
@@ -2112,6 +2155,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                         workingDirectory.getDescription());
                 waitFrame.dispose();
                 return null;
+            } else if (license.isExpired()) {
+                forceReadOnly = true;
             }
         }
 
@@ -2144,8 +2189,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             w.setIndivRestrictedMode(indivMode && !proj.isPersonalProject());
             if (showTeamList) {
                 w.showTeamListEditorWithSaveButton();
+                waitFrame.dispose();
             } else {
                 w.show();
+                waitFrame.dispose();
                 w.showApplicableStartupMessages();
                 if (itemHref != null)
                     w.showHyperlinkedItem(itemHref);
@@ -2156,7 +2203,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
             if (dispatch != null)
                 dispatch.setEditor(w);
-            waitFrame.dispose();
             return w;
         } catch (LockFailureException e) {
             workingDirectory.releaseLocks();

@@ -30,10 +30,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.util.XMLUtils;
 
 public final class StandaloneLicense {
 
@@ -70,6 +70,39 @@ public final class StandaloneLicense {
 
     public Date getExpirationDate() {
         return getDate("expires");
+    }
+
+    public boolean isExpired() {
+        return dateHasPassed(getExpirationDate());
+    }
+
+    private boolean dateHasPassed(Date expiration) {
+        if (expiration == null)
+            return false;
+        else
+            return expiration.getTime() < System.currentTimeMillis();
+    }
+
+    public String getContactInfo() {
+        StringBuilder result = new StringBuilder();
+        appendContact(result, "issuedTo");
+        appendContact(result, "contact");
+        return result.toString().trim();
+    }
+
+    private void appendContact(StringBuilder dest, String path) {
+        String name = getValue(path, "name");
+        if (name != null) {
+            dest.append(name).append("\n");
+            appendContactDetail(dest, path, "email");
+            appendContactDetail(dest, path, "phone");
+        }
+    }
+
+    private void appendContactDetail(StringBuilder dest, String... path) {
+        String value = getValue(path);
+        if (value != null)
+            dest.append("      ").append(value).append("\n");
     }
 
 
