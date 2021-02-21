@@ -1224,7 +1224,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (isZipWorkingDirectory()) {
             // follow industry-standard menu ordering when editing ZIP files
-            result.add(new WBSFileNewAction(openAction));
+            if (license != null)
+                result.add(new WBSFileNewAction(openAction, !license.isExpired()));
             result.add(openAction);
             result.add(closeAction);
             result.addSeparator();

@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,14 +44,16 @@ public class WBSFileNewAction extends AbstractAction {
 
     private WBSOpenFileAction openAction;
 
-    public WBSFileNewAction(WBSOpenFileAction openAction) {
+    public WBSFileNewAction(WBSOpenFileAction openAction, boolean enabled) {
         super(WBSEditor.resources.getString("New"));
         this.openAction = openAction;
+        setEnabled(enabled);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        openAction.openFile(CompressedWorkingDirectory.NULL_ZIP);
+        if (isEnabled())
+            openAction.openFile(CompressedWorkingDirectory.NULL_ZIP);
     }
 
     public static void initializeEmptyProject(File dir) throws IOException {
