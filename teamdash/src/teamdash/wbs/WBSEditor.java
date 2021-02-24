@@ -726,6 +726,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         } else if (license.isExpired()) {
             showLicenseExpiredMessage();
+
+        } else if (license.isExpiring()) {
+            showLicenseExpiringMessage();
         }
     }
 
@@ -736,6 +739,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         String header = resources.getString(resPrefix + "Expired_Header");
         String[] footer = resources.getStrings("License.Read_Only_Message");
         showLicenseMessage(title, header, footer);
+    }
+
+    private void showLicenseExpiringMessage() {
+        String resPrefix = license.isTrial() ? "License.Trial."
+                : "License.Regular.";
+        String title = resources.getString(resPrefix + "Expiring_Title");
+        String header = resources.format(resPrefix + "Expiring_Header_FMT",
+            license.getExpirationDate());
+        showLicenseMessage(title, header, null);
     }
 
     private void showLicenseMessage(String title, String header,

@@ -76,6 +76,10 @@ public final class StandaloneLicense {
         return dateHasPassed(getExpirationDate());
     }
 
+    public boolean isExpiring() {
+        return dateHasPassed(getDate("warnAfter"));
+    }
+
     private boolean dateHasPassed(Date expiration) {
         if (expiration == null)
             return false;
