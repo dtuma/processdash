@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,8 @@ import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
+
+import teamdash.license.StandaloneLicenseManager;
 
 public class WBSOpenFileAction extends AbstractAction {
 
@@ -114,8 +116,11 @@ public class WBSOpenFileAction extends AbstractAction {
 
     public void openFile(String path) {
         // find the team tools JAR file that should be used to open this file
-        File teamToolsJar = TeamToolsVersionManager
-                .getBestTeamToolsJarFor(new File(path), null);
+        boolean isStandaloneJar = StandaloneLicenseManager.isStandaloneJar();
+        File teamToolsJar = null;
+        if (!isStandaloneJar)
+            teamToolsJar = TeamToolsVersionManager
+                    .getBestTeamToolsJarFor(new File(path), null);
         if (teamToolsJar == null)
             teamToolsJar = RuntimeUtils.getClasspathFile(WBSEditor.class);
 
@@ -124,7 +129,7 @@ public class WBSOpenFileAction extends AbstractAction {
         cmdLine.add(RuntimeUtils.getJvmHeapArg());
         cmdLine.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
 
-        boolean standalone = isStandaloneZipFile(path);
+        boolean standalone = isStandaloneJar || isStandaloneZipFile(path);
         if (standalone)
             cmdLine.add("-Dteamdash.wbs.standaloneMode=true");
 
