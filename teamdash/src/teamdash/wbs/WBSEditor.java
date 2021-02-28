@@ -3039,8 +3039,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ShowTeamMemberListEditorMenuItem extends AbstractAction {
         public ShowTeamMemberListEditorMenuItem() {
-            super(resources.getString("Team.Edit_Menu"));
-            putValue(MNEMONIC_KEY, new Integer('E'));
+            if (teamProject.getTeamMemberList().isReadOnly()) {
+                putValue(NAME, resources.getString("Team.View_Menu"));
+                putValue(MNEMONIC_KEY, new Integer('V'));
+            } else {
+                putValue(NAME, resources.getString("Team.Edit_Menu"));
+                putValue(MNEMONIC_KEY, new Integer('E'));
+            }
         }
         public void actionPerformed(ActionEvent e) {
             showTeamListEditor();
