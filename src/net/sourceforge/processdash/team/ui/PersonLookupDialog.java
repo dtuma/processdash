@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2020 Tuma Solutions, LLC
+// Copyright (C) 2010-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -302,6 +303,62 @@ public class PersonLookupDialog {
 
     private static boolean hasValue(String s) {
         return s != null && s.trim().length() > 0;
+    }
+
+    /**
+     * Identify the URL that should be used to perform person lookup operations
+     * for a given data collection, and return it in the form of a JVM arg that
+     * will configure that URL for a child process.
+     * 
+     * @since 2.6.4
+     */
+    public static String getPersonLookupJvmArg(String dataUrl) {
+        String lookupUrl = getPersonLookupUrl(dataUrl);
+        if (lookupUrl == null)
+            return null;
+        else
+            return "-D" + USER_LOOKUP_URL_SETTING + "=" + lookupUrl;
+    }
+
+    private static String getPersonLookupUrl(String dataUrl) {
+        // make sure we were given an http URL to a PDES data collection
+        int pos = (dataUrl == null ? -1 : dataUrl.indexOf("/DataBridge/"));
+        if (pos == -1 || !dataUrl.startsWith("http"))
+            return null;
+
+        try {
+            // guess the URL that would be used for person lookup, based on
+            // historical PDES URI patterns
+            String baseUrl = dataUrl.substring(0, pos);
+            String lookupUrl = baseUrl + "/pub/User/LookupUser.do";
+            URL url = new URL(lookupUrl);
+
+            // try making a connection, and see if it succeeds
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(false);
+            int response = conn.getResponseCode();
+
+            if (response / 100 == 3) {
+                // newer versions of the PDES will redirect from the historical
+                // "/pub/" URI to a more secure "/app/" URI. If our request was
+                // redirected, update the URL we return
+                String location = conn.getHeaderField("Location");
+                if (location != null && location.contains("/app/")) {
+                    url = new URL(url, location);
+                    lookupUrl = HTMLUtils.appendQuery(url.toString(), "pa", "s");
+                }
+
+            } else if (response != 200) {
+                // if the request failed, abort
+                return null;
+            }
+
+            // return the person lookup URL we found
+            return lookupUrl;
+
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private class HtmlPane extends JEditorPane implements DocumentListener,
