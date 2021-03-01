@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -474,6 +475,8 @@ public class OpenWBSEditor extends TinyCGIBase {
                 cmd.add("-D" + e.getKey() + "=" + e.getValue());
         }
 
+        maybeAdjustPersonLookupUrl(cmd, url);
+
         cmd.add("-jar");
         cmd.add(classpath.getAbsolutePath());
 
@@ -501,6 +504,46 @@ public class OpenWBSEditor extends TinyCGIBase {
                 } catch (NumberFormatException nfe) {}
         }
         return 0;
+    }
+
+    private void maybeAdjustPersonLookupUrl(List<String> cmd, String projUrl) {
+        // if this project is not hosted on a server, do nothing
+        if (projUrl == null)
+            return;
+
+        // if this project is hosted on the same server as the active dataset,
+        // make no adjustments
+        String datasetBaseUrl = TeamServerSelector.getDefaultTeamServerUrl();
+        if (datasetBaseUrl != null && projUrl.startsWith(datasetBaseUrl))
+            return;
+
+        // this dataset is not hosted on the same server as the target project.
+        // Find the URL we should use for person lookup on that project, and
+        // adjust the command line to convey that URL.
+        String jvmArg = PersonLookupDialog.getPersonLookupJvmArg(projUrl);
+        if (jvmArg != null)
+            addSystemPropertyCmdLineArg(cmd, jvmArg);
+    }
+
+    private void addSystemPropertyCmdLineArg(List<String> cmd, String jvmArg) {
+        // find the "=" char so we know which system property this arg sets
+        int pos = jvmArg.indexOf('=');
+        if (pos == -1)
+            pos = jvmArg.length();
+
+        // scan the current command line. If we find an existing arg that is
+        // setting this property, replace it.
+        for (int i = 0; i < cmd.size(); i++) {
+            String arg = cmd.get(i);
+            if (arg.regionMatches(0, jvmArg, 0, pos)) {
+                cmd.set(i, jvmArg);
+                return;
+            }
+        }
+
+        // this property was not previously being set by this command line. Add
+        // an arg at the beginning that will set it.
+        cmd.add(0, jvmArg);
     }
 
     private static class OutputConsumer extends Thread {
