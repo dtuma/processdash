@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1192,7 +1192,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (isZipWorkingDirectory()) {
             // follow industry-standard menu ordering when editing ZIP files
-            result.add(new WBSFileNewAction(openAction));
             result.add(openAction);
             result.add(closeAction);
             result.addSeparator();
@@ -2093,8 +2092,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (workingDirectory instanceof CompressedWorkingDirectory) {
                 File zipFile = ((CompressedWorkingDirectory) workingDirectory)
                         .getTargetZipFile();
-                if (zipFile != null && !zipFile.canWrite())
+                if (zipFile == null) {
+                    waitFrame.dispose();
+                    return null;
+                } else if (!zipFile.canWrite()) {
                     forceReadOnly = true;
+                }
             }
         }
 
