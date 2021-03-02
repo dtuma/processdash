@@ -2896,6 +2896,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                 conn.setConnectTimeout(2000);
                 HttpException.checkValid(conn);
                 conn.getInputStream().close();
+            } catch (HttpException he) {
+                // "redirect" responses are acceptable; others indicate error
+                if (he.getResponseCode() / 100 != 3)
+                    return false;
             } catch (Exception e) {
                 return false;
             }
