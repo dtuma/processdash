@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2020 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -82,7 +82,7 @@ public class EVTask implements Cloneable, DataListener {
 
     EVTask parent = null;
     ArrayList<EVTask> children = new ArrayList<EVTask>();
-    String flag;
+    String flag, sortTag;
     List<String> taskIDs = null;
     String relaunchSourceID = null;
     List<EVTaskDependency> dependencies = null;
@@ -896,6 +896,28 @@ public class EVTask implements Cloneable, DataListener {
      *     represents actual work to be performed.
      */
     public String getFlag() { return flag; }
+
+    /** Returns the sort tag/label in effect for this node */
+    public final String getSortTag() {
+        if (sortTag != null)
+            return sortTag;
+        else if (parent != null)
+            return parent.getSortTag();
+        else
+            return null;
+    }
+
+    public final void userSetSortTag(String sortTag) {
+        this.sortTag = sortTag;
+        refreshChildSortTags();
+    }
+
+    private void refreshChildSortTags() {
+        for (EVTask child : children) {
+            child.notifyListener(false);
+            child.refreshChildSortTags();
+        }
+    }
 
     /** Returns the type of this node.
      * 

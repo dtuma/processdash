@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1445,6 +1445,7 @@ public class EVReport extends CGIChartBase {
         writer.setTableName("TASK");
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
+        writer.setSkipColumn(EVTaskList.SORT_TAG_COLUMN, true);
         writer.setSkipColumn(EVTaskList.NOTES_COLUMN, true);
         setupTaskTableRenderers(writer, showTimingIcons, settings
                 .exportingToExcel(), hideNames, taskList.getNodeTypeSpecs());

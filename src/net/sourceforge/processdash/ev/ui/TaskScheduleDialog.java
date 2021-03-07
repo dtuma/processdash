@@ -235,6 +235,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     private TreeTableModel mergedModel = null;
     private TableColumnModel treeColumnModel;
     private TableColumnModel flatColumnModel = null;
+    private TableColumn sortTagColumn;
 
     private Milestone activeMilestone = null;
     private Set<Milestone> previousMilestones = null;
@@ -330,15 +331,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
                                 // add tool tips to the table header.
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (treeTable, EVTaskList.toolTips);
-                                // set default widths for the columns
-        List hiddenCols = new LinkedList();
+                                // identify columns that shouldn't appear
+        Set hiddenCols = new HashSet();
         if (!Settings.getBool("ev.showCumulativeTaskData", false)) {
             hiddenCols.add(new Integer(EVTaskList.PLAN_CUM_TIME_COLUMN));
             hiddenCols.add(new Integer(EVTaskList.PLAN_CUM_VALUE_COLUMN));
         }
         if (!(model instanceof EVTaskListRollup))
             hiddenCols.add(new Integer(EVTaskList.ASSIGNED_TO_COLUMN));
+        if (Settings.isReadOnly() || !(model instanceof EVTaskListData))
+            hiddenCols.add(new Integer(EVTaskList.SORT_TAG_COLUMN));
 
+                                // set default widths for the columns
         int totalWidth = 0;
         treeColumnModel = treeTable.getColumnModel();
         for (int i = treeColumnModel.getColumnCount();  i-- > 0; ) {
@@ -349,7 +353,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 column.setIdentifier(EVTaskList.COLUMN_KEYS[i].toLowerCase());
                 int width = EVTaskList.colWidths[i];
                 column.setPreferredWidth(width);
-                totalWidth += width;
+                if (i != EVTaskList.SORT_TAG_COLUMN)
+                    totalWidth += width;
             }
         }
         configureEditor(treeTable);
@@ -433,6 +438,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         frame.setSize(new Dimension(totalWidth + 20, 600));
+
+        // hide the "sort tag" column by default
+        if (sortTagColumn != null)
+            treeColumnModel.removeColumn(sortTagColumn);
 
         guiPrefs.load("treeTable", treeTable);
         guiPrefs.load("scheduleTable", scheduleTable);
@@ -1370,14 +1379,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     (table, value, isSelected, hasFocus, row, column);
                 String errorStr = null;
 
+                int modelCol = table.convertColumnIndexToModel(column);
+                if (modelCol == EVTaskList.SORT_TAG_COLUMN
+                        || modelCol == EVTaskList.LABELS_COLUMN)
+                    setHorizontalAlignment(SwingConstants.LEFT);
+
                 TreePath path = getTree().getPathForRow(row);
                 EVTask node = null;
                 if (path != null) {
                     if (path.getLastPathComponent() instanceof EVTask)
                         node = (EVTask) path.getLastPathComponent();
                     errorStr = ((EVTaskList) model).getErrorStringAt
-                        (path.getLastPathComponent(),
-                         convertColumnIndexToModel(column));
+                        (path.getLastPathComponent(), modelCol);
                 }
 
                 if (result instanceof JComponent)
@@ -3451,6 +3464,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
             case EVTaskList.DEPENDENCIES_COLUMN:
             case EVTaskList.PCT_SPENT_COLUMN:
                 result.addColumn(TableUtils.cloneTableColumn(c));
+                break;
+
+            case EVTaskList.SORT_TAG_COLUMN:
+                sortTagColumn = c;
                 break;
 
             default:

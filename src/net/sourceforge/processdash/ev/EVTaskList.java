@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2020 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1142,7 +1142,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final String[] COLUMN_KEYS = {
         "Task", "NodeType", "PT", "PDT", "BT", "Time", "DTime", "PV", "CPT",
         "CPV", "Who", "Baseline_Date", "Plan_Date", "Replan_Date",
-        "Forecast_Date", "Date", "Milestone", "Labels", "Notes", "Depn",
+        "Forecast_Date", "Date", "Sort", "Milestone", "Labels", "Notes", "Depn",
         "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
@@ -1169,7 +1169,8 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int REPLAN_DATE_COLUMN    = PLAN_DATE_COLUMN+1;
     public static final int FORECAST_DATE_COLUMN  = REPLAN_DATE_COLUMN+1;
     public static final int DATE_COMPLETE_COLUMN  = FORECAST_DATE_COLUMN+1;
-    public static final int MILESTONE_COLUMN      = DATE_COMPLETE_COLUMN+1;
+    public static final int SORT_TAG_COLUMN       = DATE_COMPLETE_COLUMN+1;
+    public static final int MILESTONE_COLUMN      = SORT_TAG_COLUMN+1;
     public static final int LABELS_COLUMN         = MILESTONE_COLUMN+1;
     public static final int NOTES_COLUMN          = LABELS_COLUMN+1;
     public static final int DEPENDENCIES_COLUMN   = NOTES_COLUMN+1;
@@ -1212,6 +1213,7 @@ public class EVTaskList extends AbstractTreeTableModel
         Date.class,             // replanned date
         Date.class,             // forecast date
         Date.class,             // date
+        String.class,           // sort tag
         MilestoneList.class,    // milestone
         String.class,           // labels
         Map.class,              // notes
@@ -1243,6 +1245,7 @@ public class EVTaskList extends AbstractTreeTableModel
         COLUMN_FMT_DATE,      // replanned date
         COLUMN_FMT_DATE,      // forecast date
         COLUMN_FMT_DATE,      // date
+        COLUMN_FMT_OTHER,     // sort tag
         COLUMN_FMT_OTHER,     // milestone
         COLUMN_FMT_OTHER,     // labels
         COLUMN_FMT_OTHER,     // notes
@@ -1318,6 +1321,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return Settings.isReadWrite()
                     && ((EVTask) node).isCompletionDateEditable();
 
+        case SORT_TAG_COLUMN:
         case NOTES_COLUMN:
         case DEPENDENCIES_COLUMN:
             return (Settings.isReadWrite()
@@ -1395,6 +1399,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
+        case SORT_TAG_COLUMN:       return n.getSortTag();
         case MILESTONE_COLUMN:      return getMilestonesForTask(n);
         case LABELS_COLUMN:         return getTaskLabelsText(n);
         case NOTES_COLUMN:          return n.getNoteData();
@@ -1421,6 +1426,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case NODE_TYPE_COLUMN:     n.userSetNodeType(value);              break;
         case PLAN_TIME_COLUMN:     n.userSetPlanTime(value);              break;
         case DATE_COMPLETE_COLUMN: n.userSetActualDate(value);            break;
+        case SORT_TAG_COLUMN:      n.userSetSortTag((String) value);      break;
         case DEPENDENCIES_COLUMN:  n.setDependencies((Collection) value); break;
         }
     }
