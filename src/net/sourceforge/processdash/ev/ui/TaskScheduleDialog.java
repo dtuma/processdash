@@ -80,6 +80,7 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
@@ -98,6 +99,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -249,7 +251,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             saveBaselineAction, collaborateAction, filteredReportAction,
             weekReportAction, scheduleOptionsAction, expandAllAction,
             showTimeLogAction, showDefectLogAction, copyTaskInfoAction,
-            manageBaselinesAction, sortByMilestonesAction;
+            manageBaselinesAction, sortTasksAction;
     private List<TSAction> altReportActions;
     private GroupFilterMenu groupFilterMenu;
 
@@ -500,6 +502,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
             return hasRollupEditPerm;
     }
 
+    protected void stopCellEditing() {
+        if (treeTable.isEditing())
+            treeTable.getCellEditor().stopCellEditing();
+        if (scheduleTable.isEditing())
+            scheduleTable.getCellEditor().stopCellEditing();
+    }
+
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
@@ -559,17 +568,17 @@ public class TaskScheduleDialog implements EVTask.Listener,
             result.add(new JButton(moveDownAction));
         result.add(Box.createHorizontalGlue());
 
-        sortByMilestonesAction = new TSAction("Buttons.Sort_By_Milestone") {
+        sortTasksAction = new TSAction("Buttons.Sort_Tasks.Label") {
             public void actionPerformed(ActionEvent e) {
-                sortByMilestones(); }};
-        final JButton sortByMilestonesButton = new JButton(sortByMilestonesAction);
-        sortByMilestonesAction.addPropertyChangeListener(new PropertyChangeListener(){
+                sortTasks(); }};
+        final JButton sortTasksButton = new JButton(sortTasksAction);
+        sortTasksAction.addPropertyChangeListener(new PropertyChangeListener(){
             public void propertyChange(PropertyChangeEvent evt) {
-                sortByMilestonesButton.setVisible(sortByMilestonesAction.isEnabled());
+                sortTasksButton.setVisible(sortTasksAction.isEnabled());
             }});
-        sortByMilestonesAction.setEnabled(false);
+        sortTasksAction.setEnabled(false);
         if (!isRollup() && canEdit()) {
-            result.add(sortByMilestonesButton);
+            result.add(sortTasksButton);
             result.add(Box.createHorizontalGlue());
         }
 
@@ -787,7 +796,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             editMenu.add(moveUpAction);
             editMenu.add(moveDownAction);
             if (!isRollup())
-                editMenu.add(sortByMilestonesAction);
+                editMenu.add(sortTasksAction);
             editMenu.add(copyTaskInfoAction);
             if (!isRollup()) {
                 editMenu.addSeparator();
@@ -3101,23 +3110,140 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
 
-    /**
-     * In Flat View, sort all tasks by milestone
-     */
-    private void sortByMilestones() {
-        // we shouldn't be sorting by milestone unless we're in flat view
+    /** In Flat View, give the user options to sort tasks in various ways */
+    private void sortTasks() {
+        // we shouldn't be sorting tasks unless we're in flat view
         if (flatModel == null)
             return;
 
-        // make sure the user really wants to sort the task list
-        int userChoice = JOptionPane.showConfirmDialog(frame,
-            resources.getStrings("Buttons.Sort_By_Milestone.Prompt"),
-            resources.getString("Buttons.Sort_By_Milestone.Title"),
-            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (userChoice == JOptionPane.YES_OPTION) {
-            if (flatModel.sortTasksByMilestone())
-                setDirty(true);
+        // if an editing session is in progress, stop it
+        stopCellEditing();
+
+        // determine which sorting options are applicable
+        boolean hasMilestones = model.showMilestoneColumn();
+        boolean sortColumnVisible = isSortColumnVisible();
+
+        if (hasMilestones) {
+            // if milestones are present, present various options to the user
+            showSortOptionsPrompt(sortColumnVisible);
+
+        } else if (sortColumnVisible) {
+            // if the sort column is visible, ask the user if they want to
+            // reorder the tasks based on its contents
+            showSortTagsPrompt();
+
+        } else {
+            // if neither option is currently applicable, make the sort column
+            // visible, and display a message explaining how it is used
+            makeSortColumnVisible();
         }
+    }
+
+    private void showSortOptionsPrompt(boolean sortColumnVisible) {
+        // create radio button and textual description for "sort by tag"
+        ButtonGroup group = new ButtonGroup();
+        JRadioButton sortColumnOption = new JRadioButton(
+                resources.getString("Buttons.Sort_Tasks.Tag.Option"));
+        String[] sortColumnDescr = getIndentedText(
+            "Buttons.Sort_Tasks.Tag.Description");
+        group.add(sortColumnOption);
+
+        // create radio button and textual description for "sort by milestone"
+        JRadioButton milestoneOption = new JRadioButton(
+                resources.getString("Buttons.Sort_Tasks.Milestone.Option"));
+        String[] milestoneDescr = getIndentedText(
+            "Buttons.Sort_Tasks.Milestone.Description");
+        group.add(milestoneOption);
+
+        // select a reasonable default option
+        if (isSortColumnSelected())
+            sortColumnOption.setSelected(true);
+        else
+            milestoneOption.setSelected(true);
+
+        // show a prompt to the user
+        String title = resources.getString("Buttons.Sort_Tasks.Title");
+        Object message = new Object[] { //
+                sortColumnOption, sortColumnDescr, " ", //
+                milestoneOption, milestoneDescr, " ", //
+        };
+        int userChoice = JOptionPane.showConfirmDialog(frame, message, title,
+            JOptionPane.OK_CANCEL_OPTION);
+        if (userChoice != JOptionPane.OK_OPTION)
+            return;
+
+        // take action based on the selected option
+        if (milestoneOption.isSelected()) {
+            sortByMilestones();
+
+        } else if (sortColumnOption.isSelected()) {
+            if (!sortColumnVisible)
+                makeSortColumnVisible();
+            else
+                sortByTags();
+        }
+    }
+
+    private String[] getIndentedText(String resKey) {
+        String[] lines = resources.getStrings(resKey);
+        for (int i = lines.length; i-- > 0;)
+            lines[i] = "            " + lines[i];
+        return lines;
+    }
+
+
+    private boolean isSortColumnVisible() {
+        int v = treeTable.convertColumnIndexToView(EVTaskList.SORT_TAG_COLUMN);
+        return v != -1;
+    }
+
+    private boolean isSortColumnSelected() {
+        int selCol = treeTable.getSelectedColumn();
+        if (selCol == -1)
+            return false;
+
+        int selIndex = treeTable.convertColumnIndexToModel(selCol);
+        return selIndex == EVTaskList.SORT_TAG_COLUMN;
+    }
+
+    private void makeSortColumnVisible() {
+        if (sortTagColumn == null)
+            return;
+
+        // insert the column in the desired location
+        int appendPos = flatColumnModel.getColumnCount();
+        int insertAfter = Math.max(
+            treeTable.convertColumnIndexToView(EVTaskList.FORECAST_DATE_COLUMN),
+            treeTable.convertColumnIndexToView(EVTaskList.DATE_COMPLETE_COLUMN));
+        flatColumnModel.addColumn(TableUtils.cloneTableColumn(sortTagColumn));
+        if (insertAfter != -1)
+            flatColumnModel.moveColumn(appendPos, insertAfter + 1);
+
+        // display a message explaining what we've done
+        JOptionPane.showMessageDialog(frame,
+            resources.getStrings("Buttons.Sort_Tasks.Tag.Column_Message"),
+            resources.getString("Buttons.Sort_Tasks.Tag.Option"),
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showSortTagsPrompt() {
+        int userChoice = JOptionPane.showConfirmDialog(frame,
+            resources.getStrings("Buttons.Sort_Tasks.Tag.Confirmation"),
+            resources.getString("Buttons.Sort_Tasks.Title"),
+            JOptionPane.OK_CANCEL_OPTION);
+        if (userChoice == JOptionPane.OK_OPTION)
+            sortByTags();
+    }
+
+    private void sortByTags() {
+        if (flatModel.sortTasksByTag())
+            setDirty(true);
+    }
+
+
+    private void sortByMilestones() {
+        if (flatModel.sortTasksByMilestone())
+            setDirty(true);
     }
 
 
@@ -3194,7 +3320,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(false);
-        sortByMilestonesAction.setEnabled(model.showMilestoneColumn());
+        sortTasksAction  .setEnabled(true);
         filteredChartAction.setEnabled(false);
         filteredReportAction.setEnabled(false);
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
@@ -3251,7 +3377,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(true);
-        sortByMilestonesAction.setEnabled(false);
+        sortTasksAction  .setEnabled(false);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();

@@ -89,6 +89,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.util.AlphanumericSortTag;
 import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.Disposable;
@@ -2290,7 +2291,17 @@ public class EVTaskList extends AbstractTreeTableModel
             if (!showMilestoneColumn())
                 return false;
 
-            Collections.sort(evLeaves, new TaskMilestoneComparator());
+            sortTasks(new TaskMilestoneComparator());
+            return true;
+        }
+
+        public boolean sortTasksByTag() {
+            sortTasks(new TaskSortTagComparator());
+            return true;
+        }
+
+        private void sortTasks(Comparator<EVTask> comparator) {
+            Collections.sort(evLeaves, comparator);
             enumerateOrdinals();
 
             int[] changedNodes = new int[evLeaves.size()];
@@ -2301,8 +2312,6 @@ public class EVTaskList extends AbstractTreeTableModel
 
             if (recalcTimer != null)
                 recalcTimer.restart();
-
-            return true;
         }
 
         private class TaskMilestoneComparator implements Comparator<EVTask> {
@@ -2326,6 +2335,25 @@ public class EVTaskList extends AbstractTreeTableModel
             private int calcMilestoneOrdinal(EVTask task) {
                 MilestoneList l = getMilestonesForTask(task);
                 return (l == null ? 99999 : l.getMinSortOrdinal());
+            }
+        }
+
+        private class TaskSortTagComparator implements Comparator<EVTask> {
+
+            private Map<EVTask, AlphanumericSortTag> tagCache = new HashMap();
+
+            @Override
+            public int compare(EVTask a, EVTask b) {
+                return getTag(a).compareTo(getTag(b));
+            }
+
+            private AlphanumericSortTag getTag(EVTask task) {
+                AlphanumericSortTag result = tagCache.get(task);
+                if (result == null) {
+                    result = new AlphanumericSortTag(task.getSortTag());
+                    tagCache.put(task, result);
+                }
+                return result;
             }
         }
 
