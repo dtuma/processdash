@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,8 @@ public interface ErrorTokens {
     String NO_CONNECTION = "No_Connection";
 
     String SQL_ERROR = "Sql_Error";
+
+    String REST_ERROR = "Rest_Error";
 
     String XMLRPC_ERROR = "XmlRpc_Error";
 

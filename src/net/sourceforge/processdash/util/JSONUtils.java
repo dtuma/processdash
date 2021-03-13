@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,14 @@
 
 package net.sourceforge.processdash.util;
 
+import java.text.DateFormat;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class JSONUtils {
 
@@ -84,6 +89,52 @@ public class JSONUtils {
         }
 
         return (T) result;
+    }
+
+
+    /**
+     * Parse a date in ISO 8601 format
+     * 
+     * @throws IllegalArgumentException
+     *             if the date cannot be parsed as a valid ISO 8601 date
+     */
+    public static Date parseDate(String s) throws IllegalArgumentException {
+        if (s == null || s.equals("null") || s.trim().length() == 0)
+            return null;
+
+        if (s.trim().equals("now"))
+            return new Date();
+
+        synchronized (DATE_FORMATS) {
+            for (DateFormat f : DATE_FORMATS) {
+                ParsePosition pos = new ParsePosition(0);
+                Date result = f.parse(s, pos);
+                if (pos.getIndex() == s.length())
+                    return result;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Unrecognized JSON date '" + s + "'");
+    }
+
+    private static final DateFormat[] DATE_FORMATS = {
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'"),
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm"),
+            new SimpleDateFormat("yyyy-MM-dd") };
+
+    static {
+        TimeZone gmt = TimeZone.getTimeZone("GMT");
+        DATE_FORMATS[1].setTimeZone(gmt);
+        DATE_FORMATS[4].setTimeZone(gmt);
+        DATE_FORMATS[7].setTimeZone(gmt);
     }
 
 }

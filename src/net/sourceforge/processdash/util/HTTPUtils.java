@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2018 Tuma Solutions, LLC
+// Copyright (C) 2004-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,11 +39,17 @@ public class HTTPUtils {
     /** Extract the charset from a mime content type
      */
     public static String getCharset(String contentType) {
+        return getCharset(contentType, DEFAULT_CHARSET);
+    }
+
+    /** Extract the charset from a mime content type
+     */
+    public static String getCharset(String contentType, String defaultCharset) {
         String upType = contentType.toUpperCase();
         int pos = upType.indexOf("CHARSET=");
 
         if (pos == -1)
-            return DEFAULT_CHARSET;
+            return defaultCharset;
 
         int beg = pos + 8;
 

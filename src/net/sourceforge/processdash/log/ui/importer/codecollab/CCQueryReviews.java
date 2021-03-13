@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,15 +26,18 @@ package net.sourceforge.processdash.log.ui.importer.codecollab;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.json.simple.JSONObject;
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.DynamicAttributeValue;
-import net.sourceforge.processdash.ui.lib.binding.ErrorDataValueException;
-
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.w3c.dom.Element;
+import net.sourceforge.processdash.util.JSONUtils;
 
 public class CCQueryReviews extends CCAbstractQuery {
 
@@ -53,10 +56,57 @@ public class CCQueryReviews extends CCAbstractQuery {
         recalc();
     }
 
+
+    @Override
+    protected Object executeQuery(CCJsonClient connection,
+            Object[] parameterValues) throws Exception {
+        // connect to the API and retrieve the action items for the user
+        JSONObject apiResponse = connection
+                .execute("UserService.getActionItems");
+        checkJsonError(apiResponse);
+        List<JSONObject> actionItems = JSONUtils.lookup(apiResponse,
+            "result.actionItems", false);
+
+        // iterate over the raw data and build a set of results
+        List reviews = new ArrayList();
+        for (JSONObject oneItem : actionItems) {
+            Map oneReview = convertJsonReview(oneItem);
+            if (oneReview != null)
+                reviews.add(oneReview);
+        }
+        if (reviews.isEmpty())
+            return null;
+
+        // sort the results and return
+        Collections.sort(reviews, new ReviewIdComparator());
+        return reviews;
+    }
+
+    private JSONObject convertJsonReview(JSONObject oneItem) {
+        // try to return only the reviews which the current user authored. Use a
+        // lenient comparison strategy based on built-in Collaborator role names
+        String role = (String) oneItem.get("roleText");
+        if ("Moderator".equalsIgnoreCase(role)
+                || "Reviewer".equalsIgnoreCase(role)
+                || "Observer".equalsIgnoreCase(role))
+            return null;
+
+        // store extra values we need for display/handling
+        Object reviewId = oneItem.get("reviewId");
+        Object display = oneItem.get("reviewText");
+        if (!(reviewId instanceof Number) || !(display instanceof String))
+            return null;
+        Integer id = Integer.valueOf(((Number) reviewId).intValue());
+        oneItem.put("id", id);
+        oneItem.put("VALUE", id);
+        oneItem.put("DISPLAY", display);
+        return oneItem;
+    }
+
+
     @Override
     protected Object executeQuery(XmlRpcClient client, Object[] parameterValues)
-            throws ErrorDataValueException {
-
+            throws Exception {
         try {
             String username = this.username.getValue();
             Integer userId = (Integer) CCQuerySupport.lookupSingleValue(client,
@@ -70,15 +120,9 @@ public class CCQueryReviews extends CCAbstractQuery {
             Arrays.sort(reviews, new ReviewIdComparator());
             return convertReviews(reviews);
 
-        } catch (ErrorDataValueException edve) {
-            throw edve;
-
         } catch (CCQuerySupport.SingleValueNotFoundException iae) {
             // this indicates that the user was not found.
             return null;
-
-        } catch (Exception e) {
-            return XMLRPC_ERROR_VALUE;
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,12 +28,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.json.simple.JSONObject;
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.log.defects.DefectDataBag;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
-import net.sourceforge.processdash.ui.lib.binding.ErrorDataValueException;
-
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.w3c.dom.Element;
+import net.sourceforge.processdash.util.JSONUtils;
 
 public class CCQueryDefects extends CCAbstractQuery {
 
@@ -45,26 +46,76 @@ public class CCQueryDefects extends CCAbstractQuery {
         recalc();
     }
 
+
+    @Override
+    protected Object executeQuery(CCJsonClient connection,
+            Object[] parameterValues) throws Exception {
+        // connect to the API and retrieve the defects for this review
+        Integer reviewId = Integer.parseInt(parameterValues[0].toString());
+        JSONObject apiResponse = connection.execute(
+            "ReviewService.getDefects", "reviewId", reviewId);
+        checkJsonError(apiResponse);
+        List<JSONObject> defects = JSONUtils.lookup(apiResponse,
+            "result.defects", true);
+        if (defects == null)
+            return null;
+        else
+            return convertJsonDefects(defects);
+    }
+
+    private Object convertJsonDefects(List<JSONObject> rawDefectData) {
+        List result = new ArrayList();
+        for (JSONObject rawDefect : rawDefectData) {
+            Map defect = new HashMap();
+
+            defect.put(ATTR_ID, "C" + rawDefect.get("defectId"));
+            defect.put(ATTR_TYPE, getJsonDefectType(rawDefect));
+            defect.put(ATTR_DESCRIPTION, getJsonDefectDescription(rawDefect));
+            defect.put(ATTR_FIX_TIME, 0);
+            defect.put(ATTR_DATE, getJsonDefectDate(rawDefect));
+
+            result.add(defect);
+        }
+        return result;
+    }
+
+    private Object getJsonDefectType(JSONObject rawDefect) {
+        return JSONUtils.lookup(rawDefect, "userDefinedFields.Type", true);
+    }
+
+    private String getJsonDefectDescription(JSONObject rawDefect) {
+        StringBuilder result = new StringBuilder();
+        Object text = rawDefect.get("text");
+        if (text instanceof String)
+            result.append((String) text);
+
+        String location = (String) rawDefect.get("location");
+        if (result.length() > 0 && location != null)
+            result.append("\n----------");
+        if (location != null)
+            result.append("\n").append(location);
+
+        return result.toString();
+    }
+
+    private Object getJsonDefectDate(JSONObject rawDefect) {
+        return JSONUtils.parseDate((String) rawDefect.get("creationDate"));
+    }
+
+
     @Override
     protected Object executeQuery(XmlRpcClient client, Object[] parameterValues)
-            throws ErrorDataValueException {
+            throws Exception {
+        // we explicitly parse the number as an Integer because it might
+        // arrive as a String or a Long, but we need an Integer value.
+        Integer reviewNumber = Integer.parseInt(parameterValues[0].toString());
 
-        try {
-            // we explicitly parse the number as an Integer because it might
-            // arrive as a String or a Long, but we need an Integer value.
-            Integer reviewNumber = Integer.parseInt(parameterValues[0]
-                    .toString());
-
-            Object[] defects = CCQuerySupport.querySimple(client,
-                CCQuerySupport.DEFECT_CLASS, 10000, "reviewId", reviewNumber);
-            if (defects == null)
-                return null;
-            else
-                return convertDefects(client, defects);
-
-        } catch (Exception e) {
-            return XMLRPC_ERROR_VALUE;
-        }
+        Object[] defects = CCQuerySupport.querySimple(client,
+            CCQuerySupport.DEFECT_CLASS, 10000, "reviewId", reviewNumber);
+        if (defects == null)
+            return null;
+        else
+            return convertDefects(client, defects);
     }
 
     private List convertDefects(XmlRpcClient client, Object[] rawDefectData) {
@@ -77,7 +128,7 @@ public class CCQueryDefects extends CCAbstractQuery {
             Map defect = new HashMap();
 
             Integer defectId = (Integer) rawDefect.get("id");
-            defect.put(ATTR_ID, "CC" + defectId);
+            defect.put(ATTR_ID, "C" + defectId);
             defect.put(ATTR_TYPE, typeLookup.getType(defectId));
             defect.put(ATTR_DESCRIPTION, rawDefect.get("text"));
             defect.put(ATTR_FIX_TIME, 0);

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2010 Tuma Solutions, LLC
+// Copyright (C) 2007-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -200,7 +200,7 @@ public class BoundComboBox extends JComboBox {
                 int index, boolean isSelected, boolean cellHasFocus) {
             inGet = true;
             Component result = super.getListCellRendererComponent(list, value,
-                    index, isSelected, cellHasFocus);
+                    index, index < 0 ? false : isSelected, cellHasFocus);
             if (value instanceof MessageItem)
                 result.setForeground(((MessageItem) value).getColor());
             inGet = false;
@@ -212,6 +212,10 @@ public class BoundComboBox extends JComboBox {
                 super.setForeground(fg);
         }
 
+        public void setBackground(Color bg) {
+            if (inGet)
+                super.setBackground(bg);
+        }
 
     }
 
