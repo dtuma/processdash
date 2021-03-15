@@ -259,6 +259,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.util.UsageLogger"
      settingPrefix="usageLogger"/>
 
+  <background-task ordinal="9999" runAtStartup="false" whenDefault="*"
+     class="net.sourceforge.processdash.tool.launcher.jnlp.UpdateChecker"
+     settingPrefix="pdesUpdateChecker"/>
+
   <background-task whenDefault="0"
      class="net.sourceforge.processdash.log.time.ImportedTimeLogManager$CacheMinder"
      settingPrefix="importedTimeLogCacheMinder"/>

@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2020 Tuma Solutions, LLC
+// Copyright (C) 1998-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1709,12 +1709,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public void exitProgram() {
+        exitProgram(null);
+    }
+
+    public void exitProgram(final Runnable shutdownTask) {
         new DashboardPermission("exitProgram").checkPermission();
 
         Thread shutdownThread = new Thread("Application Shutdown Thread") {
             public void run() {
                 synchronized (exitProgramSyncToken) {
-                    exitProgramImpl();
+                    exitProgramImpl(shutdownTask);
                 }
             }
         };
@@ -1722,7 +1726,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
     private Object exitProgramSyncToken = new Object();
 
-    private void exitProgramImpl() {
+    private void exitProgramImpl(Runnable shutdownTask) {
         PleaseWaitDialog dialog = new PleaseWaitDialog(this,
             resources.getString("Shutdown.Title"), "", 0);
 
@@ -1748,6 +1752,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN,
                   backupQualifier);
             logger.fine("Shutdown complete");
+
+            if (shutdownTask != null) {
+                dialog.setMessage(shutdownTask.toString());
+                shutdownTask.run();
+            }
 
         } finally {
             System.exit(0);

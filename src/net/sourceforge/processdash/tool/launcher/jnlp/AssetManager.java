@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2018 Tuma Solutions, LLC
+// Copyright (C) 2015-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ import org.w3c.dom.NodeList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
 
@@ -56,6 +57,8 @@ import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
 import com.tuma_solutions.teamserver.jnlp.client.JnlpClientConstants;
 
 class AssetManager {
+
+    private boolean silent;
 
     private File distribDir;
 
@@ -73,7 +76,8 @@ class AssetManager {
 
     private DownloadSplashScreen splashScreen;
 
-    AssetManager() {
+    AssetManager(boolean silent) {
+        this.silent = silent;
         distribDir = DistributionManager.getDistribDirectory(true);
         assets = new ArrayList<Asset>();
     }
@@ -94,7 +98,8 @@ class AssetManager {
         try {
             downloadMissingAssetsImpl(dataUrl);
         } catch (IOException e) {
-            displayDownloadErrorMessage(e);
+            if (!silent)
+                displayDownloadErrorMessage(e);
         }
     }
 
@@ -145,6 +150,8 @@ class AssetManager {
         String downloadUrl = dataUrl.substring(0, pos) + PROCESS_ASSET_URI;
         random = new SecureRandom();
         splashScreen = new DownloadSplashScreen(totalDownloadSize);
+        if (!silent)
+            splashScreen.display();
 
         // download the launch profile if applicable
         IOException ioe = null;
@@ -194,6 +201,12 @@ class AssetManager {
         String jarHref = ((Element) nl.item(0)).getAttribute("href");
         if (jarHref == null || jarHref.length() == 0)
             return null;
+
+        // in silent mode, add a query arg to let the server know this is a
+        // low-priority background process. The server might decline to respond
+        // based on server load / available bandwidth
+        if (silent)
+            jarHref = HTMLUtils.appendQuery(jarHref, "bg");
 
         // open a connection to download the JAR, and return it
         URLConnection conn = new URL(jarHref).openConnection();

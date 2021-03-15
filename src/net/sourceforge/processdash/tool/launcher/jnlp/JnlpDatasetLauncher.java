@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2020 Tuma Solutions, LLC
+// Copyright (C) 2009-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.Bootstrap;
 import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 import com.tuma_solutions.teamserver.jnlp.client.JnlpClientConstants;
 
@@ -64,11 +65,14 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     public static void launch(String source) {
         try {
             // launch the dataset for the given source
-            new JnlpDatasetLauncher(source);
+            new JnlpDatasetLauncher(false, source).launchApp();
 
         } catch (BadJnlpFile b) {
-            showStartupErrorAndExit(getRes("Launch_Error.Bad_JNLP"),
-                "      " + source);
+            showStartupErrorAndExit(getRes("Launch_Error.Title"),
+                getRes("Launch_Error.Bad_JNLP"), "      " + source);
+
+        } catch (StartupError se) {
+            se.showAndExit();
 
         } catch (Exception e) {
             // display a dialog for unexpected exceptions
@@ -79,6 +83,25 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         }
     }
 
+    public static Runnable checkUpdate() {
+        // abort if the current process wasn't launched via a JNLP URL
+        String jnlpUrl = System.getProperty(JNLP_URL_PROP);
+        if (jnlpUrl == null)
+            return null;
+
+        // check to see if updates are needed. If so, return a Runnable object
+        // that can relaunch the application
+        try {
+            return new JnlpDatasetLauncher(true, jnlpUrl)
+                    .getRelauncherIfUpdateNeeded();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    private boolean silent;
 
     private Element xml;
 
@@ -87,6 +110,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     private AssetManager assetManager;
 
     private File distrDir;
+
+    private String jnlpLocation;
 
     private String dataLocation;
 
@@ -98,14 +123,14 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
     private List<String> argv;
 
-    public JnlpDatasetLauncher(String source) throws Exception {
+    private JnlpDatasetLauncher(boolean silent, String source) throws Exception {
+        this.silent = silent;
         getJnlpXml(source);
         initializeFields();
         parseArguments();
         retrieveAssetsAndLaunchProfile();
         checkLicenseConsent();
         finalizePropertiesAndCommandLine();
-        launchApp();
     }
 
 
@@ -126,7 +151,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
             xml = JnlpFileRetriever.open(url);
 
         } catch (FileNotFoundException fnfe) {
-            showStartupErrorAndExit(getRes("Launch_Error.Cannot_Reach_Server"),
+            throwStartupError(getRes("Launch_Error.Cannot_Reach_Server"),
                 "      " + url, " ", getResArr("Network_Error_Footer"));
         }
     }
@@ -136,7 +161,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
             xml = JnlpFileRetriever.open(getFileForArg(file));
 
         } catch (FileNotFoundException fnfe) {
-            showStartupErrorAndExit(getRes("Launch_Error.Cannot_Read_File"),
+            throwStartupError(getRes("Launch_Error.Cannot_Read_File"),
                 "      " + file);
         }
     }
@@ -160,7 +185,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      */
     private void initializeFields() {
         isMac = System.getProperty("os.name").contains("OS X");
-        assetManager = new AssetManager();
+        assetManager = new AssetManager(silent);
+        jnlpLocation = xml.getAttribute("href");
         dataLocation = null;
         systemProperties = new HashMap<String, String>();
         argv = new ArrayList<String>();
@@ -204,7 +230,7 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         if (USE_INSTALLED_DISTRIB_FLAG.equals(arg)) {
             distrDir = DistributionManager.getInstalledDistributionDir();
             if (distrDir == null)
-                showStartupErrorAndExitT(getRes("Not_Installed.Title"),
+                throwStartupErrorT(getRes("Not_Installed.Title"),
                     getResArr("Not_Installed.Message"));
 
         } else if (USE_DEFAULT_DISTRIB_FLAG.equals(arg)) {
@@ -291,9 +317,11 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
      * check for license consent if needed
      */
     private void checkLicenseConsent() {
-        ConsentHandler ch = new ConsentHandler(distrDir);
-        if (ch.consentIsOK() == false)
-            System.exit(0);
+        if (!silent) {
+            ConsentHandler ch = new ConsentHandler(distrDir);
+            if (ch.consentIsOK() == false)
+                System.exit(0);
+        }
     }
 
 
@@ -314,11 +342,65 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
                 assetList.get(i));
         }
 
+        // record the URL of the active JNLP file
+        if (StringUtils.hasValue(jnlpLocation))
+            systemProperties.put(JNLP_URL_PROP, jnlpLocation);
+
         // record the "usage log file" setting
         File usageLog = new File(distrDir,
                 DistributionManager.USAGE_LOG_FILENAME);
         systemProperties.put(USAGE_LOG_PROP,
             usageLog.getAbsolutePath() + assetManager.getUsageFileList());
+    }
+
+
+    /**
+     * If silent-mode found a new/different launch profile for this dataset
+     * (typically because a new launch profile was released and has been
+     * successfully downloaded), return an object that can relaunch the app.
+     */
+    private Runnable getRelauncherIfUpdateNeeded() {
+        if (isUpdateNeeded())
+            return new Relauncher();
+        else
+            return null;
+    }
+
+    private boolean isUpdateNeeded() {
+        // if we were unable to find a distribution to update to, abort
+        if (distrDir == null)
+            return false;
+
+        // return false if we're already running from the given directory,
+        // true if a change is needed.
+        try {
+            Class clz = Class.forName(PDASH_MAIN_CLASS);
+            File pdashJar = RuntimeUtils.getClasspathFile(clz);
+            File pdashJarDir = pdashJar.getParentFile();
+            if (pdashJarDir.equals(distrDir))
+                return false;
+            else
+                return true;
+
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private class Relauncher implements Runnable {
+        @Override
+        public void run() {
+            try {
+                System.out.println("Relaunching app");
+                launchApp();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public String toString() {
+            return res.getString("Update.Restarting");
+        }
     }
 
 
@@ -337,6 +419,10 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         // as a result, we must fork and allow the parent process to exit, or
         // the parent process will prevent future datasets from launching.
         if (isMac && !isRunningAsMain)
+            return true;
+
+        // if this was opened as a silent background launcher, always fork
+        if (silent)
             return true;
 
         // otherwise, we fork if the launcher doesn't grant us permission to
@@ -404,12 +490,30 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     // Utility methods
     //
 
-    private static void showStartupErrorAndExit(Object... message) {
+    private static void throwStartupError(Object... message) {
         String title = getRes("Launch_Error.Title");
-        showStartupErrorAndExitT(title, message);
+        throwStartupErrorT(title, message);
     }
 
-    private static void showStartupErrorAndExitT(String title,
+    private static void throwStartupErrorT(String title, Object... message) {
+        throw new StartupError(title, message);
+    }
+
+    private static class StartupError extends RuntimeException {
+        String title;
+        Object[] message;
+
+        private StartupError(String title, Object[] message) {
+            this.title = title;
+            this.message = message;
+        }
+
+        private void showAndExit() {
+            showStartupErrorAndExit(title, message);
+        }
+    }
+
+    private static void showStartupErrorAndExit(String title,
             Object... message) {
         message = new Object[] { message, new JOptionPaneTweaker.ToFront() };
         JOptionPane.showMessageDialog(null, message, title,
@@ -459,6 +563,8 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
 
 
     private static final String TEMPLATE_DIR_PROP_PREFIX = "net.sourceforge.processdash.templates.TemplateLoader.extraDir.";
+
+    private static final String JNLP_URL_PROP = JnlpDatasetLauncher.class.getName() + ".jnlpUrl";
 
     private static final String USAGE_LOG_PROP = "net.sourceforge.processdash.util.UsageLogger.fileList";
 
