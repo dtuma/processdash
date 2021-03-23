@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2020 Tuma Solutions, LLC
+// Copyright (C) 2017-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import teamdash.sync.DaemonMetadata.State;
 
 
 public class ExtSyncDaemonWBS {
@@ -51,6 +52,12 @@ public class ExtSyncDaemonWBS {
 
     protected String wbsLocation;
 
+    private TeamProjectDataTarget dataTarget;
+
+    private DaemonMetadata daemonMetadata;
+
+    private int loopDelay, retryDelay, refreshDelay, fileScanDelay, stateDelay;
+
 
     public ExtSyncDaemonWBS(ExtSyncDaemon parent, String wbsLocation) {
         this.log = parent.log;
@@ -64,7 +71,7 @@ public class ExtSyncDaemonWBS {
 
     public void run() throws Exception {
         // create a data target for synchronization
-        TeamProjectDataTarget dataTarget = TeamProjectDataTargetFactory
+        this.dataTarget = TeamProjectDataTargetFactory
                 .getBatchProcessTarget(wbsLocation);
 
         try {
@@ -73,6 +80,8 @@ public class ExtSyncDaemonWBS {
         } finally {
             // dispose of resources when finished
             dataTarget.dispose();
+            dataTarget = null;
+            daemonMetadata = null;
         }
     }
 
@@ -87,17 +96,20 @@ public class ExtSyncDaemonWBS {
         // create objects to perform the synchronization of this target
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
                 systemName, systemID, globalConfig);
+        this.daemonMetadata = coord.getDaemonMetadata();
         ExtNodeSet nodeSet = connection.getNodeSet(targetConfig,
             coord.syncData);
 
         // run the sync operation, potentially multiple times
         long heartbeat = System.currentTimeMillis() + DateUtils.HOUR;
         int errCount = 0;
-        int ldd = coord.isActiveSleepSupported() ? (int) DateUtils.HOUR : 5000;
-        int loopDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
-            "loop.syncInterval", ldd);
-        int retryDelay = ExtSyncUtil.getParamAsMillis(globalConfig,
-            "loop.retryDelay", 5000);
+        loopDelay = getMillisParam("loop.syncInterval",
+            isActiveSleepSupported() ? (int) DateUtils.HOUR : 5000);
+        retryDelay = getMillisParam("loop.retryDelay", 5000);
+        refreshDelay = getMillisParam("loop.refreshInterval", DateUtils.SECONDS);
+        fileScanDelay = getMillisParam("loop.fileScanInterval", 10 * DateUtils.SECONDS);
+        stateDelay = getMillisParam("loop.stateInterval", 5 * DateUtils.MINUTES);
+        daemonMetadata.setRefreshInterval(refreshDelay);
 
         do {
             long start = System.currentTimeMillis();
@@ -141,7 +153,7 @@ public class ExtSyncDaemonWBS {
                 log.info("Press enter to repeat.");
                 System.console().readLine();
             } else if (wait > 0) {
-                coord.sleep(wait);
+                sleep(wait, coord);
             }
 
         } while (loopDelay >= 0);
@@ -177,6 +189,11 @@ public class ExtSyncDaemonWBS {
         return null;
     }
 
+    private int getMillisParam(String propName, long defaultMillis) {
+        return ExtSyncUtil.getParamAsMillis(globalConfig, propName,
+            (int) defaultMillis);
+    }
+
     private int loopDelayMillis(int loopDelay, int errCount, int retryDelay) {
         if (loopDelay <= 0 || errCount == 0)
             return loopDelay;
@@ -186,6 +203,66 @@ public class ExtSyncDaemonWBS {
             return 5 * retryDelay;
         else
             return 10 * retryDelay;
+    }
+
+    private boolean isActiveSleepSupported() {
+        return daemonMetadata.isSyncRequestSupported();
+    }
+
+    private void sleep(long duration, ExtSyncCoordinator coord)
+            throws IOException {
+        if (isActiveSleepSupported() == false)
+            sleepSimply(duration);
+        else
+            sleepWithActivityChecking(duration, coord);
+    }
+
+    private void sleepSimply(long duration) throws IOException {
+        daemonMetadata.setState(State.Sleep, duration);
+        try {
+            Thread.sleep(duration);
+        } catch (InterruptedException ie) {}
+    }
+
+    private void sleepWithActivityChecking(long duration,
+            ExtSyncCoordinator coord) throws IOException {
+        // calculate the maximum amount of time our sleep should last
+        long remainingTime = duration;
+        long now = System.currentTimeMillis();
+        long finishTime = now + remainingTime;
+        long nextFileScan = 0, nextStatePublish = 0;
+
+        // loop for up to the requested duration
+        while (remainingTime > 0) {
+            // if a client has requested a refresh, wake up
+            if (daemonMetadata.isSyncRequestPending())
+                return;
+
+            // periodically check to see if any of the files in our target
+            // directory have been externally modified. If so, wake up
+            if (now > nextFileScan) {
+                if (coord.targetFilesHaveChanged())
+                    return;
+                nextFileScan = now + fileScanDelay;
+            }
+
+            // periodically update the state file, to let clients know we're
+            // still alive but sleeping
+            if (now > nextStatePublish) {
+                daemonMetadata.setState(State.Sleep,
+                    Math.min(remainingTime, stateDelay));
+                nextStatePublish = now + stateDelay;
+            }
+
+            // sleep for a moment before checking for activity again
+            try {
+                Thread.sleep(refreshDelay);
+            } catch (InterruptedException ie) {}
+
+            // recalc how much longer we should sleep after the operations above
+            now = System.currentTimeMillis();
+            remainingTime = finishTime - now;
+        }
     }
 
 }

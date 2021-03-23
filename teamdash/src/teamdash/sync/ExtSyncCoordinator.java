@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.util.DateUtils;
 
 import teamdash.sync.DaemonMetadata.State;
 import teamdash.sync.ExtNodeSet.ExportCreationCapable;
@@ -53,8 +52,6 @@ public class ExtSyncCoordinator {
     private String extSystemID;
 
     protected SyncDataFile syncData;
-
-    private int refreshDelay, fileScanDelay, stateDelay;
 
     private DaemonMetadata daemonMetadata;
 
@@ -84,14 +81,7 @@ public class ExtSyncCoordinator {
                 extSystemID + "-sync.pdash");
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
         this.log = syncData.getLogger();
-        this.refreshDelay = ExtSyncUtil.getParamAsMillis(config,
-            "loop.refreshInterval", (int) DateUtils.SECONDS);
-        this.fileScanDelay = ExtSyncUtil.getParamAsMillis(config,
-            "loop.fileScanInterval", 10 * (int) DateUtils.SECONDS);
-        this.stateDelay = ExtSyncUtil.getParamAsMillis(config,
-            "loop.stateInterval", 5 * (int) DateUtils.MINUTES);
         this.daemonMetadata = dataTarget.getDaemonMetadata(extSystemID);
-        this.daemonMetadata.setRefreshInterval(refreshDelay);
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
         this.inboundTime = new ElapsedTimeMonitor(20, 5000);
         this.outboundTime = new ElapsedTimeMonitor(20, 1000);
@@ -289,65 +279,7 @@ public class ExtSyncCoordinator {
     }
 
 
-    public boolean isActiveSleepSupported() {
-        return daemonMetadata.isSyncRequestSupported();
-    }
-
-    public void sleep(long duration) throws IOException {
-        if (isActiveSleepSupported() == false)
-            sleepSimply(duration);
-        else
-            sleepWithActivityChecking(duration);
-    }
-
-    private void sleepSimply(long duration) throws IOException {
-        daemonMetadata.setState(State.Sleep, duration);
-        try {
-            Thread.sleep(duration);
-        } catch (InterruptedException ie) {}
-    }
-
-    private void sleepWithActivityChecking(long duration) throws IOException {
-        // calculate the maximum amount of time our sleep should last
-        long remainingTime = duration;
-        long now = System.currentTimeMillis();
-        long finishTime = now + remainingTime;
-        long nextFileScan = 0, nextStatePublish = 0;
-
-        // loop for up to the requested duration
-        while (remainingTime > 0) {
-            // if a client has requested a refresh, wake up
-            if (daemonMetadata.isSyncRequestPending())
-                return;
-
-            // periodically check to see if any of the files in our target
-            // directory have been externally modified. If so, wake up
-            if (now > nextFileScan) {
-                if (targetFilesHaveChanged())
-                    return;
-                nextFileScan = now + fileScanDelay;
-            }
-
-            // periodically update the state file, to let clients know we're
-            // still alive but sleeping
-            if (now > nextStatePublish) {
-                daemonMetadata.setState(State.Sleep,
-                    Math.min(remainingTime, stateDelay));
-                nextStatePublish = now + stateDelay;
-            }
-
-            // sleep for a moment before checking for activity again
-            try {
-                Thread.sleep(refreshDelay);
-            } catch (InterruptedException ie) {}
-
-            // recalc how much longer we should sleep after the operations above
-            now = System.currentTimeMillis();
-            remainingTime = finishTime - now;
-        }
-    }
-
-    private boolean targetFilesHaveChanged() {
+    public boolean targetFilesHaveChanged() {
         long newFileTime = 0;
         File[] files = dataTarget.getDirectory().listFiles();
         if (files != null) {
@@ -365,6 +297,9 @@ public class ExtSyncCoordinator {
         }
     }
 
+    public DaemonMetadata getDaemonMetadata() {
+        return daemonMetadata;
+    }
 
     public SyncMetadata getMetadata() {
         return metadata;
