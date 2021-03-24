@@ -136,6 +136,10 @@ public class SaveAsExcelAction extends AbstractAction {
             writer.addData(e.getKey(), dataTable, e.getValue());
         }
 
+        // create worksheets for other top-level data models
+        writer.addData(resources.getString("Workflows_Sheet"),
+            data.getWorkflowJTable());
+
         // save the resulting Excel file
         try {
             writer.save(f);

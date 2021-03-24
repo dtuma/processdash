@@ -1144,12 +1144,20 @@ public class WBSEditor implements WindowListener, SaveListener,
             return tabPanel.dataTable;
         }
 
+        public WorkflowJTable getWorkflowJTable() {
+            maybeCreateWorkflowEditor();
+            return workflowEditor.table;
+        }
+
     }
 
     private void showWorkflowEditor() {
-        if (workflowEditor != null)
-            workflowEditor.show();
-        else {
+        maybeCreateWorkflowEditor();
+        workflowEditor.show();
+    }
+
+    private void maybeCreateWorkflowEditor() {
+        if (workflowEditor == null) {
             workflowEditor = new WorkflowEditor(teamProject, wbsWindowTitle,
                     guiPrefs);
             workflowEditor.addChangeListener(this.dirtyListener);

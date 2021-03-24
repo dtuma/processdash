@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.excel.ExcelValueExporter;
 
 public class WorkflowPercentageColumn extends AbstractNumericColumn implements
         CustomRenderedColumn {
@@ -87,7 +88,8 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
         return new CellRenderer();
     }
 
-    private static class CellRenderer extends WorkflowTableCellRenderer {
+    private static class CellRenderer extends WorkflowTableCellRenderer
+            implements ExcelValueExporter {
 
         public CellRenderer() {
             setHorizontalAlignment(JLabel.RIGHT);
@@ -102,6 +104,17 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
                 return resources.format("Workflow.Percent.Num_FMT",
                     String.valueOf(ndv));
             }
+        }
+
+        public Object getValueForExcelExport(Object value) {
+            if (value instanceof NumericDataValue) {
+                NumericDataValue ndv = (NumericDataValue) value;
+                if (ndv.value == 100)
+                    return null;
+                else
+                    ndv.value /= 100;
+            }
+            return value;
         }
 
     }

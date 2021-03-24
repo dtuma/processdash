@@ -83,6 +83,10 @@ public class WBSExcelWriter {
         out.close();
     }
 
+    public void addData(String tabName, JTable table) {
+        addData(tabName, table, table.getColumnModel());
+    }
+
     public void addData(String tabName, JTable table,
             TableColumnModel columns) {
         addData(tabName, table, filterColumns(table.getModel(), columns,

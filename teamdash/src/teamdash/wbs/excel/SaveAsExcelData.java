@@ -25,11 +25,14 @@ package teamdash.wbs.excel;
 
 import teamdash.wbs.DataJTable;
 import teamdash.wbs.WBSTabPanel;
+import teamdash.wbs.WorkflowJTable;
 
 public interface SaveAsExcelData {
 
     public WBSTabPanel getWBSTabPanel();
 
     public DataJTable getDataJTable();
+
+    public WorkflowJTable getWorkflowJTable();
 
 }
