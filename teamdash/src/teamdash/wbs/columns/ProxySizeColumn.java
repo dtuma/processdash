@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2020 Tuma Solutions, LLC
+// Copyright (C) 2014-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.excel.ExcelExportableValue;
 
 public class ProxySizeColumn extends AbstractNumericColumn implements
         CalculatedDataColumn, CustomRenderedColumn {
@@ -347,7 +348,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
      * row is not a number, so this class wraps it as a pseudo-number so it can
      * be displayed anyway.
      */
-    private class SizeMetricValue extends NumericDataValue {
+    private class SizeMetricValue extends NumericDataValue
+            implements ExcelExportableValue {
 
         private SizeMetric metric;
 
@@ -359,6 +361,10 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             this.metric = metric;
             this.display = display;
             this.errorMessage = errorMessage;
+        }
+
+        public Object getValueForExcelExport() {
+            return toString();
         }
 
         @Override

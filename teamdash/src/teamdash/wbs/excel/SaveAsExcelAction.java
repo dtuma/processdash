@@ -141,6 +141,8 @@ public class SaveAsExcelAction extends AbstractAction {
             data.getWorkflowJTable());
         writer.addData(resources.getString("Size_Metrics_Sheet"),
             data.getSizeMetricsJTable());
+        writer.addData(resources.getString("Proxy_Tables_Sheet"),
+            data.getProxyJTable());
 
         // save the resulting Excel file
         try {

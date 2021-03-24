@@ -1154,6 +1154,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             return sizeMetricsEditor.table;
         }
 
+        public ProxyJTable getProxyJTable() {
+            maybeCreateProxyEditor();
+            return proxyEditor.table;
+        }
+
     }
 
     private void showWorkflowEditor() {
@@ -1192,9 +1197,12 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void showProxyEditor() {
-        if (proxyEditor != null)
-            proxyEditor.show();
-        else {
+        maybeCreateProxyEditor();
+        proxyEditor.show();
+    }
+
+    private void maybeCreateProxyEditor() {
+        if (proxyEditor == null) {
             proxyEditor = new ProxyEditor(teamProject, proxyModel,
                     wbsWindowTitle, guiPrefs);
             proxyEditor.addChangeListener(this.dirtyListener);
@@ -1202,7 +1210,6 @@ public class WBSEditor implements WindowListener, SaveListener,
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Proxies,
                     proxyEditor);
         }
-        proxyEditor.show();
     }
 
     private void showMilestonesEditor() {
