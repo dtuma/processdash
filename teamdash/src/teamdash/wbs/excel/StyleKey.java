@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,17 +32,17 @@ import java.awt.Font;
 
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
-import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
 
 public class StyleKey {
 
-    private static final short BLACK = HSSFColor.BLACK.index;
+    private static final short BLACK = HSSFColorPredefined.BLACK.getIndex();
 
-    private static final short WHITE = HSSFColor.WHITE.index;
+    private static final short WHITE = HSSFColorPredefined.WHITE.getIndex();
 
-    private static final short RED = HSSFColor.RED.index;
+    private static final short RED = HSSFColorPredefined.RED.getIndex();
 
-    private static final short BLUE = HSSFColor.BLUE.index;
+    private static final short BLUE = HSSFColorPredefined.BLUE.getIndex();
 
 
     short color = BLACK;
@@ -59,7 +59,7 @@ public class StyleKey {
         if (color != BLACK)
             font.setColor(color);
         if (bold)
-            font.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+            font.setBold(true);
         if (italic)
             font.setItalic(true);
     }

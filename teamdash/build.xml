@@ -49,7 +49,7 @@ The author(s) may be contacted at:
   <property name="svg.jar" value="${processdash.lib}/svgSalamander.jar"/>
   <property name="dashlibsrc" value="${processdash.lib}/src"/>
   <property name="swingx.jar" value="${processdash.lib}/swingx-0.9.1.jar"/>
-  <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
+  <property name="poi.jar" value="lib/poi-3.17-20170915.jar"/>
   <property name="apple-eawt.jar" value="lib/com-apple-eawt.jar"/>
   <property name="servlet.jar" value="lib/servlet-api.jar"/>
   <property name="junit.jar" value="lib/junit-4.3.1.jar"/>
