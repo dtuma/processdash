@@ -179,6 +179,7 @@ import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
+import teamdash.wbs.excel.SaveAsExcelData;
 import teamdash.wbs.icons.WBSEditorIcon;
 
 public class WBSEditor implements WindowListener, SaveListener,
@@ -1133,6 +1134,18 @@ public class WBSEditor implements WindowListener, SaveListener,
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private class SaveAsExcelDataImpl implements SaveAsExcelData {
+
+        public WBSTabPanel getWBSTabPanel() {
+            return tabPanel;
+        }
+
+        public DataJTable getDataJTable() {
+            return tabPanel.dataTable;
+        }
+
+    }
+
     private void showWorkflowEditor() {
         if (workflowEditor != null)
             workflowEditor.show();
@@ -1196,7 +1209,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             DataTableModel dataModel, String initials) {
         JMenuBar result = new JMenuBar();
 
-        result.add(buildFileMenu(dataModel, tabPanel.getFileActions()));
+        result.add(buildFileMenu(dataModel,
+            tabPanel.getFileActions(new SaveAsExcelDataImpl())));
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
         if (isMode(MODE_PLAIN))

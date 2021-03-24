@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,14 +32,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFDataFormat;
@@ -50,7 +55,6 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 
-import teamdash.wbs.DataJTable;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
@@ -60,12 +64,6 @@ import teamdash.wbs.WrappedValue;
 
 public class WBSExcelWriter {
 
-    private DataJTable table;
-
-    private WBSModel wbs;
-
-    private DataTableModel data;
-
     private HSSFWorkbook xls;
 
     private StyleCache styleCache;
@@ -73,10 +71,7 @@ public class WBSExcelWriter {
     private Set<String> tabNames;
 
 
-    public WBSExcelWriter(DataJTable dataTable) {
-        this.table = dataTable;
-        this.data = (DataTableModel) dataTable.getModel();
-        this.wbs = data.getWBSModel();
+    public WBSExcelWriter() {
         this.xls = new HSSFWorkbook();
         this.styleCache = new StyleCache(xls);
         this.tabNames = new HashSet();
@@ -88,7 +83,26 @@ public class WBSExcelWriter {
         out.close();
     }
 
-    public void addData(String tabName, TableColumnModel columns) {
+    public void addData(String tabName, JTable table,
+            TableColumnModel columns) {
+        addData(tabName, table, filterColumns(table.getModel(), columns,
+            Arrays.asList(WBSNode.class, Color.class)));
+    }
+
+    public static List<TableColumn> filterColumns(TableModel model,
+            TableColumnModel columns, List thingsToSkip) {
+        List<TableColumn> result = new ArrayList<TableColumn>();
+        for (int i = 0; i < columns.getColumnCount(); i++) {
+            TableColumn col = columns.getColumn(i);
+            Class clz = model.getColumnClass(col.getModelIndex());
+            if (!thingsToSkip.contains(i) && !thingsToSkip.contains(clz))
+                result.add(col);
+        }
+        return result;
+    }
+
+    public void addData(String tabName, JTable table,
+            List<TableColumn> columns) {
         String safeTabName = cleanupTabName(tabName);
         HSSFSheet sheet = xls.createSheet(safeTabName);
 
@@ -98,9 +112,11 @@ public class WBSExcelWriter {
         // sheet.setRowSumsBelow(false);
         sheet.setAlternativeExpression(false);
 
-        createHeaderRow(sheet, columns);
-        writeDataForNodes(sheet, 1, wbs.getRoot(), columns);
-        autoSizeColumns(sheet, columns);
+        DataTableModel data = (DataTableModel) table.getModel();
+        WBSModel wbs = data.getWBSModel();
+        createHeaderRow(sheet, data, 1, columns);
+        writeDataForNodes(sheet, 1, wbs, wbs.getRoot(), data, table, 1, columns);
+        autoSizeColumns(sheet, 1 + columns.size());
         sheet.createFreezePane(1, 1);
     }
 
@@ -142,24 +158,26 @@ public class WBSExcelWriter {
         return s;
     }
 
-    private void createHeaderRow(HSSFSheet sheet, TableColumnModel columns) {
+    private void createHeaderRow(HSSFSheet sheet, TableModel data,
+            int leftColPad, List<TableColumn> columns) {
         HSSFRow row = sheet.createRow(0);
         StyleKey style = new StyleKey();
         style.bold = true;
-        for (int i = 0; i < columns.getColumnCount(); i++) {
-            TableColumn col = columns.getColumn(i);
+        for (int i = 0; i < columns.size(); i++) {
+            TableColumn col = columns.get(i);
             String columnName = data.getColumnName(col.getModelIndex());
-            HSSFCell cell = row.createCell(s(i + 1));
+            HSSFCell cell = row.createCell(s(i + leftColPad));
             cell.setCellValue(new HSSFRichTextString(columnName));
             styleCache.applyStyle(cell, style);
         }
     }
 
-    private int writeDataForNodes(HSSFSheet sheet, int rowNum, WBSNode node,
-            TableColumnModel columns) {
+    private int writeDataForNodes(HSSFSheet sheet, int rowNum, WBSModel wbs,
+            WBSNode node, DataTableModel data, JTable table, int leftColPad,
+            List<TableColumn> columns) {
         HSSFRow row = sheet.createRow(rowNum);
         writeCellForNodeName(node, row);
-        writeCellsForNodeData(row, node, columns);
+        writeCellsForNodeData(row, node, data, table, leftColPad, columns);
 
         WBSNode[] children = wbs.getChildren(node);
         if (children.length == 0)
@@ -168,8 +186,8 @@ public class WBSExcelWriter {
         int childRowPos = rowNum;
         for (WBSNode child : children) {
             if (!child.isHidden())
-                childRowPos = writeDataForNodes(sheet, childRowPos + 1, child,
-                    columns);
+                childRowPos = writeDataForNodes(sheet, childRowPos + 1, wbs,
+                    child, data, table, leftColPad, columns);
         }
 
         sheet.groupRow(rowNum + 1, childRowPos);
@@ -195,9 +213,10 @@ public class WBSExcelWriter {
     }
 
     private void writeCellsForNodeData(HSSFRow row, WBSNode node,
-            TableColumnModel columns) {
-        for (int c = 0; c < columns.getColumnCount(); c++) {
-            TableColumn col = columns.getColumn(c);
+            DataTableModel data, JTable table, int leftColPad,
+            List<TableColumn> columns) {
+        for (int c = 0; c < columns.size(); c++) {
+            TableColumn col = columns.get(c);
             int columnIndex = col.getModelIndex();
             Object value = data.getValueAt(node, columnIndex);
 
@@ -209,7 +228,7 @@ public class WBSExcelWriter {
             Component comp = rend.getTableCellRendererComponent(table, value,
                 false, false, 99, 99);
 
-            HSSFCell cell = row.createCell(s(c + 1));
+            HSSFCell cell = row.createCell(s(c + leftColPad));
             copyCellData(cell, rend, comp, value);
         }
 
@@ -226,6 +245,10 @@ public class WBSExcelWriter {
             text = stripHtml(text);
         }
 
+        if (value instanceof ExcelExportableValue)
+            value = ((ExcelExportableValue) value).getValueForExcelExport();
+        if (rend instanceof ExcelValueExporter)
+            value = ((ExcelValueExporter) rend).getValueForExcelExport(value);
         Object unwrapped = WrappedValue.unwrap(value);
 
         if (unwrapped instanceof Date) {
@@ -271,8 +294,8 @@ public class WBSExcelWriter {
         return HTMLUtils.unescapeEntities(str);
     }
 
-    private void autoSizeColumns(HSSFSheet sheet, TableColumnModel columns) {
-        for (int i = 0; i <= columns.getColumnCount(); i++)
+    private void autoSizeColumns(HSSFSheet sheet, int numColumns) {
+        for (int i = 0; i < numColumns; i++)
             sheet.autoSizeColumn(s(i));
     }
 

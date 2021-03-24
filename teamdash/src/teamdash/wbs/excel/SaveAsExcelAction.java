@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -86,7 +86,8 @@ public class SaveAsExcelAction extends AbstractAction {
         if (lastFileSelected != null)
             fileChooser.setSelectedFile(lastFileSelected);
 
-        Component parent = SwingUtilities.getWindowAncestor(getWBSTabPanel());
+        Component parent = SwingUtilities
+                .getWindowAncestor(getSaveAsExcelData().getWBSTabPanel());
         int userOption = fileChooser.showSaveDialog(parent);
         if (userOption != JFileChooser.APPROVE_OPTION)
             return null;
@@ -123,15 +124,19 @@ public class SaveAsExcelAction extends AbstractAction {
 
 
     private void writeData(File f) {
-        DataJTable dataTable = getDataJTable();
-        WBSTabPanel tabPanel = getWBSTabPanel();
+        WBSExcelWriter writer = new WBSExcelWriter();
 
-        WBSExcelWriter writer = new WBSExcelWriter(dataTable);
+        // create worksheets for each of the tabs in the main WBS
+        SaveAsExcelData data = getSaveAsExcelData();
+        DataJTable dataTable = data.getDataJTable();
+        WBSTabPanel tabPanel = data.getWBSTabPanel();
+
         LinkedHashMap<String, TableColumnModel> tabs = tabPanel.getTabData();
         for (Map.Entry<String, TableColumnModel> e : tabs.entrySet()) {
-            writer.addData(e.getKey(), e.getValue());
+            writer.addData(e.getKey(), dataTable, e.getValue());
         }
 
+        // save the resulting Excel file
         try {
             writer.save(f);
         } catch (IOException ioe) {
@@ -143,12 +148,8 @@ public class SaveAsExcelAction extends AbstractAction {
 
     }
 
-    private WBSTabPanel getWBSTabPanel() {
-        return (WBSTabPanel) getValue(WBSTabPanel.class.getName());
-    }
-
-    private DataJTable getDataJTable() {
-        return (DataJTable) getValue(DataJTable.class.getName());
+    private SaveAsExcelData getSaveAsExcelData() {
+        return (SaveAsExcelData) getValue(SaveAsExcelData.class.getName());
     }
 
 }

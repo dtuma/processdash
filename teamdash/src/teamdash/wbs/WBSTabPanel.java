@@ -109,6 +109,7 @@ import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.CustomColumnSpecs;
 import teamdash.wbs.columns.CustomColumnsAction;
 import teamdash.wbs.columns.WBSNodeColumn;
+import teamdash.wbs.excel.SaveAsExcelData;
 
 /** Class to display the WBS editor panel
  */
@@ -578,13 +579,13 @@ public class WBSTabPanel extends JLayeredPane implements
 
 
     /** Get a list of file-related actions for the work breakdown structure */
-    public Action[] getFileActions() {
+    public Action[] getFileActions(SaveAsExcelData saveAsExcelData) {
         List<Action> result = new ArrayList<Action>();
         try {
             Class clazz = Class.forName("teamdash.wbs.excel.SaveAsExcelAction");
             Action saveAsExcelAction = (Action) clazz.newInstance();
-            saveAsExcelAction.putValue(DataJTable.class.getName(), dataTable);
-            saveAsExcelAction.putValue(WBSTabPanel.class.getName(), this);
+            saveAsExcelAction.putValue(SaveAsExcelData.class.getName(),
+                saveAsExcelData);
             result.add(saveAsExcelAction);
         } catch (Throwable t) {
             // a class not found error will be thrown if the apache libraries
