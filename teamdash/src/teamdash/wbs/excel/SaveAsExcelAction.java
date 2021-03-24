@@ -143,6 +143,8 @@ public class SaveAsExcelAction extends AbstractAction {
             data.getSizeMetricsJTable());
         writer.addData(resources.getString("Proxy_Tables_Sheet"),
             data.getProxyJTable());
+        writer.addData(resources.getString("Milestones_Sheet"),
+            data.getMilestonesTable());
 
         // save the resulting Excel file
         try {

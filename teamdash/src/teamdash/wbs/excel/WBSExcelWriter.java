@@ -271,6 +271,10 @@ public class WBSExcelWriter {
                 style.format = PERCENT_FORMAT;
             }
 
+        } else if (unwrapped instanceof Boolean) {
+            if ((Boolean) unwrapped)
+                cell.setCellValue(new HSSFRichTextString("X"));
+
         } else if (text == null || text.trim().length() == 0) {
             return;
 

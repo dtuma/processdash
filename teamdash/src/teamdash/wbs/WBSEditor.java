@@ -1159,6 +1159,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             return proxyEditor.table;
         }
 
+        public WBSJTable getMilestonesTable() {
+            maybeCreateMilestonesEditor();
+            return milestonesEditor.table;
+        }
+
     }
 
     private void showWorkflowEditor() {
@@ -1213,9 +1218,12 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void showMilestonesEditor() {
-        if (milestonesEditor != null)
-            milestonesEditor.show();
-        else {
+        maybeCreateMilestonesEditor();
+        milestonesEditor.show();
+    }
+
+    private void maybeCreateMilestonesEditor() {
+        if (milestonesEditor == null) {
             milestonesEditor = new MilestonesEditor(teamProject,
                     milestonesModel, wbsWindowTitle, guiPrefs);
             milestonesEditor.addChangeListener(this.dirtyListener);
@@ -1223,7 +1231,6 @@ public class WBSEditor implements WindowListener, SaveListener,
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Milestones,
                     milestonesEditor);
         }
-        milestonesEditor.show();
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel,
