@@ -139,6 +139,8 @@ public class SaveAsExcelAction extends AbstractAction {
         // create worksheets for other top-level data models
         writer.addData(resources.getString("Workflows_Sheet"),
             data.getWorkflowJTable());
+        writer.addData(resources.getString("Size_Metrics_Sheet"),
+            data.getSizeMetricsJTable());
 
         // save the resulting Excel file
         try {

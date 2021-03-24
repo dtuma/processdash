@@ -24,6 +24,7 @@
 package teamdash.wbs.excel;
 
 import teamdash.wbs.DataJTable;
+import teamdash.wbs.SizeMetricsJTable;
 import teamdash.wbs.WBSTabPanel;
 import teamdash.wbs.WorkflowJTable;
 
@@ -34,5 +35,7 @@ public interface SaveAsExcelData {
     public DataJTable getDataJTable();
 
     public WorkflowJTable getWorkflowJTable();
+
+    public SizeMetricsJTable getSizeMetricsJTable();
 
 }

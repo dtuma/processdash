@@ -1149,6 +1149,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             return workflowEditor.table;
         }
 
+        public SizeMetricsJTable getSizeMetricsJTable() {
+            maybeCreateSizeMetricsEditor();
+            return sizeMetricsEditor.table;
+        }
+
     }
 
     private void showWorkflowEditor() {
@@ -1171,16 +1176,18 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void showSizeMetricsEditor() {
-        if (sizeMetricsEditor != null)
-            sizeMetricsEditor.show();
-        else {
+        maybeCreateSizeMetricsEditor();
+        sizeMetricsEditor.show();
+    }
+
+    private void maybeCreateSizeMetricsEditor() {
+        if (sizeMetricsEditor == null) {
             sizeMetricsEditor = new SizeMetricsEditor(teamProject,
                     sizeMetricsModel, wbsWindowTitle, guiPrefs);
             sizeMetricsEditor.addChangeListener(this.dirtyListener);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.SizeMetrics,
                     sizeMetricsEditor);
-            sizeMetricsEditor.show();
         }
     }
 
