@@ -145,6 +145,8 @@ public class SaveAsExcelAction extends AbstractAction {
             data.getProxyJTable());
         writer.addData(resources.getString("Milestones_Sheet"),
             data.getMilestonesTable());
+        writer.addData(resources.getString("Team_List_Sheet"),
+            data.getTeamMemberListTable());
 
         // save the resulting Excel file
         try {

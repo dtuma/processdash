@@ -23,6 +23,7 @@
 
 package teamdash.wbs.excel;
 
+import teamdash.team.TeamMemberListTable;
 import teamdash.wbs.DataJTable;
 import teamdash.wbs.ProxyJTable;
 import teamdash.wbs.SizeMetricsJTable;
@@ -43,5 +44,7 @@ public interface SaveAsExcelData {
     public ProxyJTable getProxyJTable();
 
     public WBSJTable getMilestonesTable();
+
+    public TeamMemberListTable getTeamMemberListTable();
 
 }

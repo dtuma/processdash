@@ -154,8 +154,10 @@ import teamdash.sync.ExtRefreshCoordinator;
 import teamdash.sync.ExtSyncUtil;
 import teamdash.team.SubteamBalancingMenu;
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.team.TeamMemberListEditor;
+import teamdash.team.TeamMemberListTable;
 import teamdash.team.WeeklySchedule;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
@@ -1162,6 +1164,14 @@ public class WBSEditor implements WindowListener, SaveListener,
         public WBSJTable getMilestonesTable() {
             maybeCreateMilestonesEditor();
             return milestonesEditor.table;
+        }
+
+        public TeamMemberListTable getTeamMemberListTable() {
+            TeamMemberList tl = new TeamMemberList(
+                    teamProject.getTeamMemberList());
+            tl.setSchedulePrivacyFlags(null);
+            tl.setNumWeekColumns(104);
+            return new TeamMemberListTable(tl);
         }
 
     }

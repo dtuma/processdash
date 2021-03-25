@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -91,8 +91,10 @@ import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TableFontHandler;
 import teamdash.wbs.WBSZoom;
+import teamdash.wbs.excel.ExcelValueExporter;
 
 
 
@@ -743,7 +745,8 @@ public class TeamMemberListTable extends JTable {
     }
 
 
-    private class WeekDataRenderer extends DefaultTableCellRenderer {
+    private class WeekDataRenderer extends DefaultTableCellRenderer
+            implements ExcelValueExporter {
 
         NumberFormat hoursFormat;
 
@@ -762,6 +765,8 @@ public class TeamMemberListTable extends JTable {
         JComponent uncertain;
 
         Color unmodifiableCellBackground;
+
+        double lastExcelValue;
 
         public WeekDataRenderer(NumberFormat hoursFormat) {
             this.hoursFormat = hoursFormat;
@@ -864,6 +869,7 @@ public class TeamMemberListTable extends JTable {
             }
 
             if (component == this) {
+                lastExcelValue = -1;
                 PrivacyType pt = (PrivacyType) table.getModel().getValueAt(row,
                     TeamMemberList.PRIVACY_COLUMN);
                 if (pt == PrivacyType.Censored)
@@ -871,6 +877,7 @@ public class TeamMemberListTable extends JTable {
                 else if (pt == PrivacyType.Uncertain)
                     return uncertain;
 
+                lastExcelValue = time;
                 String display = hoursFormat.format(time);
                 if (tokenDragHandler.isDragging())
                     isSelected = hasFocus = false;
@@ -879,6 +886,7 @@ public class TeamMemberListTable extends JTable {
                 setFont(f);
             }
             else {
+                lastExcelValue = Double.NaN;
                 if (isSelected && hasFocus)
                     component.setBackground(Color.LIGHT_GRAY);
                 else
@@ -886,6 +894,15 @@ public class TeamMemberListTable extends JTable {
             }
 
             return component;
+        }
+
+        public Object getValueForExcelExport(Object value) {
+            if (Double.isNaN(lastExcelValue))
+                return null;
+            else if (lastExcelValue < 0)
+                return "*";
+            else
+                return new NumericDataValue(lastExcelValue);
         }
     }
 
