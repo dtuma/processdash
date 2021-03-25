@@ -116,11 +116,27 @@ public class WBSExcelWriter {
         // sheet.setRowSumsBelow(false);
         sheet.setAlternativeExpression(false);
 
-        DataTableModel data = (DataTableModel) table.getModel();
+        if (table.getModel() instanceof DataTableModel)
+            addWbsTableData(sheet, table, (DataTableModel) table.getModel(),
+                columns);
+        else
+            addTableData(sheet, table, table.getModel(), columns);
+    }
+
+    private void addWbsTableData(HSSFSheet sheet, JTable table,
+            DataTableModel data, List<TableColumn> columns) {
         WBSModel wbs = data.getWBSModel();
         createHeaderRow(sheet, data, 1, columns);
         writeDataForNodes(sheet, 1, wbs, wbs.getRoot(), data, table, 1, columns);
         autoSizeColumns(sheet, 1 + columns.size());
+        sheet.createFreezePane(1, 1);
+    }
+
+    private void addTableData(HSSFSheet sheet, JTable table, TableModel data,
+            List<TableColumn> columns) {
+        createHeaderRow(sheet, data, 0, columns);
+        writeDataForTableRows(sheet, data, table, columns);
+        autoSizeColumns(sheet, columns.size());
         sheet.createFreezePane(1, 1);
     }
 
@@ -181,7 +197,7 @@ public class WBSExcelWriter {
             List<TableColumn> columns) {
         HSSFRow row = sheet.createRow(rowNum);
         writeCellForNodeName(node, row);
-        writeCellsForNodeData(row, node, data, table, leftColPad, columns);
+        writeCellsForRowData(row, node, data, table, leftColPad, columns);
 
         WBSNode[] children = wbs.getChildren(node);
         if (children.length == 0)
@@ -216,13 +232,29 @@ public class WBSExcelWriter {
         styleCache.applyStyle(cell, style);
     }
 
-    private void writeCellsForNodeData(HSSFRow row, WBSNode node,
-            DataTableModel data, JTable table, int leftColPad,
+    private void writeDataForTableRows(HSSFSheet sheet, TableModel data,
+            JTable table, List<TableColumn> columns) {
+        for (int rowNum = 0; rowNum < data.getRowCount(); rowNum++) {
+            HSSFRow row = sheet.createRow(rowNum + 1);
+            writeCellsForRowData(row, rowNum, data, table, 0, columns);
+        }
+    }
+
+    private void writeCellsForRowData(HSSFRow row, Object target,
+            TableModel data, JTable table, int leftColPad,
             List<TableColumn> columns) {
         for (int c = 0; c < columns.size(); c++) {
             TableColumn col = columns.get(c);
-            int columnIndex = col.getModelIndex();
-            Object value = data.getValueAt(node, columnIndex);
+            int columnIndex = col.getModelIndex(), rowIndex;
+            Object value;
+            if (data instanceof DataTableModel) {
+                rowIndex = 99;
+                value = ((DataTableModel) data).getValueAt((WBSNode) target,
+                    columnIndex);
+            } else {
+                rowIndex = (Integer) target;
+                value = data.getValueAt(rowIndex, columnIndex);
+            }
 
             TableCellRenderer rend = col.getCellRenderer();
             if (rend == null)
@@ -230,7 +262,7 @@ public class WBSExcelWriter {
                         .getColumnClass(columnIndex));
 
             Component comp = rend.getTableCellRendererComponent(table, value,
-                false, false, 99, 99);
+                false, false, rowIndex, columnIndex);
 
             HSSFCell cell = row.createCell(s(c + leftColPad));
             copyCellData(cell, rend, comp, value);
