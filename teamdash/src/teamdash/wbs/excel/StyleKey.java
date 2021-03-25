@@ -30,9 +30,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 
 public class StyleKey {
 
@@ -51,6 +55,8 @@ public class StyleKey {
 
     boolean italic = false;
 
+    HorizontalAlignment align = null;
+
     short indent = 0;
 
     short format = 0;
@@ -67,6 +73,17 @@ public class StyleKey {
     public void loadFrom(Component comp) {
         setColor(comp.getForeground());
         setFont(comp.getFont());
+        if (comp instanceof JLabel)
+            align = getAlignment((JLabel) comp);
+    }
+
+    private HorizontalAlignment getAlignment(JLabel comp) {
+        switch (comp.getHorizontalAlignment()) {
+        case SwingConstants.LEFT:   return HorizontalAlignment.LEFT;
+        case SwingConstants.CENTER: return HorizontalAlignment.CENTER;
+        case SwingConstants.RIGHT:  return HorizontalAlignment.RIGHT;
+        }
+        return null;
     }
 
     public void setColor(Color c) {
@@ -84,6 +101,8 @@ public class StyleKey {
     }
 
     public void configure(HSSFCellStyle style) {
+        if (align != null)
+            style.setAlignment(align);
         if (indent > 0)
             style.setIndention(indent);
         if (format > 0)
@@ -96,6 +115,7 @@ public class StyleKey {
             StyleKey that = (StyleKey) obj;
             return this.color == that.color && this.bold == that.bold
                     && this.italic == that.italic
+                    && this.align == that.align
                     && this.indent == that.indent
                     && this.format == that.format;
         } else {
@@ -108,6 +128,7 @@ public class StyleKey {
         int result = color;
         result = result << 1 + (bold ? 1 : 0);
         result = result << 1 + (italic ? 1 : 0);
+        result = result << 3 + (align == null ? 0 : align.getCode());
         result = result << 4 + indent;
         result = result << 7 + format;
         return result;
