@@ -72,6 +72,8 @@ public class WBSExcelWriter {
 
     private Set<String> tabNames;
 
+    private short[] decimalFormats;
+
 
     public WBSExcelWriter(DataJTable dataTable) {
         this.table = dataTable;
@@ -80,6 +82,10 @@ public class WBSExcelWriter {
         this.xls = new HSSFWorkbook();
         this.styleCache = new StyleCache(xls);
         this.tabNames = new HashSet();
+        HSSFDataFormat df = xls.getCreationHelper().createDataFormat();
+        this.decimalFormats = new short[] { df.getFormat("0"),
+                df.getFormat("0.0"), df.getFormat("0.00"),
+                df.getFormat("0.000") };
     }
 
     public void save(File f) throws IOException {
@@ -242,6 +248,8 @@ public class WBSExcelWriter {
                 style.setColor(Color.WHITE);
             } else if (text.indexOf('%') != -1) {
                 style.format = PERCENT_FORMAT;
+            } else {
+                setDecimalFormat(style, text);
             }
 
         } else if (text == null || text.trim().length() == 0) {
@@ -271,6 +279,27 @@ public class WBSExcelWriter {
         return HTMLUtils.unescapeEntities(str);
     }
 
+    private void setDecimalFormat(StyleKey style, String numText) {
+        // instruct Excel to use the same number of digits we used
+        int fractionLen = getNumFractionDigits(numText);
+        fractionLen = Math.max(fractionLen, 0);
+        fractionLen = Math.min(fractionLen, decimalFormats.length - 1);
+        style.format = decimalFormats[fractionLen];
+    }
+
+    private int getNumFractionDigits(String numText) {
+        // look for the decimal point in this number
+        int pos = numText.lastIndexOf(DECIMAL_POINT);
+
+        // for integers with no fraction, return 0
+        if (pos == -1)
+            return 0;
+
+        // return the number of digits that appear after the decimal
+        int fractionLen = numText.length() - pos - 1;
+        return fractionLen;
+    }
+
     private void autoSizeColumns(HSSFSheet sheet, TableColumnModel columns) {
         for (int i = 0; i <= columns.getColumnCount(); i++)
             sheet.autoSizeColumn(s(i));
@@ -283,6 +312,9 @@ public class WBSExcelWriter {
 
     private static final short PERCENT_FORMAT = HSSFDataFormat
             .getBuiltinFormat("0%");
+
+    private static final char DECIMAL_POINT = NumericDataValue.format(1.5)
+            .charAt(1);
 
     private static final DateFormat DATE_FORMATTER = new SimpleDateFormat(
             "M/d/yyyy");
