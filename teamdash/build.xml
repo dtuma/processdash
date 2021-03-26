@@ -518,15 +518,32 @@ class dependency has been added in a dashboard class?)
           <pathelement location="${processdash.dist}/pspdash.jar"/>
        </classpath>
        <arg value="${license-signing-file}"/>
-       <arg value="${plan-accel-license-dir}/planning-accelerator-license.xml"/>
+       <arg value="${plan-accel-license-file}"/>
     </java>
     <!-- create a JAR that includes the license file -->
     <property name="plan-accel.jar" value="Planning-Accelerator.jar"/>
     <jar destfile="${processdash.dist}/${plan-accel.jar}"
-         filesetmanifest="merge">
-       <zipfileset src="${processdash.dist}/WBSEditor.jar"/>
-       <fileset dir="${plan-accel-license-dir}"
-                includes="planning-accelerator-license.xml"/>
+         filesetmanifest="skip">
+       <!-- specify the manifest file contents -->
+       <manifest>
+         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
+         <attribute name="Specification-Title" value="Planning Accelerator"/>
+         <attribute name="Implementation-Title" value="Planning Accelerator"/>
+         <attribute name="Specification-Version" value="${teamtools.version}"/>
+         <attribute name="Implementation-Version" value="${teamtools.version}"/>
+         <attribute name="Specification-Vendor" value="Tuma Solutions, LLC"/>
+         <attribute name="Implementation-Vendor" value="Tuma Solutions, LLC"/>
+         <attribute name="Application-Name" value="Planning Accelerator"/>
+         <section name="net/sourceforge/processdash/tool/bridge/client/">
+            <attribute name="Implementation-Version" value="${dashboard.version}"/>
+         </section>
+       </manifest>
+       <zipfileset src="${processdash.dist}/WBSEditor.jar"
+                excludes="Templates/"/>
+       <zipfileset src="${processdash.dist}/WBSEditor.jar"
+                includes="Templates/resources/"/>
+       <zipfileset file="${plan-accel-license-file}"
+                fullpath="planning-accelerator-license.xml"/>
     </jar>
     <maybeSignJar jar="${processdash.dist}/${plan-accel.jar}" prefix="jnlpSign"/>
     <!-- create an executable version of that JAR -->
