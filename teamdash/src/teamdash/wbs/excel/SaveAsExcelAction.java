@@ -23,7 +23,6 @@
 
 package teamdash.wbs.excel;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
@@ -40,6 +40,7 @@ import javax.swing.table.TableColumnModel;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 
 import teamdash.wbs.DataJTable;
 import teamdash.wbs.IconFactory;
@@ -72,7 +73,7 @@ public class SaveAsExcelAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         File f = getOutputFile();
         if (f != null) {
-            writeData(f);
+            new FileWriter(f).start();
         }
     }
 
@@ -86,9 +87,7 @@ public class SaveAsExcelAction extends AbstractAction {
         if (lastFileSelected != null)
             fileChooser.setSelectedFile(lastFileSelected);
 
-        Component parent = SwingUtilities
-                .getWindowAncestor(getSaveAsExcelData().getWBSTabPanel());
-        int userOption = fileChooser.showSaveDialog(parent);
+        int userOption = fileChooser.showSaveDialog(getParentFrame());
         if (userOption != JFileChooser.APPROVE_OPTION)
             return null;
 
@@ -122,8 +121,36 @@ public class SaveAsExcelAction extends AbstractAction {
     }
 
 
+    private class FileWriter extends Thread {
 
-    private void writeData(File f) {
+        private File outputFile;
+        private PleaseWaitDialog waitDialog;
+
+        public FileWriter(File outputFile) {
+            this.outputFile = outputFile;
+            this.waitDialog = new PleaseWaitDialog(getParentFrame(),
+                    resources.getString("Dialog_Title"),
+                    resources.getString("Wait.Message"));
+        }
+
+        public void run() {
+            try {
+                writeData(outputFile);
+                waitDialog.setMessage(null,
+                    resources.getString("Wait.Finished"), 750);
+
+            } catch (Exception ioe) {
+                waitDialog.dispose();
+                Object message = resources.formatStrings("Error.Message_FMT",
+                    outputFile.getAbsolutePath());
+                JOptionPane.showMessageDialog(getParentFrame(), message,
+                    resources.getString("Error.Title"),
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void writeData(File f) throws IOException {
         WBSExcelWriter writer = new WBSExcelWriter();
 
         // create worksheets for each of the tabs in the main WBS
@@ -149,19 +176,16 @@ public class SaveAsExcelAction extends AbstractAction {
             data.getTeamMemberListTable());
 
         // save the resulting Excel file
-        try {
-            writer.save(f);
-        } catch (IOException ioe) {
-            Object message = resources.formatStrings("Error.Message_FMT",
-                f.getAbsolutePath());
-            JOptionPane.showMessageDialog(tabPanel, message,
-                resources.getString("Error.Title"), JOptionPane.ERROR_MESSAGE);
-        }
-
+        writer.save(f);
     }
 
     private SaveAsExcelData getSaveAsExcelData() {
         return (SaveAsExcelData) getValue(SaveAsExcelData.class.getName());
+    }
+
+    private JFrame getParentFrame() {
+        return (JFrame) SwingUtilities
+                .getWindowAncestor(getSaveAsExcelData().getWBSTabPanel());
     }
 
 }

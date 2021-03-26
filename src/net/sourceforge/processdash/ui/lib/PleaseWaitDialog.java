@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2014 Tuma Solutions, LLC
+// Copyright (C) 2013-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -40,6 +41,8 @@ import javax.swing.Timer;
 public class PleaseWaitDialog extends JDialog {
 
     private JLabel messageLabel;
+
+    private JProgressBar progressBar;
 
     private volatile boolean disposed;
 
@@ -70,17 +73,20 @@ public class PleaseWaitDialog extends JDialog {
             int displayDelay) {
         super(parent, title, true);
 
-        JPanel dialogContents = new JPanel(new BorderLayout(5, 5));
-        dialogContents.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel dialogContents = new JPanel(new BorderLayout());
+        dialogContents.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
 
         if (message == null)
             message = "Please wait...";
         messageLabel = new JLabel(message);
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 10));
         dialogContents.add(messageLabel, BorderLayout.NORTH);
 
-        JProgressBar progressBar = new JProgressBar();
+        progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         dialogContents.add(progressBar, BorderLayout.CENTER);
+
+        dialogContents.add(Box.createHorizontalStrut(250), BorderLayout.SOUTH);
 
         getContentPane().add(dialogContents);
         pack();
@@ -119,10 +125,20 @@ public class PleaseWaitDialog extends JDialog {
     }
 
     public void setMessage(final String message) {
+        setMessage(null, message, -1);
+    }
+
+    /** @since 2.6.5 */
+    public void setMessage(final String newTitle, final String newMessage,
+            final int finishDelay) {
         Runnable r = new Runnable() {
             public void run() {
                 if (!disposed) {
-                    messageLabel.setText(message);
+                    // update title and message
+                    if (newTitle != null)
+                        setTitle(newTitle);
+                    if (newMessage != null)
+                        messageLabel.setText(newMessage);
 
                     // if the dialog is too small to display the new message,
                     // resize it so its large enough.
@@ -131,6 +147,22 @@ public class PleaseWaitDialog extends JDialog {
                     size.width = Math.max(size.width, prefSize.width);
                     size.height = Math.max(size.height, prefSize.height);
                     setSize(size);
+
+                    // provide extra handling if the work is done
+                    if (finishDelay > 0) {
+                        // set the progress bar to 100%
+                        progressBar.setIndeterminate(false);
+                        progressBar.setValue(progressBar.getMaximum());
+
+                        // dispose the dialog after the requested delay
+                        Timer t = new Timer(finishDelay, new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                dispose();
+                            }
+                        });
+                        t.setRepeats(false);
+                        t.start();
+                    }
                 }
             }
         };
