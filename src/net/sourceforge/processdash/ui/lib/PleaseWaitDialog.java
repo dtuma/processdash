@@ -40,6 +40,8 @@ import javax.swing.Timer;
 
 public class PleaseWaitDialog extends JDialog {
 
+    private JPanel dialogContents;
+
     private JLabel messageLabel;
 
     private JProgressBar progressBar;
@@ -73,7 +75,7 @@ public class PleaseWaitDialog extends JDialog {
             int displayDelay) {
         super(parent, title, true);
 
-        JPanel dialogContents = new JPanel(new BorderLayout());
+        dialogContents = new JPanel(new BorderLayout());
         dialogContents.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
 
         if (message == null)
@@ -95,7 +97,10 @@ public class PleaseWaitDialog extends JDialog {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         this.disposed = false;
-        if (displayDelay > 0 || SwingUtilities.isEventDispatchThread()) {
+        if (displayDelay < 0) {
+            // if the display delay is negative, the caller wishes to display
+            // the dialog themselves
+        } else if (displayDelay > 0 || SwingUtilities.isEventDispatchThread()) {
             // if the dialog should be displayed at some point in the future,
             // set a timer to display it
             Timer t = new Timer(displayDelay, new ActionListener() {
@@ -117,6 +122,10 @@ public class PleaseWaitDialog extends JDialog {
                     public void run() {}});
             } catch (Exception e) {}
         }
+    }
+
+    public JPanel getDialogContents() {
+        return dialogContents;
     }
 
     private void maybeShow() {

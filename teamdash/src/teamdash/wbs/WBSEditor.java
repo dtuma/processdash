@@ -78,8 +78,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -121,6 +119,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
+import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
@@ -1713,7 +1712,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isNullZipWorkingDirectory())
             return saveAsAction.run();
 
-        JDialog dialog = createWaitDialog(frame,
+        PleaseWaitDialog dialog = createWaitDialog(frame,
             resources.getString("Window.Saving_Data"));
         SaveThread saver = new SaveThread(dialog);
         saver.start();
@@ -1743,47 +1742,27 @@ public class WBSEditor implements WindowListener, SaveListener,
         return true;
     }
 
-    static JDialog createWaitDialog(JFrame frame, String message) {
-        JDialog dialog = new JDialog(frame,
-                resources.getString("Window.Please_Wait"), true);
-        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        dialog.getContentPane().add(buildWaitContents(message));
-        dialog.pack();
-        dialog.setLocationRelativeTo(frame);
-        return dialog;
+    static PleaseWaitDialog createWaitDialog(JFrame frame, String message) {
+        return new PleaseWaitDialog(frame,
+                resources.getString("Window.Please_Wait"), message, -1);
     }
 
     private static JFrame createWaitFrame(String message) {
         JFrame result = new JFrame(resources.getString("Window.Please_Wait"));
         WBSEditorIcon.setWindowIcon(result);
         result.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        result.getContentPane().add(buildWaitContents(message));
+        result.getContentPane().add( //
+            createWaitDialog(result, message).getDialogContents());
         result.pack();
         result.setLocationRelativeTo(null);
         return result;
     }
 
-    private static JPanel buildWaitContents(String message) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-
-        JLabel label = new JLabel(message);
-        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 10));
-        panel.add(label, BorderLayout.NORTH);
-
-        JProgressBar bar = new JProgressBar();
-        bar.setIndeterminate(true);
-        panel.add(bar, BorderLayout.CENTER);
-
-        panel.add(Box.createHorizontalStrut(250), BorderLayout.SOUTH);
-        return panel;
-    }
-
     private class SaveThread extends Thread {
-        JDialog saveDialog;
+        PleaseWaitDialog saveDialog;
         boolean saveResult;
 
-        public SaveThread(JDialog saveDialog) {
+        public SaveThread(PleaseWaitDialog saveDialog) {
             this.saveDialog = saveDialog;
         }
 
@@ -1791,24 +1770,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             saveResult = saveImpl();
             if (saveResult) {
                 try {
-                    SwingUtilities.invokeAndWait(new Runnable() {
-                        public void run() {
-                            JPanel panel = (JPanel) saveDialog.getContentPane()
-                                    .getComponent(0);
-                            for (int i = 0;  i < panel.getComponentCount(); i++) {
-                                Component c = panel.getComponent(i);
-                                if (c instanceof JLabel) {
-                                    ((JLabel) c).setText(resources.getString(
-                                        "Window.Data_Saved_Message"));
-                                } else if (c instanceof JProgressBar) {
-                                    JProgressBar bar = (JProgressBar) c;
-                                    bar.setIndeterminate(false);
-                                    bar.setValue(bar.getMaximum());
-                                }
-                            }
-                            saveDialog.setTitle(
-                                resources.getString("Window.Data_Saved_Title"));
-                        }});
+                    saveDialog.setMessage(
+                        resources.getString("Window.Data_Saved_Title"),
+                        resources.getString("Window.Data_Saved_Message"), 800);
                     Thread.sleep(750);
                 } catch (Exception e) {}
             }
