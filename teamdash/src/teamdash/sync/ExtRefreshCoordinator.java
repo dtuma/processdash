@@ -203,7 +203,7 @@ public class ExtRefreshCoordinator {
         public RefreshExtSystemTask(File wbsDir, String extSystemID,
                 boolean zealous, int timeoutSeconds, CountDownLatch semaphore,
                 AtomicBoolean success) {
-            this.daemon = new DaemonMetadata(extSystemID, wbsDir);
+            this.daemon = new DaemonMetadataFile(extSystemID, wbsDir);
             this.zealous = zealous;
             this.timeoutEnd = System.currentTimeMillis()
                     + timeoutSeconds * DateUtils.SECONDS - 500;

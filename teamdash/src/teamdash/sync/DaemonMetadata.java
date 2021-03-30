@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,14 +23,10 @@
 
 package teamdash.sync;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 public class DaemonMetadata {
 
@@ -47,49 +43,25 @@ public class DaemonMetadata {
 
     private static final String REFRESH_ATTR = "refreshInterval";
 
-    private File metadataDir;
+    protected Properties stateProps;
 
-    private File syncRequestFile;
-
-    private File daemonStateFile;
-
-    private Properties stateProps;
-
-    private Logger log;
+    protected Logger log;
 
 
-    public DaemonMetadata(String systemID, File wbsDir) {
-        if (wbsDir != null) {
-            metadataDir = new File(wbsDir, "sync");
-            syncRequestFile = new File(metadataDir,
-                    systemID + "-sync-requested.txt");
-            daemonStateFile = new File(metadataDir,
-                    systemID + "-sync-daemon-state.txt");
-        }
+    public DaemonMetadata(String systemID) {
         this.stateProps = new Properties();
         this.log = Logger.getLogger(getClass().getName() + "." + systemID);
     }
 
 
     public boolean isSyncRequestSupported() {
-        return syncRequestFile != null;
+        return false;
     }
 
-    public void setSyncRequestPending(boolean pending) throws IOException {
-        if (syncRequestFile == null) {
-            // if we can't support sync requests, abort
-        } else if (pending) {
-            metadataDir.mkdir();
-            FileOutputStream out = new FileOutputStream(syncRequestFile);
-            out.write(tstamp(0).getBytes("UTF-8"));
-            out.close();
-        } else {
-            syncRequestFile.delete();
-        }
-    }
+    public void setSyncRequestPending(boolean pending) throws IOException {}
 
     public boolean isSyncRequestPending() throws IOException {
-        return syncRequestFile != null && syncRequestFile.isFile();
+        return false;
     }
 
 
@@ -145,26 +117,12 @@ public class DaemonMetadata {
     }
 
 
-    public void load() throws IOException {
-        if (daemonStateFile != null && daemonStateFile.isFile()) {
-            FileInputStream in = new FileInputStream(daemonStateFile);
-            stateProps.clear();
-            stateProps.load(in);
-            in.close();
-        }
-    }
+    public void load() throws IOException {}
 
-    public void save() throws IOException {
-        if (daemonStateFile != null) {
-            RobustFileOutputStream out = new RobustFileOutputStream(
-                    daemonStateFile);
-            stateProps.store(out, null);
-            out.close();
-            log.finer("Daemon state: " + stateProps.toString());
-        }
-    }
+    public void save() throws IOException {}
 
-    private static String tstamp(long delay) {
+
+    protected static String tstamp(long delay) {
         return Long.toString(System.currentTimeMillis() + delay);
     }
 

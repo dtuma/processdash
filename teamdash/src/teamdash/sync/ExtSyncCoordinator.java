@@ -73,15 +73,16 @@ public class ExtSyncCoordinator {
 
 
     public ExtSyncCoordinator(TeamProjectDataTarget dataTarget,
-            String extSystemName, String extSystemID, Properties config) {
+            String extSystemName, String extSystemID, Properties config,
+            DaemonMetadata daemonMetadata) {
         this.dataTarget = dataTarget;
         this.extSystemName = extSystemName;
         this.extSystemID = extSystemID;
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
+        this.daemonMetadata = daemonMetadata;
         this.log = syncData.getLogger();
-        this.daemonMetadata = dataTarget.getDaemonMetadata(extSystemID);
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
         this.inboundTime = new ElapsedTimeMonitor(20, 5000);
         this.outboundTime = new ElapsedTimeMonitor(20, 1000);
@@ -295,10 +296,6 @@ public class ExtSyncCoordinator {
             maxFileTime = newFileTime;
             return true;
         }
-    }
-
-    public DaemonMetadata getDaemonMetadata() {
-        return daemonMetadata;
     }
 
     public SyncMetadata getMetadata() {

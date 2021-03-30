@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2020 Tuma Solutions, LLC
+// Copyright (C) 2017-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,8 +65,10 @@ public class SyncXml implements SyncXmlConstants {
                 args.length > 2 ? args[2] : null);
 
         // perform the synchronization operation
+        DaemonMetadata daemonMetadata = TeamProjectDataTargetFactory
+                .getDaemonMetadata(dataTarget, extSystemID);
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                extSystemName, extSystemID, null);
+                extSystemName, extSystemID, null, daemonMetadata);
         coord.run(nodeSet);
 
         // dispose of resources

@@ -76,7 +76,7 @@ public class ExtSyncDaemonWBS {
 
         try {
             // run a loop to synchronize this WBS
-            run(dataTarget);
+            runImpl();
         } finally {
             // dispose of resources when finished
             dataTarget.dispose();
@@ -85,18 +85,19 @@ public class ExtSyncDaemonWBS {
         }
     }
 
-    protected void run(TeamProjectDataTarget dataTarget) throws Exception {
+    protected void runImpl() throws Exception {
         // retrieve project-specific sync configuration
-        Element targetConfig = getConfigXml(dataTarget);
+        Element targetConfig = getConfigXml();
         if (targetConfig == null) {
             log.warning("No " + systemName + " sync spec found, exiting");
             return;
         }
 
         // create objects to perform the synchronization of this target
+        daemonMetadata = TeamProjectDataTargetFactory
+                .getDaemonMetadata(dataTarget, systemID);
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                systemName, systemID, globalConfig);
-        this.daemonMetadata = coord.getDaemonMetadata();
+                systemName, systemID, globalConfig, daemonMetadata);
         ExtNodeSet nodeSet = connection.getNodeSet(targetConfig,
             coord.syncData);
 
@@ -159,8 +160,7 @@ public class ExtSyncDaemonWBS {
         } while (loopDelay >= 0);
     }
 
-    private Element getConfigXml(TeamProjectDataTarget dataTarget)
-            throws IOException {
+    private Element getConfigXml() throws IOException {
         // find the configuration file in the WBS data directory
         dataTarget.update();
         File extConfig = new File(dataTarget.getDirectory(),

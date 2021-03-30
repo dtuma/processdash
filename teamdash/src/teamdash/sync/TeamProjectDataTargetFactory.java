@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2020 Tuma Solutions, LLC
+// Copyright (C) 2017-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,20 @@ public class TeamProjectDataTargetFactory {
 
 
     /**
+     * Return a DaemonMetadata object appropriate for the given data target.
+     */
+    public static DaemonMetadata getDaemonMetadata(TeamProjectDataTarget target,
+            String systemID) {
+        if (target instanceof InProcessTarget) {
+            return ((InProcessTarget) target).getDaemonMetadata(systemID);
+        } else {
+            return new DaemonMetadata(systemID);
+        }
+    }
+
+
+
+    /**
      * Get a data target corresponding to a working directory that has already
      * been created and initialized within the WBS Editor process.
      */
@@ -65,12 +79,11 @@ public class TeamProjectDataTargetFactory {
             return workingDir.getDirectory();
         }
 
-        @Override
-        public DaemonMetadata getDaemonMetadata(String systemID) {
-            File filesystemWbsDir = null;
+        private DaemonMetadata getDaemonMetadata(String systemID) {
             if (workingDir instanceof LocalWorkingDirectory)
-                filesystemWbsDir = getDirectory();
-            return new DaemonMetadata(systemID, filesystemWbsDir);
+                return new DaemonMetadataFile(systemID, getDirectory());
+            else
+                return new DaemonMetadata(systemID);
         }
 
         @Override
