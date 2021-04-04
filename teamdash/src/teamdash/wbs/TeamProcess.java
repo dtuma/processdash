@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -95,7 +95,6 @@ public class TeamProcess {
      */
     public TeamProcess(Element xml) {
         loadProcessData(xml);
-        buildIcons();
     }
 
 
@@ -213,6 +212,8 @@ public class TeamProcess {
 
     /** Return the icon map for this process. */
     public Map getIconMap() {
+        if (iconMap == null)
+            buildIcons();
         return iconMap;
     }
 
