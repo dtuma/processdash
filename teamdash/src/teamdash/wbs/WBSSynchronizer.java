@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -216,10 +216,15 @@ public class WBSSynchronizer {
                 ((SyncHandler2) h).finishSync(teamProject);
         }
 
-        UserGroupManagerWBS groupMgr = UserGroupManagerWBS.getInstance();
-        if (groupMgr != null) {
-            groupMgr.addDatasetIDMappings(
-                finalizeDatasetIdMappings(datasetIDMap));
+        try {
+            UserGroupManagerWBS groupMgr = UserGroupManagerWBS.getInstance();
+            if (groupMgr != null) {
+                groupMgr.addDatasetIDMappings(
+                    finalizeDatasetIdMappings(datasetIDMap));
+            }
+        } catch (NoClassDefFoundError e) {
+            // UserGroupManager classes may not be present in some runtime
+            // configurations (such as ext-sync logic). Ignore and continue
         }
 
         wbsRoot.setAttribute(EFFECTIVE_DATE_ATTR, effectiveDate);
