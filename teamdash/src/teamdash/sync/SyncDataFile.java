@@ -281,7 +281,7 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         zipOut.putNextEntry(new ZipEntry(LOGFILE_ENTRY_NAME));
 
         // copy data from the old log file
-        ZipEntry src = zip.getEntry(LOGFILE_ENTRY_NAME);
+        ZipEntry src = (zip == null ? null : zip.getEntry(LOGFILE_ENTRY_NAME));
         if (src != null) {
             InputStream in = new BufferedInputStream(zip.getInputStream(src));
             long discardBytes = src.getSize() - MAX_HIST_LOG_SIZE;
