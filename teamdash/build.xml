@@ -407,6 +407,58 @@ class dependency has been added in a dashboard class?)
     </java>
   </target>
 
+  <target name="wbs-sync-jar" depends="compile">
+    <jar destfile="${processdash.dist}/pdash-wbs-sync.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Implementation-Title" value="WBS Ext-Sync Logic"/>
+        <attribute name="Implementation-Version" value="${teamtools.version}"/>
+        <attribute name="Implementation-Vendor" value="Process Dashboard Dev Team"/>
+      </manifest>
+      <!-- include the compiled classes for the WBS Editor -->
+      <fileset dir="${build}" includes="net/ teamdash/"
+           excludes="net/sourceforge/processdash/i18n/"
+           excludesfile="lib/fileset-class-excludes.txt" />
+      <!-- include nonclass resources referenced by sync logic -->
+      <fileset dir="${src}">
+          <include name="teamdash/**/default-user-settings.txt"/>
+      </fileset>
+      <!-- include compiled classes needed from the dashboard -->
+      <fileset dir="${processdash.bin}">
+          <include name="net/sourceforge/processdash/i18n/Resources*.class"/>
+          <include name="net/sourceforge/processdash/i18n/SafeTemplateClassLoader*.class"/>
+          <include name="net/sourceforge/processdash/team/mcf/CustomProcess*.class"/>
+          <include name="net/sourceforge/processdash/team/ui/PersonLookupData.class"/>
+          <include name="net/sourceforge/processdash/tool/export/impl/ArchiveMetricsXmlConstants.class"/>
+          <include name="net/sourceforge/processdash/tool/export/impl/XmlConstants.class"/>
+          <include name="net/sourceforge/processdash/tool/export/mgr/ExportFileEntry.class"/>
+      </fileset>
+      <!-- include i18n resources -->
+      <fileset dir="." includes="Templates/resources/WBSEditor*"/>
+      <fileset dir="${processdash.dir}">
+        <include name="Templates/resources/(Resources)*.properties"/>
+        <include name="Templates/resources/Authentication*.properties"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <target name="wbs-sync-mvn" depends="wbs-sync-jar">
+    <!-- create a POM file with correct version numbers -->
+    <copy file="lib/pdash-wbs-sync.pom" overwrite="true"
+          tofile="lib/pdash-wbs-sync.pom~"/>
+    <replace file="lib/pdash-wbs-sync.pom~" encoding="utf-8">
+      <replacefilter token="WBS_SYNC_VERSION" value="${teamtools.version}"/>
+      <replacefilter token="PDASH_UTIL_VERSION" value="${dashboard.version}"/>
+    </replace>
+    <!-- install our JAR into the maven repository -->
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${processdash.dist}/pdash-wbs-sync.jar"/>
+      <arg value="-DpomFile=lib/pdash-wbs-sync.pom~"/>
+    </exec>
+  </target>
+
   <target name="-installer-props" depends="-defaultValues">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
@@ -552,7 +604,7 @@ class dependency has been added in a dashboard class?)
   </target>
 
   <target name="dist"
-       depends="clean,verify16,TeamTools,verifyResourceOverrides"/>
+       depends="clean,verify16,TeamTools,verifyResourceOverrides,wbs-sync-mvn"/>
 
 
   <target name="signjar" if="sign.storepass">
