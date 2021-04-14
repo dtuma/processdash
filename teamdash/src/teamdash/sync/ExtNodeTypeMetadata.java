@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,12 +27,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class ExtNodeTypeMetadata {
@@ -48,8 +50,39 @@ public class ExtNodeTypeMetadata {
     public String iconPadding;
 
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof ExtNodeTypeMetadata) {
+            ExtNodeTypeMetadata that = (ExtNodeTypeMetadata) obj;
+            return NullSafeObjectUtils.EQ(id, that.id)
+                    && NullSafeObjectUtils.EQ(name, that.name)
+                    && creatable == that.creatable
+                    && NullSafeObjectUtils.EQ(iconUrl, that.iconUrl)
+                    && NullSafeObjectUtils.EQ(iconPadding, that.iconPadding);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return 4271 + Arrays.asList(id, name, creatable, iconUrl, iconPadding)
+                .hashCode();
+    }
+
+
     public static void storeNodeTypeMetadata(SyncDataFile syncData,
             List<ExtNodeTypeMetadata> allNodeTypes) throws IOException {
+
+        // if the node types haven't changed since the last store call, abort
+        SyncMetadata metadata = syncData.getMetadata();
+        String lastHashCode = metadata.getStr(ExtSyncUtil.NODE_TYPE_PREFIX,
+            HASHCODE);
+        String thisHashCode = Integer.toString(allNodeTypes.hashCode());
+        if (thisHashCode.equals(lastHashCode))
+            return;
 
         // discard any node type icon files previously in the sync data file
         for (ExportFileEntry efe : syncData.readExistingManifestEntries()) {
@@ -74,13 +107,12 @@ public class ExtNodeTypeMetadata {
         }
 
         // save the node type metadata
-        SyncMetadata metadata = syncData.getMetadata();
         metadata.discardAttrs(ExtSyncUtil.NODE_TYPE_PREFIX);
         metadata.storeKeyedItems(issueTypes, ExtSyncUtil.NODE_TYPE_PREFIX,
             ExtSyncUtil.NAME_ATTR);
         metadata.setStr(StringUtils.join(creatableTypes, ","),
             ExtSyncUtil.NODE_TYPE_PREFIX, ExtSyncUtil.CREATABLE_ATTR);
-
+        metadata.setStr(thisHashCode, ExtSyncUtil.NODE_TYPE_PREFIX, HASHCODE);
     }
 
     private static void downloadIconUrl(SyncDataFile syncData,
@@ -123,6 +155,8 @@ public class ExtNodeTypeMetadata {
         }
         return null;
     }
+
+    private static final String HASHCODE = "dataHashCode";
 
     private static final String[] ICON_FILE_TYPES = { "/svg", ".svg", //
             "/png", ".png", "/jpeg", ".jpg", "/gif", ".gif" };
