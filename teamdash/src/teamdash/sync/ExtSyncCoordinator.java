@@ -93,16 +93,16 @@ public class ExtSyncCoordinator {
      * set of external nodes.
      */
     public void run(ExtNodeSet nodeSet) throws IOException {
-        // inform the node set that a sync pass is starting
-        if (nodeSet instanceof LifecycleAware)
-            ((LifecycleAware) nodeSet).syncStarting();
-
         // refresh the data target and create a team project for this run
         prepareForSyncRun();
 
         // closed projects require no synchronization
         if (teamProject.getBoolUserSetting("projectClosed"))
             return;
+
+        // inform the node set that a sync pass is starting
+        if (nodeSet instanceof LifecycleAware)
+            ((LifecycleAware) nodeSet).syncStarting();
 
         // copy new WBS nodes into the external system if needed
         if (nodeSet instanceof ExportCreationCapable)
