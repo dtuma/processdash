@@ -181,6 +181,7 @@ public class ExtSyncDaemonWBS {
         // find the specification for this system in the document
         for (Element systemXml : XMLUtils.getChildElements(xmlDoc)) {
             String extSystemType = systemXml.getAttribute("type");
+            extSystemType = XMLUtils.getAttribute(systemXml, "id", extSystemType);
             if (extSystemType.equalsIgnoreCase(systemID))
                 return systemXml;
         }
