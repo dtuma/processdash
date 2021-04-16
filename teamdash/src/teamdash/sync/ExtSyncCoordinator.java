@@ -88,6 +88,10 @@ public class ExtSyncCoordinator {
         this.outboundTime = new ElapsedTimeMonitor(20, 1000);
     }
 
+    public void setExtSystemName(String newName) {
+        this.extSystemName = newName;
+    }
+
     /**
      * Perform one round-trip synchronization run between this WBS and the given
      * set of external nodes.
@@ -296,6 +300,10 @@ public class ExtSyncCoordinator {
             maxFileTime = newFileTime;
             return true;
         }
+    }
+
+    public SyncDataFile getSyncDataFile() {
+        return syncData;
     }
 
     public SyncMetadata getMetadata() {
