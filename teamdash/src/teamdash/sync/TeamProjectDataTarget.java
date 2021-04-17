@@ -23,14 +23,14 @@
 
 package teamdash.sync;
 
-import java.io.File;
 import java.io.IOException;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public interface TeamProjectDataTarget {
 
-    public File getDirectory();
+    public ResourceCollection getCollection();
 
     public void lock(String lockOwner) throws LockFailureException;
 

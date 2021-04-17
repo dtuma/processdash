@@ -30,11 +30,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Random;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -70,12 +73,20 @@ public class TeamProjectDataTargetFactory {
 
         WorkingDirectory workingDir;
 
+        ResourceCollection collection;
+
         InProcessTarget(WorkingDirectory dir) {
             this.workingDir = dir;
+            this.collection = new FileResourceCollection(getDirectory(), false,
+                    TeamDataDirStrategy.INSTANCE);
         }
 
         @Override
-        public File getDirectory() {
+        public ResourceCollection getCollection() {
+            return collection;
+        }
+
+        protected File getDirectory() {
             return workingDir.getDirectory();
         }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2020 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -88,6 +88,12 @@ public class FileResourceCollection implements ResourceCollection,
             this.propSupport = new PropertyChangeSupport(this);
     }
 
+    public FileResourceCollection(File directory, boolean enablePropSupport,
+            FileResourceCollectionStrategy strategy) {
+        this(directory, enablePropSupport);
+        setStrategy(strategy);
+    }
+
     public void setStrategy(FileResourceCollectionStrategy strategy) {
         this.strategy = strategy;
     }
@@ -166,16 +172,16 @@ public class FileResourceCollection implements ResourceCollection,
     }
 
     public InputStream getBackupInputStream() throws IOException {
-        if (mostRecentBackup != null)
-            // note: this strategy will only work if we KNOW that people have
-            // performed a "backupCollection" call immediately before calling
-            // this method.  If any time intervenes, a legacy dashboard could
-            // run a backup, and our "mostRecentBackup" could become an
-            // incremental backup instead of a full backup.
-            return new TimedInputStream(new BufferedInputStream(
-                    new FileInputStream(mostRecentBackup)));
-        else
+        if (mostRecentBackup == null)
             throw new IOException("No backup made since restart");
+
+        // note: this strategy will only work if we KNOW that people have
+        // performed a "backupCollection" call immediately before calling
+        // this method.  If any time intervenes, a legacy dashboard could
+        // run a backup, and our "mostRecentBackup" could become an
+        // incremental backup instead of a full backup.
+        return new TimedInputStream(new BufferedInputStream(
+            new FileInputStream(mostRecentBackup)));
     }
 
     public boolean requiresWriteLock(String resourceName) {
