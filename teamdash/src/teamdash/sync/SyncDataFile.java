@@ -25,13 +25,16 @@ package teamdash.sync;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,17 +46,19 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants;
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -64,13 +69,15 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     private TeamProjectDataTarget target;
 
-    private File file;
+    private ResourceCollection collection;
+
+    private String filename;
 
     private String processToken;
 
     private long fileTimestamp;
 
-    private ZipFile zip;
+    private Map<String, byte[]> zipEntryData;
 
     private SyncMetadata syncMetadata;
 
@@ -84,12 +91,18 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
 
     public SyncDataFile(TeamProjectDataTarget target, String filename) {
-        this(target.getDirectory(), filename);
+        this(target.getCollection(), filename);
         this.target = target;
     }
 
     public SyncDataFile(File directory, String filename) {
-        this.file = new File(directory, filename);
+        this(new FileResourceCollection(directory, false,
+                TeamDataDirStrategy.INSTANCE), filename);
+    }
+
+    private SyncDataFile(ResourceCollection collection, String filename) {
+        this.collection = collection;
+        this.filename = filename;
         this.processToken = Long.toString(System.currentTimeMillis());
         this.fileTimestamp = 0;
         this.logData = new ByteArrayOutputStream();
@@ -103,7 +116,7 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     public void dispose() throws IOException {
         fileTimestamp = 0;
-        closeZip();
+        zipEntryData = null;
         syncMetadata = null;
     }
 
@@ -112,30 +125,31 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
             throw new IllegalStateException();
         } else if (syncMetadata.isChanged() || explicitEntries != null) {
             saveFile();
-            target.saveSyncData(file.getName());
+            target.saveSyncData(filename);
             syncMetadata.clearChanged();
             explicitEntries = null;
             logHandler.flush();
             logData.reset();
         } else {
-            closeZip();
+            zipEntryData = null;
         }
     }
 
     public void checkComodification() throws IOException {
         if (fileTimestamp == 0) {
             // we haven't saved the file for the first time yet
-        } else if (fileTimestamp == file.lastModified()) {
+        } else if (fileTimestamp == collection.getLastModified(filename)) {
             // the filesystem time agrees with our records
         } else {
             // timestamp doesn't match. Look inside the file to be sure
+            zipEntryData = null;
             SyncMetadata currentMetadata = loadMetadata();
             String currentToken = currentMetadata.getStr(DAEMON_PROCESS_TOKEN);
             if (!processToken.equals(currentToken)) {
-                closeZip();
+                zipEntryData = null;
                 throw new ComodificationException();
             } else {
-                fileTimestamp = file.lastModified();
+                fileTimestamp = collection.getLastModified(filename);
             }
         }
     }
@@ -162,16 +176,35 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
 
     public InputStream openEntry(String entryName) throws IOException {
         // if the file does not exist, it doesn't have any entries
-        if (!file.isFile())
+        if (collection.getLastModified(filename) == 0)
             return null;
 
-        // create a ZipFile object as needed
-        if (zip == null)
-            zip = new ZipFile(file);
+        // load entries from the stored ZIP file as needed
+        if (zipEntryData == null)
+            zipEntryData = loadZipEntryData();
 
         // find and return the named entry
-        ZipEntry entry = zip.getEntry(entryName);
-        return (entry == null ? null : zip.getInputStream(entry));
+        byte[] data = zipEntryData.get(entryName);
+        return (data == null ? null : new ByteArrayInputStream(data));
+    }
+
+    private Map<String, byte[]> loadZipEntryData() throws IOException {
+        Map<String, byte[]> result = new HashMap<String, byte[]>();
+        InputStream in = null;
+        try {
+            in = collection.getInputStream(filename);
+            ZipInputStream zipIn = new ZipInputStream(
+                    new BufferedInputStream(in));
+            ZipEntry zipEntry;
+            while ((zipEntry = zipIn.getNextEntry()) != null) {
+                String entryName = zipEntry.getName();
+                byte[] entryData = FileUtils.slurpContents(zipIn, false);
+                result.put(entryName, entryData);
+            }
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+        return result;
     }
 
     public void addEntry(ExportFileEntry entry, byte[] data) {
@@ -180,13 +213,6 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         else
             discardEntryWithName(explicitEntries.keySet(), entry.getFilename());
         explicitEntries.put(entry, data);
-    }
-
-    private void closeZip() throws IOException {
-        if (zip != null) {
-            zip.close();
-            zip = null;
-        }
     }
 
     public SyncMetadata getMetadata() throws IOException {
@@ -214,7 +240,7 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         getMetadata();
 
         // open a stream to write ZIP data to the file
-        RobustFileOutputStream out = new RobustFileOutputStream(file);
+        OutputStream out = collection.getOutputStream(filename, 0);
         ZipOutputStream zipOut = new ZipOutputStream(
                 new BufferedOutputStream(out));
 
@@ -234,16 +260,16 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         writeManifest(zipOut, fileEntries);
 
         // finalize the ZIP file
-        closeZip();
         zipOut.finish();
         zipOut.close();
-        fileTimestamp = file.lastModified();
+        zipEntryData = null;
+        fileTimestamp = collection.getLastModified(filename);
     }
 
 
     public List<ExportFileEntry> readExistingManifestEntries()
             throws IOException {
-        if (!file.isFile())
+        if (collection.getLastModified(filename) == 0)
             return new ArrayList<ExportFileEntry>();
 
         // read the manifest from the existing file
@@ -281,14 +307,13 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         zipOut.putNextEntry(new ZipEntry(LOGFILE_ENTRY_NAME));
 
         // copy data from the old log file
-        ZipEntry src = (zip == null ? null : zip.getEntry(LOGFILE_ENTRY_NAME));
-        if (src != null) {
-            InputStream in = new BufferedInputStream(zip.getInputStream(src));
-            long discardBytes = src.getSize() - MAX_HIST_LOG_SIZE;
-            while (discardBytes-- > 0)
-                in.read();
-            FileUtils.copyFile(in, zipOut);
-            in.close();
+        byte[] hist = (zipEntryData == null ? null
+                : zipEntryData.get(LOGFILE_ENTRY_NAME));
+        if (hist != null) {
+            int discardBytes = Math.max(0, hist.length - MAX_HIST_LOG_SIZE);
+            int copyBytes = hist.length - discardBytes;
+            if (copyBytes > 0)
+                zipOut.write(hist, discardBytes, copyBytes);
         }
 
         // append new log data from this sync run
@@ -334,13 +359,16 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
     private void copyExistingFileEntries(List<ExportFileEntry> fileEntries,
             ZipOutputStream zipOut) throws IOException {
         // copy other data files from the old ZIP into the new ZIP
-        for (ExportFileEntry efe : fileEntries) {
+        for (ExportFileEntry efe : new ArrayList<ExportFileEntry>(fileEntries)) {
             String entryName = efe.getFilename();
-            zipOut.putNextEntry(new ZipEntry(entryName));
-            InputStream src = openEntry(entryName);
-            FileUtils.copyFile(src, zipOut);
-            src.close();
-            zipOut.closeEntry();
+            byte[] entryData = zipEntryData.get(entryName);
+            if (entryData != null) {
+                zipOut.putNextEntry(new ZipEntry(entryName));
+                zipOut.write(entryData);
+                zipOut.closeEntry();
+            } else {
+                fileEntries.remove(efe);
+            }
         }
     }
 
