@@ -24,8 +24,6 @@
 package teamdash.sync;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -34,6 +32,7 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -163,16 +162,15 @@ public class ExtSyncDaemonWBS {
     private Element getConfigXml() throws IOException {
         // find the configuration file in the WBS data directory
         dataTarget.update();
-        File extConfig = new File(dataTarget.getDirectory(),
-                ExtSyncUtil.EXT_SPEC_FILE);
-        if (!extConfig.isFile())
+        ResourceCollection collection = dataTarget.getCollection();
+        if (collection.getLastModified(ExtSyncUtil.EXT_SPEC_FILE) == 0)
             return null;
 
         // parse the configuration file as an XML document
         Element xmlDoc;
         try {
             BufferedInputStream in = new BufferedInputStream(
-                    new FileInputStream(extConfig));
+                    collection.getInputStream(ExtSyncUtil.EXT_SPEC_FILE));
             xmlDoc = XMLUtils.parse(in).getDocumentElement();
         } catch (SAXException se) {
             throw new IOException(se);

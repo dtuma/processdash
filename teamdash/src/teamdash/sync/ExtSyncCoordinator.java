@@ -289,13 +289,12 @@ public class ExtSyncCoordinator {
 
     public boolean targetFilesHaveChanged() {
         long newFileTime = 0;
-        File[] files = dataTarget.getDirectory().listFiles();
-        if (files != null) {
-            for (File f : files) {
-                String name = f.getName().toLowerCase();
-                if (name.endsWith("-data.pdash") || name.equals("projdump.xml"))
-                    newFileTime = Math.max(newFileTime, f.lastModified());
-            }
+        ResourceCollection collection = dataTarget.getCollection();
+        for (String resourceName : collection.listResourceNames()) {
+            String name = resourceName.toLowerCase();
+            if (name.endsWith("-data.pdash") || name.equals("projdump.xml"))
+                newFileTime = Math.max(newFileTime,
+                    collection.getLastModified(resourceName));
         }
         if (newFileTime <= maxFileTime) {
             return false;
