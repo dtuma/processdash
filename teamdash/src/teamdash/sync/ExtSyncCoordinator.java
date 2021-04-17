@@ -33,9 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.w3c.dom.Element;
-
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 
 import teamdash.sync.DaemonMetadata.State;
 import teamdash.sync.ExtNodeSet.ExportCreationCapable;
@@ -129,13 +127,15 @@ public class ExtSyncCoordinator {
 
     private void prepareForSyncRun() throws IOException {
         // get the most recent data and load the team project
-        File dataDir = dataTarget.getDirectory();
-        logPrefix = "[" + extSystemID + "/" + dataDir.getName() + "] - ";
+        ResourceCollection collection = dataTarget.getCollection();
+        String name = collection.getDescription();
+        int pos = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
+        logPrefix = "[" + extSystemID + "/" + name.substring(pos) + "] - ";
         log.fine(logPrefix + "Checking for changes");
         dataTarget.update();
         syncData.checkComodification();
         metadata = syncData.getMetadata();
-        teamProject = new QuickTeamProject(dataDir, "");
+        teamProject = new ExtSyncTeamProject(collection);
         wbsNeedsSave = false;
     }
 
@@ -323,26 +323,6 @@ public class ExtSyncCoordinator {
         maxFileTime = Math.max(maxFileTime, syncData.getFileTimestamp());
     }
 
-
-    /**
-     * In a master project/subproject environment, the TeamProject object
-     * automatically creates ImportDirectory objects for all of the interrelated
-     * projects. That is unnecessary for our purposes, so we create this
-     * subclass which skips the ImportDirectory creation step.
-     */
-    static class QuickTeamProject extends TeamProject {
-
-        public QuickTeamProject(File directory, String projectName) {
-            super(directory, projectName);
-        }
-
-        @Override
-        protected ImportDirectory getProjectDataDirectory(Element e,
-                boolean checkExists) {
-            return null;
-        }
-
-    }
 
     static final String GLOBAL_LOG_SETTING = "log.global";
 
