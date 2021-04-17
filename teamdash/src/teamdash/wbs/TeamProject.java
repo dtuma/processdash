@@ -30,6 +30,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +50,6 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
-import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -364,7 +365,7 @@ public class TeamProject implements WBSFilenameConstants {
     private Element openXML(File file) {
         InputStream in = null;
         try {
-            in = new FileInputStream(file);
+            in = openInputStream(file);
             Document doc = XMLUtils.parse(new BufferedInputStream(in));
             fileModTime = Math.max(fileModTime, file.lastModified());
             return doc.getDocumentElement();
@@ -375,12 +376,16 @@ public class TeamProject implements WBSFilenameConstants {
         }
     }
 
+    /** Open a stream to read from a project file. */
+    protected InputStream openInputStream(File file) throws IOException {
+        return new FileInputStream(file);
+    }
+
     /** Save an XML file.  Return false on error. */
     private boolean saveXML(Element xml, File dir, String filename) {
         try {
             File file = new File(dir, filename);
-            BufferedWriter out = new BufferedWriter(
-                new RobustFileWriter(file, "utf-8"));
+            BufferedWriter out = openXmlWriter(file);
             out.write(XMLUtils.getAsText(xml));
             out.flush();
             out.close();
@@ -395,16 +400,24 @@ public class TeamProject implements WBSFilenameConstants {
     private boolean saveXML(WBSModel model, File directory, String filename) {
         try {
             File f = new File(directory, filename);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
-            model.getAsXML(buf);
-            buf.flush();
+            BufferedWriter out = openXmlWriter(f);
+            model.getAsXML(out);
+            out.flush();
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
         return true;
+    }
+
+    protected BufferedWriter openXmlWriter(File file) throws IOException {
+        return new BufferedWriter(
+                new OutputStreamWriter(openOutputStream(file), "UTF-8"));
+    }
+
+    protected OutputStream openOutputStream(File file) throws IOException {
+        return new RobustFileOutputStream(file);
     }
 
     /** Make a note of whether a file is editable */
@@ -452,12 +465,9 @@ public class TeamProject implements WBSFilenameConstants {
 
         try {
             File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
-            if (userSettingsFile.canRead()) {
-                loadProperties(userSettings, new FileInputStream(
-                        userSettingsFile));
-                if (projectSettings == null)
-                    projectID = getUserSetting("projectID");
-            }
+            loadProperties(userSettings, openInputStream(userSettingsFile));
+            if (projectSettings == null)
+                projectID = getUserSetting("projectID");
         } catch (Exception e) {
         }
         requireVersion(TeamToolsVersionManager.DATA_VERSION, "3");
@@ -552,8 +562,7 @@ public class TeamProject implements WBSFilenameConstants {
     private boolean saveUserSettings(File directory) {
         File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
         try {
-            RobustFileOutputStream out = new RobustFileOutputStream(
-                    userSettingsFile);
+            OutputStream out = openOutputStream(userSettingsFile);
             userSettings.store(out, null);
             out.close();
             return true;
@@ -594,18 +603,16 @@ public class TeamProject implements WBSFilenameConstants {
             // TeamTools code.  "team2.xml" will be preferred by newer
             // versions, and shouldn't get clobbered.
             File f = new File(directory, TEAM_LIST_FILENAME2);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
+            BufferedWriter buf = openXmlWriter(f);
             teamList.getAsXML(buf);
             buf.flush();
-            out.close();
+            buf.close();
 
             f = new File(directory, TEAM_LIST_FILENAME);
-            out = new RobustFileWriter(f, "UTF-8");
-            buf = new BufferedWriter(out);
+            buf = openXmlWriter(f);
             teamList.getAsXML(buf);
             buf.flush();
-            out.close();
+            buf.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -674,7 +681,7 @@ public class TeamProject implements WBSFilenameConstants {
         InputStream in = null;
         try {
             File file = checkEditable(new File(directory, WBS_FILENAME));
-            in = new BufferedInputStream(new FileInputStream(file));
+            in = new BufferedInputStream(openInputStream(file));
             InputSource src = new InputSource(in);
             src.setEncoding("UTF-8");
 
@@ -825,11 +832,10 @@ public class TeamProject implements WBSFilenameConstants {
     private boolean saveColumns(File directory) {
         try {
             File f = new File(directory, COLUMNS_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
+            BufferedWriter buf = openXmlWriter(f);
             columnSpecs.getAsXML(buf);
             buf.flush();
-            out.close();
+            buf.close();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
