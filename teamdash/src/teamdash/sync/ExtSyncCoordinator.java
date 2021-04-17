@@ -23,8 +23,9 @@
 
 package teamdash.sync;
 
+import static teamdash.wbs.WBSFilenameConstants.CHANGE_HISTORY_FILE;
+
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -221,10 +222,12 @@ public class ExtSyncCoordinator {
                 sync.updateProjDump();
 
                 // add an entry to the change history
-                File dataDir = dataTarget.getDirectory();
-                ChangeHistory changeHistory = new ChangeHistory(dataDir);
+                ResourceCollection collection = dataTarget.getCollection();
+                ChangeHistory changeHistory = new ChangeHistory(
+                        collection.getInputStream(CHANGE_HISTORY_FILE));
                 changeHistory.addEntry(extSystemName);
-                changeHistory.write(dataDir);
+                changeHistory.write(
+                    collection.getOutputStream(CHANGE_HISTORY_FILE, 0));
 
                 // flush changes to the working directory
                 log.finer(logPrefix + "Publishing changes");

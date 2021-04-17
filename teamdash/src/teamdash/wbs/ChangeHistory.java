@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,17 +28,20 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import net.sourceforge.processdash.util.RobustFileWriter;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class ChangeHistory {
 
@@ -69,6 +72,10 @@ public class ChangeHistory {
 
     public ChangeHistory(File f) {
         this(readChangeHistoryFromFile(f));
+    }
+
+    public ChangeHistory(InputStream in) {
+        this(readChangeHistoryFromStream(in));
     }
 
     public ChangeHistory(Element xml) {
@@ -121,8 +128,12 @@ public class ChangeHistory {
             f = new File(f, WBSFilenameConstants.CHANGE_HISTORY_FILE);
 
         // write the XML to the file
+        write(new RobustFileOutputStream(f));
+    }
+
+    public void write(OutputStream outStream) throws IOException {
         BufferedWriter out = new BufferedWriter(
-                new RobustFileWriter(f, "utf-8"));
+                new OutputStreamWriter(outStream, "UTF-8"));
         getAsXML(out);
         out.flush();
         out.close();
@@ -146,6 +157,18 @@ public class ChangeHistory {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        // if the file did not exist or could not be read, create a new/empty
+        // change history document.
+        return getEmptyDocument();
+    }
+
+    private static Element readChangeHistoryFromStream(InputStream in) {
+        try {
+            return XMLUtils.parse(new BufferedInputStream(in))
+                    .getDocumentElement();
+        } catch (Exception e) {
         }
 
         // if the file did not exist or could not be read, create a new/empty
