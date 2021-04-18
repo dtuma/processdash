@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Element;
 
@@ -79,6 +81,20 @@ public class ExtSyncTeamProject extends TeamProject {
         if (out == null)
             throw new FileNotFoundException(file.getName());
         return out;
+    }
+
+
+    /**
+     * Scan our collection to find data export files.
+     */
+    @Override
+    public List<File> getDataExportFiles() {
+        List<File> result = new ArrayList<File>();
+        for (String filename : collection.listResourceNames()) {
+            if (filename.toLowerCase().endsWith(EXPORT_FILENAME_ENDING))
+                result.add(new File(getStorageDirectory(), filename));
+        }
+        return result;
     }
 
 

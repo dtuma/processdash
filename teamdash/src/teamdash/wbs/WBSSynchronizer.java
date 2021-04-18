@@ -28,7 +28,6 @@ import static teamdash.wbs.columns.SizeDataColumn.PROBE_PLAN_LOCKED_FLAG_ATTR;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -371,15 +370,11 @@ public class WBSSynchronizer {
      */
     private Map<String, File> getExportFiles() {
         Map<String, File> result = new HashMap<String, File>();
-        File dir = teamProject.getStorageDirectory();
-        File[] files = dir.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            String filename = files[i].getName().toLowerCase();
-            if (filename.endsWith(EXPORT_FILENAME_ENDING)) {
-                String initials = filename.substring(0, filename.length()
-                        - EXPORT_FILENAME_ENDING.length());
-                result.put(initials, files[i]);
-            }
+        for (File file : teamProject.getDataExportFiles()) {
+            String filename = file.getName().toLowerCase();
+            String initials = filename.substring(0, filename.length()
+                    - WBSFilenameConstants.EXPORT_FILENAME_ENDING.length());
+            result.put(initials, file);
         }
         return result;
     }
@@ -430,11 +425,11 @@ public class WBSSynchronizer {
     }
 
     private Element getUserDumpData(File f) {
-        FileInputStream fileInputStream = null;
+        InputStream fileInputStream = null;
         Element result = null;
         String datasetID = null;
         try {
-            fileInputStream = new FileInputStream(f);
+            fileInputStream = teamProject.openInputStream(f);
             ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(
                     fileInputStream));
             NonclosingInputStream nis = new NonclosingInputStream(zipIn);
@@ -1351,8 +1346,6 @@ public class WBSSynchronizer {
     private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
 
     private static final String MANIFEST_ENTRY_NAME = "manifest.xml";
-
-    private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
 
     private static final String USER_DATA_TAG = "userData";
 

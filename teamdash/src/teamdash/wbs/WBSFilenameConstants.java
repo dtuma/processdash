@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -56,5 +56,7 @@ public interface WBSFilenameConstants {
     String WORKFLOW_DUMP_FILE = "workflowDump.xml";
 
     String HISTORY_SUBDIR = "history";
+
+    String EXPORT_FILENAME_ENDING = "-data.pdash";
 
 }

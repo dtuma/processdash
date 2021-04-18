@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -844,6 +846,15 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
 
+
+    public List<File> getDataExportFiles() {
+        List<File> result = new ArrayList<File>();
+        for (File file : directory.listFiles()) {
+            if (file.getName().toLowerCase().endsWith(EXPORT_FILENAME_ENDING))
+                result.add(file);
+        }
+        return result;
+    }
 
     public long getFileModificationTime() {
         return fileModTime;
