@@ -23,11 +23,13 @@
 
 package teamdash.sync;
 
+import static teamdash.wbs.WBSFilenameConstants.DATA_DUMP_FILE;
+
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,19 +42,20 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
-import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSClipSelection;
-import teamdash.wbs.WBSFilenameConstants;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WBSSynchronizer;
 
 public class ExtSynchronizer {
+
+    private TeamProjectDataTarget dataTarget;
 
     private TeamProject teamProject;
 
@@ -80,8 +83,10 @@ public class ExtSynchronizer {
 
     private boolean wbsChanged;
 
-    public ExtSynchronizer(TeamProject teamProject, String extSystemName,
-            String extSystemID, SyncMetadata metadata, boolean wbsDirty) {
+    public ExtSynchronizer(TeamProjectDataTarget dataTarget,
+            TeamProject teamProject, String extSystemName, String extSystemID,
+            SyncMetadata metadata, boolean wbsDirty) {
+        this.dataTarget = dataTarget;
         this.teamProject = teamProject;
         this.wbs = this.teamProject.getWBS();
         this.extSystemName = extSystemName;
@@ -768,11 +773,11 @@ public class ExtSynchronizer {
             return;
 
         // open the dump file for reading/writing
-        File dumpFile = new File(teamProject.getStorageDirectory(),
-                WBSFilenameConstants.DATA_DUMP_FILE);
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(new FileInputStream(dumpFile), "UTF-8"));
-        RobustFileWriter out = new RobustFileWriter(dumpFile);
+        ResourceCollection coll = dataTarget.getCollection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(
+                coll.getInputStream(DATA_DUMP_FILE), "UTF-8"));
+        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
+                coll.getOutputStream(DATA_DUMP_FILE, 0), "UTF-8"));
 
         // scan the lines in the dump file, filtering as we go
         String line;

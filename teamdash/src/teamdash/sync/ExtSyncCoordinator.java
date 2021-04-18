@@ -253,8 +253,8 @@ public class ExtSyncCoordinator {
     }
 
     private ExtSynchronizer makeSynchronizer() {
-        return new ExtSynchronizer(teamProject, extSystemName, extSystemID,
-                metadata, wbsNeedsSave);
+        return new ExtSynchronizer(dataTarget, teamProject, extSystemName,
+                extSystemID, metadata, wbsNeedsSave);
     }
 
     private void debugWriteExtNodes(List<ExtNode> extNodes) {
