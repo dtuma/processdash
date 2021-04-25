@@ -249,6 +249,10 @@ public class ExtRefreshCoordinator {
             if (state != State.Inbound)
                 daemon.setSyncRequestPending(true);
 
+            // if the daemon is in an error state, there's no sense waiting
+            if (state == State.Error)
+                return false;
+
             // If the daemon was sleeping, our sync request should wake it up
             // quickly. If it doesn't, abort.
             if (state == State.Sleep) {

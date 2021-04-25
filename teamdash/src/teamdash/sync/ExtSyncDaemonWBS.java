@@ -153,7 +153,7 @@ public class ExtSyncDaemonWBS {
                 log.info("Press enter to repeat.");
                 System.console().readLine();
             } else if (wait > 0) {
-                sleep(wait, coord);
+                sleep(wait, coord, errCount == 0 ? 0 : 2 * retryDelay);
             }
 
         } while (loopDelay >= 0);
@@ -208,16 +208,20 @@ public class ExtSyncDaemonWBS {
         return daemonMetadata.isSyncRequestSupported();
     }
 
-    private void sleep(long duration, ExtSyncCoordinator coord)
+    private void sleep(long duration, ExtSyncCoordinator coord, int errDelay)
             throws IOException {
         if (isActiveSleepSupported() == false)
-            sleepSimply(duration);
-        else
-            sleepWithActivityChecking(duration, coord);
+            sleepSimply(duration, errDelay > 0);
+        else {
+            if (errDelay > 0)
+                sleepSimply(Math.min(duration, errDelay), true);
+            if (duration > errDelay)
+                sleepWithActivityChecking(duration - errDelay, coord);
+        }
     }
 
-    private void sleepSimply(long duration) throws IOException {
-        daemonMetadata.setState(State.Sleep, duration);
+    private void sleepSimply(long duration, boolean isErr) throws IOException {
+        daemonMetadata.setState(isErr ? State.Error : State.Sleep, duration);
         try {
             Thread.sleep(duration);
         } catch (InterruptedException ie) {}

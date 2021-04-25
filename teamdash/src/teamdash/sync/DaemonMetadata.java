@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 public class DaemonMetadata {
 
     public enum State {
-        Sleep, Export, Inbound, Outbound
+        Error, Sleep, Export, Inbound, Outbound
     }
 
 
@@ -83,7 +83,11 @@ public class DaemonMetadata {
         // if we're leaving an inbound/outbound state, record the current time
         // as the moment that operation finished.
         State oldState = getState();
-        if (oldState != null && oldState != state && oldState != State.Sleep)
+        if (oldState == state)
+            ; // no change in state; nothing to record
+        else if (state == State.Error)
+            stateProps.put(LAST_PREFIX + State.Error, tstamp(0));
+        else if (oldState != null && oldState.compareTo(State.Sleep) > 0)
             stateProps.put(LAST_PREFIX + oldState, tstamp(0));
 
         // save the new state and expected duration
