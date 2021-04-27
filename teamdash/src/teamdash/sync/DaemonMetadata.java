@@ -41,6 +41,8 @@ public class DaemonMetadata {
 
     private static final String NEXT_TIMESTAMP_ATTR = "until";
 
+    private static final String ERR_COUNT_ATTR = "errorCount";
+
     private static final String REFRESH_ATTR = "refreshInterval";
 
     protected Properties stateProps;
@@ -77,22 +79,35 @@ public class DaemonMetadata {
         }
     }
 
+    public int getErrorCount() {
+        try {
+            return Integer.parseInt(((String) stateProps.get(ERR_COUNT_ATTR)));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 
-    public void setState(State state, long expectedDuration)
+
+    public synchronized void setState(State state, long expectedDuration)
             throws IOException {
         // if we're leaving an inbound/outbound state, record the current time
         // as the moment that operation finished.
         State oldState = getState();
-        if (oldState == state)
-            ; // no change in state; nothing to record
-        else if (state == State.Error)
+        if (oldState == state) {
+            // no change in state; nothing to record
+        } else if (state == State.Error) {
             stateProps.put(LAST_PREFIX + State.Error, tstamp(0));
-        else if (oldState != null && oldState.compareTo(State.Sleep) > 0)
+            // count the errors seen since the last successful completion
+            stateProps.put(ERR_COUNT_ATTR, Integer.toString(1 + getErrorCount()));
+        } else if (oldState != null && oldState.compareTo(State.Sleep) > 0) {
             stateProps.put(LAST_PREFIX + oldState, tstamp(0));
+        }
 
         // save the new state and expected duration
         stateProps.put(STATE_ATTR, state.toString());
         stateProps.put(NEXT_TIMESTAMP_ATTR, tstamp(expectedDuration));
+        if (state == State.Finish)
+            stateProps.remove(ERR_COUNT_ATTR);
         save();
     }
 
