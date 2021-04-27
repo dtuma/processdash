@@ -104,6 +104,7 @@ public class ExtSyncCoordinator {
             return;
 
         // inform the node set that a sync pass is starting
+        daemonMetadata.setState(State.Start, 100);
         if (nodeSet instanceof LifecycleAware)
             ((LifecycleAware) nodeSet).syncStarting();
 
@@ -123,6 +124,7 @@ public class ExtSyncCoordinator {
 
         // save metadata to record the completed operation
         saveMetadata();
+        daemonMetadata.setState(State.Finish, 100);
         teamProject = null;
     }
 

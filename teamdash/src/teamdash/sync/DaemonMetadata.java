@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 public class DaemonMetadata {
 
     public enum State {
-        Error, Sleep, Export, Inbound, Outbound
+        Error, Sleep, Start, Export, Inbound, Outbound, Finish
     }
 
 
