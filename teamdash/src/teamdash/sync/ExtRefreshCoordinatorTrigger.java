@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,16 +24,19 @@
 package teamdash.sync;
 
 import static net.sourceforge.processdash.team.TeamDataConstants.TEAM_DATA_DIRECTORY;
+import static net.sourceforge.processdash.team.TeamDataConstants.TEAM_DATA_DIRECTORY_URL;
 
-import java.io.File;
 import java.io.IOException;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 public class ExtRefreshCoordinatorTrigger extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
+        DashController.checkIP(env.get("REMOTE_ADDR"));
         if (doRefresh())
             out.write("OK");
         else
@@ -42,10 +45,13 @@ public class ExtRefreshCoordinatorTrigger extends TinyCGIBase {
 
     private boolean doRefresh() {
         // get the filesystem-based team data directory for this project
-        SimpleData sd = getDataContext().getSimpleValue(TEAM_DATA_DIRECTORY);
+        DataContext data = getDataContext();
+        SimpleData sd = data.getSimpleValue(TEAM_DATA_DIRECTORY_URL);
+        if (sd == null || !sd.test())
+            sd = data.getSimpleValue(TEAM_DATA_DIRECTORY);
         if (sd == null || !sd.test())
             return false;
-        File dir = new File(sd.format());
+        String location = sd.format();
 
         // get the "zealous" setting from the query parameter
         boolean zealous = !parameters.containsKey("lazy");
@@ -59,7 +65,7 @@ public class ExtRefreshCoordinatorTrigger extends TinyCGIBase {
         }
 
         // perform a refresh of the directory and return the result
-        return ExtRefreshCoordinator.runExtRefresh(dir, zealous, timeout);
+        return ExtRefreshCoordinator.runExtRefresh(location, zealous, timeout);
     }
 
 }

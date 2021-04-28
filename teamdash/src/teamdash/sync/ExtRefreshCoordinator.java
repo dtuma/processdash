@@ -24,10 +24,14 @@
 package teamdash.sync;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,10 +42,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.sync.DaemonMetadata.State;
@@ -65,9 +72,7 @@ public class ExtRefreshCoordinator {
      * @param dir
      *            the working directory for a given WBS. If that WBS is not
      *            connected to any external systems, this will return true
-     *            immediately. If it is not a LocalWorkingDirectory, this will
-     *            return false immediately (since daemon refresh is currently
-     *            only supported for filesystem-based directories)
+     *            immediately.
      * @param zealous
      *            true if we wish to retrieve the very latest, up-to-the-second
      *            data; false if generally recent data is acceptable.
@@ -79,10 +84,11 @@ public class ExtRefreshCoordinator {
      */
     public static boolean runExtRefresh(WorkingDirectory dir, boolean zealous,
             int timeoutSeconds) {
-        // external refresh requests are currently only supported for local
-        // working directories
-        if (dir instanceof LocalWorkingDirectory)
-            return runExtRefresh(dir.getDirectory(), zealous, timeoutSeconds);
+        if (dir instanceof BridgedWorkingDirectory)
+            return runBridgedExtRefresh(dir, zealous, timeoutSeconds);
+        else if (dir instanceof LocalWorkingDirectory)
+            return runLocalExtRefresh(dir.getDirectory(), zealous,
+                timeoutSeconds);
         else
             return false;
     }
@@ -90,12 +96,12 @@ public class ExtRefreshCoordinator {
 
 
     /**
-     * Request an external refresh for the WBS in the given directory.
+     * Request an external refresh for the WBS at the given location.
      * 
-     * @param dir
-     *            the directory containing a given WBS. If that WBS is not
-     *            connected to any external systems, this will return true
-     *            immediately.
+     * @param wbsLocation
+     *            a URL or filename pointing to the data for a given WBS. If
+     *            that WBS is not connected to any external systems, this will
+     *            return true immediately.
      * @param zealous
      *            true if we wish to retrieve the very latest, up-to-the-second
      *            data; false if generally recent data is acceptable.
@@ -105,8 +111,79 @@ public class ExtRefreshCoordinator {
      * @return true if data was refreshed successfully, false if there were any
      *         errors
      */
-    public static boolean runExtRefresh(File wbsDirectory, boolean zealous,
+    public static boolean runExtRefresh(String wbsLocation, boolean zealous,
             int timeoutSeconds) {
+        if (wbsLocation.startsWith("http"))
+            return runUrlExtRefresh(wbsLocation, zealous, timeoutSeconds);
+        else
+            return runLocalExtRefresh(new File(wbsLocation), zealous,
+                timeoutSeconds);
+    }
+
+
+
+    /** Refresh a WorkingDirectory that is known to be bridged */
+    private static boolean runBridgedExtRefresh(WorkingDirectory dir,
+            boolean zealous, int timeout) {
+        // check to see if the directory contains an ext spec file. This lets
+        // us avoid an HTTP call if there are no external connections.
+        File externalSpecFile = new File(dir.getDirectory(),
+                ExtSyncUtil.EXT_SPEC_FILE);
+        if (!externalSpecFile.isFile())
+            return true;
+
+        return runUrlExtRefresh(dir.getDescription(), zealous, timeout);
+    }
+
+
+    /** Refresh a WBS location that is known to be a URL */
+    private static boolean runUrlExtRefresh(String wbsUrl, boolean zealous,
+            int timeoutSeconds) {
+        BufferedReader in = null;
+        try {
+            // construct the URL for requesting an ext sync
+            String url = wbsUrl;
+            url = HTMLUtils.appendQuery(url, ResourceBridgeClient.ACTION_PARAM,
+                ResourceBridgeClient.EXT_SYNC_ACTION);
+            if (zealous == false)
+                url = HTMLUtils.appendQuery(url,
+                    ResourceBridgeClient.EXT_SYNC_LAZY_PARAM, "true");
+            url = HTMLUtils.appendQuery(url,
+                ResourceBridgeClient.EXT_SYNC_WAIT_PARAM,
+                Integer.toString(timeoutSeconds));
+            URL extSyncUrl = new URL(url);
+
+            // make a POST connection to the server to request the sync
+            HttpURLConnection conn = (HttpURLConnection) extSyncUrl
+                    .openConnection();
+            conn.setRequestMethod("POST");
+            conn.setInstanceFollowRedirects(true);
+            ResourceBridgeClient.setRequestToken(conn);
+            conn.connect();
+
+            // read output from the response; check for error indication
+            in = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.endsWith("state=Error"))
+                    return false;
+            }
+
+            // return true to indicate the request completed successfully
+            return true;
+
+        } catch (IOException ioe) {
+            return false;
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+    }
+
+
+    /** Refresh a WorkingDirectory that is known to be local */
+    private static boolean runLocalExtRefresh(File wbsDirectory,
+            boolean zealous, int timeoutSeconds) {
         // find out which external systems this WBS is linked to. If there
         // are no external connections, return immediately
         List<String> extSystemIDs = getExtSystemIDs(wbsDirectory);
