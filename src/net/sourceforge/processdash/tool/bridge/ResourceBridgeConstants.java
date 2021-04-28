@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -171,6 +171,30 @@ public interface ResourceBridgeConstants {
      * value of action parameter requesting to download the most recent backup
      */
     String GET_BACKUP_ACTION = "getBackup";
+
+    /**
+     * value of an action parameter to start or check on an ext-sync operation
+     * @since PDES 3.9.0
+     */
+    String EXT_SYNC_ACTION = "extSync";
+
+    /**
+     * optional parameter indicating that an ext-sync operation can proceed at
+     * lower priority
+     */
+    String EXT_SYNC_LAZY_PARAM = "lazy";
+
+    /**
+     * optional parameter indicating that we would like to wait for an ext-sync
+     * operation to finish
+     */
+    String EXT_SYNC_WAIT_PARAM = "maxWait";
+
+    /**
+     * optional parameter indicating a min timestamp that ext-sync operations
+     * must complete after
+     */
+    String EXT_SYNC_MIN_TIMESTAMP_PARAM = "after";
 
     /**
      * value of action parameter requesting to retrieve a token that identifies
