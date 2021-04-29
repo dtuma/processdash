@@ -293,8 +293,7 @@ public class ExtSyncCoordinator {
         long newFileTime = 0;
         ResourceCollection collection = dataTarget.getCollection();
         for (String resourceName : collection.listResourceNames()) {
-            String name = resourceName.toLowerCase();
-            if (name.endsWith("-data.pdash") || name.equals("projdump.xml"))
+            if (ExtSyncUtil.isExtSyncTrigger(resourceName))
                 newFileTime = Math.max(newFileTime,
                     collection.getLastModified(resourceName));
         }

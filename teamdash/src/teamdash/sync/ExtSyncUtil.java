@@ -241,4 +241,14 @@ public class ExtSyncUtil {
         return plan ? "Prior Estimated Time" : "Prior Actual Time";
     }
 
+
+    /**
+     * Return true if a change to the given file is grounds for starting an ext
+     * sync operation
+     */
+    public static boolean isExtSyncTrigger(String filename) {
+        String name = filename.toLowerCase();
+        return name.endsWith("-data.pdash") || name.equals("projdump.xml");
+    }
+
 }
