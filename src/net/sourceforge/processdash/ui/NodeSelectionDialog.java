@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -106,6 +106,7 @@ public class NodeSelectionDialog extends JDialog
         this.approver = approver;
 
         pack();
+        setLocationRelativeTo(owner);
         setVisible(true); // this will block until the user dismisses the dialog
     }
 

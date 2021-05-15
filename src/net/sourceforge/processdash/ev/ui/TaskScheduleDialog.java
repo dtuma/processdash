@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -464,6 +464,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         if (!showWindow)
             return;
 
+        DashController.setRelativeLocation(frame, 200, 100);
         WindowUtils.showWindowToFront(frame);
 
         // if the task list is empty, open the add task dialog immediately.
@@ -1042,7 +1043,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 }
             }
         });
-        err.done();
+        err.done(frame);
     }
 
     public void setActiveMilestone(Milestone newMilestone) {
@@ -3869,9 +3870,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
         if (chartDialog != null && chartDialog.isDisplayable()) {
             chartDialog.setVisible(true);
             chartDialog.toFront();
-        } else
+        } else {
+            Component parent = null;
+            if (frame.isShowing())
+                parent = frame;
+            else if (dash instanceof Component)
+                parent = (Component) dash;
             chartDialog = new TaskScheduleChart(model, null, groupFilterMenu,
-                    dash);
+                    dash, parent);
+        }
     }
 
     public void showFilteredChart() {
@@ -3898,7 +3905,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // filtering is needed;  just display the chart for that schedule.
         EVTaskList subSchedule = findTaskListWithRoot(model, task);
         if (subSchedule != null) {
-            new TaskScheduleChart(subSchedule, null, groupFilterMenu, dash);
+            new TaskScheduleChart(subSchedule, null, groupFilterMenu, dash, frame);
             return;
         }
 
@@ -3913,7 +3920,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // Build an appropriate filter, and use it to launch a chart window
         TaskFilter filter = new TaskFilter(filteredPath.substring(1),
                 getTaskFilterSet(task));
-        new TaskScheduleChart(model, filter, groupFilterMenu, dash);
+        new TaskScheduleChart(model, filter, groupFilterMenu, dash, frame);
     }
 
     private EVTaskList findTaskListWithRoot(EVTaskList tl, EVTask possibleRoot) {

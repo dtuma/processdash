@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
@@ -97,8 +98,9 @@ public class TaskScheduleChooser
         else if (canEdit())
             displayNewTemplateDialog(dash);
         else
-            JOptionPane.showMessageDialog(null, new Object[] { windowTracker(),
-                resources.getStrings("No_Schedules_Found.Message") },
+            JOptionPane.showMessageDialog(dialogParent(dash),
+                new Object[] { windowTracker(),
+                        resources.getStrings("No_Schedules_Found.Message") },
                 resources.getString("No_Schedules_Found.Title"),
                 JOptionPane.PLAIN_MESSAGE);
     }
@@ -164,9 +166,7 @@ public class TaskScheduleChooser
         inputField.selectAll();
         new JOptionPaneActionHandler(OK).install(inputField);
 
-        Component parentComponent = null;
-        if ((parent instanceof Component) && ((Component) parent).isShowing())
-            parentComponent = (Component) parent;
+        Component parentComponent = dialogParent(parent);
 
 
         while (true) {
@@ -195,6 +195,13 @@ public class TaskScheduleChooser
         return taskName;
     }
     public static final String ROLLUP_PREFIX = " ";
+
+    private static Component dialogParent(Object p) {
+        if ((p instanceof Component) && ((Component) p).isShowing())
+            return (Component) p;
+        else
+            return null;
+    }
 
     public static String checkNewTemplateName(String taskName,
                                               DataRepository data) {
@@ -290,6 +297,7 @@ public class TaskScheduleChooser
         dialog.addWindowListener(new ListenerCloser(this));
 
         dialog.pack();
+        DashController.setRelativeLocation(dialog, 100, 100);
         dialog.setVisible(true);
         dialog.toFront();
     }

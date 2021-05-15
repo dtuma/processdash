@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -105,6 +105,7 @@ import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.lib.WrappingText;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.snippet.ConfigurableSnippetWidget;
@@ -135,7 +136,8 @@ public class TaskScheduleChart extends JFrame
     static Logger logger = Logger.getLogger(TaskScheduleChart.class.getName());
 
     public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter,
-            GroupFilterMenu groupMenu, DashboardContext ctx) {
+            GroupFilterMenu groupMenu, DashboardContext ctx,
+            Component relativeTo) {
         super(formatWindowTitle(tl, filter));
         DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -177,6 +179,7 @@ public class TaskScheduleChart extends JFrame
         createConfigurationButton();
 
         setSize(600, 300);
+        WindowUtils.setLocationRelativeTo(this, relativeTo, 200, 100);
         sp.setDividerLocation(160);
         setVisible(true);
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,12 +24,18 @@
 
 package net.sourceforge.processdash.ui.lib;
 
-import java.util.*;
+import java.awt.Component;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.JEditorPane;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkListener;
 
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 /** This class provides a generally reusable feature for displaying a
@@ -93,6 +99,10 @@ public class ErrorReporter {
     }
 
     public void done() {
+        done(null);
+    }
+
+    public void done(Component parentComponent) {
         if (errors.isEmpty()) return;
 
         StringBuffer errorList = new StringBuffer();
@@ -132,7 +142,7 @@ public class ErrorReporter {
         dialogComponents[1] = scrollPane;
         dialogComponents[2] = postMessage;
 
-        JOptionPane.showMessageDialog(null, dialogComponents, title,
+        JOptionPane.showMessageDialog(parentComponent, dialogComponents, title,
                                       JOptionPane.ERROR_MESSAGE);
     }
 
