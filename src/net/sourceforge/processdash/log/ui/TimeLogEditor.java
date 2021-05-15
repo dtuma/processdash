@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2020 Tuma Solutions, LLC
+// Copyright (C) 1999-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -84,6 +84,7 @@ import javax.swing.tree.TreePath;
 import com.toedter.calendar.JDateChooser;
 
 import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -191,6 +192,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         this.forceReadOnly = !(timeLog instanceof ModifiableTimeLog);
 
         constructUserInterface();
+        DashController.setRelativeLocation(frame, 100, 100);
         setSelectedNode(currentPhase);
         if (this.dashTimeLog == null)
             setTimeLog(timeLog);
@@ -668,7 +670,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         if (timeCardDialog != null)
             timeCardDialog.show();
         else
-            timeCardDialog = new TimeCardDialog(useProps, timeLog);
+            timeCardDialog = new TimeCardDialog(useProps, timeLog, frame);
     }
 
     public void save() {
