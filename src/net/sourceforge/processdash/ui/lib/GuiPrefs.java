@@ -188,13 +188,34 @@ public class GuiPrefs {
      *            different id.
      * @param window
      *            the window to register
+     * @param relativeTo
+     *            a parent window, if relative location is desired; or null to
+     *            save the absolute position of the window
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     */
+    public boolean load(String windowId, Window window, Window relativeTo) {
+        return load(window instanceof Frame
+                ? new RegisteredFrame(windowId, (Frame) window, relativeTo)
+                : new RegisteredWindow(windowId, window, relativeTo));
+    }
+
+    /**
+     * Register a window so its width and height will be saved when the
+     * {@link #saveAll()} method is called, and restore any width and height
+     * settings that were saved for this window in the past.
+     * 
+     * @param windowId
+     *            a unique ID for this window; if a {@link GuiPrefs} object is
+     *            managing state for several windows, each one should have a
+     *            different id.
+     * @param window
+     *            the window to register
      * @return true if any user customizations were loaded, false if none were
      *         found
      */
     public boolean load(String windowId, Window window) {
-        return load(window instanceof Frame
-                ? new RegisteredFrame(windowId, (Frame) window)
-                : new RegisteredWindow(windowId, window));
+        return load(windowId, window, (Window) null);
     }
 
     /**
@@ -554,28 +575,36 @@ public class GuiPrefs {
 
 
     private class RegisteredWindow extends RegisteredItem {
-        Window w;
+        Window w, parent;
         Rectangle orig;
 
-        public RegisteredWindow(String id, Window w) {
+        public RegisteredWindow(String id, Window w, Window parent) {
             super(id);
             this.w = w;
+            this.parent = parent;
             this.orig = w.getBounds();
         }
 
         @Override
         boolean load() {
+            Rectangle p = (parent == null ? null : parent.getBounds());
             int width = getInt("width");
             int height = getInt("height");
             int x = getInt("x");
             int y = getInt("y");
+            int dx = getInt("dx");
+            int dy = getInt("dy");
 
             if (width < 150 || height < 75)
                 return false;
 
             w.setSize(width, height);
-            if (isOnScreen(x, y))
+            if (p != null && (dx != -1 || dy != -1)
+                    && isOnScreen(p.x + dx, p.y + dy)) {
+                w.setLocation(p.x + dx, p.y + dy);
+            } else if (isOnScreen(x, y)) {
                 w.setLocation(x, y);
+            }
             return true;
         }
 
@@ -617,6 +646,11 @@ public class GuiPrefs {
             if (b.height > 75) putInt("height", b.height);
             putInt("x", b.x);
             putInt("y", b.y);
+            if (parent != null) {
+                Rectangle p = parent.getBounds();
+                putInt("dx", b.x - p.x);
+                putInt("dy", b.y - p.y);
+            }
         }
     }
 
@@ -624,8 +658,8 @@ public class GuiPrefs {
     private class RegisteredFrame extends RegisteredWindow {
         Frame f;
 
-        public RegisteredFrame(String id, Frame f) {
-            super(id, f);
+        public RegisteredFrame(String id, Frame f, Window parent) {
+            super(id, f, parent);
             this.f = f;
         }
 
