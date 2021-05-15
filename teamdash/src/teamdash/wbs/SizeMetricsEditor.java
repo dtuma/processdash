@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Tuma Solutions, LLC
+// Copyright (C) 2020-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -84,8 +84,9 @@ public class SizeMetricsEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(400, Math.min(400, 150 + tableHeight));
+        frame.setLocationRelativeTo(title.getMainWindow());
         WBSZoom.get().manage(frame, "size~");
-        guiPrefs.load("sizeMetricsWindow", frame);
+        guiPrefs.load("sizeMetricsWindow", frame, title.getMainWindow());
     }
 
     public static boolean isEditable(TeamProject teamProject) {

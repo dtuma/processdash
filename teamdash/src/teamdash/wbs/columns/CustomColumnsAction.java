@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.beans.EventHandler;
 import java.io.File;
@@ -58,7 +57,7 @@ public class CustomColumnsAction extends AbstractAction {
 
     private CustomColumnManager columnManager;
 
-    private Window parentWindow;
+    private Component parentComp;
 
     private JList columnList;
 
@@ -77,7 +76,7 @@ public class CustomColumnsAction extends AbstractAction {
         super(resources.getString("Menu"));
         this.dataModel = dataModel;
         this.columnManager = columnManager;
-        this.parentWindow = SwingUtilities.getWindowAncestor(parent);
+        this.parentComp = parent;
 
         this.columnList = new JList();
         this.columnList.addListSelectionListener(EventHandler.create(
@@ -133,6 +132,7 @@ public class CustomColumnsAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e) {
         init();
+        Component parentWindow = SwingUtilities.getWindowAncestor(parentComp);
         JOptionPane.showMessageDialog(parentWindow, content,
             resources.getString("Window_Title"), JOptionPane.PLAIN_MESSAGE);
     }

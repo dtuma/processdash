@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -97,8 +97,9 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
+        frame.setLocationRelativeTo(title.getMainWindow());
         WBSZoom.get().manage(frame, "size~");
-        guiPrefs.load("milestoneWindow", frame);
+        guiPrefs.load("milestoneWindow", frame, title.getMainWindow());
     }
 
     public static boolean isEditable(TeamProject teamProject) {

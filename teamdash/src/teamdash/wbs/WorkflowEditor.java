@@ -105,8 +105,9 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(800 + optColumnWidth, 400);
+        frame.setLocationRelativeTo(title.getMainWindow());
         WBSZoom.get().manage(frame, "size~");
-        guiPrefs.load("workflowWindow", frame);
+        guiPrefs.load("workflowWindow", frame, title.getMainWindow());
     }
 
     public static boolean isEditable(TeamProject teamProject) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2017 Tuma Solutions, LLC
+// Copyright (C) 2015-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -177,7 +177,8 @@ public class BlameHistoryDialog extends JDialog implements
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         getContentPane().add(content);
         pack();
-        guiPrefs.load("blameHistoryDialog", this);
+        setLocationRelativeTo(frame);
+        guiPrefs.load("blameHistoryDialog", this, frame);
         setVisible(true);
     }
 

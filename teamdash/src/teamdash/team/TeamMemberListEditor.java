@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -96,8 +96,9 @@ public class TeamMemberListEditor implements WindowListener,
 
         frame.addWindowListener(this);
         frame.setSize(700, 200);
+        frame.setLocationRelativeTo(title.getMainWindow());
         WBSZoom.get().manage(frame, "size~");
-        guiPrefs.load("teamListWindow", frame);
+        guiPrefs.load("teamListWindow", frame, title.getMainWindow());
     }
 
     public void show() {
