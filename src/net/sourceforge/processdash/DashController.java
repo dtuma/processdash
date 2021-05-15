@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2020 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -60,6 +60,7 @@ import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.RepairImportDirInstruction;
 import net.sourceforge.processdash.ui.WindowTracker;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.systray.WindowHandler;
 import net.sourceforge.processdash.util.UUIDFile;
@@ -174,6 +175,11 @@ public class DashController {
         InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "false");
         InternalSettings.set(WindowHandler.MINIMIZE_TO_TRAY_SETTING, "true");
         dash.setState(Frame.ICONIFIED);
+    }
+
+    /** @since 2.6.5 */
+    public static void setRelativeLocation(Window w, int dx, int dy) {
+        WindowUtils.setLocationRelativeTo(w, dash, dx, dy);
     }
 
     /** @since 2.4.1 */

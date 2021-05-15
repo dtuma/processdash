@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@ package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Component;
 import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 
 import javax.swing.SwingUtilities;
@@ -60,6 +62,28 @@ public class WindowUtils {
         w.toFront();
         w.setAlwaysOnTop(false);
         w.toFront();
+    }
+
+    public static void setLocationRelativeTo(Window window, Object relativeTo,
+            int dx, int dy) {
+        Component relativeComponent = null;
+        if (relativeTo instanceof Component)
+            relativeComponent = (Component) relativeTo;
+        setLocationRelativeTo(window, relativeComponent, dx, dy);
+    }
+
+    public static void setLocationRelativeTo(Window window,
+            Component relativeTo, int dx, int dy) {
+        if (relativeTo != null && relativeTo.isShowing()) {
+            Rectangle s = relativeTo.getGraphicsConfiguration().getBounds();
+            Point r = relativeTo.getLocationOnScreen();
+            Rectangle w = window.getBounds();
+            int x = Math.max(s.x, Math.min(r.x + dx, s.x + s.width - w.width));
+            int y = Math.max(s.y, Math.min(r.y + dy, s.y + s.height - w.height));
+            window.setLocation(x, y);
+        } else {
+            window.setLocationRelativeTo(null);
+        }
     }
 
 }
