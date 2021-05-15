@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2015 Tuma Solutions, LLC
+// Copyright (C) 2001-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This library is free software; you can redistribute it and/or
@@ -36,14 +36,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.net.http.DashboardHelpURLConnection;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.util.StringUtils;
-
-import org.w3c.dom.Element;
 
 
 
@@ -61,6 +62,9 @@ public class DashHelpBroker implements DashHelpProvider {
 
     /** A javahelp broker object */
     private Object broker;
+
+    /** The window displaying help content */
+    private Window helpWindow;
 
 
     public DashHelpBroker() throws Exception {
@@ -130,8 +134,8 @@ public class DashHelpBroker implements DashHelpProvider {
 
         try {
             Object windowPres = invoke(broker, "getWindowPresentation");
-            Window w = (Window) invoke(windowPres, "getHelpWindow");
-            DashboardIconFactory.setWindowIcon(w);
+            helpWindow = (Window) invoke(windowPres, "getHelpWindow");
+            DashboardIconFactory.setWindowIcon(helpWindow);
         } catch (Throwable t) {
             // an old version of JavaHelp in the system classpath will
             // cause this to fail.  It's no big deal - the window will
@@ -169,14 +173,21 @@ public class DashHelpBroker implements DashHelpProvider {
         try {
             setActiveTab("TOC");
             invoke(broker, "setCurrentID", helpID);
-            invoke(broker, "setDisplayed", Boolean.TRUE);
+            displayWindow();
         } catch (Exception e) {}
     }
+
     public void displaySearchTab() {
         try {
             setActiveTab("Search");
-            invoke(broker, "setDisplayed", Boolean.TRUE);
+            displayWindow();
         } catch (Exception e) {}
+    }
+
+    private void displayWindow() throws Exception {
+        if (helpWindow != null && !helpWindow.isVisible())
+            DashController.setRelativeLocation(helpWindow, 100, 100);
+        invoke(broker, "setDisplayed", Boolean.TRUE);
     }
     private void setActiveTab(String tab) {
         try {

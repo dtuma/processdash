@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2017 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.ScalableImageIcon;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /**
@@ -117,6 +118,7 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
         buttonPane.add(okButton);
         pane.add(buttonPane, BorderLayout.PAGE_END);
 
+        WindowUtils.setLocationRelativeTo(this, parent, 100, 100);
         setVisible(true);
     }
 
