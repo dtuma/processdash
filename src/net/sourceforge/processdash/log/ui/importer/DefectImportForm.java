@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2016 Tuma Solutions, LLC
+// Copyright (C) 2007-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.log.ui.importer;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
@@ -107,7 +108,8 @@ public class DefectImportForm extends BoundForm {
 
     public DefectImportForm(DashboardContext dashboardContext,
             Element configElement, String selectedPath, String defectLogPath,
-            String displayName, Resources resources) throws AbortImport {
+            String displayName, Resources resources, Component relativeTo)
+            throws AbortImport {
 
         this.dashboardContext = dashboardContext;
         this.selectedPath = selectedPath;
@@ -127,7 +129,7 @@ public class DefectImportForm extends BoundForm {
         addFormHeader();
         addFormElements(spec.getDocumentElement());
         loadSavedPassword();
-        buildAndShowWindow(spec.getDocumentElement(), displayName);
+        buildAndShowWindow(spec.getDocumentElement(), displayName, relativeTo);
     }
 
 
@@ -410,7 +412,8 @@ public class DefectImportForm extends BoundForm {
     }
 
 
-    private void buildAndShowWindow(Element xml, String windowName) {
+    private void buildAndShowWindow(Element xml, String windowName,
+            Component relativeTo) {
         frame = new JFrame(windowName) {
             public void dispose() {
                 super.dispose();
@@ -434,6 +437,7 @@ public class DefectImportForm extends BoundForm {
         int height = XMLUtils.getXMLInt(xml, "windowHeight");
         if (height <= 0) height = 500;
         frame.setSize(width, height);
+        frame.setLocationRelativeTo(relativeTo);
         frame.setVisible(true);
     }
 

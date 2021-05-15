@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.log.ui.importer;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -88,6 +89,9 @@ public class FormImporter extends AbstractAction {
     }
 
     private void doIt() throws AbortImport {
+        Component parentWindow = (Component) getValue(
+            DefectLogEditor.IMPORT_ACTION_PARENT_WINDOW);
+
         String selectedPath = (String) getValue(DefectLogEditor.IMPORT_ACTION_SEL_PATH);
         if (!StringUtils.hasValue(selectedPath))
             AbortImport.showErrorAndAbort("Select_Hierarchy");
@@ -99,7 +103,7 @@ public class FormImporter extends AbstractAction {
         String displayName = (String) getValue(NAME);
 
         new DefectImportForm(dashboardContext, configElement, selectedPath,
-                defectLogPath, displayName, resources);
+                defectLogPath, displayName, resources, parentWindow);
     }
 
     private static final String RESOURCES_TAG = "resources";

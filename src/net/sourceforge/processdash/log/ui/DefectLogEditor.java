@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2020 Tuma Solutions, LLC
+// Copyright (C) 1999-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -108,6 +108,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.WindowTracker;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -117,6 +118,7 @@ public class DefectLogEditor extends Component implements
         DashHierarchy.Listener, DefectLog.Listener, ApplicationEventListener {
 
     public static final String IMPORT_ACTION_INVALID = "invalid";
+    public static final String IMPORT_ACTION_PARENT_WINDOW = "parentWindow";
     public static final String IMPORT_ACTION_SEL_PATH = "selectedPath";
     public static final String IMPORT_ACTION_DEF_PATH = "defectLogPath";
 
@@ -196,6 +198,7 @@ public class DefectLogEditor extends Component implements
         applyFilter();
         //frame.pack();
         frame.setSize(new Dimension(frameWidth, frameHeight));
+        WindowUtils.setLocationRelativeTo(frame, dashboard, 100, 100);
         frame.setVisible(true);
         WindowTracker.windowOpened(frame);
     }
@@ -551,7 +554,8 @@ public class DefectLogEditor extends Component implements
              dashboard.getDirectory() + useProps.pget(dle.pk).getDefectLog(),
              dle.pk,
              dle.defect,
-             create);
+             create,
+             table);
     }
 
 
@@ -791,6 +795,7 @@ public class DefectLogEditor extends Component implements
     }
     private void updateImportAction(Action a, PropertyKey selectedKey,
               PropertyKey defectLogKey) {
+        a.putValue(IMPORT_ACTION_PARENT_WINDOW, frame);
         a.putValue(IMPORT_ACTION_SEL_PATH,
                 selectedKey == null ? null : selectedKey.path());
         a.putValue(IMPORT_ACTION_DEF_PATH,
@@ -1001,7 +1006,7 @@ public class DefectLogEditor extends Component implements
                 throw new IllegalStateException();
 
             new DefectDialog(dashboard, dashboard.getDirectory() + defectFile,
-                    defectLogKey, taskKey);
+                    defectLogKey, taskKey, table);
         }
 
     }

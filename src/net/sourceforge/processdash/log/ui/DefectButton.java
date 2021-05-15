@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2017 Tuma Solutions, LLC
+// Copyright (C) 2000-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -117,7 +117,8 @@ public class DefectButton extends JButton implements ActionListener,
     public void actionPerformed(ActionEvent e) {
         if (shouldAllowDefectLogging()) {
             // pop up a defect log dialog
-            new DefectDialog(parent, defectLogFileName, defectPath, taskPath);
+            new DefectDialog(parent, defectLogFileName, defectPath, taskPath,
+                    parent);
         }
     }
 

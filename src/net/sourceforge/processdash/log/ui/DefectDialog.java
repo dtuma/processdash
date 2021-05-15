@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2017 Tuma Solutions, LLC
+// Copyright (C) 2000-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -100,6 +101,7 @@ import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.DropDownLabel;
 import net.sourceforge.processdash.ui.lib.HTMLMarkup;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -151,13 +153,14 @@ public class DefectDialog
 
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
-            PropertyKey defectPath, PropertyKey taskPath) {
-        this(dash, defectFilename, defectPath, taskPath, true);
+            PropertyKey defectPath, PropertyKey taskPath, Component relativeTo) {
+        this(dash, defectFilename, defectPath, taskPath, true, relativeTo);
         setTitle(resources.getString("Window_Title.Add"));
     }
 
     DefectDialog(ProcessDashboard dash, String defectFilename,
-            PropertyKey defectPath, PropertyKey taskPath, boolean guessDefaults) {
+            PropertyKey defectPath, PropertyKey taskPath, boolean guessDefaults,
+            Component relativeTo) {
         window = makeWindow(dash);
         PCSH.enableHelpKey(window, "EnteringDefects");
         if (Settings.getBool("userPref.defectDialog.alwaysOnTop", true))
@@ -433,6 +436,7 @@ public class DefectDialog
         ((RootPaneContainer) window).getContentPane().add(panel);
         window.pack();
         panel.setMinimumSize(panel.getPreferredSize());
+        WindowUtils.setLocationRelativeTo(window, relativeTo, 100, 100);
         window.setVisible(true);
 
         if (guessDefaults && Settings.getBool("defectDialog.autostart", true)
@@ -478,18 +482,17 @@ public class DefectDialog
     }
 
     private DefectDialog(ProcessDashboard dash, String defectFilename,
-                         PropertyKey defectPath, Defect defect) {
-        this(dash, defectFilename, defectPath, defectPath, false);
+            PropertyKey defectPath, Defect defect, Component relativeTo) {
+        this(dash, defectFilename, defectPath, defectPath, false, relativeTo);
         setTitle(resources.getString("Window_Title.Edit"));
         stopTimingDefect();
         setValues(defect);
         setDirty(false);
     }
 
-    public static DefectDialog getDialogForDefect
-        (ProcessDashboard dash, String defectFilename,
-         PropertyKey defectPath, Defect defect, boolean create)
-    {
+    public static DefectDialog getDialogForDefect(ProcessDashboard dash,
+            String defectFilename, PropertyKey defectPath, Defect defect,
+            boolean create, Component relativeTo) {
         DefectDialog result = null;
 
         String comparisonKey = defectFilename + defect.number;
@@ -497,7 +500,8 @@ public class DefectDialog
         if (result != null && result.window.isDisplayable()) return result;
         if (!create) return null;
 
-        result = new DefectDialog(dash, defectFilename, defectPath, defect);
+        result = new DefectDialog(dash, defectFilename, defectPath, defect,
+                relativeTo);
         result.saveDialogInCache();
 
         return result;
@@ -704,7 +708,7 @@ public class DefectDialog
             autoCreated = true;
         }
         DefectDialog d = new DefectDialog(parent, defectFilename, defectPath,
-                taskPath);
+                taskPath, window);
         d.fix_defect.setText(defectNumber);
         DefectPhase p = (DefectPhase) phase_removed.getSelectedItem();
         phaseComboSelect(d.phase_injected, p);
