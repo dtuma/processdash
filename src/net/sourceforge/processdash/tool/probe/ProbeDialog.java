@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2007 Tuma Solutions, LLC
+// Copyright (C) 2000-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.DataCorrelator;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -331,6 +332,7 @@ public class ProbeDialog extends JFrame implements
 
         // display the dialog
         pack();
+        DashController.setRelativeLocation(this, 100, 100);
         setVisible(true);
     }
 

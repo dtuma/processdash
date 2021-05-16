@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2018 Tuma Solutions, LLC
+// Copyright (C) 1999-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
@@ -296,6 +297,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             frame.pack();
         else
             frame.setSize(new Dimension(frameWidth, frameHeight));
+        DashController.setRelativeLocation(frame, 200, 100);
         frame.setVisible(true);
         useProps.addItemListener (this);
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2020 Tuma Solutions, LLC
+// Copyright (C) 2007-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,8 @@ public class SaveBackupAction extends AbstractAction
 
     private DataContext dataContext;
 
+    private Component dialogParent;
+
     private BackupCoordinator backupCoordinator = null;
 
     private File lastBackupDirectory;
@@ -82,6 +84,8 @@ public class SaveBackupAction extends AbstractAction
     public SaveBackupAction(DashboardContext dashContext) {
         super(resources.getString("Menu.Save_Backup"));
         this.dataContext = dashContext.getData();
+        if (dashContext instanceof Component)
+            dialogParent = (Component) dashContext;
         RedactFilterer.setDashboardContext(dashContext);
         PermissionsManager.getInstance().addPermissionsChangeListener(this);
         permissionsChanged(null);
@@ -313,7 +317,7 @@ public class SaveBackupAction extends AbstractAction
                 fc.setFileFilter(filter);
         }
 
-        if (fc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
+        if (fc.showSaveDialog(dialogParent) != JFileChooser.APPROVE_OPTION)
             return null;
 
         File dest = fc.getSelectedFile();

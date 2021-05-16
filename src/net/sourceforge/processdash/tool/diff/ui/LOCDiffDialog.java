@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2018 Tuma Solutions, LLC
+// Copyright (C) 2011-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.diff.engine.DiffEngine;
 import net.sourceforge.processdash.tool.diff.engine.DiffEvent;
@@ -141,6 +142,7 @@ public class LOCDiffDialog {
 
         frame.getContentPane().add(content);
         frame.pack();
+        DashController.setRelativeLocation(frame, 100, 100);
         frame.setVisible(true);
     }
 

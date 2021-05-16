@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2013 Tuma Solutions, LLC
+// Copyright (C) 2009-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -66,8 +69,6 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.util.StringUtils;
-
-import org.w3c.dom.Element;
 
 public class PreferencesDialog extends JDialog implements ListSelectionListener,
                                                           PropertyChangeListener {
@@ -128,8 +129,9 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
         PCSH.enableHelpKey(this, "PreferencesTool");
         reload();
-        setVisible(true);
         pack();
+        DashController.setRelativeLocation(this, 100, 100);
+        setVisible(true);
     }
 
     private void reload() {
