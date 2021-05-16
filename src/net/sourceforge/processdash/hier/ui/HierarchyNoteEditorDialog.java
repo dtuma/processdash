@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2017 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.ApplicationEventSource;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
@@ -144,6 +145,7 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
             aes.addApplicationEventListener(this);
         }
 
+        DashController.setRelativeLocation(frame, 200, 100);
         frame.setVisible(true);
     }
 
