@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
             return equal(a, b, fuzzFactor);
     }
 
-    protected boolean equal(double a, double b, double fuzzFactor) {
+    protected static boolean equal(double a, double b, double fuzzFactor) {
         if (Double.isNaN(a)) return Double.isNaN(b);
         if (Double.isInfinite(a)) return Double.isInfinite(b);
         return Math.abs(a - b) < fuzzFactor;

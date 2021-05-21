@@ -23,18 +23,24 @@
 
 package teamdash.wbs.columns;
 
+import java.awt.Color;
+import java.awt.Component;
+
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
+import teamdash.wbs.DataTableCellPercentRenderer;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TableFontHandler;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.excel.ExcelValueExporter;
 
 public class WorkflowPercentageColumn extends AbstractNumericColumn implements
-        CustomRenderedColumn {
+        CalculatedDataColumn, CustomRenderedColumn {
 
     private WBSModel wbsModel;
 
@@ -47,15 +53,25 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return TeamTimeColumn.isLeafTask(wbsModel, node);
+        return TeamTimeColumn.isLeafTask(wbsModel, node)
+                && node.getIndentLevel() > 1;
+    }
+
+    private static boolean isWorkflowNode(WBSNode node) {
+        return node != null && node.getIndentLevel() == 1;
     }
 
     public Object getValueAt(WBSNode node) {
-        return (isCellEditable(node) ? super.getValueAt(node) : null);
+        if (isWorkflowNode(node))
+            return new NumericDataValue(getRollupValueForNode(node), false);
+        else if (isCellEditable(node))
+            return super.getValueAt(node);
+        else
+            return null;
     }
 
     protected double getValueForNode(WBSNode node) {
-        return getImplicitValueForNode(node);
+        return getExplicitValueForNode(node);
     }
 
     protected void setValueForNode(double value, WBSNode node) {
@@ -69,41 +85,76 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
             node.setNumericAttribute(ATTR_NAME, value);
     }
 
-    protected static double getImplicitValueForNode(WBSNode node) {
-        return getValueForNode(node, 100);
+    public static double getRollupValueForNode(WBSNode node) {
+        return node.getNumericAttribute(ROLLUP_ATTR);
     }
 
     public static double getExplicitValueForNode(WBSNode node) {
-        return getValueForNode(node, 0);
+        double d = node.getNumericAttribute(ATTR_NAME);
+        return (Double.isNaN(d) ? 0 : d);
     }
 
-    private static double getValueForNode(WBSNode node, double defaultVal) {
-        double d = node.getNumericAttribute(ATTR_NAME);
-        if (Double.isNaN(d))
-            d = defaultVal;
-        return d;
+    public void storeDependentColumn(String ID, int columnNumber) {}
+
+    public boolean recalculate() {
+        recalculate(wbsModel.getRoot());
+        return true;
+    }
+
+    private double recalculate(WBSNode node) {
+        double sum = 0;
+        if (isCellEditable(node)) {
+            sum = getExplicitValueForNode(node);
+        } else {
+            for (WBSNode child : wbsModel.getChildren(node))
+                sum += recalculate(child);
+        }
+        node.setNumericAttribute(ROLLUP_ATTR, sum);
+        return sum;
     }
 
     public TableCellRenderer getCellRenderer() {
         return new CellRenderer();
     }
 
-    private static class CellRenderer extends WorkflowTableCellRenderer
+    private static class CellRenderer extends DataTableCellPercentRenderer
             implements ExcelValueExporter {
 
         public CellRenderer() {
-            setHorizontalAlignment(JLabel.RIGHT);
+            super(1);
         }
 
         @Override
-        protected Object tweakNumericValue(NumericDataValue ndv, JTable table,
-                int row) {
-            if (ndv.value == 100) {
-                return null;
-            } else {
-                return resources.format("Workflow.Percent.Num_FMT",
-                    String.valueOf(ndv));
+        public Component getTableCellRendererComponent(JTable table,
+                Object value, boolean isSelected, boolean hasFocus, int row,
+                int column) {
+
+            // tweak numeric values to work as percentages
+            boolean isWorkflowRollup = false;
+            if (value instanceof NumericDataValue) {
+                NumericDataValue ndv = (NumericDataValue) value;
+                isWorkflowRollup = !ndv.isEditable;
+                if (equal(ndv.value, 0, 0.05) || equal(ndv.value, 100, 0.05))
+                    ndv.isInvisible = true;
+                ndv.value /= 100;
             }
+
+            // call superclass logic to format
+            super.getTableCellRendererComponent(table, value, isSelected,
+                hasFocus, row, column);
+
+            // provide special formatting for workflow rollup cells
+            if (isWorkflowRollup) {
+                setFont(TableFontHandler.getItalic(table));
+                setForeground(Color.gray);
+                setHorizontalAlignment(JLabel.CENTER);
+            } else {
+                setFont(table.getFont());
+                setForeground(Color.black);
+                setHorizontalAlignment(JLabel.RIGHT);
+            }
+
+            return this;
         }
 
         public Object getValueForExcelExport(Object value) {
@@ -121,5 +172,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
 
     private static final String ATTR_NAME = "Workflow Percentage";
     static final String COLUMN_ID = ATTR_NAME;
+    private static final String ROLLUP_ATTR = TopDownBottomUpColumn
+            .getBottomUpAttrName(ATTR_NAME);
 
 }
