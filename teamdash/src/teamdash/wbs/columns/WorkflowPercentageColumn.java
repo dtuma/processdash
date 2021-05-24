@@ -285,7 +285,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
 
 
     private static final String ATTR_NAME = "Workflow Percentage";
-    static final String COLUMN_ID = ATTR_NAME;
+    public static final String COLUMN_ID = ATTR_NAME;
     private static final String ROLLUP_ATTR = TopDownBottomUpColumn
             .getBottomUpAttrName(ATTR_NAME);
     private static final int NORMALIZE_WORKFLOW_VALUE = -1;

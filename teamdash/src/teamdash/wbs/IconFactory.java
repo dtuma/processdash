@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@ import teamdash.wbs.icons.SortDatesIcon;
 import teamdash.wbs.icons.TrashCanIcon;
 import teamdash.wbs.icons.UndoIcon;
 import teamdash.wbs.icons.WBSImageIcon;
+import teamdash.wbs.icons.WBSPercentIcon;
 import teamdash.wbs.icons.WorkflowIcon;
 
 /** Factory for icons used by the WBSEditor and its components.
@@ -213,6 +214,10 @@ public class IconFactory {
 
     public static Icon getDeleteIcon() {
         return new TrashCanIcon(Color.white);
+    }
+
+    public static Icon getPercentIcon() {
+        return new WBSPercentIcon();
     }
 
     public static Icon getFindIcon() {

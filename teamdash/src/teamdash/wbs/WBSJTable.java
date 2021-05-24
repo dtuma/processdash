@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -652,7 +652,7 @@ public class WBSJTable extends JTable {
 
     /** Return true if the list of rows contains at least one row other than
      * row 0. */
-    private boolean notJustRoot(int[] selectedRows) {
+    protected boolean notJustRoot(int[] selectedRows) {
         if (selectedRows == null || selectedRows.length == 0) return false;
         if (selectedRows.length == 1 && selectedRows[0] == 0) return false;
         return true;

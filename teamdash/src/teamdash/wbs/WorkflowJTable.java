@@ -25,11 +25,16 @@ package teamdash.wbs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.JMenu;
@@ -40,6 +45,8 @@ import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.StringUtils;
+
+import teamdash.wbs.columns.WorkflowPercentageColumn;
 
 public class WorkflowJTable extends WBSJTable {
 
@@ -138,6 +145,24 @@ public class WorkflowJTable extends WBSJTable {
 
 
 
+    @Override
+    public Action[] getEditingActions() {
+        Action[] actions = super.getEditingActions();
+        Action[] result = new Action[actions.length + 1];
+        Object normalizeBefore = WBS_ACTION_CATEGORY_STRUCTURE;
+        for (int a = 0, r = 0; a < actions.length; a++, r++) {
+            if (normalizeBefore != null && normalizeBefore
+                    .equals(actions[a].getValue(WBS_ACTION_CATEGORY))) {
+                result[r++] = NORMALIZE_ACTION;
+                normalizeBefore = null;
+            }
+            result[r] = actions[a];
+        }
+        return result;
+    }
+
+
+
     private static class WorkflowCellEditor extends DefaultCellEditor {
 
         public WorkflowCellEditor() {
@@ -157,6 +182,57 @@ public class WorkflowJTable extends WBSJTable {
         }
 
     }
+
+
+    private class NormalizeAction extends AbstractAction
+            implements EnablementCalculation {
+
+        public NormalizeAction() {
+            super(resources.getString("Normalize_Tooltip"), //
+                    IconFactory.getPercentIcon());
+            addEnablementCalculation(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (!isEditingEnabled())
+                return;
+
+            // get the currently selected workflow nodes
+            Set<WBSNode> workflowNodes = getSelectedWorkflows();
+            if (workflowNodes.isEmpty())
+                return;
+
+            // stop the current editing session.
+            editor.stopCellEditing();
+            UndoList.stopCellEditing(WorkflowJTable.this);
+
+            // ask the percentage column to normalize the selected workflow
+            DataColumn pctCol = dataModel.getColumn(
+                dataModel.findColumn(WorkflowPercentageColumn.COLUMN_ID));
+            for (WBSNode node : workflowNodes)
+                ((WorkflowPercentageColumn) pctCol).normalizeWorkflow(node);
+            dataModel.columnChanged(pctCol);
+
+            UndoList.madeChange(WorkflowJTable.this, (String) getValue(NAME));
+        }
+
+        private Set<WBSNode> getSelectedWorkflows() {
+            Set<WBSNode> result = new HashSet<WBSNode>();
+            for (int row : getSelectedRows()) {
+                WBSNode node = wbsModel.getNodeForRow(row);
+                WBSNode workflow = wbsModel.getBaseParent(node);
+                if (workflow != null)
+                    result.add(workflow);
+            }
+            return result;
+        }
+
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(isEditingEnabled() && notJustRoot(selectedRows));
+        }
+    }
+    final NormalizeAction NORMALIZE_ACTION = new NormalizeAction();
+
 
     public static final Color UNEDITABLE = new Color(220, 220, 220);
 
