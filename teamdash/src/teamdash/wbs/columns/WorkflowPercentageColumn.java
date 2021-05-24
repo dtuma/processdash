@@ -88,17 +88,22 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
     }
 
     protected void setValueForNode(double value, WBSNode node) {
-        // if the user deletes the value in this cell, the superclass logic
-        // will interpret that as zero.  So zero passed in really means
-        // "empty cell." In addition, 100% really means "no percentage is
-        // active for this task," so we interpret that as null too.
         if (isWorkflowNode(node)) {
+            // perform a workflow normalization if requested. Otherwise, do
+            // not make any changes at the top-level workflow level
             if (value == NORMALIZE_WORKFLOW_VALUE)
                 normalizeWorkflow(node);
-        } else if (value == 0 || value == 100)
+
+        } else if (value == 0) {
+            // if the user deletes the value in a task cell, the superclass
+            // logic will interpret that as zero. So zero passed in really
+            // means "empty cell."
             node.setAttribute(ATTR_NAME, null);
-        else if (value > 0 && value < 100)
+
+        } else if (value > 0 && value <= 100) {
+            // store valid values into task cells
             node.setNumericAttribute(ATTR_NAME, value);
+        }
     }
 
     public static double getRollupValueForNode(WBSNode node) {

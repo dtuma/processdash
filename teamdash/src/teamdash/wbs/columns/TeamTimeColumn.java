@@ -1,4 +1,4 @@
- // Copyright (C) 2002-2020 Tuma Solutions, LLC
+ // Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -396,12 +396,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         // associated historical productivity rates.
 
         // To detect this scenario, we first ensure that we have a top-down
-        // estimate and multiple children with no time assigned.
-        if (!(topDownValue > 0) || bottomUpValue > 0 || numToInclude < 2)
+        // estimate, and no time assigned to children.
+        if (!(topDownValue > 0) || bottomUpValue > 0)
             return false;
 
         // Check to see if a workflow has been applied to this (parent) node.
         if (node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) == null)
+            return false;
+        // Ensure at least one of the children was created by a workflow.
+        boolean sawWorkflowChild = false;
+        for (WBSNode child : children) {
+            if (child.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) != null)
+                sawWorkflowChild = true;
+        }
+        if (sawWorkflowChild == false)
             return false;
 
         // Next, we get a list of the leaf tasks underneath this node, and add
