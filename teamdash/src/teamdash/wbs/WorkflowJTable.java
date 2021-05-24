@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2020 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -158,6 +158,6 @@ public class WorkflowJTable extends WBSJTable {
 
     }
 
-    private static final Color UNEDITABLE = new Color(220, 220, 220);
+    public static final Color UNEDITABLE = new Color(220, 220, 220);
 
 }
