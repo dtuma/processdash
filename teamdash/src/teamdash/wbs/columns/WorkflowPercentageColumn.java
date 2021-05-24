@@ -42,6 +42,7 @@ import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellPercentRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TableFontHandler;
+import teamdash.wbs.WBSJTable;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowJTable;
@@ -177,12 +178,23 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
 
             // tweak numeric values to work as percentages
             boolean isWorkflowRollup = false;
-            boolean isNormalized = false;
+            boolean suggestNormalize = false;
             if (value instanceof NumericDataValue) {
                 NumericDataValue ndv = (NumericDataValue) value;
                 isWorkflowRollup = !ndv.isEditable;
-                if (equal(ndv.value, 0, 0.05) || equal(ndv.value, 100, 0.05))
-                    ndv.isInvisible = isNormalized = true;
+                if (equal(ndv.value, 0, 0.05)) {
+                    // hide zero values everywhere
+                    ndv.isInvisible = true;
+                } else if (isWorkflowRollup == false) {
+                    // no other visual tweaks needed for task percentages
+                } else if (equal(ndv.value, 100, 0.05)) {
+                    // hide 100% workflow total unless cell is selected
+                    ndv.isInvisible = !(isSelected && hasFocus);
+                } else {
+                    // recommend normalization if the user is allowed to edit
+                    // values and the workflow total is not 100%
+                    suggestNormalize = ((WBSJTable) table).isEditingEnabled();
+                }
                 ndv.value /= 100;
             }
 
@@ -195,7 +207,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
                 setFont(TableFontHandler.getItalic(table));
                 setForeground(Color.gray);
                 setBackground(WorkflowJTable.UNEDITABLE);
-                setToolTipText(isNormalized ? null : normalizeTip);
+                setToolTipText(suggestNormalize ? normalizeTip : null);
                 setHorizontalAlignment(JLabel.CENTER);
             } else {
                 setFont(table.getFont());
