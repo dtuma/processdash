@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -920,6 +920,51 @@ public class WorkflowUtil {
             // recurse over descendants of this child.
             scrubWorkflowSourceIDs(wbs, workflows, child, childWorkflowNode);
         }
+    }
+
+
+    /**
+     * If a node has any workflow source IDs representing the root of a
+     * workflow, remove them. This is appropriate to indicate that the node is
+     * no longer a parent where a workflow was applied.
+     */
+    public static void clearWorkflowRootType(WBSNode node,
+            WorkflowWBSModel workflows) {
+        filterWorkflowSourceIDs(node, workflows, true, false);
+    }
+
+    /**
+     * If a node has any workflow source IDs representing steps/phases/tasks
+     * within a workflow, remove them. This is appropriate to indicate that the
+     * node is no longer an item produced by the application of a workflow.
+     */
+    public static void clearWorkflowStepType(WBSNode node,
+            WorkflowWBSModel workflows) {
+        filterWorkflowSourceIDs(node, workflows, false, true);
+    }
+
+    private static void filterWorkflowSourceIDs(WBSNode node,
+            WorkflowWBSModel workflows, boolean removeRoots,
+            boolean removeSteps) {
+        if (node == null || workflows == null)
+            return;
+
+        List<String> filteredIDs = new ArrayList<String>();
+        for (String oneIdStr : getWorkflowSourceIDs(node)) {
+            try {
+                int oneId = Integer.parseInt(oneIdStr);
+                WBSNode wfNode = workflows.getWorkflowNodeMap().get(oneId);
+                if (wfNode != null //
+                        && !(wfNode.getIndentLevel() == 1 //
+                                ? removeRoots
+                                : removeSteps))
+                    filteredIDs.add(oneIdStr);
+            } catch (NumberFormatException nfe) {
+            }
+        }
+
+        node.setAttribute(WFLOW_SRC_IDS,
+            filteredIDs.isEmpty() ? null : StringUtils.join(filteredIDs, ","));
     }
 
 

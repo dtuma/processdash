@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@
 
 
 package teamdash.wbs;
-
-import static teamdash.wbs.WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -949,7 +947,7 @@ public class WBSNodeEditor extends AbstractCellEditor
                 editingNode.setType((String) type);
                 ExternalNodeTypeColumn.storeType(editingNode, null);
             }
-            editingNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, null);
+            WorkflowUtil.clearWorkflowStepType(editingNode, workflows);
 
             // we must update not just the icon, but also the icons
             // below it in the table (since they may now be invalid

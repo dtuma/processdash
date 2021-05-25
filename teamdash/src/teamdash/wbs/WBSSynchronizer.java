@@ -998,7 +998,8 @@ public class WBSSynchronizer {
                     && !newUserType.equals(workflowType)) {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
-                node.setAttribute(WorkflowUtil.WORKFLOW_SOURCE_IDS_ATTR, null);
+                WorkflowUtil.clearWorkflowStepType(node,
+                    teamProject.getWorkflows());
                 ExternalNodeTypeColumn.storeType(node, null);
                 needsWbsEvent = true;
             }

@@ -1330,6 +1330,7 @@ public class WBSJTable extends JTable {
             WBSNode newNode = new WBSNode(wbsModel, "", type, indentLevel,
                     expanded);
             newNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, workflowType);
+            WorkflowUtil.clearWorkflowRootType(newNode, workflows);
 
             newNode.setAttribute(AUTO_ZERO_ATTR_1, optimizeForIndiv);
 
