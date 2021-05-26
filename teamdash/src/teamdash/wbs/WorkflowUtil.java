@@ -437,13 +437,22 @@ public class WorkflowUtil {
 
     private static List<String> getAutoAssignableRolesForWorkflow(
             WBSModel workflows, WBSNode workflowNode) {
-        // this method provides a super-cautious implementation. It only
-        // allows assignability for roles that are "universal." The first
-        // universal role in a workflow is one that is assigned to every step.
-        // The second universal role is one that is assigned to every step
-        // with at least two people. This pattern continues to the third, etc.
+        // this method provides a super-cautious implementation, to avoid
+        // making bad assumptions when assigning roles
         List<String> result = new ArrayList<String>();
         WBSNode[] workflowSteps = workflows.getDescendants(workflowNode);
+
+        // first, consider assignability for the "primary" role on a workflow:
+        // one assigned to at least 60% of the work
+        String primaryRole = getPrimaryRole(workflows, workflowSteps);
+        if (primaryRole != null)
+            result.add(primaryRole);
+
+        // next, look for roles that are universal. The first universal role in
+        // a workflow is one that is assigned to every step. (That person is
+        // likely to be "primary" as well.) The second universal role is one
+        // that is assigned to every step with at least two people. This pattern
+        // continues to the third, etc. Stop when we run out of universal roles.
         while (true) {
             String nextRole = getNextUniversalRole(workflows, workflowSteps,
                 result);
@@ -453,6 +462,51 @@ public class WorkflowUtil {
                 return result;
         }
     }
+
+    private static String getPrimaryRole(WBSModel workflows,
+            WBSNode[] workflowSteps) {
+        // iterate over workflow steps and sum up role contributions
+        double totalPct = 0;
+        Map<String, Double> rolePct = new HashMap();
+        for (WBSNode node : workflowSteps) {
+            // only look at leaf tasks in the workflow
+            if (!TeamTimeColumn.isLeafTask(workflows, node))
+                continue;
+
+            // retrieve the percentage entered for this task
+            double nodePct = WorkflowPercentageColumn
+                    .getExplicitValueForNode(node);
+            if (!(nodePct > 0))
+                continue;
+            totalPct += nodePct;
+
+            // get the roles for this task from the "performed by" column
+            List<String> performedBy = WorkflowResourcesColumn
+                    .getRolesNamesForNode(node);
+            if (performedBy == null || performedBy.isEmpty())
+                continue;
+
+            // add these role contributions to our running totals
+            double nodePctPerRole = nodePct / performedBy.size();
+            for (String oneRole : performedBy) {
+                Double pct = rolePct.get(oneRole);
+                if (pct == null)
+                    pct = 0.0;
+                rolePct.put(oneRole, pct + nodePctPerRole);
+            }
+        }
+
+        // look for a role that is performing more than 60% of the work
+        for (Entry<String, Double> e : rolePct.entrySet()) {
+            double normalizedPct = e.getValue() / totalPct;
+            if (normalizedPct > PRIMARY_ROLE_MIN_PCT)
+                return e.getKey();
+        }
+
+        // no primary role was found.
+        return null;
+    }
+    private static final double PRIMARY_ROLE_MIN_PCT = 0.6;
 
     private static String getNextUniversalRole(WBSModel workflows,
             WBSNode[] workflowSteps, List<String> priorRoles) {
