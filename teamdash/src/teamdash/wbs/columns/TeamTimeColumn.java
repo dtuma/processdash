@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -678,6 +679,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         return resourcesColumn.getAutoZeroUserString(node);
     }
 
+    public static List<String> getPeopleFromResourcesString(String resources) {
+        if (!StringUtils.hasValue(resources))
+            return Collections.EMPTY_LIST;
+
+        List<String> result = new ArrayList<String>();
+        Matcher m = TIME_SETTING_PATTERN.matcher(resources);
+        while (m.find())
+            result.add(m.group(1));
+        return result;
+    }
+
     private void applyWorkflowRoleEdits(AssignedToEditList edits, WBSNode node) {
         // scan the list of edits, looking for role-related changes.
         for (Iterator i = edits.iterator(); i.hasNext();) {
@@ -739,8 +751,21 @@ public class TeamTimeColumn extends TopDownBottomUpColumn
         return true;
     }
 
-    private void storeRoleAssignments(AssignedToEditList newRoleAssignments,
-            WBSNode node) {
+    public static void storeRoleAssignments(WBSNode node,
+            Map<String, String> roleAssignments) {
+        AssignedToEditList roleEditList = new AssignedToEditList();
+        for (Entry<String, String> e : roleAssignments.entrySet()) {
+            AssignedToEditList.Change c = new AssignedToEditList.Change();
+            c.origInitials = e.getKey();
+            c.newInitials = e.getValue();
+            roleEditList.add(c);
+        }
+
+        storeRoleAssignments(roleEditList, node);
+    }
+
+    private static void storeRoleAssignments(
+            AssignedToEditList newRoleAssignments, WBSNode node) {
         String knownRoles = (String) node.getAttribute(KNOWN_ROLES_ATTR);
         for (Change change : newRoleAssignments) {
             // add this role name to the list of roles that are known to be

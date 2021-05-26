@@ -52,6 +52,7 @@ import teamdash.wbs.columns.WorkflowLabelColumn;
 import teamdash.wbs.columns.WorkflowMinTimeColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
+import teamdash.wbs.columns.WorkflowResourcesColumn;
 
 public class WorkflowUtil {
 
@@ -93,6 +94,11 @@ public class WorkflowUtil {
         // alter the notes and labels on the destNode if necessary
         String destLabels = appendWorkflowNotesAndLabels(srcNode,
             destNode);
+
+        // prepopulate workflow role assignments on the dest node if possible
+        if (destWbs.isLeaf(destNode))
+            maybeAutoAssignWorkflowRoles(destNode, extraDefaultAttrs, workflows,
+                srcNode);
 
         // gather data structures we will need for the operation
         List<WBSNode> currentDestNodes = Arrays.asList(destWbs
@@ -396,6 +402,86 @@ public class WorkflowUtil {
         }
 
         return destLabels;
+    }
+
+    private static void maybeAutoAssignWorkflowRoles(WBSNode targetWbsNode,
+            Map extraDefaultAttrs, WBSModel workflows, WBSNode workflowNode) {
+        // get the default assigned users for the target node
+        List<String> people = getDefaultAssignedPeople(extraDefaultAttrs);
+        if (people == null || people.isEmpty())
+            return;
+
+        // get the list of roles in the source workflow, in assignment order
+        List<String> roles = getAutoAssignableRolesForWorkflow(workflows,
+            workflowNode);
+        if (roles == null || roles.isEmpty())
+            return;
+
+        // store the role assignments on the target WBS node
+        Map<String, String> autoRoleAssignments = new HashMap<String, String>();
+        for (int i = Math.min(people.size(), roles.size()); i-- > 0;) {
+            String person = people.get(i);
+            String role = roles.get(i);
+            autoRoleAssignments.put(role, person);
+        }
+        TeamTimeColumn.storeRoleAssignments(targetWbsNode, autoRoleAssignments);
+    }
+
+    private static List<String> getDefaultAssignedPeople(Map defaultAttrs) {
+        if (defaultAttrs == null)
+            return Collections.EMPTY_LIST;
+        String autoZeroUserStr = (String) defaultAttrs
+                .get(TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT);
+        return TeamTimeColumn.getPeopleFromResourcesString(autoZeroUserStr);
+    }
+
+    private static List<String> getAutoAssignableRolesForWorkflow(
+            WBSModel workflows, WBSNode workflowNode) {
+        // this method provides a super-cautious implementation. It only
+        // allows assignability for roles that are "universal." The first
+        // universal role in a workflow is one that is assigned to every step.
+        // The second universal role is one that is assigned to every step
+        // with at least two people. This pattern continues to the third, etc.
+        List<String> result = new ArrayList<String>();
+        WBSNode[] workflowSteps = workflows.getDescendants(workflowNode);
+        while (true) {
+            String nextRole = getNextUniversalRole(workflows, workflowSteps,
+                result);
+            if (nextRole != null)
+                result.add(nextRole);
+            else
+                return result;
+        }
+    }
+
+    private static String getNextUniversalRole(WBSModel workflows,
+            WBSNode[] workflowSteps, List<String> priorRoles) {
+        List<String> result = null;
+        for (WBSNode node : workflowSteps) {
+            // only look at leaf tasks in the workflow
+            if (!TeamTimeColumn.isLeafTask(workflows, node))
+                continue;
+
+            // get the roles for this task from the "performed by" column
+            List<String> performedBy = WorkflowResourcesColumn
+                    .getRolesNamesForNode(node);
+            if (performedBy == null || performedBy.isEmpty())
+                continue;
+
+            // identify roles that aren't already in the "prior" list
+            List<String> stepRoles = new ArrayList(performedBy);
+            stepRoles.removeAll(priorRoles);
+
+            // track the list of roles universally seen on all workflow steps
+            if (stepRoles.isEmpty())
+                ;
+            else if (result == null)
+                result = stepRoles;
+            else
+                result.retainAll(stepRoles);
+        }
+
+        return result == null || result.isEmpty() ? null : result.get(0);
     }
 
     private static WBSNode createNewWorkflowNodeToInsert(WBSNode srcNode,

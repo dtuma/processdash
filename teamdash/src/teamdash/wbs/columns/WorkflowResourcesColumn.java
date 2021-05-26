@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2020 Tuma Solutions, LLC
+// Copyright (C) 2014-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package teamdash.wbs.columns;
 
 import java.awt.Component;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -43,6 +45,7 @@ import javax.swing.table.TableCellEditor;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToComboBox;
 import net.sourceforge.processdash.ui.lib.autocomplete.AssignedToDocument;
 import net.sourceforge.processdash.ui.lib.autocomplete.AutocompletingDataTableCellEditor;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
@@ -165,6 +168,21 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
                         result.add(word);
                 }
             }
+        }
+        return result;
+    }
+
+    public static List<String> getRolesNamesForNode(WBSNode node) {
+        String performedByStr = (String) node.getAttribute(ATTR_NAME);
+        if (!StringUtils.hasValue(performedByStr))
+            return Collections.EMPTY_LIST;
+
+        List<String> result = new ArrayList<String>();
+        Matcher m = TOKEN_PAT.matcher(performedByStr);
+        while (m.find()) {
+            String token = m.group();
+            if (token.startsWith(ROLE_BEG))
+                result.add(token);
         }
         return result;
     }
