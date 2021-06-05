@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,8 +26,10 @@ package net.sourceforge.processdash.tool.launcher.pdes;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.HttpURLConnection;
@@ -54,6 +56,8 @@ import javax.swing.event.HyperlinkListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.launcher.LaunchableDataset;
 import net.sourceforge.processdash.tool.launcher.ui.LaunchableDatasetList;
+import net.sourceforge.processdash.tool.perm.UserAccountFlag;
+import net.sourceforge.processdash.tool.perm.WhoAmI;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -357,8 +361,17 @@ public class PDESDatasetChooser extends JPanel {
             try {
                 ServerUrl server = (ServerUrl) serverSelector.getSelectedItem();
                 String url = server.baseUrl;
-                List<LaunchableDataset> datasets = DatasetsApi.myDatasets(url);
-                result = new DatasetListReady(url, datasets);
+
+                WhoAmI who = new WhoAmI(url + "DataBridge/INST-000");
+                List<UserAccountFlag> userFlags = who.getUserAccountFlags();
+                if (!userFlags.isEmpty()) {
+                    result = new UserFlagErrorMessage(userFlags.get(0));
+
+                } else {
+                    List<LaunchableDataset> datasets = DatasetsApi
+                            .myDatasets(url);
+                    result = new DatasetListReady(url, datasets);
+                }
 
             } catch (Exception e) {
                 result = new DatasetLoadFailed(e);
@@ -421,16 +434,14 @@ public class PDESDatasetChooser extends JPanel {
                 scrollPane.setViewportView(new JLabel(" "));
                 showErrorMessage(scrollPane, "Error.Unauthorized");
             } else {
-                if (errorLabel == null)
-                    errorLabel = buildErrorLabel();
+                errorLabel = buildErrorLabel();
                 scrollPane.setViewportView(errorLabel);
             }
         }
 
         private JComponent buildErrorLabel() {
             // retrieve localized text and build an HTML document
-            String html = "<html>" + res.getHTML("Error.Cannot_Connect")
-                    + "</html>";
+            String html = "<html>" + getMessageHtml() + "</html>";
             html = StringUtils.findAndReplace(html, "[[", "<a href='try'>");
             html = StringUtils.findAndReplace(html, "]]", "</a>");
             html = StringUtils.findAndReplace(html, "((", "<a href='info'>");
@@ -450,11 +461,19 @@ public class PDESDatasetChooser extends JPanel {
             label.addHyperlinkListener(new HyperlinkListener() {
                 public void hyperlinkUpdate(HyperlinkEvent e) {
                     if (EventType.ACTIVATED.equals(e.getEventType())) {
-                        if ("try".equals(e.getDescription())) {
+                        String href = e.getDescription();
+                        if ("try".equals(href)) {
                             refreshDatasetList();
-                        } else {
+                        } else if ("info".equals(href)) {
                             ExceptionDialog.show(errorLabel,
                                 res.getString("Error.Title"), error);
+                        } else if (e.getURL() != null && href.startsWith("http")) {
+                            try {
+                                Desktop.getDesktop().browse(e.getURL().toURI());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                Toolkit.getDefaultToolkit().beep();
+                            }
                         }
                     }
                 }
@@ -462,6 +481,30 @@ public class PDESDatasetChooser extends JPanel {
 
             return label;
         }
+
+        protected String getMessageHtml() {
+            return res.getHTML("Error.Cannot_Connect");
+        }
+
+    }
+
+    /**
+     * Display a server-supplied error message about a user account flag
+     */
+    private class UserFlagErrorMessage extends DatasetLoadFailed {
+
+        private UserAccountFlag flag;
+
+        public UserFlagErrorMessage(UserAccountFlag flag) {
+            super(new Exception(flag.getMsg()));
+            this.flag = flag;
+        }
+
+        @Override
+        protected String getMessageHtml() {
+            return flag.getHtml() + "\n \n" + res.getHTML("Error.Retry");
+        }
+
     }
 
 }

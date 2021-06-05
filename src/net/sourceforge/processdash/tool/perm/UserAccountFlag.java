@@ -28,6 +28,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
 public class UserAccountFlag {
 
     private String code;
@@ -64,6 +67,16 @@ public class UserAccountFlag {
 
     public String getBaseUrl() {
         return baseUrl;
+    }
+
+    public String getHtml() {
+        String html = HTMLUtils.escapeEntities(msg);
+        if (StringUtils.hasValue(uri)) {
+            html = StringUtils.findAndReplace(html, "{{", //
+                "<a href='" + baseUrl + uri + "'>");
+            html = StringUtils.findAndReplace(html, "}}", "</a>");
+        }
+        return html;
     }
 
 
