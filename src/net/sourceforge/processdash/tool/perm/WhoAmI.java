@@ -1,4 +1,4 @@
-// Copyright (C) 2017 Tuma Solutions, LLC
+// Copyright (C) 2017-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -59,6 +60,8 @@ public class WhoAmI {
 
     private List<String> externalPermissionGrants;
 
+    private List<UserAccountFlag> userAccountFlags;
+
     private static final Logger logger = Logger
             .getLogger(WhoAmI.class.getName());
 
@@ -67,6 +70,7 @@ public class WhoAmI {
         username = null;
         legacyPdesMode = false;
         externalPermissionGrants = Collections.EMPTY_LIST;
+        userAccountFlags = Collections.EMPTY_LIST;
         identifyUser(pdesUrl);
     }
 
@@ -80,6 +84,10 @@ public class WhoAmI {
 
     public List<String> getExternalPermissionGrants() {
         return externalPermissionGrants;
+    }
+
+    public List<UserAccountFlag> getUserAccountFlags() {
+        return userAccountFlags;
     }
 
 
@@ -104,7 +112,8 @@ public class WhoAmI {
 
         try {
             // make a REST API call to the server to identify the current user
-            String whoamiUrl = m.group(1) + "/api/v1/users/whoami/";
+            String baseUrl = m.group(1);
+            String whoamiUrl = baseUrl + "/api/v1/users/whoami/";
             JSONObject json = makeRestApiCall(whoamiUrl);
             Map user = (Map) json.get("user");
             this.username = (String) user.get("username");
@@ -114,6 +123,11 @@ public class WhoAmI {
             List<String> permIDs = (List<String>) user.get("clientPermissions");
             if (permIDs != null)
                 externalPermissionGrants = permIDs;
+
+            // see if this user has flags on their account
+            List<Map> flags = (List<Map>) user.get("flags");
+            if (flags != null)
+                userAccountFlags = UserAccountFlag.parseList(flags, baseUrl);
 
         } catch (HttpException.Unauthorized he) {
             // if the attempt to contact the "whoami" API triggered a password
@@ -196,6 +210,8 @@ public class WhoAmI {
         InputStream in = null;
         try {
             URLConnection conn = new URL(urlStr).openConnection();
+            conn.setRequestProperty("Accept-Language",
+                Locale.getDefault().getLanguage());
             HttpException.checkValid(conn);
             in = conn.getInputStream();
             return (JSONObject) new JSONParser().parse(
