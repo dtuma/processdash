@@ -2775,6 +2775,8 @@ public class DataRepository implements Repository, DataContext,
                         ("There is no '=' character on the line: '" + line + "'."));
 
             name = line.substring(0, equalsPosition).replace(EQUALS_SIGN_REPL, '=');
+            if (name.startsWith("\\["))
+                name = name.substring(1);
             value = line.substring(equalsPosition+1);
             putVal(name, value);
         }
@@ -3737,6 +3739,8 @@ public class DataRepository implements Repository, DataContext,
                     continue;
 
                 name = name.substring(prefixLength).replace('=', EQUALS_SIGN_REPL);
+                if (name.startsWith("["))
+                    name = '\\' + name;
                 valuesToSave.add(name + (editable ? "=" : "==") + valStr);
             }
 
