@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2020 Tuma Solutions, LLC
+// Copyright (C) 2014-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 
 public class HttpException extends IOException {
 
@@ -36,11 +38,14 @@ public class HttpException extends IOException {
 
     private URL url;
 
+    private Map<String, List<String>> headers;
+
     private HttpException(HttpURLConnection conn) throws IOException {
         super("HTTP " + conn.getResponseCode() + " " + conn.getResponseMessage()
                 + " <" + conn.getURL() + ">");
         this.responseCode = conn.getResponseCode();
         this.responseMessage = conn.getResponseMessage();
+        this.headers = conn.getHeaderFields();
         this.url = conn.getURL();
     }
 
@@ -55,6 +60,17 @@ public class HttpException extends IOException {
     /** @since 2.5.6 */
     public URL getUrl() {
         return url;
+    }
+
+    /** @since 2.6.6 */
+    public Map<String, List<String>> getResponseHeaders() {
+        return headers;
+    }
+
+    /** @since 2.6.6 */
+    public String getResponseHeader(String name) {
+        List<String> values = headers.get(name);
+        return (values == null || values.isEmpty()) ? null : values.get(0);
     }
 
     public static class Unauthorized extends HttpException {
