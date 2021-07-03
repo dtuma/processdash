@@ -110,6 +110,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.tool.perm.UserAccountFlagErrorMessage;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -2284,7 +2285,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             displayStartupPermissionError("Unauthorized");
             return null;
         } catch (HttpException.Forbidden e) {
-            displayStartupPermissionError("Forbidden");
+            displayStartupForbiddenError(e);
             return null;
         } catch (IOException e) {
             // do nothing.  An exception means that "workingDirIsGood" will
@@ -2347,6 +2348,23 @@ public class WBSEditor implements WindowListener, SaveListener,
             for (Object line : message)
                 System.err.println(line);
             System.exit(1);
+        }
+    }
+    private static void displayStartupForbiddenError(HttpException.Forbidden f) {
+        // Forbidden errors can be thrown when there is a problem with the
+        // user's account. If that's the case, display an appropriate message
+        Resources res = Resources.getDashBundle("WBSEditor.Errors.Server_Auth");
+        String footer = res.getString("Forbidden.Footer");
+        Component flagErrMsgLabel = UserAccountFlagErrorMessage.get(f, footer);
+        if (flagErrMsgLabel != null) {
+            String title = res.getString("Forbidden.Title");
+            JOptionPane.showMessageDialog(null, flagErrMsgLabel, title,
+                JOptionPane.ERROR_MESSAGE);
+
+        } else {
+            // if the problem was not caused by a user account flag, display a
+            // regular "permission denied" message
+            displayStartupPermissionError("Forbidden");
         }
     }
     private static void displayStartupPermissionError(String resourceKey) {
