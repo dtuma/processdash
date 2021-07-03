@@ -254,6 +254,18 @@ public interface ResourceBridgeConstants {
     String REQUEST_TOKEN_HEADER = "X-Process-Dashboard-Request-Token";
 
     /**
+     * name of a header sent by the server to provide extended error info
+     * 
+     * @since PDES 3.8.3
+     */
+    String EXTENDED_ERROR_HEADER = "X-Process-Dashboard-Extended-Error";
+
+    /**
+     * value for the extended error header when a user has account flags
+     */
+    String USER_ACCOUNT_FLAG_ERROR_VALUE = "user-account-flag";
+
+    /**
      * After a successful lock action, this HTTP response header will contain a
      * value from the {@link OfflineLockStatus} enumeration to indicate whether
      * the lock is enabled for offline use. (Older versions of the protocol,
