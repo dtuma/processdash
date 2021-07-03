@@ -158,6 +158,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
+import net.sourceforge.processdash.tool.perm.UserAccountFlagErrorMessage;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.ui.AlwaysOnTopManager;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
@@ -788,7 +789,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             displayStartupPermissionError("Unauthorized");
             System.exit(1);
         } catch (HttpException.Forbidden e) {
-            displayStartupPermissionError("Forbidden");
+            displayStartupForbiddenError(e);
             System.exit(1);
         } catch (IOException e) {
             String resKey;
@@ -1513,6 +1514,24 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             JOptionPane.ERROR_MESSAGE);
     }
 
+
+    private void displayStartupForbiddenError(HttpException.Forbidden f) {
+        // Forbidden errors can be thrown when there is a problem with the
+        // user's account. If that's the case, display an appropriate message
+        Resources res = Resources.getDashBundle("Authentication");
+        String footer = res.getString("Errors.Forbidden.Footer");
+        Component flagErrMsgLabel = UserAccountFlagErrorMessage.get(f, footer);
+        if (flagErrMsgLabel != null) {
+            String title = res.getString("Errors.Forbidden.Title");
+            JOptionPane.showMessageDialog(hideSS(), ssFront(flagErrMsgLabel),
+                title, JOptionPane.ERROR_MESSAGE);
+
+        } else {
+            // if the problem was not caused by a user account flag, display a
+            // regular "permission denied" message
+            displayStartupPermissionError("Forbidden");
+        }
+    }
 
     private void displayStartupPermissionError(String resourceKey) {
         displayStaticStartupError("Authentication.Errors." + resourceKey);

@@ -107,7 +107,7 @@ public class WhoAmI {
     private void identifyUserFromPDES(String datasetUrl)
             throws HttpException.Unauthorized {
         Matcher m = DATA_BRIDGE_URL_PAT.matcher(datasetUrl);
-        if (!m.matches())
+        if (!m.find())
             return;
 
         try {
@@ -227,6 +227,6 @@ public class WhoAmI {
 
 
     static final Pattern DATA_BRIDGE_URL_PAT = Pattern
-            .compile("(http.*)/DataBridge/([\\w-]+)");
+            .compile("^(http.*)/DataBridge/([\\w-]+)");
 
 }
