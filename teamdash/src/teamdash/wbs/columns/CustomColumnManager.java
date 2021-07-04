@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2020 Tuma Solutions, LLC
+// Copyright (C) 2011-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -99,9 +99,8 @@ public class CustomColumnManager {
     }
 
     public void replaceProjectSpecificColumns(CustomColumnSpecs newSpecs) {
-        // make a list of all new and old column IDs
-        Set<String> columnIDs = new HashSet<String>(newSpecs.keySet());
-        columnIDs.addAll(projectColumnSpecs.keySet());
+        // make a set of all custom column IDs, starting with the old ones
+        Set<String> columnIDs = getCurrentCustomColumnIDs();
 
         // replace the specs and rebuild the columns
         projectColumnSpecs.clear();
@@ -110,12 +109,22 @@ public class CustomColumnManager {
         customColumns = createColumns(processID);
         dataModel.addRemoveDataColumns(customColumns, oldColumns);
 
+        // add all new column IDs to our custom column ID set
+        columnIDs.addAll(getCurrentCustomColumnIDs());
+
         // send events to our registered listener
         for (String oneID : columnIDs) {
             CustomColumn oldColumn = findColumnById(oneID, oldColumns);
             CustomColumn newColumn = findColumnById(oneID, customColumns);
             fireColumnEvent(oldColumn, newColumn);
         }
+    }
+
+    private Set<String> getCurrentCustomColumnIDs() {
+        Set<String> result = new HashSet<String>();
+        for (CustomColumn col : customColumns)
+            result.add(col.getColumnID());
+        return result;
     }
 
     public void setOrderOfProjectSpecificColumns(List<String> columnOrder) {
