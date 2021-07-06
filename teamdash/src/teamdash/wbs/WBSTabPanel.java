@@ -929,9 +929,11 @@ public class WBSTabPanel extends JLayeredPane implements
             for (int col = tcm.getColumnCount(); col-- > 0;) {
                 TableColumn column = tcm.getColumn(col);
                 if (id.equals(column.getIdentifier())) {
+                    DataTableColumn newDTC = new DataTableColumn(
+                            wbsTable.dataModel, newColumn);
+                    newDTC.setPreferredWidth(column.getPreferredWidth());
                     tcm.removeColumn(column);
-                    tcm.addColumn(new DataTableColumn(wbsTable.dataModel,
-                            newColumn));
+                    tcm.addColumn(newDTC);
                     tcm.moveColumn(tcm.getColumnCount() - 1, col);
                 }
             }
