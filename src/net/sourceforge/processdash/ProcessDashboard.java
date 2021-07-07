@@ -151,6 +151,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.TLSConfig;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -2157,6 +2158,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
     private static void mainImpl(String[] args) {
         DashboardSecurity.setupSecurityManager();
+        TLSConfig.autoConfigure();
 
         LargeFontsHelper.maybeInitialize();
 
