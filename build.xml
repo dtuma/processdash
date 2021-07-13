@@ -213,7 +213,6 @@ Authors:
            source="${compile.target}" target="${compile.target}"
            classpathref="build.classpath">
       <include name="net/**/*.java"/>
-      <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>
       <excludesfile name="${lib}/fileset-ns.txt"/>
       <excludesfile name="${lib}/fileset-degraded-jre.txt"/>
@@ -688,7 +687,6 @@ Authors:
           <include name="org/"/>
           <include name="Templates/"/>
           <include name="net/"/>
-          <exclude name="**/*Test.class"/>
           <exclude name="net/**/OpenLocalizationToolAction*.class"/>
           <exclude name="net/sourceforge/processdash/tool/diff/impl/git/"/>
       </fileset>
