@@ -132,7 +132,7 @@ public abstract class ExtSyncDaemon {
                     .maybeInitialize("PD/" + systemName + " Synchronizer");
         } else {
             // read the username and password from the configuration file
-            Authenticator.setDefault(new HttpAuth(properties));
+            new HttpAuth(properties).maybeInstall();
         }
     }
 
@@ -143,6 +143,11 @@ public abstract class ExtSyncDaemon {
         public HttpAuth(Properties p) {
             username = p.getProperty("pdes.username");
             password = p.getProperty("pdes.password");
+        }
+
+        protected void maybeInstall() {
+            if (username != null && password != null)
+                Authenticator.setDefault(this);
         }
 
         @Override
