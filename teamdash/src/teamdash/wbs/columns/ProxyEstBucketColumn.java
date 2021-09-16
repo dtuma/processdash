@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2019 Tuma Solutions, LLC
+// Copyright (C) 2014-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
 public class ProxyEstBucketColumn extends AbstractDataColumn implements
         CustomEditedColumn, CalculatedDataColumn {
@@ -137,8 +138,8 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
             return;
 
         // only change size estimates for components, not for tasks.
-        String currentType = (String) dataModel
-                .getValueAt(node, nodeTypeColumn);
+        Object currentType = WrappedValue.unwrap(dataModel
+                .getValueAt(node, nodeTypeColumn));
         String currentMetric = componentTypes.get(currentType);
         if (currentMetric == null)
             return;
