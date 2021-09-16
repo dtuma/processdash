@@ -52,6 +52,8 @@ public class FilterDataFiles implements LineBasedFilter {
         currentFilename = filename;
         return (filename.endsWith(".dat")
                 && !"groups.dat".equalsIgnoreCase(filename)
+                && !"users.dat".equalsIgnoreCase(filename)
+                && !"roles.dat".equalsIgnoreCase(filename)
                 && !"datasetID.dat".equalsIgnoreCase(filename));
     }
 
