@@ -3733,6 +3733,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void close() {
+        // if this dialog has already been closed in the past, do nothing
+        if (model == null)
+            return;
+
         guiPrefs.saveAll();
 
         TaskScheduleChooser.close(taskListName);
