@@ -52,6 +52,8 @@ public class ExtSyncCoordinator {
 
     protected SyncDataFile syncData;
 
+    private boolean noExternalChanges;
+
     private DaemonMetadata daemonMetadata;
 
     private ElapsedTimeMonitor exportTime, inboundTime, outboundTime;
@@ -80,6 +82,7 @@ public class ExtSyncCoordinator {
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
+        this.noExternalChanges = config.getProperty("noExternalChanges") != null;
         this.daemonMetadata = daemonMetadata;
         this.log = syncData.getLogger();
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
@@ -149,8 +152,16 @@ public class ExtSyncCoordinator {
         wbsNeedsSave = sync.wasWbsChanged();
         List<ExportedWbsNode> exportedNodes = sync.getWbsNodesToExport();
         int numExportedNodes = exportedNodes.size();
-        if (numExportedNodes == 0)
+        if (numExportedNodes == 0) {
             return;
+        } else if (noExternalChanges) {
+            // abort if we're in "no changes" mode, log messages instead
+            for (ExportedWbsNode expNode : exportedNodes) {
+                log.fine("External changes disabled; skipping creation of "
+                        + expNode.getType() + " '" + expNode.getName() + "'");
+            }
+            return;
+        }
 
         // start tracking the time required for export creation
         exportTime.start();
@@ -271,7 +282,14 @@ public class ExtSyncCoordinator {
 
     private void applyOutboundWbsChanges(ExtNodeSet nodeSet,
             List<ExtChange> changes) throws IOException {
-        if (!changes.isEmpty()) {
+        if (changes.isEmpty()) {
+            // nothing to do
+        } else if (noExternalChanges) {
+            // abort if we're in "no changes" mode, log messages instead
+            for (ExtChange c : changes)
+                log.fine("External changes disabled; skipping modification of "
+                        + c.extNode.getName() + "' - " + c.attrValues);
+        } else {
             // start tracking the time required for outbound sync
             outboundTime.start();
 
