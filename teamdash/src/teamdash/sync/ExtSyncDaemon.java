@@ -24,7 +24,6 @@
 package teamdash.sync;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
@@ -59,6 +58,15 @@ public abstract class ExtSyncDaemon {
 
 
     public ExtSyncDaemon(String globalConfigFilename) throws Exception {
+        this(null, globalConfigFilename);
+    }
+
+    public ExtSyncDaemon(Properties configParams) throws Exception {
+        this(configParams, null);
+    }
+
+    public ExtSyncDaemon(Properties configParams, String configFilename)
+            throws Exception {
         // create an object for logging
         this.log = Logger.getLogger(getClass().getName());
         String version = ExtSyncDaemon.class.getPackage().getImplementationVersion();
@@ -67,7 +75,7 @@ public abstract class ExtSyncDaemon {
                 + version + "]");
 
         // load global config parameters based on command line arg
-        this.globalConfig = loadGlobalConfig(globalConfigFilename);
+        this.globalConfig = buildGlobalConfig(configParams, configFilename);
         this.systemName = globalConfig.getProperty(EXT_SYSTEM_NAME);
         this.systemID = globalConfig.getProperty(EXT_SYSTEM_ID);
 
@@ -106,15 +114,21 @@ public abstract class ExtSyncDaemon {
 
 
     /**
-     * Load global configuration parameters from a properties file
+     * Compute global configuration from defaults, an optional local file, and
+     * optional in-memory settings
      */
-    private Properties loadGlobalConfig(String propertiesFile)
-            throws FileNotFoundException, IOException {
+    protected Properties buildGlobalConfig(Properties configSettings,
+            String propertiesFile) throws IOException {
         Properties properties = new Properties(getGlobalDefaults());
         properties.put(ExtSyncCoordinator.GLOBAL_LOG_SETTING, "true");
-        InputStream in = new FileInputStream(propertiesFile);
-        properties.load(in);
-        in.close();
+        if (configSettings != null) {
+            properties.putAll(configSettings);
+        }
+        if (propertiesFile != null) {
+            InputStream in = new FileInputStream(propertiesFile);
+            properties.load(in);
+            in.close();
+        }
         return properties;
     }
 
