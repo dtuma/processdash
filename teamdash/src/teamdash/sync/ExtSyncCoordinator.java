@@ -44,6 +44,9 @@ import teamdash.wbs.TeamProject;
 
 public class ExtSyncCoordinator {
 
+    public static final String NO_EXT_CHANGES = "noExternalChanges";
+
+
     private TeamProjectDataTarget dataTarget;
 
     private String extSystemName;
@@ -52,7 +55,7 @@ public class ExtSyncCoordinator {
 
     protected SyncDataFile syncData;
 
-    private boolean noExternalChanges;
+    private String noExternalChanges;
 
     private DaemonMetadata daemonMetadata;
 
@@ -82,7 +85,7 @@ public class ExtSyncCoordinator {
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
-        this.noExternalChanges = config.getProperty("noExternalChanges") != null;
+        this.noExternalChanges = config.getProperty(NO_EXT_CHANGES);
         this.daemonMetadata = daemonMetadata;
         this.log = syncData.getLogger();
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
@@ -141,6 +144,7 @@ public class ExtSyncCoordinator {
         dataTarget.update();
         syncData.checkComodification();
         metadata = syncData.getMetadata();
+        metadata.setStr(noExternalChanges, NO_EXT_CHANGES);
         teamProject = new ExtSyncTeamProject(collection);
         wbsNeedsSave = false;
     }
@@ -154,7 +158,7 @@ public class ExtSyncCoordinator {
         int numExportedNodes = exportedNodes.size();
         if (numExportedNodes == 0) {
             return;
-        } else if (noExternalChanges) {
+        } else if (noExternalChanges != null) {
             // abort if we're in "no changes" mode, log messages instead
             for (ExportedWbsNode expNode : exportedNodes) {
                 log.fine("External changes disabled; skipping creation of "
@@ -223,6 +227,7 @@ public class ExtSyncCoordinator {
                 dataTarget.update();
                 teamProject.reload();
                 metadata = syncData.getMetadata();
+                metadata.setStr(noExternalChanges, NO_EXT_CHANGES);
 
                 // run the sync process again
                 log.finer(logPrefix + "Computing changes");
@@ -284,7 +289,7 @@ public class ExtSyncCoordinator {
             List<ExtChange> changes) throws IOException {
         if (changes.isEmpty()) {
             // nothing to do
-        } else if (noExternalChanges) {
+        } else if (noExternalChanges != null) {
             // abort if we're in "no changes" mode, log messages instead
             for (ExtChange c : changes)
                 log.fine("External changes disabled; skipping modification of "

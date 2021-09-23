@@ -78,9 +78,12 @@ public class ExtNodeTypeMetadata {
 
         // if the node types haven't changed since the last store call, abort
         SyncMetadata metadata = syncData.getMetadata();
+        String extChangeFlag = metadata.getStr(ExtSyncCoordinator.NO_EXT_CHANGES);
+        boolean extCreationAllowed = (extChangeFlag == null);
         String lastHashCode = metadata.getStr(ExtSyncUtil.NODE_TYPE_PREFIX,
             HASHCODE);
-        String thisHashCode = Integer.toString(allNodeTypes.hashCode());
+        String thisHashCode = Integer.toString(allNodeTypes.hashCode() //
+                + (extCreationAllowed ? 0 : 1));
         if (thisHashCode.equals(lastHashCode))
             return;
 
@@ -98,7 +101,7 @@ public class ExtNodeTypeMetadata {
             issueTypes.put(type.id, type.name);
 
             // make an ID list of types that are creatable
-            if (type.creatable)
+            if (type.creatable && extCreationAllowed)
                 creatableTypes.add(type.id);
 
             // store the type icon in the data file, if one was given
