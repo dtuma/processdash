@@ -25,6 +25,7 @@ package teamdash.sync;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -137,6 +138,10 @@ public class TeamProjectDataTargetFactory {
         @Override
         public void update() throws IOException {
             workingDir.update();
+            // if the directory has become inaccessible (for example, due to a
+            // loss of network connectivity), fail fast
+            if (getDirectory().isDirectory() == false)
+                throw new FileNotFoundException(getDirectory().getPath());
         }
 
         @Override

@@ -153,7 +153,14 @@ public class ExtSyncDaemonWBS {
                 log.info("Press enter to repeat.");
                 System.console().readLine();
             } else if (wait > 0) {
-                sleep(wait, coord, errCount == 0 ? 0 : 2 * retryDelay);
+                try {
+                    sleep(wait, coord, errCount == 0 ? 0 : 2 * retryDelay);
+                } catch (IOException ioe) {
+                    // if we've lost connectivity to the WBS directory, record
+                    // an error, then wait a moment before trying again
+                    if (errCount == 0) errCount++;
+                    threadSleep(loopDelayMillis(1, errCount, retryDelay));
+                }
             }
 
         } while (loopDelay >= 0);
@@ -222,9 +229,7 @@ public class ExtSyncDaemonWBS {
 
     private void sleepSimply(long duration, boolean isErr) throws IOException {
         daemonMetadata.setState(isErr ? State.Error : State.Sleep, duration);
-        try {
-            Thread.sleep(duration);
-        } catch (InterruptedException ie) {}
+        threadSleep(duration);
     }
 
     private void sleepWithActivityChecking(long duration,
@@ -258,14 +263,18 @@ public class ExtSyncDaemonWBS {
             }
 
             // sleep for a moment before checking for activity again
-            try {
-                Thread.sleep(refreshDelay);
-            } catch (InterruptedException ie) {}
+            threadSleep(refreshDelay);
 
             // recalc how much longer we should sleep after the operations above
             now = System.currentTimeMillis();
             remainingTime = finishTime - now;
         }
+    }
+
+    private void threadSleep(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException ie) {}
     }
 
 }

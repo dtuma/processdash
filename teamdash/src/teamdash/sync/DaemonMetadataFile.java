@@ -79,8 +79,9 @@ public class DaemonMetadataFile extends DaemonMetadata {
     }
 
     public void save() throws IOException {
+        metadataDir.mkdir();
         RobustFileOutputStream out = new RobustFileOutputStream(
-                daemonStateFile);
+                daemonStateFile, false);
         stateProps.store(out, null);
         out.close();
         log.finer("Daemon state: " + stateProps.toString());
