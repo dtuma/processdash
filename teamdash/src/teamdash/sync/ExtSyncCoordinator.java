@@ -321,7 +321,7 @@ public class ExtSyncCoordinator {
                     collection.getLastModified(resourceName));
         }
         if (newFileTime <= maxFileTime) {
-            return false;
+            return syncData.isTimestampMismatch();
         } else {
             maxFileTime = newFileTime;
             return true;

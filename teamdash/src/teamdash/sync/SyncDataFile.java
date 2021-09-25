@@ -135,12 +135,21 @@ public class SyncDataFile implements ArchiveMetricsXmlConstants {
         }
     }
 
-    public void checkComodification() throws IOException {
+    public boolean isTimestampMismatch() {
         if (fileTimestamp == 0) {
             // we haven't saved the file for the first time yet
+            return false;
         } else if (fileTimestamp == collection.getLastModified(filename)) {
             // the filesystem time agrees with our records
+            return false;
         } else {
+            // the file timestamp doesn't match
+            return true;
+        }
+    }
+
+    public void checkComodification() throws IOException {
+        if (isTimestampMismatch()) {
             // timestamp doesn't match. Look inside the file to be sure
             zipEntryData = null;
             SyncMetadata currentMetadata = loadMetadata();
