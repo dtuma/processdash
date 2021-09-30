@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,12 @@ public class XmlCollectionListing implements CollectionReport {
 
         ser.setOutput(out, ENCODING);
         ser.startDocument(ENCODING, null);
+        runReport(c, resources, ser);
+        ser.endDocument();
+    }
+
+    public static void runReport(ResourceCollectionInfo c,
+            List<String> resources, XmlSerializer ser) throws IOException {
         ser.startTag(null, DOCUMENT_TAG);
 
         for (String resourceName : resources) {
@@ -76,31 +82,35 @@ public class XmlCollectionListing implements CollectionReport {
         }
 
         ser.endTag(null, DOCUMENT_TAG);
-        ser.endDocument();
     }
 
     public static ResourceCollectionInfo parseListing(InputStream in)
             throws IOException {
         try {
             Element data = XMLUtils.parse(in).getDocumentElement();
-            ResourceListing result = new ResourceListing();
-            NodeList resourceElems = data.getElementsByTagName(RESOURCE_TAG);
-            if (resourceElems != null) {
-                for (int i = 0; i < resourceElems.getLength(); i++) {
-                    Element res = (Element) resourceElems.item(i);
-                    String name = res.getAttribute(NAME_ATTR);
-                    long mod = Long.parseLong(res.getAttribute(MOD_TIME_ATTR));
-                    long sum = Long.parseLong(res.getAttribute(CHECKSUM_ATTR));
-                    result.addResource(name, mod, sum);
-                }
-            }
-            return result;
+            return parseListing(data);
         } catch (Exception e) {
             IOException ioe = new IOException(
                     "Unable to parse collection listing");
             ioe.initCause(e);
             throw ioe;
         }
+    }
+
+    public static ResourceCollectionInfo parseListing(Element data)
+            throws IOException {
+        ResourceListing result = new ResourceListing();
+        NodeList resourceElems = data.getElementsByTagName(RESOURCE_TAG);
+        if (resourceElems != null) {
+            for (int i = 0; i < resourceElems.getLength(); i++) {
+                Element res = (Element) resourceElems.item(i);
+                String name = res.getAttribute(NAME_ATTR);
+                long mod = Long.parseLong(res.getAttribute(MOD_TIME_ATTR));
+                long sum = Long.parseLong(res.getAttribute(CHECKSUM_ATTR));
+                result.addResource(name, mod, sum);
+            }
+        }
+        return result;
     }
 
     private static final String ENCODING = "UTF-8";
