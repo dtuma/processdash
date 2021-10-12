@@ -23,15 +23,22 @@
 
 package net.sourceforge.processdash.tool.bridge.bundle;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -51,6 +58,10 @@ public class FileBundlePartitioner {
 
     private long logFileTime = -1;
 
+    private Set<String> qualifiedBundles;
+
+    private Map<String, QualifiedFile> qualifiedFileCache;
+
     public FileBundlePartitioner(File sourceDir, FilenameFilter inclusionFilter,
             String catchAllBundleName, HeadRefs localHeadRefs,
             FileBundleManifestSource manifestSource) {
@@ -68,6 +79,21 @@ public class FileBundlePartitioner {
         this.logFileTime = logFileTimestamp;
     }
 
+    /**
+     * Designate a particular bundle name as being "qualified."
+     * 
+     * Selected files in a qualified bundle can be split out into a bundle of
+     * their own, using an arbitrary suffix on the parent bundle name. This
+     * suffix is specified within the files themselves, by means of a special
+     * declaration in the first few lines of the file.
+     */
+    public void setBundleQualified(String bundleName) {
+        if (qualifiedBundles == null) {
+            qualifiedBundles = new HashSet<String>();
+            qualifiedFileCache = new HashMap<String, QualifiedFile>();
+        }
+        qualifiedBundles.add(bundleName);
+    }
 
     /**
      * Look at the files currently present in the source directory, and decide
@@ -153,8 +179,8 @@ public class FileBundlePartitioner {
                     // meets that criteria, its filename is its bundle name
                     return FileBundleID.filenameToBundleName(filenameLC);
                 } else {
-                    // return the bundle we found
-                    return bundleName;
+                    // return the bundle we found, adding a qualifier if needed
+                    return maybeQualifyBundle(bundleName, filename);
                 }
             }
         }
@@ -199,6 +225,32 @@ public class FileBundlePartitioner {
         return false;
     }
 
+
+    private String maybeQualifyBundle(String bundleName, String filename)
+            throws IOException {
+        String qualifier = null;
+
+        // if the given bundle is qualified, get the qualifier for this file
+        if (qualifiedBundles != null && qualifiedBundles.contains(bundleName)) {
+            // see if we have a cached object to hold this file's qualifier
+            QualifiedFile qf = qualifiedFileCache.get(filename);
+
+            // if no cached object, create one and add to the cache
+            if (qf == null) {
+                qf = new QualifiedFile(filename);
+                qualifiedFileCache.put(filename, qf);
+            }
+
+            // get the qualifier for the file, extracting if necessary
+            qualifier = qf.getQualifier();
+        }
+
+        // if a qualifier was found, append it to the bundle name
+        if (qualifier == null)
+            return bundleName;
+        else
+            return bundleName + "-" + qualifier;
+    }
 
 
 
@@ -245,5 +297,81 @@ public class FileBundlePartitioner {
                     "workflowdump.xml", "relaunchdump.xml" },
 
     };
+
+
+
+    private class QualifiedFile {
+
+        private File file;
+
+        private long fileTime, fileSize;
+
+        private String qualifier;
+
+        public QualifiedFile(String filename) {
+            this.file = new File(srcDir, filename);
+            this.fileTime = this.fileSize = 0L;
+            this.qualifier = null;
+        }
+
+        public String getQualifier() throws IOException {
+            maybeUpdate();
+            return qualifier;
+        }
+
+        private void maybeUpdate() throws IOException {
+            // if the file has not changed since our last update, do nothing
+            long newTime = file.lastModified();
+            long newSize = file.length();
+            if (newTime == fileTime && newSize == fileSize)
+                return;
+
+            // if the file does not exist or is empty, abort
+            if (newSize == 0 || !file.isFile()) {
+                fileTime = newTime;
+                fileSize = newSize;
+                qualifier = null;
+                return;
+            }
+
+            // open the file and scan the first few lines
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(file), "UTF-8"));
+            try {
+                qualifier = null;
+                for (int i = 5; i-- > 0;) {
+                    String line = in.readLine();
+
+                    // a qualifier spec consists of an identifying token,
+                    // followed by the qualifier itself. If we see a token,
+                    // extract the qualifier that follows it
+                    int pos = findTokenEnd(line, "Bundle_Qualifier",
+                        "bundleQualifier");
+                    if (pos != -1) {
+                        Matcher m = QUALIFIER_PAT.matcher(line);
+                        if (m.find(pos)) {
+                            qualifier = m.group();
+                            break;
+                        }
+                    }
+                }
+                fileTime = newTime;
+                fileSize = newSize;
+            } finally {
+                in.close();
+            }
+        }
+
+        private int findTokenEnd(String line, String... tokens) {
+            for (String tok : tokens) {
+                int pos = line.indexOf(tok);
+                if (pos != -1)
+                    return pos + tok.length();
+            }
+            return -1;
+        }
+    }
+
+    private static final Pattern QUALIFIER_PAT = Pattern.compile("\\w+");
 
 }
