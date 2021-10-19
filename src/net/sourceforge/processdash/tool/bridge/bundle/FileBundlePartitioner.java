@@ -24,9 +24,6 @@
 package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,15 +37,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
-import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.PatternList;
 
 public class FileBundlePartitioner {
 
-    private File srcDir;
-
-    private FilenameFilter filter;
+    private ResourceCollection source;
 
     private String catchAllBundleName;
 
@@ -62,11 +58,10 @@ public class FileBundlePartitioner {
 
     private Map<String, QualifiedFile> qualifiedFileCache;
 
-    public FileBundlePartitioner(File sourceDir, FilenameFilter inclusionFilter,
+    public FileBundlePartitioner(ResourceCollection source,
             String catchAllBundleName, HeadRefs localHeadRefs,
             FileBundleManifestSource manifestSource) {
-        this.srcDir = sourceDir;
-        this.filter = inclusionFilter;
+        this.source = source;
         this.catchAllBundleName = catchAllBundleName;
         this.headRefs = localHeadRefs;
         this.manifests = manifestSource;
@@ -101,11 +96,10 @@ public class FileBundlePartitioner {
      */
     public List<FileBundleSpec> partition() throws IOException {
         // if the source directory cannot be reached, abort
-        if (!srcDir.isDirectory())
-            throw new FileNotFoundException(srcDir.getPath());
+        source.validate();
 
-        // list the files in the source directory that match the filter
-        List<String> filenames = FileUtils.listRecursively(srcDir, filter);
+        // list the files in the source collection
+        List<String> filenames = source.listResourceNames();
 
         // scan the bundles that were previously extracted to this directory
         Map<String, FileBundleSpec> result = new HashMap();
@@ -126,10 +120,9 @@ public class FileBundlePartitioner {
 
                 // if this file was not picked up by the filter, but it still
                 // exists in the source directory, add it to our list to process
-                if (!filenames.contains(oldFilename)) {
-                    File oldFile = new File(srcDir, oldFilename);
-                    if (oldFile.isFile())
-                        filenames.add(oldFilename);
+                if (!filenames.contains(oldFilename)
+                        && source.getLastModified(oldFilename) > 0) {
+                    filenames.add(oldFilename);
                 }
             }
         }
@@ -158,7 +151,7 @@ public class FileBundlePartitioner {
     }
 
     private FileBundleSpec makeSpec(String bundleName) {
-        FileBundleSpec result = new FileBundleSpec(bundleName, srcDir);
+        FileBundleSpec result = new FileBundleSpec(bundleName, source);
         if (LOG_PARTITION.equals(bundleName))
             result.timestamp = logFileTime;
         return result;
@@ -216,7 +209,7 @@ public class FileBundlePartitioner {
 
             // ask a FilenameFilter whether it accepts the given file
             else if (filter instanceof FilenameFilter) {
-                if (((FilenameFilter) filter).accept(srcDir, filename))
+                if (((FilenameFilter) filter).accept(null, filename))
                     return true;
             }
         }
@@ -302,15 +295,15 @@ public class FileBundlePartitioner {
 
     private class QualifiedFile {
 
-        private File file;
+        private String filename;
 
-        private long fileTime, fileSize;
+        private Long checksum;
 
         private String qualifier;
 
         public QualifiedFile(String filename) {
-            this.file = new File(srcDir, filename);
-            this.fileTime = this.fileSize = 0L;
+            this.filename = filename;
+            this.checksum = null;
             this.qualifier = null;
         }
 
@@ -321,26 +314,26 @@ public class FileBundlePartitioner {
 
         private void maybeUpdate() throws IOException {
             // if the file has not changed since our last update, do nothing
-            long newTime = file.lastModified();
-            long newSize = file.length();
-            if (newTime == fileTime && newSize == fileSize)
+            Long newSum = source.getChecksum(filename);
+            if (NullSafeObjectUtils.EQ(newSum, checksum))
                 return;
 
             // if the file does not exist or is empty, abort
-            if (newSize == 0 || !file.isFile()) {
-                fileTime = newTime;
-                fileSize = newSize;
+            if (newSum == null || newSum == 1) {
+                checksum = newSum;
                 qualifier = null;
                 return;
             }
 
             // open the file and scan the first few lines
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(file), "UTF-8"));
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    source.getInputStream(filename), "UTF-8"));
             try {
                 qualifier = null;
                 for (int i = 5; i-- > 0;) {
                     String line = in.readLine();
+                    if (line == null)
+                        break;
 
                     // a qualifier spec consists of an identifying token,
                     // followed by the qualifier itself. If we see a token,
@@ -355,8 +348,7 @@ public class FileBundlePartitioner {
                         }
                     }
                 }
-                fileTime = newTime;
-                fileSize = newSize;
+                checksum = newSum;
             } finally {
                 in.close();
             }
