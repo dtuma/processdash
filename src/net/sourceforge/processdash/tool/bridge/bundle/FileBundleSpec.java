@@ -23,16 +23,17 @@
 
 package net.sourceforge.processdash.tool.bridge.bundle;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 
 public class FileBundleSpec {
 
     public String bundleName;
 
-    public File srcDir;
+    public ReadableResourceCollection source;
 
     public List<String> filenames;
 
@@ -40,9 +41,9 @@ public class FileBundleSpec {
 
     public long timestamp;
 
-    public FileBundleSpec(String bundleName, File srcDir) {
+    public FileBundleSpec(String bundleName, ReadableResourceCollection src) {
         this.bundleName = bundleName;
-        this.srcDir = srcDir;
+        this.source = src;
         this.filenames = new ArrayList<String>();
         this.parents = Collections.EMPTY_LIST;
         this.timestamp = -1;

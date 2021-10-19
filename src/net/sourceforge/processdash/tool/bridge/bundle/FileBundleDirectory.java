@@ -27,6 +27,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -34,13 +35,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.zip.Adler32;
 import java.util.zip.CRC32;
-import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
+import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
@@ -99,7 +100,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      */
     public FileBundleID storeBundle(FileBundleSpec bundleSpec)
             throws IOException {
-        return storeBundle(bundleSpec.bundleName, bundleSpec.srcDir,
+        return storeBundle(bundleSpec.bundleName, bundleSpec.source,
             bundleSpec.filenames, bundleSpec.parents, bundleSpec.timestamp);
     }
 
@@ -109,8 +110,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      * 
      * @param bundleName
      *            the name of the bundle
-     * @param srcDir
-     *            the directory where source files are located
+     * @param source
+     *            the resource collection where source files are located
      * @param filenames
      *            the names of the file in <tt>srcDir</tt> that should be placed
      *            in the bundle
@@ -123,9 +124,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      * @throws IOException
      *             if I/O errors are encountered
      */
-    public FileBundleID storeBundle(String bundleName, File srcDir,
-            List<String> filenames, List<FileBundleID> parents, long timestamp)
-            throws IOException {
+    public FileBundleID storeBundle(String bundleName,
+            ReadableResourceCollection source, List<String> filenames,
+            List<FileBundleID> parents, long timestamp) throws IOException {
         // if no timestamp was supplied, use the current time
         if (timestamp <= 0)
             timestamp = System.currentTimeMillis();
@@ -135,7 +136,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
                 deviceID, bundleName);
 
         // write a ZIP file holding the data for the new bundle
-        ResourceListing fileInfo = writeFilesToZip(bundleID, srcDir, filenames);
+        ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames);
 
         // write a manifest for the bundle
         FileBundleManifest manifest = new FileBundleManifest(bundleID, fileInfo,
@@ -146,8 +147,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return bundleID;
     }
 
-    private ResourceListing writeFilesToZip(FileBundleID bundleID, File srcDir,
-            List<String> filenames) throws IOException {
+    private ResourceListing writeFilesToZip(FileBundleID bundleID,
+            ReadableResourceCollection source, List<String> filenames)
+            throws IOException {
         // if there are no files to write, abort without creating a ZIP file
         ResourceListing fileInfo = new ResourceListing();
         if (filenames.isEmpty())
@@ -160,30 +162,33 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         // write each of the files into the ZIP
         for (String filename : filenames) {
-            // retrieve the file modification time and size
-            File srcFile = new File(srcDir, filename);
-            long modTime = srcFile.lastModified();
-            long size = srcFile.length();
+            // retrieve the file modification time and checksum. Skip if missing
+            long modTime = source.getLastModified(filename);
+            Long cksum = source.getChecksum(filename);
+            if (modTime == 0 || cksum == null)
+                continue;
 
             // add a new entry to the ZIP file
             ZipEntry e = new ZipEntry(filename);
             if (isCompressedFile(filename)) {
                 e.setMethod(ZipEntry.STORED);
-                e.setCompressedSize(size);
-                e.setCrc(FileUtils.computeChecksum(srcFile, new CRC32()));
+                long[] checkData = FileUtils.computeChecksumAndSize(
+                    source.getInputStream(filename), new CRC32(), true);
+                e.setCrc(checkData[0]);
+                e.setSize(checkData[1]);
+                e.setCompressedSize(checkData[1]);
             }
             e.setTime(modTime);
-            e.setSize(size);
             zipOut.putNextEntry(e);
 
-            // copy the file into the ZIP, calculating a checksum
-            Adler32 cksum = new Adler32();
-            OutputStream ckOut = new CheckedOutputStream(zipOut, cksum);
-            FileUtils.copyFile(srcFile, ckOut);
+            // copy the file into the ZIP
+            InputStream in = source.getInputStream(filename);
+            FileUtils.copyFile(in, zipOut);
+            in.close();
             zipOut.closeEntry();
 
             // add the file to our resource listing
-            fileInfo.addResource(filename, modTime, cksum.getValue());
+            fileInfo.addResource(filename, modTime, cksum);
         }
 
         // close the ZIP file
@@ -202,15 +207,15 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      * 
      * @param bundleID
      *            the ID of the bundle to extract
-     * @param targetDir
-     *            the directory where the files should be extracted
+     * @param target
+     *            the resource collection where the files should be extracted
      * @return the list of resources in the extracted bundle
      * @throws IOException
      *             if any problems are encountered during the extraction
      */
     public ResourceCollectionInfo extractBundle(FileBundleID bundleID,
-            File targetDir) throws IOException {
-        ResourceCollectionDiff diff = extractBundle(bundleID, targetDir, null,
+            ResourceCollection target) throws IOException {
+        ResourceCollectionDiff diff = extractBundle(bundleID, target, null,
             true, false);
         return diff.getB();
     }
@@ -221,8 +226,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      * 
      * @param bundleID
      *            the ID of the bundle to extract
-     * @param targetDir
-     *            the directory where the files should be extracted
+     * @param target
+     *            the resource collection where the files should be extracted
      * @param oldBundleID
      *            the ID of this same bundle that was previously extracted into
      *            the directory. Can be null for a fresh extraction
@@ -238,8 +243,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      *             if any problems are encountered during the extraction
      */
     public ResourceCollectionDiff extractBundle(FileBundleID bundleID,
-            File targetDir, FileBundleID oldBundleID, boolean overwrite,
-            boolean delete) throws IOException {
+            ResourceCollection target, FileBundleID oldBundleID,
+            boolean overwrite, boolean delete) throws IOException {
         // get a diff between the new and old bundles
         ResourceCollectionInfo oldFiles = (oldBundleID == null
                 ? EMPTY_COLLECTION
@@ -257,13 +262,12 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             filesToExtract.addAll(diff.getDiffering());
             filesToExtract.addAll(diff.getOnlyInB());
         }
-        extractFilesFromZip(bundleID, targetDir, newFiles, filesToExtract);
+        extractFilesFromZip(bundleID, target, newFiles, filesToExtract);
 
         // delete obsolete files if requested
         if (delete) {
             for (String oldFilename : diff.getOnlyInA()) {
-                File targetFileToDelete = new File(targetDir, oldFilename);
-                targetFileToDelete.delete();
+                target.deleteResource(oldFilename);
             }
         }
 
@@ -271,9 +275,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return diff;
     }
 
-    private void extractFilesFromZip(FileBundleID bundleID, File targetDir,
-            ResourceCollectionInfo fileInfo, List<String> filesToExtract)
-            throws IOException {
+    private void extractFilesFromZip(FileBundleID bundleID,
+            ResourceCollection target, ResourceCollectionInfo fileInfo,
+            List<String> filesToExtract) throws IOException {
         // if there are no files to be extracted, abort
         if (filesToExtract.isEmpty())
             return;
@@ -299,11 +303,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
                 continue;
 
             // copy the file to the target directory
-            File targetFile = new File(targetDir, filename);
-            if (filename.indexOf('/') != -1)
-                targetFile.getParentFile().mkdirs();
-            FileUtils.copyFile(zipIn, targetFile);
-            targetFile.setLastModified(lastMod);
+            OutputStream out = target.getOutputStream(filename, lastMod);
+            FileUtils.copyFile(zipIn, out);
+            out.close();
         }
 
         // close the ZIP file

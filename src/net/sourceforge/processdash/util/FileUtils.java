@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2018 Tuma Solutions, LLC
+// Copyright (C) 2005-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,18 +53,23 @@ public class FileUtils {
 
     public static long computeChecksum(InputStream stream, Checksum verify,
             boolean close) throws IOException {
+        return computeChecksumAndSize(stream, verify, close)[0];
+    }
 
+    public static long[] computeChecksumAndSize(InputStream stream,
+            Checksum verify, boolean close) throws IOException {
+        long size = 0;
         try {
             InputStream in = new CheckedInputStream(
                 new BufferedInputStream(stream), verify);
             while (in.read() != -1)
-                ; // do nothing
+                size++;
         } finally {
             if (close)
                 safelyClose(stream);
         }
 
-        return verify.getValue();
+        return new long[] { verify.getValue(), size };
     }
 
     /** Utility routine: slurp an entire file from an InputStream. */
