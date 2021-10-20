@@ -65,6 +65,8 @@ public class FileResourceCollection implements ResourceCollection,
 
     FileResourceCollectionStrategy strategy;
 
+    boolean lenientFilter;
+
     Map<String, CachedFileData> cachedData;
 
     volatile long cacheInvalidationTimestamp;
@@ -77,21 +79,27 @@ public class FileResourceCollection implements ResourceCollection,
 
 
     public FileResourceCollection(File directory) {
-        this(directory, true);
+        this(directory, true, null, false);
     }
 
     public FileResourceCollection(File directory, boolean enablePropSupport) {
-        this.directory = directory;
-        this.cachedData = Collections
-                .synchronizedMap(new HashMap<String, CachedFileData>());
-        if (enablePropSupport)
-            this.propSupport = new PropertyChangeSupport(this);
+        this(directory, enablePropSupport, null, false);
     }
 
     public FileResourceCollection(File directory, boolean enablePropSupport,
             FileResourceCollectionStrategy strategy) {
-        this(directory, enablePropSupport);
-        setStrategy(strategy);
+        this(directory, enablePropSupport, strategy, false);
+    }
+
+    public FileResourceCollection(File directory, boolean enablePropSupport,
+            FileResourceCollectionStrategy strategy, boolean lenientFilter) {
+        this.directory = directory;
+        this.strategy = strategy;
+        this.lenientFilter = lenientFilter;
+        this.cachedData = Collections
+                .synchronizedMap(new HashMap<String, CachedFileData>());
+        if (enablePropSupport)
+            this.propSupport = new PropertyChangeSupport(this);
     }
 
     public void setStrategy(FileResourceCollectionStrategy strategy) {
@@ -286,6 +294,12 @@ public class FileResourceCollection implements ResourceCollection,
             return false; // don't allow parent indicators
         if ("/".indexOf(resourceName.charAt(0)) != -1)
             return false; // don't allow absolute paths
+
+        // if we've been configured to be lenient about filenames, don't
+        // force the name to match the file filter
+        if (lenientFilter)
+            return true;
+
         // defer to our file filter
         return strategy.getFilenameFilter().accept(directory, resourceName);
     }
