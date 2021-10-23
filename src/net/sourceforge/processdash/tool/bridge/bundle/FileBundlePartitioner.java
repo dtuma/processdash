@@ -38,15 +38,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
-import net.sourceforge.processdash.util.DashboardBackupFactory;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.PatternList;
 
-public class FileBundlePartitioner {
+public class FileBundlePartitioner implements FileBundleConstants {
+
+    private Object[][] partitionSpecs;
 
     private ResourceCollection source;
-
-    private String catchAllBundleName;
 
     private HeadRefs headRefs;
 
@@ -58,11 +58,11 @@ public class FileBundlePartitioner {
 
     private Map<String, QualifiedFile> qualifiedFileCache;
 
-    public FileBundlePartitioner(ResourceCollection source,
-            String catchAllBundleName, HeadRefs localHeadRefs,
+    public FileBundlePartitioner(FileResourceCollectionStrategy strategy,
+            ResourceCollection source, HeadRefs localHeadRefs,
             FileBundleManifestSource manifestSource) {
+        this.partitionSpecs = strategy.getBundlePartitions();
         this.source = source;
-        this.catchAllBundleName = catchAllBundleName;
         this.headRefs = localHeadRefs;
         this.manifests = manifestSource;
     }
@@ -129,8 +129,22 @@ public class FileBundlePartitioner {
 
         // identify the correct bundle for each included file
         for (String oneFilename : filenames) {
-            String destBundleName = getBundleNameForFilename(oneFilename,
-                oldFileBundles);
+            String destBundleName = getBundleNameForFilename(oneFilename);
+
+            // if we weren't able to identify an appropriate target bundle,
+            // determine the bundle this file came from and put it back there
+            if (destBundleName == null)
+                destBundleName = oldFileBundles.get(oneFilename);
+
+            // if that fails, put the file in the catch-all bundle
+            if (destBundleName == null)
+                destBundleName = getBundleNameForFilename(CATCH_ALL_PARTITION);
+
+            // if the bundle could not be determined, reject/skip the file
+            if (destBundleName == null)
+                continue;
+
+            // add the file to the bundle we found
             FileBundleSpec spec = result.get(destBundleName);
             if (spec == null) {
                 spec = makeSpec(destBundleName);
@@ -158,13 +172,12 @@ public class FileBundlePartitioner {
     }
 
 
-    private String getBundleNameForFilename(String filename,
-            Map<String, String> oldFileBundles) throws IOException {
+    private String getBundleNameForFilename(String filename) throws IOException {
         // use case-insensitive logic to sort filenames into bundles
         String filenameLC = filename.toLowerCase();
 
-        // iterate over the standard partition types to see if any match
-        for (Object[] partitionSpec : STANDARD_PARTITIONS) {
+        // iterate over the configured partition types to see if any match
+        for (Object[] partitionSpec : partitionSpecs) {
             if (matches(filename, filenameLC, partitionSpec)) {
                 String bundleName = (String) partitionSpec[0];
                 if (SINGLETON_PARTITION.equals(bundleName)) {
@@ -178,15 +191,8 @@ public class FileBundlePartitioner {
             }
         }
 
-        // if we weren't able to identify an appropriate target bundle,
-        // determine the bundle this file came from and put it back there
-        String sourceBundle = oldFileBundles.get(filename);
-        if (sourceBundle != null)
-            return sourceBundle;
-
-        // if we weren't able to identify an appropriate target bundle, put
-        // the file into the default bundle.
-        return catchAllBundleName;
+        // if we weren't able to identify an appropriate target bundle
+        return null;
     }
 
 
@@ -244,52 +250,6 @@ public class FileBundlePartitioner {
         else
             return bundleName + "-" + qualifier;
     }
-
-
-
-    private static final String LOG_PARTITION = "log";
-
-    private static final String SINGLETON_PARTITION = "*";
-
-    private static final Object[][] STANDARD_PARTITIONS = {
-
-            // log files are stored separately
-            { LOG_PARTITION, "log.txt" },
-
-            // Dashboard directory - metadata
-            { "meta", "datasetid.dat", //
-                    "groups.dat", "roles.dat", "users.dat", //
-                    new PatternList() //
-                            .addLiteralStartsWith("cms/")
-                            .addLiteralStartsWith("import/")
-                            .addLiteralEndsWith(".ico") },
-
-            // Dashboard directory - core data files
-            { "core", "state", "pspdash.ini", ".pspdash" },
-
-            // Dashboard directory - time log files
-            { "time", "timelog.xml", "timelog2.xml", "time.log" },
-
-            // Dashboard directory - EV baseline files
-            { SINGLETON_PARTITION, new PatternList("^ev-.+\\.dat$") },
-
-            // Dashboard directory - project data files
-            { "data", new PatternList() //
-                            .addLiteralEndsWith(".dat") //
-                            .addLiteralEndsWith(".def") },
-
-
-            // WBS directory - metadata
-            { "settings", "settings.xml" },
-
-            // WBS directory - PDASH files
-            { SINGLETON_PARTITION, new PatternList("^[^/]+\\.pdash$") },
-
-            // WBS directory - standard files
-            { "wbs", DashboardBackupFactory.WBS_FILE_FILTER, "projdump.xml",
-                    "workflowdump.xml", "relaunchdump.xml" },
-
-    };
 
 
 

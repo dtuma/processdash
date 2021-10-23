@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,11 @@ package net.sourceforge.processdash.tool.bridge.impl;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
@@ -64,6 +66,22 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
             return !FileUtils.fileContentsStartWith(file, "UTF-8", "<");
         else
             return false;
+    }
+
+    public Object[][] getBundlePartitions() {
+        return new Object[][] {
+                // slowly changing metadata
+                { "settings", "settings.xml" },
+
+                // PDASH files
+                { FileBundleConstants.SINGLETON_PARTITION,
+                        new PatternList().addLiteralEndsWith(".pdash") },
+
+                // WBS editor files
+                { "wbs", DashboardBackupFactory.WBS_FILE_FILTER, "projdump.xml",
+                        "workflowdump.xml", "relaunchdump.xml",
+                        FileBundleConstants.CATCH_ALL_PARTITION },
+        };
     }
 
     // The WBS_FILE_FILTER supplied by the dashboard backup factory is only

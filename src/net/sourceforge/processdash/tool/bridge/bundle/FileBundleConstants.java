@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,21 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.bridge.impl;
+package net.sourceforge.processdash.tool.bridge.bundle;
 
-import java.io.File;
+public interface FileBundleConstants {
 
-import net.sourceforge.processdash.util.DirectoryBackup;
+    public String LOG_PARTITION = "log";
 
-public interface FileResourceCollectionStrategy extends
-        ResourceCollectionFilenameStrategy {
+    public String SINGLETON_PARTITION = "*";
 
-    public DirectoryBackup getBackupHandler(File directory);
+    public String CATCH_ALL_PARTITION = " catch all ";
 
-    public String getLockFilename();
-
-    public boolean isFilePossiblyCorrupt(File file);
-
-    public Object[][] getBundlePartitions();
 
 }
