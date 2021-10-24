@@ -31,8 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
@@ -44,7 +42,6 @@ import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
-import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class FileBundleDirectory implements FileBundleManifestSource {
@@ -215,9 +212,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      */
     public ResourceCollectionInfo extractBundle(FileBundleID bundleID,
             ResourceCollection target) throws IOException {
-        ResourceCollectionDiff diff = extractBundle(bundleID, target, null,
-            true, false);
-        return diff.getB();
+        return extractBundle(bundleID, target, null);
     }
 
 
@@ -228,59 +223,24 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      *            the ID of the bundle to extract
      * @param target
      *            the resource collection where the files should be extracted
-     * @param oldBundleID
-     *            the ID of this same bundle that was previously extracted into
-     *            the directory. Can be null for a fresh extraction
-     * @param overwrite
-     *            true if we should overwrite files in the directory with
-     *            re-extracted versions; false if we should only extract files
-     *            that are new/changed as compared to the old bundle
-     * @param delete
-     *            true if we should delete files that were in the old bundle,
-     *            but are no longer present in the new bundle
-     * @return an object describing the differences between the two bundles
+     * @param filesToExtract
+     *            the list of files to be extracted, or null to extract all
+     *            files in the bundle
+     * @return the list of files that were extracted
      * @throws IOException
      *             if any problems are encountered during the extraction
      */
-    public ResourceCollectionDiff extractBundle(FileBundleID bundleID,
-            ResourceCollection target, FileBundleID oldBundleID,
-            boolean overwrite, boolean delete) throws IOException {
-        // get a diff between the new and old bundles
-        ResourceCollectionInfo oldFiles = (oldBundleID == null
-                ? EMPTY_COLLECTION
-                : getManifest(oldBundleID).getFiles());
-        ResourceCollectionInfo newFiles = getManifest(bundleID).getFiles();
-        ResourceCollectionDiff diff = new ResourceCollectionDiff(oldFiles,
-                newFiles);
+    public ResourceCollectionInfo extractBundle(FileBundleID bundleID,
+            ResourceCollection target, List<String> filesToExtract)
+            throws IOException {
+        // retrieve details about the bundle files we are extracting
+        ResourceCollectionInfo fileInfo = getManifest(bundleID).getFiles();
+        if (filesToExtract != null)
+            fileInfo = new ResourceListing(fileInfo, filesToExtract);
 
-        // extract files from the new bundle as requested
-        List<String> filesToExtract;
-        if (overwrite) {
-            filesToExtract = newFiles.listResourceNames();
-        } else {
-            filesToExtract = new ArrayList<String>();
-            filesToExtract.addAll(diff.getDiffering());
-            filesToExtract.addAll(diff.getOnlyInB());
-        }
-        extractFilesFromZip(bundleID, target, newFiles, filesToExtract);
-
-        // delete obsolete files if requested
-        if (delete) {
-            for (String oldFilename : diff.getOnlyInA()) {
-                target.deleteResource(oldFilename);
-            }
-        }
-
-        // return the diff
-        return diff;
-    }
-
-    private void extractFilesFromZip(FileBundleID bundleID,
-            ResourceCollection target, ResourceCollectionInfo fileInfo,
-            List<String> filesToExtract) throws IOException {
         // if there are no files to be extracted, abort
-        if (filesToExtract.isEmpty())
-            return;
+        if (fileInfo.listResourceNames().isEmpty())
+            return fileInfo;
 
         // open the ZIP file for reading
         File zipFile = getZipFileForBundle(bundleID);
@@ -290,16 +250,11 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         // scan the contents of the ZIP and extract files
         while ((e = zipIn.getNextEntry()) != null) {
-            // if a file in the ZIP was not mentioned in the manifest, ignore
-            // it. It could be some metadata item that was added by a later
-            // version of the dashboard.
+            // if a file in the ZIP was not mentioned in the manifest, or was
+            // not included in the list of files to extract, ignore it.
             String filename = e.getName();
             long lastMod = fileInfo.getLastModified(filename);
             if (lastMod <= 0)
-                continue;
-
-            // if this file is not in the list of files to extract, skip it
-            if (!filesToExtract.contains(filename))
                 continue;
 
             // copy the file to the target directory
@@ -308,8 +263,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             out.close();
         }
 
-        // close the ZIP file
+        // close the ZIP file and return the file info
         zipIn.close();
+        return fileInfo;
     }
 
     private File getZipFileForBundle(FileBundleID bundleID) {
@@ -322,12 +278,5 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             throws IOException {
         return new FileBundleManifest(bundleDir, bundleID);
     }
-
-
-    private static final ResourceCollectionInfo EMPTY_COLLECTION = new ResourceCollectionInfo() {
-        public List<String> listResourceNames() { return Collections.EMPTY_LIST; }
-        public long getLastModified(String resourceName) { return 0; }
-        public Long getChecksum(String resourceName) { return null; }
-    };
 
 }

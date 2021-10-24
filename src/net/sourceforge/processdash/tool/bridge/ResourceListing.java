@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,21 +42,22 @@ public class ResourceListing implements ResourceCollectionInfo {
         checksums = new HashMap<String, Long>();
     }
 
-    public ResourceListing(ResourceCollection collection) {
+    public ResourceListing(ResourceCollectionInfo collection) {
         this(collection, collection.listResourceNames());
     }
 
-    public ResourceListing(ResourceCollection collection, ResourceFilter f) {
+    public ResourceListing(ResourceCollectionInfo collection, ResourceFilter f) {
         this(collection, f.filterCollection(collection));
     }
 
-    protected ResourceListing(ResourceCollection collection,
+    public ResourceListing(ResourceCollectionInfo collection,
             List<String> names) {
         this();
         for (String name : names) {
             long lastMod = collection.getLastModified(name);
             Long checksum = collection.getChecksum(name);
-            addResource(name, lastMod, checksum);
+            if (lastMod != 0 || checksum != null)
+                addResource(name, lastMod, checksum);
         }
     }
 
