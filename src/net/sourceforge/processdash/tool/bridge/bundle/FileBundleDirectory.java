@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
@@ -42,6 +43,7 @@ import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class FileBundleDirectory implements FileBundleManifestSource {
@@ -52,11 +54,14 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private FileBundleTimeFormat timeFormat;
 
+    private ManifestCache manifestCache;
+
 
     public FileBundleDirectory(File bundleDir) throws IOException {
         this.bundleDir = bundleDir;
         this.deviceID = DeviceID.get();
         this.timeFormat = new FileBundleTimeFormat(getDirTimeZone());
+        this.manifestCache = new ManifestCache();
     }
 
     private String getDirTimeZone() throws IOException {
@@ -139,6 +144,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         FileBundleManifest manifest = new FileBundleManifest(bundleID, fileInfo,
                 parents);
         manifest.write(bundleDir);
+
+        // add the manifest to our in-memory cache
+        manifestCache.put(bundleID, manifest);
 
         // return the ID of the newly created bundle
         return bundleID;
@@ -276,7 +284,34 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     public FileBundleManifest getManifest(FileBundleID bundleID)
             throws IOException {
-        return new FileBundleManifest(bundleDir, bundleID);
+        FileBundleManifest result = manifestCache.get(bundleID);
+        if (result == null) {
+            result = new FileBundleManifest(bundleDir, bundleID);
+            manifestCache.put(bundleID, result);
+        }
+        result.accessTime = System.currentTimeMillis();
+        return result;
+    }
+
+
+    private static class ManifestCache
+            extends LinkedHashMap<FileBundleID, FileBundleManifest> {
+
+        ManifestCache() {
+            super(100, 0.75f, true);
+        }
+
+        @Override
+        protected boolean removeEldestEntry(
+                java.util.Map.Entry<FileBundleID, FileBundleManifest> eldest) {
+            // don't bother cleaning up if the cache is small
+            if (size() < 100)
+                return false;
+
+            // discard the oldest entry if it hasn't been accessed in a while
+            long cutoff = System.currentTimeMillis() - 5 * DateUtils.MINUTES;
+            return eldest.getValue().accessTime < cutoff;
+        }
     }
 
 }

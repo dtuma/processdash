@@ -48,6 +48,8 @@ public class FileBundleManifest {
 
     private List<FileBundleID> parents;
 
+    long accessTime;
+
 
     public FileBundleID getBundleID() {
         return bundleID;

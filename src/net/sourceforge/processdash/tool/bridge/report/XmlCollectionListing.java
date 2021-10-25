@@ -104,7 +104,7 @@ public class XmlCollectionListing implements CollectionReport {
         if (resourceElems != null) {
             for (int i = 0; i < resourceElems.getLength(); i++) {
                 Element res = (Element) resourceElems.item(i);
-                String name = res.getAttribute(NAME_ATTR);
+                String name = res.getAttribute(NAME_ATTR).intern();
                 long mod = Long.parseLong(res.getAttribute(MOD_TIME_ATTR));
                 long sum = Long.parseLong(res.getAttribute(CHECKSUM_ATTR));
                 result.addResource(name, mod, sum);
