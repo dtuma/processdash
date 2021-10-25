@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +175,7 @@ public class ResourceBundleClient {
         return diff;
     }
 
-    private boolean containsIgnoreCase(Set<String> set, String item) {
+    private boolean containsIgnoreCase(Collection<String> set, String item) {
         if (set.contains(item))
             return true;
         for (String oneItem : set) {
@@ -187,19 +188,59 @@ public class ResourceBundleClient {
 
 
     /**
+     * Overwrite files in the working directory with fresh copies of the files
+     * as they looked when they were previously checked out.
+     * 
+     * @param filenames
+     *            the names of files to restore
+     * @return true if any changes were made
+     */
+    public boolean restoreFiles(List<String> filenames) throws IOException {
+        // keep track of whether any changes were made
+        boolean madeChange = false;
+
+        // iterate over the bundles that are currently in the working dir
+        for (FileBundleID bundleID : workingHeads.getHeadRefs().values()) {
+            // ask each bundle to extract the named files. If this bundle
+            // doesn't contain any of the named files, this will be a no-op
+            ResourceCollectionInfo extracted = bundleDir.extractBundle(bundleID,
+                workingDir, filenames);
+
+            // make a note of whether any files were extracted
+            if (!extracted.listResourceNames().isEmpty())
+                madeChange = true;
+        }
+
+        // let our caller know whether any changes were made
+        return madeChange;
+    }
+
+
+
+    /**
      * Compare the working directory to the previously checked out HEAD refs. If
      * any changes are found, publish them.
      * 
      * @return true if changes were published, false if none were needed
      */
     public boolean syncUp() throws IOException {
+        return syncUp(null);
+    }
+
+
+    /**
+     * Publish the bundle containing the given file, if it has changed.
+     * 
+     * @return true if changes were published, false if none were needed
+     */
+    public boolean syncUp(String singleFilename) throws IOException {
         Map<String, FileBundleID> workingHeadRefs = workingHeads.getHeadRefs();
         Set<FileBundleID> newRefs = new HashSet<FileBundleID>();
 
         // have the partitioner compute the bundles needed for the working dir
         for (FileBundleSpec spec : partitioner.partition()) {
             // if the files in this bundle have changed, publish it
-            if (isBundleChange(spec, workingHeadRefs)) {
+            if (isBundleChange(spec, singleFilename, workingHeadRefs)) {
                 FileBundleID newBundleID = bundleDir.storeBundle(spec);
                 newRefs.add(newBundleID);
             }
@@ -216,19 +257,26 @@ public class ResourceBundleClient {
         return madeChange;
     }
 
-    private boolean isBundleChange(FileBundleSpec spec,
+    private boolean isBundleChange(FileBundleSpec spec, String singleFilename,
             Map<String, FileBundleID> workingHeadRefs) throws IOException {
         // get the last bundleID that was extracted for this bundle. If this
         // bundle wasn't present in the directory before, it must be new
         FileBundleID previouslyExtractedBundleID = workingHeadRefs
                 .get(spec.bundleName);
         if (previouslyExtractedBundleID == null)
-            return true;
+            return matchesSingleFilename(singleFilename, spec.filenames);
 
         // get info for files that were previously extracted for this bundle
         FileBundleManifest manifest = bundleDir
                 .getManifest(previouslyExtractedBundleID);
         ResourceCollectionInfo previouslyExtractedFiles = manifest.getFiles();
+
+        // if we're syncing a single file which isn't in this bundle, abort
+        if (!matchesSingleFilename(singleFilename, spec.filenames)
+                && !matchesSingleFilename(singleFilename,
+                        previouslyExtractedFiles.listResourceNames())) {
+            return false;
+        }
 
         // gather current info for the local files in the working directory
         ResourceCollectionInfo currentLocalFiles = new ResourceListing(
@@ -238,6 +286,14 @@ public class ResourceBundleClient {
         ResourceCollectionDiff diff = new ResourceCollectionDiff(
                 previouslyExtractedFiles, currentLocalFiles);
         return diff.noDifferencesFound() == false;
+    }
+
+    private boolean matchesSingleFilename(String singleFilename,
+            List<String> filenames) {
+        if (singleFilename == null)
+            return true;
+        else
+            return containsIgnoreCase(filenames, singleFilename);
     }
 
 
