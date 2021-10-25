@@ -33,6 +33,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
+import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
@@ -49,6 +50,8 @@ public class ResourceBundleClient {
 
     private FileBundlePartitioner partitioner;
 
+    private long logBundleTimestamp;
+
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
             File bundleDirectory, HeadRefs bundleHeads) throws IOException {
@@ -58,7 +61,7 @@ public class ResourceBundleClient {
         this.bundleHeads = bundleHeads;
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, bundleDir);
-        this.partitioner.setLogFileTime(System.currentTimeMillis());
+        this.logBundleTimestamp = System.currentTimeMillis() - 1000;
     }
 
     public ResourceCollection getWorkingDir() {
@@ -235,6 +238,27 @@ public class ResourceBundleClient {
         ResourceCollectionDiff diff = new ResourceCollectionDiff(
                 previouslyExtractedFiles, currentLocalFiles);
         return diff.noDifferencesFound() == false;
+    }
+
+
+
+    /**
+     * Log files are excluded from sync up/down operations by default. This
+     * method publishes those files to the bundle directory.
+     */
+    public void saveDefaultExcludedFiles() throws IOException {
+        // scan the working directory for excluded files
+        FileBundleSpec spec = new FileBundleSpec(FileBundleConstants.LOG_BUNDLE,
+                workingDir);
+        spec.timestamp = logBundleTimestamp;
+        for (String oneFile : ResourceFilterFactory.DEFAULT_EXCLUDE_FILENAMES) {
+            if (workingDir.getLastModified(oneFile) > logBundleTimestamp)
+                spec.filenames.add(oneFile);
+        }
+
+        // if any excluded files were found, publish them
+        if (!spec.filenames.isEmpty())
+            bundleDir.storeBundle(spec);
     }
 
 }

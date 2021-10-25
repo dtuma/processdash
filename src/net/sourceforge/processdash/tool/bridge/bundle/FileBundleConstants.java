@@ -25,7 +25,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 
 public interface FileBundleConstants {
 
-    public String LOG_PARTITION = "log";
+    public String LOG_BUNDLE = "log";
 
     public String SINGLETON_PARTITION = "*";
 

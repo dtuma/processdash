@@ -38,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
+import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.PatternList;
@@ -52,8 +53,6 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
     private FileBundleManifestSource manifests;
 
-    private long logFileTime = -1;
-
     private Set<String> qualifiedBundles;
 
     private Map<String, QualifiedFile> qualifiedFileCache;
@@ -65,13 +64,6 @@ public class FileBundlePartitioner implements FileBundleConstants {
         this.source = source;
         this.headRefs = localHeadRefs;
         this.manifests = manifestSource;
-    }
-
-    /**
-     * Set the timestamp to be used when building the ID of the logfile bundle
-     */
-    public void setLogFileTime(long logFileTimestamp) {
-        this.logFileTime = logFileTimestamp;
     }
 
     /**
@@ -127,6 +119,10 @@ public class FileBundlePartitioner implements FileBundleConstants {
             }
         }
 
+        // don't create partitions for excluded files
+        for (String excluded : ResourceFilterFactory.DEFAULT_EXCLUDE_FILENAMES)
+            filenames.remove(excluded);
+
         // identify the correct bundle for each included file
         for (String oneFilename : filenames) {
             String destBundleName = getBundleNameForFilename(oneFilename);
@@ -165,10 +161,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
     }
 
     private FileBundleSpec makeSpec(String bundleName) {
-        FileBundleSpec result = new FileBundleSpec(bundleName, source);
-        if (LOG_PARTITION.equals(bundleName))
-            result.timestamp = logFileTime;
-        return result;
+        return new FileBundleSpec(bundleName, source);
     }
 
 

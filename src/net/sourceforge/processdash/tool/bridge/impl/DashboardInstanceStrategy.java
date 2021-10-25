@@ -82,9 +82,6 @@ public class DashboardInstanceStrategy implements
 
     public Object[][] getBundlePartitions() {
         return new Object[][] {
-                // store log files in a bundle of their own
-                { FileBundleConstants.LOG_PARTITION, "log.txt" },
-
                 // metadata bundle for static and slowly changing files
                 { "meta", "datasetid.dat", //
                         "groups.dat", "roles.dat", "users.dat", //
