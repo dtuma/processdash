@@ -129,13 +129,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     public FileBundleID storeBundle(String bundleName,
             ReadableResourceCollection source, List<String> filenames,
             List<FileBundleID> parents, long timestamp) throws IOException {
-        // if no timestamp was supplied, use the current time
-        if (timestamp <= 0)
-            timestamp = System.currentTimeMillis();
-
         // generate an ID for the new bundle
-        FileBundleID bundleID = new FileBundleID(timestamp, timeFormat,
-                deviceID, bundleName);
+        FileBundleID bundleID = createNewBundleID(timestamp, bundleName);
 
         // write a ZIP file holding the data for the new bundle
         ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames);
@@ -150,6 +145,37 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         // return the ID of the newly created bundle
         return bundleID;
+    }
+
+    private FileBundleID createNewBundleID(long timestamp, String bundleName) {
+        // if no timestamp was supplied, use the current time
+        boolean implicitTimestamp = timestamp <= 0;
+        if (implicitTimestamp)
+            timestamp = System.currentTimeMillis();
+
+        // create a bundle ID with the appropriate information
+        FileBundleID bid = new FileBundleID(timestamp, timeFormat, deviceID,
+                bundleName);
+
+        // if a bundle with this ID already exists, tweak the timestamp to
+        // deconflict
+        while (implicitTimestamp && bundleExists(bid)) {
+            timestamp += 1000;
+            bid = new FileBundleID(timestamp, timeFormat, deviceID, bundleName);
+        }
+
+        // return the bundle ID we created
+        return bid;
+    }
+
+    private boolean bundleExists(FileBundleID bundleID) {
+        // if our manifest cache contains this bundle ID, we know it exists
+        if (manifestCache.containsKey(bundleID))
+            return true;
+
+        // see if the bundle directory contains a manifest file for this bundle
+        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
+        return mf.isFile();
     }
 
     private ResourceListing writeFilesToZip(FileBundleID bundleID,

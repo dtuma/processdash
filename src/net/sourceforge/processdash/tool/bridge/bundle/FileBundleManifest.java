@@ -91,7 +91,7 @@ public class FileBundleManifest {
         this.bundleID = bundleID;
 
         // open and parse the file as XML
-        File src = new File(dir, bundleID.getToken() + ".xml");
+        File src = getFileForManifest(dir, bundleID);
         Element xml = parseXml(src);
 
         // extract bundle data from the file
@@ -161,6 +161,12 @@ public class FileBundleManifest {
             }
         }
         xml.endTag(null, tagName);
+    }
+
+
+    public static File getFileForManifest(File bundleDir,
+            FileBundleID bundleID) {
+        return new File(bundleDir, bundleID.getToken() + ".xml");
     }
 
 
