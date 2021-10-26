@@ -216,12 +216,25 @@ public class ResourceBundleClient {
 
     /**
      * Compare the working directory to the previously checked out HEAD refs. If
+     * any changes are found, return true.
+     * 
+     * @return true if the working directory contains pending changes that need
+     *         to be synced up
+     */
+    public boolean isDirty() throws IOException {
+        return syncUpImpl(null, true);
+    }
+
+
+
+    /**
+     * Compare the working directory to the previously checked out HEAD refs. If
      * any changes are found, publish them.
      * 
      * @return true if changes were published, false if none were needed
      */
     public boolean syncUp() throws IOException {
-        return syncUp(null);
+        return syncUpImpl(null, false);
     }
 
 
@@ -231,15 +244,27 @@ public class ResourceBundleClient {
      * @return true if changes were published, false if none were needed
      */
     public boolean syncUp(String singleFilename) throws IOException {
+        return syncUpImpl(singleFilename, false);
+    }
+
+
+    private boolean syncUpImpl(String singleFilename, boolean whatIfMode)
+            throws IOException {
         Map<String, FileBundleID> workingHeadRefs = workingHeads.getHeadRefs();
         Set<FileBundleID> newRefs = new HashSet<FileBundleID>();
 
         // have the partitioner compute the bundles needed for the working dir
         for (FileBundleSpec spec : partitioner.partition()) {
-            // if the files in this bundle have changed, publish it
+            // see if the files in this bundle have changed
             if (isBundleChange(spec, singleFilename, workingHeadRefs)) {
-                FileBundleID newBundleID = bundleDir.storeBundle(spec);
-                newRefs.add(newBundleID);
+                if (whatIfMode) {
+                    // in what-if mode, return true to indicate a change
+                    return true;
+                } else {
+                    // in regular mode, publish the new/changed bundle
+                    FileBundleID newBundleID = bundleDir.storeBundle(spec);
+                    newRefs.add(newBundleID);
+                }
             }
         }
 
@@ -300,18 +325,24 @@ public class ResourceBundleClient {
      * method publishes those files to the bundle directory.
      * 
      * @param bundleTimestamp the publishing timestamp to use for the bundle
+     * @param afterCrash true if this is a log file from a crashed session
      */
-    public void saveLogBundle(long bundleTimestamp) throws IOException {
-        // scan the working directory for excluded files
-        FileBundleSpec spec = new FileBundleSpec(FileBundleConstants.LOG_BUNDLE,
-                workingDir);
+    public void saveLogBundle(long bundleTimestamp, boolean afterCrash)
+            throws IOException {
+        // create a bundle to use for saving log data
+        String bundleName = FileBundleConstants.LOG_BUNDLE;
+        if (afterCrash)
+            bundleName += ",crashed";
+        FileBundleSpec spec = new FileBundleSpec(bundleName, workingDir);
         spec.timestamp = bundleTimestamp;
+
+        // scan the working directory for log/excluded files
         for (String oneFile : ResourceFilterFactory.DEFAULT_EXCLUDE_FILENAMES) {
             if (workingDir.getLastModified(oneFile) > 0)
                 spec.filenames.add(oneFile);
         }
 
-        // if any excluded files were found, publish them
+        // if any files were found, publish them
         if (!spec.filenames.isEmpty())
             bundleDir.storeBundle(spec);
     }

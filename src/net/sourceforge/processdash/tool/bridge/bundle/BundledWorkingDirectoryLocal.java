@@ -49,6 +49,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
 
     private ResourceBundleClient client;
 
+    private boolean hasLeftoverDirtyFiles;
+
     private Worker worker;
 
     private static final Logger logger = Logger
@@ -91,6 +93,10 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         // prepare the contents of the working directory for use
         repairCorruptFiles();
         update();
+
+        // check to see if the working directory contains dirty files left over
+        // from a previous session (e.g. that weren't flushed due to a crash)
+        hasLeftoverDirtyFiles = enableBackgroundFlush && client.isDirty();
     }
 
     private void makeBundleClient() throws IOException {
@@ -168,13 +174,31 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
     private void saveLogAndCache() {
         // if a log file is present, publish it to the bundle directory
         try {
-            client.saveLogBundle(logBundleTimestamp);
+            client.saveLogBundle(logBundleTimestamp, false);
         } catch (Exception e) {
             logger.log(Level.FINE, "Unable to save log file", e);
         }
 
         // save our file data cache periodically as well
         collection.saveFileDataCache(getFileDataCacheFile());
+    }
+
+    private void flushLeftoverDirtyFiles() {
+        try {
+            boolean changesWereSaved = client.syncUp();
+            long logTime = collection.getLastModified(LOG_FILENAME);
+            if (changesWereSaved && logTime > 0) {
+                // save the log file from the crashed session
+                client.saveLogBundle(logTime, true);
+                // update the log bundle timestamp for the current session,
+                // so it will sort after the changes we just synced up
+                logBundleTimestamp = System.currentTimeMillis() + 1000;
+            }
+        } catch (IOException ioe) {
+            // if we were unable to save the leftover files, continue without
+            // error. They can be saved on the next syncUp
+        }
+        hasLeftoverDirtyFiles = false;
     }
 
     private void discardLocallyCachedFileData() {
@@ -192,6 +216,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
             String ownerName)
             throws AlreadyLockedException, LockFailureException {
         super.acquireWriteLock(lockHandler, ownerName);
+        if (hasLeftoverDirtyFiles)
+            flushLeftoverDirtyFiles();
         if (enableBackgroundFlush)
             worker = new Worker();
     }
@@ -300,6 +326,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
     }
 
     private static final String HEADS_FILE = "heads.txt";
+
+    private static final String LOG_FILENAME = "log.txt";
 
     private static final long ONE_MINUTE = 60 * 1000;
 
