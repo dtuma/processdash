@@ -35,13 +35,19 @@ import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
 public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
 
     private FileResourceCollection collection;
 
+    private boolean enableBackgroundFlush;
+
     private ResourceBundleClient client;
+
+    private Worker worker;
 
     private static final Logger logger = Logger
             .getLogger(BundledWorkingDirectoryLocal.class.getName());
@@ -54,6 +60,18 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         this.collection = new FileResourceCollection(workingDirectory, false,
                 strategy, true);
         this.collection.loadFileDataCache(getFileDataCacheFile());
+
+        // enable background data flushing for dashboard directories (not WBS)
+        this.enableBackgroundFlush = strategy.getFilenameFilter().accept(null,
+            "state");
+    }
+
+    public boolean isEnableBackgroundFlush() {
+        return enableBackgroundFlush;
+    }
+
+    public void setEnableBackgroundFlush(boolean enableBackgroundFlush) {
+        this.enableBackgroundFlush = enableBackgroundFlush;
     }
 
 
@@ -134,6 +152,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         discardLocallyCachedFileData();
         for (int numTries = 5; numTries-- > 0;) {
             if (client.syncUp() == false) {
+                if (worker != null)
+                    worker.resetFlushFrequency();
                 try {
                     client.saveDefaultExcludedFiles();
                 } catch (Exception e) {
@@ -159,6 +179,26 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
     }
 
 
+    @Override
+    public void acquireWriteLock(LockMessageHandler lockHandler,
+            String ownerName)
+            throws AlreadyLockedException, LockFailureException {
+        super.acquireWriteLock(lockHandler, ownerName);
+        if (enableBackgroundFlush)
+            worker = new Worker();
+    }
+
+
+    @Override
+    public void releaseWriteLock() {
+        if (worker != null) {
+            worker.shutDown();
+            worker = null;
+        }
+        super.releaseWriteLock();
+    }
+
+
     public URL doBackup(String qualifier) throws IOException {
         // make a backup of the local working directory.
         return doBackupImpl(workingDirectory, qualifier);
@@ -179,7 +219,85 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         return result;
     }
 
+    private class Worker extends Thread {
+
+        private volatile boolean isRunning;
+
+        private volatile int flushCountdown;
+
+        private volatile int fullFlushCountdown;
+
+        public Worker() {
+            super("BundledDirectoryLocal.Worker(" + getDescription() + ")");
+            setDaemon(true);
+            this.isRunning = true;
+            start();
+        }
+
+        @Override
+        public void run() {
+            while (isRunning) {
+                try {
+                    Thread.sleep(ONE_MINUTE);
+                } catch (InterruptedException ie) {
+                }
+
+                if (!isRunning)
+                    break;
+
+                try {
+                    assertWriteLock();
+
+                    if (flushCountdown > 1) {
+                        flushCountdown--;
+                    } else {
+                        resetFlushFrequency();
+                        client.syncUp();
+
+                        if (fullFlushCountdown > 1) {
+                            fullFlushCountdown--;
+                        } else {
+                            // once an hour, save the log.txt file as well
+                            client.saveDefaultExcludedFiles();
+                            collection.saveFileDataCache(getFileDataCacheFile());
+                            fullFlushCountdown = FULL_FLUSH_FREQUENCY;
+                        }
+                    }
+                } catch (LockFailureException lfe) {
+                } catch (IOException ioe) {
+                    // some problem has prevented us from reaching the bundle
+                    // directory and syncing up our data. The problem could
+                    // be transient (temporary network unavailability), in
+                    // which case we'll get a chance to catch up later.
+                    // So we don't bug the user about it, because it may be
+                    // harmless. In the event that we never get a chance to
+                    // recover, we will be able to display a warning to the
+                    // user as they shut down.
+                } catch (Throwable e) {
+                    logger.log(Level.WARNING,
+                        "Unexpected exception encountered when "
+                                + "publishing working files to bundle dir",
+                        e);
+                }
+            }
+        }
+
+        public void shutDown() {
+            this.isRunning = false;
+        }
+
+        public void resetFlushFrequency() {
+            flushCountdown = FLUSH_FREQUENCY;
+        }
+
+    }
 
     private static final String HEADS_FILE = "heads.txt";
+
+    private static final long ONE_MINUTE = 60 * 1000;
+
+    private static final int FLUSH_FREQUENCY = 5;
+
+    private static final int FULL_FLUSH_FREQUENCY = 12;
 
 }
