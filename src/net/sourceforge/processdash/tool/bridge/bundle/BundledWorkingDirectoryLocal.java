@@ -43,6 +43,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
 
     private FileResourceCollection collection;
 
+    private long logBundleTimestamp;
+
     private boolean enableBackgroundFlush;
 
     private ResourceBundleClient client;
@@ -60,6 +62,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         this.collection = new FileResourceCollection(workingDirectory, false,
                 strategy, true);
         this.collection.loadFileDataCache(getFileDataCacheFile());
+        this.logBundleTimestamp = System.currentTimeMillis() - 1000;
 
         // enable background data flushing for dashboard directories (not WBS)
         this.enableBackgroundFlush = strategy.getFilenameFilter().accept(null,
@@ -154,13 +157,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
             if (client.syncUp() == false) {
                 if (worker != null)
                     worker.resetFlushFrequency();
-                try {
-                    client.saveDefaultExcludedFiles();
-                } catch (Exception e) {
-                    logger.log(Level.FINE,
-                        "Unable to save default excluded files", e);
-                }
-                collection.saveFileDataCache(getFileDataCacheFile());
+                saveLogAndCache();
                 return true;
             }
         }
@@ -168,6 +165,17 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         return false;
     }
 
+    private void saveLogAndCache() {
+        // if a log file is present, publish it to the bundle directory
+        try {
+            client.saveLogBundle(logBundleTimestamp);
+        } catch (Exception e) {
+            logger.log(Level.FINE, "Unable to save log file", e);
+        }
+
+        // save our file data cache periodically as well
+        collection.saveFileDataCache(getFileDataCacheFile());
+    }
 
     private void discardLocallyCachedFileData() {
         // To avoid excessive file I/O, the FileResourceCollection class
@@ -258,8 +266,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
                             fullFlushCountdown--;
                         } else {
                             // once an hour, save the log.txt file as well
-                            client.saveDefaultExcludedFiles();
-                            collection.saveFileDataCache(getFileDataCacheFile());
+                            saveLogAndCache();
                             fullFlushCountdown = FULL_FLUSH_FREQUENCY;
                         }
                     }

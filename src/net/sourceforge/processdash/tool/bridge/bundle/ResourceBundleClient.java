@@ -51,8 +51,6 @@ public class ResourceBundleClient {
 
     private FileBundlePartitioner partitioner;
 
-    private long logBundleTimestamp;
-
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
             File bundleDirectory, HeadRefs bundleHeads) throws IOException {
@@ -62,7 +60,6 @@ public class ResourceBundleClient {
         this.bundleHeads = bundleHeads;
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, bundleDir);
-        this.logBundleTimestamp = System.currentTimeMillis() - 1000;
     }
 
     public ResourceCollection getWorkingDir() {
@@ -301,14 +298,16 @@ public class ResourceBundleClient {
     /**
      * Log files are excluded from sync up/down operations by default. This
      * method publishes those files to the bundle directory.
+     * 
+     * @param bundleTimestamp the publishing timestamp to use for the bundle
      */
-    public void saveDefaultExcludedFiles() throws IOException {
+    public void saveLogBundle(long bundleTimestamp) throws IOException {
         // scan the working directory for excluded files
         FileBundleSpec spec = new FileBundleSpec(FileBundleConstants.LOG_BUNDLE,
                 workingDir);
-        spec.timestamp = logBundleTimestamp;
+        spec.timestamp = bundleTimestamp;
         for (String oneFile : ResourceFilterFactory.DEFAULT_EXCLUDE_FILENAMES) {
-            if (workingDir.getLastModified(oneFile) > logBundleTimestamp)
+            if (workingDir.getLastModified(oneFile) > 0)
                 spec.filenames.add(oneFile);
         }
 
