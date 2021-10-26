@@ -31,5 +31,8 @@ public interface FileBundleConstants {
 
     public String CATCH_ALL_PARTITION = " catch all ";
 
+    public String BUNDLE_SUBDIR = "bundles";
+
+    public String HEADS_SUBDIR = "heads";
 
 }

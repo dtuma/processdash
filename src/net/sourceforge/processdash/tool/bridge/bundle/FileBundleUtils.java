@@ -44,4 +44,13 @@ public class FileBundleUtils {
                 new RobustFileOutputStream(destFile, false));
     }
 
+    /**
+     * @return true if the given directory is a bundled directory
+     */
+    public static boolean isBundledDir(File dir) {
+        File bundles = new File(dir, FileBundleConstants.BUNDLE_SUBDIR);
+        File heads = new File(dir, FileBundleConstants.HEADS_SUBDIR);
+        return dir != null && bundles.isDirectory() && heads.isDirectory();
+    }
+
 }
