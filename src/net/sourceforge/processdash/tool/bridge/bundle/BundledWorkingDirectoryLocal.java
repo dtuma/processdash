@@ -27,7 +27,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -252,6 +255,34 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         result.mkdir();
         return result;
     }
+
+
+    public synchronized static BundledWorkingDirectoryLocal create(
+            File targetDirectory, FileResourceCollectionStrategy strategy,
+            File workingDirectoryParent, boolean useCache) {
+
+        BundledWorkingDirectoryLocal result = null;
+        String cacheKey = targetDirectory.getPath() + "\n"
+                + strategy.getClass().getName() + "\n"
+                + workingDirectoryParent.getPath();
+
+        if (useCache)
+            result = cache.get(cacheKey);
+
+        if (result == null)
+            result = new BundledWorkingDirectoryLocal(targetDirectory, strategy,
+                    workingDirectoryParent);
+
+        if (useCache)
+            cache.put(cacheKey, result);
+
+        return result;
+    }
+
+    private static final Map<String, BundledWorkingDirectoryLocal> cache = //
+            Collections.synchronizedMap(new HashMap());
+
+
 
     private class Worker extends Thread {
 

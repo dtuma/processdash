@@ -174,8 +174,9 @@ public class WorkingDirectoryFactory {
         } else if (FileBundleUtils.isBundledDir(targetDirectory)) {
             logger.info("Using local bundled working directory "
                     + targetDirectory.getPath());
-            return new BundledWorkingDirectoryLocal(targetDirectory, strategy,
-                    getWorkingDirParent(purpose));
+            boolean useCache = ((purpose & PURPOSE_TEMP) == 0);
+            return BundledWorkingDirectoryLocal.create(targetDirectory,
+                strategy, getWorkingDirParent(purpose), useCache);
 
         } else if (targetDirectory != null) {
             logger.info("Using local working directory "
