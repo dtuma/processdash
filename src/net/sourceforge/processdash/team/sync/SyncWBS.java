@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -110,10 +110,6 @@ public class SyncWBS extends TinyCGIBase {
     private URL wbsLocation;
     /** The location of the workflow dump file */
     private URL workflowLocation;
-    /** The workflow dump file, written by a WBSDataWriter */
-    private File workflowFile;
-    /** The templates directory for the project */
-    private File templatesDir;
     /** The directory where the dashboard is storing data files */
     private String dataDir;
     /** The initials of the current team member, if applicable */
@@ -289,8 +285,6 @@ public class SyncWBS extends TinyCGIBase {
             signalError(NOT_TEAM_PROJECT);
 
         DataRepository data = getDataRepository();
-        workflowFile = null;
-        templatesDir = null;
 
         wbsLocation = getWBSLocation(data);
         workflowLocation = getWorkflowLocation(wbsLocation);
@@ -300,6 +294,8 @@ public class SyncWBS extends TinyCGIBase {
         SimpleData d = data.getSimpleValue(DataRepository.createDataName
                 (projectRoot, TeamDataConstants.PROJECT_ID));
         projectID = (d == null ? "" : d.format());
+        if (!StringUtils.hasValue(projectID))
+            signalError(NOT_TEAM_PROJECT);
 
         if (isTeam) {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
@@ -448,11 +444,6 @@ public class SyncWBS extends TinyCGIBase {
                 if (!wbsFile.canRead())
                     signalError(WBS_FILE_INACCESSIBLE + "&wbsFile", wbsFile.toString());
 
-                // locate the workflow file and the templates directory
-                workflowFile = new File(teamDirectoryLocation, WORKFLOW_FILENAME);
-                templatesDir = new File(teamDirectory.getParentFile().getParentFile(),
-                                        "Templates");
-
                 wbsLocation = wbsFile.toURI().toURL();
             }
         }
@@ -596,7 +587,6 @@ public class SyncWBS extends TinyCGIBase {
             synch.enableDebugLogging();
 
         synch.sync();
-        syncTemplates(synch);
 
         if (synch.getDebugLogInfo() != null)
             maybeDumpDebugLog(synch);
@@ -645,7 +635,6 @@ public class SyncWBS extends TinyCGIBase {
         synch.setWhatIfMode(false);
         synch.setBackgroundMode(parameters.containsKey(BACKGROUND_PARAM));
         synch.sync();
-        syncTemplates(synch);
 
         if (synch.isFollowOnWorkNeeded()) {
             saveChangeList(synch);
@@ -665,19 +654,6 @@ public class SyncWBS extends TinyCGIBase {
 
         if (isTeam)
             DataImporter.refreshPrefix("/");
-    }
-
-
-    private void syncTemplates(HierarchySynchronizer sync) {
-        if (isTeam && workflowFile != null && templatesDir != null) {
-            String templateURI = "/" + processID + "-template.xml";
-            TemplateSynchronizer tSync = new TemplateSynchronizer(projectRoot,
-                    processID, projectID, templateURI, workflowFile,
-                    templatesDir);
-            tSync.setWhatIfMode(sync.isWhatIfMode());
-            tSync.sync();
-            sync.getChanges().addAll(tSync.getChanges());
-        }
     }
 
 
