@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -78,6 +78,12 @@ public class DynamicImportDirectory implements ImportDirectory {
 
     public String getRemoteLocation() {
         return delegate.getRemoteLocation();
+    }
+
+    public void validate() throws IOException {
+        lastUpdateDelegateTime = -1;
+        maybeUpdateDelegate();
+        delegate.validate();
     }
 
     public void update() throws IOException {

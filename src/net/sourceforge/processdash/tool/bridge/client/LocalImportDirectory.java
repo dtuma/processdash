@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * An {@link ImportDirectory} object that reads files directly from their
@@ -47,6 +49,11 @@ public class LocalImportDirectory implements ImportDirectory {
 
     public String getDescription() {
         return targetDirectory.getAbsolutePath();
+    }
+
+    public void validate() throws IOException {
+        if (!targetDirectory.isDirectory())
+            throw new FileNotFoundException(targetDirectory.getPath());
     }
 
     public void update() {}

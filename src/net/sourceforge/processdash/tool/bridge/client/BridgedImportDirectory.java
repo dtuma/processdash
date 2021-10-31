@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,6 +86,15 @@ public class BridgedImportDirectory implements ImportDirectory {
 
     public String getRemoteLocation() {
         return remoteURL;
+    }
+
+    public void validate() throws IOException {
+        // syncDown will return true if changes were made, false if none were
+        // needed. Give it three chances to sync before giving up. If the server
+        // is unreachable, this will throw an IOException.
+        if (client.syncDown() && client.syncDown() && client.syncDown())
+            throw new IOException("Unable to sync down");
+        lastUpdateTime = System.currentTimeMillis();
     }
 
     public void update() throws IOException {

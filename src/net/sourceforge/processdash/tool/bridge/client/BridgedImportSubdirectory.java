@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2020 Tuma Solutions, LLC
+// Copyright (C) 2016-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.IOException;
 
 public class BridgedImportSubdirectory extends LocalImportDirectory {
 
@@ -39,6 +40,12 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
             this.base = base;
         this.subdir = subdir;
         this.filter = new SubdirFilter();
+    }
+
+    @Override
+    public void validate() throws IOException {
+        update();
+        super.validate();
     }
 
     @Override

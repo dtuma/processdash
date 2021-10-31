@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Tuma Solutions, LLC
+// Copyright (C) 2016-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,13 +86,21 @@ public class CachingLocalImportDirectory implements ImportDirectory {
         return targetDirectory.getAbsolutePath();
     }
 
+    public void validate() throws IOException {
+        doUpdate(true);
+    }
+
     public void update() throws IOException {
+        doUpdate(false);
+    }
+
+    private void doUpdate(boolean force) throws IOException {
         // this method may get called overzealously by code in different layers
         // of the application. If it is called more than once within a few
         // milliseconds, don't repeat the update.
         long now = System.currentTimeMillis();
         long lastUpdateAge = now - lastUpdateTime;
-        if (lastUpdateAge > 1000 || lastUpdateAge < 0) {
+        if (force || lastUpdateAge > 1000 || lastUpdateAge < 0) {
             syncDown();
             srcDirectory = cacheDirectory;
             lastUpdateTime = System.currentTimeMillis();

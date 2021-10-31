@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,14 @@ public interface ImportDirectory {
      * @return a user-friendly description of this import location.
      */
     public String getDescription();
+
+    /**
+     * Test to ensure that this directory is reachable, that it is showing live
+     * (not cached) data, and that all data is up-to-date.
+     * 
+     * @since 2.6.5.2
+     */
+    public void validate() throws IOException;
 
     /**
      * Returns the directory on the filesystem where imported files are stored.

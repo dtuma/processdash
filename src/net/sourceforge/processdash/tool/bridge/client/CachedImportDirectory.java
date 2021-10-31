@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2016 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Other ImportDirectory implementations copy files in a collection to a local
@@ -55,6 +56,10 @@ public class CachedImportDirectory implements ImportDirectory {
 
     public String getRemoteLocation() {
         return remoteURL;
+    }
+
+    public void validate() throws IOException {
+        throw new IOException("Using cached data for " + location);
     }
 
     public void update() {}

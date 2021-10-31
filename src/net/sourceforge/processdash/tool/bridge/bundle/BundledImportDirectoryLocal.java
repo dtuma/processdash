@@ -54,7 +54,15 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
         return null;
     }
 
+    public void validate() throws IOException {
+        doUpdate(true);
+    }
+
     public void update() throws IOException {
+        doUpdate(false);
+    }
+
+    private synchronized void doUpdate(boolean force) throws IOException {
         // for the very first update, ensure the working directory has been
         // created and prepared
         if (lastUpdateTime < 0) {
@@ -68,7 +76,7 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
         // milliseconds, don't repeat the update.
         long now = System.currentTimeMillis();
         long lastUpdateAge = now - lastUpdateTime;
-        if (lastUpdateAge > 1000 || lastUpdateAge < 0) {
+        if (force || lastUpdateAge > 1000 || lastUpdateAge < 0) {
             workingDir.update();
             lastUpdateTime = System.currentTimeMillis();
         }
