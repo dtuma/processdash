@@ -61,11 +61,11 @@ import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.DataImporter;
-import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -98,7 +98,7 @@ import net.sourceforge.processdash.util.XMLUtils;
  * <li>Performs the requested synchronization, and displays the results.
  * </ul>
  */
-public class SyncWBS extends TinyCGIBase {
+public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
     /** The hierarchy path to the root of the enclosing team project */
     private String projectRoot;
@@ -196,12 +196,6 @@ public class SyncWBS extends TinyCGIBase {
                 savePermissionData();
             else
                 maybeSynchronize(synch);
-
-            // make certain the contents of the WBS directory are locally
-            // cached, so the WBS data can be used by other dashboard features
-            // in the future. Perform this step after all other work is done,
-            // so it doesn't affect the responsiveness of the sync operation.
-            precacheWbsImportDirectory();
 
         } catch (TinyCGIException e) {
             // the signalError() method uses a TinyCGIException to abort
@@ -393,108 +387,80 @@ public class SyncWBS extends TinyCGIBase {
 
     private URL getWBSLocation(DataRepository data)
             throws MalformedURLException, TinyCGIException {
+        // retrieve the latest wbs.xml file for the project
+        ImportDirectory wbsDir = getWBSDirectory(
+            data.getSubcontext(projectRoot));
+        File wbsFile = new File(wbsDir.getDirectory(), HIER_FILENAME);
 
-        String urlDataName = DataRepository.createDataName(projectRoot,
-            TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
+        // if the file does not exist, or cannot be read, abort
+        if (!wbsFile.isFile())
+            signalError(WBS_FILE_MISSING);
+        if (!wbsFile.canRead())
+            signalError(WBS_FILE_INACCESSIBLE + "&wbsFile", wbsFile.toString());
 
-        URL wbsLocation = getWBSLocationFromUrlDataElement(data, urlDataName);
-
-        if (wbsLocation == null) {
-            // find the data directory for this team project.
-            String teamDirectoryLocation = null;
-            File teamDirectory = null;
-
-            SimpleData d = data.getSimpleValue(DataRepository.createDataName(
-                projectRoot, TeamDataConstants.TEAM_DATA_DIRECTORY));
-
-            if (d == null || !d.test() ||
-                 "Enter network directory path".equals(teamDirectoryLocation = d.format()))
-                signalError(TEAM_DIR_MISSING);
-
-            teamDirectoryLocation = ExternalResourceManager.getInstance()
-                    .remapFilename(teamDirectoryLocation);
-            teamDirectory = new File(teamDirectoryLocation);
-
-            if (!teamDirectory.isDirectory())
-                signalError(TEAM_DIR_UNAVAILABLE, teamDirectoryLocation);
-
-            URL serverURL = TeamServerSelector.getServerURL(teamDirectory);
-
-            if (serverURL != null) {
-                data.putValue(urlDataName, StringData.create(serverURL.toString()));
-                wbsLocation = new URL(serverURL.toString() + "/" + HIER_FILENAME);
-
-                // if the physical directory is now obsolete, remove the pointers
-                // to that directory so we never attempt to look there again.
-                File obsoleteDirMarkerFile = new File(teamDirectory,
-                        TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME);
-                if (obsoleteDirMarkerFile.isFile()) {
-                    data.putValue(DataRepository.createDataName(projectRoot,
-                        TeamDataConstants.TEAM_DIRECTORY), null);
-                    data.putValue(DataRepository.createDataName(projectRoot,
-                        TeamDataConstants.TEAM_DIRECTORY_UNC), null);
-                }
-            }
-            else {
-                // locate the wbs file in the team data directory.
-                File wbsFile = new File(teamDirectoryLocation, HIER_FILENAME);
-
-                if (!wbsFile.exists())
-                    signalError(WBS_FILE_MISSING);
-                if (!wbsFile.canRead())
-                    signalError(WBS_FILE_INACCESSIBLE + "&wbsFile", wbsFile.toString());
-
-                wbsLocation = wbsFile.toURI().toURL();
-            }
-        }
-
-        return wbsLocation;
+        // return the URL of the wbs.xml file
+        return wbsFile.toURI().toURL();
     }
 
-    private URL getWBSLocationFromUrlDataElement(DataRepository data,
-            String urlDataName) throws MalformedURLException, TinyCGIException {
-        // Check to see if we have a URL stored in the data repository.
-        // If not, we can't proceed.
-        SimpleData d = data.getSimpleValue(urlDataName);
-        if (d == null)
-            return null;
-        String lastServerUrlStr = d.format().trim();
-        if (lastServerUrlStr.length() == 0)
-            return null;
+    private ImportDirectory getWBSDirectory(DataContext data)
+            throws TinyCGIException {
+        // look in the repository for a team data directory URL
+        SimpleData d = data.getSimpleValue(TEAM_DATA_DIRECTORY_URL);
+        String serverUrl = (d == null ? null : d.format().trim());
+        if (StringUtils.hasValue(serverUrl)) {
+            try {
+                // If a server URL is configured, try connecting
+                ImportDirectory dir = ImportDirectoryFactory.getInstance()
+                        .get(serverUrl);
 
-        // If a filename remapper is operating and it instructs us to use a
-        // different location for this URL, respect its directions.
-        String remapped = ExternalResourceManager.getInstance().remapFilename(
-            lastServerUrlStr);
-        if (remapped != null && !remapped.equals(lastServerUrlStr)) {
-            File dir = new File(remapped);
-            if (dir.isDirectory())
-                return new File(dir, HIER_FILENAME).toURI().toURL();
+                // ensure we have the latest files
+                dir.validate();
+
+                // if the server URL has changed, store the new URL
+                String newUrl = dir.getRemoteLocation();
+                if (newUrl != null && !newUrl.equals(serverUrl)
+                        && TeamServerSelector.isUrlFormat(newUrl))
+                    data.putValue(TEAM_DATA_DIRECTORY_URL,
+                        StringData.create(newUrl));
+
+                // return the directory containing the refreshed server files
+                return dir;
+
+            } catch (Exception e) {
+                // if we failed to reach the configured server, abort
+                signalError(SERVER_UNAVAILABLE, serverUrl);
+            }
         }
 
-        // Test the URL we found, to see if we can find a valid server.
-        URL serverUrl;
+        // read the team data directory path from the repository
+        d = data.getSimpleValue(TEAM_DATA_DIRECTORY);
+        String teamDirectoryPath = (d == null ? null : d.format().trim());
+        if (!StringUtils.hasValue(teamDirectoryPath)
+                || "Enter network directory path".equals(teamDirectoryPath))
+            signalError(TEAM_DIR_MISSING);
+
+        // look up an ImportDirectory for the given location. This will check
+        // for external remappings
+        ImportDirectory dir = ImportDirectoryFactory.getInstance()
+                .get(teamDirectoryPath);
+
+        // ensure we have the latest files
         try {
-            serverUrl = TeamServerSelector.resolveServerURL(lastServerUrlStr);
-        } catch (Throwable t) {
-            // if the user is running an older version of the dashboard, the
-            // resolveServerURL() method may not exist. In that case, fall
-            // back to the older testServerURL() method.
-            serverUrl = TeamServerSelector.testServerURL(lastServerUrlStr);
-        }
-        if (serverUrl == null)
-            signalError(SERVER_UNAVAILABLE, lastServerUrlStr);
-
-        // Has the server URL changed since our last sync?  If so, write the
-        // new URL into the data repository.
-        String serverUrlStr = serverUrl.toString();
-        if (!serverUrlStr.equals(lastServerUrlStr)) {
-            data.putValue(urlDataName, StringData.create(serverUrlStr));
+            dir.validate();
+        } catch (Exception e) {
+            signalError(TEAM_DIR_UNAVAILABLE, teamDirectoryPath);
         }
 
-        // Construct the WBS URL from the server URL, and return it.
-        URL wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
-        return wbsLocation;
+        // if the directory has been migrated to a server, update config
+        String newUrl = dir.getRemoteLocation();
+        if (newUrl != null) {
+            data.putValue(TEAM_DATA_DIRECTORY_URL, StringData.create(newUrl));
+            data.putValue(TEAM_DIRECTORY, null);
+            data.putValue(TEAM_DIRECTORY_UNC, null);
+        }
+
+        // return the directory containing the refreshed server files
+        return dir;
     }
 
     private URL getWorkflowLocation(URL wbsUrl) {
@@ -928,16 +894,6 @@ public class SyncWBS extends TinyCGIBase {
             return (Component) result;
         else
             return null;
-    }
-
-
-    private void precacheWbsImportDirectory() {
-        DataContext data = getDataRepository().getSubcontext(projectRoot);
-        SimpleData d = data.getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY);
-        String dir = (d == null ? null : d.format());
-        d = data.getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
-        String url = (d == null ? null : d.format());
-        ImportDirectoryFactory.getInstance().get(url, dir);
     }
 
 

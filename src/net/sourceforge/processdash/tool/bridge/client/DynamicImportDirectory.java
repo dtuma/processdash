@@ -81,7 +81,7 @@ public class DynamicImportDirectory implements ImportDirectory {
     }
 
     public void validate() throws IOException {
-        lastUpdateDelegateTime = -1;
+        lastUpdateDelegateTime = RECHECK_LOCAL_DIRECTORY;
         maybeUpdateDelegate();
         delegate.validate();
     }
@@ -143,30 +143,31 @@ public class DynamicImportDirectory implements ImportDirectory {
         if (delegate instanceof CachedImportDirectory)
             return true;
 
-        // If we're using a LocalImportDirectory with a nonexistent target,
-        // we'd prefer to update the delegate and get something useful instead.
-        // But in the most common case (when no Team Server is in use),
-        // rechecking can't have any useful effect. So we only consider updating
-        // if (a) there is more than one location in our "locations" list,
-        // leading to the possibility that a different location might better,
-        // or (b) a default team server is in effect, leading to the
-        // possibility that we might be able to access the location through
-        // an implicitly constructed URL. Note that at this time, we don't
-        // consider the possibility of transitioning to bridged mode when
-        // we have a valid local directory with no prior knowledge of Team
-        // Server support. That is a rare transition, and is better handled
-        // elsewhere as a configuration change, rather than being checked every
-        // time the ImportDirectory.update() is called.
+        // check update conditions when using a local import directory
         if (delegate instanceof LocalImportDirectory
                 || delegate instanceof CachingLocalImportDirectory) {
-            if (locations.length == 1
-                    && !TeamServerSelector.isDefaultTeamServerConfigured())
+            // when requested, recheck the contents of the local directory (for
+            // example, to see if it's been migrated to a server)
+            if (lastUpdateDelegateTime == RECHECK_LOCAL_DIRECTORY)
+                return true;
+
+            // if the local directory exists, no need to recheck
+            if (delegate.getDirectory().isDirectory())
                 return false;
-            else
-                return !delegate.getDirectory().isDirectory();
+
+            // if the local directory doesn't exist, consider a recheck if
+            // (a) there is more than one location in our "locations" list,
+            //     allowing the chance that a different location might better,
+            // (b) a default team server is in effect, leading to the
+            //     possibility that we might be able to access the location
+            //     through an implicitly constructed URL.
+            return (locations.length > 1
+                    || TeamServerSelector.isDefaultTeamServerConfigured());
         }
 
         return false;
     }
+
+    private static final int RECHECK_LOCAL_DIRECTORY = -2;
 
 }
