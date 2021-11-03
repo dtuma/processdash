@@ -174,6 +174,22 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         return false;
     }
 
+    protected boolean flushFile(String filename)
+            throws LockFailureException, IOException {
+        // if the given file requires a write lock, make sure we have one
+        if (collection.requiresWriteLock(filename))
+            assertWriteLock();
+
+        // ask our client to sync up the given file
+        discardLocallyCachedFileData();
+        for (int numTries = 5; numTries-- > 0;) {
+            if (client.syncUp() == false)
+                return true;
+        }
+
+        return false;
+    }
+
     private void saveLogAndCache() {
         // if a log file is present, publish it to the bundle directory
         try {

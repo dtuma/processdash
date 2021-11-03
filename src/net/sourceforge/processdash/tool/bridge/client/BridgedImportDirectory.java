@@ -25,10 +25,13 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 /**
  * An {@link ImportDirectory} object that retrieves files from a Team Server
@@ -107,6 +110,19 @@ public class BridgedImportDirectory implements ImportDirectory {
             client.syncDown();
             lastUpdateTime = System.currentTimeMillis();
         }
+    }
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException {
+        ResourceBridgeClient.uploadSingleFile(new URL(remoteURL), filename,
+            source);
+        update();
+    }
+
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException {
+        ResourceBridgeClient.deleteSingleFile(new URL(remoteURL), filename);
+        update();
     }
 
 }

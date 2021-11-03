@@ -25,6 +25,9 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public interface ImportDirectory {
 
@@ -72,5 +75,37 @@ public interface ImportDirectory {
      *                 reason
      */
     public void update() throws IOException;
+
+    /**
+     * Write data to a file in this import directory.
+     * 
+     * @param filename
+     *            the name of the file within the directory
+     * @param source
+     *            the data that should be written to the file
+     * @throws IOException
+     *             if the data could not be written
+     * @throws LockFailureException
+     *             if a write lock would be required to write to the named file
+     * 
+     * @since 2.6.5.2
+     */
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException;
+
+    /**
+     * Delete a file from this import directory.
+     * 
+     * @param filename
+     *            the name of the file within the directory
+     * @throws IOException
+     *             if the directory could not be reached
+     * @throws LockFailureException
+     *             if a write lock would be required to delete the named file
+     * 
+     * @since 2.6.5.2
+     */
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException;
 
 }

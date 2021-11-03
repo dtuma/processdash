@@ -25,7 +25,10 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
+
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 /**
  * An import directory that dynamically recomputes the location of source data.
@@ -81,8 +84,7 @@ public class DynamicImportDirectory implements ImportDirectory {
     }
 
     public void validate() throws IOException {
-        lastUpdateDelegateTime = RECHECK_LOCAL_DIRECTORY;
-        maybeUpdateDelegate();
+        recheckDelegate();
         delegate.validate();
     }
 
@@ -98,6 +100,23 @@ public class DynamicImportDirectory implements ImportDirectory {
         } else {
             return false;
         }
+    }
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException {
+        recheckDelegate();
+        delegate.writeUnlockedFile(filename, source);
+    }
+
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException {
+        recheckDelegate();
+        delegate.deleteUnlockedFile(filename);
+    }
+
+    private void recheckDelegate() {
+        lastUpdateDelegateTime = RECHECK_LOCAL_DIRECTORY;
+        maybeUpdateDelegate();
     }
 
     private void maybeUpdateDelegate() {

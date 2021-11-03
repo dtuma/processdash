@@ -26,6 +26,12 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.NotLockedException;
 
 /**
  * An {@link ImportDirectory} object that reads files directly from their
@@ -57,5 +63,32 @@ public class LocalImportDirectory implements ImportDirectory {
     }
 
     public void update() {}
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException {
+        ensureUnlocked(filename);
+        FileUtils.copyFile(source, new File(targetDirectory, filename));
+    }
+
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException {
+        ensureUnlocked(filename);
+        File fileToDelete = new File(targetDirectory, filename);
+        fileToDelete.delete();
+        if (fileToDelete.exists())
+            throw new IOException("Couldn't delete " + fileToDelete);
+    }
+
+    private void ensureUnlocked(String file)
+            throws IOException, LockFailureException {
+        // make sure the filename is acceptable to write without a lock
+        if (!TeamDataDirStrategy.INSTANCE.getUnlockedFilter()
+                .accept(targetDirectory, file))
+            throw new NotLockedException();
+
+        // make sure the target directory is reachable
+        if (!targetDirectory.isDirectory())
+            throw new FileNotFoundException(targetDirectory.getPath());
+    }
 
 }

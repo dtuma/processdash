@@ -24,11 +24,16 @@
 package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class BundledImportDirectoryLocal implements ImportDirectory {
 
@@ -80,6 +85,43 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
             workingDir.update();
             lastUpdateTime = System.currentTimeMillis();
         }
+    }
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException {
+        ensureUnlocked(filename);
+        FileUtils.copyFile(source, new File(getDirectory(), filename));
+        flushSingleFile(filename);
+    }
+
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException {
+        // check preconditions
+        ensureUnlocked(filename);
+        File dir = getDirectory();
+        if (!dir.isDirectory())
+            throw new FileNotFoundException(dir.getPath());
+
+        // delete the file, and make sure the deletion was successful
+        File fileToDelete = new File(dir, filename);
+        fileToDelete.delete();
+        if (fileToDelete.exists())
+            throw new IOException("Couldn't delete " + fileToDelete);
+
+        // flush changes to bundle storage
+        flushSingleFile(filename);
+    }
+
+    private void ensureUnlocked(String filename) throws LockFailureException {
+        if (!STRATEGY.getUnlockedFilter().accept(getDirectory(), filename))
+            throw new NotLockedException();
+    }
+
+    private void flushSingleFile(String filename)
+            throws LockFailureException, IOException {
+        if (workingDir.flushFile(filename) == false)
+            throw new IOException("Couldn't flush changes to " + filename
+                    + " in " + getDescription());
     }
 
     private static final TeamDataDirStrategy STRATEGY = TeamDataDirStrategy.INSTANCE;

@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Other ImportDirectory implementations copy files in a collection to a local
@@ -63,5 +64,14 @@ public class CachedImportDirectory implements ImportDirectory {
     }
 
     public void update() {}
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException {
+        throw new IOException("Unable to reach " + location);
+    }
+
+    public void deleteUnlockedFile(String filename) throws IOException {
+        throw new IOException("Unable to reach " + location);
+    }
 
 }

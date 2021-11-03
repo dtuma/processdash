@@ -25,13 +25,17 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.NotLockedException;
 
 /**
  * An {@link ImportDirectory} object that copies files from a network directory
@@ -131,11 +135,46 @@ public class CachingLocalImportDirectory implements ImportDirectory {
                 // route the modifications through the cache collection object
                 // so it has a chance to update its internally cached state
                 // (e.g. file modification times, checksums, etc)
-                OutputStream out = cachedCollection.getOutputStream(filename);
+                long ts = targetCollection.getLastModified(filename);
+                OutputStream out = cachedCollection.getOutputStream(filename, ts);
                 FileUtils.copyFile(new File(targetDirectory, filename), out);
                 out.close();
             }
         }
+    }
+
+    public void writeUnlockedFile(String filename, InputStream source)
+            throws IOException, LockFailureException {
+        // prevent modification of locked files
+        if (targetCollection.requiresWriteLock(filename))
+            throw new NotLockedException();
+
+        // copy the file to the target collection
+        OutputStream out = targetCollection.getOutputStream(filename);
+        FileUtils.copyFile(source, out);
+        out.close();
+
+        // copy the file to our local cache as well
+        syncFilesDown(Collections.singletonList(filename));
+    }
+
+    public void deleteUnlockedFile(String filename)
+            throws IOException, LockFailureException {
+        // prevent deletion of locked files
+        if (targetCollection.requiresWriteLock(filename))
+            throw new NotLockedException();
+
+        // ensure we can reach the target directory
+        targetCollection.validate();
+
+        // delete the file from the target directory and our cache
+        targetCollection.deleteResource(filename);
+        cachedCollection.deleteResource(filename);
+
+        // make sure the file was successfully deleted
+        if (targetCollection.getLastModified(filename) > 0)
+            throw new IOException("Couldn't delete " + filename + " from "
+                    + getDescription());
     }
 
 }
