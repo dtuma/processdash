@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2018 Tuma Solutions, LLC
+// Copyright (C) 2005-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -226,6 +227,24 @@ public class ExportManager extends AbstractManager {
             return (Runnable) instr.dispatch(instructionExecutorFactory);
     }
 
+    private class ExportTargetPathFactory implements ExportInstructionDispatcher {
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            String dest = instr.getFile();
+            String url = instr.getServerUrl();
+            File destFile = new File(dest);
+            return ExportFileStream.getExportTargetPath(destFile, url);
+        }
+    }
+
+    private ExportInstructionDispatcher exportTargetPathFactory = new ExportTargetPathFactory();
+
+    public String getExportTargetPath(AbstractInstruction instr) {
+        if (instr == null)
+            return null;
+        else
+            return (String) instr.dispatch(exportTargetPathFactory);
+    }
+
     public CompletionStatus exportDataForPrefix(String prefix) {
         String dataName = DataRepository.createDataName(prefix,
             ExportManager.EXPORT_DATANAME);
@@ -245,7 +264,7 @@ public class ExportManager extends AbstractManager {
 
     public void exportAll(Object window, DashboardContext parent) {
         // start with the export instructions registered with this manager
-        List tasks = new LinkedList(instructions);
+        List<AbstractInstruction> tasks = new LinkedList(instructions);
         // Look for data export instructions in the data repository.
         tasks.addAll(getExportInstructionsFromData());
 
@@ -259,12 +278,26 @@ public class ExportManager extends AbstractManager {
                     .getString("ExportAutoExporting"), resource
                     .getString("ExportExportingDataDots"));
 
+        // start the export operation
         final ExportJanitor janitor = new ExportJanitor(data);
-        janitor.startExportAllOperation();
         fireEvent(EXPORT_STARTING, EXPORT_ALL_PATH);
 
-        for (Iterator iter = tasks.iterator(); iter.hasNext();) {
-            AbstractInstruction instr = (AbstractInstruction) iter.next();
+        // make a list of the targetPaths from the current instructions
+        final List currentTargetPaths = new ArrayList<String>();
+        for (AbstractInstruction instr : tasks) {
+            currentTargetPaths.add(getExportTargetPath(instr));
+        }
+
+        // clean obsolete historically exported files
+        if (p != null) {
+            p.addTask(new Runnable() { public void run() {
+                janitor.cleanHistoricalFiles(currentTargetPaths); }});
+        } else {
+            janitor.cleanHistoricalFiles(currentTargetPaths);
+        }
+
+        // export each of the files in the current list
+        for (AbstractInstruction instr : tasks) {
             Runnable exporter = getExporter(instr);
 
             if (instr.isEnabled()) {
@@ -276,12 +309,7 @@ public class ExportManager extends AbstractManager {
         }
 
         if (p != null) {
-            p.addTask(new Runnable() { public void run() {
-                janitor.finishExportAllOperation(); }});
             p.run();
-
-        } else {
-            janitor.finishExportAllOperation();
         }
 
         System.out.println("Completed user-scheduled data export.");
@@ -465,8 +493,6 @@ public class ExportManager extends AbstractManager {
             this.instr = instr;
             if (instr != null)
                 this.origHashCode = instr.hashCode();
-
-            ExportJanitor.recordKnownFileExport(data, path);
         }
 
         public void run() {

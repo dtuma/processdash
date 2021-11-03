@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,15 +23,12 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
-import java.net.URL;
-import java.util.Date;
+import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
 import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
-import net.sourceforge.processdash.tool.export.impl.ExportFileStream.ExportTargetDeletionFilter;
 
 
 /**
@@ -44,10 +41,10 @@ import net.sourceforge.processdash.tool.export.impl.ExportFileStream.ExportTarge
  * the old file will remain.  This class contains logic to detect and delete
  * those out-of-date files.
  */
-class ExportJanitor implements ExportTargetDeletionFilter {
+class ExportJanitor {
 
-    /** Entry in the data repository that contains the most recent filenames
-     * that have been exported */
+    /** Legacy entry in the data repository that was previously used to contain
+     * the most recent filenames that had been exported */
     private static final String CURRENT_EXPORTED_FILES_DATANAME =
         "/Current_Exported_Filenames";
 
@@ -85,43 +82,15 @@ class ExportJanitor implements ExportTargetDeletionFilter {
     }
 
 
-    private long startTimestamp;
-
-    public void startExportAllOperation() {
-        // record the time that this operation began.
-        startTimestamp = System.currentTimeMillis();
-
-        // Making sure there's no filenames in the CURRENT list before the
-        //  export task.
-        data.putValue(CURRENT_EXPORTED_FILES_DATANAME, null);
-    }
-
-    public void finishExportAllOperation() {
-        ListData currentExportedFiles =
-            ListData.asListData(data.getValue(CURRENT_EXPORTED_FILES_DATANAME));
+    public void cleanHistoricalFiles(List<String> currentExportedFiles) {
+        // get the previous list of exported files. If none, abort
         ListData historicallyExportedFiles =
             ListData.asListData(data.getValue(HISTORICALLY_EXPORTED_DATANAME));
+        if (historicallyExportedFiles == null || !historicallyExportedFiles.test())
+            return;
 
-        if (historicallyExportedFiles != null && currentExportedFiles != null) {
-            // After this method call, historicallyExportedFiles wont contain filenames
-            //  that are not in currentExportedFiles.
-            cleanHistoricalFiles(historicallyExportedFiles, currentExportedFiles);
-        }
-
-        data.putValue(CURRENT_EXPORTED_FILES_DATANAME, null);
-        data.putValue(HISTORICALLY_EXPORTED_DATANAME, historicallyExportedFiles);
-    }
-
-    /**
-     * We compare the current list of exported files with the list of historically
-     *  exported files. If we find a filename that is present in the historical
-     *  list but not in the current list, we try to remove it from the file system.
-     *  If the deletion is successful, we remove it from the historical list, making
-     *  it current and up to date.
-     */
-    private void cleanHistoricalFiles(ListData historicallyExportedFiles,
-                                      ListData currentExportedFiles) {
-
+        // iterate over the old files. If any are missing from the list of
+        // current exports, delete them
         for (int i = 0; i < historicallyExportedFiles.size(); ) {
             Object item = historicallyExportedFiles.get(i);
             String path = normalize(item);
@@ -133,32 +102,17 @@ class ExportJanitor implements ExportTargetDeletionFilter {
                 ++i;
             }
         }
+
+        // write updated lists into the data repository
+        data.putValue(CURRENT_EXPORTED_FILES_DATANAME, null);
+        data.putValue(HISTORICALLY_EXPORTED_DATANAME, historicallyExportedFiles);
     }
 
     private boolean deletionSuccessful(String path) {
-        return ExportFileStream.deleteExportTarget(path, this);
-    }
-
-    public boolean shouldDelete(URL exportTarget) {
-        if (exportTarget.getPath().toLowerCase().endsWith(".txt"))
-            return true;
-
-        try {
-            Date exportDate = ArchiveMetricsFileExporter
-                    .getExportTime(exportTarget.openStream());
-            if (exportDate != null)
-                return exportDate.getTime() < startTimestamp;
-
-        } catch (Exception e) {}
-
-        return true;
+        return ExportFileStream.deleteExportTarget(path);
     }
 
 
-
-    static void recordKnownFileExport(DataContext data, String path) {
-        recordExportedFile(data, CURRENT_EXPORTED_FILES_DATANAME, path);
-    }
 
     static void recordSuccessfulFileExport(DataContext data, String path) {
         recordExportedFile(data, HISTORICALLY_EXPORTED_DATANAME, path);
@@ -172,8 +126,10 @@ class ExportJanitor implements ExportTargetDeletionFilter {
             exportedFiles = new ListData();
         }
 
-        exportedFiles.setAdd(normalize(path));
-        data.putValue(list, exportedFiles);
+        if (exportedFiles.setAdd(normalize(path))) {
+            exportedFiles.sortContents(String.CASE_INSENSITIVE_ORDER);
+            data.putValue(list, exportedFiles);
+        }
     }
 
     private static String normalize(Object s) {

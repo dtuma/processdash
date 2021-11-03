@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2020 Tuma Solutions, LLC
+// Copyright (C) 2013-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -386,7 +386,7 @@ public class TeamProjectAlterer {
         TeamProjectSetupWizard.maybeBackupExistingPdashFile(data, false);
 
         // Now delete our PDASH file so it doesn't contribute to team rollups.
-        ExportFileStream.deleteExportTarget(getExportFilePath(data), null);
+        ExportFileStream.deleteExportTarget(getExportFilePath(data));
     }
 
     private String getExportFilePath(DataContext data) {

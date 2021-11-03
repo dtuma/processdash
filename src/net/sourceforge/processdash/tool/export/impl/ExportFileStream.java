@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2020 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -277,9 +277,6 @@ public class ExportFileStream {
         return result;
     }
 
-    public interface ExportTargetDeletionFilter {
-        public boolean shouldDelete(URL exportTarget);
-    }
 
     /**
      * Attempt to delete a file that was exported by this class in the past.
@@ -288,34 +285,22 @@ public class ExportFileStream {
      *            a string that describes a past export target; this should be a
      *            value previously returned by
      *            {@link #getExportTargetPath(File, String)}.
-     * @param deletionFilter
-     *            a filter than can determine whether files should be deleted.
-     * @return true if the path was recognized and successfully deleted, or if
-     *            the deletion filter said it didn't need to be deleted.
+     * @return true if the path was recognized and successfully deleted
      */
-    public static boolean deleteExportTarget(String targetPath,
-            ExportTargetDeletionFilter deletionFilter) {
+    public static boolean deleteExportTarget(String targetPath) {
         if (!StringUtils.hasValue(targetPath))
             return true;
 
         if (TeamServerSelector.isUrlFormat(targetPath))
-            return deleteUrlExportTarget(targetPath, deletionFilter);
+            return deleteUrlExportTarget(targetPath);
         else
-            return deleteFilesystemExportTarget(targetPath, deletionFilter);
+            return deleteFilesystemExportTarget(targetPath);
     }
 
-    private static boolean deleteUrlExportTarget(String url,
-            ExportTargetDeletionFilter deletionFilter) {
+    private static boolean deleteUrlExportTarget(String url) {
         int slashPos = url.lastIndexOf('/');
         if (slashPos == -1)
             return false;
-
-        try {
-            URL fullURL = new URL(url);
-            if (deletionFilter != null
-                    && deletionFilter.shouldDelete(fullURL) == false)
-                return true;
-        } catch (Exception e) {}
 
         try {
             URL baseURL = new URL(url.substring(0, slashPos));
@@ -326,19 +311,11 @@ public class ExportFileStream {
         }
     }
 
-    private static boolean deleteFilesystemExportTarget(String path,
-            ExportTargetDeletionFilter deletionFilter) {
+    private static boolean deleteFilesystemExportTarget(String path) {
         path = path.replace('/', File.separatorChar);
         File file = new File(path);
 
         if (file.exists()) {
-            try {
-                URL fileURL = file.toURI().toURL();
-                if (deletionFilter != null
-                        && deletionFilter.shouldDelete(fileURL) == false)
-                    return true;
-            } catch (Exception e) {}
-
             return file.delete();
         }
 
