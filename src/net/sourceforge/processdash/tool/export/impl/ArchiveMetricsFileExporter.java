@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2019 Tuma Solutions, LLC
+// Copyright (C) 2005-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,6 +61,7 @@ import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
 import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -105,16 +105,11 @@ public class ArchiveMetricsFileExporter implements Runnable,
             .getLogger(ArchiveMetricsFileExporter.class.getName());
 
 
-    public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
-            Collection filter) {
-        this(ctx, dest, null, filter, null, null, null);
-    }
-
-    public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
-            String url, Collection filter, List metricsIncludes,
-            List metricsExcludes, List additionalEntries) {
+    public ArchiveMetricsFileExporter(DashboardContext ctx, String targetPath,
+            Collection filter, List metricsIncludes, List metricsExcludes,
+            List additionalEntries) {
         this.ctx = ctx;
-        this.dest = new ExportFileStream(url, dest);
+        this.dest = new ExportFileStream(targetPath);
         this.filter = filter;
         this.metricsIncludes = metricsIncludes;
         this.metricsExcludes = metricsExcludes;
@@ -484,12 +479,9 @@ public class ArchiveMetricsFileExporter implements Runnable,
                 }
             }
 
-        } catch (Exception e) {}
-
-        if (in != null) {
-            try {
-                in.close();
-            } catch (Exception e) {}
+        } catch (Exception e) {
+        } finally {
+            FileUtils.safelyClose(in);
         }
         return null;
     }

@@ -199,7 +199,6 @@ public class ExportManager extends AbstractManager {
 
         public Object dispatch(ExportMetricsFileInstruction instr) {
             String dest = instr.getFile();
-            dest = ExternalResourceManager.getInstance().remapFilename(dest);
             String url = instr.getServerUrl();
             Vector paths = instr.getPaths();
 
@@ -211,7 +210,7 @@ public class ExportManager extends AbstractManager {
                         dashboard, destFile, paths));
             else
                 return new ExportTask(targetPath, new ArchiveMetricsFileExporter(
-                        dashboard, destFile, url, paths,
+                        dashboard, targetPath, paths, //
                         instr.getMetricsIncludes(), instr.getMetricsExcludes(),
                         instr.getAdditionalFileEntries()), instr);
         }

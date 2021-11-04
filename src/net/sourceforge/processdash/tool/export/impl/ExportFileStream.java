@@ -28,48 +28,40 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
-import java.util.logging.Logger;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedOutputStream;
 
-import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
-import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.HttpException;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class ExportFileStream {
 
-    private String lastUrl;
+    private String location;
 
-    private File exportFile;
+    private String filename;
 
-    private File directFile;
+    private ImportDirectory destDir;
 
     private Object target;
-
-    private URL serverUrl;
 
     private File tempOutFile;
 
     private AbortableOutputStream outStream;
 
-    private static final Logger logger = Logger
-            .getLogger(ExportFileStream.class.getName());
 
-
-    public ExportFileStream(String lastUrl, File exportFile) {
-        this.lastUrl = lastUrl;
-        this.exportFile = exportFile;
-        this.target = exportFile;
+    public ExportFileStream(String targetPath) {
+        // break the targetPath into location and filename
+        int slashPos = targetPath.lastIndexOf('/');
+        this.location = targetPath.substring(0, slashPos);
+        this.filename = targetPath.substring(slashPos + 1);
     }
 
     public Object getTarget() {
@@ -89,7 +81,7 @@ public class ExportFileStream {
     }
 
     public OutputStream getOutputStream() throws IOException {
-        this.target = validateTarget();
+        validateTarget();
 
         tempOutFile = TempFileFactory.get().createTempFile("pdash-export-", ".tmp");
         tempOutFile.deleteOnExit();
@@ -98,119 +90,65 @@ public class ExportFileStream {
         return outStream;
     }
 
-    private Object validateTarget() throws IOException {
-        boolean exportViaTeamServer = Settings.getBool(
-            "teamServer.useForDataExport", true);
+    public boolean delete() {
+        try {
+            validateTarget();
+            destDir.deleteUnlockedFile(filename);
+            return true;
 
-        // Before starting, check to see if the export file is a full path,
-        // capable of direct filesystem access.
-        File exportDirectory = exportFile.getParentFile();
-        if (exportDirectory != null)
-            directFile = exportFile;
-
-        // First, see if the "last known good URL" is still operational, or
-        // whether we can find a viable alternative
-        if (exportViaTeamServer) {
-            serverUrl = TeamServerSelector.resolveServerURL(lastUrl,
-                MIN_SERVER_VERSION);
-            if (serverUrl != null && checkWrite(serverUrl))
-                return serverUrl;
+        } catch (Exception e) {
+            return false;
         }
-
-        // If the export file is just a simple filename (as would be the case
-        // for a URL-only export), don't attempt to query the filesystem.
-        if (exportDirectory == null) {
-            target = lastUrl;
-            throw new IOException("Cannot contact server '" + lastUrl + "'");
-        }
-
-        // Look in the "target directory" where the file would be written,
-        // and see if a URL can be found for that target directory
-        if (exportViaTeamServer) {
-            serverUrl = TeamServerSelector.getServerURL(exportDirectory,
-                MIN_SERVER_VERSION);
-            if (serverUrl != null && checkWrite(serverUrl))
-                return serverUrl;
-        }
-
-        // No URL-based approach was found, so we will be exporting the file
-        // directly to the filesystem. If the destination directory does
-        // not exist, or if the file exists and is read-only, abort.
-        if (!exportDirectory.isDirectory()
-                || (directFile.exists() && !directFile.canWrite()))
-            throw new FileNotFoundException(directFile.getPath());
-
-        return directFile;
     }
 
-    private boolean checkWrite(URL u) throws HttpException {
-        TeamServerSelector.testServerURL(u.toString(), null,
-            ResourceBridgeConstants.Permission.write);
-        return true;
+    private void validateTarget() throws IOException {
+        // check for remappings. Store our best guess for the final target
+        String remapped = ExternalLocationMapper.getInstance()
+                .remapFilename(location);
+        target = (TeamServerSelector.isUrlFormat(remapped) ? remapped
+                : new File(denormalize(remapped), filename));
+
+        // retrieve an ImportDirectory for the given location
+        destDir = ImportDirectoryFactory.getInstance().get(remapped);
+        if (destDir == null)
+            throw new IOException("Cannot reach " + remapped);
+
+        // validate readability of the target file/collection
+        String destUrl = destDir.getRemoteLocation();
+        if (destUrl != null) {
+            target = destUrl;
+            TeamServerSelector.testServerURL(destUrl, null,
+                ResourceBridgeConstants.Permission.write);
+
+        } else {
+            File destFile = new File(denormalize(remapped), filename);
+            if (destFile.exists() && !destFile.canWrite())
+                throw new FileNotFoundException(destFile.getPath());
+        }
+
+        destDir.validate();
+    }
+
+    private String denormalize(String path) {
+        return path.replace('/', File.separatorChar);
     }
 
     public void finish() throws IOException {
+        FileInputStream in = null;
         try {
-            long checksum = outStream.getChecksum().getValue();
-            if (tryCopyToServer(checksum) == false)
-                copyToDestFile(checksum);
+            in = new FileInputStream(tempOutFile);
+            destDir.writeUnlockedFile(filename, in);
+            in.close();
+
+        } catch (LockFailureException lfe) {
+            // shouldn't happen, since we're only writing PDASH files
+            throw new IOException(lfe);
 
         } finally {
+            FileUtils.safelyClose(in);
             outStream = null;
             if (tempOutFile != null)
                 tempOutFile.delete();
-        }
-    }
-
-    private boolean tryCopyToServer(long checksum) throws IOException {
-        if (serverUrl == null)
-            return false;
-
-        try {
-            copyToServer(checksum);
-            return true;
-        } catch (Exception e) {
-            if (directFile == null) {
-                IOException ioe = new IOException("Could not contact server "
-                        + serverUrl);
-                ioe.initCause(e);
-                throw ioe;
-            }
-
-            String exceptionType = e.getClass().getName();
-            if (e.getMessage() != null)
-                exceptionType += " (" + e.getMessage() + ")";
-            logger.warning(exceptionType + " while exporting file to '"
-                    + serverUrl + "' - trying direct file route");
-            return false;
-        }
-    }
-
-    private void copyToServer(long checksum) throws IOException,
-            LockFailureException {
-        FileInputStream in = new FileInputStream(tempOutFile);
-        String name = exportFile.getName();
-        Long serverSum = ResourceBridgeClient.uploadSingleFile(serverUrl, name,
-            in);
-        if (serverSum == null || serverSum != checksum)
-            throw new IOException("checksum mismatch after uploading file ("
-                    + serverSum + " != " + checksum + ")");
-
-        target = serverUrl;
-    }
-
-    private void copyToDestFile(long checksum) throws IOException {
-        RobustFileOutputStream out = new RobustFileOutputStream(directFile,
-                false);
-        FileUtils.copyFile(tempOutFile, out);
-        long copySum = out.getChecksum();
-        if (copySum == checksum) {
-            out.close();
-            target = directFile;
-        } else {
-            out.abort();
-            throw new IOException("Error writing to " + directFile
-                    + " - checksums do not match");
         }
     }
 
@@ -219,16 +157,12 @@ public class ExportFileStream {
         return target.toString();
     }
 
-    private static class AbortableOutputStream extends CheckedOutputStream {
+    private static class AbortableOutputStream extends FilterOutputStream {
 
         private volatile boolean aborted;
 
         public AbortableOutputStream(File dest) throws IOException {
-            this(new BufferedOutputStream(new FileOutputStream(dest)));
-        }
-
-        public AbortableOutputStream(OutputStream out) {
-            super(out, new Adler32());
+            super(new BufferedOutputStream(new FileOutputStream(dest)));
             this.aborted = false;
         }
 
@@ -257,8 +191,6 @@ public class ExportFileStream {
 
     }
 
-    private static final String MIN_SERVER_VERSION = "1.2";
-
 
 
     /**
@@ -285,53 +217,15 @@ public class ExportFileStream {
      *            a string that describes a past export target; this should be a
      *            value previously returned by
      *            {@link #getExportTargetPath(File, String)}.
-     * @return true if the path was recognized and successfully deleted
+     * @return true if the path was recognized and successfully deleted, or if
+     *         the file named by the path no longer exists
      */
     public static boolean deleteExportTarget(String targetPath) {
         if (!StringUtils.hasValue(targetPath))
             return true;
 
-        if (TeamServerSelector.isUrlFormat(targetPath))
-            return deleteUrlExportTarget(targetPath);
-        else
-            return deleteFilesystemExportTarget(targetPath);
-    }
-
-    private static boolean deleteUrlExportTarget(String url) {
-        int slashPos = url.lastIndexOf('/');
-        if (slashPos == -1)
-            return false;
-
-        try {
-            URL baseURL = new URL(url.substring(0, slashPos));
-            String filename = url.substring(slashPos + 1);
-            return ResourceBridgeClient.deleteSingleFile(baseURL, filename);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private static boolean deleteFilesystemExportTarget(String path) {
-        path = path.replace('/', File.separatorChar);
-        File file = new File(path);
-
-        if (file.exists()) {
-            return file.delete();
-        }
-
-        // There are 2 possibilities here :
-        //     1. The file has already been deleted
-        //     2. The file is on an unmounted network drive.
-        // To determine which possibility we're facing, we check to see if the
-        // parent directory exists. Since the file should reside somewhere in
-        // the data directory, if we can't access one level up, we assume that
-        // the file resides on a unmounted network drive. In that case, the
-        // deletion is not successful. If we can access one level up, we assume
-        // that it has already been deleted. In that case, the deletion is
-        // successful, not because we did it, but because some external process
-        // already deleted the file.
-
-        return file.getParentFile() != null && file.getParentFile().exists();
+        // create an ExportFileStream and ask it to delete the file
+        return new ExportFileStream(targetPath).delete();
     }
 
 }

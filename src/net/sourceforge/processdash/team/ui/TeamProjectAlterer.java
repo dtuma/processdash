@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.team.ui;
 
 import java.awt.Component;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -394,16 +395,15 @@ public class TeamProjectAlterer {
         SimpleData exportFilename = data.getSimpleValue("EXPORT_FILE");
         if (exportFilename == null || !exportFilename.test())
             return null;
-        String result = exportFilename.format();
+        File file = new File(exportFilename.format());
 
-        // if this is a server-based project, the export file will be a simple
-        // name like "abc-data.pdash"  In that case, prepend the data dir URL
+        // if this is a server-based project, retrieve its URL
         SimpleData teamDataDirUrl = data
                 .getSimpleValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
-        if (teamDataDirUrl != null && teamDataDirUrl.test())
-            result = teamDataDirUrl.format() + "/" + result;
+        String url = (teamDataDirUrl == null ? null : teamDataDirUrl.format());
 
-        return result;
+        // ask ExportFileStream to produce its canonical export target string
+        return ExportFileStream.getExportTargetPath(file, url);
     }
 
     private void deleteChildlessParentsOfNode(HierarchyAlterer hierarchyAlterer,
