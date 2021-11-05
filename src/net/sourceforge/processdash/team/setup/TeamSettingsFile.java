@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,12 +27,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -52,15 +52,15 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.security.TamperDeterrent.FileType;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
-import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
-import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 
 public class TeamSettingsFile {
@@ -74,11 +74,9 @@ public class TeamSettingsFile {
     }
 
 
-    private File projDataDir;
+    private String location;
 
-    private String projDataUrl;
-
-    private File overrideDir;
+    private ImportDirectory projDataDir;
 
     private String version;
 
@@ -111,12 +109,10 @@ public class TeamSettingsFile {
 
 
     public TeamSettingsFile(String dir, String url) {
-        if (StringUtils.hasValue(dir))
-            this.projDataDir = new File(dir);
-        if (StringUtils.hasValue(url))
-            this.projDataUrl = url;
-        if (this.projDataDir == null && this.projDataUrl == null)
+        this.location = (StringUtils.hasValue(url) ? url : dir);
+        if (!StringUtils.hasValue(location))
             throw new IllegalArgumentException("No location specified");
+        this.projDataDir = ImportDirectoryFactory.getInstance().get(location);
 
         this.datasetID = null;
         this.datasetUrl = DATASET_URL;
@@ -125,35 +121,28 @@ public class TeamSettingsFile {
         this.subprojects = new LinkedList();
         this.isReadOnly = false;
 
-        this.overrideDir = getOverrideDir(url, dir);
+        maybeForceReadOnly(location);
     }
 
-    private File getOverrideDir(String... locations) {
-        // if an external resource mapper is in operation, ask it for an
-        // alternative location for our project data directory
-        for (String location : locations) {
-            if (StringUtils.hasValue(location)) {
-                String remapped = ExternalResourceManager.getInstance()
-                        .remapFilename(location);
-                if (remapped != null && !remapped.equals(location))
-                    return new File(remapped);
-            }
-        }
-
+    private void maybeForceReadOnly(String location) {
         // if we are running from a data backup, but this particular
         // settings.xml file is located on the network, mark it as read-only.
-        if (CompressedInstanceLauncher.isRunningFromCompressedData())
-            setReadOnly();
+        if (CompressedInstanceLauncher.isRunningFromCompressedData()) {
+            // ask the external mapper about a redirection for this path
+            String remapped = ExternalResourceManager.getInstance()
+                    .remapFilename(location);
 
-        // no remapped location is in effect (typical for normal operation)
-        return null;
+            // if the path wasn't remapped to an embedded location within the
+            // ZIP, it must be a file on the network. Mark this object read-only
+            // so there is no risk of modifying real project settings.
+            if (location.equals(remapped))
+                setReadOnly();
+        }
     }
 
     public String getSettingsFileDescription() {
-        if (projDataDir != null)
-            return new File(projDataDir, SETTINGS_FILENAME).getPath();
-        else
-            return projDataUrl + "/" + SETTINGS_FILENAME;
+        return location + (location.indexOf('\\') > 0 ? '\\' : '/')
+                + SETTINGS_FILENAME;
     }
 
     public String getVersion() {
@@ -301,32 +290,12 @@ public class TeamSettingsFile {
     }
 
     private InputStream getInputStream() throws IOException {
-        IOException ioe = null;
+        if (projDataDir == null)
+            throw new FileNotFoundException(getSettingsFileDescription());
 
-        if (overrideDir != null) {
-            File f = new File(overrideDir, SETTINGS_FILENAME);
-            return new FileInputStream(f);
-        }
-
-        if (projDataUrl != null) {
-            try {
-                URL u = new URL(projDataUrl + "/" + SETTINGS_FILENAME);
-                return u.openStream();
-            } catch (IOException e) {
-                ioe = e;
-            }
-        }
-
-        if (projDataDir != null) {
-            try {
-                File f = new File(projDataDir, SETTINGS_FILENAME);
-                return new FileInputStream(f);
-            } catch (IOException e) {
-                ioe = e;
-            }
-        }
-
-        throw ioe;
+        projDataDir.validate();
+        File f = new File(projDataDir.getDirectory(), SETTINGS_FILENAME);
+        return new FileInputStream(f);
     }
 
     private void readRelatedProjects(Element e, String tagName, List projects) {
@@ -446,6 +415,9 @@ public class TeamSettingsFile {
 
         out.close();
 
+        // sign the file for tamper deterrence
+        TamperDeterrent.getInstance().addThumbprint(tmp, tmp, FileType.WBS);
+
         try {
             copyToDestination(tmp);
         } finally {
@@ -480,48 +452,20 @@ public class TeamSettingsFile {
     }
 
     private void copyToDestination(File tmp) throws IOException {
-        IOException ioe = null;
+        if (projDataDir == null)
+            throw new FileNotFoundException(getSettingsFileDescription());
+        projDataDir.validate();
 
-        if (overrideDir != null) {
-            File dest = new File(overrideDir, SETTINGS_FILENAME);
-            TamperDeterrent.getInstance().addThumbprint(tmp, dest,
-                FileType.WBS);
-            return;
+        // save the new file to the import directory
+        InputStream in = new BufferedInputStream(new FileInputStream(tmp));
+        try {
+            projDataDir.writeUnlockedFile(SETTINGS_FILENAME, in);
+        } catch (LockFailureException lfe) {
+            // can't happen - settings.xml file is unlocked
+            throw new IOException(lfe);
+        } finally {
+            in.close();
         }
-
-        if (projDataUrl != null) {
-            try {
-                // sign the file and upload to the PDES
-                TamperDeterrent.getInstance().addThumbprint(tmp, tmp,
-                    FileType.WBS);
-                InputStream in = new BufferedInputStream(
-                        new FileInputStream(tmp));
-                ResourceBridgeClient.uploadSingleFile(new URL(projDataUrl),
-                    SETTINGS_FILENAME, in);
-                in.close();
-
-                // copy the file to the local cache directory as well
-                File cd = BridgedWorkingDirectory.getLocalCacheDir(projDataUrl);
-                if (cd.isDirectory())
-                    FileUtils.copyFile(tmp, new File(cd, SETTINGS_FILENAME));
-
-                return;
-            } catch (IOException e) {
-                ioe = e;
-            } catch (Exception e) {
-                ioe = new IOException();
-                ioe.initCause(e);
-            }
-        }
-
-        if (projDataDir != null) {
-            File dest = new File(projDataDir, SETTINGS_FILENAME);
-            TamperDeterrent.getInstance().addThumbprint(tmp, dest,
-                FileType.WBS);
-            return;
-        }
-
-        throw ioe;
     }
 
     public static void addDataWriter(TeamSettingsDataWriter w) {
