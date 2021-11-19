@@ -130,7 +130,7 @@ public class DataVersionChecker {
     }
 
 
-    private static final String SETTING_NAME = "data.versionRequirements";
+    public static final String SETTING_NAME = "data.versionRequirements";
     private static final String REQ_SEP = "version";
     private static final String BULLET = "    \u2022 ";
 

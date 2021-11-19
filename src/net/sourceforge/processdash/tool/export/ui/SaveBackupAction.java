@@ -343,6 +343,7 @@ public class SaveBackupAction extends AbstractAction
             ff.addExtension(type);
         ff.addSilentExtension(JnlpUtil.PERSONAL_LINK_SUFFIX.substring(1));
         ff.addSilentExtension(JnlpUtil.TEAM_LINK_SUFFIX.substring(1));
+        ff.addFilename("pspdash.ini");
         ff.addFilename("state");
         fc.addChoosableFileFilter(ff);
         fc.setFileFilter(ff);

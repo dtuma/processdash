@@ -39,6 +39,7 @@ import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.ConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
@@ -243,6 +244,15 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
 
 
     @Override
+    public void approveLock(ConcurrencyLock lock, String extraInfo)
+            throws LockFailureException {
+        // our superclass throws an exception if the target directory contains
+        // read-only files. That behavior isn't desired, since our target dir
+        // only contains "compatibility" files, which happen to be read-only
+    }
+
+
+    @Override
     public void releaseWriteLock() {
         if (worker != null) {
             worker.shutDown();
@@ -262,7 +272,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         return new File(getMetadataDir(), "fileDataCache.xml");
     }
 
-    private File getMetadataDir() {
+    protected File getMetadataDir() {
         return getSubdir(workingDirectory, "metadata");
     }
 
