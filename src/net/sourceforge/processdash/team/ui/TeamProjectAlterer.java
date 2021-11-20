@@ -51,8 +51,9 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectSetupWizard;
+import net.sourceforge.processdash.team.setup.TeamProjectUtils;
+import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
-import net.sourceforge.processdash.team.setup.TeamStartBootstrap;
 import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
@@ -60,11 +61,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class TeamProjectAlterer {
-
-    public enum ProjectType {
-        Stub, Team, Master, Indiv, Personal
-    }
-
 
     private DashboardContext ctx;
 
@@ -91,8 +87,7 @@ public class TeamProjectAlterer {
      */ 
     public PropertyKey maybeRenameProject(PropertyKey projectNode) {
         String projectPath = projectNode.path();
-        String templateID = ctx.getHierarchy().getID(projectNode);
-        ProjectType projectType = getProjectType(projectPath, templateID);
+        ProjectType projectType = getProjectType(projectNode);
         if (projectType == null)
             return null;
 
@@ -233,12 +228,9 @@ public class TeamProjectAlterer {
      *            the node representing the project to close
      */ 
     public void maybeCloseProject(PropertyKey selectedNode) {
-        String projectPath = selectedNode.path();
-        String templateID = ctx.getHierarchy().getID(selectedNode);
-        ProjectType type = getProjectType(projectPath, templateID);
-
         // do not close plain nodes (which act as folders full of projects).
         // also refuse to close team projects from an individual dashboard
+        ProjectType type = getProjectType(selectedNode);
         if (type == null || type == ProjectType.Indiv)
             return;
 
@@ -249,12 +241,14 @@ public class TeamProjectAlterer {
         }
 
         // extract the process ID
+        String templateID = ctx.getHierarchy().getID(selectedNode);
         int slashPos = templateID.indexOf('/');
         if (slashPos == -1)
             return;
         String processID = templateID.substring(0, slashPos);
 
         // open the Close Team Project page.
+        String projectPath = selectedNode.path();
         StringBuilder uri = new StringBuilder();
         uri.append(HTMLUtils.urlEncodePath(projectPath)) //
                 .append("//").append(processID)
@@ -272,11 +266,11 @@ public class TeamProjectAlterer {
      */
     public void maybeDeleteProject(PropertyKey selectedNode) {
         String projectPath = selectedNode.path();
-        String templateID = ctx.getHierarchy().getID(selectedNode);
-        if (okToDeleteProject(projectPath, templateID)) {
+        ProjectType projectType = getProjectType(selectedNode);
+        if (okToDeleteProject(projectPath, projectType)) {
             try {
                 // if this is an indiv project, clean up the PDASH file
-                maybeCleanupPdashFile(projectPath, templateID);
+                maybeCleanupPdashFile(projectPath, projectType);
 
                 // delete the import instruction for this project
                 DashController.deleteImportSetting(getProjectID(projectPath));
@@ -299,9 +293,8 @@ public class TeamProjectAlterer {
         }
     }
 
-    private boolean okToDeleteProject(String projectPath, String templateID) {
+    private boolean okToDeleteProject(String projectPath, ProjectType type) {
         // do not delete plain nodes (which act as folders full of projects)
-        ProjectType type = getProjectType(projectPath, templateID);
         if (type == null)
             return false;
 
@@ -372,9 +365,8 @@ public class TeamProjectAlterer {
         return l != null && l.size() > length;
     }
 
-    private void maybeCleanupPdashFile(String projectPath, String templateID) {
+    private void maybeCleanupPdashFile(String projectPath, ProjectType type) {
         // we only need to clean up the PDASH file for indiv joined projects
-        ProjectType type = getProjectType(projectPath, templateID);
         if (type != ProjectType.Indiv)
             return;
 
@@ -469,33 +461,8 @@ public class TeamProjectAlterer {
  
  
     public ProjectType getProjectType(PropertyKey projectKey) {
-        return getProjectType(projectKey.path(),
-            ctx.getHierarchy().getID(projectKey));
-    } 
- 
-    private ProjectType getProjectType(String projectPath, String templateID) {
-        if (templateID == null)
-            return null;
- 
-        else if (templateID.equals(TeamStartBootstrap.TEAM_STUB_ID))
-            return ProjectType.Stub;
- 
-        else if (templateID.endsWith("/TeamRoot"))
-            return ProjectType.Team;
- 
-        else if (templateID.endsWith("/MasterRoot"))
-            return ProjectType.Master;
- 
-        else if (templateID.endsWith("/Indiv2Root")) {
-            String dataName = DataRepository.createDataName(projectPath,
-                TeamDataConstants.PERSONAL_PROJECT_FLAG);
-            SimpleData sd = ctx.getData().getSimpleValue(dataName); 
-            return (sd != null && sd.test() ? ProjectType.Personal
-                    : ProjectType.Indiv);
- 
-        } else
-            return null;
-    } 
+        return TeamProjectUtils.getProjectType(ctx, projectKey);
+    }
 
     private String getProjectID(String projectPath) {
         return getValue(projectPath, TeamDataConstants.PROJECT_ID);

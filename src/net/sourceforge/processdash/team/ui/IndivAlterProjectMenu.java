@@ -33,7 +33,7 @@ import javax.swing.JMenu;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.team.ui.TeamProjectAlterer.ProjectType;
+import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
 
 /**
  * This class provides an adaptive "Alter Project" submenu that can be added to
