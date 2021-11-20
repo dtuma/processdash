@@ -43,7 +43,8 @@ import net.sourceforge.processdash.util.lock.ConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
-public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
+public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
+        implements BundledWorkingDirectory {
 
     private FileResourceCollection collection;
 
@@ -175,7 +176,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory {
         return false;
     }
 
-    protected boolean flushFile(String filename)
+    public boolean flushFile(String filename)
             throws LockFailureException, IOException {
         // if the given file requires a write lock, make sure we have one
         if (collection.requiresWriteLock(filename))

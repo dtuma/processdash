@@ -37,7 +37,7 @@ import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class BundledImportDirectoryLocal implements ImportDirectory {
 
-    private BundledWorkingDirectoryLocal workingDir;
+    private BundledWorkingDirectory workingDir;
 
     protected long lastUpdateTime;
 
