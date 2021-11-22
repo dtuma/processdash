@@ -39,10 +39,20 @@ public interface ImportDirectory {
     public String getDescription();
 
     /**
+     * Test whether this object is a questionable source of data, potentially
+     * needing replacement.
+     * 
+     * @return true if this is a bad delegate, false if it is good, or null if
+     *         the determination could not be made.
+     * @since 2.6.6
+     */
+    public Boolean isBadDelegate();
+
+    /**
      * Test to ensure that this directory is reachable, that it is showing live
      * (not cached) data, and that all data is up-to-date.
      * 
-     * @since 2.6.5.2
+     * @since 2.6.6
      */
     public void validate() throws IOException;
 

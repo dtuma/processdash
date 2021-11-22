@@ -83,6 +83,10 @@ public class DynamicImportDirectory implements ImportDirectory {
         return delegate.getRemoteLocation();
     }
 
+    public Boolean isBadDelegate() {
+        return null;
+    }
+
     public void validate() throws IOException {
         recheckDelegate();
         delegate.validate();
@@ -148,43 +152,24 @@ public class DynamicImportDirectory implements ImportDirectory {
         if (lastUpdateDelegateAge > 0 && lastUpdateDelegateAge < 1000)
             return false;
 
-        // Our main preference is a BridgedImportDirectory. If we already
-        // have one, stick with it. Note: the implication of this decision
-        // is that we will never switch from a bridged directory back to a
-        // local directory. But the need to do that is rare: it would only
-        // be useful if the Team Server shut down while we were running.
-        if (delegate instanceof BridgedImportDirectory
-                || delegate instanceof BridgedImportSubdirectory)
-            return false;
+        // ask our delegate to evaluate its viability
+        Boolean result = delegate.isBadDelegate();
+        if (result != null)
+            return result;
 
-        // If we're using cached files on our hard drive, we always want to
-        // see if a better option is available.
-        if (delegate instanceof CachedImportDirectory)
+        // when requested, recheck the contents of the local directory (for
+        // example, to see if it's been migrated to a server)
+        if (lastUpdateDelegateTime == RECHECK_LOCAL_DIRECTORY)
             return true;
 
-        // check update conditions when using a local import directory
-        if (delegate instanceof LocalImportDirectory
-                || delegate instanceof CachingLocalImportDirectory) {
-            // when requested, recheck the contents of the local directory (for
-            // example, to see if it's been migrated to a server)
-            if (lastUpdateDelegateTime == RECHECK_LOCAL_DIRECTORY)
-                return true;
-
-            // if the local directory exists, no need to recheck
-            if (delegate.getDirectory().isDirectory())
-                return false;
-
-            // if the local directory doesn't exist, consider a recheck if
-            // (a) there is more than one location in our "locations" list,
-            //     allowing the chance that a different location might better,
-            // (b) a default team server is in effect, leading to the
-            //     possibility that we might be able to access the location
-            //     through an implicitly constructed URL.
-            return (locations.length > 1
-                    || TeamServerSelector.isDefaultTeamServerConfigured());
-        }
-
-        return false;
+        // if the local directory doesn't exist, consider a recheck if
+        // (a) there is more than one location in our "locations" list,
+        //     allowing the chance that a different location might better,
+        // (b) a default team server is in effect, leading to the
+        //     possibility that we might be able to access the location
+        //     through an implicitly constructed URL.
+        return (locations.length > 1
+                || TeamServerSelector.isDefaultTeamServerConfigured());
     }
 
     private static final int RECHECK_LOCAL_DIRECTORY = -2;

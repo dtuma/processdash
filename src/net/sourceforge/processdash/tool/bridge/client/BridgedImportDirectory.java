@@ -91,6 +91,10 @@ public class BridgedImportDirectory implements ImportDirectory {
         return remoteURL;
     }
 
+    public Boolean isBadDelegate() {
+        return Boolean.FALSE;
+    }
+
     public void validate() throws IOException {
         // syncDown will return true if changes were made, false if none were
         // needed. Give it three chances to sync before giving up. If the server

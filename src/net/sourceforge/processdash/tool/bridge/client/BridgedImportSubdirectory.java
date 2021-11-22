@@ -50,6 +50,11 @@ public class BridgedImportSubdirectory extends LocalImportDirectory {
     }
 
     @Override
+    public Boolean isBadDelegate() {
+        return Boolean.FALSE;
+    }
+
+    @Override
     public void validate() throws IOException {
         update();
         super.validate();

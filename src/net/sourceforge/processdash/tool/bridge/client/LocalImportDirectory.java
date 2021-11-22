@@ -28,7 +28,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
+import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.NotLockedException;
@@ -57,9 +59,16 @@ public class LocalImportDirectory implements ImportDirectory {
         return targetDirectory.getAbsolutePath();
     }
 
+    public Boolean isBadDelegate() {
+        return isBadDelegate(targetDirectory, false);
+    }
+
     public void validate() throws IOException {
         if (!targetDirectory.isDirectory())
             throw new FileNotFoundException(targetDirectory.getPath());
+        if (FileBundleUtils.isBundledDir(targetDirectory))
+            throw new IOException("Directory was migrated to bundled format: "
+                    + targetDirectory.getPath());
     }
 
     public void update() {}
@@ -89,6 +98,24 @@ public class LocalImportDirectory implements ImportDirectory {
         // make sure the target directory is reachable
         if (!targetDirectory.isDirectory())
             throw new FileNotFoundException(targetDirectory.getPath());
+    }
+
+    public static Boolean isBadDelegate(File targetDir,
+            boolean shouldBeBundled) {
+        // if we can't reach the directory, status is indeterminate
+        if (!targetDir.isDirectory())
+            return null;
+
+        // if the directory contains a team server file, it is obsolete
+        if (new File(targetDir, TeamServerPointerFile.FILE_NAME).isFile())
+            return Boolean.TRUE;
+
+        // if the bundled type doesn't match, it is bad
+        if (shouldBeBundled != FileBundleUtils.isBundledDir(targetDir))
+            return Boolean.TRUE;
+
+        // the directory exists and hasn't been migrated. Not a bad delegate
+        return Boolean.FALSE;
     }
 
 }

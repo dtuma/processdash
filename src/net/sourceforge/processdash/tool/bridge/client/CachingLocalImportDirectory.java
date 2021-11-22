@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
@@ -90,6 +91,10 @@ public class CachingLocalImportDirectory implements ImportDirectory {
         return targetDirectory.getAbsolutePath();
     }
 
+    public Boolean isBadDelegate() {
+        return LocalImportDirectory.isBadDelegate(targetDirectory, false);
+    }
+
     public void validate() throws IOException {
         doUpdate(true);
     }
@@ -115,6 +120,11 @@ public class CachingLocalImportDirectory implements ImportDirectory {
         // ensure the directories exist
         targetCollection.validate();
         cachedCollection.validate();
+
+        // if the target directory has been migrated to bundled format, abort
+        if (FileBundleUtils.isBundledDir(targetDirectory))
+            throw new IOException("Directory was migrated to bundled format: "
+                    + targetDirectory.getPath());
 
         // compute a difference between the two directories
         ResourceCollectionDiff diff = new ResourceCollectionDiff(

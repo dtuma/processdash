@@ -30,6 +30,7 @@ import java.io.InputStream;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.LocalImportDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -57,6 +58,11 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
 
     public String getRemoteLocation() {
         return null;
+    }
+
+    public Boolean isBadDelegate() {
+        return LocalImportDirectory
+                .isBadDelegate(workingDir.getTargetDirectory(), true);
     }
 
     public void validate() throws IOException {

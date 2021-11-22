@@ -59,6 +59,12 @@ public class CachedImportDirectory implements ImportDirectory {
         return remoteURL;
     }
 
+    public Boolean isBadDelegate() {
+        // If we're using cached files on our hard drive, we always want to
+        // see if a better option is available.
+        return Boolean.TRUE;
+    }
+
     public void validate() throws IOException {
         throw new IOException("Using cached data for " + location);
     }

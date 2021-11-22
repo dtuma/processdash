@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2020 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -255,8 +255,12 @@ public class ImportDirectoryFactory {
 
         String path = normalize(dir.getPath());
         ImportDirectory cached = cache.get(path);
-        if (cached != null)
-            return refresh(cached);
+        if (cached != null) {
+            if (cached.isBadDelegate() == Boolean.TRUE)
+                cache.remove(path);
+            else
+                return refresh(cached);
+        }
 
         ImportDirectory result;
         if (FileBundleUtils.isBundledDir(dir))

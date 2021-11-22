@@ -88,6 +88,13 @@ public interface WorkingDirectory {
     public File getDirectory();
 
     /**
+     * Get the filesystem location of permanent data storage.
+     * 
+     * @return
+     */
+    public File getTargetDirectory();
+
+    /**
      * To prevent data corruption, only one process at a time is allowed to
      * modify the data in a particular collection. Calling this method attempts
      * to acquire the lock that grants that permission.
