@@ -1750,7 +1750,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         PleaseWaitDialog dialog = new PleaseWaitDialog(this,
             resources.getString("Shutdown.Title"), "", 0);
 
-        String backupQualifier = getBackupQualifier(data);
         try {
             if (quit(dialog) == false) {
                 dialog.dispose();
@@ -1766,11 +1765,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             if (osHelper != null) osHelper.dispose();
             SystemTrayManagement.getIcon().dispose();
             UserNotificationManager.getInstance().maybeHideNotifications();
-
-            logger.fine("Backing up data directory");
-            dialog.setMessage(resources.getString("Shutdown.Saving_Backup"));
-            fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN,
-                  backupQualifier);
             logger.fine("Shutdown complete");
 
             if (shutdownTask != null) {
@@ -1809,6 +1803,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // shutdown sequence from spuriously altering them as a byproduct of
         // dismantling objects/data structures.
         InternalSettings.setDisableChanges(true);
+        String backupQualifier = getBackupQualifier(data);
 
         if (!Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false)) {
             logger.fine("Performing auto exports");
@@ -1834,6 +1829,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // those changes.  If the flush does not succeed, we can ignore it because
         // the trivial changes can be lost without significant repercussions.
         flushWorkingData();
+
+        logger.fine("Backing up data directory");
+        if (dialog != null)
+            dialog.setMessage(resources.getString("Shutdown.Saving_Backup"));
+        fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN, backupQualifier);
 
         logger.fine("Removing concurrency lock");
         workingDirectory.releaseLocks();
