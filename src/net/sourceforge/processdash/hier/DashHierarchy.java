@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2018 Tuma Solutions, LLC
+// Copyright (C) 1999-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -656,7 +656,8 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         maybePrintAttribute(out, NODE_ID_ATTR, prop.getNodeID());
         maybePrintAttribute(out, DATAFILE_ATTR, prop.getDataFile());
         maybePrintAttribute(out, DEFECTLOG_ATTR, prop.getDefectLog());
-        if (selected) maybePrintAttribute(out, SELECTED_ATTR, "true");
+        if (selected && saveSelectedNodes)
+            maybePrintAttribute(out, SELECTED_ATTR, "true");
 
         int numChildren = prop.getNumChildren();
         if (numChildren == 0) {
@@ -677,6 +678,13 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
             out.newLine();
         }
     }
+
+    private boolean saveSelectedNodes = true;
+
+    public void setSaveSelectedNodes(boolean saveSelectedNodes) {
+        this.saveSelectedNodes = saveSelectedNodes;
+    }
+
 
     public void saveXML(String filename, String comment) throws IOException {
         if (Settings.isReadOnly())
