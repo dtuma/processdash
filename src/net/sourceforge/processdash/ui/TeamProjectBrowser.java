@@ -496,7 +496,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
 
 
-    private static final String SPLITTER_SETTING = "mainWindow.splitterPos";
+    private static final String SPLITTER_SETTING = "userPref.dataset.splitterPos";
 
     private void initSplitterLocationFromSettings() {
         int location = Settings.getInt(SPLITTER_SETTING, 200);
