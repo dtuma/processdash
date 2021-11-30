@@ -142,6 +142,7 @@ import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
@@ -293,6 +294,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             prop_file = prop_file.getCanonicalFile();
             dataDir = prop_file.getParentFile();
         } catch (IOException ioe) {}
+        File relativeBaseDir = workingDirectory instanceof BundledWorkingDirectory
+                ? workingDirectory.getTargetDirectory() : dataDir;
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
         UserGroupManagerDash.install();
@@ -305,15 +308,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         CmsDefaultConfig.setPersistenceDirectories(
             getCmsPersistenceDirs(prop_file.getParentFile()));
         ExternalResourceManager.getInstance().setDashboardContext(this);
-        ExternalResourceManager.getInstance().initializeMappings(
-                prop_file.getParentFile());
+        ExternalResourceManager.getInstance().initializeMappings(relativeBaseDir);
         try {
             default_directory = dataDir.getCanonicalPath();
         } catch (IOException ioe) {
             default_directory = dataDir.getAbsolutePath();
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
-        WorkingDirectoryFactory.getInstance().setBaseDirectory(dataDir);
+        WorkingDirectoryFactory.getInstance().setBaseDirectory(relativeBaseDir);
         DashController.setDataDirectory(dataDir);
         ExternalDataFile.setDataDirectory(dataDir);
         pt.click("Set default directory");

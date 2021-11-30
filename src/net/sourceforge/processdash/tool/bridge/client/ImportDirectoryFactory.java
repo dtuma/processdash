@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
@@ -190,6 +191,9 @@ public class ImportDirectoryFactory {
                     if (baseDirectory instanceof BridgedWorkingDirectory) {
                         return new BridgedImportSubdirectory(
                                 (BridgedWorkingDirectory) baseDirectory, subdir);
+                    } else if (baseDirectory instanceof BundledWorkingDirectory
+                            && !"import".equals(subdir)) {
+                        dir = new File(baseDirectory.getTargetDirectory(), subdir);
                     } else {
                         dir = new File(baseDirectory.getDirectory(), subdir);
                     }
