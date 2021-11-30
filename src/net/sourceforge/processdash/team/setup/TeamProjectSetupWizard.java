@@ -64,7 +64,6 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
@@ -92,7 +91,11 @@ import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
@@ -100,7 +103,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
-import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
@@ -408,6 +411,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         return hierarchy.getID(key);
     }
 
+    private WorkingDirectory getWorkingDirectory() {
+        return getDashboardContext().getWorkingDirectory();
+    }
+
     protected String getDefaultPostTokenDataNameSuffix() {
         return "TPSWizard";
     }
@@ -473,20 +480,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // reusing it for the team data directory.
         try {
             // Locate the directory where this team dashboard stores its data.
-            String settingsFilename = DashController.getSettingsFileName();
-            if (!StringUtils.hasValue(settingsFilename))
+            WorkingDirectory wd = getWorkingDirectory();
+            File dataDir;
+            if (wd instanceof BridgedWorkingDirectory
+                    || wd instanceof CompressedWorkingDirectory)
                 return null;
-            File settingsFile = new File(settingsFilename).getCanonicalFile();
-            File dataDir = settingsFile.getParentFile();
-            if (dataDir == null)
-                return null;
-
-            // In bridged mode, the data directory will be located in a parent
-            // dir called "working." If that appears to be the case, do not
-            // suggest the reuse of this temporary bridged directory.
-            File parent = dataDir.getParentFile();
-            if (parent != null && "working".equalsIgnoreCase(parent.getName()))
-                return null;
+            else
+                dataDir = wd.getTargetDirectory();
 
             // On Unix systems, we don't have a way of testing for network
             // filesystems.  Give the user the benefit of the doubt and assume
@@ -855,7 +855,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             boolean isPersonal) {
         File teamDir;
         if (".".equals(teamDirectory)) {
-            teamDir = new File(ProcessDashboard.getDefaultDirectory());
+            teamDir = getWorkingDirectory().getTargetDirectory();
         } else {
             teamDir = new File(teamDirectory);
             createTeamDirectory(teamDir, isPersonal);
@@ -874,14 +874,39 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
         createTeamDirectory(disseminationDir, isPersonal);
 
+        if (getWorkingDirectory() instanceof BundledWorkingDirectory)
+            bundleProjectDataDirectory(projDataDir, isPersonal);
+
         return projDataDir.getPath();
     }
 
     private void createTeamDirectory(File directory, boolean isPersonal) {
         if (!directory.isDirectory() && !directory.mkdirs())
-            throw new WizardError(isPersonal ? PERSONAL_ERR_URL : TEAM_DIR_URL)
-                    .param("errCantCreateDir", directory.getPath()) //
-                    .param(isWindows() ? "isWindows" : null);
+            throwCantCreateDirectory(directory, isPersonal);
+    }
+
+    private void bundleProjectDataDirectory(File projDir, boolean isPersonal) {
+        try {
+            FileBundleMigrator.migrate(projDir, TeamDataDirStrategy.INSTANCE);
+            deleteBackupSubdir(projDir);
+            deleteBackupSubdir(new File(projDir, DISSEMINATION_DIRECTORY));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throwCantCreateDirectory(projDir, isPersonal);
+        }
+    }
+
+    private void deleteBackupSubdir(File parentDir) {
+        try {
+            FileUtils.deleteDirectory(new File(parentDir, "backup"), true);
+        } catch (Exception e) {
+        }
+    }
+
+    private void throwCantCreateDirectory(File directory, boolean isPersonal) {
+        throw new WizardError(isPersonal ? PERSONAL_ERR_URL : TEAM_DIR_URL)
+                .param("errCantCreateDir", directory.getPath()) //
+                .param(isWindows() ? "isWindows" : null);
     }
 
     private void writeTeamSettingsFile(String teamPID,
@@ -2147,10 +2172,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         checkForDuplicateProject(joinInfo);
 
         // ensure we can locate the team data directory
-        URL teamDirUrl = resolveTeamDataDirectory();
+        ImportDirectory teamDataDir = resolveTeamDataDirectory();
 
         // retrieve additional information about the project
-        retrieveInfoFromTeamProjectDir(joinInfo, teamDirUrl);
+        retrieveInfoFromTeamProjectDir(joinInfo, teamDataDir.getDirectory());
 
         // set default values for the user
         saveDefaultJoiningValues(joinInfo);
@@ -2256,8 +2281,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     private void retrieveInfoFromTeamProjectDir(Map<String, String> joinInfo,
-            URL teamDirUrl) {
-        Properties userSettings = retrieveWbsUserSettings(teamDirUrl);
+            File teamDataDir) {
+        Properties userSettings = retrieveWbsUserSettings(teamDataDir);
 
         // check to see if the team has a special policy for initials
         String initialsPolicy = (String) userSettings.get(INITIALS_POLICY);
@@ -2273,35 +2298,35 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(INITIALS_LABEL_LC, initialsLabel.toLowerCase());
 
         // get a list of team member names/initials
-        List<String> teamMembers = loadTeamMemberData(teamDirUrl);
+        List<String> teamMembers = loadTeamMemberData(teamDataDir);
         if (teamMembers != null && !teamMembers.isEmpty())
             putValue(TEAM_MEMBER_LIST, JSONArray.toJSONString(teamMembers));
     }
 
-    private Properties retrieveWbsUserSettings(URL teamDirUrl) {
+    private Properties retrieveWbsUserSettings(File teamDataDir) {
         Properties result = new Properties();
         try {
-            URL userSettingsUrl = new URL(teamDirUrl, "user-settings.ini");
-            InputStream in = userSettingsUrl.openStream();
+            File f = new File(teamDataDir, "user-settings.ini");
+            InputStream in = new BufferedInputStream(new FileInputStream(f));
             result.load(in);
             in.close();
         } catch (Exception e) {}
         return result;
     }
 
-    private List<String> loadTeamMemberData(URL teamDirUrl) {
+    private List<String> loadTeamMemberData(File teamDataDir) {
         // get the initials of team members who have already joined
         Set<String> alreadyJoined;
         try {
-            alreadyJoined = getJoinedTeamMemberInitials(teamDirUrl);
+            alreadyJoined = getJoinedTeamMemberInitials(teamDataDir);
         } catch (Exception e) {
             alreadyJoined = Collections.EMPTY_SET;
         }
 
         // now retrieve the team member list and build our result
         try {
-            URL userSettingsUrl = new URL(teamDirUrl, "team.xml");
-            Document xml = XMLUtils.parse(userSettingsUrl.openStream());
+            Document xml = XMLUtils.parse(new BufferedInputStream(
+                    new FileInputStream(new File(teamDataDir, "team.xml"))));
             NodeList nl = xml.getElementsByTagName("teamMember");
             List<String> result = new ArrayList<String>();
             List<String> joined = new ArrayList<String>();
@@ -2324,19 +2349,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
-    private Set<String> getJoinedTeamMemberInitials(URL teamDirUrl)
+    private Set<String> getJoinedTeamMemberInitials(File teamDataDir)
             throws IOException, URISyntaxException {
-        List<String> filenames;
-        if ("file".equals(teamDirUrl.getProtocol())) {
-            File dir = new File(teamDirUrl.toURI());
-            filenames = Arrays.asList(dir.list());
-        } else {
-            String s = teamDirUrl.toString();
-            if (s.endsWith("/"))
-                teamDirUrl = new URL(s.substring(0, s.length() - 1));
-            filenames = XmlCollectionListing
-                    .parseListing(teamDirUrl.openStream()).listResourceNames();
-        }
+        List<String> filenames = Arrays.asList(teamDataDir.list());
         Set<String> result = new HashSet<String>();
         for (String oneFile : filenames) {
             oneFile = oneFile.toLowerCase();
@@ -2797,15 +2812,21 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     /** Check to ensure that the team and data directories exist, and
      * resolve the team directory to something that will work for the
      * current user, if possible.  */
-    protected URL resolveTeamDataDirectory() {
+    protected ImportDirectory resolveTeamDataDirectory() {
         try {
-            return resolveTeamDataDirectoryImpl();
+            ImportDirectory result = resolveTeamDataDirectoryImpl();
+            if (result == null)
+                throw new WizardError(IND_DATADIR_ERR_URL);
+
+            result.validate();
+            return result;
+
         } catch (IOException e) {
             throw new WizardError(IND_DATADIR_ERR_URL).causedBy(e);
         }
     }
 
-    private URL resolveTeamDataDirectoryImpl() throws IOException {
+    private ImportDirectory resolveTeamDataDirectoryImpl() throws IOException {
         Map<String, String> joinInfo = getTeamProjectJoinInformation();
         String teamDirectory = joinInfo.get(TEAM_DIRECTORY);
         String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
@@ -2822,13 +2843,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             if (f.isDirectory()) {
                 joinInfo.put(TEAM_DIRECTORY, indivOverrideDirectory);
                 joinInfo.put(TEAM_DIRECTORY_UNC, "");
-                return f.toURI().toURL();
+                return ImportDirectoryFactory.getInstance().get(f.getPath());
             }
 
         } else if (StringUtils.hasValue(teamDirectory)) {
             // Otherwise, try the directory specified by the team project.
             f = new File(teamDirectory, dataSubdir);
-            if (f.isDirectory()) return f.toURI().toURL();
+            if (f.isDirectory())
+                return ImportDirectoryFactory.getInstance().get(f.getPath());
 
             // Try to find the data directory using the UNC path.
             if (StringUtils.hasValue(teamDirectoryUNC)) {
@@ -2839,7 +2861,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                     File f2 = new File(altTeamDirectory, dataSubdir);
                     if (f2.isDirectory()) {
                         joinInfo.put(TEAM_DIRECTORY, altTeamDirectory);
-                        return f2.toURI().toURL();
+                        return ImportDirectoryFactory.getInstance()
+                                .get(f2.getPath());
                     }
                 }
             }
@@ -2852,7 +2875,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (new ProjectDataUrlTester(teamDataDirectoryURL).runTest()) {
             joinInfo.put(TEAM_DIRECTORY, "");
             joinInfo.put(TEAM_DIRECTORY_UNC, "");
-            return new URL(teamDataDirectoryURL + "/");
+            return ImportDirectoryFactory.getInstance()
+                    .get(teamDataDirectoryURL);
         }
 
         throw new WizardError(IND_DATADIR_ERR_URL);
@@ -3088,6 +3112,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             // place the copy in the WBS's "backup" subdirectory
             File wbsDir = f.getParentFile();
             if (wbsDir == null || !wbsDir.isDirectory())
+                return false;
+            if (FileBundleUtils.isBundledDir(wbsDir))
                 return false;
             File backupDir = new File(wbsDir, "backup");
             backupDir.mkdir();
