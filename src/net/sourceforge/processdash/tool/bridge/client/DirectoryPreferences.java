@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2018 Tuma Solutions, LLC
+// Copyright (C) 2008-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -152,6 +152,10 @@ public class DirectoryPreferences {
     private static File HISTORICAL_DATA_DIR = null;
 
 
+
+    public static File getLocalCacheDir(File targetDirectory) {
+        return getLocalCacheDir(targetDirectory.getAbsolutePath());
+    }
 
     public static File getLocalCacheDir(String url) {
         return new File(getMasterWorkingDirectory(), getWorkingIdForUrl(url));

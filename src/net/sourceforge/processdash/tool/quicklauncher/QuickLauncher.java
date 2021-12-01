@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2019 Tuma Solutions, LLC
+// Copyright (C) 2006-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,8 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.LookAndFeelUtil;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
@@ -291,6 +293,11 @@ public class QuickLauncher {
             File launchTarget = inst.getLaunchTarget();
             if (launchTarget == null || !launchTarget.isDirectory())
                 continue;
+
+            // if the directory is bundled, redirect to the working location
+            if (FileBundleUtils.isBundledDir(launchTarget))
+                launchTarget = DirectoryPreferences
+                        .getLocalCacheDir(launchTarget);
 
             // mske certain this instance represents a team/personal dashboard
             File globalDatFile = new File(launchTarget, "global.dat");
