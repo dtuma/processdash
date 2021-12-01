@@ -25,6 +25,7 @@ package net.sourceforge.processdash.team.setup;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -32,6 +33,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.quicklauncher.PdbkConstants;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
@@ -98,24 +100,38 @@ public class RestoreIndivData extends TinyCGIBase {
             if (!StringUtils.hasValue(filename))
                 throw new RestoreIndivDataException(
                         "You did not enter a filename.");
-            if (!filename.toLowerCase().endsWith(PDASH_SUFFIX))
-                throw new RestoreIndivDataException("The file '" + filename
-                        + "' is not a personal data export file.");
             File f = new File(filename);
             if (!f.exists())
                 throw new RestoreIndivDataException(
                         "The file '" + filename + "' does not exist.");
-            return f;
+            else if (filename.toLowerCase().endsWith(PDASH_BUNDLE_SUFFIX))
+                return extractPdashFromBundle(filename);
+            else if (filename.toLowerCase().endsWith(PDASH_SUFFIX))
+                return f;
+            else
+                throw new RestoreIndivDataException("The file '" + filename
+                        + "' is not a personal data export file.");
 
         } else {
             // if they uploaded data, save it to a temp file
             InputStream in = getPdashData();
-            File f = TempFileFactory.get().createTempFile("restore", ".tmp");
-            FileUtils.copyFile(in, f);
-            in.close();
-            f.deleteOnExit();
-            return f;
+            return saveTempFile(in);
         }
+    }
+
+    private File extractPdashFromBundle(String bundleFilename)
+            throws IOException {
+        InputStream bundleIn = new FileInputStream(new File(bundleFilename));
+        InputStream pdashIn = extractPdashDataFromZip(bundleIn);
+        return saveTempFile(pdashIn);
+    }
+
+    private File saveTempFile(InputStream in) throws IOException {
+        File f = TempFileFactory.get().createTempFile("restore", ".tmp");
+        FileUtils.copyFile(in, f);
+        in.close();
+        f.deleteOnExit();
+        return f;
     }
 
     private InputStream getPdashData() throws IOException {
@@ -134,15 +150,22 @@ public class RestoreIndivData extends TinyCGIBase {
             throw new RestoreIndivDataException("The file you uploaded "
                     + "was not a recognized file type.");
 
+        return extractPdashDataFromZip(in);
+    }
+
+    private InputStream extractPdashDataFromZip(InputStream in)
+            throws IOException {
         String projectID = getStringData(TeamDataConstants.PROJECT_ID);
         String initials = getStringData(TeamDataConstants.INDIV_INITIALS);
-        String entryName = "/" + projectID + "/" + initials + PDASH_SUFFIX;
+        String pdashName = initials + PDASH_SUFFIX;
+        String entryName = "/" + projectID + "/" + pdashName;
 
         try {
             ZipInputStream zipIn = new ZipInputStream(in);
             ZipEntry e;
             while ((e = zipIn.getNextEntry()) != null) {
-                if (e.getName().toLowerCase().endsWith(entryName))
+                String name = e.getName().toLowerCase();
+                if (name.equals(pdashName) || name.endsWith(entryName))
                     return zipIn;
             }
         } catch (IOException ioe) {
@@ -160,5 +183,7 @@ public class RestoreIndivData extends TinyCGIBase {
     }
 
     private static final String PDASH_SUFFIX = "-data.pdash";
+    private static final String PDASH_BUNDLE_SUFFIX = //
+            FileBundleID.filenameToBundleName(PDASH_SUFFIX) + ".zip";
 
 }

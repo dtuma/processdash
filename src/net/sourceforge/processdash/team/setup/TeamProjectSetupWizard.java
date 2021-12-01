@@ -92,6 +92,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
@@ -290,6 +291,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     // the template ID of a "team project stub"
     private static final String TEAM_STUB_ID = "TeamProjectStub";
+
+    // the filename suffix for a PDASH data file
+    private static final String PDASH_DATA_FILE_SUFFIX = "-data.pdash";
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard");
@@ -1857,7 +1861,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         out.write(MERGED_DUMP_HEADER.getBytes("utf-8"));
 
         for (File f : srcDir.listFiles()) {
-            if (f.getName().toLowerCase().endsWith("-data.pdash"))
+            if (f.getName().toLowerCase().endsWith(PDASH_DATA_FILE_SUFFIX))
                 copyUserDumpDataFromPdash(f, out);
         }
 
@@ -2355,7 +2359,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         Set<String> result = new HashSet<String>();
         for (String oneFile : filenames) {
             oneFile = oneFile.toLowerCase();
-            if (oneFile.endsWith("-data.pdash"))
+            if (oneFile.endsWith(PDASH_DATA_FILE_SUFFIX))
                 result.add(oneFile.substring(0, oneFile.length() - 11));
         }
         return result;
@@ -3109,12 +3113,17 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         // make and/or find a backup copy of the file
         File f = new File(pdashFile);
         try {
-            // place the copy in the WBS's "backup" subdirectory
+            // make sure the WBS directory is reachable
             File wbsDir = f.getParentFile();
             if (wbsDir == null || !wbsDir.isDirectory())
                 return false;
+
+            // if the WBS dir is bundled, look through current & past bundles
             if (FileBundleUtils.isBundledDir(wbsDir))
-                return false;
+                return lookForRecentBundleWithActualData(wbsDir, f.getName(),
+                    data, storeBestBackup);
+
+            // place the copy in the WBS's "backup" subdirectory
             File backupDir = new File(wbsDir, "backup");
             backupDir.mkdir();
 
@@ -3124,7 +3133,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             String filename = f.getName().toLowerCase();
             String initials = filename.substring(0, filename.indexOf('-'));
             String prefix = "pdash-" + initials + "-";
-            filename = prefix + timeStr + "-data.pdash";
+            filename = prefix + timeStr + PDASH_DATA_FILE_SUFFIX;
             File backup = new File(backupDir, filename);
 
             // back up the file, if it exists
@@ -3161,6 +3170,43 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
     }
 
+    private static boolean lookForRecentBundleWithActualData(File wbsDir,
+            String exportFilename, DataContext data, boolean storeBestBackup) {
+        // list the names of files in the bundles subdirectory
+        File bundleDir = new File(wbsDir, "bundles");
+        String[] filenames = bundleDir.list();
+        if (filenames == null || filenames.length == 0)
+            return false;
+
+        // sort in chronological order, newest last
+        Arrays.sort(filenames);
+
+        // prepare variables for filename scan
+        String bundleFilenameSuffix = "-"
+                + FileBundleID.filenameToBundleName(exportFilename) + ".zip";
+        int suffixLen = bundleFilenameSuffix.length();
+        boolean sawExportFileBundle = false;
+
+        // starting with the newest, look for a bundle containing this pdash file
+        for (int i = filenames.length; i-- > 0;) {
+            String oneFile = filenames[i];
+            if (oneFile.regionMatches(true, oneFile.length() - suffixLen,
+                bundleFilenameSuffix, 0, suffixLen)) {
+                sawExportFileBundle = true;
+                if (storeBestBackup == false)
+                    break;
+                File oneBundle = new File(bundleDir, oneFile);
+                if (pdashFileContainsActualData(oneBundle)) {
+                    data.putValue(EXPORT_FILE_BACKUP,
+                        new ImmutableStringData(oneBundle.getAbsolutePath()));
+                    break;
+                }
+            }
+        }
+
+        return sawExportFileBundle;
+    }
+
     /** @return true if a pdash file appears to contain actual data */
     private static boolean pdashFileContainsActualData(File f) {
         ZipInputStream zip = null;
@@ -3175,6 +3221,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                             .getDocumentElement();
                     if (!XMLUtils.getChildElements(xml).isEmpty())
                         return true;
+                } else if (name.endsWith(PDASH_DATA_FILE_SUFFIX)) {
+                    // if we're scanning a bundled ZIP containing a PDASH file,
+                    // recurse into the PDASH file inside
+                    zip = new ZipInputStream(zip);
                 }
             }
         } catch (Exception e) {
