@@ -268,7 +268,7 @@ public class ImportDirectoryFactory {
 
         ImportDirectory result;
         if (FileBundleUtils.isBundledDir(dir))
-            result = new BundledImportDirectoryLocal(dir);
+            result = refresh(new BundledImportDirectoryLocal(dir));
         else if (noRemote || cacheDisabledFor(dir))
             result = new LocalImportDirectory(dir);
         else
