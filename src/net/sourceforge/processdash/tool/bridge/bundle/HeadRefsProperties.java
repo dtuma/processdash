@@ -119,6 +119,19 @@ public class HeadRefsProperties implements HeadRefs {
     }
 
 
+    /**
+     * Delete the HEAD ref for a given bundle
+     */
+    public synchronized void deleteHeadRef(String bundleName)
+            throws IOException {
+        update();
+        String now = Long.toString(System.currentTimeMillis());
+        props.remove(bundleName + REF_PROP);
+        props.setProperty(bundleName + MOD_PROP, now);
+        flush();
+    }
+
+
     private static final String REF_PROP = ".ref";
 
     private static final String MOD_PROP = ".mod";

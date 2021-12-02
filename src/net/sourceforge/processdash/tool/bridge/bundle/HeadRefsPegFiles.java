@@ -107,15 +107,19 @@ public class HeadRefsPegFiles implements HeadRefs {
 
             // delete peg files from the directory that represent old HEADs
             // for the given bundle
-            String bundleSuffix = "-" + bundleName + ".txt";
-            for (Iterator i = pegFilenames.iterator(); i.hasNext();) {
-                String onePegFile = (String) i.next();
-                if (onePegFile.endsWith(bundleSuffix)) {
-                    new File(pegFileDirectory, onePegFile).delete();
-                    i.remove();
-                }
-            }
+            deletePegFilesForBundle(pegFilenames, bundleName);
         }
+    }
+
+
+    @Override
+    public void deleteHeadRef(String bundleName) throws IOException {
+        // Get the files that we own in the directory
+        List<String> pegFilenames = getPegFilenames();
+
+        // delete peg files from the directory that represent old HEADs
+        // for the given bundle
+        deletePegFilesForBundle(pegFilenames, bundleName);
     }
 
 
@@ -134,6 +138,20 @@ public class HeadRefsPegFiles implements HeadRefs {
 
         // return the list of files we found
         return result;
+    }
+
+    private void deletePegFilesForBundle(List<String> pegFilenames,
+            String bundleName) {
+        // delete peg files from the directory that represent old HEADs
+        // for the given bundle
+        String bundleSuffix = "-" + bundleName + ".txt";
+        for (Iterator i = pegFilenames.iterator(); i.hasNext();) {
+            String onePegFile = (String) i.next();
+            if (onePegFile.endsWith(bundleSuffix)) {
+                new File(pegFileDirectory, onePegFile).delete();
+                i.remove();
+            }
+        }
     }
 
 }

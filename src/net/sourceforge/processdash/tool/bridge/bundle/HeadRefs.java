@@ -54,4 +54,10 @@ public interface HeadRefs {
     public void storeHeadRefs(Collection<FileBundleID> headRefs)
             throws IOException;
 
+
+    /**
+     * Delete the HEAD ref for a given bundle
+     */
+    public void deleteHeadRef(String bundleName) throws IOException;
+
 }

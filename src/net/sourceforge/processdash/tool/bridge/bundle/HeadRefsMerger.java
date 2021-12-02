@@ -177,6 +177,20 @@ public class HeadRefsMerger implements HeadRefs {
 
 
 
+    @Override
+    public void deleteHeadRef(String bundleName) throws IOException {
+        // iterate over each of our patterned ref collections
+        for (PatternedRefs pr : patternedRefs) {
+
+            // if this head collection claims the named bundle, ask it to
+            // delete the ref
+            if (pr.matches(bundleName))
+                pr.headRefs.deleteHeadRef(bundleName);
+        }
+    }
+
+
+
     private class PatternedRefs {
 
         private PatternList bundleNamePattern;
