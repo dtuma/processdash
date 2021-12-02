@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ import java.util.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -68,7 +70,7 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
     }
 
     public void refresh() throws IOException {
-        versions = new ChangeHistory(dir).getEntries();
+        loadChangeHistory();
         List<Entry> firstEntries = null;
         if (versions.size() > 1)
             firstEntries = new ArrayList(versions.subList(0, 2));
@@ -83,9 +85,21 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
             versions.add(0, firstEntries.get(0));
     }
 
+    private void loadChangeHistory() {
+        File dir = this.dir;
+        if (FileBundleUtils.isBundledDir(dir))
+            dir = ImportDirectoryFactory.getInstance().get(dir.getPath())
+                    .getDirectory();
+        versions = new ChangeHistory(dir).getEntries();
+    }
+
     private void findZipFiles(File dir) throws IOException {
         zipFiles = new HashMap<String, File>();
+        findZipFilesInBackupSubdir(dir);
+        findZipFilesInBundlesSubdir(dir);
+    }
 
+    private void findZipFilesInBackupSubdir(File dir) throws IOException {
         File backupDir = new File(dir, "backup");
         File[] backupFiles = backupDir.listFiles();
         if (backupFiles == null || backupFiles.length == 0)
@@ -104,20 +118,10 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
         if (!m.matches())
             return null;
 
-        // see if the backup contained a changeHistory.xml file. If so, the last
-        // entry in that file identifies its version.
-        try {
-            InputStream changeHist = getFileFromZip(oneFile,
-                WBSFilenameConstants.CHANGE_HISTORY_FILE);
-            if (changeHist != null) {
-                Element xml = XMLUtils.parse(changeHist).getDocumentElement();
-                ChangeHistory zipHist = new ChangeHistory(xml);
-                Entry zipHistEntry = zipHist.getLastEntry();
-                if (zipHistEntry != null)
-                    return zipHistEntry.getUid();
-            }
-        } catch (SAXException se) {
-        }
+        // if the backup contained a changeHistory.xml file, read its UID
+        String changeHistUid = getZipFileChangeHistoryUid(oneFile);
+        if (changeHistUid != null)
+            return changeHistUid;
 
         // extract the user name and save date from the ZIP filename.
         long zipDate;
@@ -162,6 +166,40 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
             }
         }
         return bestMatch;
+    }
+
+    private void findZipFilesInBundlesSubdir(File dir) throws IOException {
+        File bundlesDir = new File(dir, "bundles");
+        File[] bundleFiles = bundlesDir.listFiles();
+        if (bundleFiles == null || bundleFiles.length == 0)
+            return;
+
+        for (File oneFile : bundleFiles) {
+            if (oneFile.getName().endsWith("-wbs.zip")) {
+                String bundleUid = getZipFileChangeHistoryUid(oneFile);
+                if (bundleUid != null)
+                    zipFiles.put(bundleUid, oneFile);
+            }
+        }
+    }
+
+    private String getZipFileChangeHistoryUid(File oneFile) throws IOException {
+        // see if the backup contained a changeHistory.xml file. If so, the last
+        // entry in that file identifies its version.
+        try {
+            InputStream changeHist = getFileFromZip(oneFile,
+                WBSFilenameConstants.CHANGE_HISTORY_FILE);
+            if (changeHist != null) {
+                Element xml = XMLUtils.parse(changeHist).getDocumentElement();
+                ChangeHistory zipHist = new ChangeHistory(xml);
+                Entry zipHistEntry = zipHist.getLastEntry();
+                if (zipHistEntry != null)
+                    return zipHistEntry.getUid();
+            }
+        } catch (SAXException se) {
+        }
+
+        return null;
     }
 
     private static final Pattern SAVED_ZIP_FILENAME_PAT = Pattern.compile(
