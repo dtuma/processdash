@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -41,6 +42,21 @@ import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class FileBundleManifest {
+
+    public static class Missing extends FileNotFoundException {
+
+        private FileBundleID bundleID;
+
+        private Missing(File f, FileBundleID bundleID) {
+            super(f.getPath());
+            this.bundleID = bundleID;
+        }
+
+        public FileBundleID getBundleID() {
+            return bundleID;
+        }
+
+    }
 
     private FileBundleID bundleID;
 
@@ -91,7 +107,11 @@ public class FileBundleManifest {
         this.bundleID = bundleID;
 
         // open and parse the file as XML
+        if (!dir.isDirectory())
+            throw new FileNotFoundException(dir.getPath());
         File src = getFileForManifest(dir, bundleID);
+        if (!src.isFile())
+            throw new Missing(src, bundleID);
         Element xml = parseXml(src);
 
         // extract bundle data from the file

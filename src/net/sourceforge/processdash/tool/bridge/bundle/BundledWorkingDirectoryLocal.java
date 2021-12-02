@@ -132,11 +132,17 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     }
 
     private void repairCorruptFiles() throws IOException {
+        // repair any corruptions in our list of working heads
+        client.discardObsoleteWorkingHeads();
+
+        // scan the working directory for data files that are corrupt
         List<String> corruptFilenames = new ArrayList();
         for (File oneFile : workingDirectory.listFiles()) {
             if (strategy.isFilePossiblyCorrupt(oneFile))
                 corruptFilenames.add(oneFile.getName());
         }
+
+        // ask the client to re-extract fresh copies of corrupt files
         if (!corruptFilenames.isEmpty())
             client.restoreFiles(corruptFilenames);
     }

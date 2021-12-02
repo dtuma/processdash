@@ -185,6 +185,29 @@ public class ResourceBundleClient {
 
 
     /**
+     * Delete any working heads that reference nonexistent bundles
+     * 
+     * In certain rare scenarios, bundles may disappear from a bundle storage
+     * dir. (For example, this could happen after an end user deletes/renames a
+     * bundled directory.) Afterward, previously created working directories
+     * might reference no-longer-existent bundles, causing sync logic to fail.
+     * This method purges those bad head references if they exist. Subsequent
+     * sync logic can operate as if the given bundle hadn't been checked out,
+     * and re-extract current data as needed.
+     */
+    public void discardObsoleteWorkingHeads() throws IOException {
+        for (FileBundleID bundleID : workingHeads.getHeadRefs().values()) {
+            try {
+                bundleDir.getManifest(bundleID);
+            } catch (FileBundleManifest.Missing m) {
+                workingHeads.deleteHeadRef(bundleID.getBundleName());
+            }
+        }
+    }
+
+
+
+    /**
      * Overwrite files in the working directory with fresh copies of the files
      * as they looked when they were previously checked out.
      * 
