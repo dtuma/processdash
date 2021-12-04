@@ -31,6 +31,7 @@ import java.io.InputStream;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalImportDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -38,13 +39,20 @@ import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class BundledImportDirectoryLocal implements ImportDirectory {
 
-    private BundledWorkingDirectory workingDir;
+    protected BundledWorkingDirectory workingDir;
 
     protected long lastUpdateTime;
 
     public BundledImportDirectoryLocal(File dir) {
         this.workingDir = BundledWorkingDirectoryLocal.create(dir, STRATEGY,
             DirectoryPreferences.getMasterWorkingDirectory(), true);
+        this.lastUpdateTime = -1;
+    }
+
+    protected BundledImportDirectoryLocal(File dir,
+            FileResourceCollectionStrategy strategy) {
+        this.workingDir = BundledWorkingDirectoryLocal.create(dir, strategy,
+            DirectoryPreferences.getMasterImportDirectory(), false);
         this.lastUpdateTime = -1;
     }
 
