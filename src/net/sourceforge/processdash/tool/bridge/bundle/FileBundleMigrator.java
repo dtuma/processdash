@@ -41,12 +41,13 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 public class FileBundleMigrator {
 
     public static void migrate(File directory,
-            FileResourceCollectionStrategy strategy)
+            FileResourceCollectionStrategy strategy, FileBundleMode bundleMode)
             throws IOException, LockFailureException {
         DirType dirType = (strategy instanceof DashboardInstanceStrategy
                 ? DirType.Dashboard
                 : DirType.WBS);
-        new FileBundleMigrator(directory, strategy, dirType, true).migrate();
+        new FileBundleMigrator(directory, strategy, dirType, bundleMode, true)
+                .migrate();
     }
 
 
@@ -73,7 +74,7 @@ public class FileBundleMigrator {
                 File diss = new File(fbm.directory, "disseminate");
                 if (diss.isDirectory())
                     new FileBundleMigrator(diss, TeamDataDirStrategy.INSTANCE,
-                            Disseminate, false).migrate();
+                            Disseminate, fbm.bundleMode, false).migrate();
             }
         },
 
@@ -94,12 +95,6 @@ public class FileBundleMigrator {
 
         public void migrate() throws IOException, LockFailureException;
 
-        public String getBundleMode();
-
-        public String getMinDashboardVersion();
-
-        public String getMinWbsEditorVersion();
-
         public void dispose();
 
     }
@@ -112,22 +107,25 @@ public class FileBundleMigrator {
 
     private DirType dirType;
 
+    private FileBundleMode bundleMode;
+
     private boolean enforceLocks;
 
     private Migrator migrator;
 
     private FileBundleMigrator(File directory,
             FileResourceCollectionStrategy strategy, DirType dirType,
-            boolean enforceLocks) {
+            FileBundleMode bundleMode, boolean enforceLocks) {
         this.directory = directory;
         this.strategy = strategy;
         this.dirType = dirType;
+        this.bundleMode = bundleMode;
         this.enforceLocks = enforceLocks;
     }
 
     private void migrate() throws IOException, LockFailureException {
         // create a migrator object to do the work
-        this.migrator = new Local(directory, strategy, enforceLocks);
+        this.migrator = createMigrator();
 
         try {
             // migrate the files into the bundle directories
@@ -147,6 +145,13 @@ public class FileBundleMigrator {
             // allow the migrator object to unwind resources
             migrator.dispose();
         }
+    }
+
+    private Migrator createMigrator() {
+        if (bundleMode == FileBundleMode.Local)
+            return new Local(directory, strategy, enforceLocks);
+
+        throw new IllegalArgumentException("Unrecognized bundle mode");
     }
 
     private void cleanupLegacyFiles() throws IOException {
@@ -174,15 +179,15 @@ public class FileBundleMigrator {
         // software version, to prevent older clients from accessing the data
         writeFile("pspdash.ini", //
             property(DataVersionChecker.SETTING_NAME,
-                migrator.getMinDashboardVersion()),
-            property(BUNDLE_MODE, migrator.getBundleMode()));
+                "pspdash version " + getReqVersion("pspdash")),
+            property(BUNDLE_MODE, bundleMode.getName()));
 
         // write a "dummy" global.dat file, so the Quick Launcher can recognize
         // the directory as one containing a dashboard dataset
         writeFile("global.dat", //
             "#include <bundle-support.txt>", //
             "= This dataset requires functionality added in dashboard version "
-                    + migrator.getMinDashboardVersion());
+                    + getReqVersion("pspdash"));
     }
 
     private void writeWBSCompatibilityFiles() throws IOException {
@@ -190,8 +195,8 @@ public class FileBundleMigrator {
         // Editor version, to prevent older clients from accessing the data
         writeFile("user-settings.ini", //
             property(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT,
-                migrator.getMinWbsEditorVersion()),
-            property(BUNDLE_MODE, migrator.getBundleMode()));
+                getReqVersion("teamToolsB")),
+            property(BUNDLE_MODE, bundleMode.getName()));
     }
 
     private void writeFile(String filename, String... lines)
@@ -209,6 +214,10 @@ public class FileBundleMigrator {
 
     private String property(String key, String value) {
         return key + "=" + value;
+    }
+
+    private String getReqVersion(String packageId) {
+        return bundleMode.getMinVersions().get(packageId);
     }
 
 
@@ -259,18 +268,6 @@ public class FileBundleMigrator {
                     }
                 }
             }
-        }
-
-        public String getBundleMode() {
-            return "local";
-        }
-
-        public String getMinDashboardVersion() {
-            return "2.6.6";
-        }
-
-        public String getMinWbsEditorVersion() {
-            return "6.2.0";
         }
 
         public void dispose() {

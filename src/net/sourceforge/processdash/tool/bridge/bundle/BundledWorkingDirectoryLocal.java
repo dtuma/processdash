@@ -86,6 +86,12 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
 
     @Override
+    public FileBundleMode getBundleMode() {
+        return FileBundleMode.Local;
+    }
+
+
+    @Override
     public void prepare() throws IOException {
         // make sure the target and working directories exist
         super.prepare();

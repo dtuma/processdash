@@ -891,7 +891,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     private void bundleProjectDataDirectory(File projDir, boolean isPersonal) {
         try {
-            FileBundleMigrator.migrate(projDir, TeamDataDirStrategy.INSTANCE);
+            BundledWorkingDirectory bwd = (BundledWorkingDirectory) getWorkingDirectory();
+            FileBundleMigrator.migrate(projDir, TeamDataDirStrategy.INSTANCE,
+                bwd.getBundleMode());
             deleteBackupSubdir(projDir);
             deleteBackupSubdir(new File(projDir, DISSEMINATION_DIRECTORY));
         } catch (Exception e) {

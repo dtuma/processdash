@@ -23,15 +23,37 @@
 
 package net.sourceforge.processdash.tool.bridge.bundle;
 
-import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
-import net.sourceforge.processdash.util.lock.LockFailureException;
+public enum FileBundleMode {
 
-public interface BundledWorkingDirectory extends WorkingDirectory {
+    Local("local", //
+            "pspdash", "2.6.6", //
+            "teamToolsB", "6.2.0", //
+            "tpidw-embedded", "1.6.7");
 
-    FileBundleMode getBundleMode();
 
-    boolean flushFile(String filename) throws LockFailureException, IOException;
+    private String modeName;
+
+    private Map<String, String> minVersions;
+
+    private FileBundleMode(String modeName, String... versionData) {
+        this.modeName = modeName;
+
+        Map<String, String> versions = new LinkedHashMap<String, String>();
+        for (int i = 0; i < versionData.length; i += 2)
+            versions.put(versionData[i], versionData[i + 1]);
+        this.minVersions = Collections.unmodifiableMap(versions);
+    }
+
+    public String getName() {
+        return modeName;
+    }
+
+    public Map<String, String> getMinVersions() {
+        return minVersions;
+    }
 
 }

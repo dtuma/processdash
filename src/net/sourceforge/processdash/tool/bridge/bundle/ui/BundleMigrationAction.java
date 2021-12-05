@@ -35,6 +35,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager.DisabledExtensionException;
 import net.sourceforge.processdash.tool.bridge.bundle.DatasetBundleMigrator;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 
 public class BundleMigrationAction extends AbstractAction {
@@ -58,7 +59,7 @@ public class BundleMigrationAction extends AbstractAction {
             throw new DisabledExtensionException();
 
         // if this dataset is already bundled, don't show this menu item
-        DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx);
+        DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx, null);
         if (dbm.getDatasetMigrationTask() == null
                 && dbm.getProjectMigrationTasks().isEmpty())
             throw new DisabledExtensionException();
@@ -70,9 +71,12 @@ public class BundleMigrationAction extends AbstractAction {
         if (!userConfirm("Confirm", JOptionPane.YES_NO_OPTION))
             return;
 
+        // identify the target bundle mode for the directory
+        FileBundleMode bundleMode = FileBundleMode.Local;
+
         // if any projects need migrating, do that first
         ProcessDashboard parent = (ProcessDashboard) ctx;
-        DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx);
+        DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx, bundleMode);
         List<Runnable> projectMigrationTasks = dbm.getProjectMigrationTasks();
         if (!projectMigrationTasks.isEmpty()) {
             ProgressDialog dialog = new ProgressDialog(parent,

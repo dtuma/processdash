@@ -49,10 +49,14 @@ public class DatasetBundleMigrator {
 
     private DashboardContext ctx;
 
+    private FileBundleMode bundleMode;
+
     private Map<File, Throwable> errors;
 
-    public DatasetBundleMigrator(DashboardContext ctx) {
+    public DatasetBundleMigrator(DashboardContext ctx,
+            FileBundleMode bundleMode) {
         this.ctx = ctx;
+        this.bundleMode = bundleMode;
         this.errors = new LinkedHashMap<File, Throwable>();
     }
 
@@ -150,7 +154,7 @@ public class DatasetBundleMigrator {
 
         public void run() {
             try {
-                FileBundleMigrator.migrate(directory, strategy);
+                FileBundleMigrator.migrate(directory, strategy, bundleMode);
             } catch (Exception e) {
                 errors.put(directory, e);
             }
