@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2021 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.JOptionPane;
@@ -43,15 +44,12 @@ public class DataVersionChecker {
         if (unsatisfied.isEmpty())
             return;
 
-        Resources res = Resources.getDashBundle(
-            "ProcessDashboard.Errors.Version_Incompatibility");
+        Resources res = ResourcesHolder.resources;
         StringBuilder upgradeList = new StringBuilder();
         StringBuilder missingList = new StringBuilder();
         for (Incompatibility item: unsatisfied) {
-            String itemDisplay = res.format("Item_FMT", item
-                    .getPackageDisplayName(), item.minVersion);
             (item.pkg == null ? missingList : upgradeList).append("\n")
-                    .append(BULLET).append(itemDisplay);
+                    .append(item.getBullet());
         }
         String title = res.getString("Title");
         Object[] message = new Object[3];
@@ -69,8 +67,12 @@ public class DataVersionChecker {
     }
 
     public static List<Incompatibility> checkPackageVersions() {
+        return checkPackageVersions(loadRequirements());
+    }
+
+    public static List<Incompatibility> checkPackageVersions(
+            Map<String, String> requirements) {
         List<Incompatibility> result = new ArrayList();
-        Map<String, String> requirements = loadRequirements();
         for (Iterator i = requirements.entrySet().iterator(); i.hasNext();) {
             Map.Entry<String, String> req = (Map.Entry<String, String>) i
                     .next();
@@ -80,6 +82,11 @@ public class DataVersionChecker {
                 result.add(new Incompatibility(packageId, minVersion));
         }
         return result;
+    }
+
+    public static void registerDataRequirements(Map<String, String> reqts) {
+        for (Entry<String, String> e : reqts.entrySet())
+            registerDataRequirement(e.getKey(), e.getValue());
     }
 
     public synchronized static void registerDataRequirement(String packageId,
@@ -129,6 +136,11 @@ public class DataVersionChecker {
         }
     }
 
+    private static class ResourcesHolder {
+        private static Resources resources = Resources.getDashBundle(
+            "ProcessDashboard.Errors.Version_Incompatibility");
+    }
+
 
     public static final String SETTING_NAME = "data.versionRequirements";
     private static final String REQ_SEP = "version";
@@ -147,6 +159,15 @@ public class DataVersionChecker {
 
         public String getPackageDisplayName() {
             return (pkg != null ? pkg.name : packageId);
+        }
+
+        public String getBullet() {
+            return BULLET + toString();
+        }
+
+        public String toString() {
+            return ResourcesHolder.resources.format("Item_FMT",
+                getPackageDisplayName(), minVersion);
         }
     }
 }

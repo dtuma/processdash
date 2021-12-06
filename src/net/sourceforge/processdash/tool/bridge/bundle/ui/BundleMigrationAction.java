@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.bundle.ui;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
@@ -33,6 +34,8 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.templates.DataVersionChecker.Incompatibility;
 import net.sourceforge.processdash.templates.ExtensionManager.DisabledExtensionException;
 import net.sourceforge.processdash.tool.bridge.bundle.DatasetBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
@@ -74,6 +77,10 @@ public class BundleMigrationAction extends AbstractAction {
         // identify the target bundle mode for the directory
         FileBundleMode bundleMode = FileBundleMode.Local;
 
+        // ensure the user has the minimum required versions of software
+        if (checkVersions(bundleMode) == false)
+            return;
+
         // if any projects need migrating, do that first
         ProcessDashboard parent = (ProcessDashboard) ctx;
         DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx, bundleMode);
@@ -98,9 +105,31 @@ public class BundleMigrationAction extends AbstractAction {
             parent.exitProgram(new MinTimeRunnable(datasetMigrationTask, 2000));
     }
 
-    private boolean userConfirm(String resPrefix, int optionType) {
+    private boolean checkVersions(FileBundleMode bundleMode) {
+        // check to see if the required packages are all satisfied
+        Map<String, String> reqts = bundleMode.getMinVersions();
+        List<Incompatibility> missingPackages = DataVersionChecker
+                .checkPackageVersions(reqts);
+        if (missingPackages.isEmpty()) {
+            // register the versions so future clients know they are required
+            DataVersionChecker.registerDataRequirements(reqts);
+            return true;
+        }
+
+        // some packages need updating. Display a message and abort
+        Object[] listItems = new Object[missingPackages.size()];
+        for (int i = listItems.length; i-- > 0;)
+            listItems[i] = missingPackages.get(i).getBullet();
+        userConfirm("VersionCheck", JOptionPane.DEFAULT_OPTION, listItems);
+        return false;
+    }
+
+    private boolean userConfirm(String resPrefix, int optionType,
+            Object... extraLines) {
         String title = res(resPrefix + ".Title");
-        String[] message = resources.getStrings(resPrefix + ".Message");
+        Object message = resources.getStrings(resPrefix + ".Message");
+        if (extraLines.length > 0)
+            message = new Object[] { message, extraLines };
         return JOptionPane.showConfirmDialog((ProcessDashboard) ctx, message,
             title, optionType) == JOptionPane.OK_OPTION;
     }
