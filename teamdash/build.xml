@@ -395,6 +395,29 @@ class dependency has been added in a dashboard class?)
   </target>
   <target name="WBSEditor.jar" depends="TeamTools"/>
 
+  <target name="working-dirs-jar" depends="compile">
+    <!-- compute the classes needed for working directory logic -->
+    <classfileset id="workingDirClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
+    </classfileset>
+
+    <pathconvert property="workingDirClassList" refid="workingDirClasses" pathsep="&#10;">
+        <regexpmapper from=".*/antbin/(.*)" to="\1" handledirsep="true"/>
+    </pathconvert>
+
+    <jar destfile="lib/working-dirs-classes-${dashboard.version}.jar" duplicate="fail">
+      <fileset refid="workingDirClasses"/>
+      <fileset dir="${build}">
+        <include name="teamdash/hist/ProjectHistoryLocal*"/>
+      </fileset>
+    </jar>
+
+    <echo file="lib/working-dirs-fileset-${dashboard.version}.txt">${workingDirClassList}
+teamdash/hist/ProjectHistoryLocal*
+</echo>
+  </target>
+
   <target name="verifyResourceOverrides">
   <property name="ResPrefix"
             value="net.sourceforge.processdash.i18n.Resources"/>
