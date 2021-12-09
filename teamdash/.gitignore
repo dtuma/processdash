@@ -2,6 +2,8 @@
 /bin/
 /misc/
 
+/lib/working-dirs-*
+
 /build.properties
 /*.jar
 /*.zip

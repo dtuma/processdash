@@ -32,6 +32,7 @@ The author(s) may be contacted at:
 
   <property name="teamtools.version" value="5.5.1"/>
   <property name="teamtools.requires" value="2.0.4+"/>
+  <property name="workingdirs.version" value="2.6.6"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
@@ -211,8 +212,6 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.team.ui.PersonLookupDialog"/>
-      <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
-      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
       <root classname="net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants"/>
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExportFileEntry"/>
@@ -260,6 +259,8 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.util.TempFileFactory"/>
       <root classname="net.sourceforge.processdash.util.UsageLogger"/>
       <root classname="net.sourceforge.processdash.util.VersionUtils"/>
+
+      <excludesfile name="lib/working-dirs-fileset-${workingdirs.version}.txt"/>
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
@@ -277,7 +278,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 168) {
+        if (classCount > 72) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -318,14 +319,19 @@ class dependency has been added in a dashboard class?)
                    value="Work Breakdown Structure Editor"/>
         <attribute name="Permissions" value="all-permissions"/>
         <section name="net/sourceforge/processdash/tool/bridge/client/">
-    	    <attribute name="Implementation-Version" value="${dashboard.version}"/>
+    	    <attribute name="Implementation-Version" value="${workingdirs.version}"/>
         </section>
       </manifest>
 
       <!-- include the compiled files -->
-      <fileset dir="${build}" includes="net/ teamdash/"
-           excludesfile="lib/fileset-class-excludes.txt" />
+      <fileset dir="${build}" includes="net/ teamdash/">
+        <excludesfile name="lib/fileset-class-excludes.txt"/>
+        <excludesfile name="lib/working-dirs-fileset-${workingdirs.version}.txt"/>
+      </fileset>
       <fileset refid="dashClasses"/>
+
+      <!-- include latest working directory logic -->
+      <zipfileset src="lib/working-dirs-classes-${workingdirs.version}.jar" />
 
       <!-- include non-java resources files -->
       <fileset dir="${src}">
