@@ -31,6 +31,7 @@ public enum FileBundleMode {
 
     Local("local", //
             "pspdash", "2.6.6", //
+            "teamTools", "5.5.2", //
             "teamToolsB", "6.2.0", //
             "tpidw-embedded", "1.6.7");
 
