@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,10 +24,12 @@
 
 package net.sourceforge.processdash.team.setup;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -35,13 +37,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -50,10 +58,11 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 /** This class helps an individual to join a team project.
  */
-public class JoinTeamProject extends TinyCGIBase {
+public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
 
     private static final String JOIN_URL = "join.shtm";
     private static final String JOIN_XML = "joinxml.shtm";
+    private static final String REQTS_DATA_NAME = "Join//Package_Reqts";
 
     protected void writeHeader() {}
     protected void writeContents() {}
@@ -64,6 +73,7 @@ public class JoinTeamProject extends TinyCGIBase {
         super.service(in, out, env);
 
         maybeReroot();
+        storePackageRequirements();
 
         if (parameters.get("xml") != null)
             internalRedirect(JOIN_XML);
@@ -306,6 +316,68 @@ public class JoinTeamProject extends TinyCGIBase {
             else
                 throw new TinyCGIException(404, "Not Fount");
         }
+    }
+
+    private void storePackageRequirements() {
+        DataContext data = getDataContext();
+        String reqts = calculatePackageRequirements(data);
+        data.putValue(REQTS_DATA_NAME, //
+            reqts == null ? null : StringData.create(reqts));
+    }
+
+    private String calculatePackageRequirements(DataContext data) {
+        // see if this project is using custom size metrics
+        boolean isCustomSize = testData(data, WBS_CUSTOM_SIZE_DATA_NAME);
+
+        // if the project is using bundled file format, use the minimum
+        // requirements for the effective bundle mode
+        FileBundleMode bundleMode = getProjectBundleMode(data);
+        if (bundleMode != null) {
+            Map<String, String> reqts = new TreeMap<String, String>(
+                    bundleMode.getMinVersions());
+            reqts.remove(isCustomSize ? "teamTools" : "teamToolsB");
+            return DataVersionChecker.formatRequirementsString(reqts);
+        }
+
+        // if the project is using dynamic custom size metrics, return the
+        // version string for custom size support
+        if (isCustomSize)
+            return "pspdash version 2.6.3; teamToolsB version 6.0.0";
+
+        // if the project is using WBS managed size, return the appropriate
+        // version string
+        if (testData(data, WBS_SIZE_DATA_NAME))
+            return "pspdash version 2.5.3; teamTools version 5.0.0";
+
+        // no specific version requirements found
+        return null;
+    }
+
+    private FileBundleMode getProjectBundleMode(DataContext data) {
+        // if this project is hosted by a PDES, it is not bundled
+        if (testData(data, TEAM_DATA_DIRECTORY_URL))
+            return null;
+
+        // get the directory where the data is stored
+        String projDirPath = getString(data, TEAM_DATA_DIRECTORY);
+        String remapped = ExternalResourceManager.getInstance()
+                .remapFilename(projDirPath);
+        if (remapped == null)
+            return null;
+        try {
+            return FileBundleUtils.getBundleMode(new File(remapped));
+        } catch (IOException ioe) {
+            return null;
+        }
+    }
+
+    private boolean testData(DataContext data, String name) {
+        return getString(data, name) != null;
+    }
+
+    private String getString(DataContext data, String name) {
+        SimpleData sd = data.getSimpleValue(name);
+        return (sd != null && sd.test() ? sd.format() : null);
     }
 
     protected String getProcessID() {

@@ -2780,6 +2780,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             enableWbsCustomSizeMetrics();
         else if (wbsManagedSizeData)
             enableWbsManagedSizeData();
+        String packageReqts = joinInfo.get("Requires_Package");
+        DataVersionChecker.registerDataRequirements(packageReqts);
         maybeSetProjectRootNodeId(projectID);
         boolean addScheduleSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);

@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -51,6 +52,30 @@ public class FileBundleUtils {
         File bundles = new File(dir, FileBundleConstants.BUNDLE_SUBDIR);
         File heads = new File(dir, FileBundleConstants.HEADS_SUBDIR);
         return dir != null && bundles.isDirectory() && heads.isDirectory();
+    }
+
+    /**
+     * Return the bundle mode in use by a given directory
+     * 
+     * @param dir
+     *            the directory to check
+     * @return the {@link FileBundleMode} in use, or null if the directory is
+     *         not using bundled file format
+     * @throws IOException
+     *             if the directory could not be reached or data could not be
+     *             read
+     */
+    public static FileBundleMode getBundleMode(File dir) throws IOException {
+        // if the directory is not accessible, throw an exception
+        if (!dir.isDirectory())
+            throw new FileNotFoundException(dir.getPath());
+
+        // if this is not a bundled dir, the mode is null
+        if (!isBundledDir(dir))
+            return null;
+
+        // only one bundle mode is currently supported
+        return FileBundleMode.Local;
     }
 
 }

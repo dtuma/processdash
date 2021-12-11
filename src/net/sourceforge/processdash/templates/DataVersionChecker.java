@@ -84,6 +84,10 @@ public class DataVersionChecker {
         return result;
     }
 
+    public static void registerDataRequirements(String reqts) {
+        registerDataRequirements(parseRequirementsString(reqts));
+    }
+
     public static void registerDataRequirements(Map<String, String> reqts) {
         for (Entry<String, String> e : reqts.entrySet())
             registerDataRequirement(e.getKey(), e.getValue());
@@ -101,8 +105,14 @@ public class DataVersionChecker {
     }
 
     private synchronized static Map<String, String> loadRequirements() {
-        Map<String, String> result = new TreeMap<String, String>();
         String reqSetting = Settings.getVal(SETTING_NAME);
+        return parseRequirementsString(reqSetting);
+    }
+
+    /** @since 2.6.6 */
+    public static Map<String, String> parseRequirementsString(
+            String reqSetting) {
+        Map<String, String> result = new TreeMap<String, String>();
         if (StringUtils.hasValue(reqSetting)) {
             String[] reqSpecs = reqSetting.split(";");
             for (String req : reqSpecs) {
@@ -122,18 +132,24 @@ public class DataVersionChecker {
 
     private synchronized static void saveRequirements(
             Map<String, String> requirements) {
-        if (requirements.isEmpty()) {
-            InternalSettings.set(SETTING_NAME, null);
-        } else {
-            StringBuilder newSettingValue = new StringBuilder();
-            for (Map.Entry<String, String> req : requirements.entrySet()) {
-                String packageId = req.getKey();
-                String minVersion = req.getValue();
-                newSettingValue.append(";").append(packageId).append(" ")
-                        .append(REQ_SEP).append(" ").append(minVersion);
-            }
-            InternalSettings.set(SETTING_NAME, newSettingValue.substring(1));
+        InternalSettings.set(SETTING_NAME,
+            formatRequirementsString(requirements));
+    }
+
+    /** @since 2.6.6 */
+    public static String formatRequirementsString(
+            Map<String, String> requirements) {
+        if (requirements == null || requirements.isEmpty())
+            return null;
+
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, String> req : requirements.entrySet()) {
+            String packageId = req.getKey();
+            String minVersion = req.getValue();
+            result.append(";").append(packageId).append(" ").append(REQ_SEP)
+                    .append(" ").append(minVersion);
         }
+        return result.substring(1);
     }
 
     private static class ResourcesHolder {
