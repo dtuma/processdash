@@ -31,7 +31,7 @@ The author(s) may be contacted at:
   <property file="build.properties"/>
 
   <property name="teamtools.version" value="5.5.1"/>
-  <property name="teamtools.requires" value="2.0.4+"/>
+  <property name="teamtools.requires" value="2.6.6+"/>
   <property name="workingdirs.version" value="2.6.6"/>
 
   <property name="processdash.dir" value=".."/>
@@ -374,7 +374,7 @@ class dependency has been added in a dashboard class?)
       <zipfileset src="${tamper.jar}" includes="com/ META-INF/services/"/>
     </jar>
 
-    <maybeSignJar jar="TeamTools.jar" prefix="jnlpSign"/>
+    <maybeSignJar jar="TeamTools.jar" prefix="pdash-full"/>
 
     <move file="TeamTools.jar" todir="${processdash.dist}"/>
   </target>
@@ -476,7 +476,7 @@ class dependency has been added in a dashboard class?)
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
     <maybeSignJar jar="${processdash.dist}/${launchProfile.filename}"
-          prefix="jnlpSign"/>
+          prefix="profileSign"/>
   </target>
 
   <target name="verify16"
