@@ -78,7 +78,7 @@ Authors:
   <property name="eng.version"      value="3.2"/><!-- VERSION -->
   <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.2"/><!-- VERSION -->
-  <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
+  <property name="l10nTool.requires" value="2.6.6+"/><!-- VERSION -->
   <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
 
 

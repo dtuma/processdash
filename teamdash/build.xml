@@ -31,7 +31,7 @@ The author(s) may be contacted at:
   <property file="build.properties"/>
 
   <property name="teamtools.version" value="6.1.5"/>
-  <property name="teamtools.requires" value="2.6.3+"/>
+  <property name="teamtools.requires" value="2.6.6+"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
@@ -389,7 +389,7 @@ class dependency has been added in a dashboard class?)
       <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
     </jar>
 
-    <maybeSignJar jar="WBSEditor.jar" prefix="jnlpSign"/>
+    <maybeSignJar jar="WBSEditor.jar" prefix="pdash-full"/>
 
     <move file="WBSEditor.jar" todir="${processdash.dist}"/>
   </target>

@@ -28,10 +28,10 @@ The author(s) may be contacted at:
 <project default="jar" basedir=".">
 
   <property environment="env"/>
-  <property file="build.properties"/>  
+  <property file="build.properties"/>
 
   <property name="api.version" value="0.7"/>
-  <property name="api.requires" value="2.4+"/>
+  <property name="api.requires" value="2.6.6+"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.dist" value="${processdash.dir}/dist"/>
