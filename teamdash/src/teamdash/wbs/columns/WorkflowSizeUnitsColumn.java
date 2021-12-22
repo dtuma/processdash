@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2020 Tuma Solutions, LLC
+// Copyright (C) 2010-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowDataModel;
+import teamdash.wbs.WorkflowUtil;
 import teamdash.wbs.WorkflowWBSModel;
 
 public class WorkflowSizeUnitsColumn extends AbstractDataColumn
@@ -108,6 +109,10 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
 
         SizeMetric metric = SizeMetricCellEditor.parseValue(sizeMetrics, aValue,
             true);
+        storeNodeSizeMetric(metric, node);
+    }
+
+    private static void storeNodeSizeMetric(SizeMetric metric, WBSNode node) {
         if (metric != null) {
             node.setAttribute(METRIC_NAME_ATTR, metric.getName());
             node.setAttribute(METRIC_ID_ATTR, metric.getMetricID());
@@ -171,6 +176,22 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
 
     public static String getSizeMetricIdForProbeTask(WBSNode node) {
         return (String) node.getAttribute(METRIC_ID_ATTR);
+    }
+
+    public static SizeMetric copyProbeSizeFromWorkflow(WBSNode node,
+            Map<String, SizeMetric> sizeMetrics, WorkflowWBSModel workflows) {
+        // identify the workflow step that created the given node
+        WBSNode srcNode = WorkflowUtil.getWorkflowSourceNode(node, workflows);
+        if (srcNode == null || !TeamProcess.isProbeTask(srcNode.getType()))
+            return null;
+
+        // look up the size metric on that PROBE step and copy it to the node
+        SizeMetric metric = getSizeMetricForProbeTask(srcNode, sizeMetrics);
+        if (metric != null)
+            storeNodeSizeMetric(metric, node);
+
+        // return the size metric we found and copied
+        return metric;
     }
 
     public static void remapNodeIDs(WorkflowWBSModel model,

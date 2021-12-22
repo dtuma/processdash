@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,7 +27,9 @@ import java.util.Map;
 
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowWBSModel;
 
 /**
  * This column outputs the metricID value for PSP and PROBE tasks.
@@ -38,9 +40,18 @@ public class DirectSizeTypeColumn extends AbstractDataColumn {
 
     private Map<String, SizeMetric> sizeMetrics;
 
-    public DirectSizeTypeColumn(Map<String, SizeMetric> sizeMetrics) {
-        this.sizeMetrics = sizeMetrics;
+    private WorkflowWBSModel workflows;
+
+    public DirectSizeTypeColumn(WBSDataModel dataModel,
+            WorkflowWBSModel workflows) {
+        this.sizeMetrics = dataModel.getTeamProcess().getSizeMetricMap();
+        this.workflows = workflows;
         this.columnID = this.columnName = COLUMN_ID;
+
+        // on startup, scan the WBS and repair any PROBE tasks that are missing
+        // sizes due to a legacy bug
+        for (WBSNode node : dataModel.getWBSModel().getWbsNodes())
+            getValueAt(node);
     }
 
     public boolean isCellEditable(WBSNode node) { return false; }
@@ -48,8 +59,12 @@ public class DirectSizeTypeColumn extends AbstractDataColumn {
 
     public Object getValueAt(WBSNode node) {
         if (TeamProcess.isProbeTask(node.getType())) {
-            return WorkflowSizeUnitsColumn.getSizeMetricForProbeTask(node,
-                sizeMetrics);
+            SizeMetric result = WorkflowSizeUnitsColumn
+                    .getSizeMetricForProbeTask(node, sizeMetrics);
+            if (result == null)
+                result = WorkflowSizeUnitsColumn.copyProbeSizeFromWorkflow(node,
+                    sizeMetrics, workflows);
+            return result;
 
         } else if (TeamProcess.isPSPTask(node.getType())) {
             return "LOC";

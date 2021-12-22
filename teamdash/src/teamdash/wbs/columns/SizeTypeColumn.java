@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSDataModel;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowWBSModel;
 
 
 /** This class performs two purposes:<ul>
@@ -211,11 +212,10 @@ public class SizeTypeColumn extends AbstractDataColumn implements
      * to the given data model.
      */
     public static void createSizeColumns(WBSDataModel dataModel,
-            TeamProcess teamProcess) {
+            WorkflowWBSModel workflows) {
         // create the size type columns.
         dataModel.addDataColumn(new NewSizeTypeColumn(dataModel));
-        dataModel.addDataColumn(new DirectSizeTypeColumn(
-                dataModel.getTeamProcess().getSizeMetricMap()));
+        dataModel.addDataColumn(new DirectSizeTypeColumn(dataModel, workflows));
         dataModel.addDataColumn(new SizeOwnerColumn(dataModel));
 
         // create plan/actual size column groups for dependency management

@@ -1146,7 +1146,7 @@ public class WorkflowUtil {
             teamProcess);
     }
 
-    private static WBSNode getWorkflowSourceNode(WBSNode node,
+    public static WBSNode getWorkflowSourceNode(WBSNode node,
             WorkflowWBSModel workflows) {
         Integer workflowSourceId;
         try {

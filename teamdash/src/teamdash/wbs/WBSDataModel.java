@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2021 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -187,7 +187,7 @@ public class WBSDataModel extends DataTableModel<WBSModel> {
             TaskDependencySource dependencySource, String currentUser)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));
-        SizeTypeColumn.createSizeColumns(this, teamProcess);
+        SizeTypeColumn.createSizeColumns(this, workflows);
         sizeColumnManager = new SizeColumnManager(this, teamProcess,
                 sizeMetrics);
         addDataColumn(new PhaseColumn(this, teamProcess, workflows));
