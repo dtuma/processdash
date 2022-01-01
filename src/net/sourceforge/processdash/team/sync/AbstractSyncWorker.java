@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -139,13 +139,23 @@ public abstract class AbstractSyncWorker implements SyncWorker {
             if (getSimpleValue(completionDataName) != null)
                 return;
 
+            // retrieve the current estimated and actual times for the task
+            SimpleData estimatedTime = getSimpleValue(
+                dataName(path, "Estimated Time"));
             SimpleData actualTime = getSimpleValue(dataName(path, "Time"));
-            if (actualTime instanceof NumberData) {
+            if (estimatedTime instanceof NumberData
+                    && actualTime instanceof NumberData) {
+                // if the task time was only partially spent, reduce its plan
+                // time to match the actual. This helps with data rollups for
+                // relaunched and reassigned tasks.
+                double estTime = ((NumberData) estimatedTime).getDouble();
                 double time = ((NumberData) actualTime).getDouble();
-                DoubleData estimatedTime = new DoubleData(time, true);
-                doPutValue(dataName(path, "Estimated Time"), estimatedTime);
-                doPutValue(dataName(path, syncDataName("Estimated Time")),
-                        estimatedTime);
+                if (time < estTime) {
+                    DoubleData newEstTime = new DoubleData(time, true);
+                    doPutValue(dataName(path, "Estimated Time"), newEstTime);
+                    doPutValue(dataName(path, syncDataName("Estimated Time")),
+                        newEstTime);
+                }
             }
             DateData now = new DateData();
             doPutValue(completionDataName, now);
