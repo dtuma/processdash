@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2021 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2291,17 +2291,19 @@ public class EVTaskList extends AbstractTreeTableModel
             if (!showMilestoneColumn())
                 return false;
 
-            sortTasks(new TaskMilestoneComparator());
-            return true;
+            return sortTasks(new TaskMilestoneComparator());
         }
 
         public boolean sortTasksByTag() {
-            sortTasks(new TaskSortTagComparator());
-            return true;
+            return sortTasks(new TaskSortTagComparator());
         }
 
-        private void sortTasks(Comparator<EVTask> comparator) {
+        private boolean sortTasks(Comparator<EVTask> comparator) {
+            List origTaskOrder = new ArrayList(evLeaves);
             Collections.sort(evLeaves, comparator);
+            if (origTaskOrder.equals(evLeaves))
+                return false;
+
             enumerateOrdinals();
 
             int[] changedNodes = new int[evLeaves.size()];
@@ -2312,6 +2314,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
             if (recalcTimer != null)
                 recalcTimer.restart();
+
+            return true;
         }
 
         private class TaskMilestoneComparator implements Comparator<EVTask> {

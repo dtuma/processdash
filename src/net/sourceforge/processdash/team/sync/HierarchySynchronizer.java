@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVSchedule.Period;
@@ -1138,7 +1139,6 @@ public class HierarchySynchronizer {
             projectClosed ? ImmutableDoubleData.TRUE : null);
 
         if (!isTeam()) {
-            syncSchedule();
             saveWorkflowUrlData();
             checkForUserInactivity();
         }
@@ -1146,8 +1146,10 @@ public class HierarchySynchronizer {
 
         sync(syncWorker, projectPath, projectXML);
 
-        if (!isTeam())
+        if (!isTeam()) {
+            syncSchedule();
             updateWorkflowPhasesInDefects();
+        }
 
         processDeferredDeletions(syncWorker);
 
@@ -1568,8 +1570,6 @@ public class HierarchySynchronizer {
         boolean isLocked = currentSchedule.areDatesLocked();
         boolean isDefault = (currentSchedule.getRowCount() == 1
                 || currentSchedule.get(2).isAutomatic());
-        if (!isLocked && !isDefault)
-            return;
 
         // construct a schedule according to the specifications in the WBS.
         EVSchedule wbsSchedule = new EVSchedule(startDate, hoursPerWeek,
@@ -1585,8 +1585,14 @@ public class HierarchySynchronizer {
         // flags to keep track of what changes are made.
         boolean madeChange = false;
         boolean needSyncUpdate = false;
+        boolean isUserSchedule = false;
 
-        if (isDefault || lastSyncedHoursList == null) {
+        if (!isLocked && !isDefault) {
+            // if the user created and edited this schedule, don't change it
+            madeChange = needSyncUpdate = false;
+            isUserSchedule = true;
+
+        } else if (isDefault || lastSyncedHoursList == null) {
             if (!currentSchedule.isEquivalentTo(wbsSchedule)) {
                 currentSchedule.copyFrom(wbsSchedule);
                 madeChange = true;
@@ -1604,7 +1610,7 @@ public class HierarchySynchronizer {
                 // there are no new changes to incorporate.  (Note that it
                 // was still necessary for us to call mergeSchedules though,
                 // to compute the list of user discrepancies for reverse sync)
-                madeChange = false;
+                madeChange = needSyncUpdate = false;
 
             else if (origSchedule.isEquivalentTo(currentSchedule))
                 // no changes were made to the schedule, but we still need
@@ -1616,17 +1622,29 @@ public class HierarchySynchronizer {
         }
 
         // make certain the dates in the schedule are locked
-        if (!currentSchedule.areDatesLocked()) {
+        if (!currentSchedule.areDatesLocked() && !isUserSchedule) {
             currentSchedule.setDatesLocked(true);
             madeChange = true;
         }
 
-        // save the "last synced hours" value for future reference
-        tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE,
-            wbsSchedule.getSaveList().formatClean());
-        // save the "last synced pdt" value for future reference
-        tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT,
-            Double.toString(hoursPerWeek * 60));
+        // if requested by the user, sort by milestone
+        if (testData(getData(projectPath, "Sync_Auto_Sort_By_Milestone"))) {
+            tl.setTaskLabeler(new DefaultTaskLabeler(hierarchy, //
+                    dataRepository, null));
+            tl.recalcLeavesOnly();
+            tl.recalc();
+            if (tl.getFlatModel().sortTasksByMilestone())
+                madeChange = true;
+        }
+
+        if (needSyncUpdate) {
+            // save the "last synced hours" value for future reference
+            tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE,
+                wbsSchedule.getSaveList().formatClean());
+            // save the "last synced pdt" value for future reference
+            tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT,
+                Double.toString(hoursPerWeek * 60));
+        }
 
         if (madeChange) {
             // record the timezone that we've used to sync the schedule
