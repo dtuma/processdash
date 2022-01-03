@@ -113,6 +113,27 @@
 <td><input type=text size=50 name="/Owner	s"></td>
 </tr>
 
+[!--#if joinAs || [Joined_As_Other] --]
+<tr>
+<td>Join as a Different Person</td>
+<td><input type=checkbox name="[Joined_As_Other]"></td>
+</tr>
+
+[!--#if showJoinName || [Joined_As_Name] --]
+  <tr>
+  <td style="padding-left:1cm">with Team Member Name</td>
+  <td><input type=text size=50 name="[Joined_As_Name]s"></td>
+  </tr>
+[!--#endif--]
+
+[!--#if showJoinUUID || [Joined_As_UUID] --]
+  <tr>
+  <td style="padding-left:1cm">with Unique Person ID</td>
+  <td><input type=text size=50 name="[Joined_As_UUID]sr"></td>
+  </tr>
+[!--#endif--]
+[!--#endif--]
+
 [!--#if showInitials || ![Personal_Project] --]
 <tr>
 <td>Your Initials</td>

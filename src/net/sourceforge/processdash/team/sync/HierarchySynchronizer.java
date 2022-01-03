@@ -51,6 +51,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
@@ -1140,6 +1141,7 @@ public class HierarchySynchronizer {
 
         if (!isTeam()) {
             saveWorkflowUrlData();
+            maybeInitializeJoinAsDefaults();
             checkForUserInactivity();
         }
         saveWorkflowQualityParams();
@@ -1865,6 +1867,36 @@ public class HierarchySynchronizer {
             String taskID = task.getAttribute(ID_ATTR);
             workflowIdMap.put(taskID, workflowName);
             collectWorkflowIDs(workflowName, task);
+        }
+    }
+
+
+
+    private void maybeInitializeJoinAsDefaults() {
+        // if the "join as other" flag is false, do nothing
+        boolean joinedAsOther = testData(
+            getData(projectPath, TeamDataConstants.JOIN_AS_FLAG));
+        if (joinedAsOther == false)
+            return;
+
+        // if the join as name is blank, initialize from initials & team list
+        String joinedAsName = getStringData(
+            getData(projectPath, TeamDataConstants.JOIN_AS_NAME));
+        if (!StringUtils.hasValue(joinedAsName)) {
+            String memberName = getIndivName(initials);
+            if (StringUtils.hasValue(memberName))
+                forceData(projectPath, TeamDataConstants.JOIN_AS_NAME,
+                    StringData.create(memberName));
+        }
+
+        // if the join as UUID is blank or invalid, initialize from initials
+        String joinedAsUUID = getStringData(
+            getData(projectPath, TeamDataConstants.JOIN_AS_UUID));
+        if (joinedAsUUID == null || joinedAsUUID.length() != 36) {
+            byte[] nameSeed = initials.toLowerCase().getBytes();
+            UUID newUUID = UUID.nameUUIDFromBytes(nameSeed);
+            forceData(projectPath, TeamDataConstants.JOIN_AS_UUID,
+                StringData.create(newUUID.toString()));
         }
     }
 

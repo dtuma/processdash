@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,9 @@ public interface TeamDataConstants {
     public static final String INDIV_INITIALS = "Indiv_Initials";
     public static final String PERSONAL_PROJECT_FLAG = "Personal_Project";
     public static final String PERSONAL_PROJECT_IMPORT_SUFFIX = "_Personal";
+    public static final String JOIN_AS_FLAG = "Joined_As_Other";
+    public static final String JOIN_AS_NAME = "Joined_As_Name";
+    public static final String JOIN_AS_UUID = "Joined_As_UUID";
     public static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
     public static final String CLIENT_ID_DATA_NAME = "Client_Unique_ID";
     public static final String WORKFLOW_ID_DATA_NAME = "Workflow_Source_ID";
