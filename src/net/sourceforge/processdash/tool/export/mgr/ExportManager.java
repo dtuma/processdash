@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2021 Tuma Solutions, LLC
+// Copyright (C) 2005-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -210,9 +210,7 @@ public class ExportManager extends AbstractManager {
                         dashboard, destFile, paths));
             else
                 return new ExportTask(targetPath, new ArchiveMetricsFileExporter(
-                        dashboard, targetPath, paths, //
-                        instr.getMetricsIncludes(), instr.getMetricsExcludes(),
-                        instr.getAdditionalFileEntries()), instr);
+                        dashboard, targetPath, paths, instr), instr);
         }
 
     }

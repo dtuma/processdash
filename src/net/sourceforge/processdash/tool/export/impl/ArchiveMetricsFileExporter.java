@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2021 Tuma Solutions, LLC
+// Copyright (C) 2005-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -60,6 +60,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
+import net.sourceforge.processdash.tool.export.mgr.ExportMetricsFileInstruction;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -91,9 +92,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private Collection filter;
 
-    private List metricsIncludes;
-
-    private List metricsExcludes;
+    private ExportMetricsFileInstruction instr;
 
     private List additionalEntries;
 
@@ -106,14 +105,12 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, String targetPath,
-            Collection filter, List metricsIncludes, List metricsExcludes,
-            List additionalEntries) {
+            Collection filter, ExportMetricsFileInstruction instr) {
         this.ctx = ctx;
         this.dest = new ExportFileStream(targetPath);
         this.filter = filter;
-        this.metricsIncludes = metricsIncludes;
-        this.metricsExcludes = metricsExcludes;
-        this.additionalEntries = additionalEntries;
+        this.instr = instr;
+        this.additionalEntries = instr.getAdditionalFileEntries();
         this.maxActivityDate = null;
     }
 
@@ -266,8 +263,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
         zipOut.putNextEntry(new ZipEntry(DATA_FILE_NAME));
 
         ExportedDataValueIterator baseIter = new ExportedDataValueIterator(ctx
-                .getData(), ctx.getHierarchy(), filter, metricsIncludes,
-                metricsExcludes);
+                .getData(), ctx.getHierarchy(), filter,
+                instr.getMetricsIncludes(), instr.getMetricsExcludes());
 
         DefaultDataExportFilter ddef;
         TaskListDataWatcher taskListWatcher;
@@ -299,11 +296,11 @@ public class ArchiveMetricsFileExporter implements Runnable,
             logger.fine("Using pattern-based name approach");
             taskListWatcher = new TaskListDataWatcher(baseIter);
             ddef = new DefaultDataExportFilter(taskListWatcher);
-            List includes = new ArrayList(metricsIncludes);
+            List includes = new ArrayList(instr.getMetricsIncludes());
             if (includes.remove(INCLUDE_ZEROS))
                 ddef.setSkipZero(false);
             ddef.setIncludes(includes);
-            ddef.setExcludes(metricsExcludes);
+            ddef.setExcludes(instr.getMetricsExcludes());
             ddef.init();
         }
 
