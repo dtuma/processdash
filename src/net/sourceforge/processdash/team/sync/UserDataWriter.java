@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -87,12 +87,17 @@ public class UserDataWriter extends TinyCGIBase {
                 .getProperty(TeamDataConstants.DATASET_OWNER_USERNAME_SYSPROP);
         if (hasValue(userName))
             ser.attribute(null, OWNER_USERNAME_ATTR, userName);
-        String fullName = ProcessDashboard.getOwnerName(getDataContext());
+
+        boolean joinAsFlag = testData(getData(TeamDataConstants.JOIN_AS_FLAG));
+        String fullName = getJoinAsValue(joinAsFlag, TeamDataConstants.JOIN_AS_NAME,
+            ProcessDashboard.getOwnerName(getDataContext()));
         if (hasValue(fullName))
             ser.attribute(null, OWNER_FULLNAME_ATTR, fullName);
-        String datasetID = DashController.getDatasetID(false);
+        String datasetID = getJoinAsValue(joinAsFlag,
+            TeamDataConstants.JOIN_AS_UUID, DashController.getDatasetID(false));
         if (hasValue(datasetID))
             ser.attribute(null, DATASET_ID_ATTR, datasetID);
+
         ser.attribute(null, TIMESTAMP_ATTR, XMLUtils.saveDate(timestamp));
 
         if (hasValue(getData("Enable_Reverse_Sync"))) {
@@ -108,6 +113,14 @@ public class UserDataWriter extends TinyCGIBase {
 
         ser.endTag(null, DOCUMENT_TAG);
         ser.endDocument();
+    }
+
+    private String getJoinAsValue(boolean joinAsFlag, String joinAsDataName,
+            String regularValue) {
+        String result = null;
+        if (joinAsFlag)
+            result = getStringData(getData(joinAsDataName));
+        return (hasValue(result) ? result : regularValue);
     }
 
     private void writeNewTasks(XmlSerializer ser, String processID)
@@ -411,6 +424,10 @@ public class UserDataWriter extends TinyCGIBase {
     private SimpleData getData(String prefix, String name) {
         String dataName = DataRepository.createDataName(prefix, name);
         return getDataContext().getSimpleValue(dataName);
+    }
+
+    private boolean testData(SimpleData sd) {
+        return (sd != null && sd.test());
     }
 
     private double getNumberData(String name) {

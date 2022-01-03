@@ -54,6 +54,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -205,7 +206,9 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private void writeManifestMetaData(XmlSerializer xml) throws IOException {
         xml.ignorableWhitespace(INDENT);
         xml.startTag(null, EXPORTED_TAG);
-        String owner = ProcessDashboard.getOwnerName(ctx.getData());
+        String owner = instr.getOwner();
+        if (!StringUtils.hasValue(owner))
+            owner = ProcessDashboard.getOwnerName(ctx.getData());
         if (owner != null)
             xml.attribute(null, OWNER_ATTR, owner);
         String username = System.getProperty("user.name");
@@ -236,7 +239,10 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private void writeFromDatasetTag(XmlSerializer xml) throws IOException {
         xml.ignorableWhitespace(NEWLINE + INDENT + INDENT);
         xml.startTag(null, FROM_DATASET_TAG);
-        xml.attribute(null, FROM_DATASET_ID_ATTR, DashController.getDatasetID());
+        String datasetID = instr.getDatasetID();
+        if (!StringUtils.hasValue(datasetID))
+            datasetID = DashController.getDatasetID();
+        xml.attribute(null, FROM_DATASET_ID_ATTR, datasetID);
         if (ctx instanceof ProcessDashboard) {
             ProcessDashboard dash = (ProcessDashboard) ctx;
             String location = dash.getWorkingDirectory().getDescription();
@@ -423,6 +429,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
     }
 
     private Map getEVSchedules(Collection taskListNames) {
+        String forcedOwner = instr.getOwner();
         Map schedules = new TreeMap();
         for (Iterator iter = taskListNames.iterator(); iter.hasNext();) {
             boolean merged = false;
@@ -438,6 +445,9 @@ public class ArchiveMetricsFileExporter implements Runnable,
                     .getData(), ctx.getHierarchy(), ctx.getCache(), false);
             if (tl == null)
                 continue;
+
+            if (tl instanceof EVTaskListData && forcedOwner != null)
+                ((EVTaskListData) tl).assignToOwner(forcedOwner);
 
             tl.setDependencyCalculator(new EVDependencyCalculator(
                     ctx.getData(), ctx.getHierarchy(), ctx.getCache()));
