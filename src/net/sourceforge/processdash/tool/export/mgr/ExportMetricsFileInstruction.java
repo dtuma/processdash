@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,10 @@ public class ExportMetricsFileInstruction extends AbstractInstruction implements
     private static final String TAG_NAME = "exportMetricsFile";
 
     private static final String FILE_ATTR = "file";
+
+    private static final String OWNER_ATTR = "owner";
+
+    private static final String DATASET_ID_ATTR = "datasetID";
 
     private static final String URL_ATTR = "serverUrl";
 
@@ -131,6 +135,22 @@ public class ExportMetricsFileInstruction extends AbstractInstruction implements
 
     public void setFile(String file) {
         setAttribute(FILE_ATTR, file);
+    }
+
+    public String getOwner() {
+        return getAttribute(OWNER_ATTR);
+    }
+
+    public void setOwner(String owner) {
+        setAttribute(OWNER_ATTR, owner);
+    }
+
+    public String getDatasetID() {
+        return getAttribute(DATASET_ID_ATTR);
+    }
+
+    public void setDatasetID(String id) {
+        setAttribute(DATASET_ID_ATTR, id);
     }
 
     public String getServerUrl() {

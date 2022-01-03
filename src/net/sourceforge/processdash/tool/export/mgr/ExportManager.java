@@ -70,6 +70,8 @@ public class ExportManager extends AbstractManager {
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
     private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
     private static final String EXPORT_URL_SUFFIX = "/Server_URL";
+    private static final String EXPORT_OWNER_SUFFIX = "/Owner_Name";
+    private static final String EXPORT_DATASET_SUFFIX = "/Dataset_ID";
     private static final String EXPORT_TIMESTAMP_SUFFIX = "/Last_Export_Timestamp";
     private static final String DATANAME_ATTR = "_Instruction_Data_Name";
 
@@ -364,6 +366,16 @@ public class ExportManager extends AbstractManager {
         SimpleData urlVal = data.getSimpleValue(urlDataname);
         if (urlVal != null && urlVal.test())
             instr.setServerUrl(urlVal.format());
+
+        String ownerDataname = name + EXPORT_OWNER_SUFFIX;
+        SimpleData ownerVal = data.getSimpleValue(ownerDataname);
+        if (ownerVal != null && ownerVal.test())
+            instr.setOwner(ownerVal.format());
+
+        String datasetIDDataname = name + EXPORT_DATASET_SUFFIX;
+        SimpleData datasetIDVal = data.getSimpleValue(datasetIDDataname);
+        if (datasetIDVal != null && datasetIDVal.test())
+            instr.setDatasetID(datasetIDVal.format());
 
         return instr;
     }

@@ -25,6 +25,8 @@
     iff([Exporting_Namespaced_Phase_Metrics],
         "file:/<!--#echo Process_ID -->/metricsExportFilter.xml",
         "file:/<!--#echo Process_ID -->/metricsExportFilterOld.xml"));
+[EXPORT_FILE/Owner_Name] = iff([Joined_As_Other], [Joined_As_Name], null);
+[EXPORT_FILE/Dataset_ID] = iff([Joined_As_Other], [Joined_As_UUID], null);
 [EXPORT_FILE/Disabled] = [Project_Is_Done]
     || lookup([Team_Settings_Node] & "Disable_Indiv_Auto_Export");
 
