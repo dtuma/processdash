@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2019 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -85,6 +85,7 @@ public class Control extends TinyCGIBase {
         stopTiming();
         showHelp();
         saveDataFiles();
+        saveAllData();
         scrubDataDir();
         repairDefectCounts();
         migrateBaselines();
@@ -172,6 +173,28 @@ public class Control extends TinyCGIBase {
     private void saveDataFiles() {
         if (isTask("saveDataFiles"))
             getDataRepository().saveAllDatafiles();
+    }
+
+    private void saveAllData() {
+        if (isTask("saveAllData")) {
+            boolean success = DashController.saveAllDataWithFeedback();
+
+            if (isJsonRequest()) {
+                printJsonResponse(success ? "{\"stat\":\"ok\"}"
+                        : "{\"stat\":\"fail\"}");
+            } else {
+                writeHtmlHeader();
+                out.println("<HTML><HEAD><TITLE>Data Saved</TITLE></HEAD>");
+                out.println("<BODY><H1>Data Saved</H1>");
+                if (success)
+                    out.println("All data files were saved at " + new Date());
+                else
+                    out.print("Some files could not be saved. Please try again.");
+                out.println("</BODY></HTML>");
+            }
+
+            printNullDocument = false;
+        }
     }
 
     private void scrubDataDir() {
