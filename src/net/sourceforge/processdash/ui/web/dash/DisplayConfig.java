@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2014 Tuma Solutions, LLC
+// Copyright (C) 2003-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,8 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -111,6 +113,13 @@ public class DisplayConfig extends TinyCGIBase {
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(dataDirectory.getPath()));
             out.println("   </PRE></DIV>");
+        }
+
+        if (bundleMode != null) {
+            out.print("<DIV>");
+            out.print(resources.format("Bundle_Mode_HTML_FMT", //
+                bundleMode.getName()));
+            out.print("<BR>&nbsp;</DIV>");
         }
 
         if (dataURL != null) {
@@ -235,6 +244,7 @@ public class DisplayConfig extends TinyCGIBase {
 
 
     File dataDirectory;
+    FileBundleMode bundleMode;
     File installationDirectory;
     File appTemplateDirectory;
     File configFile;
@@ -243,6 +253,7 @@ public class DisplayConfig extends TinyCGIBase {
 
     private void loadConfigurationInformation() {
         dataDirectory = null;
+        bundleMode = null;
         dataURL = null;
         configFile = new File(DashController.getSettingsFileName());
 
@@ -260,6 +271,9 @@ public class DisplayConfig extends TinyCGIBase {
         } else if (workingDir instanceof LocalWorkingDirectory) {
             LocalWorkingDirectory lwd = (LocalWorkingDirectory) workingDir;
             dataDirectory = lwd.getTargetDirectory();
+        }
+        if (workingDir instanceof BundledWorkingDirectory) {
+            bundleMode = ((BundledWorkingDirectory) workingDir).getBundleMode();
         }
 
         DashPackage dash = TemplateLoader.getPackage(DASHBOARD_PACKAGE_ID);
