@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,10 +24,12 @@
 package net.sourceforge.processdash.tool.bridge.bundle.ui;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -81,11 +83,34 @@ public class BundleMigrationAction extends AbstractAction {
         if (checkVersions(bundleMode) == false)
             return;
 
-        // if any projects need migrating, do that first
+        // determine which types of data need migrating
         ProcessDashboard parent = (ProcessDashboard) ctx;
         DatasetBundleMigrator dbm = new DatasetBundleMigrator(ctx, bundleMode);
+        Runnable datasetMigrationTask = dbm.getDatasetMigrationTask();
         List<Runnable> projectMigrationTasks = dbm.getProjectMigrationTasks();
-        if (!projectMigrationTasks.isEmpty()) {
+        boolean migrateDataset = (datasetMigrationTask != null);
+        boolean migrateProjects = (!projectMigrationTasks.isEmpty());
+
+        // in a team dashboard, give the user the choice of what to migrate
+        if (Settings.isTeamMode()) {
+            List<Object> checkboxes = new ArrayList();
+            checkboxes.add(" ");
+            JCheckBox dataset = null, projects = null;
+            if (migrateDataset)
+                dataset = makeDataSelectionCheckBox("Dataset", checkboxes);
+            if (migrateProjects)
+                projects = makeDataSelectionCheckBox("Projects", checkboxes);
+
+            if (!userConfirm("Selection", JOptionPane.OK_CANCEL_OPTION,
+                checkboxes.toArray()))
+                return;
+
+            migrateDataset = dataset != null && dataset.isSelected();
+            migrateProjects = projects != null && projects.isSelected();
+        }
+
+        // if any projects need migrating, do that first
+        if (migrateProjects) {
             ProgressDialog dialog = new ProgressDialog(parent,
                     res("Projects.Title"), res("Projects.Message"));
             dialog.setCompletionMessage(res("Projects.Complete"));
@@ -94,9 +119,8 @@ public class BundleMigrationAction extends AbstractAction {
             dialog.run();
         }
 
-        // if the dashboard dir is already bundled, no further work is needed
-        Runnable datasetMigrationTask = dbm.getDatasetMigrationTask();
-        if (datasetMigrationTask == null)
+        // if we are not migrating the dashboard dir, no further work is needed
+        if (migrateDataset == false)
             return;
 
         // ask the user for permission to shut down. Then close the dashboard,
@@ -122,6 +146,16 @@ public class BundleMigrationAction extends AbstractAction {
             listItems[i] = missingPackages.get(i).getBullet();
         userConfirm("VersionCheck", JOptionPane.DEFAULT_OPTION, listItems);
         return false;
+    }
+
+    private JCheckBox makeDataSelectionCheckBox(String resKey,
+            List<Object> checkboxes) {
+        JCheckBox cb = new JCheckBox(resources.getString("Selection." + resKey));
+        cb.setSelected(true);
+        checkboxes.add(cb);
+        checkboxes.add(resources.getStrings("Selection." + resKey + "_Info"));
+        checkboxes.add(" ");
+        return cb;
     }
 
     private boolean userConfirm(String resPrefix, int optionType,
