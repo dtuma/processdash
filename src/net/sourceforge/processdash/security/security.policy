@@ -41,6 +41,10 @@ grant signedBy "tuma-solutions-2018" {
         permission java.security.AllPermission;
 };
 
+grant signedBy "tuma-solutions-2022" {
+        permission java.security.AllPermission;
+};
+
 grant signedBy "sun-javahelp-permissions" {
     permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
     permission java.lang.RuntimePermission "queuePrintJob";
