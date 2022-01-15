@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -196,7 +196,7 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataL
         for (Element m : XMLUtils.getChildElements(xml)) {
             XmlMilestone xm = new XmlMilestone(m, milestoneData.size());
             String id = xm.getMilestoneID();
-            if (XMLUtils.hasValue(id)) {
+            if (XMLUtils.hasValue(id) && !milestoneData.containsKey(id)) {
                 milestoneData.put(id, xm);
                 xm.setPrevious(previous);
                 previous = xm;
