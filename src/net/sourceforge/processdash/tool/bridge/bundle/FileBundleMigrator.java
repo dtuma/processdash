@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.util.List;
 
 import net.sourceforge.processdash.templates.DataVersionChecker;
@@ -43,11 +44,32 @@ public class FileBundleMigrator {
     public static void migrate(File directory,
             FileResourceCollectionStrategy strategy, FileBundleMode bundleMode)
             throws IOException, LockFailureException {
-        DirType dirType = (strategy instanceof DashboardInstanceStrategy
+        if (!FileBundleUtils.isBundledDir(directory))
+            new FileBundleMigrator(directory, strategy, getDirType(strategy),
+                    MigrationDirection.Bundle, bundleMode, true).migrate();
+    }
+
+
+    public static void unmigrate(File directory,
+            FileResourceCollectionStrategy strategy)
+            throws IOException, LockFailureException {
+        FileBundleMode bundleMode = FileBundleUtils.getBundleMode(directory);
+        if (bundleMode != null)
+            new FileBundleMigrator(directory, strategy, getDirType(strategy),
+                    MigrationDirection.Unbundle, bundleMode, true).migrate();
+    }
+
+
+    private static DirType getDirType(FileResourceCollectionStrategy strategy) {
+        return (strategy instanceof DashboardInstanceStrategy
                 ? DirType.Dashboard
                 : DirType.WBS);
-        new FileBundleMigrator(directory, strategy, dirType, bundleMode, true)
-                .migrate();
+    }
+
+
+
+    private enum MigrationDirection {
+        Bundle, Unbundle
     }
 
 
@@ -74,7 +96,8 @@ public class FileBundleMigrator {
                 File diss = new File(fbm.directory, "disseminate");
                 if (diss.isDirectory())
                     new FileBundleMigrator(diss, TeamDataDirStrategy.INSTANCE,
-                            Disseminate, fbm.bundleMode, false).migrate();
+                            Disseminate, fbm.direction, fbm.bundleMode,
+                            false).migrate();
             }
         },
 
@@ -93,7 +116,9 @@ public class FileBundleMigrator {
 
     private interface Migrator {
 
-        public void migrate() throws IOException, LockFailureException;
+        public void bundle() throws IOException, LockFailureException;
+
+        public void unbundle() throws IOException, LockFailureException;
 
         public void dispose();
 
@@ -107,6 +132,8 @@ public class FileBundleMigrator {
 
     private DirType dirType;
 
+    private MigrationDirection direction;
+
     private FileBundleMode bundleMode;
 
     private boolean enforceLocks;
@@ -115,10 +142,12 @@ public class FileBundleMigrator {
 
     private FileBundleMigrator(File directory,
             FileResourceCollectionStrategy strategy, DirType dirType,
-            FileBundleMode bundleMode, boolean enforceLocks) {
+            MigrationDirection direction, FileBundleMode bundleMode,
+            boolean enforceLocks) {
         this.directory = directory;
         this.strategy = strategy;
         this.dirType = dirType;
+        this.direction = direction;
         this.bundleMode = bundleMode;
         this.enforceLocks = enforceLocks;
     }
@@ -128,15 +157,26 @@ public class FileBundleMigrator {
         this.migrator = createMigrator();
 
         try {
-            // migrate the files into the bundle directories
-            migrator.migrate();
+            if (this.direction == MigrationDirection.Bundle) {
 
-            // remove the now-migrated files from the target directory
-            cleanupLegacyFiles();
+                // migrate the files into the bundle directories
+                migrator.bundle();
 
-            // write a minimal set of files into the target directory to steer
-            // legacy clients away from accessing the data
-            dirType.writeCompatibilityFiles(this);
+                // remove the now-migrated files from the target directory
+                cleanupLegacyFiles();
+
+                // write a minimal set of files into the target directory to
+                // steer legacy clients away from accessing the data
+                dirType.writeCompatibilityFiles(this);
+
+            } else {
+
+                // remove read-only flags from compatibility files
+                makeTargetFilesWriteable();
+
+                // migrate the files out of the bundle directories
+                migrator.unbundle();
+            }
 
             // perform any post-migration follow-up steps
             dirType.postMigrate(this);
@@ -171,6 +211,16 @@ public class FileBundleMigrator {
                 if (filter.accept(directory, oneFile.getName() + "/"))
                     FileUtils.deleteDirectory(oneFile, true);
             }
+        }
+    }
+
+    private void makeTargetFilesWriteable() {
+        // find all files that match the filter, and ensure writability
+        FilenameFilter filter = strategy.getFilenameFilter();
+        List<String> filenames = FileUtils.listRecursively(directory, filter);
+        for (String filename : filenames) {
+            File oneFile = new File(directory, filename);
+            oneFile.setWritable(true);
         }
     }
 
@@ -229,6 +279,7 @@ public class FileBundleMigrator {
         public Local(File targetDirectory,
                 FileResourceCollectionStrategy strategy, boolean enforceLocks) {
             super(targetDirectory, strategy, null);
+            setEnableBackgroundFlush(false);
             this.enforceLocks = enforceLocks;
         }
 
@@ -243,13 +294,39 @@ public class FileBundleMigrator {
                 super.assertWriteLock();
         }
 
-        public void migrate() throws IOException, LockFailureException {
+        public void bundle() throws IOException, LockFailureException {
             prepare();
             if (enforceLocks)
                 acquireWriteLock();
-            doBackup("before-bundle-migration");
+            doBackup("before_bundle_migration");
             flushData();
             FileUtils.deleteDirectory(getMetadataDir(), true);
+        }
+
+        public void unbundle() throws IOException, LockFailureException {
+            if (enforceLocks)
+                acquireWriteLock();
+            URL backupFile = doBackup("before_bundle_unmigration");
+            prepare();
+            backupBundleDirs(backupFile, "bundles", "heads");
+            FileUtils.deleteDirectory(getMetadataDir(), true);
+        }
+
+        private void backupBundleDirs(URL backupFile, String... subdirNames) {
+            File backupDir = new File(workingDirectory, "backup");
+            String prefix = extractBackupPrefix(backupFile);
+            for (String oneSubdirName : subdirNames) {
+                File oneSubdir = new File(workingDirectory, oneSubdirName);
+                File destDir = new File(backupDir, prefix + oneSubdirName);
+                oneSubdir.renameTo(destDir);
+            }
+        }
+
+        private String extractBackupPrefix(URL backupFile) {
+            String result = backupFile.toString();
+            int beg = result.lastIndexOf('/') + 1;
+            int end = result.lastIndexOf('-') + 1;
+            return result.substring(beg, end);
         }
 
         private void acquireWriteLock() throws LockFailureException {
