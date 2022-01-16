@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -878,7 +878,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
         createTeamDirectory(disseminationDir, isPersonal);
 
-        if (getWorkingDirectory() instanceof BundledWorkingDirectory)
+        if (Settings.getBool("bundle.newProjects",
+            getWorkingDirectory() instanceof BundledWorkingDirectory))
             bundleProjectDataDirectory(projDataDir, isPersonal);
 
         return projDataDir.getPath();
