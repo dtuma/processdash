@@ -33,6 +33,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
@@ -107,6 +108,16 @@ public class BundleMigrationAction extends AbstractAction {
 
             migrateDataset = dataset != null && dataset.isSelected();
             migrateProjects = projects != null && projects.isSelected();
+
+            // if the user explicitly chose to skip migration of projects,
+            // store a flag that avoids migration of future new projects too.
+            // otherwise, clear/set the flag to allow future migrations
+            if (projects != null && !projects.isSelected())
+                InternalSettings.set("bundle.newProjects", "false");
+            else if (dataset == null || dataset.isSelected())
+                InternalSettings.set("bundle.newProjects", null);
+            else if (migrateProjects)
+                InternalSettings.set("bundle.newProjects", "true");
         }
 
         // if any projects need migrating, do that first
