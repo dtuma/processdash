@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,11 +61,13 @@ public class FileBundleUtils {
      *            the directory to check
      * @return the {@link FileBundleMode} in use, or null if the directory is
      *         not using bundled file format
+     * @throws FileNotFoundException
+     *             if the directory could not be reached
      * @throws IOException
-     *             if the directory could not be reached or data could not be
-     *             read
+     *             if the data could not be read
      */
-    public static FileBundleMode getBundleMode(File dir) throws IOException {
+    public static FileBundleMode getBundleMode(File dir)
+            throws FileNotFoundException, IOException {
         // if the directory is not accessible, throw an exception
         if (!dir.isDirectory())
             throw new FileNotFoundException(dir.getPath());
@@ -76,6 +78,28 @@ public class FileBundleUtils {
 
         // only one bundle mode is currently supported
         return FileBundleMode.Local;
+    }
+
+    /**
+     * Verify that the mode of a directory matches expectations.
+     * 
+     * @param dir
+     *            the directory to check
+     * @param expectedMode
+     *            the bundle mode we expect the directory to have. This can be
+     *            null to indicate expectations for an unbundled directory
+     * @throws FileNotFoundException
+     *             if the directory could not be reached
+     * @throws IOException
+     *             if the data could not be read
+     * @throws FileBundleModeMismatch
+     *             if the bundle modes did not match
+     */
+    public static void ensureBundleMode(File dir, FileBundleMode expectedMode)
+            throws FileNotFoundException, IOException, FileBundleModeMismatch {
+        FileBundleMode dirMode = getBundleMode(dir);
+        if (dirMode != expectedMode)
+            throw new FileBundleModeMismatch(dir, expectedMode, dirMode);
     }
 
 }

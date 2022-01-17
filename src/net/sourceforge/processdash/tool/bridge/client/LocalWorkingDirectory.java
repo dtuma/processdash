@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
@@ -65,7 +66,9 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
             throw new FileNotFoundException(targetDirectory.getPath());
     }
 
-    public void update() throws IOException {}
+    public void update() throws IOException {
+        FileBundleUtils.ensureBundleMode(targetDirectory, null);
+    }
 
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName) throws AlreadyLockedException,

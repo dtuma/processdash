@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleModeMismatch;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 
 public class FollowModeManager extends Thread {
@@ -72,6 +73,10 @@ public class FollowModeManager extends Thread {
             try {
                 Thread.sleep(REFRESH_DELAY);
                 update();
+            } catch (FileBundleModeMismatch fbmm) {
+                logger.log(Level.SEVERE,
+                    "Bundle mode changed, exiting follow-mode", fbmm);
+                return;
             } catch (Exception e) {
                 logger.log(Level.WARNING,
                     "Encountered problem during follow-mode update", e);
@@ -81,14 +86,14 @@ public class FollowModeManager extends Thread {
     }
 
     private void update() throws Exception {
-        // update the contents of the working directory, if it is in bridged
-        // mode
-        workingDirectory.update();
         // if the working directory has become temporarily unavailable (for
         // example, due to network connectivity problems), don't attempt to
         // perform any updates.
         if (workingDirectory.getDirectory().isDirectory() == false)
             return;
+
+        // update the contents of the working directory
+        workingDirectory.update();
 
         updateHierarchy();
         dataRepository.reloadModifiedDatafiles();
