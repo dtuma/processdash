@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2021 Tuma Solutions, LLC
+// Copyright (C) 2016-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -122,9 +122,7 @@ public class CachingLocalImportDirectory implements ImportDirectory {
         cachedCollection.validate();
 
         // if the target directory has been migrated to bundled format, abort
-        if (FileBundleUtils.isBundledDir(targetDirectory))
-            throw new IOException("Directory was migrated to bundled format: "
-                    + targetDirectory.getPath());
+        FileBundleUtils.ensureBundleMode(targetDirectory, null);
 
         // compute a difference between the two directories
         ResourceCollectionDiff diff = new ResourceCollectionDiff(
