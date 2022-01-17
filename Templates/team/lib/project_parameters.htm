@@ -87,6 +87,18 @@
 <td>TEAM Project Network Directory (UNC)</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory_UNC]s"></td>
 </tr>
+
+[!--#if userPref.bundle.migrator.enabled --]
+<tr>
+<td style="padding-left:1cm">Project Directory Bundle Mode</td>
+<td>
+<b><tt>[!--#include file="../control/bundleMode?nameAsText" --]</tt></b>
+[!--#if datasetMode eq 'team' --]
+<i><a href="../control/bundleMode" style="padding-left:1em">Change...</a></i>
+[!--#endif--]
+</td>
+</tr>
+[!--#endif--]
 [!--#endif--]
 
 [!--#if showDataUrl || [Team_Data_Directory_URL] --]

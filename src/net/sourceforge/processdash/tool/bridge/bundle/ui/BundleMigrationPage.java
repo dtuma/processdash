@@ -72,6 +72,23 @@ public class BundleMigrationPage extends TinyCGIBase {
 
     @Override
     protected void doGet() throws IOException {
+        if (parameters.containsKey("nameAsText"))
+            writeModeNameAsText();
+        else
+            writeHtmlSummary();
+    }
+
+    private void writeModeNameAsText() throws IOException {
+        out.write("Content-Type: text/plain\r\n\r\n");
+        try {
+            loadValues();
+            out.print(bundleMode == null ? "not bundled" : bundleMode.getName());
+        } catch (Exception e) {
+            out.print("?????");
+        }
+    }
+
+    private void writeHtmlSummary() throws IOException {
         loadValues();
 
         writeHtmlPageHeader("");
