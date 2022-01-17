@@ -26,21 +26,31 @@ package net.sourceforge.processdash.tool.bridge.bundle.ui;
 import java.io.File;
 import java.io.IOException;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class BundleMigrationPage extends TinyCGIBase {
+
+    private enum Target { Dataset, Project }
+
+    private Target target;
 
     private boolean isPersonal;
 
@@ -49,6 +59,14 @@ public class BundleMigrationPage extends TinyCGIBase {
     private FileBundleMode bundleMode;
 
     private void loadValues() throws IOException {
+        if (StringUtils.hasValue(getPrefix()))
+            loadProjectValues();
+        else
+            loadDatasetValues();
+    }
+
+    private void loadProjectValues() throws IOException {
+        target = Target.Project;
         DataContext data = getDataContext();
 
         // check whether this is a personal project
@@ -66,6 +84,18 @@ public class BundleMigrationPage extends TinyCGIBase {
         directory = new File(ExternalResourceManager.getInstance()
                 .remapFilename(teamDir.format()));
         bundleMode = FileBundleUtils.getBundleMode(directory);
+    }
+
+    private void loadDatasetValues() throws IOException {
+        target = Target.Dataset;
+        WorkingDirectory dir = getDashboardContext().getWorkingDirectory();
+        directory = dir.getTargetDirectory();
+        if (dir instanceof BundledWorkingDirectory)
+            bundleMode = ((BundledWorkingDirectory) dir).getBundleMode();
+    }
+
+    private boolean isDataset() {
+        return target == Target.Dataset;
     }
 
 
@@ -93,7 +123,8 @@ public class BundleMigrationPage extends TinyCGIBase {
 
         writeHtmlPageHeader("");
 
-        out.println("<p>This project stores data in the directory:</p>");
+        out.println("<p>This " + target.toString().toLowerCase()
+                + " stores data in the directory:</p>");
         out.println("<pre>" + esc(directory.getPath()) + "</pre>");
 
         if (bundleMode == null) {
@@ -117,17 +148,18 @@ public class BundleMigrationPage extends TinyCGIBase {
     }
 
     private boolean hasPermission() {
-        return isPersonal || Settings.isTeamMode();
+        return isDataset() || isPersonal || Settings.isTeamMode();
     }
 
     private void writeHtmlPageHeader(String bodyAttrs) {
         writeHeader();
         out.println("<html><head>");
-        out.println("<title>Project Bundle Mode</title>");
+        out.println("<title>" + target + " Bundle Mode</title>");
         out.println("<style>pre, form { margin-left: 1cm }</style>");
         out.println("</head><body" + bodyAttrs + ">");
-        out.println("<h1>" + esc(getPrefix()) + "</h1>");
-        out.println("<h2>Project Bundle Mode</h2>");
+        if (!isDataset())
+            out.println("<h1>" + esc(getPrefix()) + "</h1>");
+        out.println("<h2>" + target + " Bundle Mode</h2>");
     }
 
 
@@ -135,7 +167,7 @@ public class BundleMigrationPage extends TinyCGIBase {
     protected void doPost() throws IOException {
         loadValues();
         parseFormData();
-        long waitUntil = System.currentTimeMillis() + 1500;
+        long waitUntil = 0;
 
         try {
             if (!checkPostToken()) {
@@ -144,17 +176,19 @@ public class BundleMigrationPage extends TinyCGIBase {
             } else if (!hasPermission()) {
                 // no permission to make changes
 
+            } else if (isDataset()) {
+                writeDatasetShutdown();
+                ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
+                dash.exitProgram(new DatasetMigrationTask());
+                return;
+
             } else if (!parameters.containsKey("run")) {
                 writePleaseWait();
                 return;
 
-            } else if (bundleMode == null) {
-                FileBundleMigrator.migrate(directory,
-                    TeamDataDirStrategy.INSTANCE, FileBundleMode.Local);
-
             } else {
-                FileBundleMigrator.unmigrate(directory,
-                    TeamDataDirStrategy.INSTANCE);
+                waitUntil = System.currentTimeMillis() + 1500;
+                doMigration(TeamDataDirStrategy.INSTANCE);
             }
 
         } catch (LockFailureException lfe) {
@@ -173,6 +207,14 @@ public class BundleMigrationPage extends TinyCGIBase {
     }
 
 
+    private void writeDatasetShutdown() {
+        writeHtmlPageHeader("");
+        out.println("<p>The dashboard will now close to migrate core "
+                + "data files. After the migration and shut down are "
+                + "complete, you can reopen the dashboard as desired.</p>");
+        out.println("</body></html>");
+    }
+
     private void writePleaseWait() {
         writeHtmlPageHeader(" onload=\"document.forms['run'].submit()\"");
 
@@ -184,6 +226,31 @@ public class BundleMigrationPage extends TinyCGIBase {
         out.println("</form>");
 
         out.println("</body></html>");
+    }
+
+    private class DatasetMigrationTask implements Runnable {
+
+        public void run() {
+            try {
+                doMigration(DashboardInstanceStrategy.INSTANCE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String toString() {
+            return "Migrating dashboard data directory";
+        }
+    }
+
+    private void doMigration(FileResourceCollectionStrategy strategy)
+            throws IOException, LockFailureException {
+        if (bundleMode == null) {
+            FileBundleMigrator.migrate(directory, strategy,
+                FileBundleMode.Local);
+        } else {
+            FileBundleMigrator.unmigrate(directory, strategy);
+        }
     }
 
     private String esc(String text) {
