@@ -202,7 +202,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         // ask our client to sync up the given file
         discardLocallyCachedFileData();
         for (int numTries = 5; numTries-- > 0;) {
-            if (client.syncUp() == false)
+            if (client.syncUp(filename) == false)
                 return true;
         }
 
