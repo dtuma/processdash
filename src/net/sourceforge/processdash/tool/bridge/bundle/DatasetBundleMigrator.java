@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,19 +24,24 @@
 package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
+import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
@@ -162,6 +167,28 @@ public class DatasetBundleMigrator {
 
         public String toString() {
             return name;
+        }
+    }
+
+    public static void prepareDatasetForMigration(DashboardContext ctx) {
+        // personal datasets require additional preparation before migrating
+        if (Settings.isPersonalMode()) {
+            try {
+                // save an extra backup, before we modify *.dat/def files below
+                ctx.getWorkingDirectory().doBackup("before_bundle_prep");
+            } catch (IOException e) {}
+
+            // rewrite all *.dat files with embedded bundle qualifiers
+            ctx.getData().enableBundleQualifiers();
+            ctx.getData().rewriteAllDatafiles();
+
+            // rewrite all *.def files with embedded bundle qualifiers, and
+            // delete files that are empty
+            DefectLog.enableXmlStorageFormat();
+            DefectLog.rewriteAllDefectLogs(ctx);
+
+            // clean up orphaned *.dat/def files so they don't clutter bundles
+            DashController.scrubDataDirectory();
         }
     }
 

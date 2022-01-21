@@ -133,6 +133,9 @@ public class BundleMigrationPage extends TinyCGIBase {
         } else {
             out.println("<p>That directory is using bundled file storage in <b>"
                     + bundleMode.getName() + "</b> mode.</p>");
+            if (parameters.containsKey("writeQualifiers"))
+                BundleMigrationAction
+                        .prepareDatasetForMigration(getDashboardContext());
         }
 
         if (hasPermission()) {
@@ -178,8 +181,7 @@ public class BundleMigrationPage extends TinyCGIBase {
 
             } else if (isDataset()) {
                 writeDatasetShutdown();
-                ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
-                dash.exitProgram(new DatasetMigrationTask());
+                new Thread(new DatasetMigrationInitiator()).start();
                 return;
 
             } else if (!parameters.containsKey("run")) {
@@ -226,6 +228,17 @@ public class BundleMigrationPage extends TinyCGIBase {
         out.println("</form>");
 
         out.println("</body></html>");
+    }
+
+    private class DatasetMigrationInitiator implements Runnable {
+
+        public void run() {
+            ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
+            if (bundleMode == null)
+                BundleMigrationAction.prepareDatasetForMigration(dash);
+            dash.exitProgram(new DatasetMigrationTask());
+        }
+
     }
 
     private class DatasetMigrationTask implements Runnable {

@@ -1572,6 +1572,14 @@ public class DataRepository implements Repository, DataContext,
     }
 
     public void saveAllDatafiles() {
+        saveAllDatafiles(false);
+    }
+
+    public void rewriteAllDatafiles() {
+        saveAllDatafiles(true);
+    }
+
+    private void saveAllDatafiles(boolean forceResave) {
         List files;
         synchronized (datafiles) {
             files = new ArrayList(datafiles);
@@ -1580,7 +1588,7 @@ public class DataRepository implements Repository, DataContext,
         for (Iterator i = files.iterator(); i.hasNext();) {
             DataFile datafile = (DataFile) i.next();
             try {
-                if (datafile.dirtyCount > 0)
+                if (forceResave || datafile.dirtyCount > 0)
                     saveDatafile(datafile);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,

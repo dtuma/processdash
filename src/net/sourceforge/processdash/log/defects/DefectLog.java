@@ -42,6 +42,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -50,18 +56,16 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.Prop;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.tool.export.impl.DefectXmlConstantsv1;
 import net.sourceforge.processdash.tool.export.impl.XmlConstants;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import org.xmlpull.v1.XmlSerializer;
 
 
 public class DefectLog {
@@ -536,6 +540,20 @@ public class DefectLog {
         for (Iterator i = listeners.iterator(); i.hasNext();) {
             Listener l = (Listener) i.next();
             l.defectUpdated(this, d);
+        }
+    }
+
+    public static void rewriteAllDefectLogs(DashboardContext ctx) {
+        File dir = ctx.getWorkingDirectory().getDirectory();
+        DataRepository data = ctx.getData();
+        for (Entry<PropertyKey, Prop> e : ctx.getHierarchy().entrySet()) {
+            String logFilename = e.getValue().getDefectLog();
+            if (StringUtils.hasValue(logFilename)) {
+                File logFile = new File(dir, logFilename);
+                String dataPath = e.getKey().path();
+                DefectLog dl = new DefectLog(logFile.getPath(), dataPath, data);
+                dl.save(dl.readDefects());
+            }
         }
     }
 

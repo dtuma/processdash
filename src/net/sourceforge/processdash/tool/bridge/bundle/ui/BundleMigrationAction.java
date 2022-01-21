@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.tool.bridge.bundle.ui;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ import net.sourceforge.processdash.templates.DataVersionChecker.Incompatibility;
 import net.sourceforge.processdash.templates.ExtensionManager.DisabledExtensionException;
 import net.sourceforge.processdash.tool.bridge.bundle.DatasetBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 
 public class BundleMigrationAction extends AbstractAction {
@@ -136,8 +138,10 @@ public class BundleMigrationAction extends AbstractAction {
 
         // ask the user for permission to shut down. Then close the dashboard,
         // and migrate the dashboard directory after shutdown is complete
-        if (userConfirm("Restart", JOptionPane.OK_CANCEL_OPTION))
+        if (userConfirm("Restart", JOptionPane.OK_CANCEL_OPTION)) {
+            prepareDatasetForMigration(ctx);
             parent.exitProgram(new MinTimeRunnable(datasetMigrationTask, 2000));
+        }
     }
 
     private boolean checkVersions(FileBundleMode bundleMode) {
@@ -181,6 +185,15 @@ public class BundleMigrationAction extends AbstractAction {
 
     private static String res(String resKey) {
         return resources.getString(resKey);
+    }
+
+    synchronized static void prepareDatasetForMigration(DashboardContext ctx) {
+        // prepare personal data files for migration. This may take time, so
+        // we use a dialog to alert the user that something is happening
+        PleaseWaitDialog dlg = new PleaseWaitDialog((Frame) ctx,
+                res("Preparation.Title"), res("Preparation.Message"), 100);
+        DatasetBundleMigrator.prepareDatasetForMigration(ctx);
+        dlg.dispose();
     }
 
     private class MinTimeRunnable implements Runnable {
