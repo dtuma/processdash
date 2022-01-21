@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ public interface FileBundleConstants {
     public String LOG_BUNDLE = "log";
 
     public String SINGLETON_PARTITION = "*";
+
+    public String QUALIFIED_PARTITION = " qualified ";
 
     public String CATCH_ALL_PARTITION = " catch all ";
 

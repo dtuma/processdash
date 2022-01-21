@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,10 +30,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,8 +51,6 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
     private FileBundleManifestSource manifests;
 
-    private Set<String> qualifiedBundles;
-
     private Map<String, QualifiedFile> qualifiedFileCache;
 
     public FileBundlePartitioner(FileResourceCollectionStrategy strategy,
@@ -64,22 +60,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
         this.source = source;
         this.headRefs = localHeadRefs;
         this.manifests = manifestSource;
-    }
-
-    /**
-     * Designate a particular bundle name as being "qualified."
-     * 
-     * Selected files in a qualified bundle can be split out into a bundle of
-     * their own, using an arbitrary suffix on the parent bundle name. This
-     * suffix is specified within the files themselves, by means of a special
-     * declaration in the first few lines of the file.
-     */
-    public void setBundleQualified(String bundleName) {
-        if (qualifiedBundles == null) {
-            qualifiedBundles = new HashSet<String>();
-            qualifiedFileCache = new HashMap<String, QualifiedFile>();
-        }
-        qualifiedBundles.add(bundleName);
+        this.qualifiedFileCache = new HashMap<String, QualifiedFile>();
     }
 
     /**
@@ -177,9 +158,12 @@ public class FileBundlePartitioner implements FileBundleConstants {
                     // certain files go into bundles by themselves. If this file
                     // meets that criteria, its filename is its bundle name
                     return FileBundleID.filenameToBundleName(filenameLC);
-                } else {
-                    // return the bundle we found, adding a qualifier if needed
+                } else if (isQualifiedBundle(partitionSpec)) {
+                    // for qualified bundles, look for qualifier spec in file
                     return maybeQualifyBundle(bundleName, filename);
+                } else {
+                    // return the standard, unqualified bundle name we found
+                    return bundleName;
                 }
             }
         }
@@ -218,24 +202,24 @@ public class FileBundlePartitioner implements FileBundleConstants {
     }
 
 
+    private boolean isQualifiedBundle(Object[] partitionSpec) {
+        return matches(QUALIFIED_PARTITION, QUALIFIED_PARTITION, partitionSpec);
+    }
+
+
     private String maybeQualifyBundle(String bundleName, String filename)
             throws IOException {
-        String qualifier = null;
+        // see if we have a cached object to hold this file's qualifier
+        QualifiedFile qf = qualifiedFileCache.get(filename);
 
-        // if the given bundle is qualified, get the qualifier for this file
-        if (qualifiedBundles != null && qualifiedBundles.contains(bundleName)) {
-            // see if we have a cached object to hold this file's qualifier
-            QualifiedFile qf = qualifiedFileCache.get(filename);
-
-            // if no cached object, create one and add to the cache
-            if (qf == null) {
-                qf = new QualifiedFile(filename);
-                qualifiedFileCache.put(filename, qf);
-            }
-
-            // get the qualifier for the file, extracting if necessary
-            qualifier = qf.getQualifier();
+        // if no cached object, create one and add to the cache
+        if (qf == null) {
+            qf = new QualifiedFile(filename);
+            qualifiedFileCache.put(filename, qf);
         }
+
+        // get the qualifier for the file, extracting if necessary
+        String qualifier = qf.getQualifier();
 
         // if a qualifier was found, append it to the bundle name
         if (qualifier == null)
