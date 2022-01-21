@@ -9,6 +9,9 @@
 [<!--#echo Process_ID --> Team Project Indiv Root] = tag;
 [Team Project Indiv Root] = tag;
 
+[Bundle_Qualifier] = 
+    iff([Project_ID] == "Enter Project Identifier", null, [Project_ID]);
+
 [Indiv_Initials] = "tttt";
 [Indiv_Export_Filename] = [Indiv_Initials] & "-data.pdash";
 [EXPORT_FILE] = 

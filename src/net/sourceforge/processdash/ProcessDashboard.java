@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2021 Tuma Solutions, LLC
+// Copyright (C) 1998-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -322,6 +322,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // create the data repository
         data = new DataRepository();
+        if (Settings.isPersonalMode()
+                && workingDirectory instanceof BundledWorkingDirectory)
+            data.enableBundleQualifiers();
         if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
             data.disableFreezing();
         data.addGlobalDefineDeclarations("#define AUTO_INDIV_ROOT_TAG t");

@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2016 Tuma Solutions, LLC
+// Copyright (C) 1999-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -194,6 +194,10 @@ public class DefectLog {
                 ser.setOutput(out, XmlConstants.ENCODING);
                 ser.startDocument(XmlConstants.ENCODING, null);
                 ser.startTag(null, "defectLog");
+                String qualifier = data == null ? null
+                        : data.getBundleQualifier(dataPrefix);
+                if (qualifier != null)
+                    ser.attribute(null, "bundleQualifier", qualifier);
                 for (int i = 0; i < defects.length; i++)
                     if (defects[i] != null)
                         defects[i].toXml(ser);

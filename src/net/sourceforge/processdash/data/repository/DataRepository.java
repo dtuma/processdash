@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2018 Tuma Solutions, LLC
+// Copyright (C) 1998-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -148,6 +148,7 @@ public class DataRepository implements Repository, DataContext,
 
     Vector datafiles = new Vector();
     HashTree datafilePrefixMap = new HashTree();
+    boolean bundleQualifiersEnabled = false;
 
     RepositoryServer dataServer = null;
     RepositoryServer secondaryDataServer = null;
@@ -2339,6 +2340,29 @@ public class DataRepository implements Repository, DataContext,
 
 
 
+    /** @since 2.6.6.3 */
+    public String getBundleQualifier(String prefix) {
+        if (!bundleQualifiersEnabled || prefix == null)
+            return null;
+
+        SaveableData sd = getInheritableValue(prefix, "Bundle_Qualifier");
+        SimpleData qual = (sd == null ? null : sd.getSimpleValue());
+        if (qual != null && qual.test())
+            return qual.format();
+        else
+            return null;
+    }
+
+    public void enableBundleQualifiers() {
+        bundleQualifiersEnabled = true;
+    }
+
+    public boolean isBundleQualifiersEnabled() {
+        return bundleQualifiersEnabled;
+    }
+
+
+
     private static final int MAX_RECURSION_DEPTH = 100;
     private volatile int recursion_depth = 0;
 
@@ -3744,6 +3768,9 @@ public class DataRepository implements Repository, DataContext,
                 valuesToSave.add(name + (editable ? "=" : "==") + valStr);
             }
 
+            // see if this datafile should have a bundle qualifier
+            String qualifier = getBundleQualifier(datafile.prefix);
+
             // Write the saved values
             RobustFileOutputStream rfos;
             BufferedWriter out;
@@ -3769,6 +3796,12 @@ public class DataRepository implements Repository, DataContext,
                 // If the data file has a prefix, write it as a comment to the file
                 if (datafile.prefix != null && datafile.prefix.length() > 0) {
                     out.write("= Data for " + datafile.prefix);
+                    out.newLine();
+                }
+
+                // If the data file has a qualifier, write it as a comment
+                if (qualifier != null) {
+                    out.write("= Bundle_Qualifier = " + qualifier);
                     out.newLine();
                 }
 
