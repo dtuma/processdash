@@ -25,9 +25,12 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Properties;
 
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
@@ -100,6 +103,49 @@ public class FileBundleUtils {
         FileBundleMode dirMode = getBundleMode(dir);
         if (dirMode != expectedMode)
             throw new FileBundleModeMismatch(dir, expectedMode, dirMode);
+    }
+
+    /**
+     * Read the properties file for a bundled directory, and return the contents
+     * 
+     * @param dir
+     *            a directory, which may or may not be bundled
+     * @return the bundle properties for the directory. If the directory is not
+     *         bundled, returns null
+     * @throws FileNotFoundException
+     *             if the directory could not be reached
+     * @throws IOException
+     *             if the properties file could not be read
+     */
+    public static Properties getBundleProps(File dir)
+            throws FileNotFoundException, IOException {
+        // if the directory is not accessible, throw an exception
+        if (!dir.isDirectory())
+            throw new FileNotFoundException(dir.getPath());
+
+        // if this is not a bundled directory, return null
+        if (!isBundledDir(dir))
+            return null;
+
+        // look for the bundle properties file. Different names are used for WBS
+        // directories vs dashboard directories
+        if ("disseminate".equalsIgnoreCase(dir.getName()))
+            dir = dir.getParentFile();
+        File propsFile = new File(dir, "user-settings.ini");
+        if (!propsFile.isFile())
+            propsFile = new File(dir, "pspdash.ini");
+        if (!propsFile.isFile())
+            throw new FileNotFoundException(dir.getPath() + " - bundle props");
+
+        // read properties from the file and return the result
+        Properties result = new Properties();
+        InputStream in = new FileInputStream(propsFile);
+        try {
+            result.load(in);
+        } finally {
+            in.close();
+        }
+        return result;
     }
 
 }
