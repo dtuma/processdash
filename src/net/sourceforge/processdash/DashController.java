@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2021 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -502,6 +502,8 @@ public class DashController {
             String name = f.getName().toLowerCase();
             if (isNumberedDataOrDefectFile(name))
                 if (!filesInUse.contains(name))
+                    f.delete();
+                else if (f.getName().endsWith(".def") && f.length() == 0)
                     f.delete();
         }
     }

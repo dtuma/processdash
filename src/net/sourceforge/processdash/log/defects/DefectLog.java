@@ -163,6 +163,8 @@ public class DefectLog {
     private void save(Defect [] defects) {
         if (Settings.isReadOnly())
             return;
+        else if (isEmptyDefectList(defects))
+            new File(defectLogFilename).delete();
         else if (Settings.getBool(USE_XML_SETTING, false))
             saveAsXML(defects);
         else {
@@ -171,6 +173,16 @@ public class DefectLog {
                 saveAsXML(defects);
             }
         }
+    }
+
+    private boolean isEmptyDefectList(Defect[] defects) {
+        if (defects != null) {
+            for (Defect d : defects) {
+                if (d != null)
+                    return false;
+            }
+        }
+        return true;
     }
 
     private void saveAsXML(Defect [] defects) {
@@ -245,11 +257,16 @@ public class DefectLog {
     }
 
     public Defect[] readDefects() {
+        // if the file does not exist or is empty, return an empty array
+        File defectLogFile = new File(defectLogFilename);
+        if (defectLogFile.length() == 0)
+            return new Defect[0];
+
+        // attempt to read the file
         Defect [] results = null;
         PushbackInputStream pin = null;
         try {
-            pin = new PushbackInputStream(
-                        new FileInputStream(defectLogFilename));
+            pin = new PushbackInputStream(new FileInputStream(defectLogFile));
             int c = pin.read();
             if (c == -1) { // empty file
                 ;

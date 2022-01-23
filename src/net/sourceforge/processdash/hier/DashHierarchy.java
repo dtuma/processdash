@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2021 Tuma Solutions, LLC
+// Copyright (C) 1999-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -945,10 +945,6 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
             String newfile = getNextDefectLogname();
 
             aProp.setDefectLog (newfile);
-            // this is kind of icky - we're using the datafile change queue to
-            // remember changes to defect logs.  Perhaps later we should rework this.
-            fireDataFileChange
-                (new PendingDataChange(null, newfile, null, null));
         }
         put (toKey, aProp);
         //fireHierarchyChanged();
