@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -306,7 +306,8 @@ public class ImportDirectoryFactory {
         if (path.startsWith(userHome))
             return true;
 
-        if (baseDirectory != null && baseDirectory.equals(dir.getParentFile()))
+        if (baseDirectory != null
+                && baseDirectory.getDirectory().equals(dir.getParentFile()))
             return true;
 
         return false;
