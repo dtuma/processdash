@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -86,6 +87,15 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         }
 
         return timezone;
+    }
+
+
+
+    /**
+     * Return a bundle ID containing the current time and device ID.
+     */
+    public FileBundleID getCurrentTimeBundleID() {
+        return createNewBundleID(-1, "currentTime");
     }
 
 
@@ -304,6 +314,24 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private File getZipFileForBundle(FileBundleID bundleID) {
         return new File(bundleDir, bundleID.getToken() + ".zip");
+    }
+
+
+
+    /**
+     * Permanently delete a set of bundles from the directory.
+     * 
+     * @param bundleIDs
+     *            the set of bundles to delete
+     */
+    public void deleteBundles(Set<FileBundleID> bundleIDs) {
+        for (FileBundleID bid : bundleIDs) {
+            File mf = FileBundleManifest.getFileForManifest(bundleDir, bid);
+            mf.delete();
+            File zf = getZipFileForBundle(bid);
+            zf.delete();
+            manifestCache.remove(bid);
+        }
     }
 
 

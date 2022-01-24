@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ public class ResourceBundleClient {
 
     private FileBundlePartitioner partitioner;
 
+    private String retentionThresholdTimestamp;
+
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
             File bundleDirectory, HeadRefs bundleHeads) throws IOException {
@@ -60,6 +62,12 @@ public class ResourceBundleClient {
         this.bundleHeads = bundleHeads;
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, bundleDir);
+        setRetentionThresholdTimestamp();
+    }
+
+    public void setRetentionThresholdTimestamp() {
+        retentionThresholdTimestamp = bundleDir.getCurrentTimeBundleID()
+                .getTimestamp();
     }
 
     public ResourceCollection getWorkingDir() {
@@ -274,7 +282,9 @@ public class ResourceBundleClient {
     private boolean syncUpImpl(String singleFilename, boolean whatIfMode)
             throws IOException {
         Map<String, FileBundleID> workingHeadRefs = workingHeads.getHeadRefs();
+        Set<FileBundleID> obsoleteRefs = new HashSet<FileBundleID>();
         Set<FileBundleID> newRefs = new HashSet<FileBundleID>();
+        FileBundleID currentTime = bundleDir.getCurrentTimeBundleID();
 
         // have the partitioner compute the bundles needed for the working dir
         for (FileBundleSpec spec : partitioner.partition()) {
@@ -285,6 +295,7 @@ public class ResourceBundleClient {
                     return true;
                 } else {
                     // in regular mode, publish the new/changed bundle
+                    checkBundleRetention(spec, currentTime, obsoleteRefs);
                     FileBundleID newBundleID = bundleDir.storeBundle(spec);
                     newRefs.add(newBundleID);
                 }
@@ -296,6 +307,7 @@ public class ResourceBundleClient {
         if (madeChange) {
             workingHeads.storeHeadRefs(newRefs);
             bundleHeads.storeHeadRefs(newRefs);
+            bundleDir.deleteBundles(obsoleteRefs);
         }
 
         // let our caller know if any changes were made
@@ -339,6 +351,34 @@ public class ResourceBundleClient {
             return true;
         else
             return containsIgnoreCase(filenames, singleFilename);
+    }
+
+    private void checkBundleRetention(FileBundleSpec spec,
+            FileBundleID currentTime, Set<FileBundleID> obsoleteRefs)
+            throws IOException {
+        // if the bundle has no parents, or has multiple, don't discard it
+        if (spec.parents == null || spec.parents.size() != 1)
+            return;
+
+        // if the parent was written by a different user/computer, keep it
+        FileBundleID parentID = spec.parents.get(0);
+        if (!parentID.getDeviceID().equals(currentTime.getDeviceID()))
+            return;
+
+        // if the parent was written before our retention theshold, keep it
+        if (parentID.getTimestamp().compareTo(retentionThresholdTimestamp) <= 0)
+            return;
+
+        // ask the retention granularity in the spec to decide if we keep it
+        if (spec.retentionGranularity.shouldRetainPreviousBundle(parentID,
+            currentTime))
+            return;
+
+        // the parent bundle is obsolete. Point our new bundle at its parents,
+        // and make a note to mark it for deletion
+        obsoleteRefs.add(parentID);
+        FileBundleManifest parentManifest = bundleDir.getManifest(parentID);
+        spec.parents = parentManifest.getParents();
     }
 
 
