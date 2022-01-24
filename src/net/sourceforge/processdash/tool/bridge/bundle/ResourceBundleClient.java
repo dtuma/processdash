@@ -356,7 +356,8 @@ public class ResourceBundleClient {
         String bundleName = FileBundleConstants.LOG_BUNDLE;
         if (afterCrash)
             bundleName += ",crashed";
-        FileBundleSpec spec = new FileBundleSpec(bundleName, workingDir);
+        FileBundleSpec spec = new FileBundleSpec(bundleName, workingDir,
+                FileBundleRetentionGranularity.None);
         spec.timestamp = bundleTimestamp;
 
         // scan the working directory for log/excluded files

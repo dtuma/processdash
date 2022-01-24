@@ -45,6 +45,8 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
     private Object[][] partitionSpecs;
 
+    private FileBundleRetentionGranularity defaultGranularity;
+
     private ResourceCollection source;
 
     private HeadRefs headRefs;
@@ -57,6 +59,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
             ResourceCollection source, HeadRefs localHeadRefs,
             FileBundleManifestSource manifestSource) {
         this.partitionSpecs = strategy.getBundlePartitions();
+        this.defaultGranularity = strategy.getDefaultRetentionGranularity();
         this.source = source;
         this.headRefs = localHeadRefs;
         this.manifests = manifestSource;
@@ -106,7 +109,8 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
         // identify the correct bundle for each included file
         for (String oneFilename : filenames) {
-            String destBundleName = getBundleNameForFilename(oneFilename);
+            FileBundleRetentionGranularity[] rg = { defaultGranularity };
+            String destBundleName = getBundleNameForFilename(oneFilename, rg);
 
             // if we weren't able to identify an appropriate target bundle,
             // determine the bundle this file came from and put it back there
@@ -115,7 +119,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
             // if that fails, put the file in the catch-all bundle
             if (destBundleName == null)
-                destBundleName = getBundleNameForFilename(CATCH_ALL_PARTITION);
+                destBundleName = getBundleNameForFilename(CATCH_ALL_PARTITION, rg);
 
             // if the bundle could not be determined, reject/skip the file
             if (destBundleName == null)
@@ -127,6 +131,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
                 spec = makeSpec(destBundleName);
                 result.put(destBundleName, spec);
             }
+            spec.retentionGranularity = rg[0];
             spec.filenames.add(oneFilename);
         }
 
@@ -142,11 +147,12 @@ public class FileBundlePartitioner implements FileBundleConstants {
     }
 
     private FileBundleSpec makeSpec(String bundleName) {
-        return new FileBundleSpec(bundleName, source);
+        return new FileBundleSpec(bundleName, source, defaultGranularity);
     }
 
 
-    private String getBundleNameForFilename(String filename) throws IOException {
+    private String getBundleNameForFilename(String filename,
+            FileBundleRetentionGranularity[] granularity) throws IOException {
         // use case-insensitive logic to sort filenames into bundles
         String filenameLC = filename.toLowerCase();
 
@@ -154,6 +160,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
         for (Object[] partitionSpec : partitionSpecs) {
             if (matches(filename, filenameLC, partitionSpec)) {
                 String bundleName = (String) partitionSpec[0];
+                getPartitionGranularity(partitionSpec, granularity);
                 if (SINGLETON_PARTITION.equals(bundleName)) {
                     // certain files go into bundles by themselves. If this file
                     // meets that criteria, its filename is its bundle name
@@ -170,6 +177,14 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
         // if we weren't able to identify an appropriate target bundle
         return null;
+    }
+
+    private void getPartitionGranularity(Object[] partitionSpec,
+            FileBundleRetentionGranularity[] granularity) {
+        for (Object item : partitionSpec) {
+            if (item instanceof FileBundleRetentionGranularity)
+                granularity[0] = (FileBundleRetentionGranularity) item;
+        }
     }
 
 

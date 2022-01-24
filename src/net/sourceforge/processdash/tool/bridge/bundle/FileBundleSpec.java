@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,15 +35,19 @@ public class FileBundleSpec {
 
     public ReadableResourceCollection source;
 
+    public FileBundleRetentionGranularity retentionGranularity;
+
     public List<String> filenames;
 
     public List<FileBundleID> parents;
 
     public long timestamp;
 
-    public FileBundleSpec(String bundleName, ReadableResourceCollection src) {
+    public FileBundleSpec(String bundleName, ReadableResourceCollection src,
+            FileBundleRetentionGranularity retentionGranularity) {
         this.bundleName = bundleName;
         this.source = src;
+        this.retentionGranularity = retentionGranularity;
         this.filenames = new ArrayList<String>();
         this.parents = Collections.EMPTY_LIST;
         this.timestamp = -1;
