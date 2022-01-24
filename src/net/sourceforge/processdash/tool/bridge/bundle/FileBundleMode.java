@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ import java.util.Map;
 public enum FileBundleMode {
 
     Local("local", //
-            "pspdash", "2.6.6", //
+            "pspdash", "2.6.6.3", //
             "teamTools", "5.5.2", //
             "teamToolsB", "6.2.0", //
             "tpidw-embedded", "1.6.7");
