@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleRetentionGranularity;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
 import net.sourceforge.processdash.util.FileUtils;
@@ -107,6 +108,10 @@ public class DashboardInstanceStrategy implements
                                 .addLiteralEndsWith(".dat") //
                                 .addLiteralEndsWith(".def") },
         };
+    }
+
+    public FileBundleRetentionGranularity getDefaultRetentionGranularity() {
+        return FileBundleRetentionGranularity.Hourly;
     }
 
     private static class UnlockedDashboardFileFilter implements FilenameFilter {

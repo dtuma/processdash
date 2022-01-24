@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.impl;
 
 import java.io.File;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleRetentionGranularity;
 import net.sourceforge.processdash.util.DirectoryBackup;
 
 public interface FileResourceCollectionStrategy extends
@@ -37,5 +38,7 @@ public interface FileResourceCollectionStrategy extends
     public boolean isFilePossiblyCorrupt(File file);
 
     public Object[][] getBundlePartitions();
+
+    public FileBundleRetentionGranularity getDefaultRetentionGranularity();
 
 }

@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleRetentionGranularity;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
 import net.sourceforge.processdash.util.FileUtils;
@@ -75,13 +76,18 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
                 // PDASH files
                 { FileBundleConstants.SINGLETON_PARTITION,
-                        new PatternList().addLiteralEndsWith(".pdash") },
+                        new PatternList().addLiteralEndsWith(".pdash"),
+                        FileBundleRetentionGranularity.Daily },
 
                 // WBS editor files
                 { "wbs", DashboardBackupFactory.WBS_FILE_FILTER, "projdump.xml",
                         "workflowdump.xml", "relaunchdump.xml",
                         FileBundleConstants.CATCH_ALL_PARTITION },
         };
+    }
+
+    public FileBundleRetentionGranularity getDefaultRetentionGranularity() {
+        return FileBundleRetentionGranularity.All;
     }
 
     // The WBS_FILE_FILTER supplied by the dashboard backup factory is only
