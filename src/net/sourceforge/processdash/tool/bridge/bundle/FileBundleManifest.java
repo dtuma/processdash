@@ -101,30 +101,27 @@ public class FileBundleManifest {
     }
 
 
-    public FileBundleManifest(File src) throws IOException {
-        this(src.getParentFile(), src.getName());
-    }
-
-    public FileBundleManifest(File dir, String token) throws IOException {
-        this(dir, new FileBundleID(token));
-    }
-
     public FileBundleManifest(File dir, FileBundleID bundleID)
             throws IOException {
-        if (dir == null || bundleID == null)
-            throw new NullPointerException();
+        this(getFileForManifest(dir, bundleID));
+    }
 
-        this.bundleID = bundleID;
-
+    public FileBundleManifest(File src) throws IOException {
         // open and parse the file as XML
+        File dir = src.getParentFile();
         if (!dir.isDirectory())
             throw new FileNotFoundException(dir.getPath());
-        File src = getFileForManifest(dir, bundleID);
-        if (!src.isFile())
-            throw new Missing(src, bundleID);
+        if (!src.isFile()) {
+            try {
+                throw new Missing(src, new FileBundleID(src.getName()));
+            } catch (IllegalArgumentException iae) {
+                throw new FileNotFoundException(src.getPath());
+            }
+        }
         Element xml = parseXml(src);
 
         // extract bundle data from the file
+        this.bundleID = new FileBundleID(xml.getAttribute(ID_ATTR));
         this.files = XmlCollectionListing.parseListing(xml);
         this.parents = extractBundleList(xml, PARENTS_TAG);
         this.replaces = extractBundleList(xml, REPLACES_TAG);
@@ -163,6 +160,10 @@ public class FileBundleManifest {
     public void write(File directory) throws IOException {
         // create an XML file in the target directory
         File file = new File(directory, bundleID.getToken() + ".xml");
+        writeToFile(file);
+    }
+
+    public void writeToFile(File file) throws IOException {
         OutputStream out = FileBundleUtils.outputStream(file);
 
         // start writing the document
@@ -204,6 +205,8 @@ public class FileBundleManifest {
 
     public static File getFileForManifest(File bundleDir,
             FileBundleID bundleID) {
+        if (bundleDir == null || bundleID == null)
+            throw new NullPointerException();
         return new File(bundleDir, bundleID.getToken() + ".xml");
     }
 
