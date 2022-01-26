@@ -113,7 +113,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     public FileBundleID storeBundle(FileBundleSpec bundleSpec)
             throws IOException {
         return storeBundle(bundleSpec.bundleName, bundleSpec.source,
-            bundleSpec.filenames, bundleSpec.parents, bundleSpec.timestamp);
+            bundleSpec.filenames, bundleSpec.parents, bundleSpec.replaces,
+            bundleSpec.timestamp);
     }
 
 
@@ -129,6 +130,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      *            in the bundle
      * @param parents
      *            the {@link FileBundleID}s of parent bundles
+     * @param replaces
+     *            the {@link FileBundleID}s of bundles replaced by this bundle
      * @param timestamp
      *            the timestamp to use for this bundle, or -1 for the current
      *            time
@@ -138,7 +141,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      */
     public FileBundleID storeBundle(String bundleName,
             ReadableResourceCollection source, List<String> filenames,
-            List<FileBundleID> parents, long timestamp) throws IOException {
+            List<FileBundleID> parents, List<FileBundleID> replaces,
+            long timestamp) throws IOException {
         // generate an ID for the new bundle
         FileBundleID bundleID = createNewBundleID(timestamp, bundleName);
 
@@ -147,7 +151,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         // write a manifest for the bundle
         FileBundleManifest manifest = new FileBundleManifest(bundleID, fileInfo,
-                parents);
+                parents, replaces);
         manifest.write(bundleDir);
 
         // add the manifest to our in-memory cache

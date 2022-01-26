@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -369,6 +370,11 @@ public class ResourceBundleClient {
         if (parentID.getTimestamp().compareTo(retentionThresholdTimestamp) <= 0)
             return;
 
+        // if the parent was a merge of multiple grandparents, don't discard it
+        FileBundleManifest parentManifest = bundleDir.getManifest(parentID);
+        if (parentManifest.getParents().size() > 1)
+            return;
+
         // ask the retention granularity in the spec to decide if we keep it
         if (spec.retentionGranularity.shouldRetainPreviousBundle(parentID,
             currentTime))
@@ -377,8 +383,10 @@ public class ResourceBundleClient {
         // the parent bundle is obsolete. Point our new bundle at its parents,
         // and make a note to mark it for deletion
         obsoleteRefs.add(parentID);
-        FileBundleManifest parentManifest = bundleDir.getManifest(parentID);
         spec.parents = parentManifest.getParents();
+        spec.replaces = parentManifest.getReplaces();
+        if (spec.replaces.isEmpty())
+            spec.replaces = Collections.singletonList(parentID);
     }
 
 

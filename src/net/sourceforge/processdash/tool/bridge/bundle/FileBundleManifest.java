@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -64,6 +65,8 @@ public class FileBundleManifest {
 
     private List<FileBundleID> parents;
 
+    private List<FileBundleID> replaces;
+
     long accessTime;
 
 
@@ -79,15 +82,22 @@ public class FileBundleManifest {
         return parents;
     }
 
+    public List<FileBundleID> getReplaces() {
+        return replaces;
+    }
+
 
     public FileBundleManifest(FileBundleID bundleID,
-            ResourceCollectionInfo files, List<FileBundleID> parents) {
-        if (bundleID == null || files == null || parents == null)
+            ResourceCollectionInfo files, List<FileBundleID> parents,
+            List<FileBundleID> replaces) {
+        if (bundleID == null || files == null || parents == null
+                || replaces == null)
             throw new NullPointerException();
 
         this.bundleID = bundleID;
         this.files = files;
         this.parents = parents;
+        this.replaces = replaces;
     }
 
 
@@ -117,6 +127,7 @@ public class FileBundleManifest {
         // extract bundle data from the file
         this.files = XmlCollectionListing.parseListing(xml);
         this.parents = extractBundleList(xml, PARENTS_TAG);
+        this.replaces = extractBundleList(xml, REPLACES_TAG);
     }
 
     private Element parseXml(File src) throws IOException {
@@ -142,7 +153,10 @@ public class FileBundleManifest {
                 }
             }
         }
-        return result;
+        if (result.isEmpty())
+            return Collections.EMPTY_LIST;
+        else
+            return Collections.unmodifiableList(result);
     }
 
 
@@ -163,6 +177,10 @@ public class FileBundleManifest {
 
         // write the list of parent bundles
         writeBundleList(xml, PARENTS_TAG, parents);
+
+        // write the list of replaced bundles, if there are any
+        if (!replaces.isEmpty())
+            writeBundleList(xml, REPLACES_TAG, replaces);
 
         // finalize the document
         xml.endTag(null, DOCUMENT_TAG);
@@ -193,6 +211,8 @@ public class FileBundleManifest {
     private static final String DOCUMENT_TAG = "fileBundle";
 
     private static final String PARENTS_TAG = "parents";
+
+    private static final String REPLACES_TAG = "replaces";
 
     private static final String BUNDLE_TAG = "bundle";
 

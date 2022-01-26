@@ -41,6 +41,8 @@ public class FileBundleSpec {
 
     public List<FileBundleID> parents;
 
+    public List<FileBundleID> replaces;
+
     public long timestamp;
 
     public FileBundleSpec(String bundleName, ReadableResourceCollection src,
@@ -50,6 +52,7 @@ public class FileBundleSpec {
         this.retentionGranularity = retentionGranularity;
         this.filenames = new ArrayList<String>();
         this.parents = Collections.EMPTY_LIST;
+        this.replaces = Collections.EMPTY_LIST;
         this.timestamp = -1;
     }
 
