@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ import teamdash.XMLUtils;
 import teamdash.templates.tools.WorkflowMappingManager;
 
 
-public abstract class WBSLibrary {
+public abstract class WBSLibrary<WBS extends WBSModel> {
 
     private static final String PROCESS_NAME_ATTR = "processName";
     private static final String PROCESS_VERSION_ATTR = "processVersion";
@@ -57,7 +57,7 @@ public abstract class WBSLibrary {
     private String processName;
     private String processVersion;
     private String libraryID;
-    private WBSModel wbs;
+    private WBS wbs;
 
 
 
@@ -77,7 +77,7 @@ public abstract class WBSLibrary {
     }
 
     public WBSLibrary(String[] urls, TeamProcess process) {
-        WBSModel mergedWbs = createCleanWbs();
+        WBS mergedWbs = createCleanWbs();
 
         for (String oneUrl : urls) {
             try {
@@ -100,8 +100,8 @@ public abstract class WBSLibrary {
         this.processVersion = process.getProcessVersion();
     }
 
-    private WBSModel createCleanWbs() {
-        WBSModel result = createEmptyWbs();
+    private WBS createCleanWbs() {
+        WBS result = createEmptyWbs();
         // The constructor for WBSModel will create a 'default' WBS which we
         // don't want.  Delete those contents, leaving only the root.
         WBSNode[] children = result.getDescendants(result.getRoot());
@@ -111,9 +111,9 @@ public abstract class WBSLibrary {
 
     protected abstract String getRootTag();
 
-    protected abstract WBSModel createEmptyWbs();
+    protected abstract WBS createEmptyWbs();
 
-    protected abstract WBSModel loadFromXml(Element xml);
+    protected abstract WBS loadFromXml(Element xml);
 
     public String getProcessName() {
         return processName;
@@ -123,7 +123,7 @@ public abstract class WBSLibrary {
         return processVersion;
     }
 
-    public WBSModel getWbs() {
+    public WBS getWbs() {
         return wbs;
     }
 
@@ -226,10 +226,11 @@ public abstract class WBSLibrary {
     }
 
 
-    public static class Workflows extends WBSLibrary {
+    public static class Workflows extends WBSLibrary<WorkflowWBSModel> {
 
         public Workflows(File f) throws IOException {
             super(f);
+            getWbs().setMissingProbeUnits();
         }
 
         public Workflows(File f, TeamProcess process) throws IOException {
@@ -238,6 +239,7 @@ public abstract class WBSLibrary {
 
         Workflows(String[] urls, TeamProcess process) {
             super(urls, process);
+            getWbs().setMissingProbeUnits();
         }
 
         @Override
@@ -246,12 +248,12 @@ public abstract class WBSLibrary {
         }
 
         @Override
-        protected WBSModel createEmptyWbs() {
+        protected WorkflowWBSModel createEmptyWbs() {
             return new WorkflowWBSModel("Archived Workflows");
         }
 
         @Override
-        protected WBSModel loadFromXml(Element xml) {
+        protected WorkflowWBSModel loadFromXml(Element xml) {
             return new WorkflowWBSModel(xml);
         }
 
@@ -276,7 +278,7 @@ public abstract class WBSLibrary {
         }
     }
 
-    public static class Proxies extends WBSLibrary {
+    public static class Proxies extends WBSLibrary<ProxyWBSModel> {
 
         public Proxies(File f) throws IOException {
             super(f);
@@ -296,12 +298,12 @@ public abstract class WBSLibrary {
         }
 
         @Override
-        protected WBSModel createEmptyWbs() {
+        protected ProxyWBSModel createEmptyWbs() {
             return new ProxyWBSModel("Archived Estimation Tables");
         }
 
         @Override
-        protected WBSModel loadFromXml(Element xml) {
+        protected ProxyWBSModel loadFromXml(Element xml) {
             return new ProxyWBSModel(xml);
         }
 

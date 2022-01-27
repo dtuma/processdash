@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import javax.swing.event.TableModelEvent;
 import org.w3c.dom.Element;
 
 import teamdash.merge.ModelType;
+import teamdash.wbs.columns.TaskSizeUnitsColumn;
 
 /** Tweak the behavior of a WBSModel for use in editing common workflows.
  */
@@ -152,6 +153,30 @@ public class WorkflowWBSModel extends WBSModel {
             } else {
                 result.insert(0, "/").insert(0, workflowNode.getName());
             }
+        }
+    }
+
+
+    /**
+     * Default PROBE task units to "LOC" if they are missing.
+     * 
+     * The legacy WBS Editor included logic to compute a default value for task
+     * units, based on component/task type. That logic would assign LOC as the
+     * units for a newly created PROBE task. Since this automatic value would
+     * appear without being manually assigned, the WBS node often wouldn't
+     * contain any explicit "Task Size Units" attribute.
+     * 
+     * This missing attribute causes problems when the same workflow or library
+     * is opened by the new WBS Editor. The WBS no longer backfills the missing
+     * value, so the PROBE task will have "?????" for its units. This method
+     * corrects potential instances of that error.
+     */
+    public void setMissingProbeUnits() {
+        for (WBSNode node : getWbsNodes()) {
+            if (node.getIndentLevel() > 1
+                    && TeamProcess.isProbeTask(node.getType())
+                    && node.getAttribute(TaskSizeUnitsColumn.COLUMN_ID) == null)
+                node.setAttribute(TaskSizeUnitsColumn.COLUMN_ID, "LOC");
         }
     }
 

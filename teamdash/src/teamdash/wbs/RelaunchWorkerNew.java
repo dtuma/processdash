@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2021 Tuma Solutions, LLC
+// Copyright (C) 2014-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -140,6 +140,7 @@ public class RelaunchWorkerNew {
                 .addLiteralEquals("Workflow Rate") //
                 .addLiteralEquals("Rate");
         teamProject.getWorkflows().removeAttributes(attrs);
+        teamProject.getWorkflows().setMissingProbeUnits();
         wbs.removeAttributes(attrs);
     }
 
