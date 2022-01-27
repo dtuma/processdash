@@ -232,6 +232,22 @@ public class EVTaskList extends AbstractTreeTableModel
         return ret;
     }
 
+    public static Set<String> getAllTaskListIDs(DataRepository data) {
+        Set<String> result = new HashSet<String>();
+
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (dataName.endsWith("/" + ID_DATA_NAME)) {
+                SimpleData sd = data.getSimpleValue(dataName);
+                if (sd != null && sd.test())
+                    result.add(sd.format());
+            }
+        }
+
+        return result;
+    }
+
     /** Finds and opens an existing task list.
      *  @param taskListName the symbolic name of the task list.
      *  @param data a reference to the data repository.
@@ -1978,7 +1994,18 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     protected static ExternalDataFile getExtData(String taskListID) {
-        return ExternalDataFile.get("ev-" + taskListID.replace('.', '-'));
+        return ExternalDataFile.get(getExtDataFilename(taskListID));
+    }
+
+    public static Set<String> getAllExtDataFilenames(DataRepository data) {
+        Set<String> result = new HashSet<String>();
+        for (String taskListID : getAllTaskListIDs(data))
+            result.add(getExtDataFilename(taskListID) + ".dat");
+        return result;
+    }
+
+    private static String getExtDataFilename(String taskListID) {
+        return "ev-" + taskListID.replace('.', '-');
     }
 
     public Object getDeepestNoteFor(EVTask node) {

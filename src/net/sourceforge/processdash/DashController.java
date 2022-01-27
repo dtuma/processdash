@@ -495,16 +495,18 @@ public class DashController {
         PERMISSION.checkPermission();
         Set<String> filesInUse = new HashSet<String>();
         getDataAndDefectFilesInUse(filesInUse, PropertyKey.ROOT);
+        filesInUse.addAll(EVTaskList.getAllExtDataFilenames(dash.data));
         File[] files = getDataDirectory().listFiles();
         if (files == null)
             return;
         for (File f : files) {
             String name = f.getName().toLowerCase();
-            if (isNumberedDataOrDefectFile(name))
+            if (isScrubbableDataOrDefectFile(name)) {
                 if (!filesInUse.contains(name))
                     f.delete();
                 else if (f.getName().endsWith(".def") && f.length() == 0)
                     f.delete();
+            }
         }
     }
 
@@ -523,7 +525,8 @@ public class DashController {
         return (s == null ? null : s.toLowerCase());
     }
 
-    private static boolean isNumberedDataOrDefectFile(String name) {
+    private static boolean isScrubbableDataOrDefectFile(String name) {
+        if (name.startsWith("ev-")) return name.endsWith(".dat");
         return ("0123456789".indexOf(name.charAt(0)) != -1)
             && (name.endsWith(".dat") || name.endsWith(".def"));
     }
