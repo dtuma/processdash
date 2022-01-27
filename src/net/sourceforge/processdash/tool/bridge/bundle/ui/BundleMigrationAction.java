@@ -76,7 +76,8 @@ public class BundleMigrationAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!userConfirm("Confirm", JOptionPane.YES_NO_OPTION))
+        String confirmKey = Settings.isPersonalMode() ? "Personal" : "Confirm";
+        if (!userConfirm(confirmKey, JOptionPane.YES_NO_OPTION))
             return;
 
         // identify the target bundle mode for the directory
