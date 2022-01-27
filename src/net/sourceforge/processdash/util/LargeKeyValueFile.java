@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Tuma Solutions, LLC
+// Copyright (C) 2019-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -294,6 +294,20 @@ public class LargeKeyValueFile {
         out.write('=');
         out.write(oneValue);
         out.write('\n');
+    }
+
+
+
+    /**
+     * Delete the file that holds storage for this object
+     */
+    public void delete() {
+        try {
+            lock.writeLock().lock();
+            file.delete();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Tuma Solutions, LLC
+// Copyright (C) 2019-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -183,6 +183,15 @@ public class ExternalDataFile {
         String key = nameToKey(dataName);
         String value = (dataValue == null ? null : dataValue.saveString());
         file.putValue(key, value);
+    }
+
+
+
+    /**
+     * Delete the data file this object is using for storage.
+     */
+    public void delete() {
+        file.delete();
     }
 
 

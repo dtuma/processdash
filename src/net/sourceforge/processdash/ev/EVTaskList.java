@@ -647,6 +647,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void save() { save(taskListName); }
     public void save(String newName) {
+        if (newName == null)
+            getExtData().delete();
         fireTaskListSaved(newName);
     }
 
