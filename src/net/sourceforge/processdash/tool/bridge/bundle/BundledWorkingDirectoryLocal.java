@@ -138,7 +138,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         File bundleDir = getSubdir(targetDirectory,
             FileBundleConstants.BUNDLE_SUBDIR);
         this.client = new ResourceBundleClient(strategy, collection,
-                workingHeads, bundleDir, bundleHeads);
+                workingHeads, getMetadataDir(), bundleDir, bundleHeads);
     }
 
     private void repairCorruptFiles() throws IOException {

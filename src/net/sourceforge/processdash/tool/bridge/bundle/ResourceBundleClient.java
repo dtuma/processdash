@@ -44,7 +44,7 @@ public class ResourceBundleClient {
 
     private ResourceCollection workingDir;
 
-    private HeadRefs workingHeads;
+    private HeadRefsManifestSource workingHeads;
 
     private FileBundleDirectory bundleDir;
 
@@ -56,13 +56,15 @@ public class ResourceBundleClient {
 
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
-            File bundleDirectory, HeadRefs bundleHeads) throws IOException {
+            File manifestCacheDirectory, File bundleDirectory,
+            HeadRefs bundleHeads) throws IOException {
         this.workingDir = workingDirectory;
-        this.workingHeads = workingHeads;
         this.bundleDir = new FileBundleDirectory(bundleDirectory);
+        this.workingHeads = new ManifestCachingHeadRefs(workingHeads, bundleDir,
+                manifestCacheDirectory);
         this.bundleHeads = bundleHeads;
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
-                workingHeads, bundleDir);
+                workingHeads, this.workingHeads);
         setRetentionThresholdTimestamp();
     }
 
@@ -76,6 +78,10 @@ public class ResourceBundleClient {
     }
 
     public HeadRefs getWorkingHeads() {
+        return workingHeads;
+    }
+
+    public FileBundleManifestSource getManifests() {
         return workingHeads;
     }
 
@@ -153,7 +159,7 @@ public class ResourceBundleClient {
 
     private List<String> getBundleFilenames(FileBundleID bundleID)
             throws IOException {
-        FileBundleManifest manifest = bundleDir.getManifest(bundleID);
+        FileBundleManifest manifest = workingHeads.getManifest(bundleID);
         return manifest.getFiles().listResourceNames();
     }
 
@@ -162,7 +168,7 @@ public class ResourceBundleClient {
         // get a diff between the new and old bundles
         ResourceCollectionInfo oldFiles = (oldBundleID == null
                 ? ResourceCollectionInfo.EMPTY_COLLECTION
-                : bundleDir.getManifest(oldBundleID).getFiles());
+                : workingHeads.getManifest(oldBundleID).getFiles());
         ResourceCollectionInfo newFiles = bundleDir.getManifest(bundleID)
                 .getFiles();
         ResourceCollectionDiff diff = new ResourceCollectionDiff(oldFiles,
@@ -325,7 +331,7 @@ public class ResourceBundleClient {
             return matchesSingleFilename(singleFilename, spec.filenames);
 
         // get info for files that were previously extracted for this bundle
-        FileBundleManifest manifest = bundleDir
+        FileBundleManifest manifest = workingHeads
                 .getManifest(previouslyExtractedBundleID);
         ResourceCollectionInfo previouslyExtractedFiles = manifest.getFiles();
 
