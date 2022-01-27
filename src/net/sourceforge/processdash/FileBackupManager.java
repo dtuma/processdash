@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.ev.EVCalculator;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
@@ -98,7 +99,15 @@ public class FileBackupManager {
         if (loggingEnabled() && when == SHUTDOWN)
             stopLogging();
 
-        if (Settings.getBool("backup.enabled", true)) {
+        boolean defaultEnabled = true;
+        if (workingDirectory instanceof BundledWorkingDirectory) {
+            if (when == STARTUP)
+                defaultEnabled = false;
+        }
+        defaultEnabled = Settings.getBool("backup.enabled." + WHEN_STR[when],
+            defaultEnabled);
+
+        if (Settings.getBool("backup.enabled", defaultEnabled)) {
             ProfTimer pt = new ProfTimer(FileBackupManager.class,
                     "FileBackupManager.run");
             try {

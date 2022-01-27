@@ -1,6 +1,6 @@
 #############################################################################
 ## Process Dashboard - Data Automation Tool for high-maturity processes
-## Copyright (C) 1998-2015 Tuma Solutions, LLC
+## Copyright (C) 1998-2022 Tuma Solutions, LLC
 ##
 ## This program is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License
@@ -204,7 +204,6 @@ logging.enabled=true
 
 autoUpdate.disabled=false
 
-backup.enabled=true
 backup.keepBackupsNumDays=42
 backup.timesOfDay=0
 
