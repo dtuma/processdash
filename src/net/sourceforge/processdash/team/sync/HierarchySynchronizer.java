@@ -1163,7 +1163,7 @@ public class HierarchySynchronizer {
 
         maybeUpgradeToCustomSizeMetrics();
 
-        if (!whatIfMode || changes.isEmpty()) {
+        if (!isTeam() && (!whatIfMode || changes.isEmpty())) {
             String timestampDataName = DataRepository.createDataName(
                 projectPath, TeamDataConstants.LAST_SYNC_TIMESTAMP);
             dataRepository.putValue(timestampDataName, new DateData());
