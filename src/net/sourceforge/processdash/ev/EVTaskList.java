@@ -940,6 +940,32 @@ public class EVTaskList extends AbstractTreeTableModel
             return "";
     }
 
+    public Set<String> getLabelPrefixes(boolean leavesOnly) {
+        if (taskLabeler == null)
+            return Collections.EMPTY_SET;
+
+        Set<String> result = new TreeSet<String>();
+        getLabelPrefixes(getTaskRoot(), leavesOnly, result);
+        return result;
+    }
+
+    private void getLabelPrefixes(EVTask task, boolean leavesOnly,
+            Set<String> result) {
+        if (leavesOnly ? task.isLeaf() : true) {
+            List<String> labels = taskLabeler.getLabelsForTask(task);
+            if (labels != null) {
+                for (String l : labels) {
+                    int pos = l.indexOf(':');
+                    if (pos > 0 && !shouldHide(l))
+                        result.add(l.substring(0, pos));
+                }
+            }
+        }
+
+        for (int i = task.getNumChildren(); i-- > 0;)
+            getLabelPrefixes(task.getChild(i), leavesOnly, result);
+    }
+
     private boolean shouldHide(String label) {
         return taskLabeler.getHiddenLabels().contains(label);
     }
@@ -2323,6 +2349,10 @@ public class EVTaskList extends AbstractTreeTableModel
             return sortTasks(new TaskMilestoneComparator());
         }
 
+        public boolean sortTasksByLabel(String labelPrefix) {
+            return sortTasks(new TaskLabelComparator(labelPrefix));
+        }
+
         public boolean sortTasksByTag() {
             return sortTasks(new TaskSortTagComparator());
         }
@@ -2368,6 +2398,43 @@ public class EVTaskList extends AbstractTreeTableModel
             private int calcMilestoneOrdinal(EVTask task) {
                 MilestoneList l = getMilestonesForTask(task);
                 return (l == null ? 99999 : l.getMinSortOrdinal());
+            }
+        }
+
+        private class TaskLabelComparator implements Comparator<EVTask> {
+
+            private String prefix;
+
+            private Map<EVTask, String> labelCache;
+
+            TaskLabelComparator(String prefix) {
+                this.prefix = prefix + ':';
+                this.labelCache = new HashMap();
+            }
+
+            @Override
+            public int compare(EVTask a, EVTask b) {
+                String aLabel = getTaskLabel(a);
+                String bLabel = getTaskLabel(b);
+                return aLabel.compareTo(bLabel);
+            }
+
+            private String getTaskLabel(EVTask task) {
+                String label = labelCache.get(task);
+                if (label == null)
+                    labelCache.put(task, label = calcTaskLabel(task));
+                return label;
+            }
+
+            private String calcTaskLabel(EVTask task) {
+                List<String> labels = getLabelsForTask(task);
+                if (labels != null) {
+                    for (String l : labels) {
+                        if (l.startsWith(prefix))
+                            return l;
+                    }
+                }
+                return "";
             }
         }
 

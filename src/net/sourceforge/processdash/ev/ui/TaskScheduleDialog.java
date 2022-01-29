@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2021 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -185,6 +186,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
@@ -3122,11 +3124,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         // determine which sorting options are applicable
         boolean hasMilestones = model.showMilestoneColumn();
+        Set<String> labelPrefixes = model.getLabelPrefixes(true);
         boolean sortColumnVisible = isSortColumnVisible();
 
-        if (hasMilestones) {
+        if (hasMilestones || !labelPrefixes.isEmpty()) {
             // if milestones are present, present various options to the user
-            showSortOptionsPrompt(sortColumnVisible);
+            showSortOptionsPrompt(hasMilestones, labelPrefixes, sortColumnVisible);
 
         } else if (sortColumnVisible) {
             // if the sort column is visible, ask the user if they want to
@@ -3140,42 +3143,67 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
-    private void showSortOptionsPrompt(boolean sortColumnVisible) {
+    private void showSortOptionsPrompt(boolean hasMilestones,
+            Set<String> labelPrefixes, boolean sortColumnVisible) {
+        List message = new ArrayList();
+
         // create radio button and textual description for "sort by tag"
         ButtonGroup group = new ButtonGroup();
         JRadioButton sortColumnOption = new JRadioButton(
                 resources.getString("Buttons.Sort_Tasks.Tag.Option"));
-        String[] sortColumnDescr = getIndentedText(
-            "Buttons.Sort_Tasks.Tag.Description");
         group.add(sortColumnOption);
+        message.add(sortColumnOption);
+        message.add(getIndentedText("Buttons.Sort_Tasks.Tag.Description"));
+        message.add(" ");
+
+        // create radio button and textual description for "sort by label"
+        final JRadioButton labelOption = new JRadioButton(
+                resources.getString("Buttons.Sort_Tasks.Label.Option"));
+        JComboBox labelChoice = new JComboBox(new Vector(labelPrefixes));
+        if (!labelPrefixes.isEmpty()) {
+            group.add(labelOption);
+            message.add(labelOption);
+            message.add(getIndentedText("Buttons.Sort_Tasks.Label.Description"));
+            message.add(BoxUtils.hbox(40, labelChoice));
+            message.add(" ");
+            labelChoice.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    labelOption.setSelected(true);
+                }});
+        }
 
         // create radio button and textual description for "sort by milestone"
         JRadioButton milestoneOption = new JRadioButton(
                 resources.getString("Buttons.Sort_Tasks.Milestone.Option"));
-        String[] milestoneDescr = getIndentedText(
-            "Buttons.Sort_Tasks.Milestone.Description");
-        group.add(milestoneOption);
+        if (hasMilestones) {
+            group.add(milestoneOption);
+            message.add(milestoneOption);
+            message.add(getIndentedText( //
+                "Buttons.Sort_Tasks.Milestone.Description"));
+            message.add(" ");
+        }
 
         // select a reasonable default option
         if (isSortColumnSelected())
             sortColumnOption.setSelected(true);
-        else
+        else if (hasMilestones)
             milestoneOption.setSelected(true);
+        else
+            labelOption.setSelected(true);
 
         // show a prompt to the user
         String title = resources.getString("Buttons.Sort_Tasks.Title");
-        Object message = new Object[] { //
-                sortColumnOption, sortColumnDescr, " ", //
-                milestoneOption, milestoneDescr, " ", //
-        };
-        int userChoice = JOptionPane.showConfirmDialog(frame, message, title,
-            JOptionPane.OK_CANCEL_OPTION);
+        int userChoice = JOptionPane.showConfirmDialog(frame, message.toArray(),
+            title, JOptionPane.OK_CANCEL_OPTION);
         if (userChoice != JOptionPane.OK_OPTION)
             return;
 
         // take action based on the selected option
         if (milestoneOption.isSelected()) {
             sortByMilestones();
+
+        } else if (labelOption.isSelected()) {
+            sortByLabel((String) labelChoice.getSelectedItem());
 
         } else if (sortColumnOption.isSelected()) {
             if (!sortColumnVisible)
@@ -3185,11 +3213,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
-    private String[] getIndentedText(String resKey) {
+    private Object[] getIndentedText(String resKey) {
         String[] lines = resources.getStrings(resKey);
+        Object[] result = new Object[lines.length];
         for (int i = lines.length; i-- > 0;)
-            lines[i] = "            " + lines[i];
-        return lines;
+            result[i] = BoxUtils.hbox(40, new JLabel(lines[i]));
+        return result;
     }
 
 
@@ -3241,6 +3270,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
             setDirty(true);
     }
 
+
+    private void sortByLabel(String labelPrefix) {
+        if (flatModel.sortTasksByLabel(labelPrefix))
+            setDirty(true);
+    }
 
     private void sortByMilestones() {
         if (flatModel.sortTasksByMilestone())
