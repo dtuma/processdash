@@ -1091,6 +1091,7 @@ public class HierarchySynchronizer {
         ListData nodeOrderData = new ListData();
         collectNodeOrderData(projectXML, nodeOrderData);
         getAllKnownWbsIds();
+        syncAttrLabelSortOrder(projectXML);
         Map<String, String> milestoneNames = syncMilestoneData(projectXML);
         ListData labelData = new ListData();
         ListData milestoneData = new ListData();
@@ -1183,6 +1184,18 @@ public class HierarchySynchronizer {
                 t.printStackTrace();
             }
         }
+    }
+
+    private void syncAttrLabelSortOrder(Element projectXML) {
+        ListData result = new ListData();
+        for (Element child : XMLUtils.getChildElements(projectXML)) {
+            if (ATTR_TYPE_TAG.equals(child.getTagName())) {
+                String labels = child.getAttribute(LABELS_ATTR);
+                if (XMLUtils.hasValue(labels))
+                    result.addAll(Arrays.asList(labels.split(",")));
+            }
+        }
+        forceData(projectPath, LABEL_ORDER_DATA_NAME, result);
     }
 
     private Map<String, String> syncMilestoneData(Element projectXML) {
@@ -2154,6 +2167,7 @@ public class HierarchySynchronizer {
     private static final String MILESTONE_ID_ATTR = "mid";
     private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String SAVE_DATE_ATTR = "dumpTimestamp";
+    private static final String ATTR_TYPE_TAG = "attrType";
     private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String SYNC_PHASE_NAME_ATTR = "syncPhaseName";
@@ -2196,6 +2210,8 @@ public class HierarchySynchronizer {
     private static final String ACT_TIME_DATA_NAME = "Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
+    private static final String LABEL_ORDER_DATA_NAME =
+        "Synchronized_Task_Label_Sort_Order";
     private static final String NODE_ORDER_DATA_NAME =
         "Synchronized_Task_ID_WBS_Order";
     private static final String MILESTONE_LIST_DATA_NAME =

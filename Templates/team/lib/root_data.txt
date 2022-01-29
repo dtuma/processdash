@@ -105,6 +105,8 @@
 
 [Task_ID_WBS_Order] = [Synchronized_Task_ID_WBS_Order];
 [Synchronized_Task_ID_WBS_Order] = "none";
+[Task_Label_Sort_Order] = [Synchronized_Task_Label_Sort_Order];
+[Synchronized_Task_Label_Sort_Order] = "none";
 
 
 /*
