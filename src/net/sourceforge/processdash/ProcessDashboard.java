@@ -1245,7 +1245,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void configureSystemPropertiesFromSettings() {
         // if this JVM does not explicitly have a logging config set, but one
         // is present in the user's data directory, read it.
-        File logConfig = new File(property_directory + "logging.properties");
+        File logConfig = new File(property_directory + "logging-config.dat");
         if (System.getProperty("java.util.logging.config.file") == null
                   && logConfig.isFile()) {
             try {
