@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2020 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -943,7 +943,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         private Set<String> filenames;
 
         private ZipUploadStream() throws IOException {
-            super(8096);
+            super(32768);
             out = new PipedOutputStream(this);
             filenames = new HashSet<String>();
         }
