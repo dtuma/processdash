@@ -860,11 +860,13 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     protected void fireApplicationEvent(String message) {
+        logger.fine("Firing application event " + message);
         if (ell != null) {
             ActionEvent e = new ActionEvent(this, 0, message);
             for (ApplicationEventListener l : ell
                     .getListeners(ApplicationEventListener.class)) {
                 try {
+                    logger.finer("Sending application event to " + l);
                     l.handleApplicationEvent(e);
                 } catch (Throwable t) {
                     // application events are delivered to clients as a
@@ -877,6 +879,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 }
             }
         }
+        logger.finer("Done firing application event " + message);
     }
 
     private void initializeOsHelper() {
@@ -1773,6 +1776,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logger.fine("Shutdown complete");
 
             if (shutdownTask != null) {
+                logger.fine("Running post-shutdown task " + shutdownTask);
                 dialog.setMessage(shutdownTask.toString());
                 shutdownTask.run();
             }
@@ -1783,24 +1787,30 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     boolean quit(PleaseWaitDialog dialog) {
+        logger.info("Shutting down....");
+
+        logger.fine("Stopping background tasks");
         if (dialog != null)
             dialog.setMessage(resources.getString("Shutdown.Background_Tasks"));
         BackgroundTaskManager.getInstance().suspend(30 * DateUtils.MINUTES,
               30 * DateUtils.SECONDS);
 
+        logger.fine("Saving all data...");
         if (dialog != null)
             dialog.setMessage(resources.getString("Shutdown.Saving_Data"));
         List unsavedData = saveAllData();
-        if (unsavedData.isEmpty() == false
-                && warnUserAboutUnsavedData(unsavedData) == false) {
-            return false;
+
+        if (unsavedData.isEmpty()) {
+            logger.info("Successfully saved all data.");
+        } else {
+            logger.severe("Unable to save all data; unsavedData = " + unsavedData);
+            if (warnUserAboutUnsavedData(unsavedData) == false) {
+                logger.info("Shutdown cancelled.");
+                return false;
+            }
         }
 
         fireApplicationEvent(ApplicationEventListener.APP_EVENT_SHUTTING_DOWN);
-        if (unsavedData.isEmpty())
-            logger.info("Successfully saved all data.");
-        else
-            logger.severe("Unable to save all data; unsavedData = " + unsavedData);
 
         // If we reach this point, all data has been successfully saved, and
         // we know for *certain* that we will be shutting down.  We disable
@@ -1833,6 +1843,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // files.  Perform one last flush (on a best-effort basis) to persist
         // those changes.  If the flush does not succeed, we can ignore it because
         // the trivial changes can be lost without significant repercussions.
+        logger.fine("Performing final flush of data storage");
         flushWorkingData();
 
         logger.fine("Backing up data directory");
@@ -1895,6 +1906,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return unsavedData;
 
         // prompt the user to save changes in various GUIs
+        logger.finer("Saving user interface data");
         saveDirtyGuiData();
 
         // save the size of the team dashboard window
@@ -1906,6 +1918,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // Now, flush all in-memory data to disk, recording whether any steps
         // were unsuccessful.
+        logger.finer("Saving project data");
 
         if (saveHierarchy() == false)
             recordUnsavedItem(unsavedData, "Hierarchy");
@@ -1925,6 +1938,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (savePermissionsData() == false)
             recordUnsavedItem(unsavedData, "Permissions_Data");
 
+        logger.finer("Flushing data storage");
         String flushResult = flushWorkingData();
         if (flushResult != null)
             unsavedData.add(flushResult);
