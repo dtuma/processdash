@@ -2407,16 +2407,26 @@ public class EVTaskList extends AbstractTreeTableModel
 
             private Map<EVTask, String> labelCache;
 
+            private Map<String, AlphanumericSortTag> tagCache;
+
             TaskLabelComparator(String prefix) {
                 this.prefix = prefix + ':';
                 this.labelCache = new HashMap();
+                this.tagCache = new HashMap();
             }
 
             @Override
             public int compare(EVTask a, EVTask b) {
                 String aLabel = getTaskLabel(a);
                 String bLabel = getTaskLabel(b);
-                return aLabel.compareTo(bLabel);
+                if (aLabel.equals(bLabel))
+                    return 0;
+
+                int result = taskLabeler.compare(aLabel, bLabel);
+                if (result != 0)
+                    return result;
+
+                return getTag(aLabel).compareTo(getTag(bLabel));
             }
 
             private String getTaskLabel(EVTask task) {
@@ -2435,6 +2445,13 @@ public class EVTaskList extends AbstractTreeTableModel
                     }
                 }
                 return "";
+            }
+
+            private AlphanumericSortTag getTag(String label) {
+                AlphanumericSortTag tag = tagCache.get(label);
+                if (tag == null)
+                    tagCache.put(label, tag = new AlphanumericSortTag(label));
+                return tag;
             }
         }
 

@@ -69,6 +69,10 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataL
 
     private Map<String, Set> labelData;
 
+    private List<List<String>> labelSortOrderData;
+
+    private Map<String, Integer> labelSortOrdinals;
+
     private Map<String, Milestone> milestoneData;
 
     private Map resultCache;
@@ -110,17 +114,20 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataL
 
     public void recalculate() {
         labelData = new HashMap();
+        labelSortOrderData = new ArrayList();
         milestoneData = new LinkedHashMap();
         resultCache = new HashMap();
         milestoneResultCache = new HashMap();
         hiddenLabels = new HashSet<String>();
         loadData(PropertyKey.ROOT);
+        labelSortOrdinals = getLabelSortOrdinals();
         hiddenLabels = Collections.unmodifiableSet(hiddenLabels);
     }
 
     private void loadData(PropertyKey node) {
         if (node != null) {
             loadLabelData(node.path());
+            loadLabelSortOrderData(node.path());
             loadMilestoneData(node.path());
             int numChildren = hier.getNumChildren(node);
             for (int i = 0; i < numChildren; i++)
@@ -174,6 +181,31 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataL
                     labelsForTask.add(currentMilestone);
             }
         }
+    }
+
+    private void loadLabelSortOrderData(String path) {
+        String dataName = DataRepository.createDataName(path,
+            LABEL_ORDER_DATA_NAME);
+        ListData list = ListData.asListData(data.getSimpleValue(dataName));
+        if (list == null || list.size() == 0)
+            return;
+
+        maybeListenForDataChanges(dataName);
+
+        labelSortOrderData.add(list.asList());
+    }
+
+    private Map<String, Integer> getLabelSortOrdinals() {
+        Map result = new HashMap<String, Integer>();
+        for (int i = labelSortOrderData.size(); i-- > 0;) {
+            List<String> oneSortList = labelSortOrderData.get(i);
+            for (String label : oneSortList) {
+                label = label.toLowerCase();
+                if (!result.containsKey(label))
+                    result.put(label, result.size());
+            }
+        }
+        return result;
     }
 
     private void loadMilestoneData(String path) {
@@ -262,6 +294,19 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataL
         else
             return Collections.unmodifiableList(new ArrayList(result));
     }
+
+
+    public int compare(String labelA, String labelB) {
+        int posA = labelSortOrdinal(labelA);
+        int posB = labelSortOrdinal(labelB);
+        return posA - posB;
+    }
+
+    private int labelSortOrdinal(String label) {
+        Integer result = labelSortOrdinals.get(label.toLowerCase());
+        return (result != null ? result : labelSortOrdinals.size() + 1);
+    }
+
 
     public List<Milestone> getMilestonesForProject(String projectID) {
         List<Milestone> result = new ArrayList();

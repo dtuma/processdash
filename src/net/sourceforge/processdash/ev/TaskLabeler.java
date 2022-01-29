@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2014 Tuma Solutions, LLC
+// Copyright (C) 2007-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,10 +40,14 @@ public interface TaskLabeler {
 
     public Set<String> getHiddenLabels();
 
+    public int compare(String labelA, String labelB);
+
     public void dispose();
 
 
     String LABELS_DATA_NAME = "Task_Labels";
+
+    String LABEL_ORDER_DATA_NAME = "Task_Label_Sort_Order";
 
     String LABEL_PREFIX = "label:";
 
