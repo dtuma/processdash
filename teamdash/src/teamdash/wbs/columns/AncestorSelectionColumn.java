@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2015 Tuma Solutions, LLC
+// Copyright (C) 2011-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -171,6 +171,10 @@ public class AncestorSelectionColumn extends AbstractDataColumn implements
 
     public boolean isAttributeAutoInherited() {
         return false;
+    }
+
+    public List<String> getAllowedValues(boolean asLabels) {
+        return null;
     }
 
     public List<String> getAttributeValues(WBSNode node) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,8 @@ public interface WbsNodeAttributeSource {
     public String getAttributeName();
 
     public boolean isAttributeAutoInherited();
+
+    public List<String> getAllowedValues(boolean asLabels);
 
     public List<String> getAttributeValues(WBSNode node);
 
