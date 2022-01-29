@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.wbs.columns;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -197,6 +198,19 @@ public class CustomTextColumn extends AbstractLabelColumn implements
 
     public boolean isAttributeAutoInherited() {
         return inherits;
+    }
+
+    public List<String> getAllowedValues(boolean asLabels) {
+        if (allowedValues == null)
+            return null;
+
+        if (asLabels == false)
+            return new ArrayList<String>(allowedValues);
+
+        List<String> result = new ArrayList<String>();
+        for (String oneValue : allowedValues)
+            result.add(convertToLabel(labelPrefix + oneValue));
+        return result;
     }
 
     public List<String> getAttributeValues(WBSNode node) {

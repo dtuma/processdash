@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -441,6 +441,9 @@ public class WBSDataWriter {
                 writeAttr(out, NAME_ATTR, as.getAttributeName());
                 writeAttr(out, INHERITS_ATTR,
                     Boolean.toString(as.isAttributeAutoInherited()));
+                List<String> values = as.getAllowedValues(true);
+                if (values != null)
+                    writeAttr(out, LABELS_ATTR, StringUtils.join(values, ","));
                 out.write("/>\n");
             }
         }
