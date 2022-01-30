@@ -2745,6 +2745,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
         String indivInitials = getValue(IND_INITIALS);
         String scheduleName = getValue(IND_SCHEDULE);
+        String ignoreDups = getValue(IGNORE_DUPS);
 
         String teamURL = joinInfo.get(TEAM_PROJECT_URL);
         String projectID = joinInfo.get(PROJECT_ID);
@@ -2776,7 +2777,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         createProjectRootNode(indivTemplateID);
         String scheduleID = createIndivSchedule(scheduleName, 12);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
-            scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
+            scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL,
+            ignoreDups);
         if (wbsCustomSizeMetrics)
             enableWbsCustomSizeMetrics();
         else if (wbsManagedSizeData)
@@ -3014,7 +3016,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     protected void saveIndivDataValues(String projectID, String teamURL,
             String indivInitials, String scheduleName, String scheduleID,
             String teamDirectory, String teamDirectoryUNC,
-            String teamDataDirectoryURL) {
+            String teamDataDirectoryURL, String ignoreDups) {
         putValue(PROJECT_ID, projectID);
         putValue(TEAM_PROJECT_URL, teamURL);
         putValue(INDIV_INITIALS, indivInitials);
@@ -3023,6 +3025,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         putValue(TEAM_DIRECTORY, teamDirectory);
         putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
         putValue(TEAM_DATA_DIRECTORY_URL, teamDataDirectoryURL);
+        if (projectID.equals(ignoreDups))
+            putValue(JOIN_AS_FLAG, "true");
     }
 
     protected String createIndivSchedule(String scheduleName,
