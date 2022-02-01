@@ -2115,20 +2115,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             this.setSize(this.getWidth(), preferredHeight);
 
         } else {
-            // set the size of the team dashboard window based on values saved
-            // in pspdash.ini. This sets a reasonable default for this team
-            // dashboard, if the user has never opened it before
-            int width, height;
-            try {
-                String setting = Settings.getVal(DIMENSION_SETTING);
-                String[] parts = setting.split(",");
-                width = Integer.parseInt(parts[0]);
-                height = Integer.parseInt(parts[1]);
-            } catch (Exception e) {
-                width = 550;
-                height = 300;
-            }
-            this.setSize(width, height);
+            // set a reasonable default for the size of the team dashboard
+            // window, to be used if the user has never opened it before
+            this.setSize(550, 300);
 
             // now load the last size/location from GUI prefs. This will
             // override the dataset default with user-specific values
@@ -2139,15 +2128,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void maybeSaveWindowSize() {
-        if (!Settings.isPersonalMode()) {
-            String setting = getWidth() + "," + getHeight();
-            InternalSettings.set(DIMENSION_SETTING, setting);
-        } else if (taskNav != null) {
+        if (Settings.isPersonalMode() && taskNav != null) {
             taskNav.storePrefs();
         }
     }
-
-    private static final String DIMENSION_SETTING = "mainWindow.dimensions";
 
     public void windowSizeRequirementsChanged() {
         if (Settings.isPersonalMode() && this.isVisible()) {
