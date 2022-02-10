@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2017 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,8 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -235,11 +233,9 @@ public class WBSExcelWriter {
         Object unwrapped = WrappedValue.unwrap(value);
 
         if (unwrapped instanceof Date) {
-            // POI-exported dates seem to freak Excel out for some reason.
-            // to workaround, we export a string.
             Date date = (Date) unwrapped;
-            text = DATE_FORMATTER.format(date);
-            cell.setCellValue(new HSSFRichTextString(text));
+            cell.setCellValue(date);
+            style.format = DATE_FORMAT;
 
         } else if (unwrapped instanceof NumericDataValue) {
             NumericDataValue ndv = (NumericDataValue) unwrapped;
@@ -316,7 +312,7 @@ public class WBSExcelWriter {
     private static final char DECIMAL_POINT = NumericDataValue.format(1.5)
             .charAt(1);
 
-    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat(
-            "M/d/yyyy");
+    private static final short DATE_FORMAT =  HSSFDataFormat
+            .getBuiltinFormat("m/d/yy");
 
 }
