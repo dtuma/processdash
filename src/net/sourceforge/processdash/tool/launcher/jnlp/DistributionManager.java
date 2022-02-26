@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2018 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -156,11 +156,9 @@ public class DistributionManager implements JnlpPackagingConstants {
 
                 // if a min version was requested, check it
                 if (minVersion != null) {
-                    Matcher m = LAUNCH_PROFILE_DIR_NAME_PAT.matcher(f.getName());
-                    if (!m.matches())
-                        continue;
-                    String version = m.group(2);
-                    if (VersionUtils.compareVersions(version, minVersion) < 0)
+                    String version = getDistributionVersion(f);
+                    if (version == null || VersionUtils.compareVersions(version,
+                            minVersion) < 0)
                         continue;
                 }
 
@@ -175,6 +173,24 @@ public class DistributionManager implements JnlpPackagingConstants {
         List<File> result = new ArrayList<File>(profiles.values());
         Collections.reverse(result);
         return result;
+    }
+
+
+    /**
+     * Get the version number for the distribution in a given directory.
+     * 
+     * This method performs a simple check based on the naming convention for
+     * distribution directories. It does not actually examine the contents of
+     * any files.
+     * 
+     * @param distrDir
+     *            the directory to examine
+     * @return the version number of the distribution, or null if none could be
+     *         determined
+     */
+    public static String getDistributionVersion(File distrDir) {
+        Matcher m = LAUNCH_PROFILE_DIR_NAME_PAT.matcher(distrDir.getName());
+        return (m.matches() ? m.group(2) : null);
     }
 
     private static final Pattern LAUNCH_PROFILE_DIR_NAME_PAT = Pattern

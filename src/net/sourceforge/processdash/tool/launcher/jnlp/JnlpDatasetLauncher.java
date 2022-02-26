@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2021 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.Bootstrap;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 
 import com.tuma_solutions.teamserver.jnlp.client.JnlpClientConstants;
 
@@ -425,10 +426,29 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
         if (silent)
             return true;
 
+        // if the security policy in the target distribution doesn't trust our
+        // launcher code, it won't trust the class loaders we create either. So
+        // we must fork to avoid confining application code to our sandbox.
+        if (isDistrSecurityPolicyMismatch())
+            return true;
+
         // otherwise, we fork if the launcher doesn't grant us permission to
         // run in the current process.
         return Launcher.requestPermissionToLaunchInProcess() == false;
     }
+
+    private boolean isDistrSecurityPolicyMismatch() {
+        // this method could use complex logic to compare digital signatures and
+        // security policy files between this launcher and the target
+        // distribution. But to keep things simple, we just check the
+        // distribution version. If it precedes the last known change to the
+        // code signing certificate, it's a mismatch.
+        String version = DistributionManager.getDistributionVersion(distrDir);
+        return version == null || VersionUtils.compareVersions(version,
+            LAST_SIGNING_CERT_CHANGE_VERSION) < 0;
+    }
+
+    private static final String LAST_SIGNING_CERT_CHANGE_VERSION = "2.6.6";
 
     private void launchAppInNewProcess() throws Exception {
         // build a command line for the subprocess
