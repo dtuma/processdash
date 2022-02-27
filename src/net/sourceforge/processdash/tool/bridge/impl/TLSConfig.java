@@ -38,9 +38,44 @@ public class TLSConfig {
 
     public static void autoConfigure(Properties config, String configPrefix) {
         if (System.getProperty(INITIALIZED_PROP) == null) {
+            configureSocketTimeouts(config, configPrefix);
             configureTrustStore(config, configPrefix);
             System.setProperty(INITIALIZED_PROP, "true");
         }
+    }
+
+    private static void configureSocketTimeouts(Properties config,
+            String configPrefix) {
+        configureSocketTimeout(config, configPrefix, CONNECT_TIMEOUT_PROP,
+            "connectTimeout", 10);
+        configureSocketTimeout(config, configPrefix, READ_TIMEOUT_PROP,
+            "readTimeout", 30);
+    }
+
+    private static boolean configureSocketTimeout(Properties config,
+            String configPrefix, String sysProp, String configKey,
+            int defaultSeconds) {
+        // propagate this system property into forked child processes
+        RuntimeUtils.addPropagatedSystemProperty(sysProp, null);
+
+        // if the property is already present, do nothing
+        if (System.getProperty(sysProp) != null)
+            return false;
+
+        // read the timeout preference from config, or use default seconds
+        float seconds;
+        try {
+            String pref = getSetting(config, configPrefix, configKey, null);
+            seconds = Float.parseFloat(pref);
+        } catch (Exception e) {
+            seconds = defaultSeconds;
+        }
+
+        // store the number of milliseconds in the target system property
+        int milliseconds = (int) (seconds * 1000);
+        String newValue = Integer.toString(milliseconds);
+        System.setProperty(sysProp, newValue);
+        return true;
     }
 
     private static void configureTrustStore(Properties config,
@@ -100,6 +135,10 @@ public class TLSConfig {
 
     private static final String INITIALIZED_PROP = SETTINGS_PREFIX
             + "initialized_";
+
+    private static final String CONNECT_TIMEOUT_PROP = "sun.net.client.defaultConnectTimeout";
+
+    private static final String READ_TIMEOUT_PROP = "sun.net.client.defaultReadTimeout";
 
     private static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
 
