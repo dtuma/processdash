@@ -831,6 +831,37 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
 
+    public Set<String> getDataAndDefectFilesInUse() {
+        // scan the tree and collect all data/defect filenames
+        HashSet<String> filesInUse = new HashSet<String>();
+        getDataAndDefectFilesInUse(filesInUse, PropertyKey.ROOT);
+
+        // always treat the max data file as "in use" even if it is orphaned.
+        // this will ensure we don't reuse data file numbers for future nodes
+        maybeScanNumberedFiles(new File(dataPath));
+        filesInUse.add("" + (nextDataFileNumber - 1) + ".dat");
+
+        // cleanup empty entries and return the results
+        filesInUse.remove(null);
+        filesInUse.remove("");
+        return filesInUse;
+    }
+
+    private void getDataAndDefectFilesInUse(Set<String> filesInUse,
+            PropertyKey node) {
+        Prop p = pget(node);
+        filesInUse.add(lower(p.getDataFile()));
+        filesInUse.add(lower(p.getDefectLog()));
+        for (int i = getNumChildren(node); i-- > 0;) {
+            getDataAndDefectFilesInUse(filesInUse, getChildKey(node, i));
+        }
+    }
+
+    private static String lower(String s) {
+        return (s == null ? null : s.toLowerCase());
+    }
+
+
     private boolean numberedFilesWereScanned = false;
 
     private void maybeScanNumberedFiles(File dir) {

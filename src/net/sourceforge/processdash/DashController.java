@@ -493,42 +493,7 @@ public class DashController {
 
     public static void scrubDataDirectory() {
         PERMISSION.checkPermission();
-        Set<String> filesInUse = new HashSet<String>();
-        getDataAndDefectFilesInUse(filesInUse, PropertyKey.ROOT);
-        filesInUse.addAll(EVTaskList.getAllExtDataFilenames(dash.data));
-        File[] files = getDataDirectory().listFiles();
-        if (files == null)
-            return;
-        for (File f : files) {
-            String name = f.getName().toLowerCase();
-            if (isScrubbableDataOrDefectFile(name)) {
-                if (!filesInUse.contains(name))
-                    f.delete();
-                else if (f.getName().endsWith(".def") && f.length() == 0)
-                    f.delete();
-            }
-        }
-    }
-
-    private static void getDataAndDefectFilesInUse(Set<String> filesInUse,
-            PropertyKey node) {
-        Prop p = dash.getHierarchy().pget(node);
-        filesInUse.add(lower(p.getDataFile()));
-        filesInUse.add(lower(p.getDefectLog()));
-        for (int i = dash.getHierarchy().getNumChildren(node);  i-- > 0; ) {
-            PropertyKey child = dash.getHierarchy().getChildKey(node, i);
-            getDataAndDefectFilesInUse(filesInUse, child);
-        }
-    }
-
-    private static String lower(String s) {
-        return (s == null ? null : s.toLowerCase());
-    }
-
-    private static boolean isScrubbableDataOrDefectFile(String name) {
-        if (name.startsWith("ev-")) return name.endsWith(".dat");
-        return ("0123456789".indexOf(name.charAt(0)) != -1)
-            && (name.endsWith(".dat") || name.endsWith(".def"));
+        dash.scrubDataDirectory();
     }
 
     public static String getDatasetID() {

@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -89,6 +90,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.WBSTaskOrderComparator;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
@@ -1938,6 +1940,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (savePermissionsData() == false)
             recordUnsavedItem(unsavedData, "Permissions_Data");
 
+        if (unsavedData.isEmpty())
+            scrubDataDirectory();
+
         logger.finer("Flushing data storage");
         String flushResult = flushWorkingData();
         if (flushResult != null)
@@ -2012,6 +2017,31 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     public boolean savePermissionsData() {
         return PermissionsManager.getInstance().saveAll();
+    }
+
+    public void scrubDataDirectory() {
+        new DashboardPermission("scrubData").checkPermission();
+        logger.info("Scrubbing data directory");
+        Set<String> filesInUse = getHierarchy().getDataAndDefectFilesInUse();
+        filesInUse.addAll(EVTaskList.getAllExtDataFilenames(data));
+        File[] files = workingDirectory.getDirectory().listFiles();
+        if (files == null)
+            return;
+        for (File f : files) {
+            String name = f.getName().toLowerCase();
+            if (isScrubbableDataOrDefectFile(name)) {
+                if (!filesInUse.contains(name))
+                    f.delete();
+                else if (f.getName().endsWith(".def") && f.length() == 0)
+                    f.delete();
+            }
+        }
+    }
+
+    private static boolean isScrubbableDataOrDefectFile(String name) {
+        if (name.startsWith("ev-")) return name.endsWith(".dat");
+        return ("0123456789".indexOf(name.charAt(0)) != -1)
+                && (name.endsWith(".dat") || name.endsWith(".def"));
     }
 
     public static final String FLUSH_SUCCESSFUL = null;
