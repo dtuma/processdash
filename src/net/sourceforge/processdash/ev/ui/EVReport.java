@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2021 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,7 +76,6 @@ import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
-import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListGroupFilter;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
@@ -1385,7 +1384,7 @@ public class EVReport extends CGIChartBase {
             EVTaskFilter filter, EVReportSettings settings, String namespace)
             throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
-        boolean showTimingIcons = taskList instanceof EVTaskListData
+        boolean showTimingIcons = Settings.isPersonalMode()
                 && !settings.isExporting();
         TableModel table = customizeTaskTableWriter(writer, taskList, filter,
                 settings, showTimingIcons);

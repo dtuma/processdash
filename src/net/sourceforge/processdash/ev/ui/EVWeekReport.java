@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -235,8 +235,7 @@ public class EVWeekReport extends TinyCGIBase {
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
                 && !hideNames;
         boolean showCosts = !settings.getBool(EVReport.CUSTOMIZE_HIDE_COSTS);
-        boolean showTimingIcons = (evModel instanceof EVTaskListData
-                && !isExporting() && purpose == PLAIN_REPORT);
+        boolean showTimingIcons = Settings.isPersonalMode() && !isExporting();
         boolean showMilestones = evModel.showMilestoneColumn();
         boolean showLabels = evModel.showLabelsColumn();
         int numOptionalCols = (showAssignedTo ? 1 : 0) //
