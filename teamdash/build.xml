@@ -25,7 +25,7 @@ The author(s) may be contacted at:
 
 -->
 
-<project default="TeamTools" basedir=".">
+<project default="legacyWBS" basedir=".">
 
   <property environment="env"/>
   <property file="build.properties"/>
@@ -498,6 +498,13 @@ class dependency has been added in a dashboard class?)
 
   <target name="dist"
        depends="clean,verify16,TeamTools,verifyResourceOverrides"/>
+
+
+  <target name="recompileDash">
+    <ant antfile="${processdash.dir}/build.xml" target="recompile" inheritAll="false"/>
+  </target>
+
+  <target name="legacyWBS" depends="recompileDash,dist"/>
 
 
   <target name="signjar" if="sign.storepass">
