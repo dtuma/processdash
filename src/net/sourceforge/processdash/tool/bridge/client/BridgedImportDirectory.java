@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -96,21 +96,24 @@ public class BridgedImportDirectory implements ImportDirectory {
     }
 
     public void validate() throws IOException {
-        // syncDown will return true if changes were made, false if none were
-        // needed. Give it three chances to sync before giving up. If the server
-        // is unreachable, this will throw an IOException.
-        if (client.syncDown() && client.syncDown() && client.syncDown())
-            throw new IOException("Unable to sync down");
-        lastUpdateTime = System.currentTimeMillis();
+        // validate is often called on an ImportDirectory right after it is
+        // retrieved from the factory. But the factory already attempted to
+        // update it as part of the retrieval process. If the last successful
+        // update is that recent, we don't need to repeat it.
+        doUpdate(500);
     }
 
     public void update() throws IOException {
         // this method may get called overzealously by code in different layers
         // of the application.  If it is called more than once within a few
-        // milliseconds, don't repeat the update.
+        // seconds, don't repeat the update.
+        doUpdate(5000);
+    }
+
+    protected void doUpdate(int ifOlderThan) throws IOException {
         long now = System.currentTimeMillis();
         long lastUpdateAge = now - lastUpdateTime;
-        if (lastUpdateAge > 1000 || lastUpdateAge < 0) {
+        if (lastUpdateAge > ifOlderThan || lastUpdateAge < 0) {
             client.syncDown();
             lastUpdateTime = System.currentTimeMillis();
         }
@@ -120,13 +123,13 @@ public class BridgedImportDirectory implements ImportDirectory {
             throws IOException, LockFailureException {
         ResourceBridgeClient.uploadSingleFile(new URL(remoteURL), filename,
             source);
-        update();
+        doUpdate(-1);
     }
 
     public void deleteUnlockedFile(String filename)
             throws IOException, LockFailureException {
         ResourceBridgeClient.deleteSingleFile(new URL(remoteURL), filename);
-        update();
+        client.localCollection.deleteResource(filename);
     }
 
 }
