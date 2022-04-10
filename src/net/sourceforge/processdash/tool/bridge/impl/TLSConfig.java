@@ -126,7 +126,7 @@ public class TLSConfig {
             RuntimeUtils.addPropagatedSystemProperty(sysPropName, result);
         else
             // if no value found yet, check user preferences
-            result = PREFERENCES.get(name, defaultValue);
+            result = PREFERENCES.get("tls." + name, defaultValue);
 
         return result;
     }
@@ -145,6 +145,6 @@ public class TLSConfig {
     private static final String TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
 
     private static final Preferences PREFERENCES = Preferences.userRoot()
-            .node("net/sourceforge/processdash/userPrefs/tls");
+            .node("net/sourceforge/processdash/userPrefs");
 
 }
