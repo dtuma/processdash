@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package net.sourceforge.processdash.tool.bridge.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
@@ -33,7 +35,23 @@ import net.sourceforge.processdash.util.RuntimeUtils;
 public class TLSConfig {
 
     public static void autoConfigure() {
-        autoConfigure(null, null);
+        autoConfigure(getInstallationConfig(), "");
+    }
+
+    private static Properties getInstallationConfig() {
+        try {
+            File configFile = getConfigFile("config.ini");
+            if (configFile == null)
+                return null;
+
+            Properties result = new Properties();
+            InputStream in = new FileInputStream(configFile);
+            result.load(in);
+            in.close();
+            return result;
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     public static void autoConfigure(Properties config, String configPrefix) {
@@ -93,10 +111,8 @@ public class TLSConfig {
             return;
 
         // otherwise, look for a manually-installed trust store
-        File appDir = DirectoryPreferences.getApplicationDirectory(true);
-        File tlsDir = new File(appDir, "tls");
-        File truststore = new File(tlsDir, "truststore.jks");
-        if (truststore.isFile() && truststore.canRead()) {
+        File truststore = getConfigFile("truststore.jks");
+        if (truststore != null && truststore.canRead()) {
             System.setProperty(TRUST_STORE_TYPE, "JKS");
             System.setProperty(TRUST_STORE_FILE, truststore.getPath());
             return;
@@ -131,6 +147,26 @@ public class TLSConfig {
         return result;
     }
 
+    private static File getConfigFile(String name) {
+        // check for a file in the same directory as this application
+        if (SELF_JAR != null && SELF_JAR.isFile()) {
+            File appDir = SELF_JAR.getParentFile();
+            File localResult = new File(appDir, name);
+            if (localResult.isFile())
+                return localResult;
+        }
+
+        // check for a file in the global TLS configuration directory
+        File appDir = DirectoryPreferences.getApplicationDirectory(true);
+        File tlsDir = new File(appDir, "tls");
+        File globalResult = new File(tlsDir, name);
+        if (globalResult.isFile())
+            return globalResult;
+
+        // no file with the given name was found
+        return null;
+    }
+
     private static final String SETTINGS_PREFIX = "net.sourceforge.processdash.tls.";
 
     private static final String INITIALIZED_PROP = SETTINGS_PREFIX
@@ -146,5 +182,8 @@ public class TLSConfig {
 
     private static final Preferences PREFERENCES = Preferences.userRoot()
             .node("net/sourceforge/processdash/userPrefs");
+
+    private static final File SELF_JAR = RuntimeUtils
+            .getClasspathFile(TLSConfig.class);
 
 }
