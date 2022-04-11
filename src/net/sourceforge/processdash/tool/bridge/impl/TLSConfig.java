@@ -26,11 +26,18 @@ package net.sourceforge.processdash.tool.bridge.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Map;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
+import net.sourceforge.processdash.util.MockMap;
 import net.sourceforge.processdash.util.RuntimeUtils;
+
+import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
 
 public class TLSConfig {
 
@@ -58,6 +65,7 @@ public class TLSConfig {
         if (System.getProperty(INITIALIZED_PROP) == null) {
             configureSocketTimeouts(config, configPrefix);
             configureTrustStore(config, configPrefix);
+            runNetworkInitializer(config, configPrefix);
             System.setProperty(INITIALIZED_PROP, "true");
         }
     }
@@ -127,6 +135,30 @@ public class TLSConfig {
         }
     }
 
+    private static void runNetworkInitializer(final Properties config,
+            final String configPrefix) {
+        try {
+            File networkInitJar = getConfigFile("network-init.jar");
+            if (networkInitJar == null || !JarVerifier.verify(networkInitJar))
+                return;
+
+            @SuppressWarnings("resource")
+            URLClassLoader cl = new URLClassLoader(
+                    new URL[] { networkInitJar.toURI().toURL() },
+                    TLSConfig.class.getClassLoader().getParent());
+            Class clazz = cl.loadClass(NETWORK_INITIALIZER_CLASSNAME);
+            Constructor<Runnable> cstr = clazz.getConstructor(Map.class);
+            Runnable init = cstr.newInstance(new MockMap() {
+                public Object get(Object key) {
+                    return getSetting(config, configPrefix, (String) key, null);
+                }});
+            init.run();
+        } catch (Throwable t) {
+            System.err.println("Couldn't run network initializer:");
+            t.printStackTrace();
+        }
+    }
+
     private static String getSetting(Properties config, String configPrefix,
             String name, String defaultValue) {
         // see if a system property was set to control this property
@@ -179,6 +211,9 @@ public class TLSConfig {
     private static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
 
     private static final String TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
+
+    private static final String NETWORK_INITIALIZER_CLASSNAME = //
+            TLSConfig.class.getPackage().getName() + ".NetworkInitializer";
 
     private static final Preferences PREFERENCES = Preferences.userRoot()
             .node("net/sourceforge/processdash/userPrefs");
