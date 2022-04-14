@@ -66,7 +66,9 @@ import net.sourceforge.processdash.tool.bridge.report.ListingHashcodeCalculator;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.tool.bridge.report.ResourceContentStream;
 import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
+import net.sourceforge.processdash.util.ClientFormRequest;
 import net.sourceforge.processdash.util.ClientHttpRequest;
+import net.sourceforge.processdash.util.ClientPostRequest;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
@@ -809,7 +811,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userId != null && userId.length() > 15)
             userId = userId.substring(0, 14) + "*";
 
-        ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
+        ClientPostRequest request;
+        if (needsMultipart(params))
+            request = new ClientHttpRequest(remoteUrl);
+        else
+            request = new ClientFormRequest(remoteUrl);
         setRequestToken(request.getConnection());
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
@@ -818,7 +824,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         maybeSetParameter(request, SOURCE_IDENTIFIER, sourceIdentifier);
         maybeSetParameter(request, EXTRA_LOCK_DATA, extraLockData);
         try {
-            InputStream in = request.post(params);
+            request.setParameters(params);
+            InputStream in = request.post();
             if (responseAnalyzer != null)
                 responseAnalyzer.analyze(request.getConnection());
             return FileUtils.slurpContents(in, true);
@@ -828,7 +835,17 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
-    private static void maybeSetParameter(ClientHttpRequest request,
+    private static boolean needsMultipart(Object[] params) {
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                if (params[i] instanceof InputStream)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static void maybeSetParameter(ClientPostRequest request,
             String paramName, String paramValue) throws IOException {
         if (paramValue != null)
             request.setParameter(paramName, paramValue);

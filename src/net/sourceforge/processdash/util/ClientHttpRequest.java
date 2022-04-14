@@ -25,7 +25,7 @@ import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.util.Iterator;
 
-public class ClientHttpRequest {
+public class ClientHttpRequest implements ClientPostRequest {
     URLConnection _connection;
     OutputStream _os = null;
     Map _cookies = new HashMap();
