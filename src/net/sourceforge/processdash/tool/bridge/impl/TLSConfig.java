@@ -64,6 +64,7 @@ public class TLSConfig {
     public static void autoConfigure(Properties config, String configPrefix) {
         if (System.getProperty(INITIALIZED_PROP) == null) {
             configureSocketTimeouts(config, configPrefix);
+            configureSystemProperties(config, configPrefix);
             configureTrustStore(config, configPrefix);
             runNetworkInitializer(config, configPrefix);
             System.setProperty(INITIALIZED_PROP, "true");
@@ -101,6 +102,32 @@ public class TLSConfig {
         int milliseconds = (int) (seconds * 1000);
         String newValue = Integer.toString(milliseconds);
         System.setProperty(sysProp, newValue);
+        return true;
+    }
+
+    private static void configureSystemProperties(Properties config,
+            String configPrefix) {
+        configureSystemProp(config, configPrefix, KEEP_ALIVE_PROP, //
+            "keepAlive", null);
+    }
+
+    private static boolean configureSystemProp(Properties config,
+            String configPrefix, String sysProp, String configKey,
+            String defaultValue) {
+        // if the system property is not set, check for a configured value
+        if (System.getProperty(sysProp) == null) {
+            String configVal = getSetting(config, configPrefix, configKey,
+                defaultValue);
+            if (configVal == null)
+                // if no configured value was given, abort
+                return false;
+
+            // set the system property from the configured value
+            System.setProperty(sysProp, configVal);
+        }
+
+        // propagate this system property into forked child processes
+        RuntimeUtils.addPropagatedSystemProperty(sysProp, null);
         return true;
     }
 
@@ -207,6 +234,8 @@ public class TLSConfig {
     private static final String CONNECT_TIMEOUT_PROP = "sun.net.client.defaultConnectTimeout";
 
     private static final String READ_TIMEOUT_PROP = "sun.net.client.defaultReadTimeout";
+
+    private static final String KEEP_ALIVE_PROP = "http.keepAlive";
 
     private static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
 
