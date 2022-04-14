@@ -519,8 +519,12 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             NEW_COLLECTION_ACTION, params);
         // the statement above will throw an exception if the collection could
         // not be created. If it completes normally, it will return the ID of
-        // the newly created collection.
-        return new String(results, "UTF-8");
+        // the newly created collection. Ensure the syntax meets expectations
+        String result = new String(results, "UTF-8").trim();
+        if (!result.matches("[0-9a-z]{1,10}"))
+            throw new IOException("Server returned invalid collection token '"
+                    + StringUtils.limitLength(result, 200) + "'");
+        return result;
     }
 
     private boolean isSyncDownOnly(String resourceName) {
@@ -539,8 +543,13 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         HttpException.checkValid(conn);
         serverVersion = conn.getHeaderField(VERSION_HEADER);
         String hashResult = HTTPUtils.getResponseAsString(conn);
-        long remoteHash = Long.valueOf(hashResult);
-        return (localHash == remoteHash);
+        try {
+            long remoteHash = Long.valueOf(hashResult);
+            return (localHash == remoteHash);
+        } catch (NumberFormatException nfe) {
+            throw new IOException("Server returned invalid collection hash '"
+                    + StringUtils.limitLength(hashResult, 200) + "'");
+        }
     }
 
     private long getMostRecentLocalModTime() {

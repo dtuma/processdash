@@ -845,6 +845,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
                 ResourceCollectionType.TeamProjectData);
             return collectionId;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new WizardError(
                     isPersonal ? PERSONAL_ERR_URL : TEAM_SERVER_URL)
                             .param("cannotContact");
