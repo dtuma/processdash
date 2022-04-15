@@ -109,6 +109,8 @@ public class TLSConfig {
             String configPrefix) {
         configureSystemProp(config, configPrefix, KEEP_ALIVE_PROP, //
             "keepAlive", null);
+        configureSystemProp(config, configPrefix, POST_PREFLIGHT_PROP, //
+            "postPreflight", null);
     }
 
     private static boolean configureSystemProp(Properties config,
@@ -236,6 +238,9 @@ public class TLSConfig {
     private static final String READ_TIMEOUT_PROP = "sun.net.client.defaultReadTimeout";
 
     private static final String KEEP_ALIVE_PROP = "http.keepAlive";
+
+    public static final String POST_PREFLIGHT_PROP = SETTINGS_PREFIX
+            + "postPreflight";
 
     private static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
 

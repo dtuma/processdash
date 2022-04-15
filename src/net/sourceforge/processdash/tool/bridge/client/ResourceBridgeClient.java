@@ -62,6 +62,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.TLSConfig;
 import net.sourceforge.processdash.tool.bridge.report.ListingHashcodeCalculator;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.tool.bridge.report.ResourceContentStream;
@@ -811,6 +812,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userId != null && userId.length() > 15)
             userId = userId.substring(0, 14) + "*";
 
+        maybeRunPreflightGet(remoteUrl);
+
         ClientPostRequest request;
         if (needsMultipart(params))
             request = new ClientHttpRequest(remoteUrl);
@@ -834,6 +837,20 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             throw HttpException.maybeWrap(request.getConnection(), ioe);
         }
     }
+
+    private static void maybeRunPreflightGet(URL remoteUrl) throws IOException {
+        if (Boolean.getBoolean(TLSConfig.POST_PREFLIGHT_PROP)) {
+            String str = remoteUrl.toString();
+            int pos = str.indexOf("/DataBridge");
+            if (pos > 0) {
+                String preflightUrl = str.substring(0, pos)
+                        + "/pub/lib/jacsblank.html?n=" + NONCE++;
+                URLConnection conn = new URL(preflightUrl).openConnection();
+                FileUtils.slurpContents(conn.getInputStream(), true);
+            }
+        }
+    }
+    private static int NONCE = 1;
 
     private static boolean needsMultipart(Object[] params) {
         if (params != null) {
