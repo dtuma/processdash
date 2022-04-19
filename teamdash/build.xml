@@ -563,7 +563,7 @@ teamdash/hist/ProjectHistoryLocal*
       <fileset dir="${processdash.dist}"
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
       <fileset dir="${processdash.dist}"
-          includes="TeamTools.jar WBSEditor.jar ${launchProfile.files}"/>
+          includes="TeamTools.jar WBSEditor.jar network-init.jar ${launchProfile.files}"/>
       <fileset dir="${installer.files}" includes="dashicon.* teamicon.* wbs-editor.icns"/>
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
