@@ -27,10 +27,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.net.ProxySelector;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -41,13 +43,18 @@ import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
 
 public class TLSConfig {
 
+    private static File configFile;
+
+    private static final Logger logger = Logger
+            .getLogger(TLSConfig.class.getName());
+
     public static void autoConfigure() {
         autoConfigure(getInstallationConfig(), "");
     }
 
     private static Properties getInstallationConfig() {
         try {
-            File configFile = getConfigFile("config.ini");
+            configFile = getConfigFile("config.ini");
             if (configFile == null)
                 return null;
 
@@ -67,6 +74,7 @@ public class TLSConfig {
             configureSystemProperties(config, configPrefix);
             configureTrustStore(config, configPrefix);
             runNetworkInitializer(config, configPrefix);
+            logConfigState();
             System.setProperty(INITIALIZED_PROP, "true");
         }
     }
@@ -226,6 +234,17 @@ public class TLSConfig {
 
         // no file with the given name was found
         return null;
+    }
+
+    public static void logConfigState() {
+        // log a message indicating which configuration file we used
+        if (configFile != null)
+            logger.config("Using TLS config: " + configFile);
+
+        // log a message if a proxy server was installed
+        ProxySelector proxySelector = ProxySelector.getDefault();
+        if (proxySelector != null)
+            logger.info("Using proxy selector: " + proxySelector);
     }
 
     private static final String SETTINGS_PREFIX = "net.sourceforge.processdash.tls.";

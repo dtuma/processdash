@@ -389,6 +389,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         fileBackupManager = new FileBackupManager(workingDirectory);
         fileBackupManager.maybeRun(FileBackupManager.STARTUP, null);
         pt.click("Ran file backup");
+        TLSConfig.logConfigState();
 
 
         // start the http server.
