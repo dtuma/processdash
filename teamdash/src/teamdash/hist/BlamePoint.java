@@ -1,4 +1,4 @@
-// Copyright (C) 2015 Tuma Solutions, LLC
+// Copyright (C) 2015-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,7 +48,8 @@ public class BlamePoint implements Comparable<BlamePoint> {
 
     public BlamePoint(Date timestamp, Set<String> authors) {
         this.timestamp = timestamp;
-        setAuthors(authors);
+        this.authors = authors;
+        this.author = StringUtils.join(authors, ", ");
     }
 
     public Date getTimestamp() {
@@ -63,9 +64,11 @@ public class BlamePoint implements Comparable<BlamePoint> {
         return (authors != null ? authors : Collections.singleton(author));
     }
 
-    public void setAuthors(Set<String> authors) {
-        this.authors = authors;
-        this.author = StringUtils.join(authors, ", ");
+    public void addAuthorsTo(Set<String> dest) {
+        if (authors != null)
+            dest.addAll(authors);
+        else
+            dest.add(author);
     }
 
     @Override

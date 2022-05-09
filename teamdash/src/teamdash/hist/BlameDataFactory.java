@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2016 Tuma Solutions, LLC
+// Copyright (C) 2015-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -355,9 +355,11 @@ public class BlameDataFactory extends ProjectDiff {
 
         // find the change in the value list corresponding to the current diff
         BlamePoint thisBlamePoint = null;
+        String thisValue = null;
         for (Entry<BlamePoint, String> e : values.entrySet()) {
             if (e.getKey().equals(blamePoint)) {
                 thisBlamePoint = e.getKey();
+                thisValue = e.getValue();
                 break;
             }
         }
@@ -371,17 +373,21 @@ public class BlameDataFactory extends ProjectDiff {
             if (childBlame != null) {
                 if (childAuthors == null)
                     childAuthors = new TreeSet<String>();
-                childAuthors.addAll(childBlame.getAuthors());
+                childBlame.addAuthorsTo(childAuthors);
             }
         }
 
         // when we initially created the annotation for this change, we assigned
-        // the blame to the default author, but yhat's very possibly incorrect.
+        // the blame to the default author, but that's very possibly incorrect.
         // When a rolled up value changes, that change will be a result of
         // changes in our children. So if we find a list of blame authors for
         // our children, adopt it as the list for the rolled-up value too.
-        if (childAuthors != null && !childAuthors.isEmpty())
-            thisBlamePoint.setAuthors(childAuthors);
+        if (childAuthors != null && !childAuthors.isEmpty()) {
+            BlamePoint rolledUpBlamePoint = new BlamePoint(
+                    thisBlamePoint.getTimestamp(), childAuthors);
+            values.remove(thisBlamePoint);
+            values.put(rolledUpBlamePoint, thisValue);
+        }
 
         return thisBlamePoint;
     }
