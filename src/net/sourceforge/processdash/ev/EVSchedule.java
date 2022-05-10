@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1537,7 +1537,10 @@ public class EVSchedule implements TableModel {
         else
             return DATE_FORMATTER.format(d);
     }
-    private static DateFormat DATE_FORMATTER =
+    public static DateFormat getDateFormatter() {
+        return DATE_FORMATTER;
+    }
+    static DateFormat DATE_FORMATTER =
         DateFormat.getDateInstance(DateFormat.SHORT);
     private static final String NEVER_STRING =
         resources.getString("Schedule.Date_Never");

@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,24 +25,29 @@ package net.sourceforge.processdash.ev.ui.chart;
 
 import java.text.DateFormat;
 
-import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
-import net.sourceforge.processdash.util.FormatUtil;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.DateTickUnit;
+import org.jfree.chart.axis.DateTickUnitType;
+import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
+import net.sourceforge.processdash.ev.EVDateFormatOverride;
+import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 public abstract class AbstractEVTimeSeriesChart extends AbstractEVXYChart {
 
     @Override
     protected JFreeChart getXYChartObject(XYDataset data) {
-        return ChartFactory.createTimeSeriesChart(null, null, null, data,
-                                                  true, true, false);
+        return maybeChangeDateTickUnits(ChartFactory.createTimeSeriesChart(null,
+            null, null, data, true, true, false));
     }
 
     @Override
@@ -79,15 +84,61 @@ public abstract class AbstractEVTimeSeriesChart extends AbstractEVXYChart {
         renderer.setBaseToolTipGenerator(new EVTimeSeriesTooltipGenerator());
 
         chart.getXYPlot().setRenderer(renderer);
-        return chart;
+        return maybeChangeDateTickUnits(chart);
     }
 
     public static class EVTimeSeriesTooltipGenerator extends EVXYToolTipGenerator {
 
         public EVTimeSeriesTooltipGenerator() {
-            super(DateFormat.getDateInstance(DateFormat.SHORT),
+            super(EVSchedule.getDateFormatter(),
                   FormatUtil.getOneFractionDigitNumberFormat());
         }
 
     }
+
+    private static JFreeChart maybeChangeDateTickUnits(JFreeChart chart) {
+        try {
+            maybeChangeAxisDateTickUnits(
+                (DateAxis) chart.getXYPlot().getDomainAxis());
+        } catch (Exception e) {
+        }
+
+        return chart;
+    }
+
+    public static void maybeChangeAxisDateTickUnits(DateAxis axis) {
+        DateFormat formatOverride = EVDateFormatOverride.getDateFormatOverride();
+        if (formatOverride == null)
+            return;
+
+        // if EVDemoConfig is overriding the date format, we should adopt
+        // the same format for any ticks that previously contained a year
+        try {
+            TickUnits oldTicks = (TickUnits) axis.getStandardTickUnits();
+            TickUnits newTicks = new TickUnits();
+            for (int i = 0; i < oldTicks.size(); i++) {
+                DateTickUnit oneTick = (DateTickUnit) oldTicks.get(i);
+                DateTickUnitType oneTickUnitType = oneTick.getUnitType();
+                if (oneTickUnitType.equals(DateTickUnitType.MONTH)) {
+                    // apply the format override for all "month" tick units
+                    DateTickUnit newTick = new DateTickUnit(oneTickUnitType,
+                            oneTick.getMultiple(), oneTick.getRollUnitType(),
+                            oneTick.getRollMultiple(), formatOverride);
+                    newTicks.add(newTick);
+
+                } else if (oneTickUnitType.equals(DateTickUnitType.YEAR)) {
+                    // don't add any tick units for year marks and higher
+
+                } else {
+                    // add other tick units as-is
+                    newTicks.add(oneTick);
+                }
+            }
+
+            axis.setStandardTickUnits(newTicks);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
