@@ -45,6 +45,8 @@ public class TLSConfig {
 
     private static File configFile, networkInitJarFile;
 
+    private static Runnable NETWORK_INITIALIZER;
+
     private static final Logger logger = Logger
             .getLogger(TLSConfig.class.getName());
 
@@ -186,11 +188,13 @@ public class TLSConfig {
                     TLSConfig.class.getClassLoader().getParent());
             Class clazz = cl.loadClass(NETWORK_INITIALIZER_CLASSNAME);
             Constructor<Runnable> cstr = clazz.getConstructor(Map.class);
-            Runnable init = cstr.newInstance(new MockMap() {
+            Map configMap = new MockMap() {
                 public Object get(Object key) {
                     return getSetting(config, configPrefix, (String) key, null);
-                }});
-            init.run();
+                }};
+            NETWORK_INITIALIZER = cstr.newInstance(configMap);
+            NETWORK_INITIALIZER.run();
+
         } catch (Throwable t) {
             System.err.println("Couldn't run network initializer:");
             t.printStackTrace();
