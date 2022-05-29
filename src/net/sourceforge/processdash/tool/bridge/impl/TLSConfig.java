@@ -43,7 +43,7 @@ import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
 
 public class TLSConfig {
 
-    private static File configFile;
+    private static File configFile, networkInitJarFile;
 
     private static final Logger logger = Logger
             .getLogger(TLSConfig.class.getName());
@@ -178,6 +178,7 @@ public class TLSConfig {
             File networkInitJar = getConfigFile("network-init.jar");
             if (networkInitJar == null || !JarVerifier.verify(networkInitJar))
                 return;
+            networkInitJarFile = networkInitJar;
 
             @SuppressWarnings("resource")
             URLClassLoader cl = new URLClassLoader(
@@ -240,6 +241,10 @@ public class TLSConfig {
         // log a message indicating which configuration file we used
         if (configFile != null)
             logger.config("Using TLS config: " + configFile);
+
+        // log a message indicating which initialization JAR we used
+        if (networkInitJarFile != null)
+            logger.config("Using network init: " + networkInitJarFile);
 
         // log a message if a proxy server was installed
         ProxySelector proxySelector = ProxySelector.getDefault();
