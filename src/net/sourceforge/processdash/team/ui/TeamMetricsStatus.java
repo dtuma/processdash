@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2015 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -91,14 +91,17 @@ public class TeamMetricsStatus extends TinyCGIBase {
 
         out.print("<h2>For ");
         out.print(HTMLUtils.escapeEntities(getPrefix()));
-        out.print(" <a href='../../control/importNow.class?redirectToReferrer="
-                + (RELOAD++) + "' class='nav'>Refresh Data...</a></h2>");
+        if (!isExporting())
+            out.print(" <a href='../../control/importNow.class?redirectToReferrer="
+                    + (RELOAD++) + "' class='nav doNotPrint'>Refresh Data...</a>");
+        out.print("</h2>\n");
 
         if (importData == null || importData.size() == 0)
             showNoTeamMembersFound();
         else
             printTeamMemberData(importData);
 
+        out.print("<p class='doNotPrint'><a href=\"/reports/excel.iqy\"><i>Export to Excel</i></a></p>\n");
         out.print("</body></html>");
     }
 
@@ -137,7 +140,7 @@ public class TeamMetricsStatus extends TinyCGIBase {
     private void printTeamMemberData(List<ImportData> importData) {
         String teamDashVersion = TemplateLoader.getPackageVersion(DASH_PKG_ID);
 
-        out.println("<table border><tr>");
+        out.println("<table border class='sortable' id='data'><tr>");
         out.println("<th>Team Member Name</th>");
         out.println("<th>Metrics Data Last Exported</th>");
         out.println("<th>Last Sync to WBS</th>");
@@ -169,17 +172,10 @@ public class TeamMetricsStatus extends TinyCGIBase {
                     + "title='Colliding value in datasetID.dat; "
                     + "project calculations may be incorrect'>");
 
-        out.print("</td><td>");
-
-        if (d.exportDate != null)
-            out.print(HTMLUtils.escapeEntities(FormatUtil
-                    .formatDateTime(d.exportDate)));
-        out.print("</td><td>");
-
-        if (d.wbsLastSync != null)
-            out.print(HTMLUtils.escapeEntities(FormatUtil
-                .formatDateTime(d.wbsLastSync)));
         out.print("</td>");
+
+        printDateCell(d.exportDate);
+        printDateCell(d.wbsLastSync);
 
         if (!StringUtils.hasValue(d.dashVersion)) {
             out.print("<td></td>");
@@ -187,12 +183,23 @@ public class TeamMetricsStatus extends TinyCGIBase {
             out.print("<td");
             if (DashPackage.compareVersions(d.dashVersion, teamDashVersion) < 0)
                 out.print(OUT_OF_DATE_ATTRS);
-            out.print(">");
+            out.print(" sortkey='" + d.getVersionSortKey() + "'>");
             out.print(HTMLUtils.escapeEntities(d.dashVersion));
             out.print("</td>");
         }
 
         out.println("</tr>");
+    }
+
+    private void printDateCell(Date d) {
+        if (d == null) {
+            out.print("<td></td>");
+        } else {
+            out.print("<td sortkey='" + d.getTime() + "'>");
+            out.print(HTMLUtils.escapeEntities(FormatUtil
+                .formatDateTime(d)));
+            out.print("</td>");
+        }
     }
 
     private class ImportData implements Comparable<ImportData> {
@@ -242,6 +249,16 @@ public class TeamMetricsStatus extends TinyCGIBase {
             }
         }
 
+        public String getVersionSortKey() {
+            if (dashVersion == null)
+                return null;
+
+            StringBuilder result = new StringBuilder("v");
+            for (String num : dashVersion.split("\\."))
+                result.append(num.length() == 1 ? "0" : "").append(num);
+            return result.toString();
+        }
+
         public int compareTo(ImportData that) {
             return this.ownerName.compareTo(that.ownerName);
         }
@@ -250,6 +267,9 @@ public class TeamMetricsStatus extends TinyCGIBase {
     private static int RELOAD = (int) ((System.currentTimeMillis() >> 10) & 255);
 
     private static final String HTML_HEADER = "<html><head>\n"
+            + "<link rel=stylesheet type='text/css' href='/style.css'>\n"
+            + "<link rel=stylesheet type='text/css' href='/lib/sorttable.css'>\n"
+            + "<script type='text/javascript' src='/lib/sorttable.js'></script>\n"
             + "<title>Status of Team Metrics</title><style>\n"
             + "td.outOfDate { background-color: #ffcccc }\n"
             + "a.nav { font-style: italic; font-size: medium; " +
