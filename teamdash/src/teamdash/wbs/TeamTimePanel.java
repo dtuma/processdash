@@ -499,7 +499,7 @@ public class TeamTimePanel extends JPanel
             if (bar instanceof TeamMilestoneBar) {
                 if (!showBalancedBar || onlyOneVisiblePerson) continue;
             } else {
-                if (!showTeamMemberBars) continue;
+                if (!showTeamMemberBars && !onlyOneVisiblePerson) continue;
             }
 
             JLabel name = bar.getNameLabel();
