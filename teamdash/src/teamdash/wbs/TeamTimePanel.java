@@ -974,6 +974,11 @@ public class TeamTimePanel extends JPanel
             }
         }
 
+        public void maybeClearHoverHighlightOnMouseOut() {
+            if (highlightMilestoneOnHover && milestoneID != -1 && !clickLocked)
+                set(null);
+        }
+
         public boolean isHighlighted(MilestoneHighlightable h) {
             return h.getMilestoneID() == milestoneID;
         }
@@ -1014,6 +1019,8 @@ public class TeamTimePanel extends JPanel
         @Override
         public void mouseExited(MouseEvent e) {
             setBarHighlighted(e, false);
+            if (e.getComponent() instanceof CommitDatePane)
+                milestoneHighlighter.maybeClearHoverHighlightOnMouseOut();
         }
 
         private void setBarHighlighted(MouseEvent e, boolean highlighted) {
