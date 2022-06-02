@@ -3161,6 +3161,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 resources.getString("Buttons.Sort_Tasks.Label.Option"));
         JComboBox labelChoice = new JComboBox(new Vector(labelPrefixes));
         if (!labelPrefixes.isEmpty()) {
+            guiPrefs.load(labelChoice);
             group.add(labelOption);
             message.add(labelOption);
             message.add(getIndentedText("Buttons.Sort_Tasks.Label.Description"));
