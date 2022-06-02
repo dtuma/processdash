@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,8 +49,8 @@ public class ScriptMenuBuilder {
         if (scripts.size() <= maxItemsPerMenu) {
             maxItemsPerGroup = Integer.MAX_VALUE;
         } else {
-            int numGroups = scriptGroups.size();
-            maxItemsPerGroup = Math.max(1, maxItemsPerMenu / numGroups);
+            maxItemsPerGroup = calcMaxItemsPerGroup(maxItemsPerMenu,
+                scriptGroups);
         }
 
         List menuItems = new ArrayList();
@@ -87,6 +87,46 @@ public class ScriptMenuBuilder {
         if (currentScripts != null)
             result.add(currentScripts);
         return result;
+    }
+
+    /**
+     * When menus get too large, they receive an overflow menu. In the case of a
+     * single menu, this logic is simple.
+     * 
+     * But things can be more complicated for the script menu. When scripts are
+     * present at multiple levels of the hierarchy, we display a group for each
+     * distinct level; and <b>all</b> of those hierarchy groups must appear in
+     * the script button's top-level menu. We never push an entire group into an
+     * overflow menu; instead, we include all groups and provide overflows for
+     * individual groups as needed.
+     * 
+     * This method calculates the optimal number of items to display for each
+     * hierarchy group, to ensure (a) all groups fit, and (b) we include as much
+     * detail on the main menu as possible.
+     */
+    private int calcMaxItemsPerGroup(int maxItemsPerMenu,
+            List<List<ScriptID>> scriptGroups) {
+        int numGroups = scriptGroups.size();
+        if (numGroups < 2)
+            return maxItemsPerMenu;
+
+        int nominalGroupSize = Math.max(1, maxItemsPerMenu / numGroups);
+        int largeGroupCount = 0;
+        int smallGroupItemCount = 0;
+        for (List<ScriptID> group : scriptGroups) {
+            int groupSize = group.size();
+            if (groupSize <= nominalGroupSize)
+                smallGroupItemCount += groupSize;
+            else
+                largeGroupCount++;
+        }
+
+        if (largeGroupCount == 0)
+            return nominalGroupSize;
+
+        int spaceForLargeGroups = maxItemsPerMenu - smallGroupItemCount;
+        return Math.max(nominalGroupSize,
+            spaceForLargeGroups / largeGroupCount);
     }
 
     private void addMenuItemsForGroup(List menuItems, List<ScriptID> group,
