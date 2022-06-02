@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1615,6 +1615,7 @@ public class WBSTabPanel extends JLayeredPane implements
         columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setLocationRelativeTo(this);
         columnSelectorDialog.setVisible(true);
+        dataTable.selectAllColumns();
     }
 
     /**

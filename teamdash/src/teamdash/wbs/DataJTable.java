@@ -37,6 +37,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -110,13 +112,14 @@ public class DataJTable extends JTable {
         pasteAction.putValue(DATA_ACTION_CATEGORY, DATA_ACTION_CATEGORY_CLIPBOARD);
 
         addFocusListener(new FocusWatcher());
+        model.addTableModelListener(new ColumnSelectionWatcher());
 
         // work around Sun Java bug 4709394
         putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         MacGUIUtils.tweakTable(this);
     }
 
-    private void selectAllColumns() {
+    public void selectAllColumns() {
         getColumnModel().getSelectionModel().addSelectionInterval(0,
                 getColumnCount() - 1);
     }
@@ -298,6 +301,23 @@ public class DataJTable extends JTable {
                     || SwingUtilities.isDescendingFrom(opposite,
                         DataJTable.this))
                 return;
+            selectAllColumns();
+        }
+
+    }
+
+    private class ColumnSelectionWatcher implements TableModelListener, Runnable {
+
+        public void tableChanged(TableModelEvent e) {
+            // getLastRow() == Integer.MAX_VALUE is a state invariant indicating
+            // "all table data has changed." This gets fired often by the WBS
+            // when "structural" changes are made. This JTable clears the column
+            // selection in response; we wish to select all columns instead.
+            if (e.getLastRow() == Integer.MAX_VALUE)
+                SwingUtilities.invokeLater(this);
+        }
+
+        public void run() {
             selectAllColumns();
         }
 
