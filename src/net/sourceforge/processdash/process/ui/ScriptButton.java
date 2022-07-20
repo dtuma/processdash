@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2020 Tuma Solutions, LLC
+// Copyright (C) 2000-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -137,8 +137,12 @@ public class ScriptButton extends DropDownButton implements
 
     // setPaths populates the popup menu with valid script paths.
     // However, it does not command the menu to be displayed.
-    private void setPaths(List<ScriptID> v) {
-        paths = v;
+    private void setPaths(List<ScriptID> newPaths) {
+        if (scriptPathsAreEqual(paths, newPaths)) {
+            return;
+        }
+
+        paths = newPaths;
         getMenu().removeAll();
         JMenu destMenu = getMenu();
 
@@ -157,6 +161,30 @@ public class ScriptButton extends DropDownButton implements
         if (addLinkItem != null)
             getMenu().add(addLinkItem);
         getMenu().add(moreItem);
+    }
+
+    private boolean scriptPathsAreEqual(List<ScriptID> oldPaths,
+            List<ScriptID> newPaths) {
+        // if we didn't previously have a set of scripts, this is a change
+        if (oldPaths == null)
+            return false;
+
+        // if the list of scripts has changed in an obvious way, return false
+        if (!oldPaths.equals(newPaths))
+            return false;
+
+        // The equality test above ignores display names, since those can be
+        // retrieved asynchronously. If any explicit display names have changed,
+        // return false so the menu gets rebuilt.
+        for (int i = newPaths.size(); i-- > 0;) {
+            ScriptID newScript = newPaths.get(i);
+            ScriptID oldScript = oldPaths.get(i);
+            if (!newScript.displayNamesMatch(oldScript))
+                return false;
+        }
+
+        // everything matches
+        return true;
     }
 
     private void addMenuItems(JMenu destMenu, boolean showSeparatorLabels,
