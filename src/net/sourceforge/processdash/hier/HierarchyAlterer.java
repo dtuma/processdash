@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2016 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -311,9 +311,13 @@ public class HierarchyAlterer implements ItemListener {
         Prop parentProp = hier.pget(parent);
         int oldPos = parentProp.getChildPos(oldNode);
         int newPos = parentProp.getChildPos(newNode);
+        int selPos = parentProp.getSelectedChild();
         if (oldPos != -1 && newPos != -1) {
             parentProp.removeChild(newPos);
             parentProp.addChild(newNode, oldPos);
+            // if the renamed node was previously selected, retain selection
+            if (selPos == oldPos)
+                parentProp.setSelectedChild(oldPos);
         }
         // move data and children from the old location to the new
         hier.move(oldNode, newNode);

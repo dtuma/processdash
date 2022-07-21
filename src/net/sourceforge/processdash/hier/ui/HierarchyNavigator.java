@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2020 Tuma Solutions, LLC
+// Copyright (C) 1999-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -357,7 +357,13 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
                 allItems.add(menuItem);
             }
 
-            setSelectedItem(selectedItem);
+            if (numChildren > 0) {
+                setSelectedItem(selectedItem);
+
+            } else if (nextMenu != null) {
+                nextMenu.dispose();
+                nextMenu = null;
+            }
         }
 
         private void addMenuItemsForChildren() {
@@ -459,10 +465,6 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             HierMenu origNextMenu = nextMenu;
             if (needsMenuItemUpdate()) {
                 String origText = getText();
-                removeAll();
-                if (nextMenu != null)
-                    nextMenu.dispose();
-                nextMenu = null;
                 createMenuItemsForChildren();
                 addMenuItemsForChildren();
                 if (!origText.equals(getText()))
@@ -470,7 +472,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             }
             if (nextMenu != origNextMenu)
                 needsResize = true;
-            else if (nextMenu != null && nextMenu.updateToMatchHierarchy())
+            if (nextMenu != null && nextMenu.updateToMatchHierarchy())
                 needsResize = true;
 
             return needsResize;
