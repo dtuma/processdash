@@ -78,6 +78,7 @@
 
             <!-- files used on all platforms -->
             <file targetdir="$JAR_INSTALL_PATH" override="true" src="../dist/launcher.jar"/>
+            <file targetdir="$JAR_INSTALL_PATH" override="true" src="../dist/network-init.jar"/>
 
             <!-- files needed on Windows -->
             <file targetdir="$INSTALL_PATH" override="true" os="windows"
