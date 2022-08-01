@@ -353,6 +353,6 @@ public class FileBundleMigrator {
 
     }
 
-    private static final String BUNDLE_MODE = "bundleMode";
+    private static final String BUNDLE_MODE = FileBundleUtils.BUNDLE_MODE_PROP;
 
 }

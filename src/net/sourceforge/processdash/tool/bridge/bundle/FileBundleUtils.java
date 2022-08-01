@@ -71,16 +71,19 @@ public class FileBundleUtils {
      */
     public static FileBundleMode getBundleMode(File dir)
             throws FileNotFoundException, IOException {
-        // if the directory is not accessible, throw an exception
-        if (!dir.isDirectory())
-            throw new FileNotFoundException(dir.getPath());
+        // get the props for this directory
+        Properties props = getBundleProps(dir);
 
         // if this is not a bundled dir, the mode is null
-        if (!isBundledDir(dir))
+        if (props == null)
             return null;
 
-        // only one bundle mode is currently supported
-        return FileBundleMode.Local;
+        // retrieve and parse the bundle mode
+        String modeStr = props.getProperty(BUNDLE_MODE_PROP);
+        if (modeStr == null)
+            return null;
+        else
+            return FileBundleMode.parse(modeStr);
     }
 
     /**
@@ -147,5 +150,8 @@ public class FileBundleUtils {
         }
         return result;
     }
+
+
+    static final String BUNDLE_MODE_PROP = "bundleMode";
 
 }

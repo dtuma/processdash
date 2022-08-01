@@ -29,6 +29,10 @@ import java.util.Map;
 
 public enum FileBundleMode {
 
+    Sync("sync", //
+            "pspdash", "2.6.8.2", //
+            "teamToolsB", "6.2.7"),
+
     Local("local", //
             "pspdash", "2.6.6.3", //
             "teamTools", "5.5.2", //
@@ -55,6 +59,14 @@ public enum FileBundleMode {
 
     public Map<String, String> getMinVersions() {
         return minVersions;
+    }
+
+    public static FileBundleMode parse(String s) {
+        for (FileBundleMode mode : values()) {
+            if (mode.getName().equalsIgnoreCase(s))
+                return mode;
+        }
+        return null;
     }
 
 }
