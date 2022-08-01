@@ -281,7 +281,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 201) {
+        if (classCount > 202) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

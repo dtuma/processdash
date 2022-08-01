@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
             doUpdate();
     }
 
-    private boolean needsUpdate() {
+    protected boolean needsUpdate() {
         // an update is needed if the file's size or timestamp have changed
         return storage.lastModified() != lastModified
                 || storage.length() != lastSize;
