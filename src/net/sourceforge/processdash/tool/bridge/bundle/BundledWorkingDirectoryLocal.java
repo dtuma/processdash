@@ -52,7 +52,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
     private boolean enableBackgroundFlush;
 
-    private ResourceBundleClient client;
+    protected ResourceBundleClient client;
 
     private boolean hasLeftoverDirtyFiles;
 
@@ -72,8 +72,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         this.logBundleTimestamp = System.currentTimeMillis() - 1000;
 
         // enable background data flushing for dashboard directories (not WBS)
-        this.enableBackgroundFlush = strategy.getFilenameFilter().accept(null,
-            "state");
+        this.enableBackgroundFlush = isDashboardDatasetDirectory();
     }
 
     public boolean isEnableBackgroundFlush() {
@@ -114,7 +113,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         hasLeftoverDirtyFiles = enableBackgroundFlush && client.isDirty();
     }
 
-    private void makeBundleClient() throws IOException {
+    protected void makeBundleClient() throws IOException {
         // track locally checked out HEAD refs in metadata/heads.txt
         HeadRefs workingHeads = new HeadRefsPropertiesFileLocking(
                 new File(getMetadataDir(), HEADS_FILE));
@@ -122,11 +121,10 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         // track globally published HEAD refs in target/heads/heads.txt
         File bundleHeadsDir = getSubdir(targetDirectory,
             FileBundleConstants.HEADS_SUBDIR);
-        HeadRefs bundleHeads = new HeadRefsPropertiesFileLocking(
-                new File(bundleHeadsDir, HEADS_FILE));
+        HeadRefs bundleHeads = makeBundleHeads(bundleHeadsDir);
 
         // for WBS/disseminate dirs, track PDASH heads in separate "peg" files
-        if (strategy.getFilenameFilter().accept(null, "test-data.pdash")) {
+        if (isWbsOrDisseminateDirectory()) {
             HeadRefs pdash = new HeadRefsPegFiles(bundleHeadsDir, "PDASH");
             HeadRefs merged = new HeadRefsMerger() //
                     .addPatternedRefs(new PatternList(".*,pdash$"), pdash) //
@@ -141,7 +139,12 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
                 workingHeads, getMetadataDir(), bundleDir, bundleHeads);
     }
 
-    private void repairCorruptFiles() throws IOException {
+    protected HeadRefs makeBundleHeads(File bundleHeadsDir) throws IOException {
+        return new HeadRefsPropertiesFileLocking(
+                new File(bundleHeadsDir, HEADS_FILE));
+    }
+
+    protected void repairCorruptFiles() throws IOException {
         // repair any corruptions in our list of working heads
         client.discardObsoleteWorkingHeads();
 
@@ -164,11 +167,23 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     }
 
 
+    protected void clientPrecheck() throws IllegalStateException, IOException {
+        // make sure the target directory has the bundle mode we expect
+        ensureBundleMode();
+
+        // recheck all cached file checksums, etc
+        discardLocallyCachedFileData();
+    }
+
+
     @Override
     public void update() throws IllegalStateException, IOException {
-        ensureBundleMode();
-        discardLocallyCachedFileData();
-        for (int numTries = 5; numTries-- > 0;) {
+        clientPrecheck();
+        doSyncDown(5);
+    }
+
+    protected void doSyncDown(int maxTries) throws IOException {
+        for (int numTries = maxTries; numTries-- > 0;) {
             if (client.syncDown() == false)
                 return;
         }
@@ -180,8 +195,12 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     @Override
     public boolean flushData() throws LockFailureException, IOException {
         assertWriteLock();
-        discardLocallyCachedFileData();
-        for (int numTries = 5; numTries-- > 0;) {
+        clientPrecheck();
+        return doSyncUp(5);
+    }
+
+    protected boolean doSyncUp(int maxTries) throws IOException {
+        for (int numTries = maxTries; numTries-- > 0;) {
             if (client.syncUp() == false) {
                 if (worker != null)
                     worker.resetFlushFrequency();
@@ -221,7 +240,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         collection.saveFileDataCache(getFileDataCacheFile());
     }
 
-    private void flushLeftoverDirtyFiles() {
+    protected void flushLeftoverDirtyFiles() {
         try {
             boolean changesWereSaved = client.syncUp();
             long logTime = collection.getLastModified(LOG_FILENAME);
@@ -279,6 +298,10 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         super.releaseWriteLock();
     }
 
+    protected void shutDown() {
+        releaseWriteLock();
+    }
+
 
     public URL doBackup(String qualifier) throws IOException {
         // make a backup of the local working directory.
@@ -287,6 +310,14 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         return result;
     }
 
+
+    protected boolean isDashboardDatasetDirectory() {
+        return strategy.getFilenameFilter().accept(null, "state");
+    }
+
+    protected boolean isWbsOrDisseminateDirectory() {
+        return strategy.getFilenameFilter().accept(null, "test-data.pdash");
+    }
 
     private File getFileDataCacheFile() {
         return new File(getMetadataDir(), "fileDataCache.xml");
@@ -307,6 +338,14 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
             File targetDirectory, FileResourceCollectionStrategy strategy,
             File workingDirectoryParent, boolean useCache) {
 
+        FileBundleMode mode;
+        try {
+            mode = FileBundleUtils.getBundleMode(targetDirectory);
+        } catch (IOException ioe) {
+            // use null to signify, "we don't know the bundle mode"
+            mode = null;
+        }
+
         BundledWorkingDirectoryLocal result = null;
         String cacheKey = targetDirectory.getPath() + "\n"
                 + strategy.getClass().getName() + "\n"
@@ -315,9 +354,23 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         if (useCache)
             result = cache.get(cacheKey);
 
-        if (result == null)
+        if (result != null && mode != null
+                && !result.getBundleMode().equals(mode)) {
+            result.shutDown();
+            cache.remove(cacheKey);
+            result = null;
+        }
+
+        if (result != null) {
+            // cached value is available, no need to create a new object
+        } else if (mode == FileBundleMode.Local) {
             result = new BundledWorkingDirectoryLocal(targetDirectory, strategy,
                     workingDirectoryParent);
+        } else {
+            // if the bundle mode is Sync or unknown, create a Sync directory
+            result = new BundledWorkingDirectorySync(targetDirectory, strategy,
+                    workingDirectoryParent);
+        }
 
         if (useCache)
             cache.put(cacheKey, result);
