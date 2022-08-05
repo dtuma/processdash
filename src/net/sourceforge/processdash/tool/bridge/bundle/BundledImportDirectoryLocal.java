@@ -69,8 +69,8 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
     }
 
     public Boolean isBadDelegate() {
-        return LocalImportDirectory
-                .isBadDelegate(workingDir.getTargetDirectory(), true);
+        return LocalImportDirectory.isBadDelegate(
+            workingDir.getTargetDirectory(), workingDir.getBundleMode());
     }
 
     public void validate() throws IOException {

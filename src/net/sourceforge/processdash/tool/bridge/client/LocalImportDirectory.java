@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleModeMismatch;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
@@ -60,7 +62,7 @@ public class LocalImportDirectory implements ImportDirectory {
     }
 
     public Boolean isBadDelegate() {
-        return isBadDelegate(targetDirectory, false);
+        return isBadDelegate(targetDirectory, null);
     }
 
     public void validate() throws IOException {
@@ -97,7 +99,7 @@ public class LocalImportDirectory implements ImportDirectory {
     }
 
     public static Boolean isBadDelegate(File targetDir,
-            boolean shouldBeBundled) {
+            FileBundleMode expectedBundleMode) {
         // if we can't reach the directory, status is indeterminate
         if (!targetDir.isDirectory())
             return null;
@@ -107,8 +109,14 @@ public class LocalImportDirectory implements ImportDirectory {
             return Boolean.TRUE;
 
         // if the bundled type doesn't match, it is bad
-        if (shouldBeBundled != FileBundleUtils.isBundledDir(targetDir))
+        try {
+            FileBundleUtils.ensureBundleMode(targetDir, expectedBundleMode);
+        } catch (FileBundleModeMismatch fbmm) {
             return Boolean.TRUE;
+        } catch (IOException ioe) {
+            // if we couldn't read the bundle mode, status is indeterminate
+            return null;
+        }
 
         // the directory exists and hasn't been migrated. Not a bad delegate
         return Boolean.FALSE;

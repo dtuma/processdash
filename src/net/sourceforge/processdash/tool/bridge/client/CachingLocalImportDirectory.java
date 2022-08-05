@@ -92,7 +92,7 @@ public class CachingLocalImportDirectory implements ImportDirectory {
     }
 
     public Boolean isBadDelegate() {
-        return LocalImportDirectory.isBadDelegate(targetDirectory, false);
+        return LocalImportDirectory.isBadDelegate(targetDirectory, null);
     }
 
     public void validate() throws IOException {
