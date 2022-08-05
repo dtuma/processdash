@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectoryLocal;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
@@ -172,11 +173,14 @@ public class WorkingDirectoryFactory {
                     strategy, getWorkingDirParent(purpose));
 
         } else if (FileBundleUtils.isBundledDir(targetDirectory)) {
-            logger.info("Using local bundled working directory "
+            logger.info("Using bundled working directory "
                     + targetDirectory.getPath());
             boolean useCache = ((purpose & PURPOSE_TEMP) == 0);
-            return BundledWorkingDirectoryLocal.create(targetDirectory,
-                strategy, getWorkingDirParent(purpose), useCache);
+            BundledWorkingDirectory result = BundledWorkingDirectoryLocal
+                    .create(targetDirectory, strategy,
+                        getWorkingDirParent(purpose), useCache);
+            logger.info("\tbundle mode = " + result.getBundleMode());
+            return result;
 
         } else if (targetDirectory != null) {
             logger.info("Using local working directory "

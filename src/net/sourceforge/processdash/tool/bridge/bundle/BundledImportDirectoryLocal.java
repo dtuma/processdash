@@ -73,6 +73,10 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
             workingDir.getTargetDirectory(), workingDir.getBundleMode());
     }
 
+    public FileBundleMode getBundleMode() {
+        return workingDir.getBundleMode();
+    }
+
     public void validate() throws IOException {
         doUpdate(true);
     }

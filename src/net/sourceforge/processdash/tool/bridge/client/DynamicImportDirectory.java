@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 /**
@@ -132,7 +133,14 @@ public class DynamicImportDirectory implements ImportDirectory {
             if (newDelegate != null && newDelegate != delegate) {
                 this.delegate = newDelegate;
 
-                String type = delegate.getClass().getSimpleName();
+                String type;
+                if (delegate instanceof BundledImportDirectoryLocal) {
+                    type = "BundledImportDirectory."
+                            + ((BundledImportDirectoryLocal) delegate)
+                                    .getBundleMode();
+                } else {
+                    type = delegate.getClass().getSimpleName();
+                }
                 String path = delegate.getDirectory().getPath();
                 logger.fine("Using " + type + " " + path);
             }
