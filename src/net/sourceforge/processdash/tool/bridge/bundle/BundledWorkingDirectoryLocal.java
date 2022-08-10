@@ -306,7 +306,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     public URL doBackup(String qualifier) throws IOException {
         // make a backup of the local working directory.
         URL result = doBackupImpl(workingDirectory, qualifier);
-        client.setRetentionThresholdTimestamp();
+        if (client != null)
+            client.setRetentionThresholdTimestamp();
         return result;
     }
 
