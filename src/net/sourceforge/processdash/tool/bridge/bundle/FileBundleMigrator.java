@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.List;
 
 import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
@@ -114,13 +115,7 @@ public class FileBundleMigrator {
 
 
 
-    private interface Migrator {
-
-        public void bundle() throws IOException, LockFailureException;
-
-        public void unbundle() throws IOException, LockFailureException;
-
-        public void dispose();
+    private interface Migrator extends WorkingDirectory {
 
     }
 
@@ -160,7 +155,7 @@ public class FileBundleMigrator {
             if (this.direction == MigrationDirection.Bundle) {
 
                 // migrate the files into the bundle directories
-                migrator.bundle();
+                bundle();
 
                 // remove the now-migrated files from the target directory
                 cleanupLegacyFiles();
@@ -175,7 +170,7 @@ public class FileBundleMigrator {
                 makeTargetFilesWriteable();
 
                 // migrate the files out of the bundle directories
-                migrator.unbundle();
+                unbundle();
             }
 
             // perform any post-migration follow-up steps
@@ -183,15 +178,70 @@ public class FileBundleMigrator {
 
         } finally {
             // allow the migrator object to unwind resources
-            migrator.dispose();
+            File migratorMetadataDir = new File(directory, "metadata");
+            FileUtils.deleteDirectory(migratorMetadataDir, true);
+            migrator.releaseLocks();
         }
     }
 
     private Migrator createMigrator() {
         if (bundleMode == FileBundleMode.Local)
             return new Local(directory, strategy, enforceLocks);
+        else if (bundleMode == FileBundleMode.Sync)
+            return new Sync(directory, strategy, enforceLocks);
 
         throw new IllegalArgumentException("Unrecognized bundle mode");
+    }
+
+    private void bundle() throws IOException, LockFailureException {
+        migrator.prepare();
+        if (enforceLocks)
+            acquireWriteLock();
+        migrator.doBackup("before_bundle_migration");
+        migrator.flushData();
+    }
+
+    private void unbundle() throws IOException, LockFailureException {
+        if (enforceLocks)
+            acquireWriteLock();
+        URL backupFile = migrator.doBackup("before_bundle_unmigration");
+        migrator.prepare();
+        backupBundleDirs(backupFile, "bundles", "heads");
+    }
+
+    private void backupBundleDirs(URL backupFile, String... subdirNames) {
+        File backupDir = new File(directory, "backup");
+        String prefix = extractBackupPrefix(backupFile);
+        for (String oneSubdirName : subdirNames) {
+            File oneSubdir = new File(directory, oneSubdirName);
+            File destDir = new File(backupDir, prefix + oneSubdirName);
+            oneSubdir.renameTo(destDir);
+        }
+    }
+
+    private String extractBackupPrefix(URL backupFile) {
+        String result = backupFile.toString();
+        int beg = result.lastIndexOf('/') + 1;
+        int end = result.lastIndexOf('-') + 1;
+        return result.substring(beg, end);
+    }
+
+    private void acquireWriteLock() throws LockFailureException {
+        int retries = strategy instanceof TeamDataDirStrategy ? 5 : 1;
+        while (true) {
+            try {
+                migrator.acquireWriteLock(null, migrator.getClass().getName());
+                return;
+            } catch (LockFailureException lfe) {
+                if (--retries == 0)
+                    throw lfe;
+
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
     }
 
     private void cleanupLegacyFiles() throws IOException {
@@ -294,63 +344,32 @@ public class FileBundleMigrator {
                 super.assertWriteLock();
         }
 
-        public void bundle() throws IOException, LockFailureException {
-            prepare();
-            if (enforceLocks)
-                acquireWriteLock();
-            doBackup("before_bundle_migration");
-            flushData();
-            FileUtils.deleteDirectory(getMetadataDir(), true);
+        @Override
+        protected void ensureBundleMode() throws IOException {
+            // skip this check during migrations, since the mode published to
+            // the filesystem may be out of sync with the current operation
+        }
+    }
+
+    private static class Sync extends BundledWorkingDirectorySync
+            implements Migrator {
+
+        public Sync(File targetDirectory,
+                FileResourceCollectionStrategy strategy, boolean enforceLocks) {
+            super(targetDirectory, strategy, null);
+            this.enforceLocks = enforceLocks;
         }
 
-        public void unbundle() throws IOException, LockFailureException {
-            if (enforceLocks)
-                acquireWriteLock();
-            URL backupFile = doBackup("before_bundle_unmigration");
-            prepare();
-            backupBundleDirs(backupFile, "bundles", "heads");
-            FileUtils.deleteDirectory(getMetadataDir(), true);
+        @Override
+        protected void createWorkingDirAndProcessLock(File wdp) {
+            this.workingDirectory = this.targetDirectory;
         }
 
-        private void backupBundleDirs(URL backupFile, String... subdirNames) {
-            File backupDir = new File(workingDirectory, "backup");
-            String prefix = extractBackupPrefix(backupFile);
-            for (String oneSubdirName : subdirNames) {
-                File oneSubdir = new File(workingDirectory, oneSubdirName);
-                File destDir = new File(backupDir, prefix + oneSubdirName);
-                oneSubdir.renameTo(destDir);
-            }
+        @Override
+        protected void ensureBundleMode() throws IOException {
+            // skip this check during migrations, since the mode published to
+            // the filesystem may be out of sync with the current operation
         }
-
-        private String extractBackupPrefix(URL backupFile) {
-            String result = backupFile.toString();
-            int beg = result.lastIndexOf('/') + 1;
-            int end = result.lastIndexOf('-') + 1;
-            return result.substring(beg, end);
-        }
-
-        private void acquireWriteLock() throws LockFailureException {
-            int retries = strategy instanceof TeamDataDirStrategy ? 5 : 1;
-            while (true) {
-                try {
-                    acquireWriteLock(null, getClass().getName());
-                    return;
-                } catch (LockFailureException lfe) {
-                    if (--retries == 0)
-                        throw lfe;
-
-                    try {
-                        Thread.sleep(1500);
-                    } catch (InterruptedException e) {
-                    }
-                }
-            }
-        }
-
-        public void dispose() {
-            releaseLocks();
-        }
-
     }
 
     private static final String BUNDLE_MODE = FileBundleUtils.BUNDLE_MODE_PROP;

@@ -89,7 +89,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         return FileBundleMode.Local;
     }
 
-    private void ensureBundleMode() throws IOException {
+    protected void ensureBundleMode() throws IOException {
         FileBundleUtils.ensureBundleMode(targetDirectory, getBundleMode());
     }
 
