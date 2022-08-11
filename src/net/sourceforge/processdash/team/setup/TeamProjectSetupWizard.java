@@ -92,6 +92,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -459,6 +460,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String teamServerUrl = TeamServerSelector.getDefaultTeamServerUrl();
         if (teamServerUrl != null) {
             putValue(TEAM_DIR, teamServerUrl);
+            showTeamSchedulePage();
+        } else if (getWorkingDirectory() instanceof BundledWorkingDirectorySync) {
+            putValue(TEAM_DIR, ".");
             showTeamSchedulePage();
         } else {
             showTeamDirPage();

@@ -70,6 +70,7 @@
 </tr>
 
 [!--#if showTeamDir || ![Team_Directory_URL_Only] && ![Personal_Project] --]
+[!--#if [Team_Directory] ne '.' --]
 <tr>
 <td>TEAM Project Network Directory</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory]s"></td>
@@ -87,10 +88,16 @@
 <td>TEAM Project Network Directory (UNC)</td>
 <td><input type="text" size="50" class="notTeamSetting" name="[Team_Directory_UNC]s"></td>
 </tr>
+[!--#else--]
+<tr>
+<td>TEAM Project Data Directory</td>
+<td><input type="text" size="50" class="notTeamSetting" name="[Team_Data_Directory]sr"></td>
+</tr>
+[!--#endif--]
 
 [!--#if userPref.bundle.migrator.enabled --]
 <tr>
-<td style="padding-left:1cm">Project Directory Bundle Mode</td>
+<td style="padding-left:1cm">Project Directory Bundle Mode&nbsp;</td>
 <td>
 <b><tt>[!--#include file="../control/bundleMode?nameAsText" --]</tt></b>
 [!--#if datasetMode eq 'team' --]

@@ -41,10 +41,14 @@ project using the settings below:</p>
 
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
 
+<!--#if [setup//Team_Dir] ne '.' -->
+
 <tr><td class="label">Team Data Location:</td>
     <td class="value"><!--#echo var=[setup//Team_Dir] --></td></tr>
 
 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+
+<!--#endif-->
 
 <tr><td class="label">Schedule Name:</td>
     <td class="value"><!--#echo var=[setup//Team_Schedule] --></td></tr>
