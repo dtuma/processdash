@@ -41,7 +41,6 @@ import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
-import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;

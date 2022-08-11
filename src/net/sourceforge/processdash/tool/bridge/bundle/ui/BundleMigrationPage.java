@@ -144,6 +144,12 @@ public class BundleMigrationPage extends TinyCGIBase {
             out.println("<input type='submit' name='c' value='"
                     + (bundleMode == null ? "Bundle" : "Unbundle")
                     + " this directory'>");
+            if (bundleMode == null) {
+                out.println(" &nbsp; using &nbsp; <select name='m'>");
+                for (FileBundleMode mode : FileBundleMode.values())
+                    out.println("<option>" + mode.name() + "</option>");
+                out.println("</select> &nbsp; storage mode.");
+            }
             out.println("</form>");
         }
 
@@ -170,6 +176,8 @@ public class BundleMigrationPage extends TinyCGIBase {
     protected void doPost() throws IOException {
         loadValues();
         parseFormData();
+        if (parameters.containsKey("m"))
+            TARGET_MODE_NAME = getParameter("m");
         long waitUntil = 0;
 
         try {
@@ -260,7 +268,7 @@ public class BundleMigrationPage extends TinyCGIBase {
             throws IOException, LockFailureException {
         if (bundleMode == null) {
             FileBundleMigrator.migrate(directory, strategy,
-                FileBundleMode.Local);
+                FileBundleMode.parse(TARGET_MODE_NAME));
         } else {
             FileBundleMigrator.unmigrate(directory, strategy);
         }
@@ -269,5 +277,7 @@ public class BundleMigrationPage extends TinyCGIBase {
     private String esc(String text) {
         return HTMLUtils.escapeEntities(text);
     }
+
+    private static String TARGET_MODE_NAME = null;
 
 }

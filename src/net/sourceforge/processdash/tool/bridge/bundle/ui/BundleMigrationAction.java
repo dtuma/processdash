@@ -30,8 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -80,8 +82,18 @@ public class BundleMigrationAction extends AbstractAction {
         if (!userConfirm(confirmKey, JOptionPane.YES_NO_OPTION))
             return;
 
-        // identify the target bundle mode for the directory
-        FileBundleMode bundleMode = FileBundleMode.Local;
+        // prompt the user for the desired bundle mode
+        List<Object> modes = new ArrayList();
+        modes.add(" ");
+        ButtonGroup modeGroup = new ButtonGroup();
+        for (FileBundleMode mode : FileBundleMode.values()) {
+            modeGroup.add(makeModeSelectionButton(mode.name(), modes));
+        }
+        if (!userConfirm("Mode", JOptionPane.OK_CANCEL_OPTION, modes.toArray())
+                || modeGroup.getSelection() == null)
+            return;
+        FileBundleMode bundleMode = FileBundleMode
+                .parse(modeGroup.getSelection().getActionCommand());
 
         // ensure the user has the minimum required versions of software
         if (checkVersions(bundleMode) == false)
@@ -162,6 +174,16 @@ public class BundleMigrationAction extends AbstractAction {
             listItems[i] = missingPackages.get(i).getBullet();
         userConfirm("VersionCheck", JOptionPane.DEFAULT_OPTION, listItems);
         return false;
+    }
+
+    private JRadioButton makeModeSelectionButton(String resKey,
+            List<Object> modeChoices) {
+        JRadioButton rb = new JRadioButton(resources.getString("Mode." + resKey));
+        rb.setActionCommand(resKey);
+        modeChoices.add(rb);
+        modeChoices.add(resources.getStrings("Mode." + resKey + "_Info"));
+        modeChoices.add(" ");
+        return rb;
     }
 
     private JCheckBox makeDataSelectionCheckBox(String resKey,
