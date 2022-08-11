@@ -3100,7 +3100,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         PlanTimeWatcher watcher;
         String initials;
         List<String> coworkerDiscrepancies;
-        int invokeLaterCount;
+        volatile int invokeLaterCount;
+        volatile boolean showingDialog;
         public WatchCoworkerTimesMenuItem(DataTableModel dataModel) {
             super(resources.getString("PlanWatcher.Menu"));
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
@@ -3112,6 +3113,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
             setSelected(true);
             addChangeListener(this);
+            showingDialog = false;
         }
         public void stateChanged(ChangeEvent e) {
             updateDependentObjects();
@@ -3134,7 +3136,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         public void run() {
             if (--invokeLaterCount > 0) {
                 SwingUtilities.invokeLater(this);
-            } else {
+            } else if (!showingDialog) {
                 showWarning();
             }
         }
@@ -3155,10 +3157,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             message.add(" ");
             message.add(createHelpLabel());
 
+            showingDialog = true;
             int userChoice = JOptionPane.showOptionDialog(frame, message
                     .toArray(), resources.getString("PlanWatcher.Title"),
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
                 new Object[] { UNDO_CHANGE, KEEP_CHANGE }, UNDO_CHANGE);
+            showingDialog = false;
             if (userChoice == 0) {
                 tabPanel.undoList.undo();
             }
