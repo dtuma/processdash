@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +50,9 @@ public class ForkTracker {
     /** The DeviceID of the local computer */
     private String selfDeviceID;
 
+    /** The names of bundles that use an "overwrite" strategy for conflicts */
+    private Set<String> overwriteBundleNames;
+
     /** The HEADs file used to store refs for the local computer */
     private File selfHeadsFile;
 
@@ -63,10 +67,11 @@ public class ForkTracker {
 
 
     public ForkTracker(File bundleHeadsDir, String filenamePrefix,
-            String selfDeviceID) {
+            String selfDeviceID, Set<String> overwriteBundleNames) {
         this.bundleHeadsDir = bundleHeadsDir;
         this.filenamePrefix = filenamePrefix;
         this.selfDeviceID = selfDeviceID;
+        this.overwriteBundleNames = overwriteBundleNames;
 
         this.selfHeadsFile = getHeadsFileForDevice(selfDeviceID);
         this.selfHeadRefs = new SelfHeadRefs(selfHeadsFile);
@@ -122,6 +127,12 @@ public class ForkTracker {
             } else if (fork.parentDevices.contains(selfDeviceID)) {
                 // if this device is pointing to a parent of the given fork,
                 // we should fast forward to adopt it.
+                fastForwardRefs.add(fork.forkRef);
+                return true;
+
+            } else if (overwriteBundleNames.contains(bundleName)) {
+                // if this bundle uses an "overwrite" strategy on conflicts,
+                // abandon our fork and adopt the newly preferred HEAD.
                 fastForwardRefs.add(fork.forkRef);
                 return true;
 
@@ -243,16 +254,14 @@ public class ForkTracker {
             }
         }
 
-        // make a list of the distinct heads we found, in chronological order
-        // from oldest to newest
+        // list the distinct heads we found, sorted from newest to oldest
         ForkList distinctHeads = new ForkList();
         distinctHeads.addAll(headForkInfo.values());
-        Collections.sort(distinctHeads);
+        Collections.sort(distinctHeads, NEWEST_SORTER);
         ForkList uniqueChildren = new ForkList();
 
         // iterate over the distinct heads from newest to oldest
-        for (int h = distinctHeads.size(); h-- > 0;) {
-            ForkInfo head = distinctHeads.get(h);
+        for (ForkInfo head : distinctHeads) {
             boolean headIsUniqueChild = true;
 
             for (ForkInfo oneChild : uniqueChildren) {
@@ -267,7 +276,8 @@ public class ForkTracker {
         }
 
         // return a list of unique forks, and the votes each received.
-        uniqueChildren.commit();
+        boolean isOverwriteBundle = overwriteBundleNames.contains(bundleName);
+        uniqueChildren.commit(isOverwriteBundle);
         return uniqueChildren;
     }
 
@@ -367,13 +377,13 @@ public class ForkTracker {
      */
     private class ForkList extends ArrayList<ForkInfo> {
 
-        private void commit() {
+        private void commit(boolean isOverwrite) {
             // finalize each of the items in our list
             for (ForkInfo fork : this)
                 fork.commit();
 
             // sort the items in preferred order
-            Collections.sort(this);
+            Collections.sort(this, isOverwrite ? NEWEST_SORTER : VOTE_SORTER);
         }
 
     }
@@ -383,7 +393,7 @@ public class ForkTracker {
      * Information about a fork, including its HEAD ref, the devices that have
      * adopted it, and the devices that point to one of its ancestor refs
      */
-    private class ForkInfo implements Comparable<ForkInfo> {
+    private class ForkInfo {
 
         private FileBundleID forkRef;
 
@@ -413,16 +423,30 @@ public class ForkTracker {
                 return Collections.unmodifiableSet(set);
         }
 
-        public int compareTo(ForkInfo that) {
+    }
+
+    private static final Comparator<ForkInfo> VOTE_SORTER = new Comparator<ForkInfo>() {
+
+        @Override
+        public int compare(ForkInfo a, ForkInfo b) {
             // sort items with most votes first
-            int voteDiff = that.voteCount - this.voteCount;
+            int voteDiff = b.voteCount - a.voteCount;
             if (voteDiff != 0)
                 return voteDiff;
 
             // items with equal votes are sorted from oldest to newest
-            return this.forkRef.getToken().compareTo(that.forkRef.getToken());
+            return a.forkRef.getToken().compareTo(b.forkRef.getToken());
         }
 
-    }
+    };
+
+    private static final Comparator<ForkInfo> NEWEST_SORTER = new Comparator<ForkInfo>() {
+
+        @Override
+        public int compare(ForkInfo a, ForkInfo b) {
+            return b.forkRef.getToken().compareTo(a.forkRef.getToken());
+        }
+
+    };
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,11 +72,13 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
     public Object[][] getBundlePartitions() {
         return new Object[][] {
                 // slowly changing metadata
-                { "settings", "settings.xml" },
+                { "settings", "settings.xml",
+                        FileBundleConstants.BUNDLE_OVERWRITE_STRATEGY },
 
                 // PDASH files
                 { FileBundleConstants.SINGLETON_PARTITION,
                         new PatternList().addLiteralEndsWith(".pdash"),
+                        FileBundleConstants.BUNDLE_OVERWRITE_STRATEGY,
                         FileBundleRetentionGranularity.Daily },
 
                 // WBS editor files

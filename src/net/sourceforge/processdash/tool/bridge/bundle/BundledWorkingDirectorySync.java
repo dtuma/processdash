@@ -25,6 +25,9 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,8 +87,18 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     protected HeadRefs makeBundleHeads(File bundleHeadsDir) throws IOException {
         // the fork tracker creates the HEAD management object for a sync dir
         this.forkTracker = new ForkTracker(bundleHeadsDir, HEADS_FILE_PREFIX,
-                DeviceID.get());
+                DeviceID.get(), getOverwriteBundleNames());
         return this.forkTracker.getSelfHeadRefs();
+    }
+
+    private Set<String> getOverwriteBundleNames() {
+        Set<String> result = new HashSet<String>();
+        for (Object[] partitionSpec : strategy.getBundlePartitions()) {
+            String bundleName = (String) partitionSpec[0];
+            if (FileBundlePartitioner.isOverwriteBundle(partitionSpec))
+                result.add(bundleName);
+        }
+        return Collections.unmodifiableSet(result);
     }
 
     @Override

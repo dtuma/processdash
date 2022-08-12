@@ -188,7 +188,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
     }
 
 
-    private boolean matches(String filename, String filenameLC,
+    private static boolean matches(String filename, String filenameLC,
             Object[] partitionSpec) {
         for (int i = 1; i < partitionSpec.length; i++) {
             Object filter = partitionSpec[i];
@@ -217,8 +217,14 @@ public class FileBundlePartitioner implements FileBundleConstants {
     }
 
 
-    private boolean isQualifiedBundle(Object[] partitionSpec) {
+    private static boolean isQualifiedBundle(Object[] partitionSpec) {
         return matches(QUALIFIED_PARTITION, QUALIFIED_PARTITION, partitionSpec);
+    }
+
+
+    public static boolean isOverwriteBundle(Object[] partitionSpec) {
+        return matches(BUNDLE_OVERWRITE_STRATEGY,
+            BUNDLE_OVERWRITE_STRATEGY, partitionSpec);
     }
 
 
