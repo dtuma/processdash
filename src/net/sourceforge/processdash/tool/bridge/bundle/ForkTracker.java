@@ -304,10 +304,14 @@ public class ForkTracker {
 
         boolean result = false;
         FileBundleManifest manifest = manifestSource.getManifest(child);
-        for (FileBundleID mid : manifest.getParents()) {
-            if (mid.equals(parent) || isAncestor(parent, mid)) {
-                result = true;
-                break;
+        if (manifest.isReplacementFor(parent)) {
+            result = true;
+        } else {
+            for (FileBundleID mid : manifest.getParents()) {
+                if (mid.equals(parent) || isAncestor(parent, mid)) {
+                    result = true;
+                    break;
+                }
             }
         }
 

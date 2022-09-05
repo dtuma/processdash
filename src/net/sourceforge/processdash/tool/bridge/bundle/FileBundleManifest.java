@@ -87,6 +87,53 @@ public class FileBundleManifest {
     }
 
 
+    /**
+     * Returns true if this manifest specifies a long-lived bundle that replaced
+     * other temporary bundles, including the bundle with targetID.
+     * 
+     * The target bundle is considered replaced if:
+     * <ul>
+     * <li>This bundle's name and device ID match the target bundle; and</li>
+     * <li>This bundle specifies a replaced bundle; and</li>
+     * <li>replacedBundleTimestamp &lt;= targetBundleTimestamp &lt;
+     * thisBundleTimestamp</li>
+     * </ul>
+     * 
+     * @param targetID
+     *            a bundle that might have been replaced
+     * @return true if the target bundle was replaced by this one; false if they
+     *         are equal or if this is not a replacement
+     */
+    public boolean isReplacementFor(FileBundleID targetID) {
+        // if this bundle didn't replace any other bundles, return false
+        if (replaces == null || replaces.isEmpty())
+            return false;
+
+        // if this bundle's name and device ID do not match the target bundle,
+        // this can't be a replacement.
+        if (!targetID.getDeviceID().equals(bundleID.getDeviceID())
+                || !targetID.getBundleName().equals(bundleID.getBundleName()))
+            return false;
+
+        // if this bundle was finalized at the same time or before the target
+        // bundle, it can't be a replacement for it
+        String targetTimestamp = targetID.getTimestamp();
+        if (bundleID.getTimestamp().compareTo(targetTimestamp) <= 0)
+            return false;
+
+        // if we replaced a bundle that precedes (or equals) the target bundle,
+        // this is a replacement. (Note there should only ever be one replaced
+        // bundle, but we iterate anyway for robustness.)
+        for (FileBundleID replaced : replaces) {
+            if (replaced.getTimestamp().compareTo(targetTimestamp) <= 0)
+                return true;
+        }
+
+        // the target bundle doesn't fall in the replacement time frame.
+        return false;
+    }
+
+
     public FileBundleManifest(FileBundleID bundleID,
             ResourceCollectionInfo files, List<FileBundleID> parents,
             List<FileBundleID> replaces) {
