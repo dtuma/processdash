@@ -36,6 +36,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
+import net.sourceforge.processdash.tool.bridge.ResourceListing;
+
 public class ForkTracker {
 
     /** An object for retrieving manifests for this bundle directory */
@@ -303,7 +306,7 @@ public class ForkTracker {
         }
 
         boolean result = false;
-        FileBundleManifest manifest = manifestSource.getManifest(child);
+        FileBundleManifest manifest = getManifestForAncestorTracing(child);
         if (manifest.isReplacementFor(parent)) {
             result = true;
         } else {
@@ -317,6 +320,37 @@ public class ForkTracker {
 
         cachedResults.put(childToken, result);
         return result;
+    }
+
+    private FileBundleManifest getManifestForAncestorTracing(
+            FileBundleID bundleID) throws IOException {
+        try {
+            // try loading the manifest directly
+            return manifestSource.getManifest(bundleID);
+
+        } catch (FileBundleManifest.Missing m) {
+            // if the manifest couldn't be found, see if this is the ID of
+            // a replaced bundle
+            FileBundleManifest r = manifestSource
+                    .getManifestReplacing(bundleID);
+
+            // if we couldn't find a manifest (either directly, or as a
+            // replacement), abort. It's possible that a sync client hasn't
+            // finished syncing all the files we need into the bundle directory.
+            if (r == null)
+                throw m;
+
+            // return a pseudo-manifest representing what the replaced bundle
+            // would have looked like. This contains the accurate bundleID,
+            // parents, and replacements. A placeholder file list is supplied
+            // because we don't know the actual contents of the discarded
+            // bundle. This is acceptable because our ancestry tracing logic
+            // doesn't need to know file contents.
+            FileBundleManifest missingManifest = new FileBundleManifest(
+                    bundleID, REPLACED_BUNDLE_FILES, r.getParents(),
+                    r.getReplaces());
+            return missingManifest;
+        }
     }
 
     private Map<String, Map<String, Boolean>> ancestorCache = Collections
@@ -452,5 +486,7 @@ public class ForkTracker {
         }
 
     };
+
+    private static final ResourceCollectionInfo REPLACED_BUNDLE_FILES = new ResourceListing();
 
 }

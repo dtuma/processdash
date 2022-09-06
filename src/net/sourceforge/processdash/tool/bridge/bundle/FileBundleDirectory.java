@@ -26,11 +26,13 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
@@ -57,12 +59,15 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private ManifestCache manifestCache;
 
+    private ManifestCache replacementCache;
+
 
     public FileBundleDirectory(File bundleDir) throws IOException {
         this.bundleDir = bundleDir;
         this.deviceID = DeviceID.get();
         this.timeFormat = new FileBundleTimeFormat(getDirTimeZone());
         this.manifestCache = new ManifestCache();
+        this.replacementCache = new ManifestCache();
     }
 
     private String getDirTimeZone() throws IOException {
@@ -347,6 +352,62 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             result = new FileBundleManifest(bundleDir, bundleID);
             manifestCache.put(bundleID, result);
         }
+        result.accessTime = System.currentTimeMillis();
+        return result;
+    }
+
+
+    public FileBundleManifest getManifestReplacing(FileBundleID bundleID)
+            throws IOException {
+        // if the given manifest file actually exists, it wasn't replaced
+        if (manifestCache.get(bundleID) != null)
+            return null;
+        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
+        if (mf.isFile())
+            return null;
+
+        // look for a cached result, return if found
+        FileBundleManifest result = replacementCache.get(bundleID);
+        if (result != null) {
+            result.accessTime = System.currentTimeMillis();
+            return result;
+        }
+
+        // find all the manifest files in the directory with the same device ID
+        // and bundle name
+        String filename = mf.getName();
+        final String filenameSuffix = filename
+                .substring(bundleID.getTimestamp().length());
+        String[] manifestFilenames = bundleDir.list(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.endsWith(filenameSuffix);
+            }
+        });
+        Arrays.sort(manifestFilenames);
+
+        // look at the manifest files, from newest to oldest, until we find one
+        // that precedes the target bundle. When we do, remember the filename
+        // for the bundle that chronologically follows it.
+        String potentialReplacingFilename = null;
+        for (int i = manifestFilenames.length; i-- > 0;) {
+            String oneFilename = manifestFilenames[i];
+            if (oneFilename.compareTo(filename) < 0)
+                break;
+            potentialReplacingFilename = oneFilename;
+        }
+
+        // if no bundle follows the targeted bundleID, abort
+        if (potentialReplacingFilename == null)
+            return null;
+
+        // load the manifest for the potentially replacing bundle. If it isn't
+        // a replacement for the given bundle, abort
+        result = getManifest(new FileBundleID(potentialReplacingFilename));
+        if (!result.isReplacementFor(bundleID))
+            return null;
+
+        // cache the result we found and return it.
+        replacementCache.put(bundleID, result);
         result.accessTime = System.currentTimeMillis();
         return result;
     }

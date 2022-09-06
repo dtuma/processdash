@@ -97,6 +97,11 @@ public class ManifestCachingHeadRefs implements HeadRefsManifestSource {
     // Implementation of FileBundleManifestSource
     //
 
+    public FileBundleManifest getManifestReplacing(FileBundleID bundleID)
+            throws IOException {
+        return manifestSource.getManifestReplacing(bundleID);
+    }
+
     public FileBundleManifest getManifest(FileBundleID bundleID)
             throws IOException {
         // get the locally cached manifest for the bundle with the same name
