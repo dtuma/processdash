@@ -413,6 +413,24 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     }
 
 
+    /**
+     * Retrieve an object that can read file data from a bundle without
+     * extracting it.
+     * 
+     * @param bundleID
+     *            the ID of the bundle to open
+     * @return a {@link FileBundleCollection} for reading files from the
+     *         compressed bundle
+     * @throws IOException
+     *             if the bundle does not exist or could not be read
+     */
+    public FileBundleCollection getBundleCollection(FileBundleID bundleID)
+            throws IOException {
+        return new FileBundleCollection(getManifest(bundleID),
+                getZipFileForBundle(bundleID));
+    }
+
+
     private static class ManifestCache
             extends LinkedHashMap<FileBundleID, FileBundleManifest> {
 
