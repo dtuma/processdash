@@ -243,11 +243,14 @@ os-mac.cms.persistenceLocations=Global=>[APPDIR]/cmsGlobal;OldGlobal=>~/Library/
 # have been defined as preferences instead
 
 legacyUserPrefs=\
+    archive.exportMethod \
     browser.command \
     defectlog.dimensions \
     hierarchyEditor.dimensions \
     pauseButton.quiet \
     systemTray.disabled \
     systemTray.minimizeToTray \
+    taskChooser.keepOpen \
+    TaskCommentEditor.dimensions \
     timelog.dimensions \
     window.alwaysOnTop

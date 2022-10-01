@@ -70,6 +70,7 @@ public class FileBackupManager {
     public static final int SHUTDOWN = 2;
 
     public static final String BACKUP_TIMES_SETTING = "backup.timesOfDay";
+    public static final String EXTRA_DIRS_SETTING = "backup.extraDirectories";
 
     private WorkingDirectory workingDirectory;
     private OutputStream logFile = null;
@@ -234,7 +235,7 @@ public class FileBackupManager {
 
     private static String[] getExtraBackupLocations() {
         String extraBackupDirs = InternalSettings.getExtendableVal(
-            "backup.extraDirectories", ";");
+            EXTRA_DIRS_SETTING, ";");
         if (!StringUtils.hasValue(extraBackupDirs))
             return null;
         else

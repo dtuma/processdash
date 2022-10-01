@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2018 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -100,14 +100,7 @@ public class InternalSettings extends Settings {
         setReadOnly(readOnly);
 
         //
-        Properties propertyComments = new Properties();
-        try {
-            propertyComments.load
-                (Settings.class.getResourceAsStream("pspdash.ad-comments"));
-        } catch (Exception e0) {}
-
-        settings = fsettings = new FileProperties(defaults, propertyComments);
-        fsettings.setDateStamping(false);
+        settings = fsettings = getSaveableProps(defaults);
         dirty = disableChanges = false;
 
         // Finally, open the user's settings file and load those properties.  The
@@ -188,6 +181,21 @@ public class InternalSettings extends Settings {
             legacyPrefNames.remove("");
         }
     }
+
+    public static FileProperties getSaveableProps(Properties defaults) {
+        Properties propertyComments = new Properties();
+        try {
+            propertyComments.load
+                (Settings.class.getResourceAsStream("pspdash.ad-comments"));
+        } catch (Exception e0) {}
+
+        FileProperties result = new FileProperties(defaults, propertyComments);
+        result.setDateStamping(false);
+        result.setHeader(PROPERTIES_FILE_HEADER);
+        result.setKeepingStrangeKeys(true);
+        return result;
+    }
+
     public static final String getSettingsFilename() {
         return "pspdash.ini";
     }

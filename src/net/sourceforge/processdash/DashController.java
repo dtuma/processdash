@@ -413,7 +413,7 @@ public class DashController {
             InternalSettings.set(TEMPLATE_PATH, templatePath);
         }
     }
-    private static final String TEMPLATE_PATH = "templates.directory";
+    public static final String TEMPLATE_PATH = "templates.directory";
     private static boolean templateSettingContainsDir(String setting,
                                                       String dir)
     {
