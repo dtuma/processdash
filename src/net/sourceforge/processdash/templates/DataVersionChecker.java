@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2021 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.templates;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -89,18 +90,45 @@ public class DataVersionChecker {
     }
 
     public static void registerDataRequirements(Map<String, String> reqts) {
-        for (Entry<String, String> e : reqts.entrySet())
-            registerDataRequirement(e.getKey(), e.getValue());
+        Map<String, String> currentRequirements = loadRequirements();
+        if (addRequirements(currentRequirements, reqts))
+            saveRequirements(currentRequirements);
     }
 
     public synchronized static void registerDataRequirement(String packageId,
             String version) {
-        Map<String, String> requirements = loadRequirements();
+        registerDataRequirements(Collections.singletonMap(packageId, version));
+    }
+
+    /** @since 2.6.9 */
+    public static String mergeRequirements(String base, String... extra) {
+        Map<String, String> result = parseRequirementsString(base);
+        for (String oneSpec : extra)
+            addRequirements(result, parseRequirementsString(oneSpec));
+        return formatRequirementsString(result);
+    }
+
+    private static boolean addRequirements(Map<String, String> requirements,
+            Map<String, String> extraRequirements) {
+        boolean madeChange = false;
+        for (Entry<String, String> e : extraRequirements.entrySet()) {
+            String packageId = e.getKey();
+            String extraVersion = e.getValue();
+            if (addRequirement(requirements, packageId, extraVersion))
+                madeChange = true;
+        }
+        return madeChange;
+    }
+
+    private static boolean addRequirement(Map<String, String> requirements,
+            String packageId, String version) {
         String currentMinVersion = requirements.get(packageId);
         if (currentMinVersion == null ||
                 DashPackage.compareVersions(currentMinVersion, version) < 0) {
             requirements.put(packageId, version);
-            saveRequirements(requirements);
+            return true;
+        } else {
+            return false;
         }
     }
 
