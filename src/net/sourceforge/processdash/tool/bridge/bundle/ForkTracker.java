@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
@@ -148,6 +150,95 @@ public class ForkTracker {
         // In that case, checking the bundle out represents a fast forward.
         fastForwardRefs.add(forkList.get(0).forkRef);
         return true;
+    }
+
+
+    /**
+     * Find the newest bundle that is a common ancestor of two bundles.
+     * 
+     * If the bundles are equal, or if one of the bundles is already an ancestor
+     * of the other, it will be returned. Otherwise, this method will search
+     * backward through the bundle parentage until it finds a bundle that is an
+     * ancestor of both.
+     * 
+     * @param a
+     *            the first bundle ID to examine
+     * @param b
+     *            the second bundle ID to examine
+     * @param maxDepth
+     *            the maximum levels of parentage to consider. If the shared
+     *            ancestor is further than this many generations back, returns
+     *            null. Use -1 for no limit.
+     * @return the ID of a bundle that is either equal to, or a parent of, both
+     *         specified bundles. returns null if no shared ancestor could be
+     *         found.
+     * @throws IOException
+     *             if any necessary files could not be read, or if any bundles
+     *             in the parentage are missing
+     */
+    public FileBundleID findSharedAncestor(FileBundleID a, FileBundleID b,
+            int maxDepth) throws IOException {
+        // check for null and abort
+        if (a == null || b == null)
+            return null;
+
+        // bundles can have multiple parents (in the case of a merge), so we
+        // create a set to track the current parentage of each branch.
+        SortedSet<FileBundleID> aa = new TreeSet(FileBundleID.REVERSE_ORDER);
+        SortedSet<FileBundleID> bb = new TreeSet(FileBundleID.REVERSE_ORDER);
+        aa.add(a);
+        bb.add(b);
+
+        for (int i = maxDepth; i-- != 0;) {
+            // if we walked off the end of either lineage without finding a
+            // common ancestor, return null
+            if (aa.isEmpty() || bb.isEmpty())
+                return null;
+
+            // if the two branches contain a common item, that's the parent
+            // we're looking for
+            FileBundleID overlap = getCommonItem(aa, bb);
+            if (overlap != null) {
+                // check to see if the parent we found was replaced by another
+                // bundle. If not, step back to get a real parent.
+                FileBundleManifest mf = getManifestForAncestorTracing(overlap);
+                if (mf.getFiles() == REPLACED_BUNDLE_FILES)
+                    overlap = mf.getParents().get(0);
+                return overlap;
+            }
+
+            // find the chronologically newest bundle ID among the two branches,
+            // and make a note which branch it came from
+            FileBundleID aNewest = aa.first();
+            FileBundleID bNewest = bb.first();
+            FileBundleID newest;
+            SortedSet<FileBundleID> newestSet;
+            if (FileBundleID.REVERSE_ORDER.compare(aNewest, bNewest) < 0) {
+                newest = aNewest;
+                newestSet = aa;
+            } else {
+                newest = bNewest;
+                newestSet = bb;
+            }
+
+            // remove the newest bundle ID, and replace it with its list of
+            // parents. This will allow us to march back in time until we find
+            // a common ancestor.
+            newestSet.remove(newest);
+            FileBundleManifest mf = getManifestForAncestorTracing(newest);
+            newestSet.addAll(mf.getParents());
+        }
+
+        return null;
+    }
+
+    private FileBundleID getCommonItem(Set<FileBundleID> a,
+            Set<FileBundleID> b) {
+        for (FileBundleID item : a) {
+            if (b.contains(item))
+                return item;
+        }
+        return null;
     }
 
 

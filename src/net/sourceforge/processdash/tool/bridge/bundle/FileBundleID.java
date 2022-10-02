@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -154,5 +155,20 @@ public class FileBundleID {
             + "^(\\d{8}-\\d{6})-"         // group 1: timestamp
             + "(" + DeviceID.REGEX + ")-" // group 2: device ID
             + "([^. ]+)");                // group 3: bundle name
+
+
+    /** Sorts bundle IDs in chronological order from oldest to newest */
+    public static final Comparator<FileBundleID> CHRONOLOGICAL_ORDER = new Comparator<FileBundleID>() {
+        public int compare(FileBundleID a, FileBundleID b) {
+            return a.getToken().compareTo(b.getToken());
+        }
+    };
+
+    /** Sorts bundle IDs in reverse chronological order from newest to oldest */
+    public static final Comparator<FileBundleID> REVERSE_ORDER = new Comparator<FileBundleID>() {
+        public int compare(FileBundleID a, FileBundleID b) {
+            return b.getToken().compareTo(a.getToken());
+        }
+    };
 
 }
