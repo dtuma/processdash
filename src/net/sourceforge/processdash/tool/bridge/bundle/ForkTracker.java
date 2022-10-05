@@ -154,6 +154,37 @@ public class ForkTracker {
 
 
     /**
+     * Find bundles which have forked into distinct heads, and return them.
+     * 
+     * @return a map whose keys are the names of bundles that have forked, and
+     *         whose values are a list of the HEAD refs for the distinct forks.
+     * @throws IOException
+     *             if any files could not be read or any bundles are missing.
+     */
+    public Map<String, List<FileBundleID>> getForkedBundles()
+            throws IOException {
+        // find the distinct forks for each bundle
+        BundleForks bundleForks = getBundleForks();
+
+        // scan the bundles, looking for ones that have more than one fork
+        Map<String, List<FileBundleID>> result = new HashMap();
+        for (Entry<String, ForkList> e : bundleForks.entrySet()) {
+            String bundleName = e.getKey();
+            ForkList forks = e.getValue();
+            if (forks.size() > 1) {
+                // if a bundle has more than one distinct fork, add to result
+                List<FileBundleID> forkRefs = new ArrayList<FileBundleID>();
+                for (ForkInfo info : forks)
+                    forkRefs.add(info.forkRef);
+                result.put(bundleName, forkRefs);
+            }
+        }
+
+        return result;
+    }
+
+
+    /**
      * Find the newest bundle that is a common ancestor of two bundles.
      * 
      * If the bundles are equal, or if one of the bundles is already an ancestor

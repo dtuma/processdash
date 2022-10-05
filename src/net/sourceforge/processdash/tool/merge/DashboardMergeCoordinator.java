@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleDirectory;
@@ -54,6 +55,37 @@ public class DashboardMergeCoordinator {
         this.bundleDir = bundleDir;
         this.bundleMerger = new DashboardBundleMerger();
     }
+
+
+    /**
+     * Merge any bundles in this dashboard that have forked.
+     * 
+     * @return true if any bundles were merged
+     * @throws IOException
+     *             if files could not be read or bundles were missing
+     */
+    public boolean doMerge() throws IOException {
+        boolean madeChange = false;
+
+        // get a list of the bundles which have multiple distinct forks
+        Map<String, List<FileBundleID>> forkedBundles = forkTracker
+                .getForkedBundles();
+
+        // iterate over the forked bundles
+        for (List<FileBundleID> oneBundleForkSet : forkedBundles.values()) {
+            // perform an n-way merge of the forks in the bundle
+            FileBundleID mergedBundleID = mergeBundleForks(oneBundleForkSet);
+
+            // adopt the merged bundle as our new HEAD
+            forkTracker.getSelfHeadRefs().storeHeadRef(mergedBundleID);
+
+            // make a note that we performed a merge
+            madeChange = true;
+        }
+
+        return madeChange;
+    }
+
 
     protected FileBundleID mergeBundleForks(List<FileBundleID> bundleIDs)
             throws IOException {
