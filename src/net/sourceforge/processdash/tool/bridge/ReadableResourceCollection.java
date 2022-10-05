@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,11 @@
 
 package net.sourceforge.processdash.tool.bridge;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Inteface for a resource collection which can provide access to the contents
@@ -55,5 +58,28 @@ public interface ReadableResourceCollection extends ResourceCollectionInfo {
      * @since 2.0.4
      */
     public String getDescription();
+
+    /**
+     * An object that represents a read-only, empty resource collection
+     */
+    public ReadableResourceCollection EMPTY_COLLECTION = //
+            new ReadableResourceCollection() {
+                public List<String> listResourceNames() {
+                    return Collections.EMPTY_LIST;
+                }
+                public long getLastModified(String resourceName) {
+                    return 0;
+                }
+                public Long getChecksum(String resourceName) {
+                    return null;
+                }
+                public InputStream getInputStream(String resourceName)
+                        throws IOException {
+                    throw new FileNotFoundException(resourceName);
+                }
+                public String getDescription() {
+                    return null;
+                }
+            };
 
 }
