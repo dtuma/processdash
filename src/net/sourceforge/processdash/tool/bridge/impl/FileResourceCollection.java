@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -54,7 +55,7 @@ import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 
 
 public class FileResourceCollection implements ResourceCollection,
-        ConcurrencyLockApprover {
+        ConcurrencyLockApprover, Closeable {
 
     public static final String DELETED = "deleted";
 
@@ -70,6 +71,8 @@ public class FileResourceCollection implements ResourceCollection,
     Map<String, CachedFileData> cachedData;
 
     volatile long cacheInvalidationTimestamp;
+
+    List<FRCDisposable> currentlyOpenStreams;
 
     PropertyChangeSupport propSupport;
 
@@ -98,6 +101,8 @@ public class FileResourceCollection implements ResourceCollection,
         this.lenientFilter = lenientFilter;
         this.cachedData = Collections
                 .synchronizedMap(new HashMap<String, CachedFileData>());
+        this.currentlyOpenStreams = Collections
+                .synchronizedList(new ArrayList<FRCDisposable>());
         if (enablePropSupport)
             this.propSupport = new PropertyChangeSupport(this);
     }
@@ -143,7 +148,7 @@ public class FileResourceCollection implements ResourceCollection,
             return null;
 
         File f = new File(directory, resourceName);
-        return new TimedInputStream(new BufferedInputStream(
+        return new FRCInputStream(new BufferedInputStream(
                 new FileInputStream(f)));
     }
 
@@ -248,6 +253,32 @@ public class FileResourceCollection implements ResourceCollection,
                     rOut.abort();
                 } catch (Exception e) {
                 }
+            }
+        }
+    }
+
+    /**
+     * Close any input/output streams that are still open on this resource
+     * collection.
+     * 
+     * Streams returned by {@link #getInputStream(String)} are closed. Streams
+     * returned by {@link #getOutputStream(String)} are aborted.
+     */
+    public void close() {
+        while (true) {
+            // use a synchronized block to remove one of the open streams
+            FRCDisposable toDispose;
+            synchronized (currentlyOpenStreams) {
+                if (currentlyOpenStreams.isEmpty())
+                    break;
+                else
+                    toDispose = currentlyOpenStreams.remove(0);
+            }
+
+            // dispose the stream in question
+            try {
+                toDispose.frcDispose();
+            } catch (Throwable t) {
             }
         }
     }
@@ -397,7 +428,8 @@ public class FileResourceCollection implements ResourceCollection,
     }
 
 
-    protected class FDCOutputStream extends RobustFileOutputStream {
+    protected class FDCOutputStream extends RobustFileOutputStream
+            implements FRCDisposable {
 
         private String resourceName;
 
@@ -408,10 +440,12 @@ public class FileResourceCollection implements ResourceCollection,
             super(new File(directory, resourceName));
             this.resourceName = resourceName;
             this.modTime = modTime;
+            currentlyOpenStreams.add(this);
         }
 
         @Override
         public void close() throws IOException {
+            currentlyOpenStreams.remove(this);
             cachedData.remove(resourceName);
             synchronized (writeLock) {
                 super.close();
@@ -430,6 +464,41 @@ public class FileResourceCollection implements ResourceCollection,
                     ADDED_OR_MODIFIED);
         }
 
+        @Override
+        public void abort() throws IOException, IllegalStateException {
+            currentlyOpenStreams.remove(this);
+            super.abort();
+        }
+
+        public void frcDispose() throws IOException {
+            abort();
+        }
+
+    }
+
+
+    private class FRCInputStream extends TimedInputStream
+            implements FRCDisposable {
+
+        public FRCInputStream(InputStream in) {
+            super(in);
+            currentlyOpenStreams.add(this);
+        }
+
+        public void close() throws IOException {
+            currentlyOpenStreams.remove(this);
+            super.close();
+        }
+
+        public void frcDispose() throws IOException {
+            close();
+        }
+
+    }
+
+
+    private interface FRCDisposable {
+        void frcDispose() throws IOException;
     }
 
 }

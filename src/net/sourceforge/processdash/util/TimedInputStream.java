@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ public class TimedInputStream extends FilterInputStream {
         @Override
         public void run() {
             try {
-                in.close();
+                close();
             } catch (Throwable t) {
             }
         }
