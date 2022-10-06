@@ -43,6 +43,8 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
 
     private ForkTracker forkTracker;
 
+    private BundleMergeCoordinator bundleMergeCoordinator;
+
     private Worker worker;
 
     private static final Logger logger = Logger
@@ -75,6 +77,22 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     @Override
     public void setEnableBackgroundFlush(boolean enableBackgroundFlush) {
         // do not allow clients to enable background flush
+    }
+
+    public ForkTracker getForkTracker() {
+        return forkTracker;
+    }
+
+    public FileBundleDirectory getBundleDirectory() {
+        return client.getBundleDir();
+    }
+
+    public BundleMergeCoordinator getBundleMergeCoordinator() {
+        return bundleMergeCoordinator;
+    }
+
+    public void setBundleMergeCoordinator(BundleMergeCoordinator bmc) {
+        this.bundleMergeCoordinator = bmc;
     }
 
     @Override
@@ -130,6 +148,7 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     public void update() throws IllegalStateException, IOException {
         clientPrecheck();
         fastForward();
+        doMerge();
         doSyncDown(2);
     }
 
@@ -144,6 +163,21 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
             // Proceed anyway, working against our previous HEAD
             return false;
         }
+    }
+
+
+    private boolean doMerge() {
+        try {
+            if (bundleMergeCoordinator != null)
+                return bundleMergeCoordinator.doMerge();
+
+        } catch (IOException ioe) {
+            // if the computer is offline or the external file sync client is
+            // not running, attempts to read uncached cloud files will fail.
+            // Proceed anyway, saving the merge for another time
+            ioe.printStackTrace();
+        }
+        return false;
     }
 
 

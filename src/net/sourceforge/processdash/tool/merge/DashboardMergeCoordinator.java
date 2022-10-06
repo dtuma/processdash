@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
+import net.sourceforge.processdash.tool.bridge.bundle.BundleMergeCoordinator;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleRetentionGranularity;
@@ -41,7 +43,9 @@ import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
-public class DashboardMergeCoordinator {
+public class DashboardMergeCoordinator implements BundleMergeCoordinator {
+
+    private BundledWorkingDirectorySync workingDir;
 
     private ForkTracker forkTracker;
 
@@ -49,11 +53,9 @@ public class DashboardMergeCoordinator {
 
     private DashboardBundleMerger bundleMerger;
 
-    public DashboardMergeCoordinator(ForkTracker forkTracker,
-            FileBundleDirectory bundleDir) {
-        this.forkTracker = forkTracker;
-        this.bundleDir = bundleDir;
-        this.bundleMerger = new DashboardBundleMerger();
+
+    public DashboardMergeCoordinator(BundledWorkingDirectorySync dir) {
+        this.workingDir = dir;
     }
 
 
@@ -65,6 +67,9 @@ public class DashboardMergeCoordinator {
      *             if files could not be read or bundles were missing
      */
     public boolean doMerge() throws IOException {
+        // on first invocation, retrieve resources we need
+        maybeInitialize();
+
         boolean madeChange = false;
 
         // get a list of the bundles which have multiple distinct forks
@@ -86,6 +91,16 @@ public class DashboardMergeCoordinator {
         return madeChange;
     }
 
+
+    private void maybeInitialize() {
+        if (forkTracker == null) {
+            forkTracker = workingDir.getForkTracker();
+            bundleDir = workingDir.getBundleDirectory();
+        }
+        if (bundleMerger == null) {
+            bundleMerger = new DashboardBundleMerger();
+        }
+    }
 
     protected FileBundleID mergeBundleForks(List<FileBundleID> bundleIDs)
             throws IOException {

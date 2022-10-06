@@ -145,6 +145,7 @@ import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
@@ -161,6 +162,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
+import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.UserAccountFlagErrorMessage;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
@@ -792,6 +794,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             System.exit(1);
         }
 
+        if (workingDirectory instanceof BundledWorkingDirectorySync) {
+            setupSyncWorkingDir((BundledWorkingDirectorySync) workingDirectory);
+        }
+
         try {
             workingDirectory.prepare();
         } catch (HttpException.Unauthorized e) {
@@ -826,6 +832,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // any changes have been missed.
         File cwd = workingDirectory.getDirectory();
         System.setProperty("user.dir", cwd.getAbsolutePath());
+    }
+
+    private void setupSyncWorkingDir(BundledWorkingDirectorySync sync) {
+        sync.setBundleMergeCoordinator(new DashboardMergeCoordinator(sync));
     }
 
     private class LockMsgHandler implements LockMessageHandler {
