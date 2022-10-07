@@ -163,6 +163,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
+import net.sourceforge.processdash.tool.merge.SyncDeviceSuffixProvider;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.UserAccountFlagErrorMessage;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
@@ -836,6 +837,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     private void setupSyncWorkingDir(BundledWorkingDirectorySync sync) {
         sync.setBundleMergeCoordinator(new DashboardMergeCoordinator(sync));
+        DashHierarchy.setFilenameSuffixProvider(new SyncDeviceSuffixProvider());
     }
 
     private class LockMsgHandler implements LockMessageHandler {

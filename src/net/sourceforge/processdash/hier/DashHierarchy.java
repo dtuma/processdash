@@ -783,8 +783,26 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
     }
 
 
+    public interface FilenameSuffixProvider {
+        public String getHierarchyFileSuffix();
+    }
+
+    private static FilenameSuffixProvider SUFFIX_PROVIDER = null;
+
+    public static void setFilenameSuffixProvider(FilenameSuffixProvider sp) {
+        SUFFIX_PROVIDER = sp;
+    }
+
+    private String getFilenameSuffix() {
+        if (SUFFIX_PROVIDER == null)
+            return "";
+        else
+            return "-" + SUFFIX_PROVIDER.getHierarchyFileSuffix();
+    }
+
+
     protected String getNextDF () {
-        return "" + (nextDataFileNumber++) + ".dat";
+        return "" + (nextDataFileNumber++) + getFilenameSuffix() + ".dat";
     }
 
 
@@ -808,7 +826,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
 
 
     protected String getNextDL () {
-        return "" + (nextDefectLogNumber++) + ".def";
+        return "" + (nextDefectLogNumber++) + getFilenameSuffix() + ".def";
     }
 
 
@@ -839,7 +857,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         // always treat the max data file as "in use" even if it is orphaned.
         // this will ensure we don't reuse data file numbers for future nodes
         maybeScanNumberedFiles(new File(dataPath));
-        filesInUse.add("" + (nextDataFileNumber - 1) + ".dat");
+        filesInUse.add(maxDataFileName);
 
         // cleanup empty entries and return the results
         filesInUse.remove(null);
@@ -881,9 +899,14 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         numberedFilesWereScanned = true;
     }
 
+    private String maxDataFileName = null;
+
     private String sawDataFile(String dataFileName) {
         int fileNumber = getIntFilename(dataFileName);
-        nextDataFileNumber = Math.max(nextDataFileNumber, fileNumber + 1);
+        if (fileNumber >= nextDataFileNumber) {
+            nextDataFileNumber = fileNumber + 1;
+            maxDataFileName = dataFileName;
+        }
         return dataFileName;
     }
 
@@ -902,12 +925,17 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         if (name == null)
             return -1;
 
-        // no file suffix present? return -1
+        // no file extension present? return -1
         int pos = name.indexOf('.');
         if (pos < 1)
             return -1;
 
-        // strip the suffix and parse the filename as an integer
+        // check for a suffix, remove if present
+        int suff = name.lastIndexOf('-');
+        if (suff > 0 && suff < pos)
+            pos = suff;
+
+        // strip the suffix/extension and parse the filename as an integer
         try {
             return Integer.parseInt(name.substring(0, pos));
         } catch (Exception e) {
