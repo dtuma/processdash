@@ -89,8 +89,7 @@ public class DashboardInstanceStrategy implements
                         new PatternList() //
                                 .addLiteralStartsWith("cms/")
                                 .addLiteralStartsWith("import/")
-                                .addLiteralEndsWith(".ico"),
-                        FileBundleConstants.BUNDLE_OVERWRITE_STRATEGY },
+                                .addLiteralEndsWith(".ico") },
 
                 // core data files
                 { "core", "state", "pspdash.ini", ".pspdash",
