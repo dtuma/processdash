@@ -34,6 +34,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -65,7 +67,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -690,8 +692,14 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         if (Settings.isReadOnly())
             return;
 
+        RobustFileOutputStream out = new RobustFileOutputStream(filename);
+        saveXML(out, comment);
+        out.close();
+    }
+
+    public void saveXML(OutputStream os, String comment) throws IOException {
         BufferedWriter out = new BufferedWriter
-            (new RobustFileWriter(filename, "UTF-8"));
+            (new OutputStreamWriter(os, "UTF-8"));
         out.write(XML_HEADER);
         out.newLine();    out.newLine();
 
@@ -701,7 +709,7 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
         }
 
         saveXMLNode(out, 0, PropertyKey.ROOT, false);
-        out.close();
+        out.flush();
     }
 
     public void save (String datafilePath, String comment) throws IOException {

@@ -98,7 +98,8 @@ public class DashboardMergeCoordinator implements BundleMergeCoordinator {
             bundleDir = workingDir.getBundleDirectory();
         }
         if (bundleMerger == null) {
-            bundleMerger = new DashboardBundleMerger();
+            // currently, we only support sync bundle mode for teams
+            bundleMerger = new DashboardBundleMergerTeam();
         }
     }
 
