@@ -21,54 +21,40 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.merge;
+package net.sourceforge.processdash.tool.bridge.bundle;
 
-import java.awt.Component;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.swing.JOptionPane;
-
-import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
-import net.sourceforge.processdash.tool.bridge.bundle.BundleMergeCoordinator;
-import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
-import net.sourceforge.processdash.tool.bridge.bundle.FileBundleDirectory;
-import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
-import net.sourceforge.processdash.tool.bridge.bundle.FileBundleRetentionGranularity;
-import net.sourceforge.processdash.tool.bridge.bundle.FileBundleSpec;
-import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
-import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
-public class DashboardMergeCoordinator implements BundleMergeCoordinator {
+public abstract class BundleMergeCoordinator {
 
-    private BundledWorkingDirectorySync workingDir;
+    protected BundledWorkingDirectorySync workingDir;
 
-    private ForkTracker forkTracker;
+    protected ForkTracker forkTracker;
 
-    private FileBundleDirectory bundleDir;
+    protected FileBundleDirectory bundleDir;
 
-    private DashboardBundleMerger bundleMerger;
+    protected BundleMerger bundleMerger;
 
-    private static final Logger log = Logger
-            .getLogger(DashboardMergeCoordinator.class.getName());
+    protected static final Logger log = Logger
+            .getLogger(BundleMergeCoordinator.class.getName());
 
-    public DashboardMergeCoordinator(BundledWorkingDirectorySync dir) {
+    public BundleMergeCoordinator(BundledWorkingDirectorySync dir) {
         this.workingDir = dir;
     }
 
 
     /**
-     * Merge any bundles in this dashboard that have forked.
+     * Merge any bundles in this working directory that have forked.
      * 
      * @return true if any bundles were merged
      * @throws IOException
@@ -86,14 +72,20 @@ public class DashboardMergeCoordinator implements BundleMergeCoordinator {
 
         // iterate over the forked bundles
         for (List<FileBundleID> oneBundleForkSet : forkedBundles.values()) {
+            // skip this bundle if not enough forks are present
+            if (oneBundleForkSet.size() < 2)
+                continue;
+
             // perform an n-way merge of the forks in the bundle
             FileBundleID mergedBundleID = mergeBundleForks(oneBundleForkSet);
 
-            // adopt the merged bundle as our new HEAD
-            forkTracker.getSelfHeadRefs().storeHeadRef(mergedBundleID);
+            if (mergedBundleID != null) {
+                // adopt the merged bundle as our new HEAD
+                forkTracker.getSelfHeadRefs().storeHeadRef(mergedBundleID);
 
-            // make a note that we performed a merge
-            madeChange = true;
+                // make a note that we performed a merge
+                madeChange = true;
+            }
         }
 
         return madeChange;
@@ -106,23 +98,21 @@ public class DashboardMergeCoordinator implements BundleMergeCoordinator {
             bundleDir = workingDir.getBundleDirectory();
         }
         if (bundleMerger == null) {
-            // currently, we only support sync bundle mode for teams
-            bundleMerger = new DashboardBundleMergerTeam();
+            bundleMerger = makeBundleMerger();
         }
     }
 
+    protected abstract BundleMerger makeBundleMerger();
+
+
     protected FileBundleID mergeBundleForks(List<FileBundleID> bundleIDs)
             throws IOException {
-        // check arguments and abort if not enough bundles were provided
-        if (bundleIDs.size() == 1)
-            return bundleIDs.get(0);
-
         // create a temporary directory to hold the intermediate states of the
         // merge operation
         File tmpDir = TempFileFactory.get().createTempDirectory("td-merge",
             ".tmp");
         FileResourceCollection working = new FileResourceCollection(tmpDir,
-                false, DashboardInstanceStrategy.INSTANCE);
+                false, workingDir.getStrategy());
 
         // merge all of the files and publish to the bundle directory
         try {
@@ -140,9 +130,6 @@ public class DashboardMergeCoordinator implements BundleMergeCoordinator {
 
     protected FileBundleID mergeBundleForks(List<FileBundleID> bundleIDs,
             FileResourceCollection working) throws IOException {
-        // sort the bundles to merge in chronological order
-        Collections.sort(bundleIDs, FileBundleID.CHRONOLOGICAL_ORDER);
-
         // select the first bundle in the list and load its data
         FileBundleID leftBundleID = bundleIDs.get(0);
         ReadableResourceCollection left = getCollection(leftBundleID);
@@ -206,56 +193,5 @@ public class DashboardMergeCoordinator implements BundleMergeCoordinator {
             }
         }
     }
-
-
-    public void showMergeConflictWarnings(Component parent) {
-        List<String> warningKeys = getMergeConflictWarningKeys();
-        if (warningKeys.isEmpty())
-            return;
-
-        Resources res = Resources.getDashBundle("Bundler.Merge.Conflict");
-        String title = res.getString("Title");
-        String[] bullets = new String[warningKeys.size()];
-        for (int i = bullets.length; i-- > 0;)
-            bullets[i] = BULLET + res.getString(warningKeys.get(i));
-        Object[] message = new Object[] { res.getStrings("Header"), bullets,
-                " ", res.getStrings("Footer") };
-        JOptionPane.showMessageDialog(parent, message, title,
-            JOptionPane.ERROR_MESSAGE);
-    }
-
-    private List<String> getMergeConflictWarningKeys() {
-        List<String> result = new ArrayList<String>();
-        for (String filename : bundleMerger.getAndClearMergedFiles()) {
-            String key = getMergeConflictWarningKey(filename);
-            if (key == null) {
-                log.warning("Overlapping edits made to file '" + filename
-                        + "' - merge performed");
-            } else {
-                log.severe("Conflicting edits made to file '" + filename
-                        + "' - data may have been lost");
-                result.add(key);
-            }
-        }
-        return result;
-    }
-
-    private String getMergeConflictWarningKey(String filename) {
-        for (String[] item : MERGE_WARNING_KEYS) {
-            if (filename.startsWith(item[0]))
-                return item[1];
-        }
-        return null;
-    }
-
-    private static final String[][] MERGE_WARNING_KEYS = { //
-            { "state", "Hierarchy" }, //
-            { "groups.dat", "Groups" }, //
-            { "roles.dat", "Roles" }, //
-            { "users.dat", "Users" }, //
-            { "cms/", "Reports" } //
-    };
-
-    private static final String BULLET = "    \u2022 ";
 
 }

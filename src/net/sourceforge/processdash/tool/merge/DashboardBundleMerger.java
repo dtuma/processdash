@@ -37,10 +37,12 @@ import java.util.TreeMap;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
+import net.sourceforge.processdash.tool.bridge.bundle.BundleMerger;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class DashboardBundleMerger
-        extends MapMerger<String, DashboardBundleMerger.FileState> {
+        extends MapMerger<String, DashboardBundleMerger.FileState>
+        implements BundleMerger {
 
     private List<String> mergedFiles;
 
