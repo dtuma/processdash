@@ -28,7 +28,9 @@ import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -39,6 +41,20 @@ import net.sourceforge.processdash.util.FileUtils;
 
 public class DashboardBundleMerger
         extends MapMerger<String, DashboardBundleMerger.FileState> {
+
+    private List<String> mergedFiles;
+
+    protected DashboardBundleMerger() {
+        mergedFiles = new ArrayList<String>();
+    }
+
+    public List<String> getAndClearMergedFiles() {
+        try {
+            return mergedFiles;
+        } finally {
+            mergedFiles = new ArrayList<String>();
+        }
+    }
 
     public void mergeBundle(ReadableResourceCollection parent,
             ReadableResourceCollection first, ReadableResourceCollection second,
@@ -77,6 +93,9 @@ public class DashboardBundleMerger
     @Override
     protected FileState mergeConflictingChange(String filename,
             FileState parent, FileState first, FileState second) {
+        // record this file as one that required a merge
+        mergedFiles.add(filename);
+
         // look for a merge handler for this file. If found, return it
         String filenameLC = filename.toLowerCase();
         DashboardFileMergeHandler handler = getMergeHandler(filenameLC);

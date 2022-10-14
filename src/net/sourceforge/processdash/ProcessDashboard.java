@@ -252,6 +252,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
     private BrokenDataFileHandler brokenData;
+    private DashboardMergeCoordinator mergeCoordinator;
     Resources resources;
     EventListenerList ell;
 
@@ -836,7 +837,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void setupSyncWorkingDir(BundledWorkingDirectorySync sync) {
-        sync.setBundleMergeCoordinator(new DashboardMergeCoordinator(sync));
+        this.mergeCoordinator = new DashboardMergeCoordinator(sync);
+        sync.setBundleMergeCoordinator(mergeCoordinator);
         DashHierarchy.setFilenameSuffixProvider(new SyncDeviceSuffixProvider());
     }
 
@@ -2243,6 +2245,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         dropSplashScreen();
         dash.maybeNotifyOpened();
+        if (dash.mergeCoordinator != null)
+            dash.mergeCoordinator.showMergeConflictWarnings(dash);
         dash.aum.maybePerformCheck(dash);
         DataImporter.refreshCachedFiles();
     }
