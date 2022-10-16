@@ -101,6 +101,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
@@ -2177,6 +2178,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             return null;
         }
 
+        if (workingDirectory instanceof BundledWorkingDirectorySync) {
+            setupSyncWorkingDir((BundledWorkingDirectorySync) workingDirectory);
+        }
+
         boolean workingDirIsGood = false;
         try {
             workingDirectory.prepare();
@@ -2216,6 +2221,12 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static void showLockFailureError() {
         showCannotOpenError("Lock", (String) null);
     }
+
+    private static void setupSyncWorkingDir(BundledWorkingDirectorySync sync) {
+        sync.setBundleMergeCoordinator(
+            new TeamProjectBundleMergeCoordinator(sync));
+    }
+
     /** @since 2.5.7.2 */
     private static boolean checkVersionRequirement(WorkingDirectory dir) {
         // get the min required version setting, and the current version
