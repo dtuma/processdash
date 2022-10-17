@@ -84,6 +84,8 @@ import teamdash.wbs.columns.WorkflowYieldColumn;
  */
 public class WBSDataWriter {
 
+    public static final String NEEDS_DUMP_SETTING = "projDumpNeeded";
+
     /** The work breakdown structure */
     private WBSModel wbsModel;
     /** Calculated data associated with the work breakdown structure */
