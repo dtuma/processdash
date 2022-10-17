@@ -572,17 +572,30 @@ public class WBSEditor implements WindowListener, SaveListener,
         return true;
     }
 
-    private void maybeSetupSimultaneousEditing() {
+    private boolean shouldSetupSimultaneousEditing() {
+        // simultaneous editing support must be enabled for sync bundle dirs,
+        // because we can't prevent simultaneous editing from occuring there
+        if (isSyncBundleWorkingDirectory())
+            return true;
+
         // if simultaneous editing is disabled, do nothing.
         if (!teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true))
-            return;
+            return false;
 
         // no need for simultaneous editing in dump-and-exit mode.
         if (isDumpAndExitMode())
-            return;
+            return false;
 
         // simultaneous editing does not make sense for a ZIP file.
         if (isZipWorkingDirectory())
+            return false;
+
+        // enable simultaneous editing by default.
+        return true;
+    }
+
+    private void maybeSetupSimultaneousEditing() {
+        if (shouldSetupSimultaneousEditing() == false)
             return;
 
         try {
@@ -1038,10 +1051,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         JCheckBox allowSimulEdit = new JCheckBox(
                 resources.getString("Preferences.Simultaneous_Edit"));
-        boolean simulEditSetting = teamProject
+        boolean isSyncBundleDir = isSyncBundleWorkingDirectory();
+        boolean simulEditSetting = isSyncBundleDir || teamProject
                 .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true);
         allowSimulEdit.setSelected(simulEditSetting);
-        allowSimulEdit.setEnabled(!indivRestrictedMode);
+        allowSimulEdit.setEnabled(!indivRestrictedMode && !isSyncBundleDir);
 
         JCheckBox initialsPolicy = null;
         String globalInitialsPolicy = System
