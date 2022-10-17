@@ -36,6 +36,13 @@ import teamdash.merge.ui.MergeConflictNotification;
 
 public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
+    public static final String CONFLICT_FLAG = "mergeConflict";
+
+    public static final String ERROR_FLAG = "mergeError";
+
+    private String errorFlag;
+
+
     public TeamProjectBundleMergeCoordinator(BundledWorkingDirectorySync dir) {
         super(dir);
     }
@@ -43,6 +50,33 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
     public List<MergeConflictNotification> getConflicts() {
         // return the list of conflict notifications from our bundle merger
         return getBundleMerger().getAndClearConflicts();
+    }
+
+    @Override
+    public boolean doMerge() throws IOException {
+        try {
+            // perform the bundle merge operation
+            boolean madeChange = super.doMerge();
+
+            // set an error flag if merge conflicts were detected
+            if (getBundleMerger().conflicts.isEmpty() == false)
+                errorFlag = CONFLICT_FLAG;
+
+            return madeChange;
+
+        } catch (IOException ioe) {
+            // set an error flag if an IOException occurred
+            errorFlag = ERROR_FLAG;
+            throw ioe;
+        }
+    }
+
+    public String getAndClearErrorFlag() {
+        try {
+            return errorFlag;
+        } finally {
+            errorFlag = null;
+        }
     }
 
     @Override
