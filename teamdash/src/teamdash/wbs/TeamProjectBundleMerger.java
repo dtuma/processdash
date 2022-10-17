@@ -90,6 +90,7 @@ public class TeamProjectBundleMerger implements BundleMerger {
 
         // save the merged project data to the destination
         TeamProject merged = merger.getMerged();
+        merged.getUserSettings().put(WBSDataWriter.NEEDS_DUMP_SETTING, "true");
         merged.saveCopy(((FileResourceCollection) dest).getDirectory());
 
         // write a history file with an entry for the changes we just merged
