@@ -59,6 +59,13 @@ public class TeamProjectBundleMerger implements BundleMerger {
         this.conflicts = new ArrayList<MergeConflictNotification>();
     }
 
+    public List<MergeConflictNotification> getAndClearConflicts() {
+        try {
+            return conflicts;
+        } finally {
+            conflicts = new ArrayList<MergeConflictNotification>();
+        }
+    }
 
     @Override
     public void mergeBundle(ReadableResourceCollection parent,
