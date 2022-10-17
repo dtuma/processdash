@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -124,6 +124,7 @@ import net.sourceforge.processdash.ui.lib.WindowUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -712,6 +713,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 e.printStackTrace();
             }
 
+            maybeSendStartupDumpFeedback(dataSaved);
+
             if (isDumpAndExitMode()) {
                 workingDirectory.releaseLocks();
                 if (dataSaved) {
@@ -724,6 +727,44 @@ public class WBSEditor implements WindowListener, SaveListener,
                 }
             }
         }
+    }
+
+    private void maybeSendStartupDumpFeedback(boolean dataSaved) {
+        // if we're not in startup dump mode, do nothing
+        if (!isDumpAndExitMode() || syncURL == null)
+            return;
+
+        // build a callback URL for sending startup dump feedback
+        boolean dumpCallbackMode = isDumpCallbackDesired();
+        StringBuffer callbackURL = new StringBuffer(syncURL);
+        int queryPos = syncURL.indexOf('?');
+        if (queryPos > 0)
+            callbackURL.setLength(queryPos);
+        HTMLUtils.appendQuery(callbackURL, "dumpResult", //
+            dataSaved ? "saved" : "error");
+
+        // retrieve the error flag for the bundle merge operation
+        if (isSyncBundleWorkingDirectory()) {
+            String flag = getBundleMergeCoordinator().getAndClearErrorFlag();
+            HTMLUtils.appendQuery(callbackURL, "mergeError", flag);
+
+            if (TeamProjectBundleMergeCoordinator.CONFLICT_FLAG.equals(flag)) {
+                // if merge edit conflicts occurred, cancel dump-and-exit mode
+                // so the user can see the editing conflicts and deal with them
+                clearDumpAndExitMode();
+
+            } else if (dumpCallbackMode) {
+                // if no conflicts were detected, we will continue to dump and
+                // exit. If this dump was started by a sync operation that
+                // requested feedback, disable the redundant sync that would
+                // normally occur as part of startup dump
+                syncURL = null;
+            }
+        }
+
+        // make a connection to the callback URL to communicate the result
+        if (dumpCallbackMode)
+            runCallbackTrigger(callbackURL.toString());
     }
 
     public void showApplicableStartupMessages() {
@@ -1986,6 +2027,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void triggerSyncOperation() {
+        runCallbackTrigger(syncURL);
+    }
+
+    private void runCallbackTrigger(String syncURL) {
         if (syncURL != null) {
             try {
                 URL u = new URL(syncURL);
@@ -2108,7 +2153,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProjectBottomUp(locations, "Team Project");
             dir = proj.getStorageDirectory();
             if (!dir.isDirectory()) {
-                waitFrame.dispose();
+                disposeWaitFrame(waitFrame);
                 showCannotOpenError(locations[locations.length-1]);
                 return null;
             }
@@ -2128,7 +2173,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory = configureWorkingDirectory(locations, intent,
                 dispatch);
             if (workingDirectory == null) {
-                waitFrame.dispose();
+                disposeWaitFrame(waitFrame);
                 return null;
             }
             dir = workingDirectory.getDirectory();
@@ -2151,12 +2196,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         try {
             UserGroupManagerWBS.init(proj);
-            if (!isDumpAndExitMode()) {
+            if (workingDirectory instanceof BundledWorkingDirectorySync
+                    || !isDumpAndExitMode()) {
                 WBSPermissionManager.init(workingDirectory, proj);
             }
         } catch (HttpException.Unauthorized he) {
             displayStartupPermissionError("Unauthorized");
-            waitFrame.dispose();
+            disposeWaitFrame(waitFrame);
             return null;
         }
 
@@ -2178,8 +2224,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             w.setIndivRestrictedMode(indivMode && !proj.isPersonalProject());
             if (showTeamList) {
                 w.showTeamListEditorWithSaveButton();
+                disposeWaitFrame(waitFrame);
             } else {
                 w.show();
+                disposeWaitFrame(waitFrame);
                 w.showApplicableStartupMessages();
                 if (itemHref != null)
                     w.showHyperlinkedItem(itemHref);
@@ -2196,9 +2244,13 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory.releaseLocks();
             if (exitOnClose)
                 System.exit(0);
-            waitFrame.dispose();
+            disposeWaitFrame(waitFrame);
             return null;
         }
+    }
+    private static void disposeWaitFrame(JFrame waitFrame) {
+        if (waitFrame != null)
+            waitFrame.dispose();
     }
 
     private static WorkingDirectory configureWorkingDirectory(String[] locations,
@@ -2436,6 +2488,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         return Boolean.getBoolean("teamdash.wbs.dumpAndExit");
     }
 
+    private static void clearDumpAndExitMode() {
+        System.setProperty("teamdash.wbs.dumpAndExit", "false");
+    }
+
+    private static boolean isDumpCallbackDesired() {
+        return isDumpAndExitMode()
+                && Boolean.getBoolean("teamdash.wbs.dumpCallback");
+    }
+
     private void setDirty(boolean isDirty) {
         this.dirty = isDirty;
 
@@ -2502,10 +2563,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public static void main(String args[]) {
         args = maybeParseJnlpArgs(args);
-        if (isDumpAndExitMode())
-            System.setProperty("java.awt.headless", "true");
-        else
-            LookAndFeelUtil.setDefaultLAF();
+        LookAndFeelUtil.setDefaultLAF();
 
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
