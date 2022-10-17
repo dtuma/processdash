@@ -691,6 +691,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void showApplicableStartupMessages() {
         maybeShowProjectClosedMessage();
         maybeShowLicenseMessage();
+        maybePublishBundleMergeConflicts();
+        if (mergeConflictDialog != null)
+            mergeConflictDialog.maybeShow(frame);
     }
 
     private void maybeShowProjectClosedMessage() {
@@ -1500,13 +1503,34 @@ public class WBSEditor implements WindowListener, SaveListener,
         UserGroupManagerWBS.getInstance()
                 .teamMemberIDsChanged(merger.getTeamMemberIDChanges());
         replaceDataFrom(merger.getMerged());
-        mergeConflictDialog.addNotifications(merger
-                .getConflicts(mergeConflictDialog));
+        maybePublishBundleMergeConflicts();
+        mergeConflictDialog.addNotifications(merger.getConflicts());
 
         // reload the change history file to reflect external edits
         changeHistory = new ChangeHistory(changeHistoryFile);
 
         return true;
+    }
+
+    synchronized void maybePublishBundleMergeConflicts() {
+        TeamProjectBundleMergeCoordinator tbmc = getBundleMergeCoordinator();
+        if (tbmc != null && mergeConflictDialog != null) {
+            mergeConflictDialog.addNotifications(tbmc.getConflicts());
+        }
+    }
+
+    private TeamProjectBundleMergeCoordinator getBundleMergeCoordinator() {
+        if (!isSyncBundleWorkingDirectory())
+            return null;
+
+        BundledWorkingDirectorySync sync = //
+                (BundledWorkingDirectorySync) workingDirectory;
+        return (TeamProjectBundleMergeCoordinator) sync
+                .getBundleMergeCoordinator();
+    }
+
+    private boolean isSyncBundleWorkingDirectory() {
+        return workingDirectory instanceof BundledWorkingDirectorySync;
     }
 
     void replaceDataFrom(final TeamProject srcProject) {

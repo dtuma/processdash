@@ -56,7 +56,8 @@ public class TeamProjectMergeTester {
             merger.run();
 
             TeamProject merged = merger.getMerged();
-            merger.getConflicts(new DMS(merged, main.getTeamProcess()));
+            WBSModelMergeConflictNotificationFactory.refineAll(
+                merger.getConflicts(), new DMS(merged, main.getTeamProcess()));
             if (mergedDir != null && mergedDir.isDirectory())
                 merged.saveCopy(mergedDir);
         } catch (Exception e) {

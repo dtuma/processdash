@@ -32,15 +32,26 @@ import net.sourceforge.processdash.tool.bridge.bundle.BundleMerger;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 
+import teamdash.merge.ui.MergeConflictNotification;
+
 public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
     public TeamProjectBundleMergeCoordinator(BundledWorkingDirectorySync dir) {
         super(dir);
     }
 
+    public List<MergeConflictNotification> getConflicts() {
+        // return the list of conflict notifications from our bundle merger
+        return getBundleMerger().getAndClearConflicts();
+    }
+
     @Override
     protected BundleMerger makeBundleMerger() {
         return new TeamProjectBundleMerger(workingDir);
+    }
+
+    private TeamProjectBundleMerger getBundleMerger() {
+        return (TeamProjectBundleMerger) bundleMerger;
     }
 
     @Override

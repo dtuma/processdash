@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2019 Tuma Solutions, LLC
+// Copyright (C) 2012-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,11 @@ package teamdash.merge.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
@@ -38,6 +40,7 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -59,13 +62,16 @@ import teamdash.merge.ModelType;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.UndoList;
+import teamdash.wbs.WBSModelMergeConflictNotificationFactory;
 import teamdash.wbs.icons.WBSEditorIcon;
 
 public class MergeConflictDialog implements DataModelSource {
 
     private TeamProject teamProject;
 
-    private JFrame frame;
+    private JPanel content;
+
+    private JDialog frame;
 
     private NotificationList notificationList;
 
@@ -81,10 +87,7 @@ public class MergeConflictDialog implements DataModelSource {
     public MergeConflictDialog(TeamProject teamProject) {
         this.teamProject = teamProject;
 
-        frame = new JFrame(resources.getString("Conflict_Window.Title"));
-        WBSEditorIcon.setWindowIcon(frame);
-
-        JPanel content = new JPanel();
+        content = new JPanel();
         content.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
         content.setLayout(new BorderLayout(0, 10));
         content.add(new JLabel(resources.getString("Conflict_Window.Header")),
@@ -99,7 +102,19 @@ public class MergeConflictDialog implements DataModelSource {
 
         hyperlinkHandlers = new HashMap();
         dataModels = new HashMap();
+    }
 
+    private void makeFrame(Component parent) {
+        Window parentWindow;
+        if (parent instanceof Window)
+            parentWindow = (Window) parent;
+        else
+            parentWindow = SwingUtilities.getWindowAncestor(parent);
+
+        frame = new JDialog(parentWindow,
+                resources.getString("Conflict_Window.Title"),
+                ModalityType.MODELESS);
+        WBSEditorIcon.setWindowIcon(frame);
         frame.getContentPane().add(content);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(500, 300);
@@ -120,6 +135,7 @@ public class MergeConflictDialog implements DataModelSource {
 
     public void addNotifications(List<MergeConflictNotification> nn) {
         if (nn != null && !nn.isEmpty()) {
+            WBSModelMergeConflictNotificationFactory.refineAll(nn, this);
             for (MergeConflictNotification n : nn)
                 notificationList.addNotification(n);
         }
@@ -128,6 +144,8 @@ public class MergeConflictDialog implements DataModelSource {
     public boolean maybeShow(Component relativeTo) {
         boolean notificationsPresent = notificationList.getComponentCount() > 0;
         if (notificationsPresent) {
+            if (frame == null)
+                makeFrame(relativeTo);
             if (!frame.isVisible()) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
@@ -137,8 +155,6 @@ public class MergeConflictDialog implements DataModelSource {
                 frame.setLocationRelativeTo(relativeTo);
             }
             frame.setVisible(true);
-            frame.setState(JFrame.NORMAL);
-            frame.toFront();
         }
         return notificationsPresent;
     }
