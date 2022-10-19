@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.templates.tools;
 import static net.sourceforge.processdash.tool.bridge.client.HistoricalMode.DATA_EFFECTIVE_DATE_PROPERTY;
 
 import java.awt.Toolkit;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -136,6 +137,15 @@ public class OpenWBSEditor extends TinyCGIBase {
         } else {
             return null;
         }
+    }
+
+    private String getDumpCallbackURL() {
+        String syncURL = getSyncURL();
+        if (!isDumpAndExit() || !isDumpCallback() || syncURL == null)
+            return null;
+
+        int queryPos = syncURL.lastIndexOf('?');
+        return syncURL.substring(0, queryPos) + "?dumpResult=exited";
     }
 
     private String getSyncURL() {
@@ -333,8 +343,10 @@ public class OpenWBSEditor extends TinyCGIBase {
             getGlobalInitialsPolicy());
         if (StringUtils.hasValue(itemHref))
             result.put("teamdash.wbs.showItem", itemHref);
-        if (parameters.containsKey("dumpAndExit"))
+        if (isDumpAndExit())
             result.put("teamdash.wbs.dumpAndExit", "true");
+        if (isDumpCallback())
+            result.put("teamdash.wbs.dumpCallback", "true");
         else if (isJsonRequest())
             result.put("teamdash.wbs.startupPause",
                 Settings.getVal("userPref.wbsEditor.jsonPause", "500"));
@@ -400,6 +412,14 @@ public class OpenWBSEditor extends TinyCGIBase {
             return null;
     }
 
+    private boolean isDumpAndExit() {
+        return parameters.containsKey("dumpAndExit");
+    }
+
+    private boolean isDumpCallback() {
+        return parameters.containsKey("dumpCallback");
+    }
+
     private String getGlobalInitialsPolicy() {
         Object param = parameters.get("globalInitialsPolicy");
         if (param instanceof String) {
@@ -417,6 +437,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (cmdLine == null)
             return false;
         final int heapSize = getUserChosenHeapMemoryValue(cmdLine);
+        final String callbackURL = getDumpCallbackURL();
 
         new Thread() {
             public void run() {
@@ -427,7 +448,7 @@ public class OpenWBSEditor extends TinyCGIBase {
                     // we launch the process in an async thread
                     Process p = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine,
                         null, null, heapSize);
-                    new OutputConsumer(p).start();
+                    new OutputConsumer(p, callbackURL).start();
                 } catch (Exception e) {
                     Toolkit.getDefaultToolkit().beep();
                     e.printStackTrace();
@@ -548,12 +569,26 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static class OutputConsumer extends Thread {
         Process p;
-        public OutputConsumer(Process p) {
+        String callbackURL;
+        public OutputConsumer(Process p, String callbackURL) {
             this.p = p;
+            this.callbackURL = callbackURL;
             setDaemon(true);
         }
         public void run() {
-            RuntimeUtils.consumeOutput(p, System.out, System.err);
+            int exit = RuntimeUtils.consumeOutput(p, System.out, System.err);
+
+            if (callbackURL != null) {
+                try {
+                    String url = callbackURL + "&exitCode=" + exit;
+                    BufferedInputStream in = new BufferedInputStream(
+                            new URL(url).openConnection().getInputStream());
+                    while (in.read() != -1)
+                        ;
+                    in.close();
+                } catch (Exception e) {
+                }
+            }
         }
     }
 
