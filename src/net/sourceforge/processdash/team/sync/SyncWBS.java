@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,9 @@
 
 package net.sourceforge.processdash.team.sync;
 import java.awt.Component;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +40,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 
@@ -61,10 +66,14 @@ import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
+import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
@@ -165,6 +174,10 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
             // locate the root of the included project.
             findProject();
+
+            // check for dump callback mode
+            if (maybeHandleDumpCallback(projectRoot))
+                return;
 
             // load data values from that project.
             loadValues();
@@ -385,11 +398,11 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
 
 
-    private URL getWBSLocation(DataRepository data)
-            throws MalformedURLException, TinyCGIException {
+    private URL getWBSLocation(DataRepository data) throws IOException {
         // retrieve the latest wbs.xml file for the project
         ImportDirectory wbsDir = getWBSDirectory(
             data.getSubcontext(projectRoot));
+        checkSyncBundleMerge(wbsDir);
         File wbsFile = new File(wbsDir.getDirectory(), HIER_FILENAME);
 
         // if the file does not exist, or cannot be read, abort
@@ -462,6 +475,127 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         // return the directory containing the refreshed server files
         return dir;
     }
+
+    private void checkSyncBundleMerge(ImportDirectory importDir)
+            throws IOException {
+        // if this is not a sync bundle directory, do nothing
+        ForkTracker forkTracker = BundledImportDirectoryLocal
+                .getSyncBundleForkTracker(importDir);
+        if (forkTracker == null)
+            return;
+
+        // if we're currently running a sync operation, do nothing
+        if (parameters.containsKey(RUN_PARAM))
+            return;
+
+        // check bundleMerge param. If it is "skip", do nothing
+        String param = getParameter(MERGE_PARAM);
+        if (MERGE_SKIP.equals(param))
+            return;
+
+        // if the bundleMerge param is "run", perform a sync bundle merge
+        if (RUN_PARAM.equals(param)) {
+            runSyncBundleMerge();
+            return;
+        }
+
+        // the bundleMerge param is missing; we should check to see if a merge
+        // is needed.
+
+        // if the WBS Editor is currently open, do nothing. (We cannot launch
+        // a merge operation while the WBS Editor has the directory locked.)
+        if (wbsEditorIsOpen(importDir))
+            return;
+
+        // if a merge operation is needed, display a page asking the user if
+        // they are ready to launch one.
+        if (isProjDumpNeeded(importDir) || isForkMergeNeeded(forkTracker))
+            signalError(MERGE_CONFIRM);
+    }
+
+    private boolean wbsEditorIsOpen(ImportDirectory dir) {
+        // the presence of a process lock file means the WBS Editor is open.
+        // that would prevent a dump-and-exit process from doing any work.
+        File processLockFile = new File(dir.getDirectory(),
+                TeamDataDirStrategy.LOCK_FILE_NAME);
+        return processLockFile.exists();
+    }
+
+    private boolean isProjDumpNeeded(ImportDirectory dir) throws IOException {
+        // Resd the user-settings.ini file from the project
+        Properties p = getUserSettings(dir);
+
+        // return the status of the projDumpNeeded flag
+        return "true".equals(p.getProperty("projDumpNeeded"));
+    }
+
+    private Properties getUserSettings(ImportDirectory dir) throws IOException {
+        Properties p = new Properties();
+        File settings = new File(dir.getDirectory(), "user-settings.ini");
+        if (!settings.isFile())
+            return p;
+
+        // read the contents of the settings file
+        InputStream in = new BufferedInputStream(new FileInputStream(settings));
+        p.load(in);
+        in.close();
+
+        // return the properties
+        return p;
+    }
+
+    private boolean isForkMergeNeeded(ForkTracker forkTracker)
+            throws IOException {
+        // retrieve the list of forks for the WBS bundle
+        List<FileBundleID> wbsForks = forkTracker.getForkedBundles()
+                .get(WBS_BUNDLE_NAME);
+        if (wbsForks == null || wbsForks.size() < 2)
+            return false;
+
+        // a merge is needed if our ref disagrees with the accepted team value
+        FileBundleID selfRef = forkTracker.getSelfHeadRefs()
+                .getHeadRef(WBS_BUNDLE_NAME);
+        return wbsForks.indexOf(selfRef) > 0;
+    }
+    private static final String WBS_BUNDLE_NAME = "wbs";
+
+    private void runSyncBundleMerge() throws IOException {
+        // prepare to collect parameters from the dump callback
+        Future<Map> future = getDumpCallbackParams(projectRoot);
+
+        // make a subrequest to start a dump-and-exit run of the WBS
+        String dumpUri = resolveRelativeURI(WBS_MERGE_DUMP_URI);
+        getRequest(dumpUri, false);
+
+        // wait for the dump-and-exit run to finish, and get the result
+        int syncDelay = Settings.getInt("syncWBS.mergeTimeout", 60);
+        Map result = null;
+        try {
+            result = future.get(syncDelay, TimeUnit.SECONDS);
+        } catch (Exception e) {
+        }
+
+        // if the operation timed out, result will be null
+        if (result == null)
+            result = Collections.singletonMap("dumpResult", "timeout");
+
+        // get the result code from the bundle merge operation and take action
+        String dumpResult = (String) result.get("dumpResult");
+        String mergeErr = (String) result.get("mergeError");
+        if ("mergeConflict".equals(mergeErr) || "mergeError".equals(mergeErr)) {
+            // display an error page for merge conflicts / errors
+            signalError(mergeErr);
+
+        } else if (!"saved".equals(dumpResult)) {
+            // process completed without a successful merge. Print a debug
+            // message and tell user about the error
+            System.out.println("Sync bundle merge completed without success. "
+                    + "Result = " + dumpResult //
+                    + ", exit code = " + result.get("exitCode"));
+            signalError("mergeError");
+        }
+    }
+
 
     private URL getWorkflowLocation(URL wbsUrl) {
         if (wbsUrl != null) {
@@ -655,6 +789,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         out.print("<h1>Synchronizing Work Breakdown Structure</h1>\n");
         out.print("<form action='sync.class' method='post'>\n");
         out.print("<input type='hidden' name='"+SAVE_PERMS+"' value='1'/>\n");
+        out.print(MERGE_SKIP_HIDDEN);
 
         if (!taskDeletions.isEmpty() || !taskCompletions.isEmpty()) {
             out.print("<p>Several of the tasks in your personal plan have been "
@@ -1021,6 +1156,71 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
 
 
+    private static class WbsDumpTracker implements Future<Map> {
+
+        private Map params = null;
+
+        public synchronized void callbackReceived(Map params) {
+            this.params = new HashMap(params);
+            notifyAll();
+        }
+
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        public boolean isCancelled() {
+            return false;
+        }
+
+        public synchronized boolean isDone() {
+            return params != null;
+        }
+
+        public Map get() {
+            return get(0, TimeUnit.SECONDS);
+        }
+
+        public synchronized Map get(long timeout, TimeUnit unit) {
+            if (params == null) {
+                try {
+                    unit.timedWait(this, timeout);
+                } catch (Exception e) {
+                }
+            }
+            return params;
+        }
+    }
+
+    private static final Map<String, WbsDumpTracker> DUMP_TRACKERS = //
+            Collections.synchronizedMap(new HashMap());
+
+    private boolean maybeHandleDumpCallback(String path) {
+        boolean isDumpCallback = parameters.containsKey("dumpResult");
+
+        if (isDumpCallback && path != null) {
+            WbsDumpTracker tracker = DUMP_TRACKERS.remove(path);
+            if (tracker != null)
+                tracker.callbackReceived(parameters);
+        }
+
+        return isDumpCallback;
+    }
+
+    private Future<Map> getDumpCallbackParams(String path) {
+        WbsDumpTracker tracker;
+        synchronized (DUMP_TRACKERS) {
+            tracker = DUMP_TRACKERS.get(path);
+            if (tracker == null) {
+                tracker = new WbsDumpTracker();
+                DUMP_TRACKERS.put(path, tracker);
+            }
+        }
+        return tracker;
+    }
+
+
+
     /** Throw an exception that will stop processing and redirect to an
      * error page.
      */
@@ -1100,6 +1300,13 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
     private static final String DELETE_DATANAME = "delete_ //list";
     private static final String PSP_SUBSET_DATANAME = "pspsubset_ //list";
     private static final String CHANGES_DATANAME = "changes_ //list";
+    private static final String MERGE_PARAM = "bundleMerge";
+    private static final String MERGE_SKIP = "skip";
+    private static final String MERGE_SKIP_HIDDEN = "<input type='hidden' "
+            + "name='" + MERGE_PARAM + "' value='" + MERGE_SKIP + "'/>\n";
+    private static final String MERGE_CONFIRM = "mergeConfirm";
+    private static final String WBS_MERGE_DUMP_URI = //
+            "openWBS.shtm?dumpAndExit&dumpCallback";
 
     private static final String READ_ONLY_MODE_ERR_MESSAGE =
         "You are currently running the dashboard in read-only mode, so " +

@@ -84,6 +84,10 @@ public class DynamicImportDirectory implements ImportDirectory {
         return delegate.getRemoteLocation();
     }
 
+    public ImportDirectory getDelegate() {
+        return delegate;
+    }
+
     public Boolean isBadDelegate() {
         return null;
     }

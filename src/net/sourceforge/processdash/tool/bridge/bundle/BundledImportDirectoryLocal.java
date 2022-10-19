@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
+import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalImportDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
@@ -140,6 +141,24 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
         if (workingDir.flushFile(filename) == false)
             throw new IOException("Couldn't flush changes to " + filename
                     + " in " + getDescription());
+    }
+
+    public static ForkTracker getSyncBundleForkTracker(ImportDirectory dir) {
+        // retrieve underlying delegate for DynamicImportDirectory
+        if (dir instanceof DynamicImportDirectory)
+            dir = ((DynamicImportDirectory) dir).getDelegate();
+
+        // if this is not a bundled import dir, return null
+        if (!(dir instanceof BundledImportDirectoryLocal))
+            return null;
+
+        // if the import isn't using a sync working dir, return null
+        BundledImportDirectoryLocal bid = (BundledImportDirectoryLocal) dir;
+        if (!(bid.workingDir instanceof BundledWorkingDirectorySync))
+            return null;
+
+        // retrieve the fork tracker from the working directory
+        return ((BundledWorkingDirectorySync) bid.workingDir).getForkTracker();
     }
 
     private static final TeamDataDirStrategy STRATEGY = TeamDataDirStrategy.INSTANCE;

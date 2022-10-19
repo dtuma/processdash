@@ -1,0 +1,73 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Synchronizing Work Breakdown Structure</title>
+</head>
+<body>
+
+<h1>Synchronizing Work Breakdown Structure</h1>
+
+<h2>Merge Offline Changes?</h2>
+
+<p>You have edited the work breakdown structure while your computer
+was offline, so your view of the team project has diverged from the
+view shared by the rest of the team.  To resolve this discrepancy, you
+should merge your changes into the team work breakdown structure.</p>
+
+<p>For this merge operation to succeed, you must:<ul>
+
+    <li>be online with a valid network connection, and</li>
+
+    <li>ensure your file sync client (e.g. OneDrive, DropBox, Google
+        Drive, etc.) is running, logged in, and actively synchronizing
+        files.</li>
+
+    </ul></p>
+
+<p>If you are not currently online, you can temporarily continue using
+your locally modified offline version of the work breakdown structure.
+Please find a time in the near future to connect, start your sync
+client, and perform a "Sync to WBS" operation again.</p>
+
+
+<table>
+
+<tr>
+<td style="padding-left: 1cm">
+<form action="syncBundleMergeWait.shtm" method="post">
+<input type="submit" name="next" value="Merge my changes"
+       style="width:100%; font-weight: bold; padding: 3px 1em"/>
+</form>
+</td>
+
+<td style="padding-left: 1cm">
+<ul>
+<li>Ensure your file sync client is <b>online and running</b>.</li>
+<li>Your local changes will be merged into the shared team WBS.</li>
+<li>Your personal plan will be brought up-to-date with all the latest
+changes made by you and others.</li>
+</ul>
+</td>
+</tr>
+
+<tr>
+<td style="padding-left: 1cm">
+<form action="sync.class" method="post" >
+<input type="hidden" name="bundleMerge" value="skip">
+<input type="submit" name="skip" value="Defer for now"
+       style="width:100%; padding: 3px 1em"/>
+</form>
+</td>
+
+<td style="padding-left: 1cm">
+<ul>
+<li>Choose this option if your file sync client is <b>not online</b>.</li>
+<li>Your view of the WBS will remain different from the rest of the team.</li>
+<li>Your personal plan will not reflect WBS changes made by others.</li>
+</ul>
+</td>
+</tr>
+
+</table>
+
+</body>
+</html>

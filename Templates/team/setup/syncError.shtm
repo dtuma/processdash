@@ -103,6 +103,41 @@ To synchronize your hierarchy with a team project, the dashboard must
 know your initials.  Before you can synchronize your hierarchy, you
 must first enter your initials on the
 
+<!--#elif mergeConfirm -->
+
+<script type="text/javascript">
+    window.location.replace("syncBundleMergeStart.shtm");
+</script>
+
+You have edited the work breakdown structure while your computer
+was offline, so these changes need to be
+<a href="syncBundleMergeStart.shtm">merged</a>.
+
+<!--#elif mergeConflict -->
+
+The dashboard was able to merge some of your local changes into the
+team work breakdown structure.  Unfortunately, some of your changes
+were in conflict with edits made by other people.  The WBS Editor will
+now open to display those conflicts.
+
+<p>Please switch to the WBS Editor window to review and address each
+editing conflict, and save changes as needed.  Once all the conflicts
+have been resolved, you can
+<a href="sync.class?<!--#echo _UNIQUE_ -->">click here</a> to try the
+synchronization operation again.</p>
+
+<!--#elif mergeError -->
+
+The dashboard attempted to merge your local offline changes into the
+team work breakdown structure.  Unfortunately, this operation was
+unsuccessful.
+
+<p>This failure is likely caused by poor network connectivity, or by
+your file sync client being offline.  You can
+<a href="sync.class?<!--#echo _UNIQUE_ -->">click here</a> to try
+again, and choose the "Defer for now" option until your network
+problems are resolved.</p>
+
 <!--#endif-->
 
 <!--#if teamDirMissing || initialsMissing -->

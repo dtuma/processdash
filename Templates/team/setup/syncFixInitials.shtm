@@ -28,6 +28,7 @@ click Next.</p>
 
 <br/><br/>
 
+<input type="hidden" name="bundleMerge" value="skip">
 <input type="submit" name="Next" value="Next">
 
 </form>

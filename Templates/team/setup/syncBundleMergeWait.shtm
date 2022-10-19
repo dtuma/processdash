@@ -1,0 +1,20 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Synchronizing Work Breakdown Structure</title>
+<script type="text/javascript">
+var metaRefreshTimeout = window.setTimeout(function(){
+    window.location.replace("sync.class?bundleMerge=run");
+}, 1000);
+</script>
+</head>
+<body>
+
+<h1>Synchronizing Work Breakdown Structure</h1>
+
+<h2>Merging Offline Changes...</h2>
+
+<p>Please wait.</p>
+
+</body>
+</html>
+
