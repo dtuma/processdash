@@ -155,6 +155,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.bridge.impl.TLSConfig;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.DataImporter;
@@ -796,6 +797,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             System.exit(1);
         }
 
+        SyncClientMappings.initialize(workingDirectory);
         if (workingDirectory instanceof BundledWorkingDirectorySync) {
             setupSyncWorkingDir((BundledWorkingDirectorySync) workingDirectory);
         }
