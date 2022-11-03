@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@ public class FileSelectionField extends JPanel {
         handler = new ActionHandler();
         browseButton.getButton().addActionListener(handler);
         rebuildMenus();
-        add(browseButton);
+        add(prefs == null ? browseButton.getButton() : browseButton);
 
         Dimension d = getPreferredSize();
         d.width = 400;
@@ -119,14 +119,15 @@ public class FileSelectionField extends JPanel {
                 rebuildMenus();
             }
         }
-        prefs.put(prefsKey, StringUtils.join(prefDirectories,
-            File.pathSeparator));
+        if (prefs != null)
+            prefs.put(prefsKey,
+                StringUtils.join(prefDirectories, File.pathSeparator));
     }
 
 
     private List<String> loadRecentPaths() {
         List<String> result = new ArrayList<String>();
-        String pref = prefs.get(prefsKey, null);
+        String pref = (prefs == null ? null : prefs.get(prefsKey, null));
         if (pref != null) {
             String[] dirs = pref.split(File.pathSeparator);
             result.addAll(Arrays.asList(dirs));
@@ -159,6 +160,7 @@ public class FileSelectionField extends JPanel {
 
     protected JFileChooser createFileChooser() {
         JFileChooser result = new JFileChooser();
+        result.setSelectedFile(getSelectedFile());
         result.setFileSelectionMode(fileSelectionMode);
         return result;
     }

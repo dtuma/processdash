@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2013 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesPasswordField;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
+import net.sourceforge.processdash.tool.prefs.editor.SharedFolderPreferencesList;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.StringUtils;
@@ -76,6 +77,7 @@ public class PreferencesForm extends BoundForm {
     private static final String RADIOBUTTONS_TAG = "radio";
     private static final String FILELIST_TAG = "file-list";
     private static final String MANUAL_ENTRY_TAG = "manualEntry";
+    private static final String SHARED_FOLDERS_TAG = "sharedFolders";
     private static final String I18N_LEVEL_TAG = "translationLevel";
     private static final String DATASET_ENCODING_CONVERTER = "datasetEncodingConverter";
 
@@ -95,6 +97,7 @@ public class PreferencesForm extends BoundForm {
         addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
         addElementType(FILELIST_TAG, PreferencesFileList.class);
         addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
+        addElementType(SHARED_FOLDERS_TAG, SharedFolderPreferencesList.class);
         addElementType(I18N_LEVEL_TAG, TranslationLevelPreferenceBox.class);
         addElementType(DATASET_ENCODING_CONVERTER,
             PreferencesDatasetEncodingconverter.class);

@@ -673,6 +673,12 @@ The author(s) may be contacted at:
                       specFile="prefs/backups.xml"
                       resources="Tools.Prefs.Backups" />
                       
+    <preferences-pane id="pdash.sharedFolders"
+                      categoryID="sharedFolders"
+                      priority="50"
+                      specFile="prefs/sharedFolders.xml"
+                      resources="Tools.Prefs.SharedFolders" />
+                      
     <preferences-pane id="pdash.advanced"
                       categoryID="advanced"
                       priority="0"

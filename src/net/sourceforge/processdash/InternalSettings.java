@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.util.FileProperties;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -59,6 +60,7 @@ public class InternalSettings extends Settings {
     public static final String sep = System.getProperty("file.separator");
     private static boolean dirty;
     private static boolean disableChanges;
+    public static final String SHARED_FOLDER_PREFIX = "sharedFolders.";
 
     private static final Logger logger = Logger
               .getLogger(InternalSettings.class.getName());
@@ -266,6 +268,9 @@ public class InternalSettings extends Settings {
         if (isPrefName(name)) {
             needsSave = setPrefImpl(name, value);
 
+        } else if (name.startsWith(SHARED_FOLDER_PREFIX)) {
+            setSharedFolderImpl(name, value);
+
         } else if (value == null) {
             fsettings.remove(name);
             // revert back to the original default value
@@ -312,6 +317,11 @@ public class InternalSettings extends Settings {
         } else {
             return false;
         }
+    }
+
+    private static void setSharedFolderImpl(String name, String value) {
+        String key = name.substring(SHARED_FOLDER_PREFIX.length());
+        FolderMappingManager.getInstance().store(key, value);
     }
 
     public static void setDefaultValue(String name, String defaultValue) {
