@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -62,6 +63,8 @@ public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
 
     private static final String JOIN_URL = "join.shtm";
     private static final String JOIN_XML = "joinxml.shtm";
+    private static final String WORKING_DIR_DATA_NAME = "Join//Working_Dir";
+    private static final String SHARED_FOLDER_DATA_NAME = "Join//Shared_Folder";
     private static final String REQTS_DATA_NAME = "Join//Package_Reqts";
 
     protected void writeHeader() {}
@@ -73,6 +76,7 @@ public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
         super.service(in, out, env);
 
         maybeReroot();
+        storeSharedFolderPath();
         storePackageRequirements();
 
         if (parameters.get("xml") != null)
@@ -174,7 +178,7 @@ public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
             TeamDataConstants.PROJECT_ID);
 
         // retrieve the joining document for the new relaunched project
-        String uri = makeURI(newProjectPath, JOIN_XML);
+        String uri = makeURI(newProjectPath, "join.class?xml");
         String joinInfo = getTinyWebServer().getRequestAsString(uri);
         int pos = joinInfo.indexOf("?>");
         if (pos != -1)
@@ -316,6 +320,39 @@ public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
             else
                 throw new TinyCGIException(404, "Not Fount");
         }
+    }
+
+    private void storeSharedFolderPath() {
+        DataContext data = getDataContext();
+
+        // store the target dir of our working directory
+        File targetDir = getDashboardContext().getWorkingDirectory()
+                .getTargetDirectory();
+        data.putValue(WORKING_DIR_DATA_NAME, targetDir == null ? null
+                : StringData.create(targetDir.getAbsolutePath()));
+
+        // try remapping the team directory as a shared folder path
+        String sf = getSharedFolderFor(data, TeamDataConstants.TEAM_DIRECTORY);
+        if (sf == null)
+            sf = getSharedFolderFor(data, TeamDataConstants.TEAM_DIRECTORY_UNC);
+        data.putValue(SHARED_FOLDER_DATA_NAME,
+            sf == null ? null : StringData.create(sf));
+    }
+
+    private String getSharedFolderFor(DataContext data, String dataName) {
+        // get the path stored in this data name (could be null)
+        String path = getString(data, dataName);
+        if (".".equals(path))
+            // resolve "." if necessary
+            path = getString(data, WORKING_DIR_DATA_NAME);
+
+        // try reencoding the path as a shared folder. If that succeeded,
+        // return the encoded value. Otherwise return null.
+        String encoded = FolderMappingManager.getInstance().encodePath(path);
+        if (encoded == null || encoded.equals(path))
+            return null;
+        else
+            return encoded;
     }
 
     private void storePackageRequirements() {

@@ -11,7 +11,7 @@
   <addEntry name="accessPermissions.xml" type="accessPermissions" version="1"
               href="<!--#echo Process_ID -->/setup/accessPermissionsTrigger" />
   <addEntry name="joinInfo.xml" type="joinInfo" version="1"
-              href="<!--#echo Process_ID -->/setup/joinxml.shtm" />
+              href="<!--#echo Process_ID -->/setup/join.class?xml" />
   <addEntry name="joinInvite.xml" type="messages" version="1"
               href="<!--#echo Process_ID -->/setup/join.class?invitation" />
 

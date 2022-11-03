@@ -15,7 +15,13 @@
     Package_ID="TPID"
     Package_Version="<!--#echo Dash_Package_TPID -->"
 
-<!--#if [Team_Directory] -->
+<!--#if [Join//Shared_Folder] -->
+    Team_Directory="<!--#echo var=[Join//Shared_Folder] -->"
+    Template_Path=""
+<!--#elif [Team_Directory] eq '.' && [Join//Working_Dir] -->
+    Team_Directory="<!--#echo var=[Join//Working_Dir] -->"
+    Template_Path="<!--#echo var=[Join//Working_Dir] -->:Templates:TPID.zip"
+<!--#elif [Team_Directory] -->
     Team_Directory="<!--#echo var=[Team_Directory] -->"
     Template_Path="<!--#echo var=[Team_Directory] -->:Templates:TPID.zip"
 <!--#else-->
