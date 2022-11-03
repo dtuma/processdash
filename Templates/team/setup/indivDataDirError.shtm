@@ -28,9 +28,29 @@ function showManualDir() {
 
     <PRE>    <!--#echo [setup//Data_Directory] --></PRE>
 
-    <p>Unfortunately, that directory doesn't appear to exist.  To
-    resolve this problem, you may need to map a network drive.
-    Contact your team leader for more help.</p>
+    <p>Unfortunately, that directory doesn't appear to exist.</p>
+
+    <ul>
+
+    <li style="margin-top: 1em">If the directory is on a <b>network
+        file server</b>, you may need to map a network drive.  Contact
+        your team leader for more help.</li>
+
+    <li style="margin-top: 1em">If the directory is in <b>cloud
+        storage</b> (such as OneDrive, Google Drive, DropBox, etc),
+        make sure:</li>
+
+        <ul>
+        <li style="margin-top: 0.5em">Its owner has shared the
+            directory with you</li>
+        <li>You have added the directory to your personal cloud
+            storage area (via a shortcut, link, alias, etc.)</li>
+        <li>You have installed the desktop client for that cloud
+            service, it is currently running, and it has synchronized
+            that directory to this computer.</li>
+        </ul>
+
+    </ul>
 
 <!--#elif [setup//Data_Directory_URL] -->
 
@@ -50,8 +70,8 @@ function showManualDir() {
 
 <!--#endif-->
 
-<p id="clickPrompt">If you would like to specify the location of the
-Team Data Directory manually, 
+<p id="clickPrompt">If you have satisfied the conditions above, and you
+would like to specify the location of the Team Data Directory manually,
 <a href="#" onclick="showManualDir(); return false;">click here<a>.</p>
 
 <div id="manualDirForm" style="display:none"><p>To resolve this

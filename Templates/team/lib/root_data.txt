@@ -77,7 +77,8 @@
             [Team_Directory],
             ""));
 
-[file_sep] = iff([//Env/OS.IS_WINDOWS], "\\", "/");
+[file_sep] = iff(startsWith("[", [Team_Directory_Eff]), "/",
+             iff([//Env/OS.IS_WINDOWS], "\\", "/"));
 
 [Team_Data_Directory] = 
     iff([Team_Directory_Eff] && [Project_ID],

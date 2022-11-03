@@ -105,10 +105,13 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -2863,6 +2866,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             }
 
         } else if (StringUtils.hasValue(teamDirectory)) {
+            // if the dir is in [Shared Folder] encoding, try to resolve it.
+            String resolvedSharedDir = maybeResolveSharedFolderPath(
+                teamDirectory, dataSubdir);
+            if (resolvedSharedDir != null) {
+                joinInfo.put(TEAM_DIRECTORY, resolvedSharedDir);
+                teamDirectory = resolvedSharedDir;
+            }
+
             // Otherwise, try the directory specified by the team project.
             f = new File(teamDirectory, dataSubdir);
             if (f.isDirectory())
@@ -2896,6 +2907,121 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         }
 
         throw new WizardError(IND_DATADIR_ERR_URL);
+    }
+
+    private String maybeResolveSharedFolderPath(String teamDirectory,
+            String dataSubdir) {
+        // if the team directory is not using [Shared Folder] encoding, abort.
+        String[] p = FolderMappingManager.parseEncodedPath(teamDirectory);
+        if (p == null)
+            return null;
+        String sharedFolderKey = p[0];
+        String relPath = p[1];
+
+        // try the happy path: see if the folder appears exactly as described
+        FolderMappingManager mgr = FolderMappingManager.getInstance();
+        try {
+            String resolvedDir = mgr.reload().resolvePath(teamDirectory);
+            File dataDir = new File(resolvedDir, dataSubdir);
+            if (dataDir.isDirectory())
+                return resolvedDir;
+
+        } catch (MissingMapping mm) {
+            // the user doesn't have a mapping defined for this [Shared Folder]
+            // key. Abort so we can try the UNC, or let the user can specify
+            // the directory manually.
+            return null;
+        }
+
+        // locate the mapped folder root mentioned by the encoded path
+        String sharedFolderPath = mgr.getFolders().get(sharedFolderKey);
+        if (!StringUtils.hasValue(sharedFolderPath))
+            return null;
+        File sharedFolderRoot = new File(sharedFolderPath);
+        if (!sharedFolderRoot.isDirectory())
+            return null;
+
+        // we hope to find an instance of the given project directory under the
+        // local mount point. Build an array describing that directory path
+        String terminalPath = (relPath + "/" + dataSubdir).replace('\\', '/');
+        String[] terminalNames = terminalPath.split("/");
+
+        // try searching within the local shared folder mount point for a
+        // directory that matches the expectaed terminal names
+        System.out.println("Searching for " + terminalPath + " under directory "
+                + sharedFolderPath);
+        List<MatchingProjectDir> matchingDirs = new ArrayList();
+        scanRecursivelyForMatchingProjectDirectory(sharedFolderRoot,
+            terminalNames, matchingDirs);
+
+        // no matches found? abort
+        if (matchingDirs.isEmpty()) {
+            System.out.println("    No matches found.");
+            return null;
+        }
+
+        // if we have a single match, return it
+        if (matchingDirs.size() == 1)
+            return matchingDirs.get(0).getTeamDirectoryPath();
+
+        // multiple matches? See if one is better than the others
+        Collections.sort(matchingDirs);
+        if (matchingDirs.get(0).matchLen > matchingDirs.get(1).matchLen)
+            return matchingDirs.get(0).getTeamDirectoryPath();
+
+        // multiple matches: abort for now and let the user sort things out
+        return null;
+    }
+
+    private void scanRecursivelyForMatchingProjectDirectory(File directory,
+            String[] searchFor, List<MatchingProjectDir> matchingDirs) {
+        MatchingProjectDir md = new MatchingProjectDir(directory, searchFor);
+        if (md.matchLen > 0) {
+            System.out.println("    Found match: " + directory.getPath());
+            matchingDirs.add(md);
+        } else {
+            File[] children = directory.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    if (child.isDirectory())
+                        scanRecursivelyForMatchingProjectDirectory(child,
+                            searchFor, matchingDirs);
+                }
+            }
+        }
+    }
+
+    private class MatchingProjectDir implements Comparable<MatchingProjectDir> {
+
+        File projectDir;
+        int matchLen;
+
+        MatchingProjectDir(File directory, String[] projectPath) {
+            this.projectDir = directory;
+            this.matchLen = countMatchingPathSegments(directory, projectPath);
+        }
+
+        private int countMatchingPathSegments(File dir, String[] searchFor) {
+            int pos = searchFor.length;
+            int matchLen = 0;
+            while (pos > 0 && dir != null) {
+                if (searchFor[--pos].equalsIgnoreCase(dir.getName())) {
+                    matchLen++;
+                    dir = dir.getParentFile();
+                } else {
+                    break;
+                }
+            }
+            return matchLen;
+        }
+
+        public String getTeamDirectoryPath() {
+            return projectDir.getParentFile().getParentFile().getAbsolutePath();
+        }
+
+        public int compareTo(MatchingProjectDir that) {
+            return that.matchLen - this.matchLen;
+        }
     }
 
     private class ProjectDataUrlTester extends Thread {
@@ -3022,6 +3148,13 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             String indivInitials, String scheduleName, String scheduleID,
             String teamDirectory, String teamDirectoryUNC,
             String teamDataDirectoryURL, String ignoreDups) {
+        // Rewrite the team directory using [Shared Folder] encoding if possible
+        if (StringUtils.hasValue(teamDirectory)) {
+            SyncClientMappings.initialize(new File(teamDirectory));
+            teamDirectory = FolderMappingManager.getInstance()
+                    .encodePath(teamDirectory);
+        }
+
         putValue(PROJECT_ID, projectID);
         putValue(TEAM_PROJECT_URL, teamURL);
         putValue(INDIV_INITIALS, indivInitials);
