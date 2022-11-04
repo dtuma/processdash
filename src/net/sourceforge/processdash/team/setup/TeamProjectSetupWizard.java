@@ -253,6 +253,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String PERSONAL_START_PAGE = "personalStart";
     private static final String PERSONAL_DATA_URL = "personalEnterData.shtm";
     private static final String PERSONAL_DATA_PAGE = "personalEnterData";
+    private static final String PERSONAL_WAIT_URL = "personalWait.shtm";
     private static final String PERSONAL_ERR_URL = "personalError.shtm";
     private static final String PERSONAL_RETRY_PAGE = "personalRetry";
     private static final String PERSONAL_SUCCESS_URL = "personalSuccess.shtm";
@@ -2076,7 +2077,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
     private void handlePersonalDataPage() {
         savePersonalDataValues();
-        createPersonalProject();
+        checkValidityOfPersonalDataValues(true);
+        printRedirect(PERSONAL_WAIT_URL);
     }
 
     private void savePersonalDataValues() {
