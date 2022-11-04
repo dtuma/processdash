@@ -222,6 +222,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     // Values for the page which asks the user for joining information
     private static final String IND_DATA_PAGE = "indivEnterData";
     private static final String IND_DATA_URL = "indivEnterData.shtm";
+    private static final String IND_WAIT_URL = "indivWait.shtm";
     // URL for the page which asks the user to close the hierarchy
     // editor, when joining a team project.
     private static final String IND_CLOSE_HIERARCHY_URL =
@@ -2508,7 +2509,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
      */
     private void handleIndivDataPage() {
         saveIndivDataValues();
-        performProjectJoin();
+        checkValidityOfIndivDataValues(true);
+        printRedirect(IND_WAIT_URL);
     }
 
     private void saveIndivDataValues() {
