@@ -1,4 +1,29 @@
-<html><!--#do-not-translate-->
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
 <head>
 <title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
@@ -16,10 +41,7 @@ TD.value { font-family: monospace }
 
 <h2>Confirm Choices</h2>
 
-<form action='wizard.class' method='post'>
-<input type='hidden' name='page' value='teamConfirm'>
-<input type='hidden' name='__POST_TOKEN'
-       value='<!--#echo var=[POST_TOKEN//TPSWizard] -->'>
+<form action='teamWait.shtm' method='post'>
 
 <p>The process dashboard will create a
 <!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
