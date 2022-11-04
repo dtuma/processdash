@@ -32,7 +32,6 @@ import java.net.URL;
 import java.util.List;
 
 import net.sourceforge.processdash.templates.DataVersionChecker;
-import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
@@ -42,22 +41,22 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class FileBundleMigrator {
 
-    public static void migrate(File directory,
+    public synchronized static void migrate(File directory,
             FileResourceCollectionStrategy strategy, FileBundleMode bundleMode)
             throws IOException, LockFailureException {
         if (!FileBundleUtils.isBundledDir(directory))
             new FileBundleMigrator(directory, strategy, getDirType(strategy),
-                    MigrationDirection.Bundle, bundleMode, true).migrate();
+                    MigrationDirection.Bundle, bundleMode).migrate();
     }
 
 
-    public static void unmigrate(File directory,
+    public synchronized static void unmigrate(File directory,
             FileResourceCollectionStrategy strategy)
             throws IOException, LockFailureException {
         FileBundleMode bundleMode = FileBundleUtils.getBundleMode(directory);
         if (bundleMode != null)
             new FileBundleMigrator(directory, strategy, getDirType(strategy),
-                    MigrationDirection.Unbundle, bundleMode, true).migrate();
+                    MigrationDirection.Unbundle, bundleMode).migrate();
     }
 
 
@@ -91,14 +90,13 @@ public class FileBundleMigrator {
                 fbm.writeWBSCompatibilityFiles();
             }
 
-            void postMigrate(FileBundleMigrator fbm)
+            void migrateAdjacent(FileBundleMigrator fbm)
                     throws IOException, LockFailureException {
                 // automatically migrate the disseminate subdir if present
                 File diss = new File(fbm.directory, "disseminate");
                 if (diss.isDirectory())
                     new FileBundleMigrator(diss, TeamDataDirStrategy.INSTANCE,
-                            Disseminate, fbm.direction, fbm.bundleMode,
-                            false).migrate();
+                            Disseminate, fbm.direction, fbm.bundleMode).migrate();
             }
         },
 
@@ -109,13 +107,13 @@ public class FileBundleMigrator {
         void writeCompatibilityFiles(FileBundleMigrator fbm)
                 throws IOException {}
 
-        void postMigrate(FileBundleMigrator fbm)
+        void migrateAdjacent(FileBundleMigrator fbm)
                 throws IOException, LockFailureException {}
     };
 
 
 
-    private interface Migrator extends WorkingDirectory {
+    private interface Migrator extends BundledWorkingDirectory {
 
     }
 
@@ -131,20 +129,16 @@ public class FileBundleMigrator {
 
     private FileBundleMode bundleMode;
 
-    private boolean enforceLocks;
-
     private Migrator migrator;
 
     private FileBundleMigrator(File directory,
             FileResourceCollectionStrategy strategy, DirType dirType,
-            MigrationDirection direction, FileBundleMode bundleMode,
-            boolean enforceLocks) {
+            MigrationDirection direction, FileBundleMode bundleMode) {
         this.directory = directory;
         this.strategy = strategy;
         this.dirType = dirType;
         this.direction = direction;
         this.bundleMode = bundleMode;
-        this.enforceLocks = enforceLocks;
     }
 
     private void migrate() throws IOException, LockFailureException {
@@ -152,29 +146,25 @@ public class FileBundleMigrator {
         this.migrator = createMigrator();
 
         try {
-            if (this.direction == MigrationDirection.Bundle) {
+            // lock the target directory to ensure (a) others aren't changing
+            // it, and (b) no other migration process is underway
+            acquireWriteLock();
 
+            // migrate disseminate directories before WBS directories
+            dirType.migrateAdjacent(this);
+
+            if (this.direction == MigrationDirection.Bundle) {
                 // migrate the files into the bundle directories
                 bundle();
 
-                // remove the now-migrated files from the target directory
-                cleanupLegacyFiles();
-
-                // write a minimal set of files into the target directory to
-                // steer legacy clients away from accessing the data
-                dirType.writeCompatibilityFiles(this);
-
             } else {
-
-                // remove read-only flags from compatibility files
-                makeTargetFilesWriteable();
-
                 // migrate the files out of the bundle directories
                 unbundle();
             }
 
-            // perform any post-migration follow-up steps
-            dirType.postMigrate(this);
+        } catch (AlreadyMigrated am) {
+            // an attempt was made to bundle an already-bundled directory, or
+            // unbundle a directory that wasn't bundled. No action is needed
 
         } finally {
             // allow the migrator object to unwind resources
@@ -186,27 +176,69 @@ public class FileBundleMigrator {
 
     private Migrator createMigrator() {
         if (bundleMode == FileBundleMode.Local)
-            return new Local(directory, strategy, enforceLocks);
+            return new Local(directory, strategy);
         else if (bundleMode == FileBundleMode.Sync)
-            return new Sync(directory, strategy, enforceLocks);
+            return new Sync(directory, strategy);
 
         throw new IllegalArgumentException("Unrecognized bundle mode");
     }
 
     private void bundle() throws IOException, LockFailureException {
+        // check bundle mode preconditions
+        ensureStartingBundleMode(null, migrator.getBundleMode());
+
+        // create the bundle client and related structures (but change no files)
         migrator.prepare();
-        if (enforceLocks)
-            acquireWriteLock();
+
+        // backup the contents of the directory for recovery purposes
         migrator.doBackup("before_bundle_migration");
+
+        // write new bundles and refs for all source files
         migrator.flushData();
+
+        // remove the now-migrated files from the target directory
+        cleanupLegacyFiles();
+
+        // write a minimal set of files into the target directory to
+        // steer legacy clients away from accessing the data
+        dirType.writeCompatibilityFiles(this);
     }
 
     private void unbundle() throws IOException, LockFailureException {
-        if (enforceLocks)
-            acquireWriteLock();
+        // check bundle mode preconditions
+        ensureStartingBundleMode(migrator.getBundleMode(), null);
+
+        // remove read-only flags from compatibility files
+        makeTargetFilesWriteable();
+
+        // backup the directory before unbundling
         URL backupFile = migrator.doBackup("before_bundle_unmigration");
+
+        // create the bundle client, and extract all bundles into the target dir
         migrator.prepare();
+
+        // move the now-obsolete bundle/heads directories into backup subdir
         backupBundleDirs(backupFile, "bundles", "heads");
+    }
+
+    private void ensureStartingBundleMode(FileBundleMode expectedStartingMode,
+            FileBundleMode desiredEndingMode) throws IOException {
+        try {
+            // make absolutely certain the dir has the mode we expect before we
+            // begin our operation. (We checked this earlier, but we recheck
+            // again now that we've locked the directory.)
+            FileBundleUtils.ensureBundleMode(migrator.getTargetDirectory(),
+                expectedStartingMode);
+
+        } catch (FileBundleModeMismatch fbmm) {
+            // if the directory is already using the bundle mode that we desire
+            // for our end state, abort with no action
+            if (fbmm.getActualMode() == desiredEndingMode)
+                throw new AlreadyMigrated();
+
+            // unexpected situation - abort the entire operation
+            throw fbmm;
+        }
     }
 
     private void backupBundleDirs(URL backupFile, String... subdirNames) {
@@ -321,16 +353,13 @@ public class FileBundleMigrator {
     }
 
 
-    private static class Local extends BundledWorkingDirectoryLocal
+    private class Local extends BundledWorkingDirectoryLocal
             implements Migrator {
 
-        private boolean enforceLocks;
-
         public Local(File targetDirectory,
-                FileResourceCollectionStrategy strategy, boolean enforceLocks) {
+                FileResourceCollectionStrategy strategy) {
             super(targetDirectory, strategy, null);
             setEnableBackgroundFlush(false);
-            this.enforceLocks = enforceLocks;
         }
 
         @Override
@@ -339,25 +368,41 @@ public class FileBundleMigrator {
         }
 
         @Override
-        public void assertWriteLock() throws LockFailureException {
-            if (enforceLocks)
-                super.assertWriteLock();
+        protected void ensureBundleMode() throws IOException {
+            // skip this check when requested by our superclass, because we
+            // expect the mode published to the filesystem to be out of sync
+            // with the desired mode until migration is complete
         }
 
         @Override
-        protected void ensureBundleMode() throws IOException {
-            // skip this check during migrations, since the mode published to
-            // the filesystem may be out of sync with the current operation
+        protected void repairCorruptFiles() {}
+
+        @Override
+        protected void flushLeftoverDirtyFiles() {}
+
+        @Override
+        public void update() throws IllegalStateException, IOException {
+            // only update the target directory when unbundling
+            if (direction == MigrationDirection.Unbundle)
+                super.update();
+        }
+
+        @Override
+        public boolean flushData() throws LockFailureException, IOException {
+            // only flush data when we're performing a bundling operation
+            return direction == MigrationDirection.Bundle //
+                    && super.flushData();
         }
     }
 
-    private static class Sync extends BundledWorkingDirectorySync
+    private class Sync extends BundledWorkingDirectorySync
             implements Migrator {
 
         public Sync(File targetDirectory,
-                FileResourceCollectionStrategy strategy, boolean enforceLocks) {
+                FileResourceCollectionStrategy strategy) {
             super(targetDirectory, strategy, null);
-            this.enforceLocks = enforceLocks;
+            setEnableBackgroundFastForward(false);
+            this.enforceLocks = true;
         }
 
         @Override
@@ -367,10 +412,33 @@ public class FileBundleMigrator {
 
         @Override
         protected void ensureBundleMode() throws IOException {
-            // skip this check during migrations, since the mode published to
-            // the filesystem may be out of sync with the current operation
+            // skip this check when requested by our superclass, because we
+            // expect the mode published to the filesystem to be out of sync
+            // with the desired mode until migration is complete
+        }
+
+        @Override
+        protected void repairCorruptFiles() {}
+
+        @Override
+        protected void flushLeftoverDirtyFiles() {}
+
+        @Override
+        public void update() throws IllegalStateException, IOException {
+            // only update the target directory when unbundling
+            if (direction == MigrationDirection.Unbundle)
+                super.update();
+        }
+
+        @Override
+        public boolean flushData() throws LockFailureException, IOException {
+            // only flush data when we're performing a bundling operation
+            return direction == MigrationDirection.Bundle //
+                    && super.flushData();
         }
     }
+
+    private class AlreadyMigrated extends IOException {}
 
     private static final String BUNDLE_MODE = FileBundleUtils.BUNDLE_MODE_PROP;
 
