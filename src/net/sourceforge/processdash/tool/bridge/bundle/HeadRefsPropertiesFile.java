@@ -100,6 +100,11 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
                     new FileInputStream(storage));
             newProps.load(in);
             in.close();
+        } else if (lastSize > 0) {
+            // the file was present in the past but seems to be missing. HEAD
+            // files are not deleted by dashboard logic, so this is most likely
+            // due to transient network issues. Abort
+            throw new FileNotFoundException(storage.getPath());
         }
 
         // get the size of the file after reading. Ensure no change

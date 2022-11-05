@@ -113,9 +113,15 @@ public class ResourceBundleClient {
         Map<String, FileBundleID> oldHeadRefs = workingHeads.getHeadRefs();
         Set<String> oldBundleNames = new HashSet<String>(oldHeadRefs.keySet());
 
+        // get the new set of refs from the bundle directory. If it is
+        // unexpectedly empty, a network issue is likely to blame. Abort
+        Map<String, FileBundleID> newHeadRefs = bundleHeads.getHeadRefs();
+        if (newHeadRefs.isEmpty() && !oldHeadRefs.isEmpty())
+            throw new IOException("Could not read bundle heads");
+
         Set<String> obsoleteFilenames = new HashSet<String>();
         Set<String> currentFilenames = new HashSet<String>();
-        for (FileBundleID bundleID : bundleHeads.getHeadRefs().values()) {
+        for (FileBundleID bundleID : newHeadRefs.values()) {
             // keep track of the bundles we encounter
             String bundleName = bundleID.getBundleName();
             oldBundleNames.remove(bundleName);
