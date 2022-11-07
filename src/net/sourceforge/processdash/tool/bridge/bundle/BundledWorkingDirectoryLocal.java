@@ -42,6 +42,7 @@ import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.ConcurrencyLock;
+import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
@@ -51,6 +52,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     private FileResourceCollection collection;
 
     private long logBundleTimestamp;
+
+    private FileConcurrencyLock workingDirLock;
 
     protected boolean enforceLocks;
 
@@ -74,6 +77,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
                 strategy, true);
         this.collection.loadFileDataCache(getFileDataCacheFile());
         this.logBundleTimestamp = System.currentTimeMillis() - 1000;
+        this.workingDirLock = new FileConcurrencyLock(
+                new File(workingDirectory, WORKING_DIR_LOCK));
         this.enforceLocks = true;
 
         // enable background data flushing for dashboard directories (not WBS)
@@ -110,8 +115,13 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
             makeBundleClient();
 
         // prepare the contents of the working directory for use
-        repairCorruptFiles();
-        update();
+        boolean lockWasCreated = lockWorkingDirIO();
+        try {
+            repairCorruptFiles();
+            update();
+        } finally {
+            unlockWorkingDirIf(lockWasCreated);
+        }
 
         // check to see if the working directory contains dirty files left over
         // from a previous session (e.g. that weren't flushed due to a crash)
@@ -191,6 +201,15 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     }
 
     protected void doSyncDown(int maxTries) throws IOException {
+        boolean lockWasCreated = lockWorkingDirIO();
+        try {
+            doSyncDownImpl(maxTries);
+        } finally {
+            unlockWorkingDirIf(lockWasCreated);
+        }
+    }
+
+    private void doSyncDownImpl(int maxTries) throws IOException {
         for (int numTries = maxTries; numTries-- > 0;) {
             if (client.syncDown() == false)
                 return;
@@ -208,6 +227,15 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     }
 
     protected boolean doSyncUp(int maxTries) throws IOException {
+        boolean lockWasCreated = lockWorkingDirIO();
+        try {
+            return doSyncUpImpl(maxTries);
+        } finally {
+            unlockWorkingDirIf(lockWasCreated);
+        }
+    }
+
+    private boolean doSyncUpImpl(int maxTries) throws IOException {
         for (int numTries = maxTries; numTries-- > 0;) {
             if (client.syncUp() == false) {
                 if (worker != null)
@@ -228,12 +256,18 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
         // ask our client to sync up the given file
         discardLocallyCachedFileData();
-        for (int numTries = 5; numTries-- > 0;) {
-            if (client.syncUp(filename) == false)
-                return true;
-        }
+        boolean lockWasCreated = lockWorkingDirIO();
+        try {
+            for (int numTries = 5; numTries-- > 0;) {
+                if (client.syncUp(filename) == false)
+                    return true;
+            }
 
-        return false;
+            return false;
+
+        } finally {
+            unlockWorkingDirIf(lockWasCreated);
+        }
     }
 
     private void saveLogAndCache() {
@@ -280,6 +314,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName)
             throws AlreadyLockedException, LockFailureException {
+        lockWorkingDir();
         if (enforceLocks)
             super.acquireWriteLock(lockHandler, ownerName);
         if (hasLeftoverDirtyFiles)
@@ -287,6 +322,58 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         if (enableBackgroundFlush)
             worker = new Worker();
     }
+
+
+    /**
+     * Make sure we have a lock on the working directory.
+     * 
+     * @return true if we just obtained a lock; false if one was already in
+     *         place
+     * @throws LockFailureException
+     *             if a lock could not be obtained after repeated attempts
+     */
+    protected boolean lockWorkingDir() throws LockFailureException {
+        // if the directory is already locked, nothing is needed
+        if (workingDirLock.isLocked())
+            return false;
+
+        // try multiple times to obtain a lock
+        LockFailureException lfe = null;
+        for (int delay : LOCK_DELAYS) {
+            try {
+                if (delay > 0)
+                    Thread.sleep(delay);
+                workingDirLock.acquireLock(null);
+                return true;
+
+            } catch (InterruptedException ie) {
+            } catch (LockFailureException lfee) {
+                lfe = lfee;
+            }
+        }
+
+        // if our attempts failed, throw the exception
+        throw lfe;
+    }
+
+    /** Same as lockWorkingDir, but throws IOException on failure */
+    protected boolean lockWorkingDirIO() throws IOException {
+        try {
+            return lockWorkingDir();
+        } catch (LockFailureException lfe) {
+            throw new IOException(
+                    "Could not lock working dir " + workingDirectory.getPath(),
+                    lfe);
+        }
+    }
+
+    protected void unlockWorkingDirIf(boolean lockWasCreated) {
+        if (lockWasCreated && workingDirLock.isLocked())
+            workingDirLock.releaseLock();
+    }
+
+    private static final int[] LOCK_DELAYS = { 0, 50, 100, 100, 250, 500, 500,
+            1000, 2000, 2000, 3000 };
 
 
     @Override
@@ -312,6 +399,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
             worker = null;
         }
         super.releaseWriteLock();
+        workingDirLock.releaseLock();
     }
 
     protected void shutDown() {
@@ -471,6 +559,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         }
 
     }
+
+    private static final String WORKING_DIR_LOCK = "working.lock";
 
     private static final String HEADS_FILE = "heads.txt";
 
