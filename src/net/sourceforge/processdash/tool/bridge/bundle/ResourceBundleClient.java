@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
 public class ResourceBundleClient {
 
@@ -50,6 +52,8 @@ public class ResourceBundleClient {
 
     private HeadRefs bundleHeads;
 
+    private FilenameFilter syncDownOnlyFilter;
+
     private FileBundlePartitioner partitioner;
 
     private String retentionThresholdTimestamp;
@@ -57,12 +61,14 @@ public class ResourceBundleClient {
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
             File manifestCacheDirectory, File bundleDirectory,
-            HeadRefs bundleHeads) throws IOException {
+            HeadRefs bundleHeads, FilenameFilter syncDownOnlyFilter)
+            throws IOException {
         this.workingDir = workingDirectory;
         this.bundleDir = new FileBundleDirectory(bundleDirectory);
         this.workingHeads = new ManifestCachingHeadRefs(workingHeads, bundleDir,
                 manifestCacheDirectory);
         this.bundleHeads = bundleHeads;
+        this.syncDownOnlyFilter = syncDownOnlyFilter;
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, this.workingHeads);
         setRetentionThresholdTimestamp();
@@ -130,6 +136,8 @@ public class ResourceBundleClient {
             FileBundleID oldBundleID = oldHeadRefs.get(bundleName);
             if (bundleID.equals(oldBundleID)) {
                 currentFilenames.addAll(getBundleFilenames(bundleID));
+                if (restoreLocallyModifiedSyncDownOnlyFiles(bundleID))
+                    madeChange = true;
 
             } else {
                 // extract the new bundle into the directory
@@ -167,6 +175,35 @@ public class ResourceBundleClient {
             throws IOException {
         FileBundleManifest manifest = workingHeads.getManifest(bundleID);
         return manifest.getFiles().listResourceNames();
+    }
+
+    private boolean restoreLocallyModifiedSyncDownOnlyFiles(
+            FileBundleID bundleID) throws IOException {
+        // if no "sync down only" filter is in effect, return false
+        if (syncDownOnlyFilter == null)
+            return false;
+
+        // scan the files that were previously extracted from this bundle
+        List<String> filesToRestore = new ArrayList<String>();
+        FileBundleManifest manifest = workingHeads.getManifest(bundleID);
+        ResourceCollectionInfo prevFiles = manifest.getFiles();
+        for (String filename : prevFiles.listResourceNames()) {
+            // if this is a sync down only file, see if it is locally changed
+            if (syncDownOnlyFilter.accept(null, filename)) {
+                Long prevSum = prevFiles.getChecksum(filename);
+                Long currSum = workingDir.getChecksum(filename);
+                if (!NullSafeObjectUtils.EQ(prevSum, currSum))
+                    filesToRestore.add(filename);
+            }
+        }
+
+        // if no changes are needed, return false
+        if (filesToRestore.isEmpty())
+            return false;
+
+        // re-extract the files and return true to indicate a change was made
+        bundleDir.extractBundle(bundleID, workingDir, filesToRestore);
+        return true;
     }
 
     private ResourceCollectionDiff extractBundle(FileBundleID bundleID,

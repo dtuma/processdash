@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.bridge.bundle;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.util.logging.Logger;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
+import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.ConcurrencyLock;
@@ -135,8 +137,11 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         // create our client object for performing sync up/down operations
         File bundleDir = getSubdir(targetDirectory,
             FileBundleConstants.BUNDLE_SUBDIR);
+        FilenameFilter syncDownFilter = strategy instanceof TeamDataDirStrategy
+                ? strategy.getUnlockedFilter() : null;
         this.client = new ResourceBundleClient(strategy, collection,
-                workingHeads, getMetadataDir(), bundleDir, bundleHeads);
+                workingHeads, getMetadataDir(), bundleDir, bundleHeads,
+                syncDownFilter);
     }
 
     protected HeadRefs makeBundleHeads(File bundleHeadsDir) throws IOException {
