@@ -275,16 +275,31 @@ public class ForkTracker {
 
     private BundleForks cachedBundleForks;
 
+    private BundleForks getCachedBundleForks() {
+        synchronized (BundleForks.class) {
+            return cachedBundleForks;
+        }
+    }
+
+    private void setCachedBundleForks(BundleForks forks) {
+        synchronized (BundleForks.class) {
+            cachedBundleForks = forks;
+        }
+    }
+
     private BundleForks getBundleForks() throws IOException {
         // look for any changes in the HEADs directory
         scanDirectoryForChanges();
 
         // reload the bundle fork lists if needed
-        if (cachedBundleForks == null)
-            cachedBundleForks = loadBundleForks();
+        BundleForks forks = getCachedBundleForks();
+        if (forks == null) {
+            forks = loadBundleForks();
+            setCachedBundleForks(forks);
+        }
 
         // return the forks for all bundles
-        return cachedBundleForks;
+        return forks;
     }
 
     private boolean scanDirectoryForChanges() throws FileNotFoundException {
@@ -294,7 +309,10 @@ public class ForkTracker {
             throw new FileNotFoundException(bundleHeadsDir.getPath());
 
         // scan the directory for new and changed HEADs files
-        Set<File> obsoleteFiles = new HashSet<File>(deviceHeadRefs.keySet());
+        Set<File> obsoleteFiles;
+        synchronized (deviceHeadRefs) {
+            obsoleteFiles = new HashSet<File>(deviceHeadRefs.keySet());
+        }
         obsoleteFiles.remove(selfHeadsFile);
         boolean sawChange = false;
         for (File oneFile : files) {
@@ -310,19 +328,19 @@ public class ForkTracker {
                 oneHeadRefs = new HeadRefsPropertiesFile(oneFile);
                 deviceHeadRefs.put(oneFile, oneHeadRefs);
                 sawChange = true;
-                cachedBundleForks = null;
+                setCachedBundleForks(null);
 
             } else if (oneHeadRefs.needsUpdate()) {
                 // this file was present before, and has changed
                 sawChange = true;
-                cachedBundleForks = null;
+                setCachedBundleForks(null);
             }
         }
 
         // if any files were deleted from the dir, remove them from our list
         if (!obsoleteFiles.isEmpty()) {
             sawChange = true;
-            cachedBundleForks = null;
+            setCachedBundleForks(null);
             for (File oneFile : obsoleteFiles)
                 deviceHeadRefs.remove(oneFile);
         }
@@ -508,7 +526,7 @@ public class ForkTracker {
 
         @Override
         protected void flush() throws IOException {
-            cachedBundleForks = null;
+            setCachedBundleForks(null);
             super.flush();
         }
 
