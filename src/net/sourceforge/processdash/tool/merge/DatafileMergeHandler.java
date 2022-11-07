@@ -73,7 +73,7 @@ public class DatafileMergeHandler extends MapMerger<String, String>
         while ((line = in.readLine()) != null) {
             int eqPos = line.indexOf('=');
             if (line.startsWith("#") || eqPos < 1) {
-                nonMapLines.append(line).append(System.lineSeparator());
+                nonMapLines.append(line).append(LINE_SEPARATOR);
             } else {
                 String key = line.substring(0, eqPos);
                 String value = line.substring(eqPos + 1);
@@ -116,5 +116,8 @@ public class DatafileMergeHandler extends MapMerger<String, String>
     private static final String ENCODING = "UTF-8";
 
     private static final String NON_MAP_LINES_KEY = " == ";
+
+    private static final String LINE_SEPARATOR = System
+            .getProperty("line.separator");
 
 }
