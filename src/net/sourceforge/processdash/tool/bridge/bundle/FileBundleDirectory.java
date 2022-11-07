@@ -33,8 +33,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
@@ -57,17 +59,17 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private FileBundleTimeFormat timeFormat;
 
-    private ManifestCache manifestCache;
+    private Map<FileBundleID, FileBundleManifest> manifestCache;
 
-    private ManifestCache replacementCache;
+    private Map<FileBundleID, FileBundleManifest> replacementCache;
 
 
     public FileBundleDirectory(File bundleDir) throws IOException {
         this.bundleDir = bundleDir;
         this.deviceID = DeviceID.get();
         this.timeFormat = new FileBundleTimeFormat(getDirTimeZone());
-        this.manifestCache = new ManifestCache();
-        this.replacementCache = new ManifestCache();
+        this.manifestCache = Collections.synchronizedMap(new ManifestCache());
+        this.replacementCache = Collections.synchronizedMap(new ManifestCache());
     }
 
     private String getDirTimeZone() throws IOException {
