@@ -52,6 +52,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
     private long logBundleTimestamp;
 
+    protected boolean enforceLocks;
+
     private boolean enableBackgroundFlush;
 
     protected ResourceBundleClient client;
@@ -72,6 +74,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
                 strategy, true);
         this.collection.loadFileDataCache(getFileDataCacheFile());
         this.logBundleTimestamp = System.currentTimeMillis() - 1000;
+        this.enforceLocks = true;
 
         // enable background data flushing for dashboard directories (not WBS)
         this.enableBackgroundFlush = isDashboardDatasetDirectory();
@@ -277,7 +280,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName)
             throws AlreadyLockedException, LockFailureException {
-        super.acquireWriteLock(lockHandler, ownerName);
+        if (enforceLocks)
+            super.acquireWriteLock(lockHandler, ownerName);
         if (hasLeftoverDirtyFiles)
             flushLeftoverDirtyFiles();
         if (enableBackgroundFlush)
@@ -291,6 +295,13 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         // our superclass throws an exception if the target directory contains
         // read-only files. That behavior isn't desired, since our target dir
         // only contains "compatibility" files, which happen to be read-only
+    }
+
+
+    @Override
+    public void assertWriteLock() throws LockFailureException {
+        if (enforceLocks)
+            super.assertWriteLock();
     }
 
 

@@ -33,13 +33,10 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.lock.LockFailureException;
-import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
 public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
 
     private boolean enableBackgroundFastForward;
-
-    protected boolean enforceLocks;
 
     private ForkTracker forkTracker;
 
@@ -194,38 +191,6 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
             worker.shutDown();
             worker = null;
         }
-    }
-
-
-    //
-    // Conditional implementations of locking methods:
-    //
-    //   * It isn't possible to acquire exclusive locks of directories
-    //     managed by an external sync client, so our bundle logic is written
-    //     to work in the complete absence of locks.
-    //
-    //   * locks are reenabled during migration operations, to cover the
-    //     boundary case where Sync mode is being used on shared network
-    //     directories.
-    //
-
-    @Override
-    public void acquireWriteLock(LockMessageHandler lmh, String ownerName)
-            throws LockFailureException {
-        if (enforceLocks)
-            super.acquireWriteLock(lmh, ownerName);
-    }
-
-    @Override
-    public void assertWriteLock() throws LockFailureException {
-        if (enforceLocks)
-            super.assertWriteLock();
-    }
-
-    @Override
-    public void releaseWriteLock() {
-        if (enforceLocks)
-            super.releaseWriteLock();
     }
 
 
