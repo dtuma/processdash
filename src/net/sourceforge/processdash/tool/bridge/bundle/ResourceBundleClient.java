@@ -111,7 +111,7 @@ public class ResourceBundleClient {
      * @return true if any changes were made, false if the working directory was
      *         already up to date with the bundle HEADS.
      */
-    public boolean syncDown() throws IOException {
+    public synchronized boolean syncDown() throws IOException {
         // keep track of whether any changes were made
         boolean madeChange = false;
 
@@ -253,7 +253,7 @@ public class ResourceBundleClient {
      * sync logic can operate as if the given bundle hadn't been checked out,
      * and re-extract current data as needed.
      */
-    public void discardObsoleteWorkingHeads() throws IOException {
+    public synchronized void discardObsoleteWorkingHeads() throws IOException {
         for (FileBundleID bundleID : workingHeads.getHeadRefs().values()) {
             try {
                 bundleDir.getManifest(bundleID);
@@ -273,7 +273,8 @@ public class ResourceBundleClient {
      *            the names of files to restore
      * @return true if any changes were made
      */
-    public boolean restoreFiles(List<String> filenames) throws IOException {
+    public synchronized boolean restoreFiles(List<String> filenames)
+            throws IOException {
         // keep track of whether any changes were made
         boolean madeChange = false;
 
@@ -302,7 +303,7 @@ public class ResourceBundleClient {
      * @return true if the working directory contains pending changes that need
      *         to be synced up
      */
-    public boolean isDirty() throws IOException {
+    public synchronized boolean isDirty() throws IOException {
         return syncUpImpl(null, true);
     }
 
@@ -314,7 +315,7 @@ public class ResourceBundleClient {
      * 
      * @return true if changes were published, false if none were needed
      */
-    public boolean syncUp() throws IOException {
+    public synchronized boolean syncUp() throws IOException {
         return syncUpImpl(null, false);
     }
 
@@ -324,7 +325,8 @@ public class ResourceBundleClient {
      * 
      * @return true if changes were published, false if none were needed
      */
-    public boolean syncUp(String singleFilename) throws IOException {
+    public synchronized boolean syncUp(String singleFilename)
+            throws IOException {
         return syncUpImpl(singleFilename, false);
     }
 
@@ -447,8 +449,8 @@ public class ResourceBundleClient {
      * @param bundleTimestamp the publishing timestamp to use for the bundle
      * @param afterCrash true if this is a log file from a crashed session
      */
-    public void saveLogBundle(long bundleTimestamp, boolean afterCrash)
-            throws IOException {
+    public synchronized void saveLogBundle(long bundleTimestamp,
+            boolean afterCrash) throws IOException {
         // create a bundle to use for saving log data
         String bundleName = FileBundleConstants.LOG_BUNDLE;
         if (afterCrash)
