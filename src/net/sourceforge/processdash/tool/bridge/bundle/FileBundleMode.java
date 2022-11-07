@@ -31,7 +31,9 @@ public enum FileBundleMode {
 
     Sync("sync", //
             "pspdash", "2.6.8.2", //
-            "teamToolsB", "6.2.7"),
+            "teamTools", "5.6.0", //
+            "teamToolsB", "6.2.7", //
+            "tpidw-embedded", "1.6.7"),
 
     Local("local", //
             "pspdash", "2.6.6.3", //
