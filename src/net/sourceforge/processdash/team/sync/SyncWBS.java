@@ -75,6 +75,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -458,9 +459,44 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
                 .get(teamDirectoryPath);
 
         // ensure we have the latest files
+        boolean isValid;
         try {
             dir.validate();
+            isValid = true;
         } catch (Exception e) {
+            isValid = false;
+        }
+
+        // if the team data directory was not found and is using [Shared Folder]
+        // encoding, try searching for it under the given folder root.
+        if (!isValid && FolderMappingManager.isEncodedPath(teamDirectoryPath)
+                && Settings.getBool("syncWBS.searchForDir", true)) {
+            try {
+                // ask the folder mapping manager to search for the directory
+                FolderMappingManager mgr = FolderMappingManager.getInstance();
+                File newDir = mgr.searchForDirectory(teamDirectoryPath, 2);
+
+                // if a dir is found, build and validate an ImportDirectory
+                ImportDirectory nid = ImportDirectoryFactory.getInstance()
+                        .get(newDir.getAbsolutePath());
+                nid.validate();
+
+                // if we successfully validate a newly found directory, adopt
+                // it as the official team directory for this project.
+                File newTeamDir = newDir.getParentFile().getParentFile();
+                String newPath = mgr.encodePath(newTeamDir.getAbsolutePath());
+                data.putValue(TEAM_DIRECTORY, StringData.create(newPath));
+                data.putValue(TEAM_DIRECTORY_UNC, null);
+                dir = nid;
+                isValid = true;
+
+            } catch (Exception e) {
+                // if a replacement directory could not be found and validated,
+                // abort and signal an error below
+            }
+        }
+
+        if (!isValid) {
             signalError(TEAM_DIR_UNAVAILABLE, teamDirectoryPath);
         }
 
