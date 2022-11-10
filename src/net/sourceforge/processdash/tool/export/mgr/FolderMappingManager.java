@@ -25,7 +25,9 @@ package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -169,17 +171,26 @@ public class FolderMappingManager {
 
 
     /**
+     * Return true if the given path begins with a <tt>[key]</tt> portion,
+     * optionally followed by a <tt>/relative/path</tt>.
+     */
+    public static boolean isEncodedPath(String path) {
+        return parseEncodedPath(path) != null;
+    }
+
+
+    /**
      * If a given path is in the form <tt>[key]/relative/path</tt>, returns a
      * two-element array with the key and the relative path. The relative path
      * could be an empty string; if not, it will use platform-specific separator
      * characters. If the path is not in that format, returns null.
      */
-    public static String[] parseEncodedPath(String path) {
+    private static String[] parseEncodedPath(String path) {
         if (path == null || !path.startsWith("["))
             return null;
 
         int pos = path.indexOf("]");
-        if (pos == -1)
+        if (pos < 2)
             return null;
 
         String key = path.substring(1, pos);
@@ -218,6 +229,136 @@ public class FolderMappingManager {
             throw new MissingMapping(path, key, relPath);
         else
             return folderPath + relPath;
+    }
+
+
+    /**
+     * Given a path in the form <tt>[key]/relative/path</tt>, look under the
+     * mapped folder for the given key, and search recursively for a directory
+     * that matches the relative path.
+     * 
+     * A directory "matches" if the final portions of its full path overlap with
+     * the final portions of the <tt>/relative/path</tt> by at least
+     * <tt>minMatchLen</tt> segments. If multiple directories match, the one
+     * with the most overlapping segments will be returned. If several matching
+     * directories have the same number of overlapping segments, a
+     * FileNotFoundException will be thrown.
+     * 
+     * @param path
+     *            the encoded path of a directory to search for
+     * @param minMatchLen
+     *            the number of final path segments that must overlap for a
+     *            directory to be considered a match
+     * @return the directory that most closely matches the given path. (If none
+     *         could be found, an exception will be thrown; this method never
+     *         returns null)
+     * @throws IllegalArgumentException
+     *             if the given path does not include both a <tt>[key]</tt> and
+     *             a <tt>/relative/path</tt>
+     * @throws MissingMapping
+     *             if the [key] in the given path does not match any registered
+     *             folder mapping
+     * @throws FileNotFoundException
+     *             if the root folder for the given [key] does not exist, if a
+     *             matching folder underneath could not be found, or if multiple
+     *             folders match equally
+     */
+    public File searchForDirectory(String path, int minMatchLen)
+            throws IllegalArgumentException, MissingMapping,
+            FileNotFoundException {
+        String[] parsed = parseEncodedPath(path);
+        if (parsed == null || parsed.length < 2 || parsed[1].length() == 0)
+            throw new IllegalArgumentException(
+                    "'" + path + "' is not in [key]/relative/path format");
+
+        String key = parsed[0];
+        String relPath = parsed[1];
+
+        // locate the mapped folder named by this path, or abort on error
+        tryLoad();
+        String folderPath = folders.get(key);
+        if (folderPath == null || folderPath.length() == 0)
+            throw new MissingMapping(path, key, relPath);
+        File folderDir = new File(folderPath);
+        if (!folderDir.isDirectory())
+            throw new FileNotFoundException(folderPath);
+
+        // If an exact match is present, return it
+        String subdirPath = relPath.replace('\\', '/');
+        File exactMatch = new File(folderDir, subdirPath);
+        if (exactMatch.isDirectory())
+            return exactMatch;
+
+        // perform a search for matching subdirectories
+        String[] searchFor = subdirPath.split("/");
+        List<MatchingDir> matchingDirs = new ArrayList();
+        scanRecursivelyForMatchingDirectories(folderDir, searchFor, minMatchLen,
+            matchingDirs);
+
+        // no matches found? abort
+        if (matchingDirs.isEmpty())
+            throw new FileNotFoundException(path);
+
+        // if we have a single match, return it
+        if (matchingDirs.size() == 1)
+            return matchingDirs.get(0).directory;
+
+        // if multiple matches were found, see if one is better than the others
+        Collections.sort(matchingDirs);
+        if (matchingDirs.get(0).matchLen > matchingDirs.get(1).matchLen)
+            return matchingDirs.get(0).directory;
+
+        // multiple matches of similar length: abort
+        throw new FileNotFoundException(
+                "Multiple matches found under " + key + " for " + relPath);
+    }
+
+    private void scanRecursivelyForMatchingDirectories(File directory,
+            String[] searchFor, int minMatchLen,
+            List<MatchingDir> matchingDirs) {
+        int matchLen = countMatchingPathSegments(directory, searchFor);
+        if (matchLen >= minMatchLen) {
+            matchingDirs.add(new MatchingDir(directory, matchLen));
+        } else {
+            File[] children = directory.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    if (child.isDirectory())
+                        scanRecursivelyForMatchingDirectories(child, searchFor,
+                            minMatchLen, matchingDirs);
+                }
+            }
+        }
+    }
+
+    private int countMatchingPathSegments(File dir, String[] searchFor) {
+        int pos = searchFor.length;
+        int matchLen = 0;
+        while (pos > 0 && dir != null) {
+            if (searchFor[--pos].equalsIgnoreCase(dir.getName())) {
+                matchLen++;
+                dir = dir.getParentFile();
+            } else {
+                break;
+            }
+        }
+        return matchLen;
+    }
+
+    private class MatchingDir implements Comparable<MatchingDir> {
+
+        File directory;
+
+        int matchLen;
+
+        MatchingDir(File directory, int matchLen) {
+            this.directory = directory;
+            this.matchLen = matchLen;
+        }
+
+        public int compareTo(MatchingDir that) {
+            return that.matchLen - this.matchLen;
+        }
     }
 
 

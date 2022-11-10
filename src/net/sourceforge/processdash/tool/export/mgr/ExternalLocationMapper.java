@@ -152,7 +152,7 @@ public class ExternalLocationMapper {
                 return denormalize(remappedPath);
         }
 
-        if (FolderMappingManager.parseEncodedPath(origFile) != null) {
+        if (FolderMappingManager.isEncodedPath(origFile)) {
             try {
                 String remapped = FolderMappingManager.getInstance()
                         .resolvePath(origFile);
