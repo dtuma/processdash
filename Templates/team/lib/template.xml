@@ -709,10 +709,7 @@
   <scriptSource class="net.sourceforge.processdash.team.ui.WorkflowProbeScriptSource"
           processID="PID" requires="personalMode"/>
 
-  <messageHandler processID="PID"
-          class="net.sourceforge.processdash.team.setup.move.MoveTeamDirMessageHandler">
-    <include templateID="PID/IndivRoot"/>
-    <include templateID="PID/Indiv2Root"/>
-  </messageHandler>
+  <messageHandler processID="PID" requires="personalMode"
+          class="net.sourceforge.processdash.team.setup.move.MoveTeamDirMessageHandler"/>
 
 </dashboard-process-template>

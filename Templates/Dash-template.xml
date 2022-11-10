@@ -632,6 +632,9 @@ The author(s) may be contacted at:
   <messageHandler requires="personalMode"
      class="net.sourceforge.processdash.team.setup.TeamStartMessageHandler"/>
 
+  <messageHandler requires="personalMode"
+     class="net.sourceforge.processdash.team.setup.move.MoveTeamDirMessageHandler"/>
+
   <messageHandler
      class="net.sourceforge.processdash.tool.export.impl.RefreshImportMessageHandler"/>
 

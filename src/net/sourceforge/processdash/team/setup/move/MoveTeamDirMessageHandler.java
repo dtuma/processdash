@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,7 @@
 
 package net.sourceforge.processdash.team.setup.move;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
@@ -40,7 +39,10 @@ import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.msg.MessageHandler;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
+import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -49,8 +51,6 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
 
     private String processID;
 
-    private List<String> indivRootTemplateIDs;
-
     private DashboardContext ctx;
 
     private static final Logger logger = Logger
@@ -58,13 +58,6 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
 
     public void setConfigElement(Element xml, String attrName) {
         this.processID = xml.getAttribute("processID");
-
-        this.indivRootTemplateIDs = new ArrayList<String>();
-        NodeList nl = xml.getElementsByTagName("include");
-        for (int i = 0; i < nl.getLength(); i++) {
-            Element e = (Element) nl.item(i);
-            this.indivRootTemplateIDs.add(e.getAttribute("templateID"));
-        }
     }
 
     public void setDashboardContext(DashboardContext ctx) {
@@ -86,8 +79,14 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
             return;
 
         String directory = getString(xml, DIR_ATTR);
+        String directoryENC = getString(xml, DIR_ENC_ATTR);
         String directoryUNC = getString(xml, DIR_UNC_ATTR);
         String url = getString(xml, URL_ATTR);
+
+        // try resolving inbound [Shared Folder] encodings, if provided
+        String resolved = maybeResolveSharedFolderPath(directoryENC, projectId);
+        if (resolved != null)
+            directory = resolved;
 
         NetworkDriveList dl = new NetworkDriveList();
         if (dl.wasSuccessful()) {
@@ -102,6 +101,12 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
                 if (StringUtils.hasValue(newUNC))
                     directoryUNC = newUNC;
             }
+        }
+
+        // potentially re-encode the directory using local folder mappings
+        if (StringUtils.hasValue(directory)) {
+            SyncClientMappings.initialize(new File(directory));
+            directory = FolderMappingManager.getInstance().encodePath(directory);
         }
 
         logger.info("Moving team data directory for project '" + path + "' to:\n"
@@ -119,7 +124,8 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
     private String findProject(PropertyKey node, String id) {
         String templateID = ctx.getHierarchy().getID(node);
 
-        if (indivRootTemplateIDs.contains(templateID)) {
+        if (StringUtils.hasValue(templateID)
+                && INDIV_TEMPLATE_IDS.matches(templateID)) {
             String path = node.path();
             String idDataName = DataRepository.createDataName(path,
                 TeamDataConstants.PROJECT_ID);
@@ -138,6 +144,25 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
         }
 
         return null;
+    }
+
+    private String maybeResolveSharedFolderPath(String teamDirectoryENC,
+            String projectId) {
+        // if the team directory is not using [Shared Folder] encoding, abort.
+        if (!FolderMappingManager.isEncodedPath(teamDirectoryENC))
+            return null;
+
+        // resolve the encoded path, or search for a directory that matches
+        try {
+            String teamDataDirPath = teamDirectoryENC + "/data/" + projectId;
+            File dir = FolderMappingManager.getInstance()
+                    .searchForDirectory(teamDataDirPath, 2);
+            return dir.getParentFile().getParentFile().getAbsolutePath();
+
+        } catch (Exception e) {
+            // we were unable to find a directory that matches
+            return null;
+        }
     }
 
     private String getString(Element xml, String tagName) {
@@ -161,8 +186,13 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
 
     static final String DIR_ATTR = "directory";
 
+    static final String DIR_ENC_ATTR = "directoryENC";
+
     static final String DIR_UNC_ATTR = "directoryUNC";
 
     static final String URL_ATTR = "url";
+
+    static final PatternList INDIV_TEMPLATE_IDS = new PatternList( //
+            "/IndivRoot$", "/Indiv2Root$");
 
 }
