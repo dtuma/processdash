@@ -161,6 +161,7 @@ import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
@@ -283,6 +284,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // adjust the working directory if necessary.
         if (location == null)
             location = maybeFollowDataDirLinkFile();
+        location = maybeFollowDataMovedFile(location);
         configureWorkingDirectory(location);
 
         // load app defaults and user settings.
@@ -720,7 +722,24 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String linkFileName = System.getProperty(DATA_DIR_LINK_FILE_SETTING);
         if (!StringUtils.hasValue(linkFileName))
             return null;
+        else
+            return followDataDirLinkFile(linkFileName);
+    }
 
+    /** @since 2.6.9 */
+    private String maybeFollowDataMovedFile(String location) {
+        if (TeamServerSelector.isUrlFormat(location) == false) {
+            File dataMovedFile = new File(location, DATA_MOVED_FILENAME);
+            if (dataMovedFile.isFile())
+                return followDataDirLinkFile(dataMovedFile.getPath());
+        }
+
+        return location;
+    }
+    public static final String DATA_MOVED_FILENAME = "moved-data.txt";
+    public static final String DATA_MOVED_MIN_VERSION = "2.6.8.2";
+
+    private String followDataDirLinkFile(String linkFileName) {
         String location = readDataDirLinkFile(linkFileName);
         if (TeamServerSelector.isUrlFormat(location))
             return location;
@@ -733,6 +752,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         try {
+            location = maybeResolveSharedFolderPath(location);
+
             File f = new File(location);
             if (f.isDirectory()) {
                 return location;
@@ -752,32 +773,49 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private String readDataDirLinkFile(String linkFileName) {
+        BufferedReader in = null;
         try {
             File f = new File(linkFileName);
-            BufferedReader in = new BufferedReader(new FileReader(f));
+            in = new BufferedReader(new FileReader(f));
             String line = null;
             while ((line = in.readLine()) != null) {
                 line = line.trim();
                 if (line.length() > 0 && !line.startsWith("#"))
-                    break;
+                    return line;
             }
-            in.close();
-            if (line != null)
-                return line;
-            else
-                throw new IOException("No data directory info found in file '"
-                        + linkFileName + "' - aborting");
+            throw new IOException("No data directory info found in file '"
+                    + linkFileName + "' - aborting");
         } catch (Exception e) {
             System.err.println("Unexpected error reading dataDirLinkFile '"
                     + linkFileName + "' - aborting");
             e.printStackTrace();
             displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
                 linkFileName, e);
+        } finally {
+            FileUtils.safelyClose(in);
         }
         System.exit(1);
         // the following line is not reached, but must be present to keep
         // the compiler happy:
         return null;
+    }
+
+    private String maybeResolveSharedFolderPath(String location)
+            throws IOException {
+        // if this is not a [Shared Folder] path, return it unchanged
+        if (!FolderMappingManager.isEncodedPath(location))
+            return location;
+
+        // initialize default folder mappings
+        SyncClientMappings.initialize();
+        FolderMappingManager mgr = FolderMappingManager.getInstance();
+
+        // see if the location contained a question mark, ask the
+        // FolderMappingManager to search for it. Otherwise just resolve it.
+        if (location.indexOf('?') > 0)
+            return mgr.searchForDirectory(location, 0).getAbsolutePath();
+        else
+            return mgr.resolvePath(location);
     }
 
     private void configureWorkingDirectory(String location) {
