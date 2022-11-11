@@ -283,17 +283,26 @@ public class FolderMappingManager {
         if (!folderDir.isDirectory())
             throw new FileNotFoundException(folderPath);
 
-        // If an exact match is present, return it
+        // see if terminal look-ahead matches were requested
+        String[] lookAheads = null;
         String subdirPath = relPath.replace('\\', '/');
-        File exactMatch = new File(folderDir, subdirPath);
-        if (exactMatch.isDirectory())
+        int lookAheadPos = subdirPath.indexOf('?');
+        if (lookAheadPos != -1) {
+            lookAheads = subdirPath.substring(lookAheadPos + 1).split("\\?");
+            subdirPath = subdirPath.substring(0, lookAheadPos);
+        }
+
+        // If an exact match is present, return it
+        File exactMatch = subdirPath.length() == 0 ? folderDir
+                : new File(folderDir, subdirPath);
+        if (exactMatch.isDirectory() && lookAheadsMatch(exactMatch, lookAheads))
             return exactMatch;
 
         // perform a search for matching subdirectories
         String[] searchFor = subdirPath.split("/");
         List<MatchingDir> matchingDirs = new ArrayList();
         scanRecursivelyForMatchingDirectories(folderDir, searchFor, minMatchLen,
-            matchingDirs);
+            lookAheads, matchingDirs);
 
         // no matches found? abort
         if (matchingDirs.isEmpty())
@@ -314,10 +323,10 @@ public class FolderMappingManager {
     }
 
     private void scanRecursivelyForMatchingDirectories(File directory,
-            String[] searchFor, int minMatchLen,
+            String[] searchFor, int minMatchLen, String[] lookAheads,
             List<MatchingDir> matchingDirs) {
         int matchLen = countMatchingPathSegments(directory, searchFor);
-        if (matchLen >= minMatchLen) {
+        if (matchLen >= minMatchLen && lookAheadsMatch(directory, lookAheads)) {
             matchingDirs.add(new MatchingDir(directory, matchLen));
         } else {
             File[] children = directory.listFiles();
@@ -325,7 +334,7 @@ public class FolderMappingManager {
                 for (File child : children) {
                     if (child.isDirectory())
                         scanRecursivelyForMatchingDirectories(child, searchFor,
-                            minMatchLen, matchingDirs);
+                            minMatchLen, lookAheads, matchingDirs);
                 }
             }
         }
@@ -343,6 +352,18 @@ public class FolderMappingManager {
             }
         }
         return matchLen;
+    }
+
+    private boolean lookAheadsMatch(File dir, String[] lookAheads) {
+        if (lookAheads != null) {
+            for (String oneLookAhead : lookAheads) {
+                File oneLookAheadFile = new File(dir, oneLookAhead);
+                if (!oneLookAheadFile.exists())
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     private class MatchingDir implements Comparable<MatchingDir> {
