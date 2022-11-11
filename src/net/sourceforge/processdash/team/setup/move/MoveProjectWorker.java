@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
+import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -66,6 +68,7 @@ public class MoveProjectWorker {
     private String newTeamDir;
     private File newTeamDataDir;
     private String newTeamDirUNC;
+    protected String newTeamDirENC;
     private FileConcurrencyLock fileLock;
     private StringBuffer nonfatalProblems;
 
@@ -87,6 +90,10 @@ public class MoveProjectWorker {
         this.oldTeamDataDir = getDataDir(this.oldTeamDir);
         this.newTeamDataDir = getDataDir(this.newTeamDir);
         this.nonfatalProblems = new StringBuffer("z");
+
+        SyncClientMappings.initialize(newTeamDataDir);
+        this.newTeamDirENC = FolderMappingManager.getInstance()
+                .encodePath(newTeamDir);
     }
 
     private File getDataDir(String teamDir) {
@@ -347,6 +354,8 @@ public class MoveProjectWorker {
                 + "' msgId='" + escXml(getMoveMsgId()) + "'>\n");
         writeMoveMsgVal(out, MoveTeamDirMessageHandler.PROJECT_ID_ATTR, projectID);
         writeMoveMsgVal(out, MoveTeamDirMessageHandler.DIR_ATTR, newTeamDir);
+        if (FolderMappingManager.isEncodedPath(newTeamDirENC))
+            writeMoveMsgVal(out, MoveTeamDirMessageHandler.DIR_ENC_ATTR, newTeamDirENC);
         writeMoveMsgVal(out, MoveTeamDirMessageHandler.DIR_UNC_ATTR, newTeamDirUNC);
         out.write("  </message>\n");
         out.write("</messages>\n");
