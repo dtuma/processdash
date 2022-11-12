@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ package net.sourceforge.processdash.team.setup.move;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
-public class MoveProjectException extends Exception {
+public class MoveProjectException extends RuntimeException {
 
     String page;
 
@@ -50,6 +50,10 @@ public class MoveProjectException extends Exception {
         if (value != null)
             query = query + "&" + name + "=" + HTMLUtils.urlEncode(value);
         return this;
+    }
+
+    public String getDescription() {
+        return "MoveProjectException: " + page + "?" + query;
     }
 
 }

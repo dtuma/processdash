@@ -57,20 +57,20 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class MoveProjectWorker {
 
-    private DashboardContext ctx;
-    private String projectPrefix;
-    private String masterPrefix;
-    private String projectID;
-    private String processID;
-    private boolean isMaster;
-    private String oldTeamDir;
-    private File oldTeamDataDir;
-    private String newTeamDir;
-    private File newTeamDataDir;
-    private String newTeamDirUNC;
+    protected DashboardContext ctx;
+    protected String projectPrefix;
+    protected String masterPrefix;
+    protected String projectID;
+    protected String processID;
+    protected boolean isMaster;
+    protected String oldTeamDir;
+    protected File oldTeamDataDir;
+    protected String newTeamDir;
+    protected File newTeamDataDir;
+    protected String newTeamDirUNC;
     protected String newTeamDirENC;
-    private FileConcurrencyLock fileLock;
-    private StringBuffer nonfatalProblems;
+    protected FileConcurrencyLock fileLock;
+    protected StringBuffer nonfatalProblems;
 
 
     MoveProjectWorker(DashboardContext ctx, String projectPrefix,
@@ -129,16 +129,25 @@ public class MoveProjectWorker {
      * Methods to lock and unlock the old data directory
      */
 
-    private void lockOldDataDirectory() throws MoveProjectException {
+    private void lockOldDataDirectory() {
         File lockFile = new File(oldTeamDataDir, LOCK_FILE);
         fileLock = new FileConcurrencyLock(lockFile);
-        try {
-            fileLock.acquireLock(null);
-        } catch (AlreadyLockedException ale) {
-            throw new MoveProjectException("teamDirInUse").append("lockOwner",
-                ale.getExtraInfo());
-        } catch (LockFailureException e) {
-            throw new MoveProjectException("teamDirInUse");
+        for (int retries = 10; retries-- > 0;) {
+            try {
+                fileLock.acquireLock(null);
+                return;
+            } catch (AlreadyLockedException ale) {
+                if (retries < 1)
+                    throw new MoveProjectException("teamDirInUse")
+                            .append("lockOwner", ale.getExtraInfo());
+            } catch (LockFailureException e) {
+                throw new MoveProjectException("teamDirInUse");
+            }
+
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+            }
         }
     }
 
@@ -153,20 +162,24 @@ public class MoveProjectWorker {
      * Methods to copy files from the old directory to the new directory
      */
 
-    private void copyFilesToNewDirectory() throws MoveProjectException {
+    private void copyFilesToNewDirectory() {
+        createNewDirectories();
         try {
-            createNewDirectories();
-            copyFiles(oldTeamDataDir, newTeamDataDir);
+            copyFilesToNewDirectoryImpl();
         } catch (MoveProjectException mpe) {
             deleteNewDirectory();
             throw mpe;
         }
     }
 
-    private void createNewDirectories() throws MoveProjectException {
+    protected void checkIfDirectoryAlreadyExists() {
         if (dataDirAlreadyExists(newTeamDataDir))
             throw new MoveProjectException(MoveProjectWizard.NEWDIR_URI,
                     "exists").append("path", newTeamDataDir.getPath());
+    }
+
+    private void createNewDirectories() {
+        checkIfDirectoryAlreadyExists();
         createDirectory(newTeamDataDir);
         createDirectory(new File(newTeamDataDir,
                 TeamDataConstants.DISSEMINATION_DIRECTORY));
@@ -181,8 +194,11 @@ public class MoveProjectWorker {
             return false;
     }
 
-    private void copyFiles(File fromDir, File toDir)
-            throws MoveProjectException {
+    protected void copyFilesToNewDirectoryImpl() {
+        copyFiles(oldTeamDataDir, newTeamDataDir);
+    }
+
+    protected void copyFiles(File fromDir, File toDir) {
         for (File oldFile : fromDir.listFiles()) {
             String name = oldFile.getName();
             if (LOCK_FILE.equals(name) || MARKER_FILE.equals(name)
@@ -197,15 +213,14 @@ public class MoveProjectWorker {
         }
     }
 
-    private File createDirectory(File dir) throws MoveProjectException {
+    protected File createDirectory(File dir) {
         if (!dir.exists() && !dir.mkdirs())
             throw new MoveProjectException(MoveProjectWizard.NEWDIR_URI,
                     "cannotCreateDir").append("path", dir.getPath());
         return dir;
     }
 
-    private void copyFile(File oldFile, File newFile)
-            throws MoveProjectException {
+    private void copyFile(File oldFile, File newFile) {
         try {
             FileUtils.copyFile(oldFile, newFile);
 
@@ -235,6 +250,9 @@ public class MoveProjectWorker {
      */
 
     private void saveNewDataValues() {
+        if (ctx == null)
+            return;
+
         DataContext data = ctx.getData().getSubcontext(projectPrefix);
         saveDataValue(data, TeamDataConstants.TEAM_DIRECTORY, newTeamDir);
         saveDataValue(data, TeamDataConstants.TEAM_DIRECTORY_UNC, newTeamDirUNC);
@@ -287,16 +305,15 @@ public class MoveProjectWorker {
      * Methods to alter the files in the old data directory
      */
 
-    private void tweakOldProjectFiles() {
+    protected void tweakOldProjectFiles() {
         writeMarkerFile();
         makeFilesReadOnly();
-        if (!isMaster)
-            writeMoveFile();
+        writeMoveFile();
     }
 
-    private void writeMarkerFile() {
+    protected void writeMarkerFile() {
         try {
-            File marker = new File(oldTeamDataDir, MARKER_FILE);
+            File marker = makeWritable(getMarkerFile());
             PrintWriter out = new PrintWriter(new FileWriter(marker));
             out.println("This directory is obsolete.  If was formerly used to");
             out.println("store data for the project '" + projectPrefix + "'.");
@@ -312,7 +329,17 @@ public class MoveProjectWorker {
         } catch (IOException e) {}
     }
 
-    private void makeFilesReadOnly() {
+    protected File getMarkerFile() {
+        return new File(oldTeamDataDir, MARKER_FILE);
+    }
+
+    protected File makeWritable(File f) {
+        if (f.exists())
+            f.setWritable(true, false);
+        return f;
+    }
+
+    protected void makeFilesReadOnly() {
         // Make the files in the old team data directory read-only.
         // This will cause the WBS to open in read-only mode.
         // It will also prevent individuals from exporting their data
@@ -321,10 +348,18 @@ public class MoveProjectWorker {
             f.setReadOnly();
     }
 
-    private void writeMoveFile() {
+    protected File getMoveFile() {
         File disseminate = new File(oldTeamDataDir,
                 TeamDataConstants.DISSEMINATION_DIRECTORY);
         File moveFile = new File(disseminate, MOVE_FILE_NAME);
+        return moveFile;
+    }
+
+    protected void writeMoveFile() {
+        if (isMaster)
+            return;
+
+        File moveFile = getMoveFile();
         try {
             writeMoveFileImpl(moveFile);
         } catch (IOException e) {
