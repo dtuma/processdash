@@ -73,11 +73,15 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName) throws AlreadyLockedException,
             LockFailureException {
-        File lockFile = new File(targetDirectory, lockFilename);
+        File lockFile = new File(getWriteLockDirectory(), lockFilename);
         writeLock = new FileConcurrencyLock(lockFile);
         writeLock.setListenForLostLock(shouldMonitorWriteLock(lockFile));
         writeLock.setApprover(this);
         writeLock.acquireLock(null, lockHandler, ownerName);
+    }
+
+    protected File getWriteLockDirectory() {
+        return targetDirectory;
     }
 
     private boolean shouldMonitorWriteLock(File lockFile) {

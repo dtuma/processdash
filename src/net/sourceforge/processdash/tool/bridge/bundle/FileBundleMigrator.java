@@ -44,19 +44,31 @@ public class FileBundleMigrator {
     public synchronized static void migrate(File directory,
             FileResourceCollectionStrategy strategy, FileBundleMode bundleMode)
             throws IOException, LockFailureException {
-        if (!FileBundleUtils.isBundledDir(directory))
-            new FileBundleMigrator(directory, strategy, getDirType(strategy),
-                    MigrationDirection.Bundle, bundleMode).migrate();
+        migrate(directory, directory, strategy, bundleMode, true);
+    }
+
+    public synchronized static void migrate(File source, File dest,
+            FileResourceCollectionStrategy strategy, FileBundleMode bundleMode,
+            boolean lockSource) throws IOException, LockFailureException {
+        if (!FileBundleUtils.isBundledDir(source))
+            new FileBundleMigrator(source, dest, strategy, getDirType(strategy),
+                MigrationDirection.Bundle, bundleMode, lockSource).migrate();
     }
 
 
     public synchronized static void unmigrate(File directory,
             FileResourceCollectionStrategy strategy)
             throws IOException, LockFailureException {
-        FileBundleMode bundleMode = FileBundleUtils.getBundleMode(directory);
+        unmigrate(directory, directory, strategy, true);
+    }
+
+    public synchronized static void unmigrate(File source, File dest,
+            FileResourceCollectionStrategy strategy, boolean lockSource)
+            throws IOException, LockFailureException {
+        FileBundleMode bundleMode = FileBundleUtils.getBundleMode(source);
         if (bundleMode != null)
-            new FileBundleMigrator(directory, strategy, getDirType(strategy),
-                    MigrationDirection.Unbundle, bundleMode).migrate();
+            new FileBundleMigrator(dest, source, strategy, getDirType(strategy),
+                MigrationDirection.Unbundle, bundleMode, lockSource).migrate();
     }
 
 
@@ -93,10 +105,15 @@ public class FileBundleMigrator {
             void migrateAdjacent(FileBundleMigrator fbm)
                     throws IOException, LockFailureException {
                 // automatically migrate the disseminate subdir if present
-                File diss = new File(fbm.directory, "disseminate");
-                if (diss.isDirectory())
-                    new FileBundleMigrator(diss, TeamDataDirStrategy.INSTANCE,
-                            Disseminate, fbm.direction, fbm.bundleMode).migrate();
+                File dataDissDir = new File(fbm.dataDir, "disseminate");
+                File bundleDissDir = new File(fbm.bundleDir, "disseminate");
+                File source = (fbm.direction == MigrationDirection.Bundle
+                        ? dataDissDir : bundleDissDir);
+                if (source.isDirectory())
+                    new FileBundleMigrator(dataDissDir, bundleDissDir,
+                            TeamDataDirStrategy.INSTANCE, Disseminate,
+                            fbm.direction, fbm.bundleMode, fbm.lockSourceDir)
+                                    .migrate();
             }
         },
 
@@ -119,7 +136,9 @@ public class FileBundleMigrator {
 
 
 
-    private File directory;
+    private File dataDir, bundleDir;
+
+    private boolean isInPlace;
 
     private FileResourceCollectionStrategy strategy;
 
@@ -129,16 +148,22 @@ public class FileBundleMigrator {
 
     private FileBundleMode bundleMode;
 
+    private boolean lockSourceDir;
+
     private Migrator migrator;
 
-    private FileBundleMigrator(File directory,
+    private FileBundleMigrator(File dataDir, File bundleDir,
             FileResourceCollectionStrategy strategy, DirType dirType,
-            MigrationDirection direction, FileBundleMode bundleMode) {
-        this.directory = directory;
+            MigrationDirection direction, FileBundleMode bundleMode,
+            boolean lockSourceDir) {
+        this.dataDir = dataDir;
+        this.bundleDir = bundleDir;
+        this.isInPlace = dataDir.equals(bundleDir);
         this.strategy = strategy;
         this.dirType = dirType;
         this.direction = direction;
         this.bundleMode = bundleMode;
+        this.lockSourceDir = lockSourceDir;
     }
 
     private void migrate() throws IOException, LockFailureException {
@@ -146,7 +171,7 @@ public class FileBundleMigrator {
         this.migrator = createMigrator();
 
         try {
-            // lock the target directory to ensure (a) others aren't changing
+            // lock the data directory to ensure (a) others aren't changing
             // it, and (b) no other migration process is underway
             acquireWriteLock();
 
@@ -168,7 +193,7 @@ public class FileBundleMigrator {
 
         } finally {
             // allow the migrator object to unwind resources
-            File migratorMetadataDir = new File(directory, "metadata");
+            File migratorMetadataDir = new File(dataDir, "metadata");
             FileUtils.deleteDirectory(migratorMetadataDir, true);
             migrator.releaseLocks();
         }
@@ -176,64 +201,66 @@ public class FileBundleMigrator {
 
     private Migrator createMigrator() {
         if (bundleMode == FileBundleMode.Local)
-            return new Local(directory, strategy);
+            return new Local(strategy);
         else if (bundleMode == FileBundleMode.Sync)
-            return new Sync(directory, strategy);
+            return new Sync(strategy);
 
         throw new IllegalArgumentException("Unrecognized bundle mode");
     }
 
     private void bundle() throws IOException, LockFailureException {
         // check bundle mode preconditions
-        ensureStartingBundleMode(null, migrator.getBundleMode());
+        ensureStartingBundleMode(dataDir, null, migrator.getBundleMode());
 
         // create the bundle client and related structures (but change no files)
         migrator.prepare();
 
-        // backup the contents of the directory for recovery purposes
+        // backup the contents of the data directory for recovery purposes
         migrator.doBackup("before_bundle_migration");
 
         // write new bundles and refs for all source files
         migrator.flushData();
 
-        // remove the now-migrated files from the target directory
-        cleanupLegacyFiles();
+        // remove the now-migrated files from the bundle directory
+        if (isInPlace)
+            cleanupLegacyFiles();
 
-        // write a minimal set of files into the target directory to
+        // write a minimal set of files into the bundle directory to
         // steer legacy clients away from accessing the data
         dirType.writeCompatibilityFiles(this);
     }
 
     private void unbundle() throws IOException, LockFailureException {
         // check bundle mode preconditions
-        ensureStartingBundleMode(migrator.getBundleMode(), null);
+        ensureStartingBundleMode(bundleDir, migrator.getBundleMode(), null);
 
         // remove read-only flags from compatibility files
         makeTargetFilesWriteable();
 
-        // backup the directory before unbundling
+        // backup the data directory before unbundling
         URL backupFile = migrator.doBackup("before_bundle_unmigration");
 
-        // create the bundle client, and extract all bundles into the target dir
+        // create the bundle client, and extract all bundles into the data dir
         migrator.prepare();
 
         // move the now-obsolete bundle/heads directories into backup subdir
-        backupBundleDirs(backupFile, "bundles", "heads");
+        if (isInPlace)
+            backupBundleDirs(backupFile, "bundles", "heads");
     }
 
-    private void ensureStartingBundleMode(FileBundleMode expectedStartingMode,
+    private void ensureStartingBundleMode(File directory,
+            FileBundleMode expectedStartingMode,
             FileBundleMode desiredEndingMode) throws IOException {
         try {
             // make absolutely certain the dir has the mode we expect before we
             // begin our operation. (We checked this earlier, but we recheck
             // again now that we've locked the directory.)
-            FileBundleUtils.ensureBundleMode(migrator.getTargetDirectory(),
-                expectedStartingMode);
+            FileBundleUtils.ensureBundleMode(directory, expectedStartingMode);
 
         } catch (FileBundleModeMismatch fbmm) {
             // if the directory is already using the bundle mode that we desire
             // for our end state, abort with no action
-            if (fbmm.getActualMode() == desiredEndingMode)
+            if (isInPlace && fbmm.getActualMode() == desiredEndingMode)
                 throw new AlreadyMigrated();
 
             // unexpected situation - abort the entire operation
@@ -242,12 +269,15 @@ public class FileBundleMigrator {
     }
 
     private void backupBundleDirs(URL backupFile, String... subdirNames) {
-        File backupDir = new File(directory, "backup");
+        // if the data directory contains bundle-related subdirs after an
+        // unbundling operation, clean them up
+        File backupDir = new File(dataDir, "backup");
         String prefix = extractBackupPrefix(backupFile);
         for (String oneSubdirName : subdirNames) {
-            File oneSubdir = new File(directory, oneSubdirName);
+            File oneSubdir = new File(dataDir, oneSubdirName);
             File destDir = new File(backupDir, prefix + oneSubdirName);
-            oneSubdir.renameTo(destDir);
+            if (oneSubdir.isDirectory())
+                oneSubdir.renameTo(destDir);
         }
     }
 
@@ -277,31 +307,31 @@ public class FileBundleMigrator {
     }
 
     private void cleanupLegacyFiles() throws IOException {
-        // delete all the legacy files that were written by the dashboard
+        // delete legacy dashboard files from the bundle directory
         FilenameFilter filter = strategy.getFilenameFilter();
-        List<String> filenames = FileUtils.listRecursively(directory, filter);
+        List<String> filenames = FileUtils.listRecursively(bundleDir, filter);
         for (String filename : filenames) {
-            File oneFile = new File(directory, filename);
+            File oneFile = new File(bundleDir, filename);
             if (!oneFile.delete())
                 oneFile.deleteOnExit();
         }
 
         // the logic above will have deleted files, but not subdirectories.
         // clean the (now-empty) directories as a separate step
-        for (File oneFile : directory.listFiles()) {
+        for (File oneFile : bundleDir.listFiles()) {
             if (oneFile.isDirectory()) {
-                if (filter.accept(directory, oneFile.getName() + "/"))
+                if (filter.accept(bundleDir, oneFile.getName() + "/"))
                     FileUtils.deleteDirectory(oneFile, true);
             }
         }
     }
 
     private void makeTargetFilesWriteable() {
-        // find all files that match the filter, and ensure writability
+        // find all dataDir files that match the filter, and ensure writability
         FilenameFilter filter = strategy.getFilenameFilter();
-        List<String> filenames = FileUtils.listRecursively(directory, filter);
+        List<String> filenames = FileUtils.listRecursively(dataDir, filter);
         for (String filename : filenames) {
-            File oneFile = new File(directory, filename);
+            File oneFile = new File(dataDir, filename);
             oneFile.setWritable(true);
         }
     }
@@ -309,14 +339,14 @@ public class FileBundleMigrator {
     private void writeDashboardCompatibilityFiles() throws IOException {
         // write a "stub" pspdash.ini file that forces a minimum dashboard
         // software version, to prevent older clients from accessing the data
-        writeFile("pspdash.ini", //
+        writeCompatibilityFile("pspdash.ini", //
             property(DataVersionChecker.SETTING_NAME,
                 "pspdash version " + getReqVersion("pspdash")),
             property(BUNDLE_MODE, bundleMode.getName()));
 
         // write a "dummy" global.dat file, so the Quick Launcher can recognize
         // the directory as one containing a dashboard dataset
-        writeFile("global.dat", //
+        writeCompatibilityFile("global.dat", //
             "#include <bundle-support.txt>", //
             "= This dataset requires functionality added in dashboard version "
                     + getReqVersion("pspdash"));
@@ -325,15 +355,15 @@ public class FileBundleMigrator {
     private void writeWBSCompatibilityFiles() throws IOException {
         // write a "stub" user-settings.ini file that forces a minimum WBS
         // Editor version, to prevent older clients from accessing the data
-        writeFile("user-settings.ini", //
+        writeCompatibilityFile("user-settings.ini", //
             property(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT,
                 getReqVersion("teamToolsB")),
             property(BUNDLE_MODE, bundleMode.getName()));
     }
 
-    private void writeFile(String filename, String... lines)
+    private void writeCompatibilityFile(String filename, String... lines)
             throws IOException {
-        File outFile = new File(directory, filename);
+        File outFile = new File(bundleDir, filename);
         Writer out = new OutputStreamWriter(
                 FileBundleUtils.outputStream(outFile), "UTF-8");
         for (String line : lines) {
@@ -356,15 +386,19 @@ public class FileBundleMigrator {
     private class Local extends BundledWorkingDirectoryLocal
             implements Migrator {
 
-        public Local(File targetDirectory,
-                FileResourceCollectionStrategy strategy) {
-            super(targetDirectory, strategy, null);
+        public Local(FileResourceCollectionStrategy strategy) {
+            super(bundleDir, strategy, null);
             setEnableBackgroundFlush(false);
         }
 
         @Override
         protected void createWorkingDirAndProcessLock(File wdp) {
-            this.workingDirectory = this.targetDirectory;
+            this.workingDirectory = dataDir;
+        }
+
+        @Override
+        protected File getWriteLockDirectory() {
+            return lockSourceDir ? dataDir : bundleDir;
         }
 
         @Override
@@ -398,16 +432,20 @@ public class FileBundleMigrator {
     private class Sync extends BundledWorkingDirectorySync
             implements Migrator {
 
-        public Sync(File targetDirectory,
-                FileResourceCollectionStrategy strategy) {
-            super(targetDirectory, strategy, null);
+        public Sync(FileResourceCollectionStrategy strategy) {
+            super(bundleDir, strategy, null);
             setEnableBackgroundFastForward(false);
             this.enforceLocks = true;
         }
 
         @Override
         protected void createWorkingDirAndProcessLock(File wdp) {
-            this.workingDirectory = this.targetDirectory;
+            this.workingDirectory = dataDir;
+        }
+
+        @Override
+        protected File getWriteLockDirectory() {
+            return lockSourceDir ? dataDir : bundleDir;
         }
 
         @Override
