@@ -36,6 +36,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
@@ -57,6 +58,23 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
                 USE_NEW_MOVE_MESSAGE_TYPE, isMaster, oldTeamDir, newTeamDir,
                 DONT_WRITE_UNC_PATH);
         this.data = ctx.getData().getSubcontext(projectPrefix);
+    }
+
+
+    /**
+     * Perform advance checks on the source dir to ensure it can be migrated
+     */
+    public void validateSourceData(boolean quick) throws MoveProjectException {
+        try {
+            CloudStorageDatasetMigrator.validateSourceData(oldTeamDataDir,
+                quick, TeamDataDirStrategy.INSTANCE, "settings.xml");
+            File oldTeamDissDir = new File(oldTeamDataDir,
+                    TeamDataConstants.DISSEMINATION_DIRECTORY);
+            CloudStorageDatasetMigrator.validateSourceData(oldTeamDissDir,
+                quick, TeamDataDirStrategy.INSTANCE);
+        } catch (MoveProjectException mpe) {
+            throw mpe.append("projectPrefix", projectPrefix);
+        }
     }
 
 

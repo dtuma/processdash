@@ -94,12 +94,21 @@ public class CloudStorageWizard extends TinyCGIBase {
 
 
     private void handleStartAction() {
-        validateRuntimePreconditions();
+        try {
+            validateRuntimePreconditions();
+            validateSourceData(true);
+        } catch (MoveProjectException mpe) {
+            throw mpe.append("start", "t");
+        }
         printRedirect(FOLDER_URI);
     }
 
     private void validateRuntimePreconditions() {
         getMigrator().validateRuntimePreconditions();
+    }
+
+    private void validateSourceData(boolean quick) {
+        getMigrator().validateSourceData(quick);
     }
 
 
@@ -128,6 +137,7 @@ public class CloudStorageWizard extends TinyCGIBase {
         }
 
         validateRuntimePreconditions();
+        validateSourceData(false);
         getMigrator().run();
         showSuccessPage();
         initiateShutDown();

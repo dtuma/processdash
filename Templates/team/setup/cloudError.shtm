@@ -37,8 +37,11 @@ pre { margin-left: 1cm }
 
 <h2>Migration Problem</h2>
 
-<p>The Process Dashboard was unable to migrate data to cloud
-storage.</p>
+<p><!--#if start -->
+    The Process Dashboard cannot begin the cloud storage migration.
+<!--#else-->
+    The Process Dashboard was unable to migrate data to cloud storage.
+<!--#endif--></p>
 
 <!--#if notTeamMode -->
 
@@ -74,6 +77,58 @@ operation again.</p>
 location to cloud storage.  Please contact the Process Dashboard
 development team for assistance.</p>
 
+
+<!--#elif directoryUnreachable -->
+
+<p><!--#if projectPrefix -->The project '<b><!--#echo projectPrefix --></b>'
+   <!--#else-->This team dashboard<!--#endif-->
+is currently storing data in the directory:</p>
+
+<pre><!--#echo path --></pre>
+
+<p><!--#if filename --> 
+    That directory is expected to contain the file
+    '<tt><!--#echo filename --></tt>', but no such file was found.
+<!--#else-->
+    Unfortunately, that directory cannot be reached.
+<!--#endif-->
+
+This could be caused by poor network connectivity or transient network
+problems.  Please check your network connection and try again.</p>
+
+<!--#if filename -->
+    <p>If the problem persists, you may need to check for corruption in
+    the given directory, and see if the file needs to be restored from
+    a backup.</p>
+<!--#elif projectPrefix -->
+    <p>If the problem persists, you may need to map a network drive.</p>
+<!--#endif-->
+
+
+<!--#elif directoryBundled -->
+
+<p><!--#if projectPrefix -->The project '<b><!--#echo projectPrefix --></b>'
+   <!--#else-->This team dashboard<!--#endif-->
+is currently storing data in bundled format.</p>
+
+<p>The dashboard is currently unable to migrate bundled data to cloud
+storage.  Please contact the Process Dashboard development team for
+assistance.</p>
+
+
+<!--#elif cannotReadFile -->
+
+<p>To migrate data to cloud storage, the dashboard needs access to the
+following file:</p>
+
+<pre><!--#echo path --></pre>
+
+<p>Unfortunately, that file could not be read.  This could be caused
+by incorrect permissions, poor network connectivity, or transient
+network problems.  Please check your network connection and try
+again.</p>
+
+
 <!--#endif-->
 
 
@@ -83,7 +138,11 @@ development team for assistance.</p>
 below to retry the operation.</p>
 
 <form action="cloudMove" method="post">
-<input type="hidden" name="action" value="confirm">
+<!--#if start #-->
+    <input type="hidden" name="action" value="start">
+<!--#else#-->
+    <input type="hidden" name="action" value="confirm">
+<!--#endif-->
 
 <input type="submit" name="next" value="Retry">
 </form>

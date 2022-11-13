@@ -52,6 +52,16 @@ public class CloudStorageDashboardWorker {
 
 
     /**
+     * Perform advance checks on the source dir to ensure it can be migrated
+     */
+    public void validateSourceData(boolean quick) throws MoveProjectException {
+        CloudStorageDatasetMigrator.validateSourceData(oldDirectory, quick,
+            DashboardInstanceStrategy.INSTANCE, "state", "pspdash.ini",
+            "global.dat");
+    }
+
+
+    /**
      * Prepare and migrate data to bundled storage.
      * 
      * @throws MoveProjectException

@@ -26,6 +26,7 @@ package net.sourceforge.processdash.team.setup.move;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.Adler32;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
@@ -37,12 +38,15 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.util.FileUtils;
 
 public class CloudStorageDatasetMigrator {
 
@@ -85,6 +89,60 @@ public class CloudStorageDatasetMigrator {
             else if (wd instanceof BundledWorkingDirectory)
                 mpe.append("bundled", "t");
             throw mpe;
+        }
+    }
+
+
+
+    /**
+     * Perform advance checks on all source data to ensure it can be migrated
+     */
+    public void validateSourceData(boolean quick) throws MoveProjectException {
+        getDashboardWorker().validateSourceData(quick);
+        for (CloudStorageProjectWorker w : getProjectWorkers())
+            w.validateSourceData(quick);
+    }
+
+    static void validateSourceData(File dir, boolean quick,
+            FileResourceCollectionStrategy strategy, String... requiredFiles)
+            throws MoveProjectException {
+        // verify the directory is not currently bundled
+        if (FileBundleUtils.isBundledDir(dir))
+            throw new MoveProjectException("directoryBundled") //
+                    .append("path", dir.getAbsolutePath()).fatal();
+
+        // make sure the source directory is reachable. (It could be temporarily
+        // unavailable due to network issues, for example.)
+        if (!dir.isDirectory())
+            throw new MoveProjectException("directoryUnreachable") //
+                    .append("path", dir.getAbsolutePath());
+
+        // verify the directory has the contents we expect. (If not, a network
+        // problem could be preventing us from reading the dir contents.)
+        for (String filename : requiredFiles) {
+            File f = new File(dir, filename);
+            if (!f.isFile())
+                throw new MoveProjectException("directoryUnreachable") //
+                        .append("path", dir.getAbsolutePath()) //
+                        .append("filename", filename);
+        }
+
+        // ensure readability of all the files
+        List<String> files = FileUtils.listRecursively(dir,
+            strategy.getFilenameFilter());
+        for (String filename : files) {
+            File f = new File(dir, filename);
+            boolean canRead = f.canRead();
+            if (canRead && !quick) {
+                try {
+                    FileUtils.computeChecksum(f, new Adler32());
+                } catch (Exception ioe) {
+                    canRead = false;
+                }
+            }
+            if (!canRead)
+                throw new MoveProjectException("cannotReadFile") //
+                        .append("path", f.getPath());
         }
     }
 
