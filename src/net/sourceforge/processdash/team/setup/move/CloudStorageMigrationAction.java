@@ -1,5 +1,5 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
-// Team Functionality Add-ons for the Process Dashboard
+// Copyright (C) 2022 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,41 +23,27 @@
 
 package net.sourceforge.processdash.team.setup.move;
 
-import net.sourceforge.processdash.util.HTMLUtils;
+import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
 
-public class MoveProjectException extends RuntimeException {
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.Browser;
 
-    String page;
+public class CloudStorageMigrationAction extends AbstractAction {
 
-    String query;
+    private static final String WIZARD_URI = "/team/setup/cloudMove.shtm";
 
-    MoveProjectException(String page, String query) {
-        this.page = page;
-        this.query = query;
+    private static Resources resources = Resources
+            .getDashBundle("Bundler.Cloud");
+
+    public CloudStorageMigrationAction() {
+        super(resources.getString("Menu_Text"));
     }
 
-    MoveProjectException(String query) {
-        this(null, query);
-    }
-
-    MoveProjectException(Throwable t) {
-        this("generalError");
-        initCause(t);
-    }
-
-    MoveProjectException append(String name, String value) {
-        if (value != null)
-            query = query + "&" + name + "=" + HTMLUtils.urlEncode(value);
-        return this;
-    }
-
-    MoveProjectException fatal() {
-        return append("fatal", "t");
-    }
-
-    public String getDescription() {
-        return "MoveProjectException: " + page + "?" + query;
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Browser.launch(WIZARD_URI);
     }
 
 }

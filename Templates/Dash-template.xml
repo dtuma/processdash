@@ -647,6 +647,9 @@ The author(s) may be contacted at:
   <locDiffPanel
      class="net.sourceforge.processdash.tool.diff.ui.SvnLOCDiffPanel"/>
 
+  <toolsMenuItem requires="teamMode"
+     class="net.sourceforge.processdash.team.setup.move.CloudStorageMigrationAction"/>
+
   <toolsMenuItem
      class="net.sourceforge.processdash.tool.bridge.bundle.ui.BundleMigrationAction"/>
 

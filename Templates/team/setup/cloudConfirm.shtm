@@ -1,0 +1,68 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2022 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Cloud Storage Migration Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+TD.label { font-weight: bold;   vertical-align: top;
+           text-align: left;    padding-right: .5cm }
+TD.value { font-family: monospace }
+</style>
+</head>
+<body>
+
+<h1>Cloud Storage Migration Wizard</h1>
+
+<h2>Confirm Migration</h2>
+
+<p>The wizard will migrate data for this team dashboard, along with all
+the projects it contains, to the directory below:</p>
+
+<table style="margin-left: 1cm">
+
+<tr><td class="label">Cloud Storage Directory:</td>
+    <td class="value"><!--#echo [/Cloud_Storage/Dest_Directory] --></td></tr>
+
+</table>
+
+<p>Review this information carefully. If the directory above is incorrect,
+<a href="cloudFolder.shtm">click here</a> to make corrections.</p>
+
+<p>If this information is correct, press the &quot;Migrate&quot; button to
+perform the migration. <b>(This operation is not reversible.)</b></p>
+
+
+<form action="cloudMove" method="post">
+<input type="hidden" name="action" value="confirm">
+
+<div style="margin-left:150px">
+<input type="submit" name="next" value="Migrate">
+</div>
+
+</form>
+</body>
+</html>
