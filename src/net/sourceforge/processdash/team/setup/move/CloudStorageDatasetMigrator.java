@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -35,7 +36,13 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 
 public class CloudStorageDatasetMigrator {
 
@@ -43,6 +50,42 @@ public class CloudStorageDatasetMigrator {
 
     CloudStorageDatasetMigrator(DashboardContext ctx) {
         this.ctx = ctx;
+    }
+
+
+
+    /**
+     * Make sure the runtime characteristics of the enclosing dashboard are
+     * appropriate for a migration operation.
+     * 
+     * @throws MoveProjectException
+     *             if any blocking problems are present
+     */
+    public void validateRuntimePreconditions() throws MoveProjectException {
+        // cloud storage is only supported for team dashboards
+        if (!Settings.isTeamMode())
+            throw new MoveProjectException("notTeamMode").fatal();
+
+        // cannot migrate in read-only mode
+        if (Settings.isReadOnly())
+            throw new MoveProjectException("readOnlyMode").fatal();
+
+        // do not migrate if we're viewing a data backup
+        WorkingDirectory wd = ctx.getWorkingDirectory();
+        if (CompressedInstanceLauncher.isRunningFromCompressedData()
+                || wd instanceof CompressedWorkingDirectory)
+            throw new MoveProjectException("zipDataset").fatal();
+
+        // only local working directories can be migrated
+        if (!LocalWorkingDirectory.class.equals(wd.getClass())) {
+            MoveProjectException mpe = new MoveProjectException("badWDirType")
+                    .append("workingDirDescr", wd.getDescription()).fatal();
+            if (wd instanceof BridgedWorkingDirectory)
+                mpe.append("pdes", "t");
+            else if (wd instanceof BundledWorkingDirectory)
+                mpe.append("bundled", "t");
+            throw mpe;
+        }
     }
 
 

@@ -27,7 +27,9 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.templates.ExtensionManager.DisabledExtensionException;
 import net.sourceforge.processdash.ui.Browser;
 
 public class CloudStorageMigrationAction extends AbstractAction {
@@ -39,6 +41,14 @@ public class CloudStorageMigrationAction extends AbstractAction {
 
     public CloudStorageMigrationAction() {
         super(resources.getString("Menu_Text"));
+    }
+
+    public void setDashboardContext(DashboardContext ctx) {
+        try {
+            new CloudStorageDatasetMigrator(ctx).validateRuntimePreconditions();
+        } catch (Exception ex) {
+            throw new DisabledExtensionException();
+        }
     }
 
     @Override

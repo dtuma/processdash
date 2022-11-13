@@ -27,6 +27,9 @@
 <head>
 <title>Cloud Storage Migration Wizard</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+pre { margin-left: 1cm }
+</style>
 </head>
 <body>
 
@@ -36,6 +39,42 @@
 
 <p>The Process Dashboard was unable to migrate data to cloud
 storage.</p>
+
+<!--#if notTeamMode -->
+
+<p>Cloud storage is currently only supported for team dashboards.  As
+a result, this personal dashboard cannot be migrated.</p>
+
+
+<!--#elif readOnlyMode -->
+
+<p>This team dashboard is currently open in read-only mode.  Please
+close the dashboard and reopen in read-write mode, then begin the
+cloud migration operation again.</p>
+
+
+<!--#elif zipDataset -->
+
+<p>This team dashboard is not showing live data, but is instead
+showing data from a data backup ZIP file.  The migrator must be able
+to modify live data to ensure team members remain connected to team
+projects.  Please open the live team dashboard, then launch this
+operation again.</p>
+
+
+<!--#elif badWDirType -->
+
+<p>This team dashboard is currently storing data
+<!--#if bundled -->in bundled format<!--#endif-->
+<!--#if pdes -->on the server at<!--#else-->in the directory<!--#endif-->:</p>
+
+<pre><!--#echo workingDirDescr --></pre>
+
+<p>The dashboard is currently unable to migrate data from this
+location to cloud storage.  Please contact the Process Dashboard
+development team for assistance.</p>
+
+<!--#endif-->
 
 
 <!--#if !fatal -->
