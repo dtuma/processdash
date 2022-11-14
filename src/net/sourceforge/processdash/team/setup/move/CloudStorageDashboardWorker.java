@@ -132,8 +132,9 @@ public class CloudStorageDashboardWorker {
                 newDirectory.getAbsolutePath());
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new MoveProjectException(e); // FIXME: add user reporting
+            logError("performing cloud storage migration", e);
+            throw new MoveProjectException("bundleError") //
+                    .append("path", newDirectory.getPath());
 
         } finally {
             // undo the post-cloud-migration cleanup flag we set before
@@ -171,7 +172,9 @@ public class CloudStorageDashboardWorker {
                 ProcessDashboard.DATA_MOVED_MIN_VERSION);
 
         } catch (IOException ioe) {
-            throw new MoveProjectException(ioe); // FIXME error reporting
+            logError("writing move file", ioe);
+            throw new MoveProjectException("cannotCreateFile") //
+                    .append("path", movedFile.getPath());
         }
     }
 
@@ -204,6 +207,7 @@ public class CloudStorageDashboardWorker {
             p.flush();
             p.close();
         } catch (IOException e) {
+            logError("writing marker file", e);
         }
     }
 
@@ -213,6 +217,12 @@ public class CloudStorageDashboardWorker {
         if (result.exists())
             result.setWritable(true, false);
         return result;
+    }
+
+
+    protected void logError(String activity, Throwable t) {
+        System.out.println("Error while " + activity);
+        t.printStackTrace();
     }
 
 

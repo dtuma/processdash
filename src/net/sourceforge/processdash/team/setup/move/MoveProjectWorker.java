@@ -326,7 +326,9 @@ public class MoveProjectWorker {
             out.println("this directory can be safely deleted.");
             out.flush();
             out.close();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            logError("writing marker file", e);
+        }
     }
 
     protected File getMarkerFile() {
@@ -363,6 +365,7 @@ public class MoveProjectWorker {
         try {
             writeMoveFileImpl(moveFile);
         } catch (IOException e) {
+            logError("writing move file", e);
             HTMLUtils.appendQuery(nonfatalProblems, "cannotWriteMoveFile");
             HTMLUtils.appendQuery(nonfatalProblems, "path", moveFile.getPath());
         }
@@ -413,6 +416,12 @@ public class MoveProjectWorker {
     }
     private String escXml(String s) {
         return s == null ? "" : XMLUtils.escapeAttribute(s);
+    }
+
+    protected void logError(String activity, Throwable t) {
+        System.out.println(
+            "Error while " + activity + " for project " + projectPrefix);
+        t.printStackTrace();
     }
 
 

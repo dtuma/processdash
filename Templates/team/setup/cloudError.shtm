@@ -129,6 +129,53 @@ network problems.  Please check your network connection and try
 again.</p>
 
 
+<!--#elif teamDirInUse -->
+
+<p>The dashboard cannot migrate data for the project
+'<b><!--#echo projectPrefix --></b>' because the WBS is currently open for
+editing<!--#if lockOwner --> by <!--#echo lockOwner --><!--#endif-->.</p>
+
+
+<!--#elif cannotCreateDir -->
+
+<p>To migrate data <!--#if projectPrefix -->for the project 
+'<b><!--#echo projectPrefix --></b>'<!--#endif-->, the dashboard needs to
+create the following directory:</p>
+
+<pre><!--#echo path --></pre>
+
+<p>Unfortunately, that directory could not be created.  Please ensure
+another file is not in the way, and check permissions on the parent
+directory.</p>
+
+
+<!--#elif cannotCreateFile -->
+
+<p>To migrate data<!--#if projectPrefix --> for project 
+'<b><!--#echo projectPrefix --></b>'<!--#endif-->, the dashboard needs to
+create the following file:</p>
+
+<pre><!--#echo path --></pre>
+
+<p>Unfortunately, that file could not be created.  Please ensure another
+file is not in the way, and check permissions as needed.</p>
+
+
+<!--#elif bundleError -->
+
+<p>The dashboard encountered an error while copying data for
+<!--#if projectPrefix -->the project '<b><!--#echo projectPrefix --></b>'
+<!--#else-->this team dashboard<!--#endif-->.</p>
+
+<p>This could be caused by poor network connectivity or transient network
+problems.  Please check your network connection and try again.</p>
+
+<p>If the problem is persistent, return to the Team Dashboard window and choose
+"Help &gt; View Debugging Output."  Scroll to the bottom of the log and
+copy any error messages you see; then choose "Help &gt; Submit Bug Report"
+to request assistance from the Process Dashboard development team.</p>
+
+
 <!--#endif-->
 
 

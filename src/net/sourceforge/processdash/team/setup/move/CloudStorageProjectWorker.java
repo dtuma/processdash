@@ -123,6 +123,9 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
                     return;
                 }
             }
+            throw new MoveProjectException("cannotCreateDir") //
+                    .append("path", newTeamDataDir.getPath())
+                    .append("projectPrefix", projectPrefix);
         }
     }
 
@@ -139,8 +142,10 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
                 TeamDataDirStrategy.INSTANCE, FileBundleMode.Sync,
                 SOURCE_DIR_IS_ALREADY_LOCKED_FLAG);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new MoveProjectException(e); // FIXME: add user reporting
+            logError("performing cloud storage migration", e);
+            throw new MoveProjectException("bundleError") //
+                    .append("path", newTeamDataDir.getPath())
+                    .append("projectPrefix", projectPrefix);
         }
 
         // copy the backup subdirectory to retain WBS change history
@@ -151,6 +156,7 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
                 copyFiles(oldBackupDir, createDirectory(newBackupDir));
         } catch (MoveProjectException mpe) {
             // loss of backups/history is not critical. log and continue
+            logError("copying WBS history", mpe);
             System.out.println(mpe.getDescription());
         }
     }
@@ -179,7 +185,7 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
             writeMoveFile();
             writeMinWbsVersion();
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            logError("finishing cloud storage migration", ioe);
         }
     }
 
