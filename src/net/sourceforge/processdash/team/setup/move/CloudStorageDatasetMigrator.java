@@ -44,9 +44,12 @@ import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
+import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class CloudStorageDatasetMigrator {
 
@@ -162,12 +165,43 @@ public class CloudStorageDatasetMigrator {
         return _destDirectory;
     }
 
-    public void setDestDirectory(String destDir) {
+    public void setDestDirectory(String destDir, String destConfirm) {
         String dd = (destDir == null ? "" : destDir.trim());
         if (dd.endsWith("/") || dd.endsWith("\\"))
             dd = dd.substring(0, dd.length() - 1);
         _destDirectory = dd;
         putValue(SETUP, DEST_DIR, _destDirectory);
+        putValue(SETUP, DEST_CONFIRM, destConfirm);
+    }
+
+
+    /** Check the suitability of the destination directory */
+    public void validateDestDirectory() throws MoveProjectException {
+        // make sure the user entered a directory
+        String dirPath = getDestDirectory();
+        if (!StringUtils.hasValue(dirPath))
+            throw new MoveProjectException("destDirMissing");
+
+        // make sure we were given an absolute path
+        File dir = new File(dirPath);
+        if (!dir.isAbsolute())
+            throw new MoveProjectException("destDirNotAbsolute");
+
+        // make sure the directory is under a [Shared Folder]
+        SyncClientMappings.initialize(dir);
+        String encoded = FolderMappingManager.getInstance().encodePath(dirPath);
+        if (!FolderMappingManager.isEncodedPath(encoded))
+            throw new MoveProjectException("destDirNotShared");
+
+        // make sure the parent directory exists
+        File dirParent = dir.getParentFile();
+        if (dirParent == null || !dirParent.isDirectory())
+            throw new MoveProjectException("destParentUnreachable");
+
+        // ask the dashboard worker to validate the destination directory
+        String confirmedPath = getValue(SETUP, DEST_CONFIRM);
+        boolean contentsAllowed = dirPath.equals(confirmedPath);
+        getDashboardWorker().validateDestDirectory(!contentsAllowed);
     }
 
 
@@ -311,5 +345,7 @@ public class CloudStorageDatasetMigrator {
     private static final String SETUP = "/Cloud_Storage";
 
     private static final String DEST_DIR = "Dest_Directory";
+
+    private static final String DEST_CONFIRM = DEST_DIR + "//Confirm";
 
 }

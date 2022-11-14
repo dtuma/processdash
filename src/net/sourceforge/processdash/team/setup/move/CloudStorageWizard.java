@@ -114,8 +114,19 @@ public class CloudStorageWizard extends TinyCGIBase {
 
     private void handleSaveFolder() {
         String folder = getParameter("folder");
-        getMigrator().setDestDirectory(folder);
+        String folderConfirm = getParameter("folderConfirm");
+        getMigrator().setDestDirectory(folder, folderConfirm);
+        validateDestFolder();
         showConfirmPage();
+    }
+
+    private void validateDestFolder() {
+        try {
+            getMigrator().validateDestDirectory();
+        } catch (MoveProjectException mpe) {
+            throw new MoveProjectException(FOLDER_URI, mpe.query) //
+                    .append("destDirErr", "t");
+        }
     }
 
 
@@ -136,9 +147,15 @@ public class CloudStorageWizard extends TinyCGIBase {
             return;
         }
 
+        // perform all validations again before starting the migration
         validateRuntimePreconditions();
         validateSourceData(false);
+        validateDestFolder();
+
+        // perform the migration operation
         getMigrator().run();
+
+        // display success message and shut down
         showSuccessPage();
         initiateShutDown();
     }

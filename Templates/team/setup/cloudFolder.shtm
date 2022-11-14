@@ -27,6 +27,23 @@
 <head>
 <title>Cloud Storage Migration Wizard</title>
 <link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+TD.label { font-weight: bold;   vertical-align: top;
+           text-align: left;    padding-right: .5cm }
+TD.value input { width: 480px; }
+ul.err {
+      background-color: #ffcccc;
+      border: 1px solid #DD7777;
+      color: #a30000;
+      font-weight: bold;
+      padding: 5px 40px;
+      width: 398px;
+}
+li { 
+      margin-bottom: 5px;
+      margin-top: 5px; 
+}
+</style>
 </head>
 <body>
 
@@ -43,11 +60,111 @@ managing/synchronizing the directory you choose below.</p>
 <form action="cloudMove" method="post">
 <input type="hidden" name="action" value="saveFolder">
 
-<div>
-Storage Folder:
-<input type="text" name="folder" size="60"
-       value="<!--#echo [/Cloud_Storage/Dest_Directory] -->"/>
-</div>
+<table>
+<tr>
+<td class="label">Cloud Storage Directory:</td>
+<td class="value"><input type="text" name="folder"
+    value="<!--#echo [/Cloud_Storage/Dest_Directory] -->"/></td>
+</tr>
+
+<!--#if destDirErr -->
+<tr><td></td><td><ul class="err">
+
+<!--#if destDirMissing -->
+  <li>You must enter the cloud storage directory where data should be
+      stored.</li>
+
+
+<!--#elif destDirNotAbsolute -->
+  <li>You must enter an absolute path for the cloud storage directory.</li>
+
+
+<!--#elif destDirNotShared -->
+  <li>You must choose a directory that is being actively managed and
+      synchronized by your desktop sync client.</li>
+
+  <li>The directory you selected does not seem to meet that criteria.</li>
+
+
+<!--#elif destParentUnreachable -->
+
+  <li>The directory you entered does not exist, so the dashboard infers
+      that you'd like it to be created.</li>
+
+  <li>But the parent of that directory doesn't exist either, suggesting
+      that you might have entered the path incorrectly.</li>
+
+  <li>Please double-check the path you provided and make corrections if
+      needed.  If the path is already correct, create the desired
+      destination directory and click "Next."</li>
+
+
+<!--#elif destFileExists -->
+
+  <li>The directory you selected is not empty, and it currently contains
+      files/directories that will be overwritten if the migration
+      continues.</li>
+
+  <li>Please choose a new, empty directory for the migration to write
+      to.</li>
+
+
+<!--#elif destDirNotEmpty -->
+
+  <li>The directory you selected is not empty, suggesting that you
+      might have entered the path incorrectly.</li>
+
+  <li>The existing files won't be affected by the migration, so it is
+      safe to click Next if you truly wish to store the data here.</li>
+
+  <li>Please double-check the path you provided and make corrections
+      if needed.  If you wish to write data into a new subdirectory
+      underneath the one you selected, please add that new
+      subdirectory name to the end of the path.</li>
+
+  <input type="hidden" name="folderConfirm"
+         value="<!--#echo [/Cloud_Storage/Dest_Directory] -->"/>
+
+
+<!--#endif -->
+</ul></td></tr>
+<!--#endif -->
+
+</table>
+
+
+<!--#if destDirNotShared -->
+<p>If the message above is in error, and the given directory is
+being synchronized to the cloud, please take these steps:</p>
+
+<ol style="width:550px">
+
+<li>Return to the Team Dashboard, and choose "Tools &gt; Preferences."</li>
+
+<li>In the User Preferences window, choose "Shared Folders."</li>
+
+<li>Add an entry to the Shared Folders table indicating the top-level
+    directory on your computer that is being managed and synchronized
+    by your desktop sync client.</li>
+
+    <ul style="font-style:italic">
+
+    <li>The directory you select here should be somewhere underneath
+        that top-level directory.</li>
+
+    <li>Other team members who collaborate within this Team Dashboard
+        may need to create a Shared Folder with the same Key in the
+        "Preferences" window of their dashboard as well.</li>
+
+    </ul>
+
+</ol>
+<!--#endif -->
+
+<!--#if destDirErr -->
+<p>After correcting the problem above, click the Next button to
+continue.</p>
+<!--#endif -->
 
 <p><input type="submit" name="next" value="Next"></p>
 </form>

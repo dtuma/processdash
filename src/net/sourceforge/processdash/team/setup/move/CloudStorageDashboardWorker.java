@@ -39,6 +39,7 @@ import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
+import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 
 public class CloudStorageDashboardWorker {
@@ -62,6 +63,35 @@ public class CloudStorageDashboardWorker {
 
 
     /**
+     * Perform advance checks on the destination dir to ensure it is acceptable
+     */
+    public void validateDestDirectory(boolean requireEmpty)
+            throws MoveProjectException {
+        // if the new directory already exists, make sure it doesn't contain
+        // any of the files/directories we'll be writing, or other dashboard
+        // related content
+        if (newDirectory.isDirectory() && !isDataAlreadyMigrated()) {
+            validateDestFilesNotPresent("bundles", "heads", "global.dat",
+                "pspdash.ini", "datasetID.dat", "state", "timelog.xml",
+                TeamServerPointerFile.FILE_NAME,
+                ProcessDashboard.DATA_MOVED_FILENAME,
+                TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME);
+            if (requireEmpty && newDirectory.list().length > 0)
+                throw new MoveProjectException("destDirNotEmpty");
+        }
+    }
+
+    private void validateDestFilesNotPresent(String... filenames) {
+        for (String name : filenames) {
+            File f = new File(newDirectory, name);
+            if (f.exists())
+                throw new MoveProjectException("destFileExists") //
+                        .append("path", f.getPath());
+        }
+    }
+
+
+    /**
      * Prepare and migrate data to bundled storage.
      * 
      * @throws MoveProjectException
@@ -81,8 +111,7 @@ public class CloudStorageDashboardWorker {
 
     private void migrateData() {
         // if the data was already migrated successfully, abort
-        if (Settings.getVal(CLOUD_DIR_COMPLETE_SETTING, "")
-                .equalsIgnoreCase(newDirectory.getAbsolutePath()))
+        if (isDataAlreadyMigrated())
             return;
 
         // make a note that post-cloud-migration cleanup is needed, so this
@@ -111,6 +140,11 @@ public class CloudStorageDashboardWorker {
             // bundling, so it is no longer present on the source directory
             InternalSettings.set(CloudStorageCleanupWorker.SETTING, null);
         }
+    }
+
+    private boolean isDataAlreadyMigrated() {
+        return Settings.getVal(CLOUD_DIR_COMPLETE_SETTING, "")
+                .equalsIgnoreCase(newDirectory.getAbsolutePath());
     }
 
 
