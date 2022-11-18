@@ -174,6 +174,11 @@ public class CloudStorageDatasetMigrator {
         putValue(SETUP, DEST_CONFIRM, destConfirm);
     }
 
+    public static void clearDestDirectory(DataRepository data) {
+        String dataName = DataRepository.createDataName(SETUP, DEST_DIR);
+        data.putValue(dataName, null);
+    }
+
 
     /** Check the suitability of the destination directory */
     public void validateDestDirectory() throws MoveProjectException {

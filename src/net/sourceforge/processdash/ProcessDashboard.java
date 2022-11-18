@@ -140,6 +140,7 @@ import net.sourceforge.processdash.team.setup.TeamDirPermissionSettingsWriter;
 import net.sourceforge.processdash.team.setup.TeamSettingsFile;
 import net.sourceforge.processdash.team.setup.TeamSettingsRepublisher;
 import net.sourceforge.processdash.team.setup.WbsPermissionSettingsWriter;
+import net.sourceforge.processdash.team.setup.move.CloudStorageCleanupWorker;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.ExtensionManager;
@@ -598,6 +599,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Set web server context objects");
 
         MessageDispatcher.init(this);
+        CloudStorageCleanupWorker.maybeRun(this);
         ImportManager.init(data);
         InternalSettings.addPropertyChangeListener(ImportManager.SETTING_NAME,
             EventHandler.create(PropertyChangeListener.class, this,

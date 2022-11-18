@@ -281,6 +281,15 @@ public class MoveProjectWorker {
             return;
         }
 
+        try {
+            repairMasterProjectLinks(masterPrefix, processID);
+        } catch (Exception e) {
+            couldNotRepairMasterLinks();
+        }
+    }
+
+    static void repairMasterProjectLinks(String masterPrefix, String processID)
+            throws MoveProjectException {
         String url = WebServer.DASHBOARD_PROTOCOL + ":"
                 + WebServer.urlEncodePath(masterPrefix) + "//" + processID
                 + "/setup/subprojectEdit?do=update";
@@ -288,8 +297,9 @@ public class MoveProjectWorker {
             InputStream in = new URL(url).openStream();
             while (in.read() != -1)
                 ;
+            in.close();
         } catch (Exception e) {
-            couldNotRepairMasterLinks();
+            throw new MoveProjectException(e);
         }
     }
 

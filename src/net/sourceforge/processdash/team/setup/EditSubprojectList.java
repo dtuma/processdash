@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2018 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -720,7 +720,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         TeamSettingsFile.RelatedProject result = new TeamSettingsFile.RelatedProject();
         result.shortName = proj.shortName;
         result.projectID = getValue(proj.path + "/" + PROJECT_ID);
-        result.teamDirectory = getValue(proj.path + "/" + TEAM_DIRECTORY);
+        result.teamDirectory = relDir(getValue(proj.path + "/" + TEAM_DIRECTORY));
         result.teamDirectoryUNC = getValue(proj.path + "/"+TEAM_DIRECTORY_UNC);
         result.teamDataURL = getValue(proj.path + "/"+TEAM_DATA_DIRECTORY_URL);
         return result;
@@ -743,7 +743,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         uri.append("/").append(env.get("SCRIPT_NAME"));
         uri.append("?").append(DO_PARAM).append("=").append(actionCommand);
         appendParam(uri, PROJECT_ID, getValue(PROJECT_ID));
-        appendParam(uri, TEAM_DIRECTORY, getValue(TEAM_DIRECTORY));
+        appendParam(uri, TEAM_DIRECTORY, relDir(getValue(TEAM_DIRECTORY)));
         appendParam(uri, TEAM_DIRECTORY_UNC, getValue(TEAM_DIRECTORY_UNC));
         appendParam(uri, TEAM_DATA_DIRECTORY_URL, getValue(TEAM_DATA_DIRECTORY_URL));
         appendParam(uri, PATH, getPrefix());
@@ -815,6 +815,17 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             return null;
 
         return new TeamSettingsFile(teamDataDir, teamDataUrl);
+    }
+
+    private String relDir(String teamDirectory) {
+        // special case: some dashboards use "." to say the team directory is
+        // the same as the working dir. In that case, the relative path (from
+        // the dir containing settings.xml, back to the team dir) is "../.."
+        if (".".equals(teamDirectory))
+            return "../..";
+
+        // team directories are generally absolute; return unchanged
+        return teamDirectory;
     }
 
     /*

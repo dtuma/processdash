@@ -185,9 +185,9 @@ public class ImportDirectoryFactory {
             // handling the named directory.
             else {
                 File dir;
-                if ((location.startsWith("./") || location.startsWith(".\\"))
-                        && baseDirectory != null) {
-                    String subdir = location.substring(2);
+                String locationSlash = location.replace('\\', '/');
+                if (locationSlash.startsWith("./") && baseDirectory != null) {
+                    String subdir = locationSlash.substring(2);
                     if (baseDirectory instanceof BridgedWorkingDirectory) {
                         return new BridgedImportSubdirectory(
                                 (BridgedWorkingDirectory) baseDirectory, subdir);
