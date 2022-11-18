@@ -25,6 +25,7 @@ package net.sourceforge.processdash.team.setup.move;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.Adler32;
 
@@ -48,6 +49,7 @@ import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.quicklauncher.SimpleInternalLauncher;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -321,6 +323,27 @@ public class CloudStorageDatasetMigrator {
 
         for (CloudStorageProjectWorker oneProject : projectWorkers) {
             oneProject.finish();
+        }
+    }
+
+
+
+    /**
+     * Attempt to launch the dashboard, pointing at the destination directory
+     */
+    public boolean launchNewDashboard(int startupPause) {
+        try {
+            // launch the dashboard, pointing at the new directory. (We request
+            // a startup pause so the current process has time to shut down and
+            // relinquish its web server port before the new server starts.)
+            File destDir = new File(getDestDirectory());
+            SimpleInternalLauncher.launchDashboardForDir(destDir,
+                Arrays.asList("-Dprocessdash.startupPause=" + startupPause),
+                null);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

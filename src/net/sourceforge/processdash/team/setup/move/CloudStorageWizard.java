@@ -156,13 +156,15 @@ public class CloudStorageWizard extends TinyCGIBase {
         getMigrator().run();
 
         // display success message and shut down
-        showSuccessPage();
+        boolean relaunchSuccessful = getMigrator().launchNewDashboard(3000);
+        showSuccessPage(relaunchSuccessful);
         initiateShutDown();
     }
 
 
-    private void showSuccessPage() {
-        printRedirect(SUCCESS_URI);
+    private void showSuccessPage(boolean relaunchSuccessful) {
+        String query = (relaunchSuccessful ? "" : "?relaunchFailed");
+        printRedirect(SUCCESS_URI + query);
     }
 
 

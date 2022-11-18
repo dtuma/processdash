@@ -2255,6 +2255,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
 
+        try {
+            Integer pause = Integer.getInteger("processdash.startupPause");
+            if (pause != null && pause > 0)
+                Thread.sleep(pause.longValue());
+        } catch (InterruptedException ie) {}
+
         if (Boolean.getBoolean("readOnly"))
             InternalSettings.setReadOnly(true);
 

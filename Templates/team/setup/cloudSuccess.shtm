@@ -41,10 +41,22 @@ along with all the projects it contains, to the directory:</p>
      [/Cloud_Storage/Dest_Directory] --></pre>
 
 <p>That directory is now the 'official source' of data for this
-dataset.  To prevent data from getting out of sync, the Process
-Dashboard will now exit.  You may restart this dashboard if you like,
-and it will automatically use the data located in the directory
-above.</p>
+dashboard.
+
+<!--#if relaunchFailed -->
+
+To prevent data from getting out of sync, the Team Dashboard will
+now exit.  You may restart this dashboard if you like, and it will
+automatically use the data located in the directory above.
+
+<!--#else-->
+
+The Team Dashboard will now restart to apply this change.  When you
+run this dashboard in the future, it will automatically use the data
+located in the directory above.
+
+<!--#endif-->
+</p>
 
 <p>After you have reviewed this information, you may close this
 browser window.</p>

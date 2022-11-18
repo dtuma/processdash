@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.quicklauncher;
 
 import java.awt.Component;
 import java.io.File;
+import java.util.List;
 
 import net.sourceforge.processdash.Settings;
 
@@ -90,6 +91,12 @@ public class SimpleInternalLauncher {
             launcher.launch(processFactory);
             launcher.waitForCompletion();
         }
+    }
+
+    public static Process launchDashboardForDir(File dir, List extraVmArgs,
+            List extraArgs) throws Exception {
+        DashboardProcessFactoryForking pf = new DashboardProcessFactoryForking();
+        return pf.launchDashboard(dir, extraVmArgs, extraArgs);
     }
 
 }
