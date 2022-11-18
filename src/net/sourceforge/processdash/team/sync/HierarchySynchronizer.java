@@ -2342,6 +2342,12 @@ public class HierarchySynchronizer {
                     && lastSyncNote != null)
                 wbsNote.setTimestamp(lastSyncNote.getTimestamp());
 
+            // if the local or WBS note is a programmatically generated alert
+            // message, reset the last sync val and always refresh to the WBS
+            if (ROOT_NODE_PSEUDO_ID.equals(nodeID)
+                    && (isWbsAlertNote(localNote) || isWbsAlertNote(wbsNote)))
+                lastSyncNote = localNote;
+
             // if the value from the WBS has changed since last sync,
             if (!eq(lastSyncNote, wbsNote)) {
 
@@ -2437,6 +2443,11 @@ public class HierarchySynchronizer {
             return null;
         }
 
+        private boolean isWbsAlertNote(HierarchyNote localNote) {
+            return (localNote != null && localNote.getContent() != null
+                    && localNote.getContent().contains(WBS_ALERT_TOKEN));
+        }
+
         protected void saveNoteData(DataContext data, String path, Object... notes) {
             Map<String, HierarchyNote> noteData = new HashMap<String, HierarchyNote>();
             for (int i = 0;  i < notes.length;  i += 2)
@@ -2445,6 +2456,7 @@ public class HierarchySynchronizer {
         }
 
     }
+    public static final String WBS_ALERT_TOKEN = "wbsAlertNote";
 
     private class SyncProjectNode extends SyncNode {
 

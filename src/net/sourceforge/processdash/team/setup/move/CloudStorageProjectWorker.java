@@ -25,24 +25,31 @@ package net.sourceforge.processdash.team.setup.move;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Properties;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.sync.HierarchySynchronizer;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class CloudStorageProjectWorker extends MoveProjectWorker {
 
@@ -184,6 +191,7 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
         try {
             writeMoveFile();
             writeMinWbsVersion();
+            writeUpgradeNeededNote();
         } catch (IOException ioe) {
             logError("finishing cloud storage migration", ioe);
         }
@@ -219,6 +227,53 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
         }
     }
 
+    private void writeUpgradeNeededNote() throws IOException {
+        // rewrite the projDump.xml file so the root node of the project has
+        // an "upgrade needed" note. Older versions of the dashboard (which do
+        // not understand the new-style moved-data messages) will sync this
+        // note down for the user to read.
+        File f = makeWritable(new File(oldTeamDataDir, "projDump.xml"));
+        BufferedReader in = null;
+        RobustFileWriter out = null;
+        try {
+            in = new BufferedReader(new InputStreamReader( //
+                    new FileInputStream(f), "UTF-8"));
+            out = new RobustFileWriter(f, "UTF-8");
+
+            String line;
+            while ((line = in.readLine()) != null) {
+                out.write(line);
+                out.write("\n");
+                if (line.startsWith("<project "))
+                    writeUpgradeNeededNote(out);
+            }
+            out.flush();
+
+        } catch (IOException ioe) {
+            if (out != null)
+                out.abort();
+            throw ioe;
+
+        } finally {
+            FileUtils.safelyClose(in);
+            FileUtils.safelyClose(out);
+            f.setReadOnly();
+        }
+    }
+
+    private void writeUpgradeNeededNote(Writer out) throws IOException {
+        Resources res = Resources.getDashBundle("Bundler.Cloud");
+        out.write("     <note author='Cloud Storage Migration Wizard");
+        out.write("' timestamp='@" + System.currentTimeMillis());
+        out.write("' format='text'>[" + CLOUD_STORAGE_UPGRADE_NEEDED_URL + " ");
+        for (int i = 10; i-- > 0;)
+            out.write(UPGRADE_BULLET_CHAR);
+        out.write(" " + res.getHTML("Upgrade_Link_Name") + "]\n");
+        out.write(HTMLUtils.escapeEntities(res.format("Upgrade_Note_FMT", //
+            newTeamDirENC)));
+        out.write("</note>\n");
+    }
+
 
 
     // ask our superclass NOT to write the new team directory paths into the
@@ -244,5 +299,13 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
     // we don't need the FileBundleMigrator to lock the source directory,
     // because we've locked it ourselves in this class
     private static boolean SOURCE_DIR_IS_ALREADY_LOCKED_FLAG = false;
+
+    // a URL to direct team members to if they are on an old dashboard version
+    private static final String CLOUD_STORAGE_UPGRADE_NEEDED_URL = //
+            "https://www.processdash.com/cloudStorageUpgradeNeeded?" //
+                    + HierarchySynchronizer.WBS_ALERT_TOKEN;
+
+    // a right-arrow bullet for drawing attention to the upgrade link
+    private static final String UPGRADE_BULLET_CHAR = "&#x2B9E;";
 
 }
