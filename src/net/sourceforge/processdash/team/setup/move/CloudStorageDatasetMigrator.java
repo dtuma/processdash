@@ -26,7 +26,9 @@ package net.sourceforge.processdash.team.setup.move;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.Adler32;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -36,9 +38,12 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.setup.TeamMemberDataStatus;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils;
 import net.sourceforge.processdash.team.setup.TeamProjectUtils.ProjectType;
+import net.sourceforge.processdash.team.setup.move.MoveProjectException.OutOfDateTeamMembers;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
@@ -46,6 +51,7 @@ import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
@@ -94,6 +100,56 @@ public class CloudStorageDatasetMigrator {
             else if (wd instanceof BundledWorkingDirectory)
                 mpe.append("bundled", "t");
             throw mpe;
+        }
+    }
+
+
+
+    /**
+     * Make sure all team members are using new enough versions of the dashboard
+     * software to support cloud storage
+     */
+    public void validateTeamMemberVersions() throws OutOfDateTeamMembers {
+        // get info about the most recent export by each team member
+        DataImporter.refreshPrefix("/");
+        Map<String, TeamMemberDataStatus> teamMembers = new HashMap();
+        for (CloudStorageProjectWorker w : getProjectWorkers()) {
+            if (!w.isMaster)
+                gatherTeamMemberVersionInfo(teamMembers, w.projectPrefix);
+        }
+        List<TeamMemberDataStatus> result = new ArrayList(teamMembers.values());
+
+        // filter the results to find people who don't meet version reqts
+        Map<String, String> reqts = FileBundleMode.Sync.getMinVersions();
+        for (int i = result.size(); i-- > 0;) {
+            if (result.get(i).meetsRequirements(reqts))
+                result.remove(i);
+        }
+
+        // if any team members don't meet requirements, throw an exception
+        if (!result.isEmpty())
+            throw new OutOfDateTeamMembers(result);
+    }
+
+    private void gatherTeamMemberVersionInfo(
+            Map<String, TeamMemberDataStatus> teamMembers, String projectPath) {
+        List<TeamMemberDataStatus> statusList = TeamMemberDataStatus
+                .get(ctx.getData(), projectPath);
+        for (TeamMemberDataStatus status : statusList) {
+            String key = status.datasetID;
+            if (!StringUtils.hasValue(key))
+                key = status.ownerName;
+
+            TeamMemberDataStatus other = teamMembers.get(key);
+            String projectList = other == null ? status.projectPath
+                    : other.projectPath + "\t" + status.projectPath;
+            if (other == null || other.exportDate == null
+                    || other.exportDate.before(status.exportDate)) {
+                status.projectPath = projectList;
+                teamMembers.put(key, status);
+            } else {
+                other.projectPath = projectList;
+            }
         }
     }
 

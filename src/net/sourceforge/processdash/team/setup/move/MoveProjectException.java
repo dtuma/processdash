@@ -23,6 +23,9 @@
 
 package net.sourceforge.processdash.team.setup.move;
 
+import java.util.List;
+
+import net.sourceforge.processdash.team.setup.TeamMemberDataStatus;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
@@ -58,6 +61,17 @@ public class MoveProjectException extends RuntimeException {
 
     public String getDescription() {
         return "MoveProjectException: " + page + "?" + query;
+    }
+
+
+    public static class OutOfDateTeamMembers extends MoveProjectException {
+
+        protected List<TeamMemberDataStatus> teamMembers;
+
+        public OutOfDateTeamMembers(List<TeamMemberDataStatus> teamMembers) {
+            super("teamMembersOutOfDate");
+            this.teamMembers = teamMembers;
+        }
     }
 
 }

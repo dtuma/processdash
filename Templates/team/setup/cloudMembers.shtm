@@ -1,0 +1,106 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2022 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Cloud Storage Migration Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+td { vertical-align: top }
+#toggle.proceed   div.stop  { display: none }
+#toggle.stop   div.proceed  { display: none }
+</style>
+<script>
+function confirm() {
+    document.getElementById("toggle").className="proceed";
+}
+</script>
+</head>
+<body>
+
+<h1>Cloud Storage Migration Wizard</h1>
+
+<h2>Team Members Out of Date</h2>
+
+<p>Support for cloud storage was added in Process Dashboard 2.6.9.
+Unfortunately, the following team members may be using older versions
+of the software:</p>
+
+<table border style="margin-left:1cm">
+<tr>
+<th>Name</th>
+<th>Member of Projects</th>
+<th>Metrics Data Last Exported</th>
+<th>Process Dashboard<br/>Version Number</th>
+</tr>
+
+<!--#foreach name=Person list=[Team_Members//List] -->
+<tr>
+<td><!--#echo var=[Team_Members//Person_Name] --></td>
+<td><!--#echo var=[Team_Members//Person_Projects_HTML] encoding="none" --></td>
+<td><!--#echo var=[Team_Members//Person_Export_Date] --></td>
+<td><!--#echo var=[Team_Members//Person_Version] --></td>
+</tr>
+<!--#endfor-->
+
+</table>
+
+<p>If you migrate to cloud storage before these individuals upgrade,
+they will be unable to:</p>
+
+<ul>
+<li>Open the WBS Editor</li>
+<li>Perform a "Sync to WBS" operation</li>
+<li>Export their data for team rollups</li>
+<li>Open this team dashboard to view team charts/reports</li>
+</ul>
+
+<div id="toggle" class="stop">
+
+<div class="stop">
+
+<p>If the individuals listed above are no longer active members of
+these projects, <a href="#" onclick="confirm(); return false">click
+here</a>.  Otherwise, print this page, and work with the team to
+ensure everyone has upgraded the Process Dashboard.</p>
+
+</div><!-- stop -->
+
+
+<div class="proceed">
+
+<p>If the individuals listed above are no longer active members of
+these projects, click Next to continue with the migration process.</p>
+
+<form action="cloudMove" method="post">
+<input type="hidden" name="action" value="memberConfirm">
+<input type="submit" name="next" value="Next">
+</form>
+
+</div><!-- proceed -->
+
+</div><!-- toggle -->
+</body>
+</html>

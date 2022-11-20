@@ -24,10 +24,12 @@
 package net.sourceforge.processdash.team.setup;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
@@ -36,6 +38,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class TeamMemberDataStatus implements Comparable<TeamMemberDataStatus> {
@@ -160,6 +163,17 @@ public class TeamMemberDataStatus implements Comparable<TeamMemberDataStatus> {
         return result.toString();
     }
 
+    public boolean meetsRequirements(Map<String, String> packageReqts) {
+        for (Entry<String, String> e : packageReqts.entrySet()) {
+            String packageID = e.getKey();
+            String reqVersion = e.getValue();
+            String actVersion = getVersion(packageID);
+            if (VersionUtils.compareVersions(actVersion, reqVersion) < 0)
+                return false;
+        }
+        return true;
+    }
+
     public int compareTo(TeamMemberDataStatus that) {
         return this.ownerName.compareTo(that.ownerName);
     }
@@ -179,5 +193,14 @@ public class TeamMemberDataStatus implements Comparable<TeamMemberDataStatus> {
     private static final String TIMESTAMP_VAR = EXPORTED + "when";
 
     private static final String VERSION_PREFIX = EXPORTED + "withPackage/";
+
+
+    public static final Comparator<TeamMemberDataStatus> EXPORT_TIME_DESC = //
+            new Comparator<TeamMemberDataStatus>() {
+                public int compare(TeamMemberDataStatus s1,
+                        TeamMemberDataStatus s2) {
+                    return s2.exportDate.compareTo(s1.exportDate);
+                }
+            };
 
 }

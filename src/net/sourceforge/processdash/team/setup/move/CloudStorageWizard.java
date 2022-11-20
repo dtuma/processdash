@@ -26,10 +26,19 @@ package net.sourceforge.processdash.team.setup.move;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.team.setup.TeamMemberDataStatus;
+import net.sourceforge.processdash.team.setup.move.MoveProjectException.OutOfDateTeamMembers;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class CloudStorageWizard extends TinyCGIBase {
 
@@ -37,6 +46,8 @@ public class CloudStorageWizard extends TinyCGIBase {
     private static final String ACTION = "action";
     private static final String WELCOME_URI = "cloudWelcome.shtm";
     private static final String START_ACTION = "start";
+    private static final String MEMBER_VERSION_URI = "cloudMembers.shtm";
+    private static final String MEMBER_CONF_ACTION = "memberConfirm";
     private static final String FOLDER_URI = "cloudFolder.shtm";
     private static final String SAVE_FOLDER_ACTION = "saveFolder";
     private static final String CONFIRM_URI = "cloudConfirm.shtm";
@@ -81,6 +92,7 @@ public class CloudStorageWizard extends TinyCGIBase {
     private void handleRequest() throws MoveProjectException {
         String action = getParameter(ACTION);
         if (START_ACTION.equals(action))              handleStartAction();
+        else if (MEMBER_CONF_ACTION.equals(action))   handleMemberConfAction();
         else if (SAVE_FOLDER_ACTION.equals(action))   handleSaveFolder();
         else if (CONFIRM_ACTION.equals(action))       handleConfirmAction();
         else if (MIGRATE_ACTION.equals(action))       performMigration();
@@ -89,6 +101,7 @@ public class CloudStorageWizard extends TinyCGIBase {
 
 
     private void showWelcomePage() {
+        saveMemberVersionData(MEMBER_CONF_ACTION, null);
         printRedirect(WELCOME_URI);
     }
 
@@ -97,6 +110,7 @@ public class CloudStorageWizard extends TinyCGIBase {
         try {
             validateRuntimePreconditions();
             validateSourceData(true);
+            maybeValidateTeamMemberVersions();
         } catch (MoveProjectException mpe) {
             throw mpe.append("start", "t");
         }
@@ -109,6 +123,63 @@ public class CloudStorageWizard extends TinyCGIBase {
 
     private void validateSourceData(boolean quick) {
         getMigrator().validateSourceData(quick);
+    }
+
+    private void maybeValidateTeamMemberVersions() {
+        if (getMemberVersionData(MEMBER_CONF_ACTION) == null)
+            validateTeamMemberVersions();
+    }
+
+    private void validateTeamMemberVersions() {
+        try {
+            getMigrator().validateTeamMemberVersions();
+        } catch (OutOfDateTeamMembers oodtm) {
+            saveMemberVersionData(oodtm.teamMembers);
+            throw new MoveProjectException(MEMBER_VERSION_URI, oodtm.query);
+        }
+    }
+
+    private void saveMemberVersionData(List<TeamMemberDataStatus> teamMembers) {
+        Collections.sort(teamMembers, TeamMemberDataStatus.EXPORT_TIME_DESC);
+        StringBuilder list = new StringBuilder(",");
+        for (int i = 0; i < teamMembers.size(); i++) {
+            TeamMemberDataStatus t = teamMembers.get(i);
+            saveMemberVersionData(i, "Name", t.ownerName);
+            saveMemberVersionData(i, "Projects_HTML",
+                formatProjectList(t.projectPath));
+            saveMemberVersionData(i, "Export_Date",
+                FormatUtil.formatDateTime(t.exportDate));
+            saveMemberVersionData(i, "Version", t.dashVersion);
+            list.append(i + ",");
+        }
+        saveMemberVersionData("List", list.toString());
+    }
+
+    private void saveMemberVersionData(int num, String name, String value) {
+        saveMemberVersionData(num + "_" + name, value);
+    }
+
+    private void saveMemberVersionData(String name, String value) {
+        String dataName = "Team_Members//" + name;
+        StringData sd = (value == null ? null : StringData.create(value));
+        getDataContext().putValue(dataName, sd);
+    }
+
+    private String getMemberVersionData(String name) {
+        String dataName = "Team_Members//" + name;
+        SimpleData sd = getDataContext().getSimpleValue(dataName);
+        return (sd == null ? null : sd.format());
+    }
+
+    private String formatProjectList(String projects) {
+        return StringUtils.findAndReplace(HTMLUtils.escapeEntities(projects),
+            "\t", "<br/>");
+    }
+
+
+    private void handleMemberConfAction() {
+        saveMemberVersionData(MEMBER_CONF_ACTION, "t");
+        handleStartAction();
     }
 
 
