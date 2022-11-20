@@ -106,6 +106,7 @@ import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
@@ -2176,6 +2177,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 disposeWaitFrame(waitFrame);
                 return null;
             }
+            ImportDirectoryFactory.getInstance()
+                    .setBaseDirectory(workingDirectory);
             dir = workingDirectory.getDirectory();
             proj = new TeamProject(dir, "Team Project", true);
 

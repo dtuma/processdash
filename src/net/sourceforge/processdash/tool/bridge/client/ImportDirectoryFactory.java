@@ -71,6 +71,12 @@ public class ImportDirectoryFactory {
         this.baseDirectory = dir;
     }
 
+    public void setBaseDirectoryPath(String location) {
+        // this method exists in the main branch, and we use its logic to build
+        // the legacy WBS Editor. this empty method stub is provided to keep the
+        // compiler happy.
+    }
+
     public void setPreferCachesFor(String[] preferCachesFor) {
         this.preferCachesFor = preferCachesFor;
     }

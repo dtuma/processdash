@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2019 Tuma Solutions, LLC
+// Copyright (C) 2002-2022 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,8 @@ public class TeamProjectBottomUp extends TeamProject {
                 ? ignoredSubprojects : Collections.EMPTY_SET);
 
         MasterWBSUtil.setSizeMetrics(getTeamProcess().getSizeMetrics());
+        ImportDirectoryFactory.getInstance()
+                .setBaseDirectoryPath(importDir.getDescription());
         reloadBottomUpData();
         if (autoReload)
             watcher = new FileWatcher();
