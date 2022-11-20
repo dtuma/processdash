@@ -78,6 +78,25 @@ location to cloud storage.  Please contact the Process Dashboard
 development team for assistance.</p>
 
 
+<!--#elif missingParam -->
+
+<p>The project '<b><!--#echo projectPrefix --></b>' is missing the
+<b><!--#if projectIDMissing -->Project ID
+<!--#elif oldTeamDirMissing -->Project Network Directory
+<!--#endif--></b>
+value from its Project Parameters and Settings page.</p>
+
+<p>This is a very unusual problem, possibly an indication of:</p>
+<ul>
+<li>a missing metrics collection framework module</li>
+<li>missing or corrupt data files in the team dashboard directory</li>
+<li>lost configuration data from a past corruption event</li>
+</ul>
+
+<p>The wizard cannot continue until this problem has been
+corrected.</p>
+
+
 <!--#elif directoryUnreachable -->
 
 <p><!--#if projectPrefix -->The project '<b><!--#echo projectPrefix --></b>'

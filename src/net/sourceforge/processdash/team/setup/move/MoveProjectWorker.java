@@ -80,10 +80,10 @@ public class MoveProjectWorker {
         this.ctx = ctx;
         this.projectPrefix = projectPrefix;
         this.masterPrefix = masterPrefix;
-        this.projectID = projectID;
+        this.projectID = checkVal(projectID, "projectID");
         this.processID = processID;
         this.isMaster = isMaster;
-        this.oldTeamDir = oldTeamDir;
+        this.oldTeamDir = checkVal(oldTeamDir, "oldTeamDir");
         this.newTeamDir = newTeamDir;
         this.newTeamDirUNC = newTeamDirUNC;
 
@@ -94,6 +94,15 @@ public class MoveProjectWorker {
         SyncClientMappings.initialize(newTeamDataDir);
         this.newTeamDirENC = FolderMappingManager.getInstance()
                 .encodePath(newTeamDir);
+    }
+
+    private String checkVal(String val, String paramName) {
+        if (StringUtils.hasValue(val))
+            return val;
+        throw new MoveProjectException("missingParam") //
+                .append("projectPrefix", projectPrefix) //
+                .append(paramName + "Missing", "t") //
+                .append("fatal", "t");
     }
 
     private File getDataDir(String teamDir) {
