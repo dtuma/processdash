@@ -59,6 +59,8 @@ public class ImportDirectoryFactory {
 
     private WorkingDirectory baseDirectory;
 
+    private String baseDirectoryPath;
+
     private String[] preferCachesFor;
 
     private String[] noCachesFor;
@@ -72,6 +74,14 @@ public class ImportDirectoryFactory {
 
     public void setBaseDirectory(WorkingDirectory dir) {
         this.baseDirectory = dir;
+        if (dir instanceof LocalWorkingDirectory)
+            this.baseDirectoryPath = dir.getTargetDirectory().getAbsolutePath();
+    }
+
+    public void setBaseDirectoryPath(String location) {
+        if (StringUtils.hasValue(location)
+                && !TeamServerSelector.isUrlFormat(location))
+            this.baseDirectoryPath = location;
     }
 
     public void setPreferCachesFor(String[] preferCachesFor) {
@@ -196,6 +206,17 @@ public class ImportDirectoryFactory {
                         dir = new File(baseDirectory.getTargetDirectory(), subdir);
                     } else {
                         dir = new File(baseDirectory.getDirectory(), subdir);
+                    }
+
+                } else if (locationSlash.startsWith("../../data/")
+                        && baseDirectoryPath != null) {
+                    try {
+                        File parentDir = new File(baseDirectoryPath)
+                                .getParentFile().getParentFile();
+                        File dataDir = new File(parentDir, "data");
+                        dir = new File(dataDir, locationSlash.substring(11));
+                    } catch (NullPointerException npe) {
+                        dir = new File(location);
                     }
 
                 } else {
