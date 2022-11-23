@@ -109,8 +109,16 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
     public void writeUnlockedFile(String filename, InputStream source)
             throws IOException, LockFailureException {
         ensureUnlocked(filename);
-        FileUtils.copyFile(source, new File(getDirectory(), filename));
-        flushSingleFile(filename);
+
+        BundledWorkingDirectoryLocal bwd = //
+                (BundledWorkingDirectoryLocal) workingDir;
+        boolean lockWasCreated = bwd.lockWorkingDir();
+        try {
+            FileUtils.copyFile(source, new File(getDirectory(), filename));
+            flushSingleFile(filename);
+        } finally {
+            bwd.unlockWorkingDirIf(lockWasCreated);
+        }
     }
 
     public void deleteUnlockedFile(String filename)
