@@ -136,7 +136,11 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
         // eagerly save them. This will create a new bundle for the dirty files
         // to make sure they are not lost before we update() the directory. That
         // bundle could potentially be a fork that will trigger merge logic.
-        if (isDashboardDatasetDirectory() && client.isDirty())
+        // Don't perform this step if our working heads are invalid (pointing
+        // to bundles that no longer exist), as this would indicate we're out
+        // of sync with unexpected changes to the target bundle directory.
+        if (isDashboardDatasetDirectory() && client.workingHeadsAreValid()
+                && client.isDirty())
             flushLeftoverDirtyFiles();
     }
 
