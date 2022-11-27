@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -43,9 +42,6 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     private BundleMergeCoordinator bundleMergeCoordinator;
 
     private Worker worker;
-
-    private static final Logger logger = Logger
-            .getLogger(BundledWorkingDirectorySync.class.getName());
 
     public BundledWorkingDirectorySync(File targetDirectory,
             FileResourceCollectionStrategy strategy,
@@ -176,7 +172,7 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
             // if the computer is offline or the external file sync client is
             // not running, attempts to read uncached cloud files will fail.
             // Proceed anyway, saving the merge for another time
-            ioe.printStackTrace();
+            logger.log(Level.WARNING, logPrefix + "Bundle merge error", ioe);
         }
         return false;
     }
@@ -224,7 +220,7 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
                     fastForward();
                 } catch (Throwable e) {
                     logger.log(Level.WARNING,
-                        "Unexpected exception encountered when "
+                        logPrefix + "Unexpected exception encountered when "
                                 + "attempting bundle fast forward",
                         e);
                 }

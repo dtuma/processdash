@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.bridge.bundle;
 
+import static net.sourceforge.processdash.team.TeamDataConstants.DISSEMINATION_DIRECTORY;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +32,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -153,5 +158,32 @@ public class FileBundleUtils {
 
 
     static final String BUNDLE_MODE_PROP = "bundleMode";
+
+    /**
+     * Get a prefix that can be used in log messages to identify a bundle dir.
+     * 
+     * @param dir
+     *            a target directory or bundle directory
+     */
+    public static String getLogPrefix(File dir) {
+        while (true) {
+            if (dir == null) {
+                return "";
+            } else if (KNOWN_DIR_NAMES.contains(dir.getName())) {
+                dir = dir.getParentFile();
+            } else {
+                break;
+            }
+        }
+
+        String result = dir.getName();
+        if (DISSEMINATION_DIRECTORY.equalsIgnoreCase(result))
+            result = dir.getParentFile().getName() + "/diss";
+
+        return result + ": ";
+    }
+
+    private static final List<String> KNOWN_DIR_NAMES = Collections
+            .unmodifiableList(Arrays.asList("bundles", "heads", "metadata"));
 
 }

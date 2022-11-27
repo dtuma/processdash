@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
@@ -58,6 +59,11 @@ public class ResourceBundleClient {
 
     private String retentionThresholdTimestamp;
 
+    protected String logPrefix;
+
+    private static final Logger logger = Logger
+            .getLogger(ResourceBundleClient.class.getName());
+
     public ResourceBundleClient(FileResourceCollectionStrategy strategy,
             ResourceCollection workingDirectory, HeadRefs workingHeads,
             File manifestCacheDirectory, File bundleDirectory,
@@ -72,6 +78,10 @@ public class ResourceBundleClient {
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, this.workingHeads);
         setRetentionThresholdTimestamp();
+        this.logPrefix = FileBundleUtils.getLogPrefix(bundleDirectory);
+
+        logger.finest(logPrefix + "Locally checked out bundles: "
+                + workingHeads.getHeadRefs().values());
     }
 
     public void setRetentionThresholdTimestamp() {
@@ -141,6 +151,7 @@ public class ResourceBundleClient {
 
             } else {
                 // extract the new bundle into the directory
+                logger.fine(logPrefix + "Syncing down " + bundleID);
                 ResourceCollectionDiff diff = extractBundle(bundleID,
                     oldBundleID, false);
                 workingHeads.storeHeadRef(bundleID);
@@ -162,6 +173,7 @@ public class ResourceBundleClient {
         // if any files are obsolete, delete them
         for (String filename : obsoleteFilenames) {
             if (!containsIgnoreCase(currentFilenames, filename)) {
+                logger.finest(logPrefix + "Deleting file " + filename);
                 workingDir.deleteResource(filename);
                 madeChange = true;
             }
@@ -203,6 +215,7 @@ public class ResourceBundleClient {
 
         // re-extract the files and return true to indicate a change was made
         bundleDir.extractBundle(bundleID, workingDir, filesToRestore);
+        logger.finest(logPrefix + "Restored " + filesToRestore);
         return true;
     }
 
@@ -225,6 +238,7 @@ public class ResourceBundleClient {
             filesToExtract.addAll(diff.getOnlyInB());
         }
         bundleDir.extractBundle(bundleID, workingDir, filesToExtract);
+        logger.finest(logPrefix + "Extracted " + filesToExtract);
 
         // return the diff
         return diff;
@@ -259,8 +273,10 @@ public class ResourceBundleClient {
                 // the locally checked out bundle is no longer present in the
                 // remote bundle dir. It might have been replaced though. If it
                 // wasn't replaced by another bundle, it is invalid.
-                if (bundleDir.getManifestReplacing(bundleID) == null)
+                if (bundleDir.getManifestReplacing(bundleID) == null) {
+                    logger.warning(logPrefix + "Invalid ref: " + bundleID);
                     return false;
+                }
             }
         }
 
@@ -291,8 +307,11 @@ public class ResourceBundleClient {
                 workingDir, filenames);
 
             // make a note of whether any files were extracted
-            if (!extracted.listResourceNames().isEmpty())
+            List<String> extractedFiles = extracted.listResourceNames();
+            if (!extractedFiles.isEmpty()) {
+                logger.finest(logPrefix + "Restored " + extractedFiles);
                 madeChange = true;
+            }
         }
 
         // let our caller know whether any changes were made
@@ -354,6 +373,7 @@ public class ResourceBundleClient {
                     // in regular mode, publish the new/changed bundle
                     checkBundleRetention(spec, currentTime, obsoleteRefs);
                     FileBundleID newBundleID = bundleDir.storeBundle(spec);
+                    logger.fine(logPrefix + "Synced up " + newBundleID);
                     newRefs.add(newBundleID);
                 }
             }

@@ -65,7 +65,9 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
     private Worker worker;
 
-    private static final Logger logger = Logger
+    protected String logPrefix;
+
+    protected static final Logger logger = Logger
             .getLogger(BundledWorkingDirectoryLocal.class.getName());
 
     public BundledWorkingDirectoryLocal(File targetDirectory,
@@ -80,6 +82,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         this.workingDirLock = new FileConcurrencyLock(
                 new File(workingDirectory, WORKING_DIR_LOCK));
         this.enforceLocks = true;
+        this.logPrefix = FileBundleUtils.getLogPrefix(targetDirectory);
 
         // enable background data flushing for dashboard directories (not WBS)
         this.enableBackgroundFlush = isDashboardDatasetDirectory();
@@ -172,11 +175,15 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
         // ask the client to re-extract fresh copies of corrupt files
         try {
-            if (!corruptFilenames.isEmpty())
+            if (!corruptFilenames.isEmpty()) {
+                logger.warning(
+                    logPrefix + "Found corrupt files " + corruptFilenames);
                 client.restoreFiles(corruptFilenames);
+            }
         } catch (IOException ioe) {
             // recovering corrupt files is only done on a best-effort basis
-            ioe.printStackTrace();
+            logger.log(Level.WARNING,
+                logPrefix + "Couldn't restore corrupt files", ioe);
         }
     }
 
@@ -277,7 +284,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         try {
             client.saveLogBundle(logBundleTimestamp, false);
         } catch (Exception e) {
-            logger.log(Level.FINE, "Unable to save log file", e);
+            logger.log(Level.FINE, logPrefix + "Unable to save log file", e);
         }
 
         // save our file data cache periodically as well
@@ -286,6 +293,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
 
     protected void flushLeftoverDirtyFiles() {
         try {
+            logger.warning(logPrefix + "Flushing leftover dirty files");
             boolean changesWereSaved = client.syncUp();
             long logTime = collection.getLastModified(LOG_FILENAME);
             if (changesWereSaved && logTime > 0) {
@@ -545,7 +553,7 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
                     // user as they shut down.
                 } catch (Throwable e) {
                     logger.log(Level.WARNING,
-                        "Unexpected exception encountered when "
+                        logPrefix + "Unexpected exception encountered when "
                                 + "publishing working files to bundle dir",
                         e);
                 }

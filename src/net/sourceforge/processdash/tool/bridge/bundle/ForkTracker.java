@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
@@ -70,6 +71,11 @@ public class ForkTracker {
      */
     private Map<File, HeadRefsPropertiesFile> deviceHeadRefs;
 
+    private String logPrefix;
+
+    private static final Logger logger = Logger
+            .getLogger(ForkTracker.class.getName());
+
 
     public ForkTracker(File bundleHeadsDir, String filenamePrefix,
             String selfDeviceID, Set<String> overwriteBundleNames) {
@@ -83,6 +89,8 @@ public class ForkTracker {
 
         this.deviceHeadRefs = Collections.synchronizedMap(new HashMap());
         this.deviceHeadRefs.put(selfHeadsFile, selfHeadRefs);
+
+        this.logPrefix = FileBundleUtils.getLogPrefix(bundleHeadsDir);
     }
 
 
@@ -108,6 +116,7 @@ public class ForkTracker {
         if (fastForwardRefs.isEmpty()) {
             return false;
         } else {
+            logger.finest(logPrefix + "Fast forwarding to: " + fastForwardRefs);
             selfHeadRefs.storeHeadRefs(fastForwardRefs);
             return true;
         }
