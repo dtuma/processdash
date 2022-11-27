@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,9 +24,17 @@
 package net.sourceforge.processdash.ui;
 
 import java.awt.Dimension;
-import java.awt.event.*;
-import java.io.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 
 /** This simple class can capture the debugging output that was previously
@@ -75,6 +83,14 @@ public class ConsoleWindow extends JFrame {
     }
 
     public void setCopyOutputStream(OutputStream c) {
+        if (copy == null && c != null) {
+            // if the copy output stream is changing from null to a value,
+            // copy any characters that were missed to the new output stream
+            try {
+                c.write(textArea.getText().getBytes());
+            } catch (Exception e) {}
+        }
+
         copy = c;
     }
     public OutputStream getOutputStream() {

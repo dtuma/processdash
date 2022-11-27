@@ -220,12 +220,6 @@ public class FileBackupManager {
             File out = new File(dataDir, LOG_FILE_NAME);
             logFile = new FileOutputStream(out);
             ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
-            System.out.println("Process Dashboard - logging started at " +
-                               new Date());
-            System.out.println(System.getProperty("java.vendor") +
-                               " JRE " + System.getProperty("java.version") +
-                               "; " + System.getProperty("os.name"));
-            System.out.println("Using " + workingDirectory);
         } catch (IOException ioe) { printError(ioe); }
     }
 

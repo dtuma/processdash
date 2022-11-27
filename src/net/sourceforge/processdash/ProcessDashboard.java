@@ -52,6 +52,7 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -252,7 +253,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     WebServer webServer = null;
     DatabasePlugin databasePlugin = null;
     AutoUpdateManager aum = null;
-    ConsoleWindow consoleWindow = new ConsoleWindow();
+    static ConsoleWindow consoleWindow;
     ObjectCache objectCache;
     private BrokenDataFileHandler brokenData;
     private DashboardMergeCoordinator mergeCoordinator;
@@ -343,6 +344,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // load process templates, extension points, and other materials
         templates = TemplateLoader.loadTemplates(data);
         pt.click("Loaded templates");
+        if (versionNumber == null) {
+            versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
+            System.out.println("Process Dashboard version " + versionNumber);
+        }
         DataVersionChecker.ensureVersionsOrExit();
         TamperDeterrent.init();
 
@@ -425,8 +430,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DefectTypeStandard.registerStandardsFromTemplates(data);
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
         pt.click("Set datafile search URLs");
-        versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
-        System.out.println("Process Dashboard version " + versionNumber);
         System.out.println("Running as user "
                 + PermissionsManager.getInstance().getCurrentUsername());
 
@@ -823,6 +826,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void configureWorkingDirectory(String location) {
         workingDirectory = WorkingDirectoryFactory.getInstance().get(
             location, WorkingDirectoryFactory.PURPOSE_DASHBOARD);
+        System.out.println("Using " + workingDirectory);
 
         String locationDescr = workingDirectory.getDescription();
 
@@ -2248,9 +2252,22 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
     private static void mainImpl(String[] args) {
         DashboardSecurity.setupSecurityManager();
-        TLSConfig.autoConfigure();
 
         LargeFontsHelper.maybeInitialize();
+
+        // initialize logging and display startup version info
+        consoleWindow = new ConsoleWindow();
+        System.out.println("Process Dashboard - logging started at " //
+                + new Date());
+        System.out.println(System.getProperty("java.vendor") //
+                + " JRE " + System.getProperty("java.version") //
+                + "; " + System.getProperty("os.name"));
+        versionNumber = ProcessDashboard.class.getPackage()
+                .getImplementationVersion();
+        if (versionNumber != null)
+            System.out.println("Process Dashboard version " + versionNumber);
+
+        TLSConfig.autoConfigure();
 
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
