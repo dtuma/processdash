@@ -23,8 +23,8 @@
 
 package teamdash.wbs;
 
-import static teamdash.wbs.WBSFilenameConstants.DATA_DUMP_FILE;
 import static teamdash.wbs.WBSFilenameConstants.CHANGE_HISTORY_FILE;
+import static teamdash.wbs.WBSFilenameConstants.DATA_DUMP_FILE;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
@@ -54,9 +56,15 @@ public class TeamProjectBundleMerger implements BundleMerger {
 
     List<MergeConflictNotification> conflicts;
 
-    public TeamProjectBundleMerger(WorkingDirectory dir) {
+    private String logPrefix;
+
+    private static final Logger logger = Logger
+            .getLogger(TeamProjectBundleMerger.class.getName());
+
+    public TeamProjectBundleMerger(WorkingDirectory dir, String logPrefix) {
         this.workingDir = dir;
         this.conflicts = new ArrayList<MergeConflictNotification>();
+        this.logPrefix = logPrefix;
     }
 
     public List<MergeConflictNotification> getAndClearConflicts() {
@@ -84,7 +92,7 @@ public class TeamProjectBundleMerger implements BundleMerger {
         try {
             merger.run();
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, logPrefix + "Error merging bundles", e);
             throw new IOException(e);
         }
 

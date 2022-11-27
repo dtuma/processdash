@@ -45,6 +45,7 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
     public TeamProjectBundleMergeCoordinator(BundledWorkingDirectorySync dir) {
         super(dir);
+        logPrefix = logPrefix + "(legacyWBS) ";
     }
 
     public List<MergeConflictNotification> getConflicts() {
@@ -81,7 +82,7 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
     @Override
     protected BundleMerger makeBundleMerger() {
-        return new TeamProjectBundleMerger(workingDir);
+        return new TeamProjectBundleMerger(workingDir, logPrefix);
     }
 
     private TeamProjectBundleMerger getBundleMerger() {
@@ -97,8 +98,8 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
         // check the name of the bundle. We only merge the WBS bundle
         if (!WBS_BUNDLE_NAME.equals(teamRef.getBundleName())) {
-            log.severe("Unexpected forks in bundle '" + teamRef.getBundleName()
-                    + "' during team project merge");
+            log.severe(logPrefix + "Unexpected forks in bundle '"
+                    + teamRef.getBundleName() + "' during team project merge");
             return null;
         }
 
