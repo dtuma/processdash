@@ -36,11 +36,14 @@ import java.util.TreeMap;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
+import net.sourceforge.processdash.util.PatternList;
 
 public class DatafileMergeHandler extends MapMerger<String, String>
         implements DashboardFileMergeHandler {
 
     public static final DatafileMergeHandler INSTANCE = new DatafileMergeHandler();
+
+    private String filename;
 
     private DatafileMergeHandler() {}
 
@@ -49,6 +52,7 @@ public class DatafileMergeHandler extends MapMerger<String, String>
             ReadableResourceCollection first, ReadableResourceCollection second,
             ResourceCollection dest) throws IOException {
 
+        this.filename = filename;
         Map parentData = loadDatafile(filename, parent);
         Map firstData = loadDatafile(filename, first);
         Map secondData = loadDatafile(filename, second);
@@ -110,8 +114,16 @@ public class DatafileMergeHandler extends MapMerger<String, String>
     protected String mergeConflictingChange(String key, String parent,
             String first, String second) {
         // simple resolution strategy for now: latest edit wins
+        if (!HARMLESS_ELEMENTS.matches(key))
+            logger.warning("Overlapping changes in data file " + filename //
+                    + " to element " + key //
+                    + " [" + first + ", " + second + "] keeping newest");
         return second;
     }
+
+    private static final PatternList HARMLESS_ELEMENTS = new PatternList(
+            "^Synchronized_", "_Last_Synced_Val$", "_Timestamp$",
+            "^Project_Component_Info$", "^Project_Milestones_Info$");
 
     private static final String ENCODING = "UTF-8";
 

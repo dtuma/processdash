@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.merge;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
@@ -54,5 +55,8 @@ public interface DashboardFileMergeHandler {
             ReadableResourceCollection parent, ReadableResourceCollection first,
             ReadableResourceCollection second, ResourceCollection dest)
             throws IOException;
+
+    public static final Logger logger = Logger
+            .getLogger(DashboardFileMergeHandler.class.getName());
 
 }

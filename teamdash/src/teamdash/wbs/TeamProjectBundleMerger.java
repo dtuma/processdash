@@ -35,12 +35,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.bundle.BundleMerger;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
@@ -54,9 +57,15 @@ public class TeamProjectBundleMerger implements BundleMerger {
 
     List<MergeConflictNotification> conflicts;
 
+    private String logPrefix;
+
+    private static final Logger logger = Logger
+            .getLogger(TeamProjectBundleMerger.class.getName());
+
     public TeamProjectBundleMerger(WorkingDirectory dir) {
         this.workingDir = dir;
         this.conflicts = new ArrayList<MergeConflictNotification>();
+        this.logPrefix = FileBundleUtils.getLogPrefix(dir.getTargetDirectory());
     }
 
     public List<MergeConflictNotification> getAndClearConflicts() {
@@ -84,7 +93,7 @@ public class TeamProjectBundleMerger implements BundleMerger {
         try {
             merger.run();
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, logPrefix + "Error merging bundles", e);
             throw new IOException(e);
         }
 

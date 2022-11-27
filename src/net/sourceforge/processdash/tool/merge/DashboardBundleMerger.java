@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
@@ -43,6 +44,8 @@ import net.sourceforge.processdash.util.FileUtils;
 public class DashboardBundleMerger
         extends MapMerger<String, DashboardBundleMerger.FileState>
         implements BundleMerger {
+
+    private static final Logger logger = DashboardFileMergeHandler.logger;
 
     private List<String> mergedFiles;
 
@@ -106,6 +109,8 @@ public class DashboardBundleMerger
 
         // if no merge handler was found, this file uses an overwrite strategy.
         // just keep the newest version of the file.
+        logger.warning(
+            "Overlapping edits to file " + filename + ", keeping newest");
         return second;
     }
 
@@ -144,6 +149,8 @@ public class DashboardBundleMerger
                 out.close();
 
             } else if (state.conflictHandler != null) {
+                logger.warning("Overlapping edits to file " + filename
+                        + ", attempting merge");
                 state.conflictHandler.mergeFile(filename, parent, first, second,
                     dest);
             }

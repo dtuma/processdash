@@ -100,6 +100,8 @@ public class PspdashIniMergeHandler extends MapMerger<String, String>
 
         } else {
             // simple resolution strategy for now: latest edit wins
+            logger.warning("Overlapping changes to setting " + key //
+                    + " [" + first + ", " + second + "] keeping newest");
             return second;
         }
     }

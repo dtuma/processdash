@@ -118,6 +118,8 @@ public class StateMergeHandlerTeam implements DashboardFileMergeHandler {
                 // add an entry to the merged result with the same prop
                 PropertyKey mkey = HierarchyAlterer.doAddNode(merged, path);
                 merged.put(mkey, new Prop(prop));
+                logger.info(
+                    "Merging added project " + mkey.path() + "into hierarchy");
             }
         }
 

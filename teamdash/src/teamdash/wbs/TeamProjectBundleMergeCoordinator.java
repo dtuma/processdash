@@ -97,8 +97,8 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
 
         // check the name of the bundle. We only merge the WBS bundle
         if (!WBS_BUNDLE_NAME.equals(teamRef.getBundleName())) {
-            log.severe("Unexpected forks in bundle '" + teamRef.getBundleName()
-                    + "' during team project merge");
+            log.severe(logPrefix + "Unexpected forks in bundle '"
+                    + teamRef.getBundleName() + "' during team project merge");
             return null;
         }
 

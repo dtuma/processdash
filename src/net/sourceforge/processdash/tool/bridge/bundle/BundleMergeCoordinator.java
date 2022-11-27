@@ -45,11 +45,14 @@ public abstract class BundleMergeCoordinator {
 
     protected BundleMerger bundleMerger;
 
+    protected String logPrefix;
+
     protected static final Logger log = Logger
             .getLogger(BundleMergeCoordinator.class.getName());
 
     public BundleMergeCoordinator(BundledWorkingDirectorySync dir) {
         this.workingDir = dir;
+        this.logPrefix = dir.logPrefix;
     }
 
 
@@ -116,9 +119,11 @@ public abstract class BundleMergeCoordinator {
 
         // merge all of the files and publish to the bundle directory
         try {
+            log.fine(logPrefix + "Merging forked bundles " + bundleIDs);
             FileBundleID mergedBundleID = mergeBundleForks(bundleIDs, working);
 
             // return the ID of the merged bundle we published
+            log.info(logPrefix + "Published merge bundle " + mergedBundleID);
             return mergedBundleID;
 
         } finally {
@@ -134,6 +139,8 @@ public abstract class BundleMergeCoordinator {
         FileBundleID leftBundleID = bundleIDs.get(0);
         ReadableResourceCollection left = getCollection(leftBundleID);
         String bundleName = leftBundleID.getBundleName();
+        log.finer(logPrefix + "Merging bundle " + bundleName
+                + " beginning with " + leftBundleID);
 
         // iterate over the second and remaining bundles, merging each one into
         // our working result
@@ -149,6 +156,8 @@ public abstract class BundleMergeCoordinator {
 
             // perform a 3-way merge of the given bundles
             try {
+                log.finer(logPrefix + "Merging in fork " + rightBundleID
+                        + " using parent " + parentBundleID);
                 bundleMerger.mergeBundle(parent, left, right, working);
             } finally {
                 closeAll(parent, left, right, working);
