@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
-import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 /**
@@ -138,9 +138,9 @@ public class DynamicImportDirectory implements ImportDirectory {
                 this.delegate = newDelegate;
 
                 String type;
-                if (delegate instanceof BundledImportDirectoryLocal) {
+                if (delegate instanceof BundledImportDirectory) {
                     type = "BundledImportDirectory."
-                            + ((BundledImportDirectoryLocal) delegate)
+                            + ((BundledImportDirectory) delegate)
                                     .getBundleMode();
                 } else {
                     type = delegate.getClass().getSimpleName();

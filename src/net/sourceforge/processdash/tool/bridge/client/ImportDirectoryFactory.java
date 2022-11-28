@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
@@ -289,7 +289,7 @@ public class ImportDirectoryFactory {
 
         ImportDirectory result;
         if (FileBundleUtils.isBundledDir(dir))
-            result = refresh(new BundledImportDirectoryLocal(dir));
+            result = refresh(new BundledImportDirectory(dir));
         else if (noRemote || cacheDisabledFor(dir))
             result = new LocalImportDirectory(dir);
         else

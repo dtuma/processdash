@@ -38,19 +38,19 @@ import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.NotLockedException;
 
-public class BundledImportDirectoryLocal implements ImportDirectory {
+public class BundledImportDirectory implements ImportDirectory {
 
     protected BundledWorkingDirectory workingDir;
 
     protected long lastUpdateTime;
 
-    public BundledImportDirectoryLocal(File dir) {
+    public BundledImportDirectory(File dir) {
         this.workingDir = BundledWorkingDirectoryLocal.create(dir, STRATEGY,
             DirectoryPreferences.getMasterWorkingDirectory(), true);
         this.lastUpdateTime = -1;
     }
 
-    protected BundledImportDirectoryLocal(File dir,
+    protected BundledImportDirectory(File dir,
             FileResourceCollectionStrategy strategy) {
         this.workingDir = BundledWorkingDirectoryLocal.create(dir, strategy,
             DirectoryPreferences.getMasterImportDirectory(), false);
@@ -157,11 +157,11 @@ public class BundledImportDirectoryLocal implements ImportDirectory {
             dir = ((DynamicImportDirectory) dir).getDelegate();
 
         // if this is not a bundled import dir, return null
-        if (!(dir instanceof BundledImportDirectoryLocal))
+        if (!(dir instanceof BundledImportDirectory))
             return null;
 
         // if the import isn't using a sync working dir, return null
-        BundledImportDirectoryLocal bid = (BundledImportDirectoryLocal) dir;
+        BundledImportDirectory bid = (BundledImportDirectory) dir;
         if (!(bid.workingDir instanceof BundledWorkingDirectorySync))
             return null;
 

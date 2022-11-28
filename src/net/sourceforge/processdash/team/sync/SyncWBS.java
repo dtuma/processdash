@@ -66,7 +66,7 @@ import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
-import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectoryLocal;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
@@ -515,7 +515,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
     private void checkSyncBundleMerge(ImportDirectory importDir)
             throws IOException {
         // if this is not a sync bundle directory, do nothing
-        ForkTracker forkTracker = BundledImportDirectoryLocal
+        ForkTracker forkTracker = BundledImportDirectory
                 .getSyncBundleForkTracker(importDir);
         if (forkTracker == null)
             return;
