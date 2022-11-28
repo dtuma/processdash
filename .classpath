@@ -25,7 +25,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-common-3.1.1.jar" sourcepath="lib/xmlrpc-common-3.1.1-sources.jar"/>
 	<classpathentry kind="lib" path="installer/IzPack/lib/installer.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
-	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jna-5.11.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
 	<classpathentry exported="false" kind="lib" path="lib/pdes-jnlp-api.jar" sourcepath="/teamserver/src"/>
 	<classpathentry kind="lib" path="lib/jetty-8.1.19.jar" sourcepath="misc/zips/jetty-8.1.19-src.jar"/>
