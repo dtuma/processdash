@@ -157,7 +157,8 @@ public class FileBackupManager {
         }
 
         if (result != null && who != null && extraBackupLocations != null) {
-            makeExtraBackupCopies(result, who, extraBackupLocations);
+            makeExtraBackupCopies(result, who, extraBackupLocations,
+                workingDirectory.getTargetDirectory());
         }
 
         return result;
@@ -237,7 +238,7 @@ public class FileBackupManager {
     }
 
     private static void makeExtraBackupCopies(File backupFile, String who,
-            String[] locations) {
+            String[] locations, File baseDir) {
         if (backupFile == null
                 || who == null || who.length() == 0
                 || locations == null || locations.length == 0)
@@ -248,7 +249,11 @@ public class FileBackupManager {
         for (int i = 0; i < locations.length; i++) {
             ThreadThrottler.tick();
             File copy = null;
-            File oneLocation = new File(locations[i]);
+            File oneLocation;
+            if (locations[i].startsWith("./") || locations[i].startsWith(".\\"))
+                oneLocation = new File(baseDir, locations[i].substring(2));
+            else
+                oneLocation = new File(locations[i]);
             if (oneLocation.isDirectory())
                 copy = new File(oneLocation, filename);
             else if (oneLocation.getParentFile().isDirectory()) {

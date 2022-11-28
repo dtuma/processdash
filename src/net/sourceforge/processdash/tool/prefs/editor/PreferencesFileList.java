@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,10 +37,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.StringUtils;
-
-import org.w3c.dom.Element;
 
 public class PreferencesFileList extends PreferencesList implements ListSelectionListener {
 
@@ -57,8 +58,10 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
     /** Used to indicate if the file list can contain folders, files or both */
     private static final String ALLOW_FOLDERS_TAG = "allowFolders";
     private static final String ALLOW_FILES_TAG = "allowFiles";
+    private static final String RELATIVE_PATHS_TAG = "relativePaths";
     private boolean allowFolders;
     private boolean allowFiles;
+    private boolean relativePaths;
 
     private JList fileList;
     private DefaultListModel listModel;
@@ -71,6 +74,7 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
     protected void retrieveAttributes(Element xml) {
         String allowFoldersProp = xml.getAttribute(ALLOW_FOLDERS_TAG);
         String allowFilesProp = xml.getAttribute(ALLOW_FILES_TAG);
+        String relativePathsProp = xml.getAttribute(RELATIVE_PATHS_TAG);
         String separator = xml.getAttribute(SPERARATOR_TAG);
         String maxItems = xml.getAttribute(MAX_ITEMS_TAG);
 
@@ -90,7 +94,7 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
                                 ? true : Boolean.parseBoolean(allowFoldersProp);
         allowFiles = !StringUtils.hasValue(allowFilesProp)
                                 ? true : Boolean.parseBoolean(allowFilesProp);
-
+        relativePaths = "true".equals(relativePathsProp);
     }
 
     private String getNewFilePath(String initialPath) {
@@ -106,18 +110,43 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
         fileChooser.setFileSelectionMode(fileSelectionMode);
 
         if (initialPath != null)
-            fileChooser.setSelectedFile(new File(initialPath));
+            fileChooser.setSelectedFile(getAbsoluteFileFor(initialPath));
 
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
 
-            if (selectedFile != null)
+            if (selectedFile != null) {
                 path = selectedFile.getAbsolutePath();
+                if (relativePaths)
+                    path = getRelativePathFor(path);
+            }
         }
 
         return path;
+    }
+
+    private File getAbsoluteFileFor(String path) {
+        if (path.startsWith("./") || path.startsWith(".\\"))
+            return new File(getBaseDir(), path.substring(2));
+        else
+            return new File(path);
+    }
+
+    private String getRelativePathFor(String path) {
+        String rootPath = getBaseDir().getAbsolutePath();
+        if (path.equals(rootPath))
+            return ".";
+        else if (path.startsWith(rootPath + File.separatorChar))
+            return "." + path.substring(rootPath.length());
+        else
+            return path;
+    }
+
+    private File getBaseDir() {
+        DashboardContext ctx = (DashboardContext) map.get(DashboardContext.class);
+        return ctx.getWorkingDirectory().getTargetDirectory();
     }
 
     @Override
