@@ -259,12 +259,13 @@ public class FolderMappingManager {
      *             if the [key] in the given path does not match any registered
      *             folder mapping
      * @throws FileNotFoundException
-     *             if the root folder for the given [key] does not exist, if a
-     *             matching folder underneath could not be found, or if multiple
-     *             folders match equally
+     *             if the root folder for the given [key] does not exist
+     * @throws MissingSubfolder
+     *             if a matching folder underneath could not be found, or if
+     *             multiple folders match equally
      */
     public File searchForDirectory(String path, int minMatchLen)
-            throws IllegalArgumentException, MissingMapping,
+            throws IllegalArgumentException, MissingMapping, MissingSubfolder,
             FileNotFoundException {
         String[] parsed = parseEncodedPath(path);
         if (parsed == null || parsed.length < 2 || parsed[1].length() == 0)
@@ -306,7 +307,7 @@ public class FolderMappingManager {
 
         // no matches found? abort
         if (matchingDirs.isEmpty())
-            throw new FileNotFoundException(path);
+            throw new MissingSubfolder(exactMatch.getPath(), key, relPath);
 
         // if we have a single match, return it
         if (matchingDirs.size() == 1)
@@ -318,8 +319,7 @@ public class FolderMappingManager {
             return matchingDirs.get(0).directory;
 
         // multiple matches of similar length: abort
-        throw new FileNotFoundException(
-                "Multiple matches found under " + key + " for " + relPath);
+        throw new MissingSubfolder(exactMatch.getPath(), key, relPath);
     }
 
     private void scanRecursivelyForMatchingDirectories(File directory,
@@ -425,6 +425,25 @@ public class FolderMappingManager {
         private String key, relPath;
 
         private MissingMapping(String path, String key, String relPath) {
+            super(path);
+            this.key = key;
+            this.relPath = relPath;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getRelPath() {
+            return relPath;
+        }
+    }
+
+    public class MissingSubfolder extends FileNotFoundException {
+
+        private String key, relPath;
+
+        private MissingSubfolder(String path, String key, String relPath) {
             super(path);
             this.key = key;
             this.relPath = relPath;

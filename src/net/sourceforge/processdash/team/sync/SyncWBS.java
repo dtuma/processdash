@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +77,7 @@ import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -489,6 +491,19 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
                 data.putValue(TEAM_DIRECTORY_UNC, null);
                 dir = nid;
                 isValid = true;
+
+            } catch (MissingMapping mm) {
+                // display a message if the shared folder is unregistered
+                StringBuffer err = new StringBuffer("?sharedFolderUnknownKey");
+                HTMLUtils.appendQuery(err, "key", mm.getKey());
+                HTMLUtils.appendQuery(err, "relPath",
+                    mm.getRelPath().substring(1));
+                signalError(err.substring(1));
+
+            } catch (FileNotFoundException fnfe) {
+                // display a message if the resolved path is not found
+                String dirPath = fnfe.getMessage();
+                signalError("sharedFolderDirNotFound&teamDir", dirPath);
 
             } catch (Exception e) {
                 // if a replacement directory could not be found and validated,
