@@ -165,6 +165,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
 import net.sourceforge.processdash.tool.merge.SyncDeviceSuffixProvider;
@@ -767,6 +768,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                         + "' specified by link file '" + linkFileName
                         + "' does not exist");
             }
+        } catch (MissingMapping mm) {
+            displayStartupFolderMappingError("Key_Error", mm.getKey());
+
+        } catch (FileNotFoundException fnfe) {
+            displayStartupFolderMappingError("Dir_Error", fnfe.getMessage());
+
         } catch (Exception e) {
             displayStartupIOError("Errors.Read_File_Error.Data_Directory",
                 location, e);
@@ -806,7 +813,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private String maybeResolveSharedFolderPath(String location)
-            throws IOException {
+            throws MissingMapping, FileNotFoundException {
         // if this is not a [Shared Folder] path, return it unchanged
         if (!FolderMappingManager.isEncodedPath(location))
             return location;
@@ -821,6 +828,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return mgr.searchForDirectory(location, 0).getAbsolutePath();
         else
             return mgr.resolvePath(location);
+    }
+
+    private void displayStartupFolderMappingError(String resKey, String arg) {
+        if (resources == null)
+            resources = Resources.getDashBundle("ProcessDashboard");
+
+        Object message = resources.formatStrings(
+            "Errors.Shared_Folder." + resKey + ".Message_FMT", arg);
+        JOptionPane.showMessageDialog(hideSS(), ssFront(message),
+            resources.getString("Errors.Read_File_Error.Title"),
+            JOptionPane.ERROR_MESSAGE);
     }
 
     private void configureWorkingDirectory(String location) {
