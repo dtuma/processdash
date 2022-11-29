@@ -30,16 +30,16 @@ import java.util.Map;
 public enum FileBundleMode {
 
     Sync("sync", //
-            "pspdash", "2.6.8.2", //
-            "teamTools", "5.6.0", //
-            "teamToolsB", "6.2.7", //
-            "tpidw-embedded", "1.6.7"),
+            "pspdash", "2.6.9", //
+            "teamTools", "5.6.1", //
+            "teamToolsB", "6.2.8", //
+            "tpidw-embedded", "1.6.9"),
 
     Local("local", //
-            "pspdash", "2.6.6.3", //
-            "teamTools", "5.5.2", //
-            "teamToolsB", "6.2.0", //
-            "tpidw-embedded", "1.6.7");
+            "pspdash", "2.6.9", //
+            "teamTools", "5.6.1", //
+            "teamToolsB", "6.2.8", //
+            "tpidw-embedded", "1.6.9");
 
 
     private String modeName;

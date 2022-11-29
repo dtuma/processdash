@@ -743,7 +743,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return location;
     }
     public static final String DATA_MOVED_FILENAME = "moved-data.txt";
-    public static final String DATA_MOVED_MIN_VERSION = "2.6.8.2";
+    public static final String DATA_MOVED_MIN_VERSION = "2.6.9";
 
     private String followDataDirLinkFile(String linkFileName) {
         String location = readDataDirLinkFile(linkFileName);
