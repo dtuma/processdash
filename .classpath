@@ -31,7 +31,7 @@
 	<classpathentry kind="lib" path="lib/jetty-8.1.19.jar" sourcepath="misc/zips/jetty-8.1.19-src.jar"/>
 	<classpathentry kind="lib" path="lib/swingx-0.9.1.jar" sourcepath="lib/swingx-0.9.1-src.zip"/>
 	<classpathentry kind="lib" path="teamdash/lib/poi-3.17-20170915.jar" sourcepath="teamdash/lib/poi-src-3.17-20170915.zip"/>
-	<classpathentry kind="lib" path="teamdash/lib/working-dirs-classes-2.6.8.2.jar"/>
+	<classpathentry kind="lib" path="teamdash/lib/working-dirs-classes-2.6.9.jar"/>
 	<classpathentry kind="lib" path="lib/tamper-deterrent.jar"/>
 	<classpathentry kind="lib" path="lib/jgit-5.1.3.jar" sourcepath="lib/jgit-5.1.3-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jgit-ui-5.1.3.jar" sourcepath="lib/jgit-ui-5.1.3-sources.jar"/>
