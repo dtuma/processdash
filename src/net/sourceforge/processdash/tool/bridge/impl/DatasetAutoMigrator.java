@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -426,9 +427,9 @@ public class DatasetAutoMigrator {
         String noOption = getRes("Migrate.Options.No");
         String[] options = new String[] { yesOption, noOption };
 
-        int userChoice = JOptionPane.showOptionDialog(dp(), message, title,
-            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-            options, yesOption);
+        int userChoice = JOptionPane.showOptionDialog(dp(), toFront(message),
+            title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+            null, options, yesOption);
         return (userChoice == 0);
     }
 
@@ -440,9 +441,9 @@ public class DatasetAutoMigrator {
         String noOption = getRes("Migrate.Options.No_Recommended");
         String[] options = new String[] { yesOption, noOption };
 
-        int userChoice = JOptionPane.showOptionDialog(dp(), message, title,
-            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-            options, noOption);
+        int userChoice = JOptionPane.showOptionDialog(dp(), toFront(message),
+            title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+            null, options, noOption);
         return (userChoice == 0);
     }
 
@@ -450,8 +451,8 @@ public class DatasetAutoMigrator {
         String title = getRes("Migrate.Close.Title");
         String[] message = getRes("Migrate.Close.Message").split("\n");
 
-        int userChoice = JOptionPane.showConfirmDialog(dp(), message, title,
-            JOptionPane.OK_CANCEL_OPTION);
+        int userChoice = JOptionPane.showConfirmDialog(dp(), toFront(message),
+            title, JOptionPane.OK_CANCEL_OPTION);
         return (userChoice == JOptionPane.OK_OPTION);
     }
 
@@ -466,6 +467,10 @@ public class DatasetAutoMigrator {
             return dps.getDialogParent();
         else
             return null;
+    }
+
+    private Object toFront(Object message) {
+        return new Object[] { message, new JOptionPaneTweaker.ToFront() };
     }
 
     private String getRes(String key) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -84,10 +85,10 @@ public class BetaVersionSetup {
             if (!backupDirectory.exists() && backupDirectory.mkdir())
                 copyDir(new File(property_directory), backupDirectory);
 
-            String message[] = StringUtils.split
+            Object message[] = new Object[] { StringUtils.split
                 (StringUtils.findAndReplace(BETA_WARNING_MESSAGE, "VERSION",
                                             getVersion()),
-                 "\n");
+                 "\n"), new JOptionPaneTweaker.ToFront() };
 
             // display a beta warning message to the user.
             JOptionPane.showMessageDialog(null, message, "Beta software",

@@ -36,6 +36,7 @@ import javax.swing.JOptionPane;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class DataVersionChecker {
@@ -53,7 +54,7 @@ public class DataVersionChecker {
                     .append(item.getBullet());
         }
         String title = res.getString("Title");
-        Object[] message = new Object[3];
+        Object[] message = new Object[4];
         message[0] = res.getStrings("Header");
         if (missingList.length() > 0) {
             message[1] = missingList.substring(1).split("\n");
@@ -62,6 +63,7 @@ public class DataVersionChecker {
             message[1] = upgradeList.substring(1).split("\n");
             message[2] = res.getStrings("Upgrade_Message");
         }
+        message[3] = new JOptionPaneTweaker.ToFront();
         JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.ERROR_MESSAGE);
         System.exit(1);

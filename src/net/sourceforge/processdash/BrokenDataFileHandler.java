@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2018 Tuma Solutions, LLC
+// Copyright (C) 1998-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
@@ -179,7 +180,8 @@ public class BrokenDataFileHandler {
         // If there are unrepaired files, display an error dialog
         ProcessDashboard.dropSplashScreen();
         Resources r = Resources.getDashBundle("ProcessDashboard.Errors");
-        String message = getCorruptFileStr() + "\n" + r.getString("Lost_Data_Message");
+        Object message = new Object[] { new JOptionPaneTweaker.ToFront(),
+                getCorruptFileStr(), r.getString("Lost_Data_Message") };
         String title = r.getString("Lost_Data_Title");
         int response = JOptionPane.showConfirmDialog(dialogParent, message,
             title, JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
@@ -316,6 +318,7 @@ public class BrokenDataFileHandler {
         String title = r.getString("Repaired_Null.Title");
         Object message = new Object[] { r.getString("Repaired_Null.Header"),
                 StringUtils.join(repairedNullFiles, "\n"), " ",
+                new JOptionPaneTweaker.ToFront(),
                 r.getString("Repaired_Null.Footer") };
         JOptionPane.showMessageDialog(dialogParent, message, title,
             JOptionPane.ERROR_MESSAGE);
@@ -485,7 +488,7 @@ public class BrokenDataFileHandler {
             public void actionPerformed(ActionEvent e) {
                 Browser.launch(url);
             }};
-        Object[] message = new Object[] {
+        Object[] message = new Object[] { new JOptionPaneTweaker.ToFront(),
             formatString(resources.format("Missing_MCF.Header_FMT", pid), null),
             BoxUtils.hbox(30, new JScrollPane(projectList)), " ", //
             formatString(resources.format(resKey, pid,

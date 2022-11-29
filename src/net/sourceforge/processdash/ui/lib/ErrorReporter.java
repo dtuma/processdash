@@ -137,10 +137,8 @@ public class ErrorReporter {
         JScrollPane scrollPane = new JScrollPane(jep);
         scrollPane.setPreferredSize(new java.awt.Dimension(200, 200));
 
-        Object [] dialogComponents = new Object[3];
-        dialogComponents[0] = preMessage;
-        dialogComponents[1] = scrollPane;
-        dialogComponents[2] = postMessage;
+        Object[] dialogComponents = new Object[] { preMessage, scrollPane,
+                postMessage, new JOptionPaneTweaker.ToFront() };
 
         JOptionPane.showMessageDialog(parentComponent, dialogComponents, title,
                                       JOptionPane.ERROR_MESSAGE);

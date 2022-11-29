@@ -67,6 +67,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -1203,11 +1204,11 @@ public class DashHierarchy extends Hashtable<PropertyKey, Prop> implements
           if (e instanceof SAXParseException)
               lineNum = ((SAXParseException) e).getLineNumber();
 
+          Object[] message = new Object[] { new JOptionPaneTweaker.ToFront(),
+                  resources.formatStrings("Errors.Corrupt_Statefile_Warning_FMT",
+                      e.getLocalizedMessage(), filename, new Integer(lineNum)) };
           JOptionPane.showMessageDialog
-              (null,
-               resources.formatStrings("Errors.Corrupt_Statefile_Warning_FMT",
-                                       e.getLocalizedMessage(), filename,
-                                       new Integer(lineNum)),
+              (null, message,
                resources.getString("Errors.Corrupt_Statefile_Title"),
                JOptionPane.ERROR_MESSAGE);
         }
