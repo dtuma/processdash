@@ -78,7 +78,7 @@ public class SyncClientMappings {
         if (files != null) {
             // look for subdirs that match known naming patterns
             for (File f : files)
-                maybeAddDirectory(f);
+                maybeAddDirectory(f, true);
         }
     }
 
@@ -88,13 +88,17 @@ public class SyncClientMappings {
         // under a sync client folder we didn't how to find.
         File f = dir.getParentFile();
         while (f != null) {
-            maybeAddDirectory(f);
+            maybeAddDirectory(f, false);
             f = f.getParentFile();
         }
     }
 
-    private void maybeAddDirectory(File f) {
+    private void maybeAddDirectory(File f, boolean isHome) {
         String key = f.getName();
+        if ("My Drive".equals(key))
+            key = "Google Drive";
+        else if ("Box".equals(key) && isHome)
+            key = "Box Drive";
         String folder = f.getAbsolutePath();
         if (nameContainsToken(key) //
                 && f.isDirectory() //
@@ -114,6 +118,6 @@ public class SyncClientMappings {
     }
 
     private static final String[] TOKENS = { "OneDrive", "DropBox",
-            "Google Drive", "My Drive" };
+            "Google Drive", "My Drive", "Box Drive", "IDrive-Sync" };
 
 }
