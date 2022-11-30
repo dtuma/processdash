@@ -123,6 +123,7 @@ public class CloudStorageDashboardWorker {
 
         // copy the files to the new directory, bundling them at the same time
         try {
+            newDirectory.mkdirs();
             FileBundleMigrator.migrate(oldDirectory, newDirectory,
                 DashboardInstanceStrategy.INSTANCE, FileBundleMode.Sync,
                 SOURCE_DIR_IS_ALREADY_LOCKED_FLAG);
