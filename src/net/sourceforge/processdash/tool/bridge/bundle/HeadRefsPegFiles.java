@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import net.sourceforge.processdash.util.FileUtils;
 
 /**
  * An implementation of HeadRefs that stores bundle references by creating
@@ -96,19 +98,38 @@ public class HeadRefsPegFiles implements HeadRefs {
 
         // iterate over the new HEAD refs to be stored
         for (FileBundleID bundleID : headRefs) {
-            String bundleName = bundleID.getBundleName();
-
-            // write a new peg file to store the new HEAD ref
+            // build the name of the peg file we need to create
             String newFilename = pegFilePrefix + bundleID.getToken() + ".txt";
             File newPegFile = new File(pegFileDirectory, newFilename);
-            OutputStream out = FileBundleUtils.outputStream(newPegFile);
-            out.write('#');
-            out.close();
 
-            // delete peg files from the directory that represent old HEADs
-            // for the given bundle
-            deletePegFilesForBundle(pegFilenames, bundleName);
+            // see if this device has written a file in the past we can reuse
+            String reuseFilename = getPegFileToReuse(pegFilenames, bundleID);
+            if (reuseFilename != null) {
+                // rename the old peg file to the new name
+                File fileToReuse = new File(pegFileDirectory, reuseFilename);
+                FileUtils.renameFile(fileToReuse, newPegFile);
+                pegFilenames.remove(reuseFilename);
+
+            } else {
+                // write a new peg file to store the new HEAD ref
+                OutputStream out = FileBundleUtils.outputStream(newPegFile);
+                out.write('#');
+                out.close();
+            }
         }
+    }
+
+    private String getPegFileToReuse(List<String> pegFilenames,
+            FileBundleID newBundleID) {
+        // look through the existing peg files for one that was written by this
+        // device for this bundle
+        String deviceAndBundleNameSuffix = newBundleID.getToken()
+                .substring(FileBundleID.TIMESTAMP_LEN) + ".txt";
+        for (String onePegFile : pegFilenames) {
+            if (onePegFile.endsWith(deviceAndBundleNameSuffix))
+                return onePegFile;
+        }
+        return null;
     }
 
 

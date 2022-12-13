@@ -156,6 +156,8 @@ public class FileBundleID {
             + "(" + DeviceID.REGEX + ")-" // group 2: device ID
             + "([^. ]+)");                // group 3: bundle name
 
+    public static final int TIMESTAMP_LEN = 15;
+
 
     /** Sorts bundle IDs in chronological order from oldest to newest */
     public static final Comparator<FileBundleID> CHRONOLOGICAL_ORDER = new Comparator<FileBundleID>() {
