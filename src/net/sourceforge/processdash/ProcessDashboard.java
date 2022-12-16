@@ -287,7 +287,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // adjust the working directory if necessary.
         if (location == null)
             location = maybeFollowDataDirLinkFile();
-        location = maybeFollowDataMovedFile(location);
+        location = maybeResolveEncodedOrDataMovedLocation(location);
         configureWorkingDirectory(location);
 
         // load app defaults and user settings.
@@ -733,8 +733,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     /** @since 2.6.9 */
-    private String maybeFollowDataMovedFile(String location) {
-        if (TeamServerSelector.isUrlFormat(location) == false) {
+    private String maybeResolveEncodedOrDataMovedLocation(String location) {
+        if (FolderMappingManager.isEncodedPath(location)) {
+            return resolveDataDirLocation(location, null);
+
+        } else if (TeamServerSelector.isUrlFormat(location) == false) {
             File dataMovedFile = new File(location, DATA_MOVED_FILENAME);
             if (dataMovedFile.isFile())
                 return followDataDirLinkFile(dataMovedFile.getPath());
@@ -747,6 +750,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     private String followDataDirLinkFile(String linkFileName) {
         String location = readDataDirLinkFile(linkFileName);
+        return resolveDataDirLocation(location, linkFileName);
+    }
+
+    private String resolveDataDirLocation(String location, String linkFileName) {
         if (TeamServerSelector.isUrlFormat(location))
             return location;
 
@@ -765,7 +772,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 return location;
             } else {
                 throw new IOException("Directory '" + location
-                        + "' specified by link file '" + linkFileName
+                        + (linkFileName == null ? "" 
+                                : "' specified by link file '" + linkFileName)
                         + "' does not exist");
             }
         } catch (MissingMapping mm) {
