@@ -57,6 +57,9 @@ li {
 installed on this computer and running, and it must be
 managing/synchronizing the directory you choose below.</p>
 
+<p>Enter the full path (on your local computer/hard drive) to the
+chosen directory.</p>
+
 <form action="cloudMove" method="post">
 <input type="hidden" name="action" value="saveFolder">
 
