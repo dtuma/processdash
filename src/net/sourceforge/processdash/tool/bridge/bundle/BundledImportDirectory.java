@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Properties;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
@@ -116,10 +118,73 @@ public class BundledImportDirectory implements ImportDirectory {
         try {
             FileUtils.copyFile(source, new File(getDirectory(), filename));
             flushSingleFile(filename);
+            maybePurgeOldPdashFiles(filename);
         } finally {
             bwd.unlockWorkingDirIf(lockWasCreated);
         }
     }
+
+    private void maybePurgeOldPdashFiles(String filename) {
+        // only purge older PDASH files
+        if (!filename.toLowerCase().endsWith(".pdash"))
+            return;
+
+        // see how many PDASH bundles we're configured to retain. 0 == no limit
+        int retainBundleCount = getPdashRetentionBundleCount();
+        if (retainBundleCount <= 0)
+            return;
+
+        // Find the bundle dir and list its contents
+        File targetDir = workingDir.getTargetDirectory();
+        File bundleDir = new File(targetDir, FileBundleConstants.BUNDLE_SUBDIR);
+        String[] filenames = bundleDir.list();
+        if (filenames == null)
+            return;
+
+        // Scan files starting with newest, looking for bundles of this file
+        String suffix = "-" + FileBundleID.filenameToBundleName(filename)
+                + ".xml";
+        Arrays.sort(filenames);
+        int count = 0;
+        for (int i = filenames.length; i-- > 0;) {
+            String fn = filenames[i];
+            if (fn.endsWith(suffix)) {
+                if (++count > retainBundleCount) {
+                    // log a message about purging this bundle
+                    String bundleID = fn.substring(0, fn.length() - 4);
+                    BundledWorkingDirectoryLocal.logger.fine(
+                        ((BundledWorkingDirectoryLocal) workingDir).logPrefix
+                                + "Purging old bundle " + bundleID);
+
+                    // delete the XML and ZIP file associated with the bundle
+                    new File(bundleDir, fn).delete();
+                    new File(bundleDir, bundleID + ".zip").delete();
+                }
+            }
+        }
+    }
+
+    private int getPdashRetentionBundleCount() {
+        if (pdashRetentionBundleCount == null)
+            pdashRetentionBundleCount = readPdashRetentionBundleCount();
+        return pdashRetentionBundleCount;
+    }
+
+    private Integer readPdashRetentionBundleCount() {
+        try {
+            File targetDir = workingDir.getTargetDirectory();
+            Properties p = FileBundleUtils.getBundleProps(targetDir);
+            String val = p.getProperty("pdashRetentionBundleCount");
+            return Integer.valueOf(val);
+        } catch (Throwable t) {
+        }
+
+        // default: retain 10 bundles
+        return 10;
+    }
+
+    private Integer pdashRetentionBundleCount = null;
+
 
     public void deleteUnlockedFile(String filename)
             throws IOException, LockFailureException {
