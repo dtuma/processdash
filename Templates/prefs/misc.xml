@@ -44,6 +44,11 @@ preferences a category.
               helpId="prefs.autoUpdate"
               inverted="true" />
 
+    <checkbox id="dataset.isCloudStorage"
+              setting="dataset.isCloudStorage"
+              ifPropIsSet="personalMode"
+              requiresRestart="false" />
+
     <checkbox id="slowNetwork"
               setting="slowNetwork"
               helpId="prefs.slowNetwork"
