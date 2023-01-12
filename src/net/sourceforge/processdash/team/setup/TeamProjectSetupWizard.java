@@ -887,8 +887,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
         createTeamDirectory(disseminationDir, isPersonal);
 
-        if (Settings.getBool("bundle.newProjects",
-            getWorkingDirectory() instanceof BundledWorkingDirectory))
+        boolean bundleNewProjectsByDefault = //
+                getWorkingDirectory() instanceof BundledWorkingDirectory
+                        || Settings.getBool("dataset.isCloudStorage", false);
+        if (Settings.getBool("bundle.newProjects", bundleNewProjectsByDefault))
             bundleProjectDataDirectory(projDataDir, isPersonal);
 
         return projDataDir.getPath();
