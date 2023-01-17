@@ -35,6 +35,8 @@ import javax.swing.JOptionPane;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
+import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
@@ -87,8 +89,22 @@ class CloudStorageSetupHelper {
         if (!isEditableSession())
             return;
 
-        // if the user answered the cloud storage question earlier in the
-        // startup sequence, save their response
+        // if there is already a setting for the cloud storage flag, abort
+        if (Settings.getVal(CLOUD_SETTING) != null)
+            return;
+
+        // if this is a personal dashboard whose working dir might be cloud,
+        WorkingDirectory wd = dash.getWorkingDirectory();
+        File dir = wd.getTargetDirectory();
+        if (Settings.isPersonalMode() //
+                && wd instanceof LocalWorkingDirectory //
+                && mightBeCloudDir(dir)) {
+            // ask the user if this personal dashboard is using cloud storage
+            IS_CLOUD_STORAGE = askIfCloudStorage(dash, false,
+                dir.getAbsolutePath());
+        }
+
+        // save the user's response to the cloud storage question
         if (IS_CLOUD_STORAGE != null)
             InternalSettings.set(CLOUD_SETTING, IS_CLOUD_STORAGE.toString());
     }
