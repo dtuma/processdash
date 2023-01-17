@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2022 Tuma Solutions, LLC
+// Copyright (C) 1998-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -850,6 +850,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void configureWorkingDirectory(String location) {
+        CloudStorageSetupHelper.runNewTeamDashboardCheck(ss, location);
+
         workingDirectory = WorkingDirectoryFactory.getInstance().get(
             location, WorkingDirectoryFactory.PURPOSE_DASHBOARD);
         System.out.println("Using " + workingDirectory);
@@ -2336,6 +2338,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         dropSplashScreen();
         dash.maybeNotifyOpened();
+        CloudStorageSetupHelper.runPostStartupChecks(dash);
         if (dash.mergeCoordinator != null)
             dash.mergeCoordinator.showMergeConflictWarnings(dash);
         dash.aum.maybePerformCheck(dash);
