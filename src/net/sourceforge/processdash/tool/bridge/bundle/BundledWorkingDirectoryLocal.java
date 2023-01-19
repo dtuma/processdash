@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -294,8 +294,9 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     protected void flushLeftoverDirtyFiles() {
         try {
             logger.warning(logPrefix + "Flushing leftover dirty files");
-            boolean changesWereSaved = client.syncUp();
             long logTime = collection.getLastModified(LOG_FILENAME);
+            client.setUseModTimeForBundleTimestamp(logTime + 1000);
+            boolean changesWereSaved = client.syncUp();
             if (changesWereSaved && logTime > 0) {
                 // save the log file from the crashed session
                 client.saveLogBundle(logTime, true);
@@ -306,6 +307,8 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
         } catch (IOException ioe) {
             // if we were unable to save the leftover files, continue without
             // error. They can be saved on the next syncUp
+        } finally {
+            client.setUseModTimeForBundleTimestamp(-1);
         }
         hasLeftoverDirtyFiles = false;
     }

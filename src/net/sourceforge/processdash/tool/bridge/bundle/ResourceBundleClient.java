@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,8 @@ public class ResourceBundleClient {
 
     private String retentionThresholdTimestamp;
 
+    private long useModTimeForBundleTimestamp;
+
     protected String logPrefix;
 
     private static final Logger logger = Logger
@@ -78,6 +80,7 @@ public class ResourceBundleClient {
         this.partitioner = new FileBundlePartitioner(strategy, workingDir,
                 workingHeads, this.workingHeads);
         setRetentionThresholdTimestamp();
+        this.useModTimeForBundleTimestamp = -1;
         this.logPrefix = FileBundleUtils.getLogPrefix(bundleDirectory);
 
         logger.finest(logPrefix + "Locally checked out bundles: "
@@ -87,6 +90,21 @@ public class ResourceBundleClient {
     public void setRetentionThresholdTimestamp() {
         retentionThresholdTimestamp = bundleDir.getCurrentTimeBundleID()
                 .getTimestamp();
+    }
+
+    /**
+     * Configure whether newly published bundles should receive a timestamp that
+     * reflects the modification time of the files they contain.
+     * 
+     * @param modTimestamp
+     *            <tt>-1</tt> to disable the use of file modification times for
+     *            bundle timestamp generation. Any number greater than or equal
+     *            to zero will arrange for bundles to receive a timestamp
+     *            reflecting the modification time of the newest file they
+     *            contain, or this value, whichever is higher.
+     */
+    public void setUseModTimeForBundleTimestamp(long modTimestamp) {
+        this.useModTimeForBundleTimestamp = modTimestamp;
     }
 
     public ResourceCollection getWorkingDir() {
@@ -371,7 +389,10 @@ public class ResourceBundleClient {
                     return true;
                 } else {
                     // in regular mode, publish the new/changed bundle
-                    checkBundleRetention(spec, currentTime, obsoleteRefs);
+                    if (useModTimeForBundleTimestamp >= 0)
+                        assignModTimeForBundleTimestamp(spec);
+                    else
+                        checkBundleRetention(spec, currentTime, obsoleteRefs);
                     FileBundleID newBundleID = bundleDir.storeBundle(spec);
                     logger.fine(logPrefix + "Synced up " + newBundleID);
                     newRefs.add(newBundleID);
@@ -428,6 +449,36 @@ public class ResourceBundleClient {
             return true;
         else
             return containsIgnoreCase(filenames, singleFilename);
+    }
+
+    private void assignModTimeForBundleTimestamp(FileBundleSpec spec) {
+        // if this spec already has an explicit timestamp, don't change it
+        if (spec.timestamp > 0)
+            return;
+
+        // begin with the mod timestamp we've been configured to use
+        long modTime = useModTimeForBundleTimestamp;
+
+        // if any files in this bundle are newer, adopt their mod time
+        for (String filename : spec.filenames)
+            modTime = Math.max(modTime, spec.source.getLastModified(filename));
+
+        // if no file mod times were found, fallback to regular timestamp logic
+        if (modTime == 0)
+            return;
+
+        // ensure the selected bundle timestamp is later than its parent bundle
+        FileBundleTimeFormat fmt = bundleDir.getTimeFormat();
+        for (FileBundleID parent : spec.parents) {
+            try {
+                long parentTime = fmt.parse(parent.getTimestamp()).getTime();
+                modTime = Math.max(modTime, parentTime + 1000);
+            } catch (Exception e) {
+            }
+        }
+
+        // assign this modification timestamp to the bundle spec
+        spec.timestamp = modTime;
     }
 
     private void checkBundleRetention(FileBundleSpec spec,
