@@ -113,13 +113,16 @@ public class HttpAuthenticator extends Authenticator {
         this.resources = Resources.getDashBundle("Authentication.Password");
         this.title = title;
         this.state = State.Initial;
+        this.rememberMeDays = -1;
         this.lastUrl = System.getProperty(LAST_URL_SETTING_NAME);
         this.lastUsername = System.getProperty(LAST_USERNAME_SETTING_NAME);
 
         if (CookieHandler.getDefault() == null)
             CookieHandler.setDefault(
                 new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+    }
 
+    private void initRememberMeDays() {
         if (Keyring.isPersistent()) {
             try {
                 this.rememberMeDays = Float.parseFloat(System
@@ -127,6 +130,8 @@ public class HttpAuthenticator extends Authenticator {
             } catch (Exception e) {
                 this.rememberMeDays = 14;
             }
+        } else {
+            this.rememberMeDays = 0;
         }
     }
 
@@ -187,6 +192,8 @@ public class HttpAuthenticator extends Authenticator {
         passwordLabel.setPreferredSize(d);
 
         // if "remember me" support is enabled, create a checkbox
+        if (rememberMeDays < 0)
+            initRememberMeDays();
         JCheckBox rememberMe = null;
         if (rememberMeDays > 0) {
             rememberMe = new JCheckBox(
