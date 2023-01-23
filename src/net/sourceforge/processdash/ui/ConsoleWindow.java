@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2022 Tuma Solutions, LLC
+// Copyright (C) 2001-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 
 /** This simple class can capture the debugging output that was previously
@@ -125,12 +126,24 @@ public class ConsoleWindow extends JFrame {
             if (copy != null) copy.write(b);
             byte[] buf = new byte[1];
             buf[0] = (byte) b;
-            textArea.append(new String(buf));
+            textAreaAppend(new String(buf));
         }
         public void write(byte[] b, int off, int len) throws IOException {
             orig.write(b, off, len);
             if (copy != null) copy.write(b, off, len);
-            textArea.append(new String(b, off, len));
+            textAreaAppend(new String(b, off, len));
+        }
+        private void textAreaAppend(String text) {
+            SwingUtilities.invokeLater(new TextAreaAppend(text));
+        }
+    }
+    private class TextAreaAppend implements Runnable {
+        private String text;
+        private TextAreaAppend(String text) {
+            this.text = text;
+        }
+        public void run() {
+            textArea.append(text);
         }
     }
 }
