@@ -328,6 +328,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
         WorkingDirectoryFactory.getInstance().setBaseDirectory(relativeBaseDir);
+        DeviceLockManager.setWorkingDirectory(workingDirectory);
         DashController.setDataDirectory(dataDir);
         ExternalDataFile.setDataDirectory(dataDir);
         pt.click("Set default directory");
@@ -1457,6 +1458,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         try {
             workingDirectory.acquireWriteLock(lockMessageHandler,
                 lockOwnerName);
+            DeviceLockManager.writeLockFile(lockMessageHandler, lockOwnerName);
             return;
         } catch (ReadOnlyLockFailureException ro) {
             showFilesAreReadOnlyMessage(workingDirectory.getDescription(), ro);
