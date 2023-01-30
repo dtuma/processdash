@@ -198,6 +198,10 @@ class CloudStorageSetupHelper {
         }
     }
 
+    public static boolean isCloudStorage() {
+        return Settings.getBool(CLOUD_SETTING, false);
+    }
+
     private static final String CLOUD_SETTING = "dataset.isCloudStorage";
 
 }

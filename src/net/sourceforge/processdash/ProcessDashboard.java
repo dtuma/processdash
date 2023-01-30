@@ -1486,8 +1486,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // display a message with next steps for problem resolution
         Object advice = res.getString(RES_ECD + "Recovery_Advice").split("\n");
+        Object cloud = " ";
+        if (CloudStorageSetupHelper.isCloudStorage())
+            cloud = new Object[] { " ",
+                    res.getString(RES_ECD + "Cloud_Message").split("\n"), " " };
         Object ignore = res.getString(RES_ECD + "Ignore_Message").split("\n");
-        message = new Object[] { header, " ", advice, " ", ignore };
+        message = new Object[] { header, " ", advice, cloud, ignore };
         String okOption = res.getString(RES_ECD + "OK");
         String ignoreOption = res.getString(RES_ECD + "Ignore");
         userChoice = JOptionPane.showOptionDialog(hideSS(), message, title,
