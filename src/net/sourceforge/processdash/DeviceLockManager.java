@@ -97,6 +97,12 @@ public class DeviceLockManager {
     }
 
 
+    static void ignore(DeviceLock lock) {
+        if (INSTANCE != null && lock != null)
+            lock.delete();
+    }
+
+
 
     private File lockDir;
 
@@ -161,9 +167,11 @@ public class DeviceLockManager {
 
         public Date opened;
 
+        private File lockFile;
+
         private void writeToFile(File f) throws IOException {
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(selfLockFile), "UTF-8"));
+                    new FileOutputStream(lockFile = f), "UTF-8"));
 
             out.write("<?xml version='1.0' standalone='yes'?>");
             out.newLine(); out.newLine();
@@ -190,12 +198,19 @@ public class DeviceLockManager {
         }
 
         private void readFromFile(File f) throws IOException, SAXException {
-            Element xml = XMLUtils.parse(new FileInputStream(f))
+            Element xml = XMLUtils.parse(new FileInputStream(lockFile = f))
                     .getDocumentElement();
             owner = xml.getAttribute(OWNER_ATTR);
             username = xml.getAttribute(USERNAME_ATTR);
             host = xml.getAttribute(HOST_ATTR);
             opened = XMLUtils.getXMLDate(xml, OPENED_ATTR);
+        }
+
+        private void delete() {
+            if (lockFile != null) {
+                logger.severe("Deleting / ignoring device lock " + lockFile);
+                lockFile.delete();
+            }
         }
 
         public int compareTo(DeviceLock that) {

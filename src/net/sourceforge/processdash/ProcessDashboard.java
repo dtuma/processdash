@@ -1485,12 +1485,26 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         // display a message with next steps for problem resolution
-        message[2] = res.getString(RES_ECD + "Recovery_Advice").split("\n");
-        JOptionPane.showMessageDialog(hideSS(), message, title,
-            JOptionPane.WARNING_MESSAGE);
+        Object advice = res.getString(RES_ECD + "Recovery_Advice").split("\n");
+        Object ignore = res.getString(RES_ECD + "Ignore_Message").split("\n");
+        message = new Object[] { header, " ", advice, " ", ignore };
+        String okOption = res.getString(RES_ECD + "OK");
+        String ignoreOption = res.getString(RES_ECD + "Ignore");
+        userChoice = JOptionPane.showOptionDialog(hideSS(), message, title,
+            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+            new Object[] { okOption, ignoreOption }, okOption);
 
-        // after the user acknowleges the message, exit the application
-        System.exit(1);
+        // if the user chose to ignore the lock, delete it
+        if (userChoice == 1) {
+            DeviceLockManager.ignore(newestLock);
+            if (locks.size() > 1)
+                // if other locks were present, warn the user about them next
+                checkForConcurrentDeviceLocks();
+
+        } else {
+            // otherwise, exit the app after the user acknowleges the message
+            System.exit(1);
+        }
     }
 
     private Object getDeviceLockDialogHeader(ResourceBundle res,
