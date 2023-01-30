@@ -25,12 +25,19 @@ package net.sourceforge.processdash;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.tool.bridge.bundle.DeviceID;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
@@ -82,6 +89,14 @@ public class DeviceLockManager {
     }
 
 
+    static List<DeviceLock> getConflictingLocks() {
+        if (INSTANCE != null)
+            return INSTANCE.getOtherLocks();
+        else
+            return Collections.EMPTY_LIST;
+    }
+
+
 
     private File lockDir;
 
@@ -115,9 +130,32 @@ public class DeviceLockManager {
         }
     }
 
+    private List<DeviceLock> getOtherLocks() {
+        List<DeviceLock> result = new ArrayList<DeviceLock>();
+        String[] files = lockDir.list();
+        if (files != null) {
+            for (String oneFile : files) {
+                if (oneFile.startsWith(LOCK_FILE_PREFIX) //
+                        && oneFile.endsWith(LOCK_FILE_SUFFIX) //
+                        && !oneFile.equalsIgnoreCase(selfLockFilename)) {
+                    try {
+                        DeviceLock oneLock = new DeviceLock();
+                        oneLock.readFromFile(new File(lockDir, oneFile));
+                        result.add(oneLock);
+                    } catch (Exception e) {
+                        logger.log(Level.FINE,
+                            "Could not read device lock file " + oneFile, e);
+                    }
+                }
+            }
+        }
+        Collections.sort(result);
+        return result;
+    }
 
 
-    public class DeviceLock {
+
+    public class DeviceLock implements Comparable<DeviceLock> {
 
         public String owner, username, host;
 
@@ -149,6 +187,23 @@ public class DeviceLockManager {
                 out.write(XMLUtils.escapeAttribute(value));
                 out.write("'");
             }
+        }
+
+        private void readFromFile(File f) throws IOException, SAXException {
+            Element xml = XMLUtils.parse(new FileInputStream(f))
+                    .getDocumentElement();
+            owner = xml.getAttribute(OWNER_ATTR);
+            username = xml.getAttribute(USERNAME_ATTR);
+            host = xml.getAttribute(HOST_ATTR);
+            opened = XMLUtils.getXMLDate(xml, OPENED_ATTR);
+        }
+
+        public int compareTo(DeviceLock that) {
+            // sort in reverse-chronological order, newest first
+            if (this.opened == that.opened) return 0;
+            if (this.opened == null) return +1;
+            if (that.opened == null) return -1;
+            return that.opened.compareTo(this.opened);
         }
     }
 

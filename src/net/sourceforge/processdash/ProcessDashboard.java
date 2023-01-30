@@ -81,6 +81,7 @@ import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
+import net.sourceforge.processdash.DeviceLockManager.DeviceLock;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ExternalDataFile;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -1422,8 +1423,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         String setting = Settings.getVal("readOnly");
-        if (setting == null) return;
-        if (setting.toLowerCase().startsWith("recommend")) {
+        if (setting == null) {
+            // no readOnly setting to process
+        } else if (setting.toLowerCase().startsWith("recommend")) {
             // Must manually use ResourceBundles until after the
             // TemplateLoader is initialized.
             ResourceBundle res = ResourceBundle.getBundle(
@@ -1450,6 +1452,63 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } else if (setting.equalsIgnoreCase("follow")) {
             InternalSettings.setReadOnlyFollowMode();
         }
+
+        if (Settings.isReadWrite() && Settings.isPersonalMode()) {
+            checkForConcurrentDeviceLocks();
+        }
+    }
+
+    private static final String RES_ECD = "Errors.Concurrent_Device.";
+
+    private void checkForConcurrentDeviceLocks() {
+        // see if any other devices appear to be using this data
+        List<DeviceLock> locks = DeviceLockManager.getConflictingLocks();
+        if (locks.isEmpty())
+            return;
+        DeviceLock newestLock = locks.get(0);
+
+        // display a message advising the user of the lock, and asking if they
+        // wish to continue in read-only mode
+        ResourceBundle res = ResourceBundle
+                .getBundle("Templates.resources.ProcessDashboard");
+        String title = res.getString(RES_ECD + "Title");
+        Object header = getDeviceLockDialogHeader(res, newestLock);
+        String readOnly = res.getString(RES_ECD + "Read_Only");
+        Object[] message = new Object[] { header, " ", readOnly };
+        int userChoice = JOptionPane.showConfirmDialog(hideSS(), message, title,
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        // if the user said they wish to continue in read-only mode, make it so
+        if (userChoice == JOptionPane.YES_OPTION) {
+            InternalSettings.setReadOnly(true);
+            return;
+        }
+
+        // display a message with next steps for problem resolution
+        message[2] = res.getString(RES_ECD + "Recovery_Advice").split("\n");
+        JOptionPane.showMessageDialog(hideSS(), message, title,
+            JOptionPane.WARNING_MESSAGE);
+
+        // after the user acknowleges the message, exit the application
+        System.exit(1);
+    }
+
+    private Object getDeviceLockDialogHeader(ResourceBundle res,
+            DeviceLock lock) {
+        return new Object[] { new JOptionPaneTweaker.ToFront(),
+                res.getString(RES_ECD + "Header").split("\n"),
+                " ", //
+                getDeviceLockDescriptionLine(res, "Full_Name", lock.owner),
+                getDeviceLockDescriptionLine(res, "User_Name", lock.username),
+                getDeviceLockDescriptionLine(res, "Host_Name", lock.host) };
+    }
+
+    private String getDeviceLockDescriptionLine(ResourceBundle res, String key,
+            String value) {
+        if (!StringUtils.hasValue(value))
+            return "";
+        else
+            return "        " + res.getString(RES_ECD + key) + "  " + value;
     }
 
     private void tryToLockDataForWriting() {
