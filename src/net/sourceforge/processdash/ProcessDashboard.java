@@ -165,8 +165,8 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
-import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
+import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
 import net.sourceforge.processdash.tool.merge.SyncDeviceSuffixProvider;
@@ -931,6 +931,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 showLostLockMessage("Ongoing_Advice");
                 return "OK";
             }
+            else if (DeviceLockManager.CONCURRENT_LOCK_DETECTED.equals(msg)) {
+                showConcurrentDeviceLockDetected((DeviceLock) e.getSource());
+                return "OK";
+            }
             else {
                 throw new IllegalArgumentException("Unrecognized message");
             }
@@ -1509,6 +1513,28 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             // otherwise, exit the app after the user acknowleges the message
             System.exit(1);
         }
+    }
+
+    private void showConcurrentDeviceLockDetected(DeviceLock lock) {
+        // write a message to the log
+        logger.severe("Another device may have opened this dataset: " + lock);
+
+        showConcurrentDeviceLockError(lock,
+            resources.getStrings(RES_ECD + "Detected.Shutdown_Other"));
+    }
+
+    private void showConcurrentDeviceLockError(DeviceLock lock, Object footer) {
+        // display a message warning the user about concurrent usage
+        String title = resources.getString(RES_ECD + "Detected.Title");
+        Object header = getDeviceLockDialogHeader(resources, lock);
+        Object warning = resources.getStrings(RES_ECD + "Detected.Warning");
+        Object cloud = " ";
+        if (CloudStorageSetupHelper.isCloudStorage())
+            cloud = new Object[] { " ",
+                    resources.getStrings(RES_ECD + "Cloud_Message"), " " };
+        Object message = new Object[] { header, " ", warning, cloud, footer };
+        JOptionPane.showMessageDialog(this, message, title,
+            JOptionPane.ERROR_MESSAGE);
     }
 
     private Object getDeviceLockDialogHeader(ResourceBundle res,
