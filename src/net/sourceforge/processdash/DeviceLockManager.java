@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash;
 
+import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +38,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -44,9 +48,15 @@ import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.util.ComputerName;
 import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 
 public class DeviceLockManager {
+
+    public static final String CONCURRENT_LOCK_DETECTED = "concurrentDeviceDetected";
+
+    public static final String CONCURRENT_LOCK_LOST = "concurrentDeviceLockLost";
+
 
     // singleton instance of lock manager
     private static DeviceLockManager INSTANCE = null;
@@ -84,14 +94,16 @@ public class DeviceLockManager {
 
 
     static void writeLockFile(LockMessageHandler handler, String lockOwner) {
-        if (INSTANCE != null)
-            INSTANCE.writeLockFileImpl(handler, lockOwner);
+        if (INSTANCE != null) {
+            INSTANCE.writeLockFileImpl(lockOwner);
+            INSTANCE.maybeStartLockWatcher(handler);
+        }
     }
 
 
     static List<DeviceLock> getConflictingLocks() {
         if (INSTANCE != null)
-            return INSTANCE.getOtherLocks();
+            return INSTANCE.getOtherLocks(true);
         else
             return Collections.EMPTY_LIST;
     }
@@ -112,6 +124,8 @@ public class DeviceLockManager {
 
     private DeviceLock selfLock;
 
+    private LockWatcher lockWatcher;
+
 
     private DeviceLockManager(File lockDir) throws IOException {
         String deviceID = DeviceID.get();
@@ -121,8 +135,7 @@ public class DeviceLockManager {
         this.selfLockFile.deleteOnExit();
     }
 
-    private void writeLockFileImpl(LockMessageHandler handler,
-            String lockOwner) {
+    private void writeLockFileImpl(String lockOwner) {
         selfLock = new DeviceLock();
         selfLock.owner = lockOwner;
         selfLock.username = System.getProperty("user.name");
@@ -136,7 +149,14 @@ public class DeviceLockManager {
         }
     }
 
-    private List<DeviceLock> getOtherLocks() {
+    private void maybeStartLockWatcher(LockMessageHandler handler) {
+        if (handler != null) {
+            lockWatcher = new LockWatcher(handler);
+            lockWatcher.start();
+        }
+    }
+
+    private List<DeviceLock> getOtherLocks(boolean logErrors) {
         List<DeviceLock> result = new ArrayList<DeviceLock>();
         String[] files = lockDir.list();
         if (files != null) {
@@ -149,7 +169,7 @@ public class DeviceLockManager {
                         oneLock.readFromFile(new File(lockDir, oneFile));
                         result.add(oneLock);
                     } catch (Exception e) {
-                        logger.log(Level.FINE,
+                        logger.log(logErrors ? Level.WARNING : Level.FINER,
                             "Could not read device lock file " + oneFile, e);
                     }
                 }
@@ -220,7 +240,102 @@ public class DeviceLockManager {
             if (that.opened == null) return -1;
             return that.opened.compareTo(this.opened);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof DeviceLock) {
+                DeviceLock that = (DeviceLock) obj;
+                return EQ(this.owner, that.owner)
+                        && EQ(this.username, that.username)
+                        && EQ(this.host, that.host)
+                        && EQ(this.opened, that.opened);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "DeviceLock[" + owner + ", " + username + ", " + host + ", "
+                    + opened + "]";
+        }
     }
+
+
+    private class LockWatcher extends Thread {
+
+        private LockMessageHandler handler;
+
+        private boolean running;
+
+        private LockWatcher(LockMessageHandler handler) {
+            super("DeviceLockManager.LockWatcher");
+            setDaemon(true);
+            this.handler = handler;
+            this.running = true;
+        }
+
+        public void run() {
+            while (running) {
+                try {
+                    Thread.sleep(LOCK_WATCH_DELAY);
+                } catch (InterruptedException ie) {}
+
+                checkForOtherLocks();
+            }
+        }
+
+        private void checkForOtherLocks() {
+            // see if any other locks are present in the lock directory
+            List<DeviceLock> otherLocks = getOtherLocks(false);
+            if (otherLocks.isEmpty())
+                return;
+
+            // build a lock message based on the newest other lock
+            DeviceLock otherLock = otherLocks.get(0);
+            boolean selfObsolete = isSelfObsolete(otherLock);
+            String message = selfObsolete ? CONCURRENT_LOCK_LOST
+                    : CONCURRENT_LOCK_DETECTED;
+            final LockMessage lm = new LockMessage(otherLock, message);
+
+            // deliver the message on the event dispatch thread
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    try {
+                        handler.handleMessage(lm);
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE,
+                            "Error handling lock lost message", e);
+                    }
+                }
+            });
+
+            if (selfObsolete) {
+                // if the other device lock made this process obsolete, we will
+                // be shutting down, so we can stop monitoring for locks
+                running = false;
+
+            } else {
+                // if this process makes the other one obsolete, delete its lock.
+                // this avoids repeated warnings about the same lock, especially
+                // due to a process that crashed elsewhere.
+                otherLock.delete();
+            }
+        }
+
+        private boolean isSelfObsolete(DeviceLock otherLock) {
+            if (!selfLockFile.exists())
+                return true;
+            else
+                return selfLock.opened.before(otherLock.opened);
+        }
+    }
+
 
 
     private static final String LOCK_SUBDIR = "locks";
@@ -232,5 +347,7 @@ public class DeviceLockManager {
     private static final String USERNAME_ATTR = "username";
     private static final String HOST_ATTR = "host";
     private static final String OPENED_ATTR = "opened";
+
+    private static final int LOCK_WATCH_DELAY = 60000;
 
 }

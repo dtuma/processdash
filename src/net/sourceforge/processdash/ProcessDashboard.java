@@ -1535,7 +1535,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         try {
             workingDirectory.acquireWriteLock(lockMessageHandler,
                 lockOwnerName);
-            DeviceLockManager.writeLockFile(lockMessageHandler, lockOwnerName);
+            DeviceLockManager.writeLockFile(
+                Settings.isPersonalMode() ? lockMessageHandler : null,
+                lockOwnerName);
             return;
         } catch (ReadOnlyLockFailureException ro) {
             showFilesAreReadOnlyMessage(workingDirectory.getDescription(), ro);
