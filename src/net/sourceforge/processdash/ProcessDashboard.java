@@ -193,6 +193,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.JOptionPaneCountdownTimer;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
@@ -935,6 +936,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 showConcurrentDeviceLockDetected((DeviceLock) e.getSource());
                 return "OK";
             }
+            else if (DeviceLockManager.CONCURRENT_LOCK_LOST.equals(msg)) {
+                handleConcurrentDeviceLockLost((DeviceLock) e.getSource());
+                return "OK";
+            }
             else {
                 throw new IllegalArgumentException("Unrecognized message");
             }
@@ -1523,6 +1528,31 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             resources.getStrings(RES_ECD + "Detected.Shutdown_Other"));
     }
 
+    private void handleConcurrentDeviceLockLost(DeviceLock lock) {
+        // write a message to the log
+        logger.severe("Another device has opened this dataset; shutting down "
+                + "in an attempt to avoid corruption. Other device: " + lock);
+
+        // stop the timer if it is running
+        getTimeLoggingModel().stopTiming();
+
+        // save all data (but don't prompt the user about unsaved changes, as
+        // those prompts would indefinitely stop our shutdown process)
+        saveAllDataImpl(false);
+
+        // disallow further changes in this process
+        InternalSettings.setReadOnly(true);
+
+        // display a "shutting down" message with a countdown timer
+        Object footer = new Object[] {
+                resources.getStrings(RES_ECD + "Detected.Shutdown_Self"), //
+                " ", new JOptionPaneCountdownTimer(300) };
+        showConcurrentDeviceLockError(lock, footer);
+
+        // when the timer expires or the user clicks OK, close the application
+        System.exit(1);
+    }
+
     private void showConcurrentDeviceLockError(DeviceLock lock, Object footer) {
         // display a message warning the user about concurrent usage
         String title = resources.getString(RES_ECD + "Detected.Title");
@@ -2097,6 +2127,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public List saveAllData() {
+        return saveAllDataImpl(true);
+    }
+
+    private List saveAllDataImpl(boolean promptToSaveDirtyGuiData) {
         maybeUpdateRecentDataset();
 
         List unsavedData = new LinkedList();
@@ -2104,8 +2138,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return unsavedData;
 
         // prompt the user to save changes in various GUIs
-        logger.finer("Saving user interface data");
-        saveDirtyGuiData();
+        if (promptToSaveDirtyGuiData) {
+            logger.finer("Saving user interface data");
+            saveDirtyGuiData();
+        }
 
         // save the size of the team dashboard window
         maybeSaveWindowSize();
