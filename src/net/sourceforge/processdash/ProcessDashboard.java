@@ -199,6 +199,7 @@ import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
 import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
+import net.sourceforge.processdash.ui.lib.WrappedOptionPaneText;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1482,7 +1483,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 .getBundle("Templates.resources.ProcessDashboard");
         String title = res.getString(RES_ECD + "Title");
         Object header = getDeviceLockDialogHeader(res, newestLock);
-        String readOnly = res.getString(RES_ECD + "Read_Only");
+        Object readOnly = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Read_Only"));
         Object[] message = new Object[] { header, " ", readOnly };
         int userChoice = JOptionPane.showConfirmDialog(hideSS(), message, title,
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -1494,12 +1496,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         // display a message with next steps for problem resolution
-        Object advice = res.getString(RES_ECD + "Recovery_Advice").split("\n");
+        Object advice = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Recovery_Advice"));
         Object cloud = " ";
         if (CloudStorageSetupHelper.isCloudStorage())
-            cloud = new Object[] { " ",
-                    res.getString(RES_ECD + "Cloud_Message").split("\n"), " " };
-        Object ignore = res.getString(RES_ECD + "Ignore_Message").split("\n");
+            cloud = new Object[] { " ", new WrappedOptionPaneText(
+                    res.getString(RES_ECD + "Cloud_Message")), " " };
+        Object ignore = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Ignore_Message"));
         message = new Object[] { header, " ", advice, cloud, ignore };
         String okOption = res.getString(RES_ECD + "OK");
         String ignoreOption = res.getString(RES_ECD + "Ignore");
@@ -1524,8 +1528,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // write a message to the log
         logger.severe("Another device may have opened this dataset: " + lock);
 
-        showConcurrentDeviceLockError(lock,
-            resources.getStrings(RES_ECD + "Detected.Shutdown_Other"));
+        showConcurrentDeviceLockError(lock, new WrappedOptionPaneText(
+                resources.getString(RES_ECD + "Detected.Shutdown_Other")));
     }
 
     private void handleConcurrentDeviceLockLost(DeviceLock lock) {
@@ -1545,7 +1549,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // display a "shutting down" message with a countdown timer
         Object footer = new Object[] {
-                resources.getStrings(RES_ECD + "Detected.Shutdown_Self"), //
+                new WrappedOptionPaneText(resources
+                        .getString(RES_ECD + "Detected.Shutdown_Self")),
                 " ", new JOptionPaneCountdownTimer(300) };
         showConcurrentDeviceLockError(lock, footer);
 
@@ -1557,11 +1562,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // display a message warning the user about concurrent usage
         String title = resources.getString(RES_ECD + "Detected.Title");
         Object header = getDeviceLockDialogHeader(resources, lock);
-        Object warning = resources.getStrings(RES_ECD + "Detected.Warning");
+        Object warning = new WrappedOptionPaneText(
+                resources.getString(RES_ECD + "Detected.Warning"));
         Object cloud = " ";
         if (CloudStorageSetupHelper.isCloudStorage())
             cloud = new Object[] { " ",
-                    resources.getStrings(RES_ECD + "Cloud_Message"), " " };
+                    new WrappedOptionPaneText(
+                            resources.getString(RES_ECD + "Cloud_Message")),
+                    " " };
         Object message = new Object[] { header, " ", warning, cloud, footer };
         JOptionPane.showMessageDialog(this, message, title,
             JOptionPane.ERROR_MESSAGE);
@@ -1570,7 +1578,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private Object getDeviceLockDialogHeader(ResourceBundle res,
             DeviceLock lock) {
         return new Object[] { new JOptionPaneTweaker.ToFront(),
-                res.getString(RES_ECD + "Header").split("\n"),
+                new WrappedOptionPaneText.Initializer(),
+                new WrappedOptionPaneText(res.getString(RES_ECD + "Header")),
                 " ", //
                 getDeviceLockDescriptionLine(res, "Full_Name", lock.owner),
                 getDeviceLockDescriptionLine(res, "User_Name", lock.username),
