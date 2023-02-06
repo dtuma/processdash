@@ -1,0 +1,570 @@
+<html>
+<head>
+<title>Personal Data Storage Options</title>
+<link rel=stylesheet type="text/css" href="../../style.css">
+<style>tt { font-size: 90% }</style>
+</head>
+<body>
+
+<h1>Personal Data Storage Options</h1>
+
+<p>When you <a href="../Overview/HowToInstall.html">install</a> the
+Process Dashboard, the installer will ask you to select a directory
+where your personal data will be stored.  Time and defect log entries,
+task completion dates, and all other personal data you enter will be
+saved into this directory.  You can find out the exact location of
+your data directory by choosing "&equiv; &rarr; Help &rarr; About
+Process Dashboard," then clicking on the Configuration tab.</p>
+
+<p>The installer will suggest a reasonable default location for your
+data directory, which you may accept.  But there are many different
+possibilities, which are described below.</p>
+
+<table border bordercolor="silver" cellpadding="4" cellspacing="0"
+       style="margin-left:30px; margin-top:15px">
+
+<tr>
+<th>&nbsp;</th>
+<th style="padding:5px 10px"><a href="#local">Local<br>Hard Drive</a></th>
+<th style="padding:5px 10px"><a href="#network">Network<br>Directory</a></th>
+<th style="padding:5px 10px"><a href="#cloud">Cloud<br>Storage</a></th>
+<th style="padding:5px 10px"><a href="#pdes">Enterprise<br>Server</a></th>
+</tr>
+
+<tr>
+<td>Ease of setup and ongoing use</td>
+<td align="center">Easy</td>
+<td align="center">Hard</td>
+<td align="center">Moderate</td>
+<td align="center">Easy</td>
+</tr>
+
+<tr>
+<td>Fast access to personal data</td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/alertError.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Access personal data while offline</td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/alertError.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Personal data backed up automatically&nbsp;&nbsp;</td>
+<td></td>
+<td align="center"><b>?</b></td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Access data from multiple computers</td>
+<td></td>
+<td align="center"><img src="../../Images/check.png"></td>
+<td align="center"><img src="../../Images/alertWarning.png"></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Built-in data sharing controls</td>
+<td></td>
+<td></td>
+<td></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Automatic software upgrades</td>
+<td></td>
+<td></td>
+<td></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Time machine for historical data</td>
+<td></td>
+<td></td>
+<td></td>
+<td align="center"><img src="../../Images/check.png"></td>
+</tr>
+
+</table>
+
+<h2><a name="local"></a>Local Hard Drive</h2>
+
+<p>By default, the installer will suggest a data directory location on
+your local hard drive.  This option is the simplest.  Here are some of
+the tradeoffs of this approach:</p>
+
+<table style="margin-left:20px; border-spacing:5px 10px; 
+              border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Your personal data is always accessible on this computer.  You can
+open your personal dashboard and collect data at any time, even if you
+have no network connection.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Local storage helps with data privacy: other people cannot look at
+your detailed personal data if they cannot read your data
+files.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Your personal data is only accessible from one computer.  If you
+regularly work on different computers throughout the day, you'll have
+to select one computer where you will run the Process Dashboard.  If
+you are away from that selected computer, you won't be able to collect
+data.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Your data can be lost if your hard drive crashes, because your
+data directory is the <b>only</b> place that contains a complete copy
+of all your personal data.  (It's a common misconception that the data
+you collect for a team project might be stored in the WBS Editor or
+the Team Dashboard; but that is <b>incorrect</b>.  Those locations
+only contain the summaries they need to generate team rollups.)  You
+can mitigate this risk by configuring an
+<a href="BackupData.html#automatic">automatic, external backup</a> of
+your data.</td></tr>
+
+<tr valign="top"><td><b>NOTE:</b></td>
+<td>Mac OS X provides special operating-system protections for the
+Documents directory.  Depending on the version of Mac OS X you are
+running, the dashboard may not be allowed to read and write files that
+appear under Documents.  As a result, you may need to place your
+personal dashboard data somewhere
+under <tt style="white-space:nowrap">~/Library/Process Dashboard</tt>.
+The installer will suggest this as the default; if you choose another
+location, be aware that Documents and its subfolders are probably
+off-limits.</td>
+
+</table>
+
+
+
+<h2><a name="network"></a>Network Directory</h2>
+
+<p>If access from more than one computer is important to you, you can
+create a personal data directory on a network file server.  The general
+steps are:</p>
+
+<ol>
+
+<li>Obtain access to a folder on a network file server.</li>
+
+<li>Map or mount the network file server so it is visible to your
+local computer (for example, as a new lettered drive in Windows, or as
+a folder under Volumes in Mac OS X).</li>
+
+<li>Create a new, empty folder in that area for your personal data.</li>
+
+<li>When installing the dashboard, enter the path to that folder as
+the location of your personal data.</li>
+
+</ol>
+
+<p>This approach is much more complex than using the local hard drive.
+Here are some of the tradeoffs of this approach:</p>
+
+<table style="margin-left:20px; border-spacing:5px 10px; 
+              border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Your personal data can be accessed from more than one computer.
+You can collect data from various computers throughout the day (but
+note that the dashboard can still only be running on one computer at a
+time).</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>If the network server is managed by your IT department, and they
+are performing periodic backups, your data will be protected from loss
+in the case of a local hard drive crash.  (But make sure to verify
+this with your IT department; if they aren't performing backups your
+data still isn't protected.)</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>You can only access your personal data when your computer is
+connected to the same network as the network file server.  It will be
+inaccessible if you don't have a network connection, or if you're
+traveling and don't have access to a VPN.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>File sharing protocols often have very slow performance -
+especially over a VPN.  The dashboard stores data in a large number of
+fine-grained files, so if your network is slow, it can take an
+exceptionally long time for the personal dashboard to open or shut
+down.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>The network folder must be mapped/mounted on all the computers you
+use. These connections can time out and may need to be reestablished
+manually (especially after changes in network connectivity).</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>File permissions can be tricky to configure.  The files you write
+from one of your computers must be readable/writable by the other
+computers you use.  And for data privacy, you'll need to make sure the
+permissions forbid read/write access by other people.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>If you use a mix of Windows, Mac OS X, and/or Linux computers, you
+may encounter insurmountable problems stemming from their differing
+support for file-sharing protocols.  (This could manifest itself as a
+startup error stating that the dashboard was unable to lock files for
+writing.)</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Network file servers are a 1990's style technology that many IT
+departments are reluctant to support.  With the modern preference
+toward zero-trust architectures, many organizations are eliminating
+their network file servers completely.</td></tr>
+
+</table>
+
+
+
+<h2><a name="cloud"></a>Cloud Storage</h2>
+
+<p>Many cloud storage providers - such as OneDrive, Dropbox, Google
+Drive, and others - offer desktop sync clients you can install on your
+computer.  These sync clients copy files from your computer to the
+cloud, and vice versa.  They generally work by creating a dedicated
+folder on your computer's hard drive, then keeping the contents of
+that special folder synchronized with the cloud.</p>
+
+<p>This functionality provides an easy way to automatically backup
+your personal data.  The general steps are:</p>
+
+<ol>
+
+<li>Create an account with a cloud storage provider, if you don't
+already have one.  (If you already have a Microsoft 365 or Google
+account, it comes with cloud storage included.  If you don't have one,
+it's easy to create a free account.)</li>
+
+<li>Download and install the desktop sync client offered by your cloud
+storage provider.  Configure the sync client to start automatically
+each time you log in to your computer.</li>
+
+<li>Find the dedicated folder that your sync client is managing.
+Create a new, empty directory somewhere under that folder for your
+personal data.</li>
+
+<li>When installing the dashboard, enter the path to that new, empty
+directory as the location of your personal data.</li>
+
+</ol>
+
+<p>This approach is fairly simple to set up (especially if you've
+already been using cloud storage).  Here are some of the benefits of
+this approach:</p>
+
+<table style="margin-left:20px; border-spacing:5px 10px; 
+              border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Your personal data is protected from loss if your hard drive were
+to crash.  The dashboard is writing your personal data into the
+directory you've chosen, and the sync client is keeping it backed up
+to the cloud automatically. (But this protection only happens if you
+keep your sync client running in the background.  It the sync client
+pauses, shuts down, loses its connection, or needs you to log in
+again, your data won't be protected.)</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Your personal data is always accessible on this computer.  The
+sync client keeps a copy of the files locally, so you can open your
+personal dashboard and collect data at any time, even if you have no
+network connection. (Note: some sync clients may have an option to
+move files to the cloud to save space on your hard drive, then
+download them on-the-fly they are needed.  This option isn't
+recommended for the directory containing your personal data, because
+it will result in extremely slow performance.)</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>The major cloud storage providers offer robust, zero-trust
+architectures to protect your data from unauthorized access.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Special steps are required to protect your data if it is being
+synchronized to more than one computer. See the section below for more
+information.</td></tr>
+
+</table>
+
+<h3><a name="cloudMult"></a>Using Cloud Storage to Access Personal
+Data from Multiple Computers</h3>
+
+<p>Cloud storage providers allow you to synchronize your files to more
+than one computer, if you install their desktop sync client on all
+computers in question.  This approach makes it possible to access your
+personal data from multiple computers.  (But special precautions are
+needed; see below.) The setup steps are:</p>
+
+<ol>
+
+<li>Set up a personal dashboard on cloud storage, using the steps
+<a href="#cloud">described above</a>.</li>
+
+<li>Install the desktop sync client on a second computer.  Configure
+the sync client to use the same cloud storage account as the first
+computer, and to run each time you log in.</li>
+
+<li>Wait for the sync client to copy all files down from the cloud to
+this second computer.  Find the directory containing your personal
+data; it will include files like <tt>state</tt>, <tt>pspdash.ini</tt>,
+and <tt>global.dat</tt>.</li>
+
+<li>Install the Process Dashboard on this second computer.  When it
+asks for the location of your personal data, provide the path to the
+directory you found in the previous step.</li>
+
+<li>Repeat steps 2-4 for other computers as desired.</li>
+
+</ol>
+
+<table>
+<tr valign="top" style="font-weight: bold">
+<td><img src="../../Images/alertWarning.png"></td>
+<td style="color:#aa0000">IMPORTANT:&nbsp;</td>
+<td>You must use extreme caution when using this technique.</td></tr>
+</table>
+
+<p>When the personal Process Dashboard is running, it expects to have
+exclusive control over the files in your data directory.  (It does not
+expect those files to be changed by any other program, including the
+sync client.)  To ensure this exclusive control, it locks a file in
+your data directory on startup, and releases the lock on shutdown.
+Unfortunately, that lock doesn't work across the cloud storage
+boundary.  As a result, the dashboard can't stop you from opening your
+personal data on two computers at once.</p>
+
+<p><b>If you open your personal Process Dashboard on two computers at
+once, <span style="color:#aa0000">your data is almost certain to be
+corrupted.</span></b>  The dashboards on each computer will be writing
+files, each thinking they have exclusive control over the data.  One
+is likely to blindly overwrite changes written by the other.  Even
+worse, if a file is modified in both places at about the same time,
+the sync client will flag a conflict and create multiple copies of the
+conflicting file.  The dashboard cannot resolve those conflicts (and
+neither can you).</p>
+
+<p>To avoid these problems, you must faithfully follow the steps below
+each time you want to change computers where the dashboard is
+running:</p>
+
+<ol>
+
+<li>Close the Process Dashboard on the first computer.  Wait for all
+windows to close.</li>
+
+<li>Ensure the sync client on the first computer is active, and wait
+for it to publish all files to the cloud.</li>
+
+<li>Go to the computer where you'd like to run the Process Dashboard
+next.  Ensure its sync client is active.  Wait for it to copy all
+files down from the cloud.<ul>
+
+    <li>Note that sync operations typically happen in the background
+        with low priority, and there often isn't an explicit way to
+        force a sync to occur.</li>
+
+    <li>Your sync client may claim that all files are up-to-date, even
+        when new files are waiting in the cloud.  Waiting 5 minutes or
+        so is a good precaution.</li>
+
+    <li>If you cannot wait, take a look at the <tt>log.txt</tt> file
+        in your data directory.  If its timestamp reflects the time
+        you closed the dashboard on the first computer, and your sync
+        client says files are up-to-date, you're safe to proceed.</li>
+
+    </ul></li>
+
+<li>Open the Process Dashboard on the second computer.  Do a quick
+review to make sure data is as you expect (correct task selected,
+recent time log entries in place, etc.)</li>
+
+</ol>
+
+<p>If you only move between computers infrequently, you can follow
+these instructions fairly easily by keeping your sync client actively
+running everywhere, closing the Process Dashboard when you're not
+using it, and being very deliberate about tracking the computer where
+the dashboard is currently running.</p>
+
+<p>If you're in the habit of moving between computers frequently, the
+risk of accidentally corrupting your personal data will grow.  If
+you're unable to follow the steps above faithfully, you should
+consider limiting your dashboard usage to a single computer, or moving
+your data to an Enterprise Server as <a href="#pdes">described
+below</a>.</p>
+
+<p><b>Note:</b> The precautions in this section only apply to the
+personal Process Dashboard, not to the Team Dashboard.  The Team
+Dashboard can be configured to support cloud-based usage from multiple
+computers simultaneously.</p>
+
+
+
+<h2><a name="pdes"></a>Process Dashboard Enterprise Server</h2>
+
+<p>The Process Dashboard Enterprise Server was purpose-designed to
+provide specialized storage for team and personal data.  It is
+optimized for fast, reliable access, and eliminates many of the
+challenges described above.  The general steps for using the
+Enterprise Server are:</p>
+
+<ol>
+
+<li>Obtain an account on a Process Dashboard Enterprise Server.
+
+    <ul>
+
+    <li>If many people in your organization use the Process Dashboard,
+        your organization can <a target="_blank"
+        href="https://www.processdash.com/pdes-pricing/">purchase a
+        license</a> to run the server in-house.</li>
+
+    <li>For personal use, or use by a small team, <a target="_blank"
+        href="https://www.processdash.com/pdes-pricing/">monthly
+        subscriptions</a> are available.</li>
+
+    </ul></li>
+
+<li>Log in to the Enterprise Server in your web browser.  After
+successfully logging in, the main home page is the "My Datasets"
+view.</li>
+
+<li>Click the "Process Dashboard" link on the "My Datasets" page.
+This will download a small file with instructions to launch your
+personal dashboard.
+
+    <ul>
+
+    <li>Some web browsers will open this file automatically; if your
+        browser does not, double-click the file to open it
+        manually.</li>
+
+    <li>If your computer doesn't know how to open the file, click the
+        link at the bottom of the "My Datasets" page to download and
+        install the Process Dashboard Launcher software.</li>
+
+    </ul></li>
+
+<li>Your server-based personal dashboard will open.
+
+    <ul>
+
+    <li>If you don't have any data in the server yet, the dashboard
+        will look for preexisting personal data on your computer, and
+        offer to import it into the server.</li>
+
+    </ul></li>
+
+<li>You can open your server-based personal dashboard from as many
+other computers as you like.  Just log in to the Enterprise Server
+through your web browser and click the "Process Dashboard" link on the
+"My Datasets" page.  If you've installed the Process Dashboard
+Launcher, you can also use its application icon to open your
+dashboard.</li>
+
+</ol>
+
+<p>The Enterprise Server provides a number of benefits:</p>
+
+<table style="margin-left:20px; border-spacing:5px 10px; 
+              border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Your data is safely backed up to the server at all times, and
+won't be lost if your hard drive crashes.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>You can access your data from any number of different computers
+(including a mix of Windows / Mac OS X / Linux computers) without
+worrying about locks or corruption.  It is still only possible to have
+the dashboard open on one computer at a time, but the server enforces
+that constraint reliably.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Dashboard operations are not affected by the speed of your
+network.  Startup and shutdown times remain consistent, even over a
+slow VPN.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>If you need to let a coach or team leader access your data, you
+can grant them permissions.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>You don't need to manually upgrade the Dashboard when new versions
+of the software become available. The server administrator can push
+software upgrades automatically.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>A "time machine" feature makes it possible to see what your data
+looked like at an arbitrary time in the past.  This can assist with
+postmortem analysis, data recovery, and more.</td></tr>
+
+</table>
+
+
+
+<h2><a name="changing"></a>Changing the Location of Personal Data</h2>
+
+<p>To change your data directory between the various file-based
+location types (local / network / cloud), follow these steps:</p>
+
+<ol>
+
+<li>Close the dashboard if it is running.</li>
+
+<li>Manually move your data directory to the new location, using an
+application like File Explorer / Finder / etc.</li>
+
+<li>Run the Process Dashboard installer again.  When it asks you for
+the location of your personal data, enter the path to the new
+directory location.  Then finish the remaining steps in the installer,
+and let it recreate your shortcuts.  This will update your shortcuts
+to point to the new location.</li>
+
+<li>Use your shortcut to open the dashboard, and make sure your data
+is present as expected.
+
+    <ul>
+
+    <li>If the dashboard is completely empty, don't panic. This
+        doesn't mean your data is lost; it just means your shortcut
+        isn't pointing to the correct data directory.</li>
+
+    <li>Check the location the dashboard is using by choosing "&equiv;
+        &rarr; Help &rarr; About Process Dashboard," then clicking on
+        the Configuration tab.  Make sure it shows the expected new
+        location.  If it's still using the old location, the shortcut
+        you're using didn't get updated by the installer.</li>
+
+    <li>If the dashboard is using the wrong location, close it and run
+        the installer again to fix the shortcut.  If this doesn't
+        help, you can fix the shortcut manually by following
+        <a href="../Troubleshooting/FAQ.html#WhereData">these
+        instructions</a> in the FAQ.</li>
+
+    </ul></li>
+
+</ol>
+
+<p>If you wish to move your personal data into the Enterprise Server,
+just use the computer that is currently hosting your data to open your
+server-based dataset for the first time.  The dashboard will see that
+your server-based dataset is empty, will notice the existing data on
+your computer, and will offer to migrate the data in
+automatically.</p>
+
+</body>
+</html>

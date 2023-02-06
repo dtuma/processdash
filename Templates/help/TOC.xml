@@ -79,6 +79,7 @@
 
     <tocitem image="BookIcon" target="AdvancedTopics" text="Advanced Topics">
       <tocitem image="PageIcon" target="TeamUse" text="Team Use"/>
+      <tocitem image="PageIcon" target="PersonalStorage" text="Personal Data Storage Options"/>
       <tocitem image="PageIcon" target="BackupData" text="Backing up Dashboard Data"/>
       <tocitem image="BookIcon" target="PreferencesTool" text="Editing Preferences">
          <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>

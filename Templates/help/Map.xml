@@ -160,6 +160,13 @@
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
   <mapID target="LocalizationTool" url="Topics/AdvancedTopics/LocalizationTool.html" />
+  <mapID target="PersonalStorage" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html" />
+  <mapID target="PersonalStorage.local" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#local" />
+  <mapID target="PersonalStorage.network" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#network" />
+  <mapID target="PersonalStorage.cloud" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#cloud" />
+  <mapID target="PersonalStorage.cloudMult" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#cloudMult" />
+  <mapID target="PersonalStorage.pdes" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#pdes" />
+  <mapID target="PersonalStorage.changing" url="Topics/AdvancedTopics/PersonalDataStorageOptions.html#changing" />
   <mapID target="BackupData" url="Topics/AdvancedTopics/BackupData.html" />
   <mapID target="TeamUse" url="Topics/AdvancedTopics/TeamUse.html" />
   <mapID target="TeamUseEV" url="Topics/AdvancedTopics/TeamUseEV.html" />
