@@ -1571,8 +1571,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                             resources.getString(RES_ECD + "Cloud_Message")),
                     " " };
         Object message = new Object[] { header, " ", warning, cloud, footer };
-        JOptionPane.showMessageDialog(this, message, title,
-            JOptionPane.ERROR_MESSAGE);
+
+        // offer an "OK" button and a "More Info" button, which displays help
+        String okOption = resources.getString("OK");
+        JButton moreInfo = new JButton(resources.getString(RES_ECD + "More_Info"));
+        moreInfo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Browser.launch("help/frame.html?PersonalStorage.cloudMult");
+            }});
+        Object[] options = new Object[] { okOption, moreInfo };
+
+        JOptionPane.showOptionDialog(this, message, title,
+            JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, options,
+            okOption);
     }
 
     private Object getDeviceLockDialogHeader(ResourceBundle res,
