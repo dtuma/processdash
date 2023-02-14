@@ -16,6 +16,7 @@
   <mapID target="TeamFormsReports" url="Topics/FormsReports.html" />
   <mapID target="TeamFormsReports.org" url="Topics/FormsReports.html#org" />
   <mapID target="TeamFormsReports.cm" url="Topics/FormsReports.html#cm" />
+  <mapID target="TeamDashboardOrg" url="Topics/TeamDashboardOrganization.html" />
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />

@@ -13,6 +13,8 @@
                               image="PageIcon" target="TeamMCF" />
          <tocitem text="Forms &amp; Reports"
                               image="PageIcon" target="TeamFormsReports" />
+         <tocitem text="Plan Team Deployments"
+                              image="PageIcon" target="TeamDashboardOrg" />
       </tocitem>
       <tocitem text="Prep for Team Launch"
                                image="BookIcon" target="TeamLaunchPrep" >
