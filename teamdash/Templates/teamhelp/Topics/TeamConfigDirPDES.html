@@ -1,0 +1,224 @@
+<html>
+<head>
+<title>Using Process Dashboard Enterprise Server for Team Data</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Using Process Dashboard Enterprise Server for Team Data</h1>
+
+
+<p>The Process Dashboard Enterprise Server was purpose-designed to
+provide specialized storage for team and personal data.  It is
+optimized for fast, reliable access, and eliminates many of the
+challenges associated with other storage options.  To use the
+Enterprise Server for an existing Team Dashboard, see the
+<a href="#migrate">migration instructions</a> below.  The Enterprise
+Server provides a number of benefits:</p>
+
+
+<table style="margin-left:20px; margin-top: 15px;
+              border-spacing:5px 10px; border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Creation of new team and personal dashboards is fast and easy, and
+team project creation/joining operations are more automated.  This
+saves time and eliminates work for coaches as they onboard
+<a href="TeamDashboardOrganization.html">new teams</a>, allowing them
+to focus on value-added work.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>You can access team data from any number of different computers
+(including a mix of Windows / Mac OS X / Linux computers) and diverse
+networks (including geographically distributed teams and remote
+workers using a VPN).</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Dashboard operations are not affected by the speed of your
+network.  Startup and shutdown times remain consistent, even over a
+slow VPN.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>When you need to let a coach or team leader access team reports,
+you can easily grant them permissions.  This can be done by opening
+the Team Dashboard and choosing "Tools &rarr; Edit Users," or by
+logging in to the Enterprise Server, clicking the "Details" link for a
+dataset, then clicking "Edit Permissions" on the dataset details
+page.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Local and remote coaches can easily access live, up-to-date team
+data.  Live access makes it possible to view the WBS change history,
+leave notes for the team about data problems, correct minor data
+problems, and adjust labels for special analyses.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Team data privacy is protected automatically, without the need to
+manually configure filesystem permissions, and without the ongoing
+headache of reconfiguring permissions when team membership
+changes.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Team data is safely backed up to the server at all times, and
+won't be lost if your hard drive crashes.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Existing team project data (from past and current projects) can be
+easily <a href="#migrate">migrated into the server</a> with no team
+downtime.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>You don't need to manually upgrade the Dashboard when new versions
+of the software become available. The server administrator can push
+software upgrades automatically.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>A "time machine" feature makes it possible to view reports,
+charts, and data as they appeared at any point in the past.  This can
+assist with postmortem analysis, data recovery, and more.  You can
+view historical reports by logging in to the Enterprise Server,
+clicking the "Details" link for a dataset, then clicking the
+historical data link in the "Actions" section of the dataset details
+page.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>It is possible to share process definitions, workflows, custom WBS
+columns and tabs, proxy estimation tables, defect type standards, and
+custom reports across the entire organization.  With the 
+<a target="_blank" href="https://www.processdash.com/pdes-tpdw/">data
+warehouse</a> option, organization-wide cross-team data analyses
+become possible.</td></tr>
+
+</table>
+
+
+<p>For more information on the server, visit <a target="_blank"
+href="https://www.processdash.com/pdes">https://www.processdash.com/pdes</a></p>
+
+
+
+<h2><a name="createTeam"></a>Enterprise Server Team Dashboard
+Creation</h2>
+
+<p>The general steps for creating a new Team Dashboard on the
+Enterprise Server are:</p>
+
+<ol>
+
+<li class="space"><a name="account"></a>Obtain an account on a Process
+Dashboard Enterprise Server.
+
+    <ul>
+
+    <li>If many people in your organization use the Process Dashboard,
+        your organization can <a target="_blank"
+        href="https://www.processdash.com/pdes-pricing/">purchase a
+        license</a> to run the server in-house.</li>
+
+    <li>For personal use, or use by a small team, <a target="_blank"
+        href="https://www.processdash.com/pdes-pricing/">monthly
+        subscriptions</a> are available.</li>
+
+    </ul></li>
+
+<li class="space">Log in to the Enterprise Server in your web browser.
+After successfully logging in, click "Create New Dataset" in the
+navigation menu on the left side of the page.
+
+    <ul>
+
+    <li>If you have not been granted access to this option, contact
+        the server administrator to create the team dashboard dataset
+        for you.</li>
+
+    <li>Otherwise, enter a unique name for the new team dashboard and
+        click Save.</li>
+
+    </ul></li>
+
+
+<li class="space">Return to the "My Datasets" page, and click the link
+to the team dashboard you just created.  This will download a small
+file with instructions to launch the team dashboard.
+
+    <ul>
+
+    <li>Some web browsers will open this file automatically; if your
+        browser does not, double-click the file to open it manually.
+        Your server-based team dashboard will open.</li>
+
+    <li>If your computer doesn't know how to open the file, click the
+        link at the bottom of the "My Datasets" page to download and
+        install the Process Dashboard Launcher software.  (The
+        launcher installer will also create an application icon that
+        you can click to open the Team Dashboard directly.)</li>
+
+    <li>You can open this server-based Team Dashboard from as many
+        other computers as you like; just follow the instructions in
+        this step from another computer.</li>
+
+    </ul></li>
+
+</ol>
+
+
+
+<h2><a name="migrate"></a>Migrating Existing Team Data into the
+Enterprise Server</h2>
+
+<p>Historical data is extremely valuable for team planning, tracking,
+and postmortem analysis.  If you've already been using the Team
+Dashboard, it's easy to migrate your existing data into the Enterprise
+Server.  The general steps for migration are:</p>
+
+<ol>
+
+<li class="space">Obtain an account on a Process Dashboard Enterprise
+Server as described <a href="#account">above</a>.</li>
+
+<li class="space">Obtain Enterprise Server accounts for all
+individuals who are active team members, leaders, or coaches of the
+projects in the Team Dashboard you wish to migrate.  Ask them to log
+in to the server at least once to establish their password.</li>
+
+<li class="space">Go to a computer that has an existing icon for the
+Team Dashboard you wish to migrate. If the Team Dashboard is running,
+close it.</li>
+
+<li class="space">Download the Enterprise Server
+<a href="https://www.processdash.com/download_mec/pdesImport">migration
+tool</a> and install it by opening/double-clicking the downloaded
+file.</li>
+
+<li class="space">Open the Team Dashboard.  Then choose "Tools &rarr;
+Migrate Data to Server" and follow the prompts.</li>
+
+<li class="space">The migration wizard will import project data into
+the server, followed by core configuration data.</li>
+
+</ol>
+
+<p>This migration operation is mostly seamless to end users:</p>
+
+<ul>
+
+<li>Team leaders and coaches can continue to use their existing Team
+Dashboard shortcuts; those shortcuts will automatically connect to the
+server instead.</li>
+
+<li>Team members can continue to work on the project as usual.  Their
+personal dashboards will automatically connect to the server as needed
+to access team project data.</li>
+
+</ul>
+
+<p>Typically, the only change people may notice is a new
+username/password prompt from the dashboard and the WBS Editor.
+Completing Step 2 above will ensure they know the right credentials to
+use at that prompt.</p>
+
+<div class="hideInBook" style="margin-top: 9in">&nbsp;</div>
+
+
+</body>
+</html>

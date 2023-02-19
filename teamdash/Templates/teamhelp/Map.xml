@@ -20,7 +20,9 @@
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />
-  <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDir.html#pdes" />
+  <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDirPDES.html" />
+  <mapID target="TeamConfigDir.pdesCreateTeam" url="Topics/TeamConfigDirPDES.html#createTeam" />
+  <mapID target="TeamConfigDir.pdesMigrate" url="Topics/TeamConfigDirPDES.html#migrate" />
   <mapID target="TeamConfigDir.local" url="Topics/TeamConfigDirLocal.html" />
   <mapID target="TeamConfigDir.localCreateTeam" url="Topics/TeamConfigDirLocal.html#createTeam" />
   <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
