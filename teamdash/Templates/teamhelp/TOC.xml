@@ -20,6 +20,8 @@
                                image="BookIcon" target="TeamLaunchPrep" >
          <tocitem text="Setup Team Data Storage"
                               image="BookIcon" target="TeamConfigDir" >
+            <tocitem text="Network Directory"
+                              image="PageIcon" target="TeamConfigDir.local" />
          </tocitem>
          <tocitem text="Installing the Dashboard"
                               image="PageIcon" target="TeamInstall" />
