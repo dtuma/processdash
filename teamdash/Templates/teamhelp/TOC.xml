@@ -18,8 +18,9 @@
       </tocitem>
       <tocitem text="Prep for Team Launch"
                                image="BookIcon" target="TeamLaunchPrep" >
-         <tocitem text="Create Team Directory"
-                              image="PageIcon" target="TeamConfigDir" />
+         <tocitem text="Setup Team Data Storage"
+                              image="BookIcon" target="TeamConfigDir" >
+         </tocitem>
          <tocitem text="Installing the Dashboard"
                               image="PageIcon" target="TeamInstall" />
          <tocitem text="Create Project"
