@@ -20,6 +20,11 @@
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />
+  <mapID target="TeamConfigDir.cloud" url="Topics/TeamConfigDirCloud.html" />
+  <mapID target="TeamConfigDir.cloudCreateTeam" url="Topics/TeamConfigDirCloud.html#createTeam" />
+  <mapID target="TeamConfigDir.cloudMemberSetup" url="Topics/TeamConfigDirCloud.html#memberSetup" />
+  <mapID target="TeamConfigDir.cloudTeamShare" url="Topics/TeamConfigDirCloud.html#teamShare" />
+  <mapID target="TeamConfigDir.cloudMigrate" url="Topics/TeamConfigDirCloud.html#migrate" />
   <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDirPDES.html" />
   <mapID target="TeamConfigDir.pdesCreateTeam" url="Topics/TeamConfigDirPDES.html#createTeam" />
   <mapID target="TeamConfigDir.pdesMigrate" url="Topics/TeamConfigDirPDES.html#migrate" />

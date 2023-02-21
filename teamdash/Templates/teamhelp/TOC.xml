@@ -22,6 +22,8 @@
                               image="BookIcon" target="TeamConfigDir" >
             <tocitem text="Network Directory"
                               image="PageIcon" target="TeamConfigDir.local" />
+            <tocitem text="Cloud Storage"
+                              image="PageIcon" target="TeamConfigDir.cloud" />
             <tocitem text="Enterprise Server"
                               image="PageIcon" target="TeamConfigDir.pdes" />
          </tocitem>
