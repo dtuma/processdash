@@ -33,43 +33,64 @@ have adequate file permissions to create this file, then click
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamDir'>
 
-<!--#if [setup//Is_Master] -->
+<p>This Team Dashboard is using <a target="_blank"
+href="/teamhelp/frame.html?TeamConfigDir.local"><b>shared network
+directories</b></a> to facilitate coordination.  These directories are
+used to hold team-level planning information, such as the project's work
+breakdown structure.  <!--#if ![setup//Is_Master] -->They also hold
+exported snapshots of individual data, for use in computing team
+reports.<!--#endif--></p>
 
-<p>The team-oriented processes in the dashboard use a <b>shared network
-&quot;team directory&quot;</b> to facilitate coordination.  This directory
-will be used to hold team-level planning information, such as the project's
-work breakdown structure.</p>
+<!--#if [setup//Suggested_Team_Dir]  && not [setup//Team_Dir] -->
 
-<p>The &quot;team directory&quot; must be <b>accessible and readable</b> by
-the leaders of all the team projects associated with this master project.</p>
+<p>The Project Setup Wizard can store project data in the same directory as
+the Team Dashboard.  This is a best practice, since it greatly simplifies
+ongoing configuration and maintenance.  To follow this recommendation,
+<b>click &quot;Next&quot; to accept the default value</b> shown below.
+If you have a compelling need to place <i>team project</i> data in a
+separate location than <i>Team Dashboard</i> data, you can alter this
+path.</p>
 
 <!--#else-->
 
-<p>The team-oriented processes in the dashboard use a <b>shared network
-&quot;team directory&quot;</b> to facilitate coordination.  This directory
-will be used to hold team-level planning information, such as the project's
-work breakdown structure.  It will also hold exported snapshots of individual
-data, for use in computing team reports.</p>
-
-<p>The &quot;team directory&quot; must be <b>accessible, readable, and
-writable by all team members</b>.  Because of this, it needs to be a shared
-network directory.  Since the directory will hold personal data collected by
-individuals, it should be configured with permissions that forbid file access
-by non-team members.<p>
+<p>The Project Setup Wizard needs the location of a directory that can hold
+data for this project.  Please enter the selected path below.</p>
 
 <!--#endif-->
 
-<table border=0><tr>
+<p>The directory you choose <b><u>must meet</u></b> all of the same
+<a href="/teamhelp/frame.html?TeamConfigDir.local"
+target="_blank">accessibility and permissions criteria</a> as the Team
+Dashboard data directory:</p>
+
+<ul>
+
+<li>It must be <b>accessible, readable, and writable by all team
+members</b>.  Because of this, it also needs to be a shared network
+directory.</li>
+
+<li>Permissions are set to "inherit" - so that when new files and
+subdirectories are created, all team members can read/write them as
+well.</li>
+
+<!--#if ![setup//Is_Master] -->
+<li>Since the directory will hold personal data collected by
+individuals, it should be configured with permissions that forbid file
+access by non-team members.</li>
+<!--#endif-->
+
+</ul>
+
+
+<table border=0 style="margin:16px 0px"><tr>
 
 <td><img width=60 height=24 src="/teamhelp/Images/finger.png"></td>
 
-<td>The Process Dashboard was designed to use shared network directories
-because they are commonly available in a vast majority of organizations.
-However, they are not a perfect fit for every organization.  If you cannot
-create a shared directory that all team members can access, an alternative is
-available. <a target="_blank"
-href="/teamhelp/frame.html?TeamConfigDir.pdes">Click here for more
-information.</a></td>
+<td>Shared network directories are a simple choice for team collaboration,
+but they are not a perfect fit for every organization.  If you cannot
+create a shared directory that all team members can access, other options
+are available. <a href="/teamhelp/frame.html?TeamConfigDir"
+target="_blank">Click here for more information.</a></td>
 
 </tr></table>
 
@@ -103,13 +124,12 @@ below.</td></tr></table>
 <input type=hidden name=confirm
        value="<!--#echo var='[setup//Team_Dir]' -->">
 
-<!--#elif [setup//Suggested_Team_Dir] -->
-    <!--#if not [setup//Team_Dir] -->
+<!--#elif [setup//Suggested_Team_Dir] && not [setup//Team_Dir] -->
 
-<p>The directory below is provided as a suggested location for the
-team directory - feel free to change it.</p>
+<p>The directory below is <b>strongly recommended</b> as the location
+for the team directory.  Only change it after carefully reviewing the
+information above.</p>
 
-    <!--#endif-->
 <!--#endif-->
 
 <p>What would you like to use for the &quot;team directory?&quot;
@@ -132,3 +152,4 @@ Please enter the full path to the appropriate network directory:</p>
 
 </form>
 </body>
+</html>
