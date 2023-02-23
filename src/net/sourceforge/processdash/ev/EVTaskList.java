@@ -2948,11 +2948,14 @@ public class EVTaskList extends AbstractTreeTableModel
                 EVSnapshot.Metadata m = new EVSnapshot.Metadata(null, null,
                         snapshotId, xml);
 
-                int taskPos = xml.indexOf("<task");
-                int taskEnd = xml.indexOf(">", taskPos + 5);
-                String taskXml = xml.substring(taskPos, taskEnd) + "/>";
-                Map<String, String> data = XMLUtils.getAttributesAsMap(
-                    XMLUtils.parse(taskXml).getDocumentElement());
+                Map<String, String> data;
+
+                if(filter != null){
+                    data = getPlotDataFromXmlWithFilter(xml, filter);
+                }
+                else{
+                    data = getPlotDataFromXml(xml);
+                }
 
                 Point p = new Point();
                 p.date = m.getDate().getTime();
@@ -2966,8 +2969,30 @@ public class EVTaskList extends AbstractTreeTableModel
             } catch (Exception e) {
             }
         }
-    }
 
+        /**
+            This returns a map containing the data points to plot the chart. This is the refactored legacy (root only) implementation.
+        */
+        private Map<String, String> getPlotDataFromXml(String xml) throws Exception {
+            /* Get the attributes in the root node as a map. */
+            int taskPos = xml.indexOf("<task");
+            int taskEnd = xml.indexOf(">", taskPos + 5);
+            String taskXml = xml.substring(taskPos, taskEnd) + "/>";
+
+            return XMLUtils.getAttributesAsMap(XMLUtils.parse(taskXml).getDocumentElement());
+        }
+
+        private class Accumulator{
+            Double pt = 0.0;
+        }
+
+        private Map<String, String> getPlotDataFromXmlWithFilter(String xml, EVTaskFilter filter) throws Exception {
+
+            Map<String, String> taskData = new HashMap<String, String>();
+            return taskData;
+        }
+    }
+    
     private BaselineTrendData baselineTrendData;
 
     private interface BaselineAttrValueLookup {
