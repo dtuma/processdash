@@ -33,6 +33,8 @@ import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -2902,7 +2904,7 @@ public class EVTaskList extends AbstractTreeTableModel
             this.data = data;
         }
 
-        public synchronized void recalc() {
+        public synchronized void recalc(final EVTaskFilter filter) {
             long recalcAge = System.currentTimeMillis() - recalcTime;
             if (recalcAge < 1000)
                 return;
@@ -2918,7 +2920,7 @@ public class EVTaskList extends AbstractTreeTableModel
             while (i.hasNext()) {
                 String dataName = (String) i.next();
                 if (dataName.startsWith(snapshotPrefix))
-                    addDataPoint(dataName, data.getSimpleValue(dataName), bid);
+                    addDataPoint(dataName, data.getSimpleValue(dataName), bid, filter);
             }
 
             // add baseline snapshots from external data
@@ -2927,7 +2929,7 @@ public class EVTaskList extends AbstractTreeTableModel
                     public void handleDataFileEntry(String dataName,
                             SimpleData dataValue) {
                         if (dataName.startsWith(SNAPSHOT_DATA_PREFIX))
-                            addDataPoint(dataName, dataValue, bid);
+                            addDataPoint(dataName, dataValue, bid, filter);
                     }
                 });
                 recalcAge = System.currentTimeMillis();
@@ -2937,7 +2939,7 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         private void addDataPoint(String dataName, SimpleData dataValue,
-                String activeBaselineId) {
+                String activeBaselineId, EVTaskFilter filter) {
             try {
                 int slashPos = dataName.lastIndexOf('/');
                 String snapshotId = dataName.substring(slashPos + 1);
@@ -3020,6 +3022,20 @@ public class EVTaskList extends AbstractTreeTableModel
             implements XYNameDataset {
         XYChartSeries trend, active, current;
 
+        private EVTaskFilter filter;        
+        
+        public BaselineTrendChartData(ChartEventAdapter eventAdapter,
+                BaselineAttrValueLookup value,
+                BaselineCurrentValueSeries current,
+                EVTaskFilter filter) {
+            super(eventAdapter);
+            this.trend = new BaselineTrendSeries(value);
+            this.active = new BaselineActiveValueSeries(value);
+            this.current = current;
+            this.filter = filter;
+        }
+        
+        /* 2023-02-23 - Legacy - will be removed after filtered baseline charts completed. */
         public BaselineTrendChartData(ChartEventAdapter eventAdapter,
                 BaselineAttrValueLookup value,
                 BaselineCurrentValueSeries current) {
@@ -3027,10 +3043,10 @@ public class EVTaskList extends AbstractTreeTableModel
             this.trend = new BaselineTrendSeries(value);
             this.active = new BaselineActiveValueSeries(value);
             this.current = current;
-        }
+        }        
 
         public void recalc() {
-            baselineTrendData.recalc();
+            baselineTrendData.recalc(filter);
             clearSeries();
             maybeAddSeries(trend);
             maybeAddSeries(active);
@@ -3045,7 +3061,7 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
-    public XYDataset getBaselineTimeData(DataRepository data) {
+    public XYDataset getBaselineTimeData(DataRepository data, final EVTaskFilter filter) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
 
@@ -3056,10 +3072,19 @@ public class EVTaskList extends AbstractTreeTableModel
                     }}, //
                 new BaselineCurrentValueSeries() {
                     public Number getY(int itemIndex) {
-                        return getTaskRoot().planTime / 60;
+                        return getFilteredPlanTime(filter) / 60;
                     }});
     }
 
+    private double getFilteredPlanTime(EVTaskFilter filter){
+
+        double retVal = 0.0;
+
+        for(EVTask task : getFilteredLeaves(filter)){
+            retVal += task.planTime;
+        }
+        return retVal;
+    }
     public XYDataset getBaselineDateData(DataRepository data) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
