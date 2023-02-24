@@ -2954,7 +2954,12 @@ public class EVTaskList extends AbstractTreeTableModel
                 if(filter != null){
                     
                     String hierFilter  = filter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
-                    System.out.println("-- hierFilter:"  + hierFilter + " -----------------");                  
+                    
+                    //hierFilter will start with a '/' when part of a rollup. 
+                    //Strip this so the path comparison will work correctly. 
+                    if(hierFilter.startsWith("/")){
+                        hierFilter = hierFilter.substring(1);
+                    }
                     
                     data = getPlotDataFromXmlWithFilter(xml, hierFilter);
                 }
@@ -2971,8 +2976,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 if (snapshotId.equals(activeBaselineId))
                     active = p;
 
-            } catch (Exception e) {
-                System.out.println("EXCEPTION" + e.getMessage()); //TEMP - FIXME
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
 
@@ -3022,12 +3027,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Element parent = XMLUtils.parse(element).getDocumentElement();
 
-                //When we have multiple child schedules (eg in a team project),
-                //we need to prepend <xxx> to the front of the filter path:
-                String filterPrefix = "";
-
-                getChildData(parent, path, hierFilter, acc, filterPrefix);
-
+                getChildData(parent, path, hierFilter, acc);
 
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -3038,49 +3038,43 @@ public class EVTaskList extends AbstractTreeTableModel
             return taskData;
         }
 
-        void getChildData(Element element, Deque<String> path, String hierFilter, Accumulator acc, String filterPrefix){
-
+        void getChildData(Element element, Deque<String> path, String hierFilter, Accumulator acc){
             
             String pathStr = String.join("/", path);
             
-            System.out.println("++ getChildData: " + element.getTagName());            
-            System.out.println("++ pathStr:      " + pathStr);                        
-            System.out.println("++ hierFilter:   " + hierFilter);
-                        
-
-            //System.out.println("++ pathStr:     " + pathStr);
-
-            //NOT CLEAR THAT I NEED THIS
-            //if(element.hasAttribute("flag") && element.getAttribute("flag").equals("plain")){
-            //    filterPrefix = element.getAttribute("name");
-            //    //System.out.println("++ included:" + filterPrefix);
-            //}
-    
-            //String prefixedHierFilter = hierFilter != null ? filterPrefix + hierFilter : null;            
+            //System.out.println("++ getChildData: " + element.getTagName());            
+            //System.out.println("++ pathStr:      " + pathStr);                        
+            //System.out.println("++ hierFilter:   " + hierFilter);
             
             List<Element> children = XMLUtils.getChildElements(element);
 
             if(children.size() > 0){
                 for(Element child : children){
                     if(child.getTagName().equals("task")){
-                        //System.out.println("++ pathStr:      " + pathStr);                        
-                        //System.out.println("++ hierFilter:   " + hierFilter);
-                        if (hierFilterMatches(pathStr, hierFilter)){
-                            path.addLast(child.getAttribute("name"));
-                            getChildData(child, path, hierFilter, acc, filterPrefix);   
-                            path.removeLast();
-                        }                    
+                        if(child.hasAttribute("flag")){
+                            //Just recurse, don't add an element to the path and don't check path filter
+                            getChildData(child, path, hierFilter, acc);
+                        }else{
+                            //If no "flag" attribute, we want to recurse and check path filter:
+                            if (hierFilterMatches(pathStr, hierFilter)){
+                                path.addLast(child.getAttribute("name"));
+                                getChildData(child, path, hierFilter, acc);   
+                                path.removeLast();
+                            }                             
+                        }                        
                     }
                 }
             }
-            else{                                       
-                //System.out.println("++ leafPathSt:    " + pathStr);                 
+            else{                                                    
                 if (hierFilterMatches(pathStr, hierFilter)){                
                     acc.pt += XMLUtils.getXMLNum(element, "pt");
                 }
             }
         }
 
+        /* 
+            Use to match the hierarchy filter to the node's path.
+        */
         private boolean hierFilterMatches(String pathStr, String hierFilter){
             return
                 hierFilter == null ||
