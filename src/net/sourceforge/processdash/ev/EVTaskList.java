@@ -102,6 +102,7 @@ import net.sourceforge.processdash.util.TimeZoneDateAdjuster;
 import net.sourceforge.processdash.util.TimeZoneUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import org.w3c.dom.Element;
 
 public class EVTaskList extends AbstractTreeTableModel
     implements EVTask.Listener, TaskLabeler.Listener, ActionListener
@@ -2951,7 +2952,11 @@ public class EVTaskList extends AbstractTreeTableModel
                 Map<String, String> data;
 
                 if(filter != null){
-                    data = getPlotDataFromXmlWithFilter(xml, filter);
+                    
+                    String hierFilter  = filter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
+                    System.out.println("-- hierFilter:"  + hierFilter + " -----------------");                  
+                    
+                    data = getPlotDataFromXmlWithFilter(xml, hierFilter);
                 }
                 else{
                     data = getPlotDataFromXml(xml);
@@ -2967,11 +2972,12 @@ public class EVTaskList extends AbstractTreeTableModel
                     active = p;
 
             } catch (Exception e) {
+                System.out.println("EXCEPTION" + e.getMessage()); //TEMP - FIXME
             }
         }
 
-        /**
-            This returns a map containing the data points to plot the chart. This is the refactored legacy (root only) implementation.
+        /*
+            Returns summary data (unfiltered) for a single baseline (legacy implementation).
         */
         private Map<String, String> getPlotDataFromXml(String xml) throws Exception {
             /* Get the attributes in the root node as a map. */
@@ -2982,17 +2988,107 @@ public class EVTaskList extends AbstractTreeTableModel
             return XMLUtils.getAttributesAsMap(XMLUtils.parse(taskXml).getDocumentElement());
         }
 
+        /*
+            The Accumulator class is used to roll up summary information for a single baseline when we apply filtering.
+        */
         private class Accumulator{
             Double pt = 0.0;
         }
 
-        private Map<String, String> getPlotDataFromXmlWithFilter(String xml, EVTaskFilter filter) throws Exception {
+        /*
+            This returns summary data (filtered) for a single baseline.
+        */        
+        private Map<String, String> getPlotDataFromXmlWithFilter(String xml, String hierFilter) throws Exception {
 
             Map<String, String> taskData = new HashMap<String, String>();
+
+            //Step through the string, accumulating the result as we go.
+            //firstTaskIndex - start of first <task element.
+            //lastTaskIndex  - start of last </task element.
+
+            int firstTaskIndex   = xml.indexOf("<task");
+            int lastTaskIndex    = xml.lastIndexOf("</task>");
+            int ix = 0;
+
+            //We build the path of the current node as we walk through the xml
+            //pushing and popping the elements as we go.
+            Deque<String> path = new ArrayDeque<String>();
+
+            Accumulator acc = new Accumulator();
+
+            String element = xml.substring(firstTaskIndex, lastTaskIndex) + "</task>";
+
+            try{
+
+                Element parent = XMLUtils.parse(element).getDocumentElement();
+
+                //When we have multiple child schedules (eg in a team project),
+                //we need to prepend <xxx> to the front of the filter path:
+                String filterPrefix = "";
+
+                getChildData(parent, path, hierFilter, acc, filterPrefix);
+
+
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+
+            taskData.put("pt", String.valueOf(acc.pt));
+
             return taskData;
         }
-    }
+
+        void getChildData(Element element, Deque<String> path, String hierFilter, Accumulator acc, String filterPrefix){
+
+            
+            String pathStr = String.join("/", path);
+            
+            System.out.println("++ getChildData: " + element.getTagName());            
+            System.out.println("++ pathStr:      " + pathStr);                        
+            System.out.println("++ hierFilter:   " + hierFilter);
+                        
+
+            //System.out.println("++ pathStr:     " + pathStr);
+
+            //NOT CLEAR THAT I NEED THIS
+            //if(element.hasAttribute("flag") && element.getAttribute("flag").equals("plain")){
+            //    filterPrefix = element.getAttribute("name");
+            //    //System.out.println("++ included:" + filterPrefix);
+            //}
     
+            //String prefixedHierFilter = hierFilter != null ? filterPrefix + hierFilter : null;            
+            
+            List<Element> children = XMLUtils.getChildElements(element);
+
+            if(children.size() > 0){
+                for(Element child : children){
+                    if(child.getTagName().equals("task")){
+                        //System.out.println("++ pathStr:      " + pathStr);                        
+                        //System.out.println("++ hierFilter:   " + hierFilter);
+                        if (hierFilterMatches(pathStr, hierFilter)){
+                            path.addLast(child.getAttribute("name"));
+                            getChildData(child, path, hierFilter, acc, filterPrefix);   
+                            path.removeLast();
+                        }                    
+                    }
+                }
+            }
+            else{                                       
+                //System.out.println("++ leafPathSt:    " + pathStr);                 
+                if (hierFilterMatches(pathStr, hierFilter)){                
+                    acc.pt += XMLUtils.getXMLNum(element, "pt");
+                }
+            }
+        }
+
+        private boolean hierFilterMatches(String pathStr, String hierFilter){
+            return
+                hierFilter == null ||
+                (pathStr.length() < hierFilter.length() && hierFilter.startsWith(pathStr)) ||
+                pathStr.startsWith(hierFilter);
+        }
+    }  
+        
     private BaselineTrendData baselineTrendData;
 
     private interface BaselineAttrValueLookup {
@@ -3098,7 +3194,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 new BaselineCurrentValueSeries() {
                     public Number getY(int itemIndex) {
                         return getFilteredPlanTime(filter) / 60;
-                    }});
+                    }},
+                    filter);
     }
 
     private double getFilteredPlanTime(EVTaskFilter filter){
