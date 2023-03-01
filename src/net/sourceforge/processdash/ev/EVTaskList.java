@@ -2997,7 +2997,8 @@ public class EVTaskList extends AbstractTreeTableModel
             The Accumulator class is used to roll up summary information for a single baseline when we apply filtering.
         */
         private class Accumulator{
-            Double pt = 0.0;
+            Double pt  = 0.0;
+            Date   pd = new Date(0);
         }
 
         /*
@@ -3034,7 +3035,8 @@ public class EVTaskList extends AbstractTreeTableModel
             }
 
             taskData.put("pt", String.valueOf(acc.pt));
-
+            taskData.put("pd", String.valueOf("@" + acc.pd.getTime()));
+            
             return taskData;
         }
 
@@ -3058,16 +3060,22 @@ public class EVTaskList extends AbstractTreeTableModel
                             //If no "flag" attribute, we want to recurse and check path filter:
                             if (hierFilterMatches(pathStr, hierFilter)){
                                 path.addLast(child.getAttribute("name"));
-                                getChildData(child, path, hierFilter, acc);   
+                                getChildData(child, path, hierFilter, acc);
                                 path.removeLast();
-                            }                             
-                        }                        
+                            }
+                        }
                     }
                 }
             }
-            else{                                                    
-                if (hierFilterMatches(pathStr, hierFilter)){                
+            else{
+                if (hierFilterMatches(pathStr, hierFilter)){
                     acc.pt += XMLUtils.getXMLNum(element, "pt");
+
+                    Date pd = XMLUtils.parseDate(element.getAttribute("pd"));
+
+                    if(acc.pd == null || acc.pd.before(pd)){
+                        acc.pd = pd;
+                    }
                 }
             }
         }
@@ -3149,16 +3157,6 @@ public class EVTaskList extends AbstractTreeTableModel
             this.current = current;
             this.filter = filter;
         }
-        
-        /* 2023-02-23 - Legacy - will be removed after filtered baseline charts completed. */
-        public BaselineTrendChartData(ChartEventAdapter eventAdapter,
-                BaselineAttrValueLookup value,
-                BaselineCurrentValueSeries current) {
-            super(eventAdapter);
-            this.trend = new BaselineTrendSeries(value);
-            this.active = new BaselineActiveValueSeries(value);
-            this.current = current;
-        }        
 
         public void recalc() {
             baselineTrendData.recalc(filter);
@@ -3201,21 +3199,37 @@ public class EVTaskList extends AbstractTreeTableModel
         }
         return retVal;
     }
-    public XYDataset getBaselineDateData(DataRepository data) {
+    public XYDataset getBaselineDateData(DataRepository data, final EVTaskFilter filter) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
 
         return new BaselineTrendChartData(new EVTaskChartEventAdapter(), //
                 new BaselineAttrValueLookup() {
                     public Number getValue(Map<String, String> taskAttrs) {
-                        return baselineChartDate(
-                            XMLUtils.parseDate(taskAttrs.get("pd")));
+                        return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("pd")));
                     }}, //
                 new BaselineCurrentValueSeries() {
                     public Number getY(int itemIndex) {
-                        return baselineChartDate(getTaskRoot().planDate);
-                    }});
+                        return baselineChartDate(getFilteredPlanDate(filter));
+                    }},
+                    filter);
     }
+    
+	//TODO - MAKE CONSISTENT WITH OTHER PLANDATE CHECK
+    private Date getFilteredPlanDate(EVTaskFilter filter){
+
+        long retVal = 0;
+
+        for(EVTask task : getFilteredLeaves(filter)){
+            
+            long taskPlanTime = (task.planDate == null ? 0 : task.planDate.getTime());
+            
+            if(taskPlanTime > retVal){
+                retVal = taskPlanTime;
+            }
+        }
+        return new Date(retVal);
+    }    
 
     private Long baselineChartDate(Date d) {
         if (EVCalculator.badDate(d))
