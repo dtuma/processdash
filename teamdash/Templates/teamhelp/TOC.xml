@@ -104,6 +104,8 @@
                               image="PageIcon" target="TeamMemberManageEV" />
             <tocitem text="Manage Metrics"
                               image="PageIcon" target="TeamMemberManageData" />
+            <tocitem text="Data Collaboration"
+                              image="PageIcon" target="TeamMemberDataCollab" />
       </tocitem>
 
       <tocitem text="Team Leaders" image="BookIcon" target="TeamLeader" >

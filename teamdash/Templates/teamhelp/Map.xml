@@ -74,6 +74,9 @@
   <mapID target="TeamMemberManageData.defects" url="Topics/ManagingPersonalMetrics.html#defects" />
   <mapID target="TeamMemberManageData.size" url="Topics/ManagingPersonalMetrics.html#size" />
   <mapID target="TeamMemberManageData.pps" url="Topics/ManagingPersonalMetrics.html#pps" />
+  <mapID target="TeamMemberDataCollab" url="Topics/TeamMemberDataCollab.html" />
+  <mapID target="TeamMemberDataCollab.syncWBS" url="Topics/TeamMemberDataCollab.html#syncWBS" />
+  <mapID target="TeamMemberDataCollab.export" url="Topics/TeamMemberDataCollab.html#export" />
 
   <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
   <mapID target="TeamLeaderProjectReports" url="Topics/TeamLeaderProjectReports.html" />

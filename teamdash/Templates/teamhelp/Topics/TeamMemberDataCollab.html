@@ -1,0 +1,124 @@
+<html>
+<head>
+<title>Team Data Collaboration</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Team Data Collaboration</h1>
+
+<p>The Team Dashboard uses a
+<a href="TeamDashboardOrganization.html">peer-to-peer architecture</a>
+to share data and facilitate collaboration.  This unique approach
+offers a number of benefits:</p>
+
+<ul>
+
+<li>It makes it possible for you to collect data and refine your plan,
+even when you're offline.</li>
+
+<li>It gives you the ability to perform detailed analyses of your
+personal data, so the data you collect works as hard for <i>you</i> as
+it does for the project.</li>
+
+<li>It helps to preserve the privacy of your personal data, sharing
+only the minimum information needed for team reports and rollups.</li>
+
+<li>It provides you with a long-standing personal database of
+<i>all</i> your historical data, even if you've been a part of many
+different projects, teams, and organizations.  This database empowers
+you to analyze trends in your personal growth, find opportunities for
+improvement, and make better plans in the future.</li>
+
+</ul>
+
+<p>These benefits are possible because your Process Dashboard includes
+a standalone database of personal metrics that is distinct from the
+Team Dashboard database.  But since the databases are distinct, it
+becomes necessary to copy data back and forth periodically.  These
+copies are performed by <a href="#syncWBS">sync</a> and
+<a href="#export">export</a> operations.</p>
+
+<p class="figure"><img src="../Images/data-topology.png"></p>
+
+
+<h2><a name="syncWBS"></a>Synchronizing the Work Breakdown
+Structure</h2>
+
+<p>The <a href="EditingTheWBS.html">Work Breakdown Structure</a>
+offers an easy-to-edit view of the consolidated team plan.  If you
+open the WBS from your personal dashboard and save changes, those
+changes will be applied to your plan automatically.</p>
+
+<p>Personal plan ownership is important for a high-maturity team, so
+the dashboard won't modify your personal plan without your knowledge.
+If another member of your team makes a change to the WBS that affects
+you, you'll need to pull these changes into your plan.  You can
+request these changes by performing a Sync Work Breakdown Structure
+operation.</p>
+
+<p>If your team is using <a href="TeamConfigDirCloud.html">cloud
+storage</a> for team data, make sure your cloud provider's sync client
+is running and active.  The sync client needs to copy the latest WBS
+data from the cloud before you can ask the Process Dashboard to sync
+those changes into your personal plan.</p>
+
+<p>In the Process Dashboard, click the script button and choose Sync
+Work Breakdown Structure.</p>
+
+<p class="figure"><img src="../Images/indiv-scripts-sync.png"></p>
+
+<p>If your plan is up-to-date, you'll see a message to that effect.
+Otherwise, wait while the dashboard copies data from the team plan.
+When the operation is complete, the dashboard will display a list of
+the plan changes that were made.</p>
+
+<p class="figure"><img src="../Images/indiv-sync-success.png"></p>
+
+<p>The Sync operation updates the plan for the currently selected
+project.  If you're a member of more than one project, you can sync
+the other projects by changing the
+<a href="../../help/Topics/Execution/HierarchyMenus.html">active
+task</a> and choosing Sync Work Breakdown Structure again.</p>
+
+
+<h2><a name="export"></a>Exporting Personal Data</h2>
+
+<p>The project data you collect is written in real-time into the
+database in your personal dashboard.  But it isn't immediately
+available for team rollups and reports.  Instead, it is published to
+the Team Dashboard in the background:</p>
+
+<ul>
+
+<li>whenever the Process Dashboard shuts down</li>
+
+<li>between midnight and 1 AM, if you leave your Process Dashboard
+running continually</li>
+
+<li>after any <a href="#syncWBS">Sync</a> operation that makes changes
+to your plan</li>
+
+</ul>
+
+<p>If you've collected data and you'd like to make it available for
+team reports immediately, you can perform an Export My Data Now
+operation.</p>
+
+<p class="figure"><img src="../Images/indiv-scripts-export.png"></p>
+
+<p>The Export operation publishes data for the currently selected
+project.  If you're a member of more than one project, you can export
+data for the other projects by changing the
+<a href="../../help/Topics/Execution/HierarchyMenus.html">active
+task</a> and choosing Export My Data Now again.</p>
+
+<p>If your team is using <a href="TeamConfigDirCloud.html">cloud
+storage</a> for team data, make sure your cloud provider's sync client
+is running and active.  Your data isn't fully exported until the sync
+client reports that all files are published and up-to-date.</p>
+
+<div class="hideInBook" style="margin-top: 9in">&nbsp;</div>
+
+</body>
+</html>
