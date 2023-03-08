@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,9 +27,11 @@ package net.sourceforge.processdash.tool.export.ui;
 import java.io.IOException;
 import java.util.Date;
 
-
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
@@ -82,6 +84,14 @@ public class ExportNow extends TinyCGIBase {
                     + "<BODY><H1>${ExportComplete}</H1>\n");
             out.println(HTMLUtils.escapeEntities(resources.format(
                     "ExportDataComplete_FMT", new Date())));
+
+            if (result != null && result.isCloudStorage()
+                    && Settings.isPersonalMode() && !isPersonalProject()) {
+                out.print("<p style='margin-top:30px; font-style:italic'>" //
+                        + "<b>" + resources.getHTML("ExportNote") + "</b>&nbsp;"
+                        + resources.getHTML("ExportDataCloud") + "</p>");
+            }
+
             out.println("</BODY></HTML>");
 
         } else if (CompletionStatus.NO_WORK_NEEDED.equals(result.getStatus())) {
@@ -102,8 +112,13 @@ public class ExportNow extends TinyCGIBase {
             } else if (result.getTarget() != null
                     && result.getException() instanceof IOException) {
                 String target = result.getTarget().toString();
-                String resKey = TeamServerSelector.isUrlFormat(target)
-                        ? "ExportError.Server_IO_FMT": "ExportError.IO_FMT";
+                String resKey;
+                if (TeamServerSelector.isUrlFormat(target))
+                    resKey = "ExportError.Server_IO_FMT";
+                else if (result.isCloudStorage())
+                    resKey = "ExportError.Cloud_IO_FMT";
+                else
+                    resKey = "ExportError.IO_FMT";
                 out.println(HTMLUtils.escapeEntities(resources.format(
                         resKey, target)));
             } else {
@@ -119,6 +134,12 @@ public class ExportNow extends TinyCGIBase {
         }
     }
 
+
+    private boolean isPersonalProject() {
+        SimpleData sd = getDataContext()
+                .getSimpleValue(TeamDataConstants.PERSONAL_PROJECT_FLAG);
+        return sd != null && sd.test();
+    }
 
     private void interpOut(String htmlTemplate) {
         out.print(resources.interpolate(htmlTemplate, HTMLUtils.ESC_ENTITIES));
