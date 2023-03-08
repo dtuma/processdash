@@ -1499,7 +1499,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Object advice = new WrappedOptionPaneText(
                 res.getString(RES_ECD + "Recovery_Advice"));
         Object cloud = " ";
-        if (CloudStorageSetupHelper.isCloudStorage())
+        if (Settings.isCloudStorage())
             cloud = new Object[] { " ", new WrappedOptionPaneText(
                     res.getString(RES_ECD + "Cloud_Message")), " " };
         Object ignore = new WrappedOptionPaneText(
@@ -1565,7 +1565,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         Object warning = new WrappedOptionPaneText(
                 resources.getString(RES_ECD + "Detected.Warning"));
         Object cloud = " ";
-        if (CloudStorageSetupHelper.isCloudStorage())
+        if (Settings.isCloudStorage())
             cloud = new Object[] { " ",
                     new WrappedOptionPaneText(
                             resources.getString(RES_ECD + "Cloud_Message")),
