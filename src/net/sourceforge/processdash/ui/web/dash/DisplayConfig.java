@@ -117,8 +117,7 @@ public class DisplayConfig extends TinyCGIBase {
 
         if (bundleMode != null) {
             out.print("<DIV>");
-            out.print(resources.format("Bundle_Mode_HTML_FMT", //
-                bundleMode.getName()));
+            out.print(resources.getString("Bundle_Mode_" + bundleMode.getName()));
             out.print("<BR>&nbsp;</DIV>");
         }
 
