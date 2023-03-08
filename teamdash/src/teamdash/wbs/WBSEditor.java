@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ import net.sourceforge.processdash.security.TamperDeterrent;
 import net.sourceforge.processdash.team.group.UserGroupManagerWBS;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
@@ -1495,6 +1496,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         return workingDirectory instanceof BundledWorkingDirectorySync;
     }
 
+    private boolean isCloudStorage() {
+        return CloudStorageUtils.isCloudStorage(workingDirectory);
+    }
+
     void replaceDataFrom(final TeamProject srcProject) {
 
         if (SwingUtilities.isEventDispatchThread()) {
@@ -2393,11 +2398,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         else return "Dir";
     }
 
-    private static String workingDirResKey(Object workingDirectory) {
+    private static String workingDirResKey(WorkingDirectory workingDirectory) {
         if (workingDirectory instanceof BridgedWorkingDirectory)
             return "Server";
         else if (workingDirectory instanceof CompressedWorkingDirectory)
             return "Zip";
+        else if (CloudStorageUtils.isCloudStorage(workingDirectory))
+            return "Cloud";
         else
             return "Dir";
     }
@@ -2797,8 +2804,12 @@ public class WBSEditor implements WindowListener, SaveListener,
                 showMergeFollowUpInfo("File_Refresh.Title", true);
 
             } else if (!isMode(MODE_PERSONAL)) {
-                JOptionPane.showMessageDialog(frame,
-                    resources.getStrings("File_Refresh.No_Merge_Message"),
+                Object message = resources
+                        .getStrings("File_Refresh.No_Merge_Message");
+                if (isCloudStorage())
+                    message = new Object[] { message, " ", resources
+                            .getStrings("File_Refresh.Cloud_Message") };
+                JOptionPane.showMessageDialog(frame, message,
                     resources.getString("File_Refresh.Title"),
                     JOptionPane.PLAIN_MESSAGE);
             }
