@@ -212,6 +212,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.team.ui.PersonLookupDialog"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
@@ -281,7 +282,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 208) {
+        if (classCount > 209) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -400,6 +401,7 @@ class dependency has been added in a dashboard class?)
   <target name="working-dirs-jar" depends="compile">
     <!-- compute the classes needed for working directory logic -->
     <classfileset id="workingDirClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
     </classfileset>

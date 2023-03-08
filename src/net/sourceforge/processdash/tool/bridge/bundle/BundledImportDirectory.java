@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -215,6 +215,26 @@ public class BundledImportDirectory implements ImportDirectory {
             throw new IOException("Couldn't flush changes to " + filename
                     + " in " + getDescription());
     }
+
+
+    public static boolean isBundled(ImportDirectory dir, FileBundleMode mode) {
+        // retrieve underlying delegate for DynamicImportDirectory
+        if (dir instanceof DynamicImportDirectory)
+            dir = ((DynamicImportDirectory) dir).getDelegate();
+
+        // if this is not a bundled import dir, return null
+        if (!(dir instanceof BundledImportDirectory))
+            return false;
+
+        // if no specific mode was requested, return true
+        if (mode == null)
+            return true;
+
+        // return true if this directory uses the given bundle mode
+        BundledImportDirectory bid = (BundledImportDirectory) dir;
+        return mode.equals(bid.getBundleMode());
+    }
+
 
     public static ForkTracker getSyncBundleForkTracker(ImportDirectory dir) {
         // retrieve underlying delegate for DynamicImportDirectory
