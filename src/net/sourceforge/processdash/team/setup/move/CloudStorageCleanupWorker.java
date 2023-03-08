@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -91,6 +91,9 @@ public class CloudStorageCleanupWorker {
 
         // delete data elements left over from the previous dataset
         cleanupDataElements();
+
+        // mark this dataset as using cloud storage
+        InternalSettings.set("dataset.isCloudStorage", "true");
 
         // clear the flag indicating that cleanup is needed
         InternalSettings.set(SETTING, null);
