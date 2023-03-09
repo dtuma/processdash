@@ -61,65 +61,26 @@ Unfortunately, that directory could not be found.  Please check your network
 connection and try again.  If the problem persists, contact your team leader
 for help.
 
-<!--#elif sharedFolderUnknownKey -->
+<!--#elif sharedFolderError -->
 
 <p>To synchronize your hierarchy with the WBS, the dashboard must read
 project data files from the team data directory.  The team dashboard
 indicates the directory is located:</p>
-
-<table style="margin-left: 1cm">
-<tr><td><b>Under Shared Folder with Key:</b>&nbsp;</td>
-    <td><tt><!--#echo key --></tt></td></tr>
-<tr><td style="text-align:right"><b>In Subdirectory:</b>&nbsp;</td>
-    <td><tt><!--#echo relPath --></tt></td></tr>
-</table>
-
-<p>Unfortunately, you do not have a Shared Folder entry with that key.
-Please contact your team leader for help.  You may need to take one or
-both of the following steps:</p>
-
-<ul>
-
-<li>Install a desktop sync client, if the shared folder is in cloud
-storage (such as OneDrive, Google Drive, DropBox, etc)</li>
-
-<li style="margin-top: 1em">Open "<!--#if !isTeam && !isMaster
---><img src="/help/Images/cmenu.png"> &rarr; <!--#endif-->Tools &rarr;
-Preferences &rarr; Shared Folders" and add an entry with the key
-"<tt><!--#echo key --></tt>", indicating where the shared folder can
-be found.</li>
-
-</ul>
-
-<!--#elif sharedFolderDirNotFound -->
-
-<p>To synchronize your hierarchy with the WBS, the dashboard must read
-project data files from the directory</p>
-
-<pre><!--#echo teamDir --></pre>
-
-<p>Unfortunately, that directory could not be found.</p>
-
-<ul>
-
-<li style="margin-top: 1em">If the directory is on a <b>network file
-server</b>, check your network connection and try again.  If the
-problem persists, contact your team leader for help.</li>
-
-<li style="margin-top: 1em">If the directory is in <b>cloud storage</b>
-(such as OneDrive, Google Drive, DropBox, etc), make sure:</li>
-
-    <ul>
-    <li style="margin-top: 0.5em">Its owner has shared the
-        directory with you</li>
-    <li>You have added the directory to your personal cloud
-        storage area (via a shortcut, link, alias, etc.)</li>
-    <li>You have installed the desktop client for that cloud
-        service, it is currently running, and it has synchronized
-        that directory to this computer.</li>
-    </ul>
-
-</ul>
+ 
+<!--#include file="sharedFolderError.shtm" -->
+    <!--#parameter name="QUERY_STRING" -->
+ 
+<!--#elif cloudFolderCannotRead -->
+ 
+To synchronize your hierarchy with the WBS, the dashboard must read
+project data files from the directory
+<pre><!--#echo cloudStorageDir --></pre>
+ 
+Unfortunately, files in that directory could not be read.  Please
+doublecheck your network connection, and make sure your cloud
+provider's sync client is running and active.  Then, try the "Sync to
+WBS" operation again.  If the problem persists, contact your team
+leader for help.
 
 <!--#elif teamDirMissing -->
 

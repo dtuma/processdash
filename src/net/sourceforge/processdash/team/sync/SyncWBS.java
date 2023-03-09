@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ import java.awt.Component;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +67,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
@@ -77,7 +77,7 @@ import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
-import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MappingException;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -473,14 +473,21 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         // encoding, try searching for it under the given folder root.
         if (!isValid && FolderMappingManager.isEncodedPath(teamDirectoryPath)
                 && Settings.getBool("syncWBS.searchForDir", true)) {
+            String cloudDirPath = null;
             try {
                 // ask the folder mapping manager to search for the directory
                 FolderMappingManager mgr = FolderMappingManager.getInstance();
                 File newDir = mgr.searchForDirectory(teamDirectoryPath, 2);
 
-                // if a dir is found, build and validate an ImportDirectory
+                // if a dir is found, build an ImportDirectory
                 ImportDirectory nid = ImportDirectoryFactory.getInstance()
                         .get(newDir.getAbsolutePath());
+
+                // if the dir is using cloud storage, save the cloud dir path
+                if (CloudStorageUtils.isCloudStorage(nid))
+                    cloudDirPath = nid.getDescription();
+
+                // validate the directory to ensure readability
                 nid.validate();
 
                 // if we successfully validate a newly found directory, adopt
@@ -492,22 +499,15 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
                 dir = nid;
                 isValid = true;
 
-            } catch (MissingMapping mm) {
-                // display a message if the shared folder is unregistered
-                StringBuffer err = new StringBuffer("?sharedFolderUnknownKey");
-                HTMLUtils.appendQuery(err, "key", mm.getKey());
-                HTMLUtils.appendQuery(err, "relPath",
-                    mm.getRelPath().substring(1));
-                signalError(err.substring(1));
-
-            } catch (FileNotFoundException fnfe) {
-                // display a message if the resolved path is not found
-                String dirPath = fnfe.getMessage();
-                signalError("sharedFolderDirNotFound&teamDir", dirPath);
+            } catch (MappingException me) {
+                // display a message if shared folder errors are encountered
+                signalError(me.asQuery().substring(1));
 
             } catch (Exception e) {
                 // if a replacement directory could not be found and validated,
-                // abort and signal an error below
+                // abort. Signal cloud storage errors here, other errors below
+                if (cloudDirPath != null)
+                    signalError("cloudFolderCannotRead&cloudStorageDir", cloudDirPath);
             }
         }
 

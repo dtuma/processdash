@@ -93,6 +93,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -111,6 +112,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MappingException;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -2837,8 +2839,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
      * resolve the team directory to something that will work for the
      * current user, if possible.  */
     protected ImportDirectory resolveTeamDataDirectory() {
+        ImportDirectory result = null;
         try {
-            ImportDirectory result = resolveTeamDataDirectoryImpl();
+            result = resolveTeamDataDirectoryImpl();
             if (result == null)
                 throw new WizardError(IND_DATADIR_ERR_URL);
 
@@ -2846,6 +2849,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return result;
 
         } catch (IOException e) {
+            // if the dir exists and uses cloud storage, display a cloud message
+            if (CloudStorageUtils.isCloudStorage(result))
+                throw new WizardError(IND_DATADIR_ERR_URL)
+                        .param("cloudFolderCannotRead")
+                        .param("cloudStorageDir", result.getDescription());
+
+            // otherwise, display an error about the missing directory or
+            // unreachable server
             throw new WizardError(IND_DATADIR_ERR_URL).causedBy(e);
         }
     }
@@ -2927,6 +2938,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             File dir = FolderMappingManager.getInstance()
                     .searchForDirectory(teamDataDirPath, 2);
             return dir.getParentFile().getParentFile().getAbsolutePath();
+
+        } catch (MappingException me) {
+            // display a message if shared folder errors are encountered
+            throw new WizardError(IND_DATADIR_ERR_URL + me.asQuery());
 
         } catch (Exception e) {
             // we were unable to find a directory that matches. Abort so we can
