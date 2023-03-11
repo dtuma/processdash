@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.team.sync.SyncScanner;
 import net.sourceforge.processdash.team.ui.PersonLookupDialog;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -246,6 +247,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         File dir = new File(directory);
         if (!dir.isDirectory()) {
             printErrorPage("Directory_Unavailable", directory);
+            SyncScanner.requestScan(getStringParameter("projectPath"));
             return false;
         }
 
