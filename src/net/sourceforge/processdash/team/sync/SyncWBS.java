@@ -501,7 +501,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
             } catch (MappingException me) {
                 // display a message if shared folder errors are encountered
-                signalError(me.asQuery().substring(1));
+                signalError(me.asQuery().substring(1) + "&SYNC-IS-NEEDED");
 
             } catch (Exception e) {
                 // if a replacement directory could not be found and validated,

@@ -32,6 +32,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
+import net.sourceforge.processdash.team.sync.SyncScanner;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
@@ -121,6 +122,7 @@ public class ExportNow extends TinyCGIBase {
                     resKey = "ExportError.IO_FMT";
                 out.println(HTMLUtils.escapeEntities(resources.format(
                         resKey, target)));
+                SyncScanner.requestScan(getPrefix());
             } else {
                 out.println(resources.getHTML("ExportError.Message"));
                 if (result != null && result.getException() != null) {
