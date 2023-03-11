@@ -149,6 +149,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
@@ -166,6 +167,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingRootFolder;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
@@ -300,7 +302,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception e) {
             logErr("Unable to read settings file", e);
             displayStartupIOError("Errors.Read_File_Error.Settings_File",
-                    e.getMessage(), e);
+                    e.getMessage(), workingDirectory, e);
             System.exit(0);
         }
         File dataDir = workingDirectory.getDirectory();
@@ -384,7 +386,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             // if I/O problems prevented reading users/roles, exit with error
             logErr("Unable to read permission files", ioe);
             displayStartupIOError("Errors.Read_File_Error.Permissions_Files",
-                    ioe.getMessage(), ioe);
+                    ioe.getMessage(), workingDirectory, ioe);
             System.exit(1);
         }
 
@@ -546,7 +548,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException e1) {
             logErr("Unable to read time log", e1);
             displayStartupIOError("Errors.Read_File_Error.Time_Log",
-                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME, e1);
+                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME,
+                    workingDirectory, e1);
             System.exit(0);
         }
         pt.click("Initialized time log");
@@ -783,12 +786,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (MissingMapping mm) {
             displayStartupFolderMappingError("Key_Error", mm.getKey());
 
+        } catch (MissingRootFolder mr) {
+            displayStartupFolderMappingError("Root_Error", mr.getKey(),
+                mr.getPath());
+
         } catch (FileNotFoundException fnfe) {
             displayStartupFolderMappingError("Dir_Error", fnfe.getMessage());
 
         } catch (Exception e) {
             displayStartupIOError("Errors.Read_File_Error.Data_Directory",
-                location, e);
+                location, null, e);
         }
         System.exit(1);
         // the following line is not reached, but must be present to keep
@@ -814,7 +821,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     + linkFileName + "' - aborting");
             e.printStackTrace();
             displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
-                linkFileName, e);
+                linkFileName, null, e);
         } finally {
             FileUtils.safelyClose(in);
         }
@@ -842,12 +849,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return mgr.resolvePath(location);
     }
 
-    private void displayStartupFolderMappingError(String resKey, String arg) {
+    private void displayStartupFolderMappingError(String resKey, String... args) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
         Object message = resources.formatStrings(
-            "Errors.Shared_Folder." + resKey + ".Message_FMT", arg);
+            "Errors.Shared_Folder." + resKey + ".Message_FMT", args);
         JOptionPane.showMessageDialog(hideSS(), ssFront(message),
             resources.getString("Errors.Read_File_Error.Title"),
             JOptionPane.ERROR_MESSAGE);
@@ -893,7 +900,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } else {
                 resKey = "Errors.Read_File_Error.Data_Directory";
             }
-            displayStartupIOError(resKey, locationDescr, e);
+            displayStartupIOError(resKey, locationDescr, workingDirectory, e);
             System.exit(1);
         }
 
@@ -1812,7 +1819,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
 
     private void displayStartupIOError(String resourceKey, String filename,
-            Throwable t) {
+            WorkingDirectory wd, Throwable t) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
@@ -1824,9 +1831,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } catch (Exception e) {}
         }
 
+        String messageKey = CloudStorageUtils.isCloudStorage(wd)
+                ? "Cloud_Message_FMT" : "Message_FMT";
+
         ExceptionDialog.showWithSubdialog(hideSS(), //
             resources.getString("Errors.Read_File_Error.Title"), //
-            resources.formatStrings("Errors.Read_File_Error.Message_FMT",
+            resources.formatStrings("Errors.Read_File_Error." + messageKey,
                 resources.getString(resourceKey), filename), " ", //
             "<a>" + resources.getString("More_Information") + "</a>", //
             t);
