@@ -25,6 +25,7 @@ package net.sourceforge.processdash.ev;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.sourceforge.processdash.hier.Filter;
@@ -40,11 +41,24 @@ public class EVHierarchicalFilter implements EVTaskFilter {
 
     protected Set includedTasks;
 
+    public Set<String> includedTaskIds = new HashSet<String>();
+
     protected EVTaskFilter nextFilter;
 
     public EVHierarchicalFilter(String displayName, Set includedTasks) {
         this.displayName = displayName;
         this.includedTasks = includedTasks;
+
+        //FIXME - 2023-03-12 - RBentall
+        //Build a set which contains the fulltaskIds. 
+        //If we have duplicate task IDs, ignore the second.
+        //May be better to refactor so that we use a map instead of set for includedTasks.       
+        Iterator it = includedTasks.iterator();
+
+        while(it.hasNext()){
+            EVTask e = (EVTask)it.next();
+            includedTaskIds.add(e.getFullTaskID());           
+        }
     }
 
     public EVTaskFilter appendFilter(EVTaskFilter filter) {

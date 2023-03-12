@@ -28,8 +28,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,6 +107,8 @@ import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TimeZoneDateAdjuster;
 import net.sourceforge.processdash.util.TimeZoneUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+
+import net.sourceforge.processdash.ev.EVTask;
 
 import org.w3c.dom.Element;
 
@@ -2880,9 +2888,9 @@ public class EVTaskList extends AbstractTreeTableModel
                 new CPIXYChartSeries(filter));
     }
 
-
-
     private class BaselineTrendData {
+
+        DebugOutput debugOutput_;    
 
         class Point implements Comparable<Point> {
             Long date;
@@ -2906,6 +2914,12 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public synchronized void recalc(final EVTaskFilter filter) {
+
+            //Debug output - delete me
+            if(System.getProperty("writeSnapshotDebug").equals("true")){
+                debugOutput_ = new DebugOutput("BaselineTrendData_recalc");
+            }
+
             long recalcAge = System.currentTimeMillis() - recalcTime;
             if (recalcAge < 1000)
                 return;
@@ -2937,6 +2951,11 @@ public class EVTaskList extends AbstractTreeTableModel
             } catch (Exception e) {
             }
             Collections.sort(points);
+
+            //Debug output - delete me            
+            if(debugOutput_ != null){
+                debugOutput_.close();
+            }
         }
 
         private void addDataPoint(String dataName, SimpleData dataValue,
@@ -2951,17 +2970,11 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Map<String, String> data;
 
-                if(filter != null){
+                if(filter != null && filter instanceof EVHierarchicalFilter){
                     
-                    String hierFilter  = filter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
+                    EVHierarchicalFilter hierFilter = ((EVHierarchicalFilter)filter);
                     
-                    //hierFilter will start with a '/' when part of a rollup. 
-                    //Strip this so the path comparison will work correctly. 
-                    if(hierFilter.startsWith("/")){
-                        hierFilter = hierFilter.substring(1);
-                    }
-                    
-                    data = getPlotDataFromXmlWithFilter(xml, hierFilter);
+                    data = getPlotDataFromXmlWithFilter(m.getName(), xml, hierFilter);
                 }
                 else{
                     data = getPlotDataFromXml(xml);
@@ -3004,7 +3017,7 @@ public class EVTaskList extends AbstractTreeTableModel
         /*
             This returns summary data (filtered) for a single baseline.
         */        
-        private Map<String, String> getPlotDataFromXmlWithFilter(String xml, String hierFilter) throws Exception {
+        private Map<String, String> getPlotDataFromXmlWithFilter(String snapshotName, String xml, EVHierarchicalFilter hierFilter) throws Exception {
 
             Map<String, String> taskData = new HashMap<String, String>();
 
@@ -3018,6 +3031,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
             //We build the path of the current node as we walk through the xml
             //pushing and popping the elements as we go.
+            //2023-03-11 - NOT NEEDED IF USING IDS for hier filter, just left in for debugging purposes.
             Deque<String> path = new ArrayDeque<String>();
 
             Accumulator acc = new Accumulator();
@@ -3028,7 +3042,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Element parent = XMLUtils.parse(element).getDocumentElement();
 
-                getChildData(parent, path, hierFilter, acc);
+                getChildData(parent,  hierFilter, acc, path, snapshotName);
 
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -3040,54 +3054,105 @@ public class EVTaskList extends AbstractTreeTableModel
             return taskData;
         }
 
-        void getChildData(Element element, Deque<String> path, String hierFilter, Accumulator acc){
-            
-            String pathStr = String.join("/", path);
-            
-            //System.out.println("++ getChildData: " + element.getTagName());            
-            //System.out.println("++ pathStr:      " + pathStr);                        
-            //System.out.println("++ hierFilter:   " + hierFilter);
-            
-            List<Element> children = XMLUtils.getChildElements(element);
+        //Using HierarchicalFilter directly. Path and snapshot name only needed for debug output.
+        void getChildData(Element element, EVHierarchicalFilter hierFilter, Accumulator acc, Deque<String> path, String snapshotName){
 
-            if(children.size() > 0){
-                for(Element child : children){
-                    if(child.getTagName().equals("task")){
-                        if(child.hasAttribute("flag")){
-                            //Just recurse, don't add an element to the path and don't check path filter
-                            getChildData(child, path, hierFilter, acc);
-                        }else{
-                            //If no "flag" attribute, we want to recurse and check path filter:
-                            if (hierFilterMatches(pathStr, hierFilter)){
-                                path.addLast(child.getAttribute("name"));
-                                getChildData(child, path, hierFilter, acc);
-                                path.removeLast();
-                            }
+            //Test if we have found our node.
+            //If we have, roll up into the accumulator + return.
+            String thisElementTid = element.getAttribute("tid");
+            String thisElementName = element.getAttribute("name");
+
+            path.addLast(thisElementName);
+
+            //Debug output - delete me            
+            if(debugOutput_ != null){
+                debugOutput_.writeDebug(element, hierFilter, acc, path, snapshotName);
+            }
+
+            if(hierFilter.includedTaskIds.contains(thisElementTid)){
+                acc.pt += XMLUtils.getXMLNum(element, "pt");
+                Date pd = XMLUtils.parseDate(element.getAttribute("pd"));
+
+                if(pd != null && acc.pd.before(pd)){
+                    acc.pd = pd;
+                }
+                                
+            } else {
+                List<Element> children = XMLUtils.getChildElements(element);
+
+                if(children.size() > 0){
+    
+                    for(Element child : children){
+                        if(child.getTagName().equals("task")){                            
+                            getChildData(child, hierFilter, acc, path, snapshotName);                        
                         }
                     }
                 }
             }
-            else{
-                if (hierFilterMatches(pathStr, hierFilter)){
-                    acc.pt += XMLUtils.getXMLNum(element, "pt");
+            path.pop();
 
-                    Date pd = XMLUtils.parseDate(element.getAttribute("pd"));
-
-                    if(acc.pd == null || acc.pd.before(pd)){
-                        acc.pd = pd;
-                    }
-                }
-            }
         }
 
-        /* 
-            Use to match the hierarchy filter to the node's path.
-        */
-        private boolean hierFilterMatches(String pathStr, String hierFilter){
-            return
-                hierFilter == null ||
-                (pathStr.length() < hierFilter.length() && hierFilter.startsWith(pathStr)) ||
-                pathStr.startsWith(hierFilter);
+        // Debug methods - to remove
+
+        private class DebugOutput{
+
+            FileWriter fw;        
+
+            DebugOutput(String label){
+
+                try {
+                    //Directory:
+                    Path debugOutputDir = Paths.get(System.getProperty("user.home"), "AppData/Roaming/Process Dashboard/Debug");
+                    Files.createDirectories(debugOutputDir);
+
+                    //Debug file:
+                    String now = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());             
+                    Path debugOutputFile = Paths.get(debugOutputDir.toString() + "/" + now + "_" + label + ".txt");
+
+                    fw = new FileWriter(debugOutputFile.toString());
+                    fw.append("SnapshotName|HierFilter|PathStr|HasFlag|Flag|Name|Tid\n");
+                } catch (IOException e) {
+                   System.out.println("Error occurred creating logfile " + label);
+                   e.printStackTrace();
+                }                           
+            }
+
+            void close(){
+               try {
+                   fw.close();
+               } catch (IOException e) {
+                   System.out.println("Error occurred closing logfile " + fw.toString());
+                   e.printStackTrace();
+               }                
+            }
+
+            void writeDebug(Element element, EVHierarchicalFilter hierFilter, Accumulator acc, Deque<String> path, String snapshotName){
+                String pathStr = String.join("/", path);
+                String hierFilterStr = hierFilter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
+
+                String output = String.format("%s|%s|%s|%s|%s|%s|%s\n",
+                                        snapshotName, 
+                                        hierFilterStr,
+                                        pathStr,
+                                        element.hasAttribute("flag"),
+                                        element.getAttribute("flag"),
+                                        element.getAttribute("name"),
+                                        element.getAttribute("tid")
+                                        );
+                writeDebug(output);
+            }      
+
+            void writeDebug(String debug){
+
+                try {
+                    fw.append(debug);
+                    fw.flush();
+                } catch (IOException e) {
+                    System.out.println("Error occurred closing logfile " + fw.toString());
+                    e.printStackTrace();
+                } 
+            }
         }
     }  
         
@@ -3215,7 +3280,7 @@ public class EVTaskList extends AbstractTreeTableModel
                     filter);
     }
     
-	//TODO - MAKE CONSISTENT WITH OTHER PLANDATE CHECK
+	
     private Date getFilteredPlanDate(EVTaskFilter filter){
 
         long retVal = 0;
