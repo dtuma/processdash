@@ -126,7 +126,8 @@ public class BundledImportDirectory implements ImportDirectory {
 
     private void maybePurgeOldPdashFiles(String filename) {
         // only purge older PDASH files
-        if (!filename.toLowerCase().endsWith(".pdash"))
+        String filenameLC = filename.toLowerCase();
+        if (!filenameLC.endsWith(".pdash"))
             return;
 
         // see how many PDASH bundles we're configured to retain. 0 == no limit
@@ -142,7 +143,7 @@ public class BundledImportDirectory implements ImportDirectory {
             return;
 
         // Scan files starting with newest, looking for bundles of this file
-        String suffix = "-" + FileBundleID.filenameToBundleName(filename)
+        String suffix = "-" + FileBundleID.filenameToBundleName(filenameLC)
                 + ".xml";
         Arrays.sort(filenames);
         int count = 0;

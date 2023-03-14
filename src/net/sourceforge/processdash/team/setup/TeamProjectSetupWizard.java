@@ -94,6 +94,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -3253,7 +3254,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static boolean lookForRecentBundleWithActualData(File wbsDir,
             String exportFilename, DataContext data, boolean storeBestBackup) {
         // list the names of files in the bundles subdirectory
-        File bundleDir = new File(wbsDir, "bundles");
+        File bundleDir = new File(wbsDir, FileBundleConstants.BUNDLE_SUBDIR);
         String[] filenames = bundleDir.list();
         if (filenames == null || filenames.length == 0)
             return false;
@@ -3262,8 +3263,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         Arrays.sort(filenames);
 
         // prepare variables for filename scan
+        String exportFilenameLC = exportFilename.toLowerCase();
         String bundleFilenameSuffix = "-"
-                + FileBundleID.filenameToBundleName(exportFilename) + ".zip";
+                + FileBundleID.filenameToBundleName(exportFilenameLC) + ".zip";
         int suffixLen = bundleFilenameSuffix.length();
         boolean sawExportFileBundle = false;
 
