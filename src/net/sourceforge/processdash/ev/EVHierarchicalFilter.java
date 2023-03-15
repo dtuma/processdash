@@ -30,7 +30,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.hier.Filter;
 
-public class EVHierarchicalFilter implements EVTaskFilter {
+public class EVHierarchicalFilter implements EVTaskFilter, EVTaskFilterXml {
 
     public static final String HIER_FILTER_ATTR = "hierFilter";
 
@@ -41,7 +41,7 @@ public class EVHierarchicalFilter implements EVTaskFilter {
 
     protected Set includedTasks;
 
-    public Set<String> includedTaskIds = new HashSet<String>();
+    private final Set<String> includedTaskIds = new HashSet<String>();
 
     protected EVTaskFilter nextFilter;
 
@@ -49,15 +49,15 @@ public class EVHierarchicalFilter implements EVTaskFilter {
         this.displayName = displayName;
         this.includedTasks = includedTasks;
 
-        //FIXME - 2023-03-12 - RBentall
-        //Build a set which contains the fulltaskIds. 
-        //If we have duplicate task IDs, ignore the second.
-        //May be better to refactor so that we use a map instead of set for includedTasks.       
+        //Build a set which contains the taskIds. 
         Iterator it = includedTasks.iterator();
 
         while(it.hasNext()){
             EVTask e = (EVTask)it.next();
-            includedTaskIds.add(e.getFullTaskID());           
+
+            if(e.getTaskIDs()!= null){
+                this.includedTaskIds.addAll(e.getTaskIDs());
+            }
         }
     }
 
@@ -65,6 +65,8 @@ public class EVHierarchicalFilter implements EVTaskFilter {
         this.nextFilter = filter;
         return this;
     }
+
+    /* EvTaskList interface */
 
     public boolean include(EVTask t) {
         if (!includedTasks.contains(t))
@@ -82,6 +84,12 @@ public class EVHierarchicalFilter implements EVTaskFilter {
             return nextFilter.getAttribute(name);
         else
             return null;
+    }
+
+    /* EvTaskListXml interface */
+
+    public boolean include(String elementTid){
+        return this.includedTaskIds.contains(elementTid); 
     }
 
     public static EVHierarchicalFilter getFilterForMerged(EVTaskList tl,
