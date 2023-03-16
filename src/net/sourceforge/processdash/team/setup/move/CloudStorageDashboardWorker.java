@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,8 +26,10 @@ package net.sourceforge.processdash.team.setup.move;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Random;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
@@ -37,6 +39,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
@@ -157,7 +160,7 @@ public class CloudStorageDashboardWorker {
             SyncClientMappings.initialize(newDirectory);
             String newLocation = FolderMappingManager.getInstance()
                     .encodePath(newDirectory.getAbsolutePath());
-            String knownFileSearchQuery = getKnownFileSearchQuery();
+            String knownFileSearchQuery = getKnownFileSearchQuery(newDirectory);
 
             // write a data moved file with the new location
             Writer out = new FileWriter(movedFile);
@@ -179,16 +182,40 @@ public class CloudStorageDashboardWorker {
         }
     }
 
-    private String getKnownFileSearchQuery() {
+    public static String getKnownFileSearchQuery(File targetDir) {
         try {
-            File bundleDir = new File(newDirectory, "bundles");
-            for (File f : bundleDir.listFiles()) {
-                if (f.getName().endsWith("-core.xml"))
-                    return "?bundles/" + f.getName();
+            // if a unique directory tag file already exists, return it
+            String[] targetFiles = targetDir.list();
+            if (targetFiles == null)
+                return "";
+            for (String oneFile : targetFiles) {
+                if (oneFile.startsWith(UNIQUE_DIRECTORY_ID))
+                    return "?" + oneFile;
             }
+
+            // create a file in the target directory with a random name
+            String tagFilename = UNIQUE_DIRECTORY_ID
+                    + toAlphanumeric(System.currentTimeMillis()) + "-" //
+                    + toAlphanumeric(new Random().nextInt()) + ".txt";
+            File tagFile = new File(targetDir, tagFilename);
+
+            // write a short explanatory message into that file
+            PrintWriter out = new PrintWriter(new OutputStreamWriter(
+                    FileBundleUtils.outputStream(tagFile), "UTF-8"));
+            for (String line : UNIQUE_TAG_VERBIAGE)
+                out.println(line);
+            out.close();
+
+            // return a search query that can be used to find this directory
+            return "?" + tagFilename;
+
         } catch (Exception e) {
         }
         return "";
+    }
+
+    private static String toAlphanumeric(long number) {
+        return Long.toString(Math.abs(number), Character.MAX_RADIX);
     }
 
 
@@ -236,5 +263,15 @@ public class CloudStorageDashboardWorker {
     // we don't need the FileBundleMigrator to lock the source directory,
     // because it's already locked by the running dashboard
     private static boolean SOURCE_DIR_IS_ALREADY_LOCKED_FLAG = false;
+
+    // prefix used to create a file for uniquely tagging a directory
+    private static final String UNIQUE_DIRECTORY_ID = "unique-directoryID-";
+
+    // verbiage to write into the unique tag file
+    private static final String[] UNIQUE_TAG_VERBIAGE = { //
+            "The name of this file helps to uniquely identify this directory.",
+            "If you make a manual copy of this entire directory tree (for",
+            "backup, testing, or other purposes), you should generally",
+            "delete this file from the copy so uniqueness is maintained." };
 
 }
