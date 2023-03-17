@@ -97,8 +97,7 @@ public class XmlCollectionListing implements CollectionReport {
         }
     }
 
-    public static ResourceCollectionInfo parseListing(Element data)
-            throws IOException {
+    public static ResourceCollectionInfo parseListing(Element data) {
         ResourceListing result = new ResourceListing();
         NodeList resourceElems = data.getElementsByTagName(RESOURCE_TAG);
         if (resourceElems != null) {

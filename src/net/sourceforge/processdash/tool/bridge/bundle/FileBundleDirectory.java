@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -440,6 +442,76 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return new FileBundleCollection(getManifest(bundleID),
                 getZipFileForBundle(bundleID));
     }
+
+
+    /**
+     * Scan the directory for bundles that precede the timestamp. If any are
+     * found, organize them into monthly pack files.
+     * 
+     * @param timestamp
+     *            the cutoff time for pack operations. If a bundle older than
+     *            this time is seen, the entire month containing that bundle
+     *            will be packed (even if the month ends after this timestamp)
+     * @throws IOException
+     *             if the pack operation encountered an error
+     */
+    public void packBundlesThroughMonth(long timestamp) throws IOException {
+        // identify the cutoff timestamp for bundles that should be packaged
+        String cutoffTime = timeFormat.format(timestamp);
+
+        // list the files in the directory
+        String[] files = bundleDir.list();
+        if (files == null)
+            throw new FileNotFoundException(bundleDir.getPath());
+
+        // look for bundles & packs in the directory that precede the timestamp
+        Set<String> packTokens = new TreeSet<String>();
+        for (String file : files) {
+            if (file.endsWith(".xml") && file.compareTo(cutoffTime) < 0) {
+                try {
+                    FileBundleID bundleID = new FileBundleID(file);
+                    String pt = FileBundlePack.getPackTimestamp(bundleID);
+                    packTokens.add(pt);
+                } catch (IllegalArgumentException iae) {
+                    // this XML file is apparently not bundle-related
+                }
+            }
+        }
+
+        // package the bundles for the months we found
+        for (String token : packTokens) {
+            packBundlesForMonth(token);
+        }
+    }
+
+
+    /**
+     * Gather up all the bundles from a particular month, and put them in a
+     * single pack file
+     * 
+     * @param targetTimestampOrToken
+     *            a FileBundleID token or timestamp belonging to the month that
+     *            should be packed
+     * @return the FileBundleID of the pack that was created, or null if no pack
+     *         operation was needed
+     * @throws IOException
+     *             if the pack operation encountered an error
+     */
+    public FileBundleID packBundlesForMonth(String targetTimestampOrToken)
+            throws IOException {
+        // create a pack utility object
+        FileBundlePack pack = new FileBundlePack(bundleDir,
+                targetTimestampOrToken, deviceID);
+
+        // ask the object to perform a merge
+        Map<FileBundleID, FileBundleManifest> pmf = pack.packBundles();
+        if (pmf == null)
+            return null;
+
+        // return the bundle ID of the merged pack
+        return pack.getPackID();
+    }
+
 
 
     private static class ManifestCache

@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -68,6 +69,8 @@ public class FileBundleManifest {
     private List<FileBundleID> replaces;
 
     long accessTime;
+
+    FileBundleID pack;
 
 
     public FileBundleID getBundleID() {
@@ -154,6 +157,10 @@ public class FileBundleManifest {
     }
 
     public FileBundleManifest(File src) throws IOException {
+        this(readManifestXml(src));
+    }
+
+    protected static Element readManifestXml(File src) throws IOException {
         // open and parse the file as XML
         File dir = src.getParentFile();
         if (!dir.isDirectory())
@@ -165,8 +172,10 @@ public class FileBundleManifest {
                 throw new FileNotFoundException(src.getPath());
             }
         }
-        Element xml = parseXml(src);
+        return parseXml(src).getDocumentElement();
+    }
 
+    public FileBundleManifest(Element xml) {
         // extract bundle data from the file
         this.bundleID = new FileBundleID(xml.getAttribute(ID_ATTR));
         this.files = XmlCollectionListing.parseListing(xml);
@@ -174,10 +183,10 @@ public class FileBundleManifest {
         this.replaces = extractBundleList(xml, REPLACES_TAG);
     }
 
-    private Element parseXml(File src) throws IOException {
+    protected static Document parseXml(File src) throws IOException {
         try {
             return XMLUtils.parse(new BufferedInputStream( //
-                    new FileInputStream(src))).getDocumentElement();
+                    new FileInputStream(src)));
         } catch (SAXException e) {
             throw new IOException("Could not parse file bundle manifest " //
                     + src.getPath(), e);
@@ -258,7 +267,7 @@ public class FileBundleManifest {
     }
 
 
-    private static final String DOCUMENT_TAG = "fileBundle";
+    static final String DOCUMENT_TAG = "fileBundle";
 
     private static final String PARENTS_TAG = "parents";
 
@@ -266,6 +275,6 @@ public class FileBundleManifest {
 
     private static final String BUNDLE_TAG = "bundle";
 
-    private static final String ID_ATTR = "id";
+    static final String ID_ATTR = "id";
 
 }
