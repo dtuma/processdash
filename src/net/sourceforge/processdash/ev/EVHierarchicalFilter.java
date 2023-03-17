@@ -89,7 +89,12 @@ public class EVHierarchicalFilter implements EVTaskFilter, EVTaskFilterXml {
     /* EvTaskListXml interface */
 
     public boolean include(String elementTid){
-        return this.includedTaskIds.contains(elementTid); 
+
+        //We only want to filter on elementTid if there are no other filters in operation.
+        //Hence return "false" if we have an additional filter (label filter or group filter) chained after this filter. 
+        return 
+            this.nextFilter == null && 
+            this.includedTaskIds.contains(elementTid); 
     }
 
     public static EVHierarchicalFilter getFilterForMerged(EVTaskList tl,

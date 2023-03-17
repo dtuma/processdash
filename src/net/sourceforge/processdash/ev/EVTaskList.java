@@ -2957,16 +2957,24 @@ public class EVTaskList extends AbstractTreeTableModel
                 EVSnapshot.Metadata m = new EVSnapshot.Metadata(null, null,
                         snapshotId, xml);
 
-                Map<String, String> data;
+                Map<String, String> data = null;
 
-                if(filter != null && filter instanceof EVHierarchicalFilter){
-
-                    EVHierarchicalFilter hierFilter = ((EVHierarchicalFilter)filter);
-
-                    data = getPlotDataFromXml(xml, hierFilter);
-                }
-                else{
+                if(filter == null){
+                    
+                    //Legacy implementation - no filter.
                     data = getPlotDataFromXml(xml);
+
+                } else if(filter instanceof EVHierarchicalFilter){
+
+                    //Only try to build filtered baseline if we have a hierarchical filter in play.
+                    //Note that EVHierarchicalFilter.include(elementTid) will return false if any other filter is 
+                    //chained after the EVHierarchicalFilter.
+                    //We also get here if a group filter is in play.
+                    EVHierarchicalFilter hierFilter = ((EVHierarchicalFilter)filter);
+                    data = getPlotDataFromXml(xml, hierFilter);                    
+
+                } else {
+                    //Do nothing - we get here if only a label filter is in operation.
                 }
 
                 Point p = new Point();
