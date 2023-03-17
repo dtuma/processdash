@@ -278,7 +278,8 @@ public class FileBundlePack {
 
             // copy all of the bundle manifest data to the destination
             for (File oneManifestFile : sourceManifestFiles) {
-                copyBundleManifestData(oneManifestFile, dest, manifests);
+                copyBundleManifestData(oneManifestFile, destManifestFile, dest,
+                    manifests);
             }
 
             // finish the XML document and close the output stream
@@ -296,8 +297,8 @@ public class FileBundlePack {
         }
     }
 
-    private void copyBundleManifestData(File srcFile, XmlSerializer dest,
-            Map<FileBundleID, FileBundleManifest> manifests)
+    private void copyBundleManifestData(File srcFile, File destFile,
+            XmlSerializer dest, Map<FileBundleID, FileBundleManifest> manifests)
             throws IOException {
         // parse the XML manifest document
         logger.finer(logPrefix + "Packing file " + srcFile.getName());
@@ -314,6 +315,7 @@ public class FileBundlePack {
             // and add it to our result set
             if (!manifests.containsKey(bid)) {
                 copyXml(mfXml, dest);
+                mf.manifestFile = destFile;
                 mf.pack = packID;
                 manifests.put(bid, mf);
             }

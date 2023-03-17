@@ -68,6 +68,8 @@ public class FileBundleManifest {
 
     private List<FileBundleID> replaces;
 
+    File manifestFile;
+
     long accessTime;
 
     FileBundleID pack;
@@ -87,6 +89,10 @@ public class FileBundleManifest {
 
     public List<FileBundleID> getReplaces() {
         return replaces;
+    }
+
+    public boolean isManifestFilePresent() {
+        return manifestFile != null && manifestFile.isFile();
     }
 
 
@@ -158,6 +164,7 @@ public class FileBundleManifest {
 
     public FileBundleManifest(File src) throws IOException {
         this(readManifestXml(src));
+        this.manifestFile = src;
     }
 
     protected static Element readManifestXml(File src) throws IOException {
@@ -217,6 +224,8 @@ public class FileBundleManifest {
         // create an XML file in the target directory
         File file = new File(directory, bundleID.getToken() + ".xml");
         writeToFile(file);
+        if (manifestFile == null)
+            manifestFile = file;
     }
 
     public void writeToFile(File file) throws IOException {
