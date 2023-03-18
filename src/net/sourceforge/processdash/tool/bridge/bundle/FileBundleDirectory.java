@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -538,6 +539,113 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         FileBundleManifest manifest = getManifest(bundleID);
         ZipSource zip = getZipSourceForBundle(manifest);
         return new FileBundleCollection(manifest, zip.file, zip.prefix);
+    }
+
+
+    /**
+     * Return a list of bundles in this directory
+     * 
+     * @param bundleName
+     *            only return bundles with this name. Can be null to return
+     *            bundles with any name
+     * @param deviceID
+     *            only return bundles with this device ID. Can be null to return
+     *            bundles written by any device
+     * @param after
+     *            only return bundles whose timestamp is after this time. Can be
+     *            0 to return all bundles
+     * @return a list of bundles IDs for bundles in this directory meeting the
+     *         given criteria, sorted in chronological order
+     */
+    public List<FileBundleID> listBundles(String bundleName, String deviceID,
+            long after) throws IOException {
+        return listBundles(bundleName, deviceID, timeFormat.format(after));
+    }
+
+
+    /**
+     * Return a list of bundles in this directory
+     * 
+     * @param bundleName
+     *            only return bundles with this name. Can be null to return
+     *            bundles with any name
+     * @param deviceID
+     *            only return bundles with this device ID. Can be null to return
+     *            bundles written by any device
+     * @param afterTimestamp
+     *            only return bundles whose timestamp is after this timestamp
+     * @return a list of bundles IDs for bundles in this directory meeting the
+     *         given criteria, sorted in chronological order
+     */
+    public List<FileBundleID> listBundles(String bundleName, String deviceID,
+            String afterTimestamp) throws IOException {
+        // get timestamp of the first pack that might contain a matching bundle
+        String packTimeCutoff = FileBundlePack.getPackTimestamp(afterTimestamp);
+        List<FileBundleID> result = new ArrayList<FileBundleID>();
+
+        // iterate over the files in the bundle directory
+        String[] allFiles = bundleDir.list();
+        if (allFiles == null)
+            throw new FileNotFoundException(bundleDir.getPath());
+        for (String filename : allFiles) {
+            // only examine manifest XML files
+            if (!filename.endsWith(".xml"))
+                continue;
+
+            try {
+                // get the bundleID for this filename. If parsing fails, skip it
+                FileBundleID bid = new FileBundleID(filename);
+
+                if (FileBundlePack.isPack(bid)) {
+                    // if this file is a pack manifest, make sure its timestamp
+                    // isn't before the pack time cutoff
+                    if (bid.getTimestamp().compareTo(packTimeCutoff) < 0)
+                        continue;
+
+                    // read the bundles from the pack manifest
+                    FileBundlePack pack = new FileBundlePack(
+                            new File(bundleDir, filename));
+                    Map<FileBundleID, FileBundleManifest> manifests = pack
+                            .readBundleManifests();
+
+                    // add bundle IDs from the pack that match our search
+                    for (FileBundleID innerBid : manifests.keySet()) {
+                        if (bundleIDMatchesFilter(innerBid, bundleName,
+                            deviceID, afterTimestamp))
+                            result.add(innerBid);
+                    }
+
+                } else {
+                    // if this file is a regular bundle manifest, add it to
+                    // our result if it matches our search filter
+                    if (bundleIDMatchesFilter(bid, bundleName, deviceID,
+                        afterTimestamp)) {
+                        result.add(bid);
+                    }
+                }
+
+            } catch (IllegalArgumentException iae) {
+                // this file is not bundle-related; skip it
+            }
+        }
+
+        // sort the results and return them
+        Collections.sort(result, FileBundleID.CHRONOLOGICAL_ORDER);
+        return result;
+    }
+
+    private boolean bundleIDMatchesFilter(FileBundleID bundleID,
+            String bundleName, String deviceID, String afterTimestamp) {
+        // return false if the bundle name does not match
+        if (bundleName != null && !bundleName.equals(bundleID.getBundleName()))
+            return false;
+
+        // return false if the device ID does not match
+        if (deviceID != null && !deviceID.equals(bundleID.getDeviceID()))
+            return false;
+
+        // return true if the timestamp falls after the cutoff
+        return bundleID.getTimestamp().compareTo(afterTimestamp) > 0;
     }
 
 
