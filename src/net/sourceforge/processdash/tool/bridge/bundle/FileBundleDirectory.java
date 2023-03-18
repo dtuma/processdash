@@ -35,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,13 +66,16 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private Map<FileBundleID, FileBundleManifest> replacementCache;
 
+    private Map<File, Long> packManifestFileSizes;
+
 
     public FileBundleDirectory(File bundleDir) throws IOException {
         this.bundleDir = bundleDir;
         this.deviceID = DeviceID.get();
         this.timeFormat = new FileBundleTimeFormat(getDirTimeZone());
-        this.manifestCache = Collections.synchronizedMap(new ManifestCache());
+        this.manifestCache = Collections.synchronizedMap(new HashMap());
         this.replacementCache = Collections.synchronizedMap(new ManifestCache());
+        this.packManifestFileSizes = Collections.synchronizedMap(new HashMap());
     }
 
     private String getDirTimeZone() throws IOException {
@@ -205,9 +209,13 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         if (manifestCache.containsKey(bundleID))
             return true;
 
-        // see if the bundle directory contains a manifest file for this bundle
-        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
-        return mf.isFile();
+        // return true if we can load a manifest file for this bundle
+        try {
+            getManifest(bundleID);
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 
     private ResourceListing writeFilesToZip(FileBundleID bundleID,
@@ -360,13 +368,78 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     public FileBundleManifest getManifest(FileBundleID bundleID)
             throws IOException {
+        // check to see if we have a cached manifest
         FileBundleManifest result = manifestCache.get(bundleID);
-        if (result == null) {
-            result = new FileBundleManifest(bundleDir, bundleID);
-            manifestCache.put(bundleID, result);
+
+        // if the cached manifest's XML file no longer exists, discard it.
+        // (It might have been moved into a pack by another process.)
+        if (result != null && !result.isManifestFilePresent()) {
+            manifestCache.remove(bundleID);
+            result = null;
         }
+
+        if (result == null) {
+            try {
+                // try reading the manifest from its canonical XML file
+                result = new FileBundleManifest(bundleDir, bundleID);
+                manifestCache.put(bundleID, result);
+
+            } catch (FileBundleManifest.Missing m) {
+                // if this bundle doesn't have a plain manifest file, look for
+                // it in a pack. If not found, throw original error
+                result = findManifestInPack(bundleID);
+                if (result == null)
+                    throw m;
+            }
+        }
+
+        // remember when the manifest was accessed and return it
         result.accessTime = System.currentTimeMillis();
         return result;
+    }
+
+    private FileBundleManifest findManifestInPack(FileBundleID bundleID) {
+        // get the timestamp for the pack that would contain this bundle
+        String packTimestamp = FileBundlePack.getPackTimestamp(bundleID);
+
+        // search the bundle directory for packs with this timestamp
+        for (File file : bundleDir.listFiles()) {
+            if (!FileBundlePack.isPackManifestFilename(file.getName(),
+                packTimestamp))
+                continue;
+
+            // if we've successfully loaded data from this pack manifest, we do
+            // not need to check it again
+            Long lastLength = packManifestFileSizes.get(file);
+            if (lastLength != null && lastLength == file.length())
+                continue;
+
+            try {
+                // load the bundle data from the pack manifest
+                FileBundlePack pack = new FileBundlePack(file);
+                Map<FileBundleID, FileBundleManifest> manifests = pack
+                        .readBundleManifests();
+                addPackManifestsToCache(pack.getManifestFile(), manifests);
+
+                // if this pack contains the bundle we're looking for, return
+                // the bundle's manifest
+                FileBundleManifest result = manifests.get(bundleID);
+                if (result != null)
+                    return result;
+
+            } catch (Exception e) {
+                // cannot read the pack manifest. (Error already logged)
+            }
+        }
+
+        // the bundle was not found inside any pack. return null
+        return null;
+    }
+
+    private void addPackManifestsToCache(File packManifestFile,
+            Map<FileBundleID, FileBundleManifest> packManifests) {
+        packManifestFileSizes.put(packManifestFile, packManifestFile.length());
+        manifestCache.putAll(packManifests);
     }
 
 
@@ -507,6 +580,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         Map<FileBundleID, FileBundleManifest> pmf = pack.packBundles();
         if (pmf == null)
             return null;
+
+        // record all of the manifests that were merged
+        addPackManifestsToCache(pack.getManifestFile(), pmf);
 
         // return the bundle ID of the merged pack
         return pack.getPackID();

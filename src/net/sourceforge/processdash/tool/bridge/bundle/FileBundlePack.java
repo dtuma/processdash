@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -67,6 +68,19 @@ public class FileBundlePack {
             .getLogger(FileBundlePack.class.getName());
 
 
+    public FileBundlePack(File manifestFile) {
+        // ensure we were given a valid pack manifest file
+        String filename = manifestFile.getName();
+        if (!isPackManifestFilename(filename, null))
+            throw new IllegalArgumentException(
+                    "Not a pack manifest: " + manifestFile);
+
+        this.bundleDir = manifestFile.getParentFile();
+        this.packID = new FileBundleID(filename);
+        this.manifestFile = manifestFile;
+        this.logPrefix = FileBundleUtils.getLogPrefix(bundleDir);
+    }
+
     public FileBundlePack(File bundleDir, String targetTimestampOrToken,
             String deviceID) {
         this.bundleDir = bundleDir;
@@ -84,6 +98,35 @@ public class FileBundlePack {
 
     public File getManifestFile() {
         return manifestFile;
+    }
+
+
+    public Map<FileBundleID, FileBundleManifest> readBundleManifests()
+            throws IOException {
+        // open and parse the manifest file
+        Element xml;
+        try {
+            xml = FileBundleManifest.readManifestXml(manifestFile);
+        } catch (IOException ioe) {
+            logger.log(Level.WARNING,
+                logPrefix + "Cannot read pack manifest " + manifestFile, ioe);
+            throw ioe;
+        }
+
+        // iterate over the <fileBundle> tags inside the manifest
+        Map<FileBundleID, FileBundleManifest> bundles = new HashMap();
+        NodeList nl = xml.getElementsByTagName(BUNDLE_TAG);
+        for (int i = 0; i < nl.getLength(); i++) {
+            // parse each tag as a manifest, and add to our result
+            Element oneBundleTag = (Element) nl.item(i);
+            FileBundleManifest mf = new FileBundleManifest(oneBundleTag);
+            mf.manifestFile = manifestFile;
+            mf.pack = packID;
+            bundles.put(mf.getBundleID(), mf);
+        }
+
+        // return the bundle manifests we parsed from the pack manifest file
+        return bundles;
     }
 
 
@@ -367,6 +410,36 @@ public class FileBundlePack {
         try {
             return isPack(new FileBundleID(filename));
         } catch (IllegalArgumentException iae) {
+            return false;
+        }
+    }
+
+    public static boolean isPackManifestFilename(String filename,
+            String withRequiredPackTimestamp) {
+        try {
+            // if the filename doesn't end in .xml, it isn't a manifest
+            if (!filename.endsWith(".xml"))
+                return false;
+
+            // if the file isn't related to a "pack" bundle, return false
+            FileBundleID bundleID = new FileBundleID(filename);
+            if (!isPack(bundleID))
+                return false;
+
+            // if the timestamp doesn't match expectations, return false
+            String expectedTimestamp;
+            if (withRequiredPackTimestamp != null)
+                expectedTimestamp = withRequiredPackTimestamp;
+            else
+                expectedTimestamp = getPackTimestamp(bundleID.getTimestamp());
+            if (!expectedTimestamp.equals(bundleID.getTimestamp()))
+                return false;
+
+            // all tests pass
+            return true;
+
+        } catch (IllegalArgumentException iae) {
+            // filename isn't a valid FileBundleID token
             return false;
         }
     }
