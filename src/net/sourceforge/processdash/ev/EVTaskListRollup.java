@@ -361,6 +361,9 @@ public class EVTaskListRollup extends EVTaskList {
     private boolean applyTaskListFilterImpl(EVTaskListFilter f) {
         boolean madeChange = false;
 
+        //Apply task list filter to the base class:
+        this.evTaskListFilter = f;
+        
         // make a note of the original order of the task lists
         if (unfilteredOrder == null) {
             unfilteredOrder = new ArrayList<String>();

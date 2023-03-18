@@ -2888,6 +2888,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 new CPIXYChartSeries(filter));
     }
 
+    protected EVTaskListFilter evTaskListFilter;
+
     private class BaselineTrendData {
 
         class Point implements Comparable<Point> {
@@ -2909,6 +2911,13 @@ public class EVTaskList extends AbstractTreeTableModel
 
         BaselineTrendData(DataRepository data) {
             this.data = data;
+
+            //System.out.println("**** BaselineTrendData:Ctr" + this.toString());
+
+            //if(evTaskListGroupFilter != null){
+            //    System.out.println("**** BaselineTrendData:evTaskListGroupFilter:" + evTaskListGroupFilter.toString());
+            //    evTaskListGroupFilter.printFilterContents();
+            //}
         }
 
         public synchronized void recalc(final EVTaskFilter filter) {
@@ -2961,6 +2970,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 if(filter == null){
                     
+//                    System.out.println("**** filter == null");                    
                     //Legacy implementation - no filter.
                     data = getPlotDataFromXml(xml);
 
@@ -2970,10 +2980,12 @@ public class EVTaskList extends AbstractTreeTableModel
                     //Note that EVHierarchicalFilter.include(elementTid) will return false if any other filter is 
                     //chained after the EVHierarchicalFilter.
                     //We also get here if a group filter is in play.
+//                    System.out.println("**** filter instanceof EVHierarchicalFilter");
                     EVHierarchicalFilter hierFilter = ((EVHierarchicalFilter)filter);
                     data = getPlotDataFromXml(xml, hierFilter);                    
 
                 } else {
+//                    System.out.println("**** filter == everything else");                    
                     //Do nothing - we get here if only a label filter is in operation.
                 }
 
@@ -3049,6 +3061,26 @@ public class EVTaskList extends AbstractTreeTableModel
         void getChildData(Element element, EVHierarchicalFilter hierFilter, Accumulator acc){
 
             String thisElementTid = element.getAttribute("tid");
+
+            //Apply group filter to XML baseline. Four conditions must be met before we can test if we need to search further
+            //down this branch of the tree:
+            // - there must be a TaskListFilter in use,
+            // - the current element must be the topmost element from a subschedule (so we have an attribute "flag" with value "plain"),
+            // - the tid for this element must start with "TL-".
+            //If all these conditions are met, use the TaskListFilter.include method to check whether or not this element is 
+            //included in the filter. If not, return early.
+            if(
+                evTaskListFilter != null &&
+                element.hasAttribute("flag") && 
+                element.getAttribute("flag").equals("plain") &&
+                thisElementTid.startsWith("TL-")){
+                    
+                String tid = thisElementTid.substring(3);
+
+                if(!evTaskListFilter.include(tid)){
+                    return;
+                }
+            }
 
             if(hierFilter.include(thisElementTid)){
                 //Test if we have found our node.
