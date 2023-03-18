@@ -227,7 +227,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             return fileInfo;
 
         // open an output stream to write ZIP data
-        File zipFile = getZipFileForBundle(bundleID);
+        File zipFile = getZipFileForBundleID(bundleID);
         ZipOutputStream zipOut = new ZipOutputStream(
                 FileBundleUtils.outputStream(zipFile));
 
@@ -308,25 +308,33 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             ResourceCollection target, List<String> filesToExtract)
             throws IOException {
         // retrieve details about the bundle files we are extracting
-        ResourceCollectionInfo fileInfo = getManifest(bundleID).getFiles();
+        FileBundleManifest manifest = getManifest(bundleID);
+        ResourceCollectionInfo fileInfo = manifest.getFiles();
         if (filesToExtract != null)
             fileInfo = new ResourceListing(fileInfo, filesToExtract);
 
         // if there are no files to be extracted, abort
-        if (fileInfo.listResourceNames().isEmpty())
+        int fileExtractCount = fileInfo.listResourceNames().size();
+        if (fileExtractCount == 0)
             return fileInfo;
 
         // open the ZIP file for reading
-        File zipFile = getZipFileForBundle(bundleID);
+        ZipSource zipSource = getZipSourceForBundle(manifest);
         ZipInputStream zipIn = new ZipInputStream(
-                new BufferedInputStream(new FileInputStream(zipFile)));
+                new BufferedInputStream(new FileInputStream(zipSource.file)));
         ZipEntry e;
 
         // scan the contents of the ZIP and extract files
         while ((e = zipIn.getNextEntry()) != null) {
+            // skip files in a pack ZIP that don't belong to this bundle
+            String filename = e.getName();
+            if (filename.startsWith(zipSource.prefix))
+                filename = filename.substring(zipSource.prefix.length());
+            else
+                continue;
+
             // if a file in the ZIP was not mentioned in the manifest, or was
             // not included in the list of files to extract, ignore it.
-            String filename = e.getName();
             long lastMod = fileInfo.getLastModified(filename);
             if (lastMod <= 0)
                 continue;
@@ -335,6 +343,10 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             OutputStream out = target.getOutputStream(filename, lastMod);
             FileUtils.copyFile(zipIn, out);
             out.close();
+
+            // stop when we've extracted all the files we were looking for
+            if (--fileExtractCount == 0)
+                break;
         }
 
         // close the ZIP file and return the file info
@@ -342,7 +354,15 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return fileInfo;
     }
 
-    private File getZipFileForBundle(FileBundleID bundleID) {
+    private ZipSource getZipSourceForBundle(FileBundleManifest mf) {
+        if (mf.pack == null)
+            return new ZipSource(getZipFileForBundleID(mf.getBundleID()), "");
+        else
+            return new ZipSource(getZipFileForBundleID(mf.pack),
+                    mf.getBundleID().getToken() + "/");
+    }
+
+    private File getZipFileForBundleID(FileBundleID bundleID) {
         return new File(bundleDir, bundleID.getToken() + ".zip");
     }
 
@@ -351,6 +371,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     /**
      * Permanently delete a set of bundles from the directory.
      * 
+     * This method will be a no-op for bundles that do not exist, and for
+     * bundles that are part of a pack.
+     * 
      * @param bundleIDs
      *            the set of bundles to delete
      */
@@ -358,7 +381,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         for (FileBundleID bid : bundleIDs) {
             File mf = FileBundleManifest.getFileForManifest(bundleDir, bid);
             mf.delete();
-            File zf = getZipFileForBundle(bid);
+            File zf = getZipFileForBundleID(bid);
             zf.delete();
             manifestCache.remove(bid);
         }
@@ -512,8 +535,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      */
     public FileBundleCollection getBundleCollection(FileBundleID bundleID)
             throws IOException {
-        return new FileBundleCollection(getManifest(bundleID),
-                getZipFileForBundle(bundleID));
+        FileBundleManifest manifest = getManifest(bundleID);
+        ZipSource zip = getZipSourceForBundle(manifest);
+        return new FileBundleCollection(manifest, zip.file, zip.prefix);
     }
 
 
@@ -607,6 +631,18 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             // discard the oldest entry if it hasn't been accessed in a while
             long cutoff = System.currentTimeMillis() - 5 * DateUtils.MINUTES;
             return eldest.getValue().accessTime < cutoff;
+        }
+    }
+
+    private class ZipSource {
+
+        File file;
+
+        String prefix;
+
+        public ZipSource(File zipFile, String prefix) {
+            this.file = zipFile;
+            this.prefix = prefix;
         }
     }
 

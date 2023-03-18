@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,12 +48,16 @@ public class FileBundleCollection
 
     private File zipFile;
 
+    private String prefix;
+
     private ZipFile bundleZip;
 
-    public FileBundleCollection(FileBundleManifest manifest, File zipFile) {
+    public FileBundleCollection(FileBundleManifest manifest, File zipFile,
+            String prefix) {
         this.manifest = manifest;
         this.files = manifest.getFiles();
         this.zipFile = zipFile;
+        this.prefix = prefix;
     }
 
     public FileBundleID getBundleID() {
@@ -87,7 +91,7 @@ public class FileBundleCollection
         if (bundleZip == null)
             bundleZip = new ZipFile(zipFile);
 
-        ZipEntry e = bundleZip.getEntry(resourceName);
+        ZipEntry e = bundleZip.getEntry(prefix + resourceName);
         if (e == null)
             throw new FileNotFoundException(resourceName);
 
