@@ -27,14 +27,12 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -470,11 +468,11 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     public FileBundleManifest getManifestReplacing(FileBundleID bundleID)
             throws IOException {
         // if the given manifest file actually exists, it wasn't replaced
-        if (manifestCache.get(bundleID) != null)
+        try {
+            getManifest(bundleID);
             return null;
-        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
-        if (mf.isFile())
-            return null;
+        } catch (IOException ioe) {
+        }
 
         // look for a cached result, return if found
         FileBundleManifest result = replacementCache.get(bundleID);
@@ -483,36 +481,19 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             return result;
         }
 
-        // find all the manifest files in the directory with the same device ID
-        // and bundle name
-        String filename = mf.getName();
-        final String filenameSuffix = filename
-                .substring(bundleID.getTimestamp().length());
-        String[] manifestFilenames = bundleDir.list(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.endsWith(filenameSuffix);
-            }
-        });
-        Arrays.sort(manifestFilenames);
+        // find all the bundle in the directory with the same bundle name and
+        // device ID that come after the given bundle
+        List<FileBundleID> bundles = listBundles(bundleID.getBundleName(),
+            bundleID.getDeviceID(), bundleID.getTimestamp());
 
-        // look at the manifest files, from newest to oldest, until we find one
-        // that precedes the target bundle. When we do, remember the filename
-        // for the bundle that chronologically follows it.
-        String potentialReplacingFilename = null;
-        for (int i = manifestFilenames.length; i-- > 0;) {
-            String oneFilename = manifestFilenames[i];
-            if (oneFilename.compareTo(filename) < 0)
-                break;
-            potentialReplacingFilename = oneFilename;
-        }
-
-        // if no bundle follows the targeted bundleID, abort
-        if (potentialReplacingFilename == null)
+        // if no subsequent matching bundles were found, abort
+        if (bundles.isEmpty())
             return null;
 
         // load the manifest for the potentially replacing bundle. If it isn't
         // a replacement for the given bundle, abort
-        result = getManifest(new FileBundleID(potentialReplacingFilename));
+        FileBundleID potentiallyReplacingBundle = bundles.get(0);
+        result = getManifest(potentiallyReplacingBundle);
         if (!result.isReplacementFor(bundleID))
             return null;
 
