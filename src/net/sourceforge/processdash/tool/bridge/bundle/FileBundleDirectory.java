@@ -78,26 +78,28 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     }
 
     private String getDirTimeZone() throws IOException {
+        // abort if the directory doesn't exist
+        if (!bundleDir.isDirectory())
+            throw new FileNotFoundException(bundleDir.getPath());
+
         // identify the file in the directory that contains the time zone ID
         File timezoneFile = new File(bundleDir, "timezone.txt");
 
-        // try reading the time zone ID from the file
-        String timezone = null;
-        try {
-            timezone = new String(FileUtils.slurpContents( //
-                new FileInputStream(timezoneFile), true), "UTF-8").trim();
-        } catch (IOException ioe) {
+        // if the file exists, read the time zone ID from it. If the file cannot
+        // be read, fail with the IOException that was encountered.
+        if (timezoneFile.exists()) {
+            FileInputStream in = new FileInputStream(timezoneFile);
+            return new String(FileUtils.slurpContents(in, true), "UTF-8").trim();
         }
 
-        // if no time zone could be read, initialize it and write the file
-        if (timezone == null) {
-            timezone = TimeZone.getDefault().getID();
-            Writer out = new OutputStreamWriter(
-                    FileBundleUtils.outputStream(timezoneFile), "UTF-8");
-            out.write(timezone);
-            out.close();
-        }
+        // if the file does not exist, initialize it with a default timezone
+        String timezone = TimeZone.getDefault().getID();
+        Writer out = new OutputStreamWriter(
+                FileBundleUtils.outputStream(timezoneFile), "UTF-8");
+        out.write(timezone);
+        out.close();
 
+        // return the timezone we assigned
         return timezone;
     }
 
