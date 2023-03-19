@@ -429,6 +429,11 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     }
 
 
+    public void packBundlesThroughMonth(long timestamp) throws IOException {
+        client.getBundleDir().packBundlesThroughMonth(timestamp);
+    }
+
+
     protected boolean isDashboardDatasetDirectory() {
         return strategy.getFilenameFilter().accept(null, "state");
     }
