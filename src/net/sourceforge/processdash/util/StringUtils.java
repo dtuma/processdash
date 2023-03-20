@@ -18,7 +18,7 @@ License along with this library; if not, see <http://www.gnu.org/licenses/>.
 To further contact the author please email jpmccar@gjt.org
 
 
-Modifications, copyright 2001-2014 Tuma Solutions, LLC; distributed under the
+Modifications, copyright 2001-2023 Tuma Solutions, LLC; distributed under the
 LGPL, as described above.
 
 */
@@ -469,6 +469,18 @@ public class StringUtils
         for (Iterator i = c.iterator(); i.hasNext();)
             result.append(delim).append(i.next());
         return result.substring(delim.length());
+    }
+
+    /** @since 2.6.10 */
+    public static boolean containsIgnoreCase(Collection<String> set,
+            String item) {
+        if (set.contains(item))
+            return true;
+        for (String oneItem : set) {
+            if (item.equalsIgnoreCase(oneItem))
+                return true;
+        }
+        return false;
     }
 
     public static boolean hasValue(String s) {

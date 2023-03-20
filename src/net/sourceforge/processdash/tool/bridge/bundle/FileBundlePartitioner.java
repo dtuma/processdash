@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class FileBundlePartitioner implements FileBundleConstants {
 
@@ -96,7 +97,7 @@ public class FileBundlePartitioner implements FileBundleConstants {
 
                 // if this file was not picked up by the filter, but it still
                 // exists in the source directory, add it to our list to process
-                if (!filenames.contains(oldFilename)
+                if (!StringUtils.containsIgnoreCase(filenames, oldFilename)
                         && source.getLastModified(oldFilename) > 0) {
                     filenames.add(oldFilename);
                 }
