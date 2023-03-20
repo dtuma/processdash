@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2021 Tuma Solutions, LLC
+// Copyright (C) 2015-2022 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -231,12 +230,12 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
 
     private InputStream getFileFromZip(File srcZip, String filename)
             throws IOException {
-        ZipFile zip = new ZipFile(srcZip);
-        ZipEntry entry = zip.getEntry(filename);
-        if (entry == null)
+        try {
+            String url = "jar:" + srcZip.toURI().toURL() + "!/" + filename;
+            return new URL(url).openStream();
+        } catch (Exception e) {
             return null;
-
-        return zip.getInputStream(entry);
+        }
     }
 
     @Override
