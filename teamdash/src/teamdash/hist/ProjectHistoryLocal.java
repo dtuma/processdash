@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2022 Tuma Solutions, LLC
+// Copyright (C) 2015-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,10 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleCollection;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.util.DateUtils;
@@ -59,7 +63,9 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
 
     private List<Entry> versions;
 
-    private Map<String, File> zipFiles;
+    private Map<String, Object> zipFiles;
+
+    private FileBundleDirectory bundleDir;
 
     public ProjectHistoryLocal(File dir) throws IOException {
         if (!dir.isDirectory())
@@ -93,7 +99,7 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
     }
 
     private void findZipFiles(File dir) throws IOException {
-        zipFiles = new HashMap<String, File>();
+        zipFiles = new HashMap<String, Object>();
         findZipFilesInBackupSubdir(dir);
         findZipFilesInBundlesSubdir(dir);
     }
@@ -168,25 +174,28 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
     }
 
     private void findZipFilesInBundlesSubdir(File dir) throws IOException {
-        File bundlesDir = new File(dir, "bundles");
-        File[] bundleFiles = bundlesDir.listFiles();
-        if (bundleFiles == null || bundleFiles.length == 0)
+        // if this is not a bundled directory, do nothing
+        if (!FileBundleUtils.isBundledDir(dir))
             return;
 
-        for (File oneFile : bundleFiles) {
-            if (oneFile.getName().endsWith("-wbs.zip")) {
-                String bundleUid = getZipFileChangeHistoryUid(oneFile);
-                if (bundleUid != null)
-                    zipFiles.put(bundleUid, oneFile);
-            }
+        // create a FileBundleDir object for accessing the directory
+        File bundlesSubdir = new File(dir, FileBundleConstants.BUNDLE_SUBDIR);
+        bundleDir = new FileBundleDirectory(bundlesSubdir);
+
+        // iterate over the all the WBS bundles in this directory
+        List<FileBundleID> bundles = bundleDir.listBundles("wbs", null, 0);
+        for (FileBundleID bid : bundles) {
+            String bundleUid = getZipFileChangeHistoryUid(bid);
+            if (bundleUid != null)
+                zipFiles.put(bundleUid, bid);
         }
     }
 
-    private String getZipFileChangeHistoryUid(File oneFile) throws IOException {
+    private String getZipFileChangeHistoryUid(Object src) throws IOException {
         // see if the backup contained a changeHistory.xml file. If so, the last
         // entry in that file identifies its version.
         try {
-            InputStream changeHist = getFileFromZip(oneFile,
+            InputStream changeHist = getFileStream(src,
                 WBSFilenameConstants.CHANGE_HISTORY_FILE);
             if (changeHist != null) {
                 Element xml = XMLUtils.parse(changeHist).getDocumentElement();
@@ -221,18 +230,33 @@ public class ProjectHistoryLocal implements ProjectHistory<Entry> {
 
     public InputStream getVersionFile(Entry version, String filename)
             throws IOException {
-        File srcZip = zipFiles.get(version.getUid());
-        if (srcZip == null)
-            return null;
-        else
-            return getFileFromZip(srcZip, filename);
+        Object src = zipFiles.get(version.getUid());
+        return getFileStream(src, filename);
     }
 
-    private InputStream getFileFromZip(File srcZip, String filename)
-            throws IOException {
+    private InputStream getFileStream(Object src, String filename) {
+        if (src instanceof File)
+            return getFileFromZip((File) src, filename);
+        else if (src instanceof FileBundleID)
+            return getFileFromBundle((FileBundleID) src, filename);
+        else
+            return null;
+    }
+
+    private InputStream getFileFromZip(File srcZip, String filename) {
         try {
             String url = "jar:" + srcZip.toURI().toURL() + "!/" + filename;
             return new URL(url).openStream();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private InputStream getFileFromBundle(FileBundleID bid, String filename) {
+        try {
+            FileBundleCollection files = bundleDir.getBundleCollection(bid);
+            files.setLightweight(true);
+            return files.getInputStream(filename);
         } catch (Exception e) {
             return null;
         }
