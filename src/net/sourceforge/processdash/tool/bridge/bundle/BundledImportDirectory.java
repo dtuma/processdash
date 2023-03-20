@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
@@ -172,16 +173,35 @@ public class BundledImportDirectory implements ImportDirectory {
     }
 
     private Integer readPdashRetentionBundleCount() {
+        // if this is a dissemination dir, only retain 3 bundles. Dissemination
+        // dirs are not packed, and old team-data.pdash files have no value
+        File targetDir = workingDir.getTargetDirectory();
+        if (TeamDataConstants.DISSEMINATION_DIRECTORY
+                .equals(targetDir.getName()))
+            return 3;
+
+        // check the dir itself, and also its dashboard dir, for a setting
+        Integer result = readPdashRetentionBundleCount(targetDir);
+        if (result == null) {
+            try {
+                File dashboardDir = targetDir.getParentFile().getParentFile();
+                result = readPdashRetentionBundleCount(dashboardDir);
+            } catch (NullPointerException npe) {
+            }
+        }
+
+        // by default, retain all personal PDASH export bundles
+        return result == null ? 0 : result;
+    }
+
+    private Integer readPdashRetentionBundleCount(File targetDir) {
         try {
-            File targetDir = workingDir.getTargetDirectory();
             Properties p = FileBundleUtils.getBundleProps(targetDir);
             String val = p.getProperty("pdashRetentionBundleCount");
             return Integer.valueOf(val);
         } catch (Throwable t) {
+            return null;
         }
-
-        // default: retain 10 bundles
-        return 10;
     }
 
     private Integer pdashRetentionBundleCount = null;
