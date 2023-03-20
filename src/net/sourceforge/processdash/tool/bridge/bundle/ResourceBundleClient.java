@@ -184,8 +184,11 @@ public class ResourceBundleClient {
         // if any bundles disappeared from the directory, find the names of
         // the files they contained
         for (String obsoleteBundleName : oldBundleNames) {
+            logger.finest(logPrefix + "Deleting bundle " + obsoleteBundleName);
             FileBundleID obsoleteBundleID = oldHeadRefs.get(obsoleteBundleName);
             obsoleteFilenames.addAll(getBundleFilenames(obsoleteBundleID));
+            workingHeads.deleteHeadRef(obsoleteBundleName);
+            madeChange = true;
         }
 
         // if any files are obsolete, delete them
