@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -74,8 +75,10 @@ public class CloudStorageDashboardWorker {
         // any of the files/directories we'll be writing, or other dashboard
         // related content
         if (newDirectory.isDirectory() && !isDataAlreadyMigrated()) {
-            validateDestFilesNotPresent("bundles", "heads", "global.dat",
-                "pspdash.ini", "datasetID.dat", "state", "timelog.xml",
+            validateDestFilesNotPresent("global.dat", "pspdash.ini",
+                "datasetID.dat", "state", "timelog.xml",
+                FileBundleConstants.BUNDLE_SUBDIR,
+                FileBundleConstants.HEADS_SUBDIR,
                 TeamServerPointerFile.FILE_NAME,
                 ProcessDashboard.DATA_MOVED_FILENAME,
                 TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME);

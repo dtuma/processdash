@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -245,7 +245,8 @@ public class FileBundleMigrator {
 
         // move the now-obsolete bundle/heads directories into backup subdir
         if (isInPlace)
-            backupBundleDirs(backupFile, "bundles", "heads");
+            backupBundleDirs(backupFile, FileBundleConstants.BUNDLE_SUBDIR,
+                FileBundleConstants.HEADS_SUBDIR);
     }
 
     private void ensureStartingBundleMode(File directory,
