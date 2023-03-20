@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -50,6 +51,8 @@ public class FileBundleCollection
 
     private String prefix;
 
+    private boolean lightweight;
+
     private ZipFile bundleZip;
 
     public FileBundleCollection(FileBundleManifest manifest, File zipFile,
@@ -58,6 +61,7 @@ public class FileBundleCollection
         this.files = manifest.getFiles();
         this.zipFile = zipFile;
         this.prefix = prefix;
+        this.lightweight = false;
     }
 
     public FileBundleID getBundleID() {
@@ -80,6 +84,14 @@ public class FileBundleCollection
         return files.getChecksum(resourceName);
     }
 
+    public boolean isLightweight() {
+        return lightweight;
+    }
+
+    public void setLightweight(boolean lightweight) {
+        this.lightweight = lightweight;
+    }
+
     /**
      * Read a file from within this bundle.
      * 
@@ -88,6 +100,12 @@ public class FileBundleCollection
      */
     public synchronized InputStream getInputStream(String resourceName)
             throws IOException {
+        if (lightweight) {
+            String url = "jar:" + zipFile.toURI().toURL() //
+                    + "!/" + prefix + resourceName;
+            return new URL(url).openStream();
+        }
+
         if (bundleZip == null)
             bundleZip = new ZipFile(zipFile);
 
