@@ -34,6 +34,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -167,7 +168,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             List<FileBundleID> parents, List<FileBundleID> replaces,
             long timestamp) throws IOException {
         // generate an ID for the new bundle
-        FileBundleID bundleID = createNewBundleID(timestamp, bundleName);
+        FileBundleID bundleID = createNewBundleID(timestamp, bundleName,
+            parents, replaces);
 
         // write a ZIP file holding the data for the new bundle
         ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames);
@@ -184,11 +186,12 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return bundleID;
     }
 
-    private FileBundleID createNewBundleID(long timestamp, String bundleName) {
+    private FileBundleID createNewBundleID(long timestamp, String bundleName,
+            List<FileBundleID>... mustComeAfterBundles) {
         // if no timestamp was supplied, use the current time
         boolean implicitTimestamp = timestamp <= 0;
         if (implicitTimestamp)
-            timestamp = System.currentTimeMillis();
+            timestamp = getCurrentTimeOrAfter(mustComeAfterBundles);
 
         // create a bundle ID with the appropriate information
         FileBundleID bid = new FileBundleID(timestamp, timeFormat, deviceID,
@@ -203,6 +206,30 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         // return the bundle ID we created
         return bid;
+    }
+
+    private long getCurrentTimeOrAfter(List<FileBundleID>... bundles) {
+        // get the current time
+        long time = System.currentTimeMillis();
+
+        // make sure the time falls after the timestamps of any parents.
+        // this guards against overlap during daylight savings "fall-back"
+        String timeStr = timeFormat.format(time);
+        for (List<FileBundleID> oneBundleList : bundles) {
+            for (FileBundleID oneBundle : oneBundleList) {
+                String bundleTimestamp = oneBundle.getTimestamp();
+                if (timeStr.compareTo(bundleTimestamp) <= 0) {
+                    try {
+                        Date bundleTime = timeFormat.parse(bundleTimestamp);
+                        time = bundleTime.getTime() + 10000;
+                        timeStr = timeFormat.format(time);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+
+        return time;
     }
 
     private boolean bundleExists(FileBundleID bundleID) {
