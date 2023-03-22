@@ -160,15 +160,11 @@ public class CloudStorageDashboardWorker {
         File movedFile = getTargetFile(ProcessDashboard.DATA_MOVED_FILENAME);
         try {
             // convert the target into [Shared Folder] encoding if possible
-            SyncClientMappings.initialize(newDirectory);
-            String newLocation = FolderMappingManager.getInstance()
-                    .encodePath(newDirectory.getAbsolutePath());
-            String knownFileSearchQuery = getKnownFileSearchQuery(newDirectory);
+            String newLocation = getShareableDataDirectoryPath(newDirectory);
 
             // write a data moved file with the new location
             Writer out = new FileWriter(movedFile);
             out.write(newLocation);
-            out.write(knownFileSearchQuery);
             out.write(System.getProperty("line.separator"));
             out.close();
 
@@ -185,15 +181,24 @@ public class CloudStorageDashboardWorker {
         }
     }
 
-    public static String getKnownFileSearchQuery(File targetDir) {
+    public static String getShareableDataDirectoryPath(File targetDir) {
+        // compute a [Shared Folder] encoded path to this directory. If
+        // is is not encodable, just return the directory path
+        SyncClientMappings.initialize(targetDir);
+        String absolutePath = targetDir.getAbsolutePath();
+        String encodedPath = FolderMappingManager.getInstance()
+                .encodePath(absolutePath);
+        if (!FolderMappingManager.isEncodedPath(encodedPath))
+            return absolutePath;
+
         try {
             // if a unique directory tag file already exists, return it
             String[] targetFiles = targetDir.list();
             if (targetFiles == null)
-                return "";
+                return encodedPath;
             for (String oneFile : targetFiles) {
                 if (oneFile.startsWith(UNIQUE_DIRECTORY_ID))
-                    return "?" + oneFile;
+                    return encodedPath + "?" + oneFile;
             }
 
             // create a file in the target directory with a random name
@@ -201,20 +206,24 @@ public class CloudStorageDashboardWorker {
                     + toAlphanumeric(System.currentTimeMillis()) + "-" //
                     + toAlphanumeric(new Random().nextInt()) + ".txt";
             File tagFile = new File(targetDir, tagFilename);
+            String newLocation = encodedPath + "?" + tagFilename;
 
             // write a short explanatory message into that file
             PrintWriter out = new PrintWriter(new OutputStreamWriter(
                     FileBundleUtils.outputStream(tagFile), "UTF-8"));
             for (String line : UNIQUE_TAG_VERBIAGE)
                 out.println(line);
+            out.println(newLocation);
             out.close();
+            tagFile.setReadOnly();
 
-            // return a search query that can be used to find this directory
-            return "?" + tagFilename;
+            // return an encoded path with a search query that can be used to
+            // find this directory
+            return newLocation;
 
         } catch (Exception e) {
+            return encodedPath;
         }
-        return "";
     }
 
     private static String toAlphanumeric(long number) {
@@ -275,6 +284,11 @@ public class CloudStorageDashboardWorker {
             "The name of this file helps to uniquely identify this directory.",
             "If you make a manual copy of this entire directory tree (for",
             "backup, testing, or other purposes), you should generally",
-            "delete this file from the copy so uniqueness is maintained." };
+            "delete this file from the copy so uniqueness is maintained.", //
+            " ", //
+            "Other individuals can create a shortcut to this Team Dashboard",
+            "by running the Process Dashboard installer, enabling the 'Tools",
+            "for Team Leaders' option, and entering the following value for",
+            "the team configuration directory:", " " };
 
 }

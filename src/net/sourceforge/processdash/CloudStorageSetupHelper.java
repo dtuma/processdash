@@ -78,7 +78,7 @@ class CloudStorageSetupHelper {
                 System.out.println("Bundling new cloud-based Team Dashboard");
                 FileBundleMigrator.migrate(dir,
                     DashboardInstanceStrategy.INSTANCE, FileBundleMode.Sync);
-                CloudStorageDashboardWorker.getKnownFileSearchQuery(dir);
+                CloudStorageDashboardWorker.getShareableDataDirectoryPath(dir);
             } catch (Exception e) {
                 e.printStackTrace();
             }
