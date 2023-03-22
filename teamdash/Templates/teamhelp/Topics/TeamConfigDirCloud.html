@@ -278,14 +278,30 @@ have:
 
     </ul></li>
 
-<li class="space">Choose a non-project-critical time to perform the
-migration, since it may take several days for all team members to
-collectively finish the steps below.</li>
+<li class="space">Log in to the website for your cloud storage
+provider, and create a new, empty directory for team data, following
+the <a href="#createDir">general guidance above</a>.</li>
 
-<li class="space">Install the desktop sync client on a computer where the
-Team Dashboard is already installed.  Find the dedicated folder on that
-computer that your sync client is managing, and create a new, empty
-directory somewhere under that folder for team data.</li>
+<li class="space">In the website for your cloud storage provider,
+share this team data folder with the team members, leaders, and
+coaches who will be collaborating within this Team Dashboard.</li>
+
+<li class="space">Instruct team members to perform all of the 
+<a href="#memberSetup">team member setup steps</a> above.  Give them
+time and assistance to finish.</li>
+
+<li class="space">Choose a non-project-critical time to perform the
+following steps, in case any team members require assistance after the
+migration.</li>
+
+<li class="space">Contact team members and advise them to close any
+open WBS Editor windows until migration is complete.</li>
+
+<li class="space">Install the desktop sync client on a computer where
+the Team Dashboard is already installed.  Wait for the sync client to
+copy all files from the cloud, including the new empty team data
+directory you created.  Find the locally synced copy of this team data
+directory on your computer.</li>
 
 <li class="space">Open the Team Dashboard.  Choose "Tools &rarr; Migrate
 Data to Cloud Storage," then follow the prompts from the migration
@@ -293,8 +309,8 @@ wizard.
 
     <ul>
 
-    <li>When it asks for the new location of team data, enter the new
-        directory you created in the previous step.</li>
+    <li>When it asks for the new location of team data, enter the path
+        to the locally synced copy of the team data directory.</li>
 
     <li>If the wizard complains that the new location does not appear
         to be in cloud storage, follow the
@@ -307,13 +323,28 @@ wizard.
 <li class="space">Ensure your sync client is running, and wait for it to
 publish the new team data directory to the cloud.</li>
 
-<li class="space">Log in to the website for your cloud storage provider,
-and share this team data folder with the team members, leaders, and
-coaches who will be collaborating within this Team Dashboard.</li>
+<li class="space">If team members have completed the steps above,
+their personal dashboards will detect the migration within ten
+minutes, and begin using the new cloud storage directory
+automatically.
 
-<li class="space">Let team members know the migration is complete, and
-instruct them to perform the <a href="#memberSetup">team member setup
-steps</a> above.</li>
+    <ul>
+
+    <li>Individuals can verify connectivity by performing a "Sync to
+        WBS" and an "Export My Data Now" operation.  They can also
+        open the "Project Parameters and Settings" page and verify the
+        value in the "Team Project Network Directory" field.</li>
+
+    <li>In the Team Dashboard, you can open "Team Project Tools &rarr;
+        Show Status of Team Member Metrics" and watch to see that
+        individuals are able to successfully export data after the
+        migration.</li>
+
+    <li>If any team member encounters problems, it's likely they
+        missed one of the setup steps.  Work with them to resolve the
+        problem as quickly as possible.</li>
+
+    </ul></li>
 
 </ol>
 
