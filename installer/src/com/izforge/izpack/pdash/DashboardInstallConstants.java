@@ -13,8 +13,8 @@ public interface DashboardInstallConstants {
     String TEAM_DATA_PATH = "TEAM_DATA_PATH";
 
     /** The IzPack variable holding a flag indicating whether the team
-     *  data directory is an HTTP location. */
-    String TEAM_DATA_HTTP_FLAG = "TEAM_DATA_HTTP";
+     *  data directory is a local (non-http, non-bundled) location. */
+    String TEAM_DATA_LOCAL_FLAG = "TEAM_DATA_LOCAL";
 
     /** The IzPack variable holding the max memory setting */
     String MAX_MEMORY = "MAX_MEMORY";

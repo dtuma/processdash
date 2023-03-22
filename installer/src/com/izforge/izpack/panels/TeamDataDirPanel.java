@@ -2,7 +2,7 @@
  *  $Id$
  *  IzPack
  *  Copyright (C) 2001-2003 Julien Ponge
- *  Changes Copyright (C) 2003-2018 David Tuma
+ *  Changes Copyright (C) 2003-2023 David Tuma
  *
  *  File :               TeamDataDirPanel.java
  *  Description :        A panel to select the team data location.
@@ -284,12 +284,14 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener,
         }
 
         // Normalize the path, only if it's local
-        if (dataPath.startsWith("http")) {
-            idata.setVariable(TEAM_DATA_HTTP_FLAG, "true");
+        if (dataPath.startsWith("http") || dataPath.startsWith("[")) {
+            idata.setVariable(TEAM_DATA_LOCAL_FLAG, "false");
+
         } else {
             File path = new File(dataPath);
             dataPath = path.toString();
-            idata.setVariable(TEAM_DATA_HTTP_FLAG, "false");
+            idata.setVariable(TEAM_DATA_LOCAL_FLAG, //
+                Boolean.toString(!new File(path, "bundles").isDirectory()));
         }
 
         idata.setVariable(TEAM_DATA_PATH, dataPath);

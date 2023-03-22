@@ -59,7 +59,7 @@ public class DashboardPostInstallAction extends SimpleInstallerListener
     private void filterUninstallableFiles() {
         File dataDir = makeWritable(getUserDirectoryForVariable(DATA_PATH));
         File teamDataDir = null;
-        if (!"true".equals(getInstalldata().getVariable(TEAM_DATA_HTTP_FLAG)))
+        if ("true".equals(getInstalldata().getVariable(TEAM_DATA_LOCAL_FLAG)))
             teamDataDir = makeWritable(getUserDirectoryForVariable(TEAM_DATA_PATH));
 
         List<String> uninstallableFiles = UninstallData.getInstance()

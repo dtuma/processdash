@@ -21,9 +21,9 @@
              </java>
              <returnvalue type="boolean">true</returnvalue>
         </condition>
-        <condition type="variable" id="teamDataIsNotHttp">
-            <name>TEAM_DATA_HTTP</name>
-            <value>false</value>
+        <condition type="variable" id="teamDataIsLocal">
+            <name>TEAM_DATA_LOCAL</name>
+            <value>true</value>
         </condition>
     </conditions>
 
@@ -351,10 +351,10 @@
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/teamicon.png"/>
             <singlefile target="$TEAM_DATA_PATH/icon.ico" override="false"
-                  src="files/teamicon.ico" condition="teamDataIsNotHttp"/>
+                  src="files/teamicon.ico" condition="teamDataIsLocal"/>
 
             <singlefile target="$TEAM_DATA_PATH/pspdash.ini" override="false"
-                  src="files/teamdash.ini" condition="teamDataIsNotHttp"/>
+                  src="files/teamdash.ini" condition="teamDataIsLocal"/>
 
             <!-- Create Team Dashboard application on Mac OS X --> 
             <fileset targetdir="$MAC_APPL/Team Dashboard.app"
@@ -402,11 +402,11 @@
             </executable>
 
             <singlefile target="$TEAM_DATA_PATH/run-dash.sh" override="false"
-                  src="files/run-team.sh" condition="teamDataIsNotHttp"/>
+                  src="files/run-team.sh" condition="teamDataIsLocal+isUnix"/>
             <parsable targetfile="$TEAM_DATA_PATH/run-dash.sh"
-                  condition="teamDataIsNotHttp+isUnix"/>
+                  condition="teamDataIsLocal+isUnix"/>
             <executable targetfile="$TEAM_DATA_PATH/run-dash.sh"
-	          stage="never" condition="teamDataIsNotHttp+isUnix"/>
+	          stage="never" condition="teamDataIsLocal+isUnix"/>
 
         </pack>
 
