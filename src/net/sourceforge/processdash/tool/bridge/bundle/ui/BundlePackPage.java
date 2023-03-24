@@ -60,6 +60,7 @@ public class BundlePackPage extends TinyCGIBase {
                 .parseSpeedSetting(getParameter("speed"), Speed.NOW);
         FileBundlePackTask packTask = new FileBundlePackTask(
                 getDashboardContext(), speed);
+        packTask.setIncludeBackups(true);
 
         // run the operation, either against a project or the whole dashboard
         String path = getPrefix();

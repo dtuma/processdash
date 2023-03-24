@@ -52,12 +52,23 @@ public class FileBundlePackTask {
 
     private Speed speed;
 
+    private boolean includeBackups;
+
     private List<String> packedDirs;
 
     public FileBundlePackTask(DashboardContext ctx, Speed speed) {
         this.ctx = ctx;
         this.speed = speed;
+        this.includeBackups = false;
         this.packedDirs = new ArrayList<String>();
+    }
+
+    public boolean isIncludeBackups() {
+        return includeBackups;
+    }
+
+    public void setIncludeBackups(boolean includeBackups) {
+        this.includeBackups = includeBackups;
     }
 
     public List<String> getPackedDirs() {
@@ -144,6 +155,10 @@ public class FileBundlePackTask {
         else
             // if our probabilistic chance didn't occur, make no changes
             return;
+
+        // if any historical WBS backups are present, convert them to bundles
+        if (includeBackups)
+            new WBSBackupBundler().run(bwd.getTargetDirectory());
 
         // ask our bundle directory to perform the pack operation
         long oldBundleTime = System.currentTimeMillis()

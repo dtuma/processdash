@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.team.setup.move;
 
+import static net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants.BUNDLE_SUBDIR;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -33,6 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Calendar;
 import java.util.Properties;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -42,10 +45,13 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.sync.HierarchySynchronizer;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.tool.bridge.bundle.WBSBackupBundler;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -155,16 +161,22 @@ public class CloudStorageProjectWorker extends MoveProjectWorker {
                     .append("projectPrefix", projectPrefix);
         }
 
-        // copy the backup subdirectory to retain WBS change history
+        // migrate the backup subdirectory to retain WBS change history
         try {
             File oldBackupDir = new File(oldTeamDataDir, "backup");
-            File newBackupDir = new File(newTeamDataDir, "backup");
-            if (oldBackupDir.isDirectory())
-                copyFiles(oldBackupDir, createDirectory(newBackupDir));
-        } catch (MoveProjectException mpe) {
+            File newBundleDir = new File(newTeamDataDir, BUNDLE_SUBDIR);
+            if (oldBackupDir.isDirectory()) {
+                // create bundles for historical WBS zip backup files
+                new WBSBackupBundler().run(oldBackupDir, newBundleDir, false);
+
+                // run a pack operation to reduce the total number of files
+                int today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+                new FileBundleDirectory(newBundleDir).packBundlesThroughMonth(
+                    System.currentTimeMillis() - today * DateUtils.DAYS);
+            }
+        } catch (IOException ioe) {
             // loss of backups/history is not critical. log and continue
-            logError("copying WBS history", mpe);
-            System.out.println(mpe.getDescription());
+            logError("copying WBS history", ioe);
         }
     }
 
