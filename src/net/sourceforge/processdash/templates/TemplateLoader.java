@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2020 Tuma Solutions, LLC
+// Copyright (C) 1998-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,11 +51,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.jar.JarInputStream;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.w3c.dom.Document;
@@ -74,6 +74,7 @@ import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -81,6 +82,7 @@ import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.PatternList;
@@ -355,6 +357,13 @@ public class TemplateLoader {
 
     private static JarSearchResult searchJarForTemplates(
             DashHierarchy templates, String jarURL, DataRepository data) {
+        File jarFile;
+        try {
+            jarFile = new File(new URL(jarURL).toURI());
+        } catch (Exception ex) {
+            logger.severe("Could not parse template JAR URL " + jarURL);
+            return JarSearchResult.Ignore;
+        }
 
         // special handling for legacy TeamTools.jar file, whose templates
         // should be overridden by those in WBSEditor.jar
@@ -363,26 +372,37 @@ public class TemplateLoader {
 
         boolean foundTemplates = false;
         boolean foundContent = false;
+        JarFile jar = null;
         try {
             debug("searching for templates in " + jarURL);
 
             URL jarFileUrl = new URL(jarURL);
-            JarInputStream jarFile =
-                new JarInputStream((jarFileUrl).openStream());
+            jar = new JarFile(jarFile, true);
 
-            ZipEntry file;
+            // if jar verification is active and this is an executable JAR that
+            // was not signed with a valid certificate, reject it
+            if (isUntrustedExecutableAddon(jar)) {
+                logger.warning("Rejecting unsigned file: " + jarFile);
+                return JarSearchResult.Ignore;
+            }
+
+            JarEntry file;
             String filename;
-            while ((file = jarFile.getNextEntry()) != null) {
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                file = entries.nextElement();
                 filename = file.getName().toLowerCase();
+
                 if (filename.equals(MCF_PROCESS_XML)) {
                     String baseURL = "jar:" + jarURL + "!/";
+                    InputStream in = jar.getInputStream(file);
                     InputStream mcfXmlData = MCFManager.getInstance()
-                            .registerMcf(baseURL, jarFile, null, true);
+                            .registerMcf(baseURL, in, null, true);
+                    in.close();
                     if (mcfXmlData != null) {
                         String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
                         loadXMLProcessTemplate(templates, data, n, null,
                             file.getTime(), mcfXmlData, true);
-                        jarFile.close();
                         return JarSearchResult.Mcf;
                     }
                 }
@@ -402,16 +422,18 @@ public class TemplateLoader {
                     debug("loading template: " + filename);
                     String n = file.getName() + " (in " + jarURL + ")";
                     loadXMLProcessTemplate(templates, data, n, jarFileUrl,
-                        file.getTime(), jarFile, false);
+                        file.getTime(), jar.getInputStream(file), true);
                     foundTemplates = true;
                 } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
-                    loadProcessTemplate(templates, jarFile, false);
+                    loadProcessTemplate(templates, jar.getInputStream(file),
+                        true);
                     foundTemplates = true;
                 } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                     try {
                         debug("loading data: " + filename);
-                        data.addGlobalDefinitions(jarFile, false);
+                        data.addGlobalDefinitions(jar.getInputStream(file),
+                            true);
                     } catch (Exception e) {
                         logger.severe
                             ("unable to load global process data from " +
@@ -419,11 +441,13 @@ public class TemplateLoader {
                     }
                 }
             }
-            jarFile.close();
 
         } catch (IOException ioe) {
             logger.severe("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
+            return JarSearchResult.Ignore;
+        } finally {
+            FileUtils.safelyClose(jar);
         }
         // let our caller know what type of content we found in this JAR
         if (foundTemplates)
@@ -436,6 +460,27 @@ public class TemplateLoader {
             // no template-published content was found
             return JarSearchResult.Ignore;
     }
+
+    private static boolean isUntrustedExecutableAddon(JarFile jar)
+            throws IOException {
+        return hasExecutableEntry(jar) && !DashboardSecurity.checkJar(jar);
+    }
+
+    private static boolean hasExecutableEntry(JarFile jar) {
+        Enumeration<JarEntry> entries = jar.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry entry = (JarEntry) entries.nextElement();
+            String filenameLC = entry.getName().toLowerCase();
+            for (String suffix : EXECUTABLE_FILE_SUFFIXES) {
+                if (filenameLC.endsWith(suffix))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static final String[] EXECUTABLE_FILE_SUFFIXES = { ".class", ".jar",
+            "WEB-INF/web.xml", ".jsp", ".exe", ".bat" };
 
     private static boolean searchDirForTemplates(DashHierarchy templates,
                                                  String directoryName,
