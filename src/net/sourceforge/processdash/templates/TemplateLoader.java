@@ -381,7 +381,7 @@ public class TemplateLoader {
 
             // if jar verification is active and this is an executable JAR that
             // was not signed with a valid certificate, reject it
-            if (isUntrustedExecutableAddon(jar)) {
+            if (isUntrustedExecutableAddon(jarFile, jar)) {
                 logger.warning("Rejecting unsigned file: " + jarFile);
                 return JarSearchResult.Ignore;
             }
@@ -461,9 +461,11 @@ public class TemplateLoader {
             return JarSearchResult.Ignore;
     }
 
-    private static boolean isUntrustedExecutableAddon(JarFile jar)
+    private static boolean isUntrustedExecutableAddon(File jarFile, JarFile jar)
             throws IOException {
-        return hasExecutableEntry(jar) && !DashboardSecurity.checkJar(jar);
+        return hasExecutableEntry(jar) //
+                && !isInExplicitExtraDir(jarFile) //
+                && !DashboardSecurity.checkJar(jar);
     }
 
     private static boolean hasExecutableEntry(JarFile jar) {
@@ -481,6 +483,11 @@ public class TemplateLoader {
 
     private static final String[] EXECUTABLE_FILE_SUFFIXES = { ".class", ".jar",
             "WEB-INF/web.xml", ".jsp", ".exe", ".bat" };
+
+    private static boolean isInExplicitExtraDir(File jarFile) {
+        File jarDirectory = jarFile.getParentFile();
+        return explicitExtraDirs.contains(jarDirectory);
+    }
 
     private static boolean searchDirForTemplates(DashHierarchy templates,
                                                  String directoryName,
@@ -655,6 +662,7 @@ public class TemplateLoader {
             } catch (MalformedURLException e) {}
         }
 
+        List<File> extraDirs = new ArrayList<File>();
         int i = 1;
         while (true) {
             String extraDir = System.getProperty(EXTRA_DIR_SETTING_PREFIX + i);
@@ -662,10 +670,13 @@ public class TemplateLoader {
                 break;
 
             File dirToScan = new File(extraDir);
-            if (dirToScan.isDirectory())
+            if (dirToScan.isDirectory()) {
+                extraDirs.add(dirToScan);
                 scanDirForJarFiles(dirToScan, result);
+            }
             i++;
         }
+        explicitExtraDirs = Collections.unmodifiableList(extraDirs);
 
         String baseDir = getBaseDir();
         if (unpackagedBinaryBaseDir != null)
@@ -728,6 +739,7 @@ public class TemplateLoader {
     }
     private static URL[] template_url_list = null;
     private static List<URL> mcf_url_list = null;
+    private static List<File> explicitExtraDirs = Collections.EMPTY_LIST;
     private static boolean avoidJarCaching = true;
     //private static final String JARFILE_NAME = "pspdash.jar";
     private static final String TEMPLATE_DIRNAME = "Templates";
