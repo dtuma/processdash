@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
+import java.util.zip.ZipFile;
 
 public class FileUtils {
 
@@ -169,6 +170,16 @@ public class FileUtils {
         if (c != null) {
             try {
                 c.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
+    public static void safelyClose(ZipFile z) {
+        if (z != null) {
+            try {
+                z.close();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
