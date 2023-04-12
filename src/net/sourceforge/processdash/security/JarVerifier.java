@@ -45,6 +45,8 @@ public class JarVerifier {
 
     private static Certificate LAST_VALID_CERT = null;
 
+    static CertificateTrustSource EXTERNAL_TRUST_SOURCE = null;
+
     private static final Logger logger = Logger
             .getLogger(JarVerifier.class.getName());
 
@@ -130,6 +132,10 @@ public class JarVerifier {
 
 
     public static boolean verify(Certificate[] certs) {
+        return verify(certs, true);
+    }
+
+    public static boolean verify(Certificate[] certs, boolean includeExternal) {
         // if no certs were provided, return false
         if (certs == null || certs.length == 0)
             return false;
@@ -148,6 +154,15 @@ public class JarVerifier {
                     LAST_VALID_CERT = c;
                     return true;
                 }
+            }
+
+            // if a secondary trust provider is in effect, ask it to test the
+            // unrecognized cert
+            if (includeExternal //
+                    && EXTERNAL_TRUST_SOURCE != null //
+                    && EXTERNAL_TRUST_SOURCE.isTrusted(c)) {
+                LAST_VALID_CERT = c;
+                return true;
             }
         }
 

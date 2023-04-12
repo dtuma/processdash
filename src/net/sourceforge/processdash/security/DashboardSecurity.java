@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.security;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.security.Policy;
@@ -30,6 +31,7 @@ import java.util.jar.JarFile;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 
@@ -44,6 +46,9 @@ public class DashboardSecurity {
     private static final String POLICY_PREF = "securityPolicy";
     private static final boolean SECURITY_MANAGER_SUPPORTED =
         isSecurityManagerSupportPresent();
+    private static final String KEYSTORE_FILENAME = "third-party-certs.p12";
+    private static final String KEYSTORE_TYPE = "PKCS12";
+    private static final String KEYSTORE_PASSWORD = "processdash";
     private static final String SECURE_CODEBASE_URL =
         "process.dashboard.codebase.url";
     private static final String JAVA_SECURITY_POLICY = "java.security.policy";
@@ -70,6 +75,8 @@ public class DashboardSecurity {
 
         if (POLICY == DashPolicy.manager)
             installSecurityManager();
+        else if (POLICY == DashPolicy.jar)
+            installCertificateManager();
     }
 
     private static void loadEnforcementPolicy() {
@@ -155,6 +162,20 @@ public class DashboardSecurity {
         } catch (Exception e) {
             throw new SecurityException(e);
         }
+    }
+
+    private static void installCertificateManager() {
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File appTemplateDir = new File(appDir, "Templates");
+        File ksFile = new File(appTemplateDir, KEYSTORE_FILENAME);
+        CertificateManager mgr = new CertificateManager(ksFile, KEYSTORE_TYPE,
+                KEYSTORE_PASSWORD.toCharArray());
+        JarVerifier.EXTERNAL_TRUST_SOURCE = mgr;
+    }
+
+
+    public static CertificateManager getCertificateManager() {
+        return (CertificateManager) JarVerifier.EXTERNAL_TRUST_SOURCE;
     }
 
 
