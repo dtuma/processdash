@@ -383,6 +383,7 @@ public class TemplateLoader {
             // was not signed with a valid certificate, reject it
             if (isUntrustedExecutableAddon(jarFile, jar)) {
                 logger.warning("Rejecting unsigned file: " + jarFile);
+                rejectDashPackageForFile(jarFile);
                 return JarSearchResult.Ignore;
             }
 
@@ -479,6 +480,19 @@ public class TemplateLoader {
             }
         }
         return false;
+    }
+
+    private static void rejectDashPackageForFile(File jarFile) {
+        for (DashPackage pkg : dashPackages) {
+            if (pkg.filename != null) {
+                File pkgFile = new File(pkg.filename);
+                if (pkgFile.equals(jarFile)) {
+                    dashPackages.remove(pkg);
+                    rejectedPackages.add(pkg);
+                    return;
+                }
+            }
+        }
     }
 
     private static final String[] EXECUTABLE_FILE_SUFFIXES = { ".class", ".jar",
@@ -881,6 +895,7 @@ public class TemplateLoader {
         removeIncompatiblePackages(packages, urls);
         removeDuplicatePackages(packages, urls);
         dashPackages = new ArrayList(packages.keySet());
+        rejectedPackages = new ArrayList();
     }
 
     private static void deleteDuplicates(Vector list) {
@@ -1052,12 +1067,17 @@ public class TemplateLoader {
 
 
 
-    private static ArrayList dashPackages = new ArrayList();
+    private static List<DashPackage> dashPackages = new ArrayList();
+    private static List<DashPackage> rejectedPackages = new ArrayList();
 
     /** Returns a list of all the packages currently installed.
      */
     public static List getPackages() {
         return Collections.unmodifiableList(dashPackages);
+    }
+
+    public static List getRejectedPackages() {
+        return Collections.unmodifiableList(rejectedPackages);
     }
 
 
@@ -1094,6 +1114,15 @@ public class TemplateLoader {
     /** Return the DashPackage object for an installed package, or null if
      *  the package is not installed. */
     public static DashPackage getPackage(String packageID) {
+        return findPackageByID(packageID, dashPackages);
+    }
+
+    public static DashPackage getRejectedPackage(String packageID) {
+        return findPackageByID(packageID, rejectedPackages);
+    }
+
+    private static DashPackage findPackageByID(String packageID,
+            List<DashPackage> dashPackages) {
         // look through the packages for an exact match.
         Iterator i = dashPackages.iterator();
         DashPackage pkg;
