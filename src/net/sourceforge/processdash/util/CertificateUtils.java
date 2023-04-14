@@ -25,6 +25,8 @@ package net.sourceforge.processdash.util;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -43,17 +45,48 @@ public class CertificateUtils {
         }
     }
 
+    public static List<String> formatDN(String dn) {
+        List<String> result = new ArrayList<String>();
+        appendIfUnique(result, getCNName(dn));
+        appendIfUnique(result, getOrganization(dn));
+        appendIfUnique(result, getAddress(dn));
+        return result;
+    }
+
     public static String getCNName(String dn) {
+        return getNameParts(dn, "CN");
+    }
+
+    public static String getOrganization(String dn) {
+        return getNameParts(dn, "O", "OU");
+    }
+
+    public static String getAddress(String dn) {
+        return getNameParts(dn, "STREET", "L", "ST", "OID.2.5.4.17", "C");
+    }
+
+    public static String getNameParts(String dn, String... types) {
+        List<String> result = new ArrayList();
         try {
             LdapName ldapName = new LdapName(dn);
-            for (Rdn rdn : ldapName.getRdns()) {
-                if (rdn.getType().equalsIgnoreCase("CN")) {
-                    return rdn.getValue().toString();
+            for (String type : types) {
+                for (Rdn rdn : ldapName.getRdns()) {
+                    if (rdn.getType().equalsIgnoreCase(type)) {
+                        appendIfUnique(result, rdn.getValue().toString());
+                    }
                 }
             }
         } catch (Exception ex) {
         }
-        return null;
+        if (result.isEmpty())
+            return null;
+        else
+            return StringUtils.join(result, ", ");
+    }
+
+    private static void appendIfUnique(List<String> dest, String item) {
+        if (item != null && !dest.contains(item))
+            dest.add(item);
     }
 
 }

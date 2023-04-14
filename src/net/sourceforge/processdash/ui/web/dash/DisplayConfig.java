@@ -95,6 +95,10 @@ public class DisplayConfig extends TinyCGIBase {
         if (brief) {
             out.print("body { font-size: small }");
             out.print("sup { font-size: small }");
+        } else {
+            out.println("a.plain:link { color:black; text-decoration:none }");
+            out.println("a.plain:visited { color:black; text-decoration:none }");
+            out.println("a.plain:hover { color:blue; text-decoration:underline }");
         }
         out.print("</STYLE>");
 
@@ -179,7 +183,7 @@ public class DisplayConfig extends TinyCGIBase {
                 DashPackage pkg = i.next();
 
                 if (!DASHBOARD_PACKAGE_ID.equals(pkg.id))
-                    printDashPackageTableRow(pkg, true, !brief, !brief);
+                    printDashPackageTableRow(pkg, !brief, true, !brief, !brief);
             }
             maybePrintCustomTranslationPackages(brief);
             out.print("</TABLE>");
@@ -201,7 +205,7 @@ public class DisplayConfig extends TinyCGIBase {
             out.print("</tr>");
 
             for (DashPackage pkg : badPackages) {
-                printDashPackageTableRow(pkg, false, true, !brief);
+                printDashPackageTableRow(pkg, !brief, false, true, !brief);
             }
 
             out.print("</table>");
@@ -218,11 +222,18 @@ public class DisplayConfig extends TinyCGIBase {
         out.println("</BODY></HTML>");
     }
 
-    private void printDashPackageTableRow(DashPackage pkg, boolean printVersion,
-            boolean printFilename, boolean printSigner) {
+    private void printDashPackageTableRow(DashPackage pkg, boolean printLink,
+            boolean printVersion, boolean printFilename, boolean printSigner) {
         out.print("<tr>");
 
-        out.print("<td>" + HTMLUtils.escapeEntities(pkg.name) + "</td>");
+        out.print("<td>");
+        if (printLink)
+            out.print("<a class='plain' href='showPackage?pkgId="
+                    + HTMLUtils.urlEncode(pkg.id) + "' target='_blank'>");
+        out.print(HTMLUtils.escapeEntities(pkg.name));
+        if (printLink)
+            out.print("</a>");
+        out.print("</td>");
 
         if (printVersion)
             out.print("<td>" + HTMLUtils.escapeEntities(pkg.version) + "</td>");
