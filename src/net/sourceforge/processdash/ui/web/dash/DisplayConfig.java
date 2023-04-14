@@ -178,33 +178,35 @@ public class DisplayConfig extends TinyCGIBase {
             for (Iterator<DashPackage> i = packages.iterator(); i.hasNext();) {
                 DashPackage pkg = i.next();
 
-                if (DASHBOARD_PACKAGE_ID.equals(pkg.id))
-                    continue;
-
-                    out.print("<tr><td>");
-                    out.print(HTMLUtils.escapeEntities(pkg.name));
-                    out.print("</td><td>");
-                    out.print(HTMLUtils.escapeEntities(pkg.version));
-                    out.print("</td>");
-
-                    if (!brief) {
-                        out.print("<td>" +
-                                  HTMLUtils.escapeEntities(cleanupFilename(pkg.filename)) +
-                                  "</td>");
-                        String signedBy = CertificateUtils
-                                .getSignerSimpleName(pkg.signedBy);
-                        String signedByHtml = (signedBy == null ? ""
-                                : HTMLUtils.escapeEntities(signedBy));
-                        out.print("<td>" + signedByHtml + "</td>");
-                    }
-
-                    out.println("</tr>");
+                if (!DASHBOARD_PACKAGE_ID.equals(pkg.id))
+                    printDashPackageTableRow(pkg, true, !brief, !brief);
             }
             maybePrintCustomTranslationPackages(brief);
             out.print("</TABLE>");
         }
 
         out.println("</DIV>");
+
+        List<DashPackage> badPackages = TemplateLoader.getRejectedPackages();
+        if (badPackages != null && !badPackages.isEmpty()) {
+            printRes("&nbsp;<div>${Rejected.Header}");
+
+            String color = (brief ? " color='#770000'" : "");
+            printRes("<br>&nbsp;"
+                     + "<table border class='indent' cellpadding='5'" + color + "><tr>"
+                     + "<th>${Add_On.Name}</th>"
+                     + "<th>${Add_On.Filename}</th>");
+            if (!brief)
+                printRes("<th>${Add_On.SignedBy}</th>");
+            out.print("</tr>");
+
+            for (DashPackage pkg : badPackages) {
+                printDashPackageTableRow(pkg, false, true, !brief);
+            }
+
+            out.print("</table>");
+            out.println("</div>");
+        }
 
         // Showing a link to "more details" if we are in brief mode
         if (brief) {
@@ -214,6 +216,30 @@ public class DisplayConfig extends TinyCGIBase {
         }
 
         out.println("</BODY></HTML>");
+    }
+
+    private void printDashPackageTableRow(DashPackage pkg, boolean printVersion,
+            boolean printFilename, boolean printSigner) {
+        out.print("<tr>");
+
+        out.print("<td>" + HTMLUtils.escapeEntities(pkg.name) + "</td>");
+
+        if (printVersion)
+            out.print("<td>" + HTMLUtils.escapeEntities(pkg.version) + "</td>");
+
+        if (printFilename)
+            out.print("<td>" + HTMLUtils.escapeEntities(cleanupFilename( //
+                pkg.filename)) + "</td>");
+
+        if (printSigner) {
+            String signer = CertificateUtils.getSignerSimpleName(pkg.signedBy);
+            if (signer == null)
+                out.print("<td align='center'>&mdash;</td>");
+            else
+                out.print("<td>" + HTMLUtils.escapeEntities(signer) + "</td>");
+        }
+
+        out.print("</tr>");
     }
 
     private void maybePrintCustomTranslationPackages(boolean brief) {
@@ -240,6 +266,7 @@ public class DisplayConfig extends TinyCGIBase {
                 if (!brief) {
                     String fn = cleanupFilename(f.getPath());
                     out.print("<td>" + HTMLUtils.escapeEntities(fn) + "</td>");
+                    out.print("<td align='center'>&mdash;</td>");
                 }
 
                 out.println("</tr>");
