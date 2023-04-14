@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2022 Tuma Solutions, LLC
+// Copyright (C) 2003-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.CertificateUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -167,10 +168,12 @@ public class DisplayConfig extends TinyCGIBase {
                          + "<th>${Add_On.Version}</th>");
 
                 // We want the brief layout to be as compact as possible so we
-                //  don't display the "location" column
+                //  don't display the "location" and "signed by" columns
                 if (!brief) {
-                    printRes("<th>${Add_On.Filename}</th></tr>");
+                    printRes("<th>${Add_On.Filename}</th>");
+                    printRes("<th>${Add_On.SignedBy}</th>");
                 }
+                out.println("</tr>");
 
             for (Iterator<DashPackage> i = packages.iterator(); i.hasNext();) {
                 DashPackage pkg = i.next();
@@ -188,6 +191,11 @@ public class DisplayConfig extends TinyCGIBase {
                         out.print("<td>" +
                                   HTMLUtils.escapeEntities(cleanupFilename(pkg.filename)) +
                                   "</td>");
+                        String signedBy = CertificateUtils
+                                .getSignerSimpleName(pkg.signedBy);
+                        String signedByHtml = (signedBy == null ? ""
+                                : HTMLUtils.escapeEntities(signedBy));
+                        out.print("<td>" + signedByHtml + "</td>");
                     }
 
                     out.println("</tr>");
