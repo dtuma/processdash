@@ -194,6 +194,8 @@ public class DisplayConfig extends TinyCGIBase {
         List<DashPackage> badPackages = TemplateLoader.getRejectedPackages();
         if (badPackages != null && !badPackages.isEmpty()) {
             printRes("&nbsp;<div>${Rejected.Header}");
+            if (!brief)
+                out.print(resources.getHTML("Rejected.Instructions"));
 
             String color = (brief ? " color='#770000'" : "");
             printRes("<br>&nbsp;"

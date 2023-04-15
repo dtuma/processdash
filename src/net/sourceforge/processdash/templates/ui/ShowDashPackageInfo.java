@@ -115,15 +115,33 @@ public class ShowDashPackageInfo extends TinyCGIBase {
         out.println("<link rel='stylesheet' type='text/css' href='/style.css'>");
         out.println("<style>");
         out.println("  td { vertical-align: baseline }");
+        out.println("  tr.sign td { vertical-align: top }");
+        out.println("  tr.sign table.firstCert td { vertical-align: middle }");
         out.println("  td.th { font-weight: bold; white-space: nowrap }");
+        out.println("  a.changeLink { padding-left:0.5em; font-style:italic }");
+        out.println("  div.advice form  { padding-left: 2cm }");
+        out.println("  table.showAdvice .changeLink { display:none }");
+        out.println("  table.hideAdvice .advice     { display:none }");
         out.println("</style>");
+        out.println("<script type='text/javascript'>");
+        out.println("  function showChangeAdvice() {");
+        out.println("    document.getElementById('data').className = \"showAdvice\";");
+        out.println("  }");
+        out.println("</script>");
         out.println("</head><body>");
 
         // print a header
         printRes("<h1>${Title}</h1>");
 
+        // display change advice right away for a rejected 3rd-party addon
+        String adviceClass = "hideAdvice";
+        if (isManagingCerts && sigType == SignatureType.ThirdParty //
+                && !isTrusted && status == Status.Rejected)
+            adviceClass = "showAdvice";
+
         // start a table of data
-        out.println("<table cellspacing='10'>");
+        out.println("<table cellspacing='10' id='data' class='" //
+                + adviceClass + "'>");
 
         // print a table row with the name of the package
         printRes("<tr><td class='th'>${ConfigScript.Add_On.Name}</td>");
@@ -147,8 +165,9 @@ public class ShowDashPackageInfo extends TinyCGIBase {
         }
 
         // print the installation and approval status of the package
-        String statusResKey;
+        String statusResKey, action = null;
         if (isManagingCerts && sigType == SignatureType.ThirdParty) {
+            action = (isTrusted ? REJECT_ACTION : APPROVE_ACTION);
             if (isTrusted && status == Status.Active)
                 statusResKey = "Approved_Active";
             else if (isTrusted && status == Status.Rejected)
@@ -165,11 +184,37 @@ public class ShowDashPackageInfo extends TinyCGIBase {
         }
         printRes("<tr><td class='th'>${Status.Header}</td><td>");
         out.print(resources.getHTML("Status." + statusResKey));
+
+        // if third-party certificate approval/rejection is an option, print a
+        // list of relevant advice along with a hyperlink to display it
+        if (action != null) {
+            printRes(" <a onclick='showChangeAdvice(); return false;'"
+                    + " href='#' class='changeLink'>${Actions.Change}</a>");
+            out.println("<div class='advice' style='margin-top:12px'><ul>");
+            printRes("<li>${Advice.Not_Dash_Team}</li>");
+            printRes("<li>${Advice.Review_Step}</li>");
+            if (pkg.signedBy.length == 1)
+                printRes("<li>${Signature.Self_Signed}</li>");
+            printRes("<li>${Advice.Contact_Step}</li>");
+            printRes("<li>${Advice." + action + "_Step}</li>");
+            out.println("</ul></div>");
+        }
+
         out.println("</td></tr>");
 
         // print information about the entity that signed the add-on
-        printRes("<tr><td class='th'>${ConfigScript.Add_On.SignedBy}</td><td>");
-        prettyPrintCertChain(pkg.signedBy);
+        printRes("<tr class='sign'><td class='th'>"
+                + "${ConfigScript.Add_On.SignedBy}</td><td>");
+        prettyPrintCertChain(action, pkg.signedBy);
+
+        // print resolution advice about rejected, unsigned add-ons
+        if (status == Status.Rejected && sigType == SignatureType.Unsigned) {
+            out.print("<ul>");
+            for (String line : resources.getStrings("Advice.Unsigned"))
+                out.println("<li>" + esc(line) + "</li>");
+            out.print("</ul>");
+        }
+
         out.println("</td></tr>");
 
         out.println("</table>");
@@ -177,7 +222,7 @@ public class ShowDashPackageInfo extends TinyCGIBase {
         out.println("</body></html>");
     }
 
-    private void prettyPrintCertChain(Certificate... signedBy) {
+    private void prettyPrintCertChain(String action, Certificate... signedBy) {
         if (signedBy == null || signedBy.length == 0) {
             printRes("<p>${Signature.Unsigned}</p>");
 
@@ -185,7 +230,16 @@ public class ShowDashPackageInfo extends TinyCGIBase {
             printRes("<p>${Signature.Unrecognized}</p>");
 
         } else {
+            out.println("<table class='firstCert'><tr><td>");
             prettyPrintCert(signedBy[0]);
+            if (action != null) {
+                // if a third-party certificate action is possible, print a
+                // form to the right of the certificate we'd be modifying
+                out.println("</td><td>");
+                printActionForm(pkgId, action);
+            }
+            out.println("</td></tr></table>");
+
             for (int i = 1; i < signedBy.length; i++) {
                 printRes("<p><b>${Signature.Verified_By}</b></p>");
                 prettyPrintCert(signedBy[i]);
@@ -201,6 +255,62 @@ public class ShowDashPackageInfo extends TinyCGIBase {
         }
     }
 
+    private void printActionForm(String pkgId, String action) {
+        out.println("<div class='advice'>");
+        out.println("<form action='showPackage' method='POST'>");
+        writePostTokenFormElement(true);
+        out.println("<input type='hidden' name='" + PKGID + "' value='"
+                + esc(pkgId) + "'>");
+        out.println("<input type='hidden' name='" + ACTION_PARAM + "' value='"
+                + esc(action) + "'>");
+        out.println("<input type='submit' name='submit' value='"
+                + resources.getHTML("Actions." + action) + "'>");
+        out.println("</form></div>");
+    }
+
+    @Override
+    protected void doPost() throws IOException {
+        // read input data and load the package in question
+        parseFormData();
+        init();
+
+        // perform the requested certificate action
+        performCertificateAction();
+
+        // redirect to the plain page to display the results
+        String uri = HTMLUtils.appendQuery("showPackage", PKGID, pkgId);
+        out.write("Location: " + uri + "\r\n\r\n");
+    }
+
+    private void performCertificateAction() {
+        // guard against CSRF attacks
+        if (checkPostToken() == false)
+            return;
+
+        // check preconditions
+        CertificateManager mgr = DashboardSecurity.getCertificateManager();
+        if (mgr == null || sigType != SignatureType.ThirdParty)
+            return;
+
+        // identify the action the user wants to perform
+        String action = getParameter(ACTION_PARAM);
+        Boolean newTrustVal;
+        if (APPROVE_ACTION.equals(action))
+            newTrustVal = Boolean.TRUE;
+        else if (REJECT_ACTION.equals(action))
+            newTrustVal = Boolean.FALSE;
+        else
+            return;
+
+        // perform the action
+        mgr.addCert(pkg.signedBy[0], newTrustVal);
+    }
+
+
+    protected String getDefaultPostTokenDataNameSuffix() {
+        return ShowDashPackageInfo.class.getSimpleName();
+    }
+
     private void printRes(String text) {
         out.println(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
@@ -210,5 +320,8 @@ public class ShowDashPackageInfo extends TinyCGIBase {
     }
 
     private static final String PKGID = "pkgId";
+    private static final String ACTION_PARAM = "action";
+    private static final String APPROVE_ACTION = "Approve";
+    private static final String REJECT_ACTION = "Reject";
 
 }
