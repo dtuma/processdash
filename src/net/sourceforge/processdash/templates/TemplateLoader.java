@@ -379,6 +379,23 @@ public class TemplateLoader {
             URL jarFileUrl = new URL(jarURL);
             jar = new JarFile(jarFile, true);
 
+            // if this is an MCF ZIP file, register it with the MCF manager and
+            // skip further processing
+            JarEntry file = jar.getJarEntry(MCF_PROCESS_XML);
+            if (file != null) {
+                String baseURL = "jar:" + jarURL + "!/";
+                InputStream in = jar.getInputStream(file);
+                InputStream mcfXmlData = MCFManager.getInstance()
+                        .registerMcf(baseURL, in, null, true);
+                in.close();
+                if (mcfXmlData != null) {
+                    String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
+                    loadXMLProcessTemplate(templates, data, n, null,
+                        file.getTime(), mcfXmlData, true);
+                    return JarSearchResult.Mcf;
+                }
+            }
+
             // if jar verification is active and this is an executable JAR that
             // was not signed with a valid certificate, reject it
             if (isUntrustedExecutableAddon(jarFile, jar)) {
@@ -387,26 +404,12 @@ public class TemplateLoader {
                 return JarSearchResult.Ignore;
             }
 
-            JarEntry file;
+            // scan the entries in the JAR looking for template content
             String filename;
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 file = entries.nextElement();
                 filename = file.getName().toLowerCase();
-
-                if (filename.equals(MCF_PROCESS_XML)) {
-                    String baseURL = "jar:" + jarURL + "!/";
-                    InputStream in = jar.getInputStream(file);
-                    InputStream mcfXmlData = MCFManager.getInstance()
-                            .registerMcf(baseURL, in, null, true);
-                    in.close();
-                    if (mcfXmlData != null) {
-                        String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
-                        loadXMLProcessTemplate(templates, data, n, null,
-                            file.getTime(), mcfXmlData, true);
-                        return JarSearchResult.Mcf;
-                    }
-                }
 
                 if (startsWithIgnoreCase(filename, TEMPLATE_DIR)) {
                     foundContent = true;
