@@ -59,6 +59,7 @@
   <mapID target="TeamLaunchSnapshot" url="Topics/SaveLaunchSnapshot.html" />
   <mapID target="TeamEditWBS" url="Topics/EditingTheWBS.html" />
   <mapID target="TeamInsertWorkflow" url="Topics/InsertingWorkflows.html" />
+  <mapID target="TeamWorkflowRates" url="Topics/WorkflowRates.html" />
   <mapID target="TeamImportMSProj" url="Topics/ImportFromMSProject.html" />
   <mapID target="TeamEditWBSMetrics" url="Topics/EditingWBSMetrics.html" />
   <mapID target="TeamWBSIndiv" url="Topics/EditingWBSIndiv.html" />

@@ -76,6 +76,8 @@
                               image="BookIcon" target="TeamEditWBS" >
             <tocitem text="Inserting Workflows"
                               image="PageIcon" target="TeamInsertWorkflow" />
+            <tocitem text="Using Workflow Rates"
+                              image="PageIcon" target="TeamWorkflowRates" />
             <tocitem text="Importing from MS Project"
                               image="PageIcon" target="TeamImportMSProj" />
             <tocitem text="Editing WBS Metrics"

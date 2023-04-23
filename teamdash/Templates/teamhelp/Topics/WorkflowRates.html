@@ -1,121 +1,26 @@
 <html>
 <head>
-<title>Plan Project Development Process</title>
+<title>Using Workflow Rates on Older Projects</title>
 <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body>
 
-<h1>Plan Project Development Process</h1>
-<b>(TSP Launch Meeting No. 3)</b>
+<h1>Using Workflow Rates on Older Projects</h1>
 
-<p>In the next step of the project launch process, the team typically
-formalizes the steps in their development process. To do this, you may
-draw upon existing organizational processes, or you may define new
-processes as a team during the launch. The team may create defined
-processes, or they may simply identify common, repeatable workflows.
-The Process Dashboard provides tools that assist with this task.</p>
+<p>In older projects, the <a href="EditWorkflows.html">workflow
+editor</a> offered the option to enter productivity rates for
+workflows.  That functionality became obsolete with the introduction
+of <a href="PlanProjectStrategy.html#proxies">proxy estimation
+tables</a>, and is no longer available for projects created with
+Process Dashboard 2.6.3 and higher.  This section describes the
+obsolete functionality for teams working with older projects.</p>
 
-<p>If your team is defining new processes from scratch, it is often a
-good idea to use a whiteboard, easel, and other traditional meeting
-aids to capture the team's ideas, as this helps to promote the free
-flow of ideas. When the team processes begin to solidify, it is
-helpful to have an individual enter these into the dashboard. (On the
-other hand, if your process definitions take a long time to solidify,
-it may be more helpful to wait until after the meeting is over to
-enter the process steps into the dashboard.)</p>
+<h2>Entering Workflow Rates</h2>
 
-<p>Processes and workflows are entered into the Common Team Workflows
-Editor. From the Work Breakdown Structure Editor window, you can
-access the Common Team Workflows Editor by selecting the Workflow menu
-and choosing Edit Workflows.</p>
-
-<p class="figure"><img src="../Images/workflows-empty.png"></p>
-
-<p>Processes and workflows are once again displayed hierarchically and
-edited in an outline format. (For more in-depth information on editing
-this outline, see the <a href="EditingTheWBS.html">Editing the Work
-Breakdown Structure</a> help topic.) In this hierarchical outline,
-each item that is a direct child of the Common Workflows node
-represents a single <i>process</i> or <i>workflow</i>.  These items
-are displayed with an etched rectangular icon (<img
-border=0 width=18 height=12 src="../Images/icon-process.png">).  You
-can designate a given node as a process or workflow by un-indenting it
-as far to the left as possible.</p>
-
-<p>Define the steps in a process or workflow by creating items
-hierarchically underneath it. Underneath a process or workflow, you
-can define documents that will be created and tasks that will be
-performed. To define the type of each item you create, click on its
-icon to display a menu. When defining a high-maturity process, make
-certain to select the most appropriate process phase for each task you
-create.</p>
-
-<p>You are not limited in the number of processes/workflows you can
-create. Each process/workflow, however, should be given a unique
-name.</p>
-
-<p>The columns on the right are completely optional, but entering data can
-save you a great deal of time later.</p>
-
-<ul>
-
-<li style='margin-top:9pt'><a name="pct"></a>The <b>%</b> column provides
-a convenient way to divide a larger task proportionately. Your team may
-have historical data that tells you the typical amount of time that is
-spent during each step of this workflow.  If you do not have
-historical data, your team may wish to estimate these percentages
-during the launch.  Either way, you can use the %&nbsp;column to
-designate that breakdown, as shown in the following example:
-
-<p class="figure"><img src="../Images/workflow-percentage-example.png"></p>
-
-<p>When you apply this workflow to a component in your team project,
-the WBS Editor will look at the time you have estimated for that
-component, and subdivide the time based upon the percentages you have
-entered.</p>
-
-<p>If the numbers in a given workflow don't add up to exactly 100%,
-the actual summed percentage will be displayed on the first row of the
-workflow.  You can double-click that number to normalize everything to
-100%.  (But this step is not strictly necessary: if the numbers don't
-add to 100%, the WBS Editor will treat them as "weights" and normalize
-them to 100% when you apply the workflow.)</p></li>
-
-
-<li style='margin-top:9pt'>The <b># People</b> column allows you to
-indicate that a particular task is generally performed by a group of
-individuals. For example, if you create a Peer Review task in your
-process, you might wish to indicate that five people typically
-participate in a Peer Review.</li>
-
-<li style='margin-top:9pt'>The <b>Performed By</b> column allows you to
-indicate who is responsible for each task in the workflow.  You can
-enter the names of various arbitrary roles, like "author,"
-"inspector," "tester," etc.  Each role name must be a single word,
-made up only of letters.  If you have multiple people in a particular
-role, give each a unique suffix, such as "reviewerA" and "reviewerB."
-When you apply the workflow to a component in the WBS, these role
-names will be displayed as placeholders like &#x00AB;author&#x00BB;.
-You can click on the placeholders to assign all of the matching tasks
-to a specific person.
-
-<p>Occasionally, a workflow may include a task (such as a sign-off)
-that is always performed by a certain team member.  You can enter that
-team member's initials in the Performed By column, and when you apply
-this workflow in the WBS, the task will automatically be assigned to
-them.</p></li>
-
-</ul>
-
-<p>The columns described above are used by most teams, so they are always
-visible.  However, a number of optional/advanced columns are also available.
-To enable these optional columns, click the Add Column button on the toolbar
-(<img border="0" width="21" height="21" src="../Images/icon-add-column.png">),
-and select from the following choices:</p>
-
-<ul>
-
-<li><a name="rate"></a>The <b>Rate</b> and <b>Units</b> columns can be
+<p>The workflow editor offers a number of 
+<a href="EditWorkflows.html#advancedWorkflowColumns">advanced
+columns</a> for customizing workflow behavior.  On older projects,
+these include the <b>Rate</b> and <b>Units</b> columns, which can be
 used to generate time estimates from size.  If you happen to know the
 typical productivity rates (based on historical or estimated team
 averages) for <u>all</u> the tasks in a workflow, you can enter those
@@ -133,7 +38,7 @@ you have entered, to generate an effort estimate for each task in the
 component.</p>
 
 <p>Note that that this behavior differs from the "percentage-only"
-behavior described in the section above.  This is a very important
+behavior that is typically used.  This is a very important
 consideration.  When you examine a single team workflow, if <u>any</u>
 task has a number in the Rate column, the workflow will use size
 estimates to produce time/effort estimates.  If <u>no</u> rates are
@@ -175,205 +80,22 @@ based on the complexity of a given component.  For these and other
 reasons, the recommended best practice is to capture productivity
 rates in <a href="PlanProjectStrategy.html#proxies">proxy estimation
 tables</a>, leave the Rate column blank, and only use the percentage
-column (as shown in the "Requirements Analysis" example
-above).</p></li>
+column to describe the allocation of workflow time.</p>
 
 
-<li>The <b>Min Time</b> column can be used to specify the minimum time
-for a particular workflow step. Values in this column should be
-specified in hours, but you can enter a number smaller than 1.0 if
-needed.
+<h2>Applying Rate-Driven Workflows</h2>
 
-<p>This column can be helpful when a particular step is a very small
-percentage of the overall workflow. Entering a minimum time can prevent the
-task from receiving an impossibly small time estimate if the workflow is
-applied to a small component.</p>
+<p>To use a rate-driven workflow for planning, begin by entering a
+size estimate on a WBS component:</p>
 
-<p>This column also makes it possible to specify a fixed time for a
-particular step.  Just enter the fixed time in this column, and leave
-the percentage and rate columns blank.  (A blank percentage and rate is
-equivalent to zero, so the task would normally receive no time; but that
-zero will then be overridden by the time you enter in this column.)</p></li>
+<p class="figure"><img src="../Images/workflow-rate-example-before.png"></p>
 
+<p>When you <a href="InsertingWorkflows.html">apply the workflow</a>
+to the component, your size estimate will be combined with the
+workflow rates and percentages to generate planned times for each
+task:</p>
 
-<li>The <b>Labels</b> column can contain any number of words, separated
-by spaces or commas.  These values will automatically be entered into the
-<a href="CreateBalancedPlan.html#taskLabels">Task Labels</a> column of the
-WBS when the workflow is applied.  This provides a convenient shortcut
-when you always wish to apply a certain label to a given workflow or
-workflow step.</li>
-
-
-<li style='margin-top:9pt'>The <b>Notes</b> column can contain any
-free-form text, which will be entered into the
-<a href="CreateBalancedPlan.html#taskNotes">Notes</a> column of the WBS when
-the workflow is applied.  This provides a convenient shortcut when you always
-wish to attach a certain note to a given workflow or workflow step.</li>
-
-
-<li style='margin-top:9pt'><a name="qualityParams"></a>The
-<b>Defects&nbsp;Inj/Hr</b> column allows you to enter the number of defects
-that are typically injected during each hour of effort on various tasks.  The
-<b>Est&nbsp;%&nbsp;Yield</b> column allows you to enter your goal for the
-percentage of latent defects that each quality activity will remove.  
-
-<p>These columns are auto-populated with default values based on industry
-data and best practices, but you are encouraged to update them once your team
-has gathered historical data of its own.  The numbers in these columns will
-be used to build a <a href="CreateQualityPlan.html">quality plan</a> for each
-workflow, modeling the injection and removal of defects in the product as it
-moves through the process.</p></li>
-
-
-<li style='margin-top:9pt'>The <b>Script URLs</b> column allows you to
-attach process scripts and other aids to the elements in a workflow.
-
-<p>For example, you may have a web page on an organizational process
-library or a team wiki that publishes instructions for a given
-workflow, and provides links to helpful forms, checklists, templates,
-etc. You can enter the <tt>http</tt> URL of that web page in this
-column, and the page will appear in the Process Dashboard's script
-menu when an individual performs the associated task.</p>
-
-<p>You can attach URLs to an overall workflow and/or to specific
-tasks within a workflow. You can enter multiple URLs for a single row;
-just separate them with spaces (for example, "http://www.google.com/
-http://www.yahoo.com/"). If you wish to customize the text that
-appears in the dashboard's Script Menu, just put a space and the
-desired text immediately after a particular URL (for example,
-"http://www.google.com/ Corporate Help Desk").</p></li>
-
-</ul>
-
-
-<p>There is not a Save button on the Common Team Workflows Editor.
-Instead, workflow definitions are automatically saved when you save
-the main work breakdown structure. To save, switch back to the main
-Work Breakdown Structure Editor window and select Save from the File
-menu.</p>
-
-
-<h2><a name="highMaturityPersonal"/>High-Maturity Personal Planning</h2>
-
-<p>As you define the steps in a workflow, two special task types are provided
-in support of high-maturity personal planning.  These types are "<b>PSP
-Task</b>" and "<b>High-Maturity Planning Task</b>."</p>
-
-<ul>
-
-<li>If your team is developing software, the "<b>PSP Task</b>" is an excellent
-choice.  When you create a PSP task in the WBS, the task will be translated
-into a PSP2.1 project in the individual's personal plan.  This gives them
-access to the wealth of tools, reports, and analyses that have been developed
-for the PSP process.
-
-<p>Since a PSP Task represents all of the steps in the PSP2.1 process, you do
-not need to explicitly add the PSP2.1 phases (Design, Design Review, Code,
-Code Review, Compile, Test) in places where you have added a PSP Task.
-However, you <u>do</u> need to add tasks for Design Inspection and Code
-Inspection.  These tasks should immediately follow the PSP Task in your
-workflow.  When you follow this pattern, the inspection tasks will
-automatically be inserted into the correct chronological order between the
-phases of the PSP Task in the individual's "Flat View" task list.</p></li>
-
-<li>Alternatively, you can add a "<b>High-Maturity Planning Task</b>" to your
-workflow definition.  This item creates a single task in an individual's
-personal plan, with the same high-maturity planning tools as a traditional PSP
-"Planning" phase.  This means that the assigned individual will be able to use
-the <a href="../../help/Topics/Planning/UsingSizeEstimatingTemplate.html">Size
-Estimating Template</a> and the
-<a href="../../help/Topics/Planning/UsingProbeWizard.html">PROBE Wizard</a> to
-refine their personal plan for this component.
-
-<p>Unlike the "PSP Task," the "High-Maturity Planning Task" does not force the use
-of LOC as a size measure, and it does not dictate the list of process
-phases that are performed after planning.  Instead, you use the Units
-column to select the appropriate size measure for the planning task, and you
-can add any list of process phases you like to the enclosing workflow
-definition.  Accordingly, this item is an excellent choice for
-non-software work, and for software development workflows that diverge from
-PSP2.1.</p></li>
-
-</ul>
-
-<p>In either case, the responsible individual will be able to draw upon their
-personal historical data to refine their plan.  This provides a bridge between
-<b>team</b> historical data and <b>personal</b> historical data:</p>
-
-<ul>
-
-<li>High-level, aggregate team data is typically used during the launch to
-estimate the approximate effort that each component will require.</li>
-
-<li>Later, when the individual is ready to begin work on a specific component,
-they will create a more detailed conceptual design and use the PROBE
-techniques to produce a refined estimate.</li>
-
-</ul>
-
-<p>This two-phased approach is an example of the "rolling wave" planning
-technique, which is considered a best-practice with the project management
-commmunity.</p>
-
-
-<h2>Reusing Workflows via Libraries</h2>
-
-<p>Two buttons on the toolbar provide the ability to import (<img
-border=0 width=61 height=28 src="../Images/workflow-import-button.png">) and
-export (<img border=0 width=61 height=28
-src="../Images/workflow-export-button.png">) workflows. This makes it
-possible to share workflows between projects and between project
-teams. When you click one of these buttons, the workflow editor will
-ask you to identify the name of a workflow library file. You can
-export workflows to a new or existing library file, or import
-workflows from an existing file. After choosing a file, the
-Import/Export Team Workflows window will appear. This window shows the
-workflows from the current project in a table on the left, and the
-workflows from the library in a table on the right.</p>
-
-<p class="figure"><img src="../Images/workflow-import-export-dialog.png"></p>
-
-<p>When exporting, you can select a workflow in the table on the left
-and click the Add button to export it to the library on the
-right. When importing, you can select a workflow in the library table
-on the right and click the Add button to import it to the project
-workflows on the left.</p>
-
-<p class="figure"><img src="../Images/workflow-import-add-example.png"></p>
-
-<p>Workflows are identified by their names (for example, &quot;Simple
-Process&quot; in the image below). If you import or export a
-workflow which has the same name as an existing workflow in the
-destination table, the existing workflow will be overwritten. For
-example, in the image below, the user is importing workflows from an
-existing library.  They have selected the &quot;Simple
-Process&quot; workflow in the library on the right. Since there is
-already a workflow by that name in the project workflow list on the
-left, the application has automatically highlighted it, and changed
-the text on the Add button to &quot;Overwrite,&quot; indicating that
-if this workflow is imported it will overwrite the workflow that is
-highlighted on the left.</p>
-
-<p class="figure"><img
-   src="../Images/workflow-import-overwrite-example.png"></p>
-
-<p>At times, you may wish to import all the workflows in a library, or
-export all of the workflows in your project. The Add All button will
-perform this task. Keep in mind that any existing workflows with the
-same names will be overwritten, as described in the paragraph
-above.</p>
-
-<p>The changes you make in the Import/Export Team Workflows window
-will not be saved until you click the Import or Export button at the
-bottom of the window. (Only one of these buttons will appear,
-depending on whether you chose to import workflows or export
-workflows.) When you click the Export button, the changes you made to
-the workflow library will be saved to the named file. When you click
-the Import button, the changes you made to the project workflows will
-be applied to the contents of the Common Team Workflows Editor. When
-importing or exporting, if you make a mistake or change your mind,
-just click the Cancel button and no changes will be saved.</p>
-
+<p class="figure"><img src="../Images/workflow-rate-example-after.png"></p>
 
 </body>
 </html>
