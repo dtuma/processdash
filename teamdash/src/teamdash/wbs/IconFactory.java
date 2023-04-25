@@ -66,6 +66,7 @@ import teamdash.wbs.icons.MilestoneIcon;
 import teamdash.wbs.icons.PasteIcon;
 import teamdash.wbs.icons.ProxyBucketIcon;
 import teamdash.wbs.icons.ProxyTableIcon;
+import teamdash.wbs.icons.RenameIcon;
 import teamdash.wbs.icons.SortDatesIcon;
 import teamdash.wbs.icons.TrashCanIcon;
 import teamdash.wbs.icons.UndoIcon;
@@ -195,6 +196,10 @@ public class IconFactory {
 
     public static Icon getPasteMilestoneIcon() {
         return new PasteIcon(getMilestoneIcon(), 11f / 16, 5, 5);
+    }
+
+    public static Icon getRenameIcon() {
+        return new RenameIcon();
     }
 
     public static Icon getDeleteIcon() {
