@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2018 Tuma Solutions, LLC
+// Copyright (C) 2010-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,11 +23,14 @@
 
 package teamdash.wbs.columns;
 
+import javax.swing.table.TableCellEditor;
+
+import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowDataModel;
 
 public class WorkflowScriptColumn extends AbstractDataColumn implements
-        WorkflowOptionalColumn {
+        WorkflowOptionalColumn, CustomEditedColumn {
 
     private static final String COLUMN_ID = "Workflow_URL";
 
@@ -55,6 +58,10 @@ public class WorkflowScriptColumn extends AbstractDataColumn implements
 
     public boolean shouldHideColumn(WorkflowDataModel model) {
         return !model.getWBSModel().containsAttr(VALUE_ATTR);
+    }
+
+    public TableCellEditor getCellEditor() {
+        return new WorkflowScriptCellEditor();
     }
 
 }

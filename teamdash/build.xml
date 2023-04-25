@@ -248,6 +248,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer"/>
       <root classname="net.sourceforge.processdash.ui.lib.WindowUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
+      <root classname="net.sourceforge.processdash.ui.lib.WrappingText"/>
       <root classname="net.sourceforge.processdash.ui.lib.ZoomAction"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.util.DateUtils"/>
@@ -282,7 +283,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 210) {
+        if (classCount > 211) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
