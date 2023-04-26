@@ -728,7 +728,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
      * display a "please wait" page, then initiate the operation.
      */
     private void maybeSynchronize(HierarchySynchronizer synch)
-        throws HierarchyAlterationException
+        throws HierarchyAlterationException, IOException
     {
         synch.setWhatIfMode(true);
         if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
@@ -738,6 +738,14 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
             synch.enableDebugLogging();
 
         synch.sync();
+
+        // if only miscellaneous changes were made, start the sync over in "run"
+        // mode to apply them. Let that operation display the final output.
+        if (synch.isMiscChangeOnly()) {
+            parameters.put(RUN_PARAM, "t");
+            writeContents();
+            return;
+        }
 
         if (synch.getDebugLogInfo() != null)
             maybeDumpDebugLog(synch);
@@ -750,7 +758,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         }
 
         if (isJsonRequest()) {
-            printJsonResponse(synch.getChanges().isEmpty());
+            printJsonResponse(synch.getChanges().isEmpty(), false);
 
         } else if (synch.getChanges().isEmpty()) {
             printChanges(synch.getChanges());
@@ -1011,14 +1019,13 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
 
 
-    private void printJsonResponse(boolean upToDate) {
+    private void printJsonResponse(boolean upToDate, boolean isMiscOnly) {
         JSONObject response = new JSONObject();
 
-        if (upToDate) {
+        if (upToDate || isMiscOnly) {
             JSONObject message = new JSONObject();
             message.put("title", "Synchronization Complete");
-            message.put("body",
-                "Your personal plan is up to date - no changes were necessary.");
+            message.put("body", getUpToDateMessage(isMiscOnly));
             response.put("message", message);
 
         } else {
@@ -1029,6 +1036,12 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
         response.put("stat", "ok");
         out.print(response.toString());
+    }
+
+    private String getUpToDateMessage(boolean isMiscOnly) {
+        return (isTeam || isMaster ? "Project data" : "Your personal plan")
+                + " is up to date - " + (isMiscOnly ? "only minor" : "no")
+                + " changes were necessary.";
     }
 
 
@@ -1042,12 +1055,16 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
             getDataContext().putValue(CHANGES_DATANAME, null);
         }
 
+        boolean isMiscOnly = HierarchySynchronizer.isMiscChangeOnly(changeList);
+        if (isMiscOnly && isJsonRequest()) {
+            printJsonResponse(true, true);
+            return true;
+        }
+
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
-        if (changeList.isEmpty()) {
-            String message = (isTeam || isMaster ? "Project data"
-                    : "Your personal plan")
-                    + " is up to date - no changes were necessary.";
+        if (changeList.isEmpty() || isMiscOnly) {
+            String message = getUpToDateMessage(isMiscOnly);
             out.print("<p>" + message + "</p>");
 
             if (parameters.containsKey(TriggerURI.IS_TRIGGERING)) {
