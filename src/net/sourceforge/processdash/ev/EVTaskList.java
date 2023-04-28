@@ -3021,6 +3021,8 @@ public class EVTaskList extends AbstractTreeTableModel
         private class Accumulator{
             Double pt  = 0.0;
             Date   pd = new Date(0);
+            Date   rpd = new Date(0);
+            Date   fd = new Date(0);
         }
 
         /*
@@ -3052,8 +3054,10 @@ public class EVTaskList extends AbstractTreeTableModel
                 ex.printStackTrace();
             }
 
-            taskData.put("pt", String.valueOf(acc.pt));
-            taskData.put("pd", String.valueOf("@" + acc.pd.getTime()));
+            taskData.put("pt",  String.valueOf(acc.pt));
+            taskData.put("pd",  String.valueOf("@" + acc.pd.getTime()));
+            taskData.put("rpd", String.valueOf("@" + acc.rpd.getTime()));
+            taskData.put("fd",  String.valueOf("@" + acc.fd.getTime()));
 
             return taskData;
         }
@@ -3088,9 +3092,25 @@ public class EVTaskList extends AbstractTreeTableModel
                 acc.pt += XMLUtils.getXMLNum(element, "pt");
                 Date pd = XMLUtils.parseDate(element.getAttribute("pd"));
 
+                //FIXME - PLAN
                 if(pd != null && acc.pd.before(pd)){
                     acc.pd = pd;
                 }
+
+                //FIXME - REPLAN                
+                Date rpd = XMLUtils.parseDate(element.getAttribute("rpd"));
+
+                if(rpd != null && acc.rpd.before(rpd)){
+                    acc.rpd = rpd;
+                }
+                
+                //FIXME - FORECAST                
+                Date fd = XMLUtils.parseDate(element.getAttribute("fd"));
+
+                if(fd != null && acc.fd.before(fd)){
+                    acc.fd = fd;
+                }                   
+
 
             } else {
                 //Otherwise, recurse through task elements:
@@ -3111,10 +3131,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private class BaselineTrendSeries implements XYChartSeries {
         private BaselineAttrValueLookup value;
-        public BaselineTrendSeries(BaselineAttrValueLookup value) {
+        private String seriesKey;
+        public BaselineTrendSeries(BaselineAttrValueLookup value, String seriesKey) {
             this.value = value;
+            this.seriesKey = seriesKey;
         }
-        public String getSeriesKey() { return "Saved_Baselines"; }
+        public String getSeriesKey() { return seriesKey; }
         public int getItemCount() { return baselineTrendData.points.size(); }
         public Number getX(int i) { return baselineTrendData.points.get(i).date; }
         public Number getY(int i) {
@@ -3128,10 +3150,13 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private class BaselineActiveValueSeries implements XYChartSeries {
         private BaselineAttrValueLookup value;
-        public BaselineActiveValueSeries(BaselineAttrValueLookup value) {
+        private String seriesKey;
+
+        public BaselineActiveValueSeries(BaselineAttrValueLookup value, String seriesKey) {
             this.value = value;
+            this.seriesKey = seriesKey;
         }
-        public String getSeriesKey() { return "Active_Baseline"; }
+        public String getSeriesKey() { return this.seriesKey; } //FIME "Active_Baseline"
         public int getItemCount() {
             return (baselineTrendData.active == null ? 0 : 1);
         }
@@ -3146,27 +3171,49 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     private abstract class BaselineCurrentValueSeries implements XYChartSeries {
-        public String getSeriesKey() { return "Current_Plan"; }
+
+        private String seriesKey;
+
+        public BaselineCurrentValueSeries(String seriesKey){
+            this.seriesKey = seriesKey;
+        }
+        public String getSeriesKey() { return this.seriesKey; }  //"Current_Plan"
         public int getItemCount() { return 1; }
         public Number getX(int itemIndex) {
             return schedule.getEffectiveDate().getTime();
         }
     }
 
+    //TODO FIELDS NEED BETTER NAMES
     private class BaselineTrendChartData extends XYChartData
             implements XYNameDataset {
-        XYChartSeries trend, active, current;
+        XYChartSeries trend; //Trend of plan date or plan time.     
+        XYChartSeries active;
+        XYChartSeries current;
+
+        XYChartSeries replan;        //Trend of replan date/time
+        XYChartSeries forecast;      //Trend of forecast date/time
+        XYChartSeries currentReplan; //Curent replan date/time
+        XYChartSeries currentForecast;          
 
         private EVTaskFilter filter;
 
         public BaselineTrendChartData(ChartEventAdapter eventAdapter,
                 BaselineAttrValueLookup value,
+                BaselineAttrValueLookup replanValue,
+                BaselineAttrValueLookup forecastValue,
                 BaselineCurrentValueSeries current,
+                BaselineCurrentValueSeries currentReplan,
+                BaselineCurrentValueSeries currentForecast,
                 EVTaskFilter filter) {
             super(eventAdapter);
-            this.trend = new BaselineTrendSeries(value);
-            this.active = new BaselineActiveValueSeries(value);
+            this.trend  = new BaselineTrendSeries(value,       "Saved_Baselines_Plan");
+            this.replan = new BaselineTrendSeries(replanValue, "Saved_Baselines_Replan");
+            this.forecast = new BaselineTrendSeries(forecastValue, "Saved_Baselines_Forecast");
+            this.active = new BaselineActiveValueSeries(value, "Active_Baseline_Plan");
             this.current = current;
+            this.currentReplan = currentReplan;
+            this.currentForecast = currentForecast; 
             this.filter = filter;
         }
 
@@ -3174,8 +3221,12 @@ public class EVTaskList extends AbstractTreeTableModel
             baselineTrendData.recalc(filter);
             clearSeries();
             maybeAddSeries(trend);
+            maybeAddSeries(replan);
+            maybeAddSeries(forecast);
             maybeAddSeries(active);
             maybeAddSeries(current);
+            maybeAddSeries(currentReplan);
+            maybeAddSeries(currentForecast);
         }
 
         public String getName(int series, int item) {
@@ -3186,6 +3237,10 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    //
+    // TODO - can we include forecast cost here? Or not bother?
+    //
+
     public XYDataset getBaselineTimeData(DataRepository data, final EVTaskFilter filter) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
@@ -3195,22 +3250,23 @@ public class EVTaskList extends AbstractTreeTableModel
                     public Number getValue(Map<String, String> taskAttrs) {
                         return Double.parseDouble(taskAttrs.get("pt")) / 60.0;
                     }}, //
-                new BaselineCurrentValueSeries() {
+                    null, //rpt
+                    null, //forecast
+                new BaselineCurrentValueSeries("Current_Plan") {
                     public Number getY(int itemIndex) {
                         return getFilteredPlanTime(filter) / 60;
                     }},
+                    new BaselineCurrentValueSeries("Current_Replan") {
+                        public Number getY(int itemIndex) {
+                            return getFilteredReplanTime(filter) / 60;
+                        }},
+                    new BaselineCurrentValueSeries("Current_Forecast") {
+                        public Number getY(int itemIndex) {
+                            return getFilteredForecastTime(filter) / 60;
+                        }},
                     filter);
     }
 
-    private double getFilteredPlanTime(EVTaskFilter filter){
-
-        double retVal = 0.0;
-
-        for(EVTask task : getFilteredLeaves(filter)){
-            retVal += task.planTime;
-        }
-        return retVal;
-    }
     public XYDataset getBaselineDateData(DataRepository data, final EVTaskFilter filter) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
@@ -3219,14 +3275,32 @@ public class EVTaskList extends AbstractTreeTableModel
                 new BaselineAttrValueLookup() {
                     public Number getValue(Map<String, String> taskAttrs) {
                         return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("pd")));
-                    }}, //
-                new BaselineCurrentValueSeries() {
+                    }}, 
+                new BaselineAttrValueLookup() {
+                    public Number getValue(Map<String, String> taskAttrs) {
+                        return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("rpd")));
+                    }},
+                    new BaselineAttrValueLookup() {
+                        public Number getValue(Map<String, String> taskAttrs) {
+                            return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("fd")));
+                        }},                    
+                new BaselineCurrentValueSeries("Current_Plan") {
                     public Number getY(int itemIndex) {
                         return baselineChartDate(getFilteredPlanDate(filter));
                     }},
+                new BaselineCurrentValueSeries("Current_Replan") {
+                    public Number getY(int itemIndex) {
+                        return baselineChartDate(getFilteredReplanDate(filter));
+                    }},
+                    new BaselineCurrentValueSeries("Current_Forecast") {
+                        public Number getY(int itemIndex) {
+                            return baselineChartDate(getFilteredForecastDate(filter));
+                        }},                    
+
                     filter);
     }
 
+    //Filtered current values:
 
     private Date getFilteredPlanDate(EVTaskFilter filter){
 
@@ -3242,6 +3316,67 @@ public class EVTaskList extends AbstractTreeTableModel
         }
         return new Date(retVal);
     }
+
+    //FIXME - support forecast as well
+    private Date getFilteredReplanDate(EVTaskFilter filter){
+
+        long retVal = 0;
+
+        for(EVTask task : getFilteredLeaves(filter)){
+
+            long taskReplanTime = (task.replanDate == null ? 0 : task.replanDate.getTime());
+
+            if(taskReplanTime > retVal){
+                retVal = taskReplanTime;
+            }
+        }
+        return new Date(retVal);
+    }
+
+    //FIXME
+    private Date getFilteredForecastDate(EVTaskFilter filter){
+
+        long retVal = 0;
+
+        for(EVTask task : getFilteredLeaves(filter)){
+
+            long taskForecastTime = (task.forecastDate == null ? 0 : task.forecastDate.getTime());
+
+            if(taskForecastTime > retVal){
+                retVal = taskForecastTime;
+            }
+        }
+        return new Date(retVal);
+    }    
+
+    private double getFilteredPlanTime(EVTaskFilter filter){
+
+        double retVal = 0.0;
+
+        for(EVTask task : getFilteredLeaves(filter)){
+            retVal += task.planTime;
+        }
+        return retVal;
+    }
+
+    private double getFilteredReplanTime(EVTaskFilter filter){
+
+        double retVal = 12000.0;
+
+        //TODO - replan time needs to account for tasks which are completed.
+
+        return retVal;
+    }
+    
+    private double getFilteredForecastTime(EVTaskFilter filter){
+
+        double retVal = 24000.0;
+
+        //TODO - forecast time = PT / CPI
+        
+        return retVal;
+    }    
+
 
     private Long baselineChartDate(Date d) {
         if (EVCalculator.badDate(d))
