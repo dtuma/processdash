@@ -3268,6 +3268,76 @@ public class EVTaskList extends AbstractTreeTableModel
         }        
     }       
 
+    private class BaselineCurrentPlanTime extends BaselineCurrentValueSeries{
+
+        BaselineCurrentPlanTime(EVTaskFilter filter){
+            super("Current_Plan");
+            this.filter    = filter;
+        }    
+
+        public Number getY(int itemIndex) {
+            double retVal = 0.0;
+
+            for(EVTask task : getFilteredLeaves(filter)){
+                retVal += task.planTime;
+            }
+            return retVal / 60.0;
+
+        }        
+    }
+
+    private class BaselineCurrentReplanTime extends BaselineCurrentValueSeries{
+
+        BaselineCurrentReplanTime(EVTaskFilter filter){
+            super("Current_Replan");
+            this.filter    = filter;
+        }    
+
+        //Replan time - if completed task, use actual time/
+        //Otherwise use plan time.
+
+        public Number getY(int itemIndex) {
+            double retVal = 0.0;
+            for(EVTask task : getFilteredLeaves(filter)){
+
+                if(task.dateCompleted != null){
+                    retVal += task.actualTime;
+                } else{
+                    retVal += task.planTime;
+                }    
+            }
+            return retVal / 60.0;
+        }        
+    }    
+
+    private class BaselineCurrentForecastTime extends BaselineCurrentValueSeries{
+
+        BaselineCurrentForecastTime(EVTaskFilter filter){
+            super("Current_Forecast");
+            this.filter    = filter;
+        }    
+
+        public Number getY(int itemIndex) {
+
+            double pvToDate = 0;
+            double acToDate = 0;
+            double pvToGo   = 0;
+
+            for(EVTask task : getFilteredLeaves(filter)){
+
+                if(task.dateCompleted != null){
+                    pvToDate += task.planTime;
+                    acToDate += task.actualTime;
+                } else{
+                    pvToGo   += task.planTime;
+                }    
+            }
+            double cpiToDate = pvToDate / acToDate;
+
+            return (acToDate + pvToGo / cpiToDate) / 60.0;         
+        }        
+    }    
+    
     private class BaselineTrendChartData extends XYChartData
             implements XYNameDataset {
                 
@@ -3322,10 +3392,6 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
-    //
-    // TODO - can we include forecast cost here? Or not bother?
-    //
-
     public XYDataset getBaselineTimeData(DataRepository data, final EVTaskFilter filter) {
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
@@ -3337,18 +3403,9 @@ public class EVTaskList extends AbstractTreeTableModel
                     }}, //
                     null, //rpt
                     null, //forecast
-                new BaselineCurrentValueSeries("Current_Plan") {
-                    public Number getY(int itemIndex) {
-                        return getFilteredPlanTime(filter) / 60;
-                    }},
-                    new BaselineCurrentValueSeries("Current_Replan") {
-                        public Number getY(int itemIndex) {
-                            return getFilteredReplanTime(filter) / 60;
-                        }},
-                    new BaselineCurrentValueSeries("Current_Forecast") {
-                        public Number getY(int itemIndex) {
-                            return getFilteredForecastTime(filter) / 60;
-                        }},
+                    new BaselineCurrentPlanTime(filter),
+                    new BaselineCurrentReplanTime(filter),
+                    new BaselineCurrentForecastTime(filter),
                     filter);
     }
 
@@ -3374,16 +3431,7 @@ public class EVTaskList extends AbstractTreeTableModel
                 new BaselineCurrentForecastDate(filter),                    
                 filter);
     }
-    private double getFilteredPlanTime(EVTaskFilter filter){
-
-        double retVal = 0.0;
-
-        for(EVTask task : getFilteredLeaves(filter)){
-            retVal += task.planTime;
-        }
-        return retVal;
-    }
-
+ 
     // //TODO - REFACTOR - for each date output
     private Long baselineChartDate(Date d) {
          if (EVCalculator.badDate(d))
@@ -3393,23 +3441,8 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
-    private double getFilteredReplanTime(EVTaskFilter filter){
-
-        double retVal = 12000.0;
-
-        //TODO - replan time needs to account for tasks which are completed.
-
-        return retVal;
-    }
     
-    private double getFilteredForecastTime(EVTaskFilter filter){
-
-        double retVal = 24000.0;
-
-        //TODO - forecast time = PT / CPI
-        
-        return retVal;
-    }    
+  
 
 
 
@@ -3459,42 +3492,4 @@ public class EVTaskList extends AbstractTreeTableModel
             return MessageFormat.format(format, values);
         }
     }
-}
-
-
-
-
-
-    // Does this combine with BaselineCurrentValueSeries?
-    // private class CurrentValueAccumulator extends Accumulator {
-
-    //     EVTaskFilter filter;
-
-    //     long planTime = 0;
-
-    //     CurrentValueAccumulator(EVTaskFilter filter){
-    //         this.filter = filter;
-    //     }
-
-    //     public void recalc(){
-
-    //         for(EVTask task : getFilteredLeaves(filter)){
-            
-    //         }
-
-    //     }
-
-    //     Date getPlanDate(){
-    //         return baselineChartDate(planDate)
-    //     }
-
-    //     Date getReplanDate(){
-    //         return baselineChartDate(replanDate);
-    //     }
-
-    //     Date getForecastDate(){
-    //         return baselineChartDate(forecastDate);
-    //     }
-
-    // }
- 
+} 
