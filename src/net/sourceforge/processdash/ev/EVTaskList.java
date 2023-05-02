@@ -3015,20 +3015,14 @@ public class EVTaskList extends AbstractTreeTableModel
             return XMLUtils.getAttributesAsMap(XMLUtils.parse(taskXml).getDocumentElement());
         }
 
-        /*
-            The Accumulator class is used to roll up summary information for a single baseline when we apply filtering.
-        */
-        private class Accumulator{
-            Double pt  = 0.0;
-            Date   pd = new Date(0);
-            Date   rpd = new Date(0);
-            Date   fd = new Date(0);
-        }
+
 
         /*
             This returns summary data (filtered) for a single baseline.
         */
         private Map<String, String> getPlotDataFromXml(String xml, EVHierarchicalFilter hierFilter) throws Exception {
+
+            System.out.println("**** getPlotDataFromXml " + hierFilter);
 
             Map<String, String> taskData = new HashMap<String, String>();
 
@@ -3042,19 +3036,23 @@ public class EVTaskList extends AbstractTreeTableModel
 
             Accumulator acc = new Accumulator();
 
+            PlanTimeAccumulator pta = new PlanTimeAccumulator();
+
             String element = xml.substring(firstTaskIndex, lastTaskIndex) + "</task>";
 
             try{
 
                 Element parent = XMLUtils.parse(element).getDocumentElement();
 
-                getChildData(parent,  hierFilter, acc);
+                getChildData(parent,  hierFilter, acc, pta);
 
             }catch(Exception ex){
                 ex.printStackTrace();
             }
 
-            taskData.put("pt",  String.valueOf(acc.pt));
+            taskData.put("pt",  String.valueOf(pta.getPlanTime()));
+            taskData.put("rpt",  String.valueOf(pta.getReplanTime()));
+            taskData.put("ft",  String.valueOf(pta.getForecastTime()));
             taskData.put("pd",  String.valueOf("@" + acc.pd.getTime()));
             taskData.put("rpd", String.valueOf("@" + acc.rpd.getTime()));
             taskData.put("fd",  String.valueOf("@" + acc.fd.getTime()));
@@ -3062,7 +3060,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return taskData;
         }
 
-        void getChildData(Element element, EVHierarchicalFilter hierFilter, Accumulator acc){
+        void getChildData(Element element, EVHierarchicalFilter hierFilter, Accumulator acc, PlanTimeAccumulator pta){
 
             String thisElementTid = element.getAttribute("tid");
 
@@ -3087,9 +3085,13 @@ public class EVTaskList extends AbstractTreeTableModel
             }
 
             if(hierFilter.include(thisElementTid)){
+
+                System.out.println("**** include " + thisElementTid);
+
                 //Test if we have found our node.
                 //If we have, roll up into the accumulator + return.
-                acc.pt += XMLUtils.getXMLNum(element, "pt");
+
+                //Plan date
                 Date pd = XMLUtils.parseDate(element.getAttribute("pd"));
 
                 //FIXME - PLAN
@@ -3111,12 +3113,26 @@ public class EVTaskList extends AbstractTreeTableModel
                     acc.fd = fd;
                 }                   
 
+                //Time:
+                //pta.pt += XMLUtils.getXMLNum(element, "pt");
+
+                Date cd = XMLUtils.parseDate(element.getAttribute("cd")); //Completion date:
+
+                if(cd != null){
+                    //task completed
+                    pta.pvToDate += XMLUtils.getXMLNum(element, "pt") * 60.0;  //baseline info in hours - FIXME  
+                    pta.acToDate += XMLUtils.getXMLNum(element, "at") * 60.0;  //Baseline info in hours.
+                }else{
+                    pta.pvToGo   += XMLUtils.getXMLNum(element, "pt") * 60.0;   
+                }
+
+
 
             } else {
                 //Otherwise, recurse through task elements:
                 for(Element child : XMLUtils.getChildElements(element)){
                     if(child.getTagName().equals("task")){
-                        getChildData(child, hierFilter, acc);
+                        getChildData(child, hierFilter, acc, pta);
                     }
                 }
             }
@@ -3127,6 +3143,32 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private interface BaselineAttrValueLookup {
         public Number getValue(Map<String, String> taskAttrs);
+    }
+
+    private class BaselineDateValue implements BaselineAttrValueLookup {
+
+        private String attribute;
+
+        BaselineDateValue(String attribute){
+            this.attribute = attribute;
+        }
+
+        public Number getValue(Map<String, String> taskAttrs) {
+            return baselineChartDate(XMLUtils.parseDate(taskAttrs.get(attribute)));
+        }
+    }
+
+    private class BaselineTimeValue implements BaselineAttrValueLookup {
+
+        private String attribute;
+
+        BaselineTimeValue(String attribute){
+            this.attribute = attribute;
+        }
+
+        public Number getValue(Map<String, String> taskAttrs) {
+            return Double.parseDouble(taskAttrs.get(attribute)) / 60.0;
+        }
     }
 
     private class BaselineTrendSeries implements XYChartSeries {
@@ -3170,6 +3212,49 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    /*
+        The Accumulator class is used to roll up summary information for a single baseline when we apply filtering.
+    */
+    private class Accumulator{
+        //DELETE ME Double pt  = 0.0;
+        Double rpt = 0.0;
+        Double ft = 0.0;
+        Date   pd = new Date(0);
+        Date   rpd = new Date(0);
+        Date   fd = new Date(0);
+    }
+
+    private class PlanTimeAccumulator{
+
+        Double pt  = 0.0;
+
+        double pvToDate = 0;
+        double acToDate = 0;
+        double pvToGo   = 0;
+
+        double getPlanTime()     { return (pvToDate + pvToGo) / 60; }
+        double getReplanTime()   { return (acToDate + pvToGo) / 60; }
+        double getForecastTime() { return (1 + pvToGo / pvToDate) * (acToDate / 60.0); }
+    }
+
+    private class PlanDateAccumulator{
+        long taskPlanTime = 0;
+        long taskReplanTime = 0;
+        long taskForecastTime = 0;      
+
+        Long getPlanDateInMs()     { return getBaselinChartDate(taskPlanTime); }
+        Long getReplanDateInMs()   { return getBaselinChartDate(taskReplanTime); }
+        Long getForecastDateInMs() { return getBaselinChartDate(taskForecastTime); }
+
+        private Long getBaselinChartDate(long ms) {
+
+            if (EVCalculator.badDate(ms))
+                return null;
+            else
+                return DateUtils.truncDate(new Date(ms)).getTime();
+       }
+    }
+
     private abstract class BaselineCurrentValueSeries implements XYChartSeries {
 
         protected String seriesKey;
@@ -3185,14 +3270,49 @@ public class EVTaskList extends AbstractTreeTableModel
             return schedule.getEffectiveDate().getTime();
         }
 
-        //FIXME = REFACTOR
-        protected Long baselineChartDateTEMP(Date d) {
-            if (EVCalculator.badDate(d))
-                return null;
-            else
-                return DateUtils.truncDate(d).getTime();
-       }
+        protected PlanTimeAccumulator accumulateTime(){
 
+            PlanTimeAccumulator pta = new PlanTimeAccumulator();
+
+            for(EVTask task : getFilteredLeaves(filter)){
+
+                if(task.dateCompleted != null){
+                    pta.pvToDate += task.planTime;
+                    pta.acToDate += task.actualTime;
+                } else{
+                    pta.pvToGo   += task.planTime;
+                }    
+            }
+
+            return pta;
+        }
+
+        protected PlanDateAccumulator accumulateDate(){
+
+            PlanDateAccumulator pda = new PlanDateAccumulator();
+
+            for(EVTask task : getFilteredLeaves(filter)){
+                long taskPlanTime = (task.planDate == null ? 0 : task.planDate.getTime());
+
+                if(taskPlanTime > pda.taskPlanTime){
+                    pda.taskPlanTime = taskPlanTime;
+                }
+                
+                long taskReplanTime = (task.replanDate == null ? 0 : task.replanDate.getTime());
+
+                if(taskReplanTime > pda.taskReplanTime){
+                    pda.taskReplanTime = taskReplanTime;
+                }
+                
+                long taskForecastTime = (task.forecastDate == null ? 0 : task.forecastDate.getTime());
+
+                if(taskForecastTime > pda.taskForecastTime){
+                    pda.taskForecastTime = taskForecastTime;
+                }                            
+            }
+            
+            return pda;
+        }
     }
 
     // Enapsulates calculation of a filtered tasklist current plan date. 
@@ -3204,18 +3324,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public Number getY(int itemIndex) {
-
-            long retVal = 0;
-
-            for(EVTask task : getFilteredLeaves(filter)){
-
-                long taskPlanTime = (task.planDate == null ? 0 : task.planDate.getTime());
-
-                if(taskPlanTime > retVal){
-                    retVal = taskPlanTime;
-                }
-            }
-            return baselineChartDateTEMP(new Date(retVal));
+            PlanDateAccumulator pda = accumulateDate();
+            return pda.getPlanDateInMs();
         }
     }
 
@@ -3228,18 +3338,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }    
 
         public Number getY(int itemIndex) {
-            long retVal = 0;
-
-            for(EVTask task : getFilteredLeaves(filter)){
-
-                long taskReplanTime = (task.replanDate == null ? 0 : task.replanDate.getTime());
-
-                if(taskReplanTime > retVal){
-                    retVal = taskReplanTime;
-                }
-            }
-
-            return baselineChartDateTEMP(new Date(retVal));
+            PlanDateAccumulator pda = accumulateDate();
+            return pda.getReplanDateInMs();
         } 
     }
     
@@ -3252,19 +3352,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }    
 
         public Number getY(int itemIndex) {
-
-            long retVal = 0;
-
-            for(EVTask task : getFilteredLeaves(filter)){
-
-                long taskForecastTime = (task.forecastDate == null ? 0 : task.forecastDate.getTime());
-
-                if(taskForecastTime > retVal){
-                    retVal = taskForecastTime;
-                }
-            }
-
-            return baselineChartDateTEMP(new Date(retVal));
+            PlanDateAccumulator pda = accumulateDate();
+            return pda.getForecastDateInMs();
         }        
     }       
 
@@ -3276,13 +3365,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }    
 
         public Number getY(int itemIndex) {
-            double retVal = 0.0;
-
-            for(EVTask task : getFilteredLeaves(filter)){
-                retVal += task.planTime;
-            }
-            return retVal / 60.0;
-
+            PlanTimeAccumulator pta = accumulateTime();
+            return pta.getPlanTime();
         }        
     }
 
@@ -3293,20 +3377,9 @@ public class EVTaskList extends AbstractTreeTableModel
             this.filter    = filter;
         }    
 
-        //Replan time - if completed task, use actual time/
-        //Otherwise use plan time.
-
         public Number getY(int itemIndex) {
-            double retVal = 0.0;
-            for(EVTask task : getFilteredLeaves(filter)){
-
-                if(task.dateCompleted != null){
-                    retVal += task.actualTime;
-                } else{
-                    retVal += task.planTime;
-                }    
-            }
-            return retVal / 60.0;
+            PlanTimeAccumulator pta = accumulateTime();
+            return pta.getReplanTime();
         }        
     }    
 
@@ -3318,23 +3391,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }    
 
         public Number getY(int itemIndex) {
-
-            double pvToDate = 0;
-            double acToDate = 0;
-            double pvToGo   = 0;
-
-            for(EVTask task : getFilteredLeaves(filter)){
-
-                if(task.dateCompleted != null){
-                    pvToDate += task.planTime;
-                    acToDate += task.actualTime;
-                } else{
-                    pvToGo   += task.planTime;
-                }    
-            }
-            double cpiToDate = pvToDate / acToDate;
-
-            return (acToDate + pvToGo / cpiToDate) / 60.0;         
+            PlanTimeAccumulator pta = accumulateTime();
+            return pta.getForecastTime();         
         }        
     }    
     
@@ -3396,13 +3454,10 @@ public class EVTaskList extends AbstractTreeTableModel
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
 
-        return new BaselineTrendChartData(new EVTaskChartEventAdapter(), //
-                new BaselineAttrValueLookup() {
-                    public Number getValue(Map<String, String> taskAttrs) {
-                        return Double.parseDouble(taskAttrs.get("pt")) / 60.0;
-                    }}, //
-                    null, //rpt
-                    null, //forecast
+        return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
+                    new BaselineTimeValue("pt"),
+                    new BaselineTimeValue("rpt"),
+                    new BaselineTimeValue("ft"),
                     new BaselineCurrentPlanTime(filter),
                     new BaselineCurrentReplanTime(filter),
                     new BaselineCurrentForecastTime(filter),
@@ -3413,19 +3468,10 @@ public class EVTaskList extends AbstractTreeTableModel
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
 
-        return new BaselineTrendChartData(new EVTaskChartEventAdapter(), //
-                new BaselineAttrValueLookup() {
-                    public Number getValue(Map<String, String> taskAttrs) {
-                        return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("pd")));
-                    }}, 
-                new BaselineAttrValueLookup() {
-                    public Number getValue(Map<String, String> taskAttrs) {
-                        return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("rpd")));
-                    }},
-                    new BaselineAttrValueLookup() {
-                        public Number getValue(Map<String, String> taskAttrs) {
-                            return baselineChartDate(XMLUtils.parseDate(taskAttrs.get("fd")));
-                        }},                    
+        return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
+                new BaselineDateValue("pd"),
+                new BaselineDateValue("rpd"),
+                new BaselineDateValue("fd"),                                 
                 new BaselineCurrentPlanDate(filter),
                 new BaselineCurrentReplanDate(filter),
                 new BaselineCurrentForecastDate(filter),                    

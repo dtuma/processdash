@@ -479,6 +479,12 @@ public abstract class EVCalculator {
         return false;
     }
 
+    public static boolean badDate(long ms) {
+        if (ms < DAY_MILLIS) return true;
+        if (ms > Long.MAX_VALUE - DAY_MILLIS) return true;
+        return false;
+    }    
+
     protected void pruneNodes(EVTask task, boolean parentIsPruned) {
         // inherit prune value from parent.
         boolean taskIsPruned = parentIsPruned;
