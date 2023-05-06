@@ -2895,7 +2895,6 @@ public class EVTaskList extends AbstractTreeTableModel
         class Point implements Comparable<Point> {
             Long date;
             String name;
-            String comment;
             Map<String, String> taskData; //TODO - FIXME - ACCUMULATE!
             public int compareTo(Point that) {
                 return this.date.compareTo(that.date);
@@ -2983,8 +2982,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Point p = new Point();
                 p.date = m.getDate().getTime();
-                p.name = m.getName();
-                p.comment = m.getComment();
+                p.name = m.getName() + "(" + m.getComment() + ")";
                 p.taskData = data;
                 points.add(p);
 
