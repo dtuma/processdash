@@ -2923,34 +2923,39 @@ public class EVTaskList extends AbstractTreeTableModel
             points = new ArrayList<Point>();
             active = null;
 
-            // find any snapshots that are stored in the data repository
-            String snapshotPrefix = MAIN_DATA_PREFIX + taskListName + "/"
-                    + SNAPSHOT_DATA_PREFIX + "/";
-            Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
-            while (i.hasNext()) {
-                String dataName = (String) i.next();
-                if (dataName.startsWith(snapshotPrefix))
-                    addDataPoint(dataName, data.getSimpleValue(dataName), bid, filter);
+            //Only build baseline trend lines if we have a valid filter combination.
+            //If this condition is negative, an empty chart is displayed and
+            //the "no data message" displayed (see BaselineTrendCharts.java).
+            if(filter == null || filter instanceof EVHierarchicalFilter){
+
+                // find any snapshots that are stored in the data repository
+                String snapshotPrefix = MAIN_DATA_PREFIX + taskListName + "/"
+                        + SNAPSHOT_DATA_PREFIX + "/";
+                Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+                while (i.hasNext()) {
+                    String dataName = (String) i.next();
+                    if (dataName.startsWith(snapshotPrefix))
+                        addDataPoint(dataName, data.getSimpleValue(dataName), bid, filter);
+                }
+
+                // add baseline snapshots from external data
+                try {
+                    getExtData().scan(new ExternalDataFile.Scanner() {
+                        public void handleDataFileEntry(String dataName,
+                                SimpleData dataValue) {
+                            if (dataName.startsWith(SNAPSHOT_DATA_PREFIX))
+                                addDataPoint(dataName, dataValue, bid, filter);
+                        }
+                    });
+                    recalcAge = System.currentTimeMillis();
+                } catch (Exception e) {
+                }
+
+                //add current value to each series:
+                addCurrentData(filter);
+
+                Collections.sort(points);
             }
-
-            // add baseline snapshots from external data
-            try {
-                getExtData().scan(new ExternalDataFile.Scanner() {
-                    public void handleDataFileEntry(String dataName,
-                            SimpleData dataValue) {
-                        if (dataName.startsWith(SNAPSHOT_DATA_PREFIX))
-                            addDataPoint(dataName, dataValue, bid, filter);
-                    }
-                });
-                recalcAge = System.currentTimeMillis();
-            } catch (Exception e) {
-            }
-
-            //add current value to each series:
-            addCurrentData(filter);
-
-            Collections.sort(points);
-
         }
 
         private void addDataPoint(String dataName, SimpleData dataValue,
@@ -2981,15 +2986,18 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 } else {
                     //Do nothing - we get here if only a label filter is in operation.
-                    //TODO - RETURN EMPTY DATA SET + MESSAGE
+                }
+
+                String comment = "";
+                if(m.getComment() != null){
+                    comment = "(" + m.getComment() + ")";  
                 }
 
                 Point p = new Point();
                 p.date = m.getDate().getTime();
-                p.name = m.getName() + "(" + m.getComment() + ")"; //TODO - only if comment not null or empty/
+                p.name = m.getName() + comment;
                 p.taskData = data;
                 points.add(p);
-                //TODO - has comment.
 
                 if (snapshotId.equals(activeBaselineId))
                     active = p;
@@ -3041,7 +3049,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return taskData;
         }
 
-        void getChildData(Element element, EVHierarchicalFilter hierFilter, TaskData acc){
+        void getChildData(Element element, EVHierarchicalFilter hierFilter, TaskData taskData){
 
             String thisElementTid = element.getAttribute("tid");
 
@@ -3069,27 +3077,35 @@ public class EVTaskList extends AbstractTreeTableModel
                 //Test if we have found our node.
                 //If we have, roll up into the accumulator + return.
 
-                acc.accumulate(element);
+                taskData.accumulate(element);
 
             } else {
                 //Otherwise, recurse through task elements:
                 for(Element child : XMLUtils.getChildElements(element)){
                     if(child.getTagName().equals("task")){
-                        getChildData(child, hierFilter, acc);
+                        getChildData(child, hierFilter, taskData);
                     }
                 }
             }
         }
 
         private void addCurrentData(EVTaskFilter filter){
-         
-            //TODO - Handle null filter + not-null filter.
-
+   
             TaskData taskData = new TaskData();
-    
-            for(EVTask task : getFilteredLeaves(filter)){
-                taskData.accumulate(task);
-            }
+
+            if(filter == null){
+                taskData.accumulate(getTaskRoot());
+            
+
+            } else if(filter instanceof EVHierarchicalFilter){
+
+                for(EVTask task : getFilteredLeaves(filter)){
+                    taskData.accumulate(task);
+                }                    
+
+            } else {
+                //Do nothing - we get here if only a label filter is in operation.
+            }            
             
             Point p = new Point();
             p.date = System.currentTimeMillis();
@@ -3101,83 +3117,80 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /*
     Inner class used to roll up baseline values across multiple EV schedules or multiple tasks.
-	TODO - Design rationale.
-TODO - Simplify GET
     */
     class TaskData{  
       
         Map<String, Number> taskData = new HashMap<String, Number>();
 
         TaskData(){
-            taskData.put("pd",  0L); //initialise to NULL
-            taskData.put("rpd", 0L); 
-            taskData.put("fd",  0L);
+            //Date values are initialised to null. This is so that if (for example) we have no forecast for 
+            //a given set of data, null will be returned for the maximum forecast data rather than 0.
+            taskData.put("pd",  null);
+            taskData.put("rpd", null); 
+            taskData.put("fd",  null);
+
+            //Time values initialised to zero:
             taskData.put("pt",  0d);
         }            
 
         TaskData(Element element){
-            put("pd",  XMLUtils.parseDate(element.getAttribute("pd")));
-            put("rpd", XMLUtils.parseDate(element.getAttribute("rpd")));            
-            put("fd",  XMLUtils.parseDate(element.getAttribute("fd")));
-            put("pt",  XMLUtils.getXMLNum(element, "pt"));                                                        
+
+            this();
+            
+            putMaxDate("pd",  element);
+            putMaxDate("rpd", element);
+            putMaxDate("fd",  element);
+            putSumTaskHours("pt",  element);
         }
 
         void accumulate(EVTask task){
-            putMax("pd",  task.planDate);
-            putMax("rpd", task.replanDate);            
-            putMax("fd",  task.forecastDate);
-            putSum("pt",  task.planTime);
+            putMaxDate("pd",  task.planDate);
+            putMaxDate("rpd", task.replanDate);
+            putMaxDate("fd",  task.forecastDate);
+            putSumTaskHours("pt",  task.planTime);
         }
 
         void accumulate(Element element){
-            putMax("pd",  XMLUtils.parseDate(element.getAttribute("pd")));
-            putMax("rpd", XMLUtils.parseDate(element.getAttribute("rpd")));            
-            putMax("fd",  XMLUtils.parseDate(element.getAttribute("fd")));
-            putSum("pt",  XMLUtils.getXMLNum(element, "pt"));                 
+            putMaxDate("pd",  element);
+            putMaxDate("rpd", element);
+            putMaxDate("fd",  element);
+            putSumTaskHours("pt",  element);
         }
 
-        void put(String key, Date val){
+        void putMaxDate(String key, Element element){
+            Date val = XMLUtils.parseDate(element.getAttribute(key));
+            putMaxDate(key, val);
+        }
+
+        void putMaxDate(String key, Date val){
             if(val != null){
-                taskData.put(key, val.getTime());
-            } 
+                Long old = taskData.get(key) != null ? taskData.get(key).longValue() : 0;
+                if(old < val.getTime()){
+                    taskData.put(key,  val.getTime());
+                }
+            }
         }
 
-        void put(String key, Double val){
-            taskData.put(key, val);               
+        void putSumTaskHours(String key, Element element){
+            Double val = XMLUtils.getXMLNum(element, key); //Stored in xml as task minutes.
+            putSumTaskHours(key, val);
         }
 
-        void putMax(String key, Date val){
-            if(val != null && taskData.get(key) != null && taskData.get(key).longValue() < val.getTime()){
-                taskData.put(key,  val.getTime());
-            }            
+        void putSumTaskHours(String key, Double val){
+            Double old = taskData.get(key).doubleValue();
+            taskData.put(key, old + val / 60.0);  //Save task hours, not task minutes
         }
 
-        void putSum(String key, Double val){
-            Double old = (Double)taskData.get(key);
-            taskData.put(key, old.doubleValue() + val);
-        }        
-
-        //SIMPLIFY FURTHER - WHEN WE INSERT DATA.
         Number getValue(String attribute){
-
-            //Handle different types of data here:
-
-            Number val = taskData.get(attribute);
-
-            if(attribute.equals("pt")){
-                return val.doubleValue() / 60.0;
-            }
-            else{
-                return val.longValue() > 0 ? val.longValue() : null;  
-            }
-        }       
+            return taskData.get(attribute);
+        }
     }
 
     private BaselineTrendData baselineTrendData;
 
     private class BaselineTrendSeries implements XYChartSeries {
         
-        private String attribute;        
+        private String attribute;
         private String seriesKey;
 
         public BaselineTrendSeries(String attribute, String seriesKey) {
@@ -3231,10 +3244,12 @@ TODO - Simplify GET
         private EVTaskFilter filter;
 
         //Ctr for use in plan time trend chart - only includes plan line.
-        public BaselineTrendChartData(ChartEventAdapter eventAdapter,
-        XYChartSeries planTrend,
-        XYChartSeries activeBaseline,
-                EVTaskFilter filter) {
+        public BaselineTrendChartData(
+            ChartEventAdapter eventAdapter,
+            XYChartSeries planTrend,
+            XYChartSeries activeBaseline,
+            EVTaskFilter filter) {
+            
             super(eventAdapter);
             this.planTrend       = planTrend;
             this.activeBaseline  = activeBaseline;
@@ -3258,6 +3273,7 @@ TODO - Simplify GET
         }
 
         public void recalc() {
+
             baselineTrendData.recalc(filter);
             clearSeries();
             maybeAddSeries(planTrend);
@@ -3290,7 +3306,7 @@ TODO - Simplify GET
         return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
                     new BaselineTrendSeries      ("pd",  "Plan_Trend"),
                     new BaselineTrendSeries      ("rpd", "Replan_Trend"),
-                    new BaselineTrendSeries      ("fd",  "Forecast_Trend"),     
+                    new BaselineTrendSeries      ("fd",  "Forecast_Trend"),   
                     new BaselineActiveValueSeries("pd",  "Active_Baseline"),           
                     filter);
     }

@@ -161,8 +161,6 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
             } catch (Exception lfe) {}
         }
 
-        chart.getPlot().setNoDataMessage(resources.getString("No_Data_Message"));
-
         Axis xAxis = getHorizontalAxis(chart);
         if (xAxis != null) {
             if (parameters.get("hideTickLabels") != null||
