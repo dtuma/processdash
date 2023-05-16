@@ -3011,12 +3011,14 @@ public class EVTaskList extends AbstractTreeTableModel
             Returns summary data (unfiltered) for a single baseline (legacy implementation).
         */
         private TaskData getPlotDataFromXml(String xml) throws Exception {
-            /* Get the attributes in the root node as a map. */
             int taskPos = xml.indexOf("<task");
             int taskEnd = xml.indexOf(">", taskPos + 5);
             String taskXml = xml.substring(taskPos, taskEnd) + "/>";
 
-            return new TaskData(XMLUtils.parse(taskXml).getDocumentElement());
+            TaskData taskData = new TaskData();
+            taskData.accumulate(XMLUtils.parse(taskXml).getDocumentElement());
+
+            return taskData;
         }
 
         /*
@@ -3076,7 +3078,6 @@ public class EVTaskList extends AbstractTreeTableModel
             if(hierFilter.include(thisElementTid)){
                 //Test if we have found our node.
                 //If we have, roll up into the accumulator + return.
-
                 taskData.accumulate(element);
 
             } else {
@@ -3093,19 +3094,13 @@ public class EVTaskList extends AbstractTreeTableModel
    
             TaskData taskData = new TaskData();
 
-            if(filter == null){
-                taskData.accumulate(getTaskRoot());
-            
-
-            } else if(filter instanceof EVHierarchicalFilter){
+            //Strictly redundant guard given identical test in BaselineTrendData.recalc.
+            if(filter == null || filter instanceof EVHierarchicalFilter){
 
                 for(EVTask task : getFilteredLeaves(filter)){
                     taskData.accumulate(task);
                 }                    
-
-            } else {
-                //Do nothing - we get here if only a label filter is in operation.
-            }            
+            }    
             
             Point p = new Point();
             p.date = System.currentTimeMillis();
@@ -3129,33 +3124,69 @@ public class EVTaskList extends AbstractTreeTableModel
             taskData.put("rpd", null); 
             taskData.put("fd",  null);
 
-            //Time values initialised to zero:
-            taskData.put("pt",  0d);
+            //Time values initialised to zero, except for forecast which isn't always defined.
+            taskData.put("pt",    0d); //plan time
+            taskData.put("at",    0d); //actual time for completed tasks
+            taskData.put("atwip", 0d); //actual time for in-progress tasks
+            taskData.put("et",    0d); //earned time for completed tasks
+            taskData.put("rpt",   0d); //replan time
+            taskData.put("ft",    null); //forecast time
         }            
-
-        TaskData(Element element){
-
-            this();
-            
-            putMaxDate("pd",  element);
-            putMaxDate("rpd", element);
-            putMaxDate("fd",  element);
-            putSumTaskHours("pt",  element);
-        }
 
         void accumulate(EVTask task){
             putMaxDate("pd",  task.planDate);
             putMaxDate("rpd", task.replanDate);
             putMaxDate("fd",  task.forecastDate);
             putSumTaskHours("pt",  task.planTime);
+
+            if(task.dateCompleted != null){
+                putSumTaskHours("at", task.actualTime);
+                putSumTaskHours("et", task.planTime);
+            }
+            else{
+                putSumTaskHours("atwip", task.actualTime);
+            }
+
+            updateForecastTime();
+            updateReplanTime();
         }
 
         void accumulate(Element element){
-            putMaxDate("pd",  element);
-            putMaxDate("rpd", element);
-            putMaxDate("fd",  element);
-            putSumTaskHours("pt",  element);
+
+            if(element.hasChildNodes()){
+                for(Element child : XMLUtils.getChildElements(element)){
+                    if(child.getTagName().equals("task")){
+                        accumulate(child);
+                    }
+                }
+            } else {
+                putMaxDate("pd",  element);
+                putMaxDate("rpd", element);
+                putMaxDate("fd",  element);
+                putSumTaskHours("pt",  element);
+                
+                if(element.hasAttribute("cd")){
+                    putSumTaskHours("at", XMLUtils.getXMLNum(element, "at"));
+                    putSumTaskHours("et", XMLUtils.getXMLNum(element, "pt"));
+                }
+                else{
+                    putSumTaskHours("atwip", XMLUtils.getXMLNum(element, "at"));
+                }
+    
+                updateForecastTime();
+                updateReplanTime();                
+            }
         }
+
+        private void updateReplanTime(){
+            double rpt = taskData.get("pt").doubleValue() - taskData.get("et").doubleValue() + taskData.get("at").doubleValue(); 
+            taskData.put("rpt", rpt);
+        }
+        private void updateForecastTime(){
+            double cpi = taskData.get("et").doubleValue() / taskData.get("at").doubleValue();
+            double ft = taskData.get("pt").doubleValue() / cpi;
+            taskData.put("ft", ft);
+        }        
 
         void putMaxDate(String key, Element element){
             Date val = XMLUtils.parseDate(element.getAttribute(key));
@@ -3163,10 +3194,13 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         void putMaxDate(String key, Date val){
-            if(val != null){
+
+            Long dateAsMs = baselineChartDate(val);
+
+            if(dateAsMs != null){
                 Long old = taskData.get(key) != null ? taskData.get(key).longValue() : 0;
-                if(old < val.getTime()){
-                    taskData.put(key,  val.getTime());
+                if(old < dateAsMs){
+                    taskData.put(key, dateAsMs);
                 }
             }
         }
@@ -3184,6 +3218,13 @@ public class EVTaskList extends AbstractTreeTableModel
         Number getValue(String attribute){
             return taskData.get(attribute);
         }
+
+        private Long baselineChartDate(Date d) {
+            if (EVCalculator.badDate(d))
+                return null;
+            else
+                return DateUtils.truncDate(d).getTime();
+        }        
     }
 
     private BaselineTrendData baselineTrendData;
@@ -3243,20 +3284,6 @@ public class EVTaskList extends AbstractTreeTableModel
 
         private EVTaskFilter filter;
 
-        //Ctr for use in plan time trend chart - only includes plan line.
-        public BaselineTrendChartData(
-            ChartEventAdapter eventAdapter,
-            XYChartSeries planTrend,
-            XYChartSeries activeBaseline,
-            EVTaskFilter filter) {
-            
-            super(eventAdapter);
-            this.planTrend       = planTrend;
-            this.activeBaseline  = activeBaseline;
-            this.filter          = filter;
-        }
-
-        //Ctr for use in plan date trend chart - includes plan, replan and forecast lines.
         public BaselineTrendChartData(ChartEventAdapter eventAdapter,
             XYChartSeries planTrend,
             XYChartSeries replanTrend,
@@ -3295,8 +3322,10 @@ public class EVTaskList extends AbstractTreeTableModel
             baselineTrendData = new BaselineTrendData(data);
 
         return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
-                    new BaselineTrendSeries      ("pt", "Plan_Trend"),
-                    new BaselineActiveValueSeries("pt", "Active_Baseline"),
+                    new BaselineTrendSeries      ("pt",  "Plan_Trend"),
+                    new BaselineTrendSeries      ("rpt", "Replan_Trend"),
+                    new BaselineTrendSeries      ("ft",  "Forecast_Trend"),                       
+                    new BaselineActiveValueSeries("pt",  "Active_Baseline"),
                     filter);
     }
 
@@ -3310,6 +3339,8 @@ public class EVTaskList extends AbstractTreeTableModel
                     new BaselineActiveValueSeries("pd",  "Active_Baseline"),           
                     filter);
     }
+
+
 
     ///////////////////////////////////////////////////////////////////////
     // The methods/classes below assist in the generation of chart's tooltip
