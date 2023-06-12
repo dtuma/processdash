@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,22 +23,55 @@
 
 package net.sourceforge.processdash.tool.redact;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class TemplateInfo {
 
-    public static final void addSafeNamesOfProcessPhases(HierarchyNodeMapper m) {
+    public static final void addSafeNamesOfProcessPhases(RedactFilterData data,
+            HierarchyNodeMapper m) throws IOException {
+        addMcfPhasesFromBackup(data, m);
+        addMcfPhasesFromDashTemplates(m);
+    }
+
+    private static void addMcfPhasesFromBackup(RedactFilterData data,
+            HierarchyNodeMapper m) throws IOException {
+        for (ZipEntry e : data.getEntries(MCF_ENTRY_PAT)) {
+            addMcfPhasesFromMcfSettingsFile(data.getFile(e), m);
+        }
+    }
+
+    private static void addMcfPhasesFromMcfSettingsFile(BufferedReader file,
+            HierarchyNodeMapper m) throws IOException {
+        String line;
+        while ((line = file.readLine()) != null) {
+            if (line.trim().startsWith("<phase "))
+                addPhaseNamesFromXmlAttrs(m, line, "name", "longName");
+        }
+        file.close();
+    }
+
+    private static void addPhaseNamesFromXmlAttrs(HierarchyNodeMapper m,
+            String xmlTag, String... attrNames) {
+        for (String attrName : attrNames) {
+            String attrValue = RedactFilterUtils.getXmlAttr(xmlTag, attrName);
+            if (StringUtils.hasValue(attrValue))
+                m.addSafeName(attrValue);
+        }
+    }
+
+    private static void addMcfPhasesFromDashTemplates(HierarchyNodeMapper m) {
         if (TEMPLATES == null)
-            // Future enhancement: if we have not been given a dashboard
-            // context, look through the backup we are filtering for clues
-            // about the phases in various metrics collection frameworks.
             return;
 
         for (Iterator i = TEMPLATES.entrySet().iterator(); i.hasNext();) {
@@ -61,5 +94,7 @@ public class TemplateInfo {
     private static DashHierarchy TEMPLATES = null;
 
     private static final String PROCESS_PHASE_STATUS = "ME<>";
+
+    private static final String MCF_ENTRY_PAT = "^externalResources/mcf/.*/settings.xml$";
 
 }
