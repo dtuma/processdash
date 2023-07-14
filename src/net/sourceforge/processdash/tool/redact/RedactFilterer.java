@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2018 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,9 +73,21 @@ public class RedactFilterer {
     }
 
     public void doFilter(File src, OutputStream dest) throws IOException {
+        // open source and dest files
+        ZipFile zipIn = new ZipFile(src);
+        ZipOutputStream zipOut = new ZipOutputStream(dest);
 
+        // perform the filter operation
+        doFilter(zipIn, zipOut);
+
+        // clean up
+        zipOut.finish();
+        zipIn.close();
+    }
+
+    public void doFilter(ZipFile srcZip, ZipOutputStream out)
+            throws IOException {
         // Create an object to capture data about the filter operation
-        ZipFile srcZip = new ZipFile(src);
         data = new RedactFilterData(srcZip, filterIDs);
 
         // Create standard and custom helpers for the filtering process
@@ -83,9 +95,6 @@ public class RedactFilterer {
 
         // Create the set of filters we will use to transform the ZIP
         filters = RedactFilterUtils.getExtensions(data, "redact-filter");
-
-        // Create the stream for the output ZIP
-        ZipOutputStream out = new ZipOutputStream(dest);
 
         // filter entries from src to dest
         Enumeration<? extends ZipEntry> entries = srcZip.entries();
@@ -107,10 +116,6 @@ public class RedactFilterer {
                 content.close();
             }
         }
-
-        // clean up
-        out.finish();
-        srcZip.close();
     }
 
     private void filterPdashFile(ZipEntry srcEntry, String filename,
