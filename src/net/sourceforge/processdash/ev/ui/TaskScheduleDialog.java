@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2022 Tuma Solutions, LLC
+// Copyright (C) 2001-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -253,7 +253,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             saveBaselineAction, collaborateAction, filteredReportAction,
             weekReportAction, scheduleOptionsAction, expandAllAction,
             showTimeLogAction, showDefectLogAction, copyTaskInfoAction,
-            manageBaselinesAction, sortTasksAction;
+            manageBaselinesAction, sortTasksAction, startTimingAction;
     private List<TSAction> altReportActions;
     private GroupFilterMenu groupFilterMenu;
 
@@ -1164,6 +1164,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
+    class StartTimingAction extends TSSelectedTaskAction {
+        public StartTimingAction() {
+            super("Buttons.Start_Timing");
+        }
+        protected void actionPerformed(String path) {
+            DashController.setPath(path);
+            DashController.startTiming();
+        }
+    }
+
     class ShowTimeLogAction extends TSSelectedTaskAction {
         public ShowTimeLogAction() {
             super("Buttons.Show_Time_Log");
@@ -1293,6 +1303,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         private JPopupMenu makePopupMenu() {
             JPopupMenu result = new JPopupMenu();
             if (Settings.isPersonalMode()) {
+                result.add(startTimingAction = new StartTimingAction());
                 result.add(showTimeLogAction = new ShowTimeLogAction());
                 result.add(showDefectLogAction = new ShowDefectLogAction());
             }
@@ -3343,8 +3354,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
 
+        boolean oneTaskSelected = firstRowNum > 0 && firstRowNum == lastRowNum;
         boolean enableDelete = (disableTaskPruning == false
-                && firstRowNum > 0 && firstRowNum == lastRowNum);
+                && oneTaskSelected);
 
         boolean enableUp = (lastRowNum - treeTable.getSelectedRowCount() > 0);
         boolean enableDown = (lastRowNum > 0 && (firstRowNum + treeTable
@@ -3357,6 +3369,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(false);
         sortTasksAction  .setEnabled(true);
+        if (startTimingAction != null)
+            startTimingAction.setEnabled(oneTaskSelected);
         filteredChartAction.setEnabled(false);
         filteredReportAction.setEnabled(false);
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
@@ -3372,6 +3386,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
+        if (startTimingAction != null)
+            startTimingAction.setEnabled(canFilter);
         filteredChartAction.setEnabled(canFilter);
         filteredReportAction.setEnabled(canFilter);
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
@@ -3418,6 +3434,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
+        if (startTimingAction != null)
+            startTimingAction.setEnabled(canFilter && rowIsTask(lastRowNum));
         filteredChartAction.setEnabled(canFilter //
                 && checkPermission(filteredChartAction, firstRowNum,
                     EVPermissions.PERSONAL_CHARTS, "Chart"));
@@ -3425,6 +3443,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 && checkPermission(filteredReportAction, firstRowNum,
                     EVPermissions.PERSONAL_REPORT, "Report"));
         copyTaskInfoAction.setEnabled(firstRowNum >= 0);
+    }
+
+    private boolean rowIsTask(int row) {
+        EVTask task = (EVTask) treeTable.getValueAt(row,
+            EVTaskList.EVTASK_NODE_COLUMN);
+        return (task != null && task.getFlag() == null
+                && StringUtils.hasValue(task.getFullName()));
     }
 
     private boolean checkPermission(AbstractAction a, int row,
