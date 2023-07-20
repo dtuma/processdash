@@ -89,6 +89,8 @@ The author(s) may be contacted at:
       ^Current_Exported_Filenames$
       ^Historically_Exported_Filenames$
       ^Task-Schedule-MS-Project/
+      ^Cloud_Storage/
+      ^Team_Directory_Cloud$
       _Password_$
       PW_STOR$
       ^Team_URL$
@@ -96,6 +98,10 @@ The author(s) may be contacted at:
       " Coding Standard Document$"
       " Project Document Directory$"
       " Review Checklist Template$"
+  </redact-filter-censored-data>
+
+  <redact-filter-censored-data forFilterSets="labels">
+      ^Synchronized_Task_Label_Sort_Order$
   </redact-filter-censored-data>
 
   <redact-wbs-attr-filter class="&pkg;FilterWbsExtLinkAttrs"/>
