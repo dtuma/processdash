@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,9 +42,6 @@ public class FilterCensoredFiles implements RedactFilter {
     @EnabledFor(RedactFilterIDs.EXT_LINKS)
     private boolean deleteExtLinks;
 
-    @EnabledFor(RedactFilterIDs.LOG_FILES)
-    private boolean deleteLogFiles;
-
     private PatternList filenamePatterns;
 
     public void afterPropertiesSet() {
@@ -62,11 +59,6 @@ public class FilterCensoredFiles implements RedactFilter {
             filenamePatterns
                 .addLiteralEndsWith("-sync.pdash")
                 .addLiteralEndsWith("/externals.xml");
-
-        if (deleteLogFiles)
-            filenamePatterns
-                .addLiteralEquals("log.txt")
-                .addLiteralEquals("histlog.txt");
     }
 
     public Reader filter(RedactFilterData data, String filename, Reader contents) {
