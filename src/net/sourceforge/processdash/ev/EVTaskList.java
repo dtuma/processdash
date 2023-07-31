@@ -3191,7 +3191,17 @@ public class EVTaskList extends AbstractTreeTableModel
                 return null;
             else
                 return DateUtils.truncDate(d).getTime();
-        }        
+        }
+        
+        @Override
+        public String toString(){
+            return String.format("EVTaskListTaskData[PT:%f;PD:%d;RPD:%d;FD:%d]\n", 
+                                taskData.get("pt").doubleValue(),
+                                taskData.get("pd").longValue(),
+                                taskData.get("rpd").longValue(),
+                                taskData.get("fd") != null ? taskData.get("fd").longValue() : 0 );
+
+        }
     }
 
     private BaselineTrendData baselineTrendData;
@@ -3234,7 +3244,7 @@ public class EVTaskList extends AbstractTreeTableModel
         public Number getX(int i) { return baselineTrendData.active.date; }
         public Number getY(int i) {
             try {
-                return baselineTrendData.points.get(i).taskData.getValue(attribute);                           
+                return baselineTrendData.active.taskData.getValue(attribute);
             } catch (Exception e) {
                 return null;
             }
