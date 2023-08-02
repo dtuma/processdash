@@ -47,6 +47,7 @@ import java.util.zip.ZipOutputStream;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.tool.quicklauncher.PdbkConstants;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
 
 public class RedactFilterer {
@@ -134,19 +135,56 @@ public class RedactFilterer {
         out.putNextEntry(destEntry);
         ZipOutputStream pdashOut = new ZipOutputStream(out);
 
-        // read through the entries in the src PDASH file
-        ZipInputStream pdashIn = new ZipInputStream(data.getStream(srcEntry));
+        try {
+            filterPdashContents(srcEntry, filename, pdashOut);
+        } finally {
+            pdashOut.finish();
+        }
+    }
+
+    private void filterPdashContents(ZipEntry srcEntry, String filename,
+            ZipOutputStream pdashOut) throws IOException {
+        // open a ZIP stream to read the PDASH file contents, abort on error
+        ZipInputStream pdashIn;
         ZipEntry pdashEntry;
+        try {
+            pdashIn = new ZipInputStream(data.getStream(srcEntry));
+            pdashEntry = pdashIn.getNextEntry();
+        } catch (Throwable t) {
+            writePdashCorruptionMarker(pdashOut, "opening pdash file", t);
+            return;
+        }
+
+        // read through the entries in the src PDASH file
         String filenamePrefix = filename + "!";
-        while ((pdashEntry = pdashIn.getNextEntry()) != null) {
-            // process this PDASH entry from src to dest
-            filterZipEntry(pdashEntry, new InputStreamReader(pdashIn, "UTF-8"),
-                filenamePrefix, pdashOut);
+        while (pdashEntry != null) {
+            String currentOperation = null;
+            try {
+                // process this PDASH entry from src to dest
+                currentOperation = "filtering " + pdashEntry.getName();
+                filterZipEntry(pdashEntry, new InputStreamReader(pdashIn, "UTF-8"),
+                    filenamePrefix, pdashOut);
+
+                // open the next entry in the src PDASH file
+                currentOperation = "moving to next entry";
+                pdashEntry = pdashIn.getNextEntry();
+            } catch (IOException ioe) {
+                writePdashCorruptionMarker(pdashOut, currentOperation, ioe);
+                break;
+            }
         }
 
         // clean up the streams
         pdashIn.close();
-        pdashOut.finish();
+    }
+
+    private void writePdashCorruptionMarker(ZipOutputStream pdashOut,
+            String operation, Throwable t) throws IOException {
+        pdashOut.putNextEntry(new ZipEntry("corruption-encountered.txt"));
+        String message = "Encountered error " + operation + "\n"
+                + StringUtils.getStackTrace(t);
+        pdashOut.write(message.getBytes("UTF-8"));
+        pdashOut.closeEntry();
     }
 
     private void copyUnfilteredEntry(ZipEntry srcEntry, ZipOutputStream zipOut)
