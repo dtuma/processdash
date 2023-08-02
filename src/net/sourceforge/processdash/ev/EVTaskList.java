@@ -2970,11 +2970,17 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 TaskData data = null;
 
-                if(filter == null){
+                //FIXME - INTERIM
+                if(filter == null && evTaskListFilter == null){
 
-                    //Legacy implementation - no filter.
+                    //Legacy implementation - no filters at all.
                     data = getPlotDataFromXml(xml);
 
+                } else if(filter == null && evTaskListFilter != null){
+
+                    //No hier filter, just group filter - FIXME - INTERIM
+                    data = getPlotDataFromXml(xml, null);
+                
                 } else if(filter instanceof EVHierarchicalFilter){
 
                     //Only try to build filtered baseline if we have a hierarchical filter in play.
@@ -3039,7 +3045,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Element parent = XMLUtils.parse(element).getDocumentElement();
 
+                //System.out.println("**** START" + parent.getAttribute("name")); //FIXME INTERIM
                 getChildData(parent,  hierFilter, taskData);
+                //System.out.println("**** END" + parent.getAttribute("name")); //FIXME INTERIM
 
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -3049,6 +3057,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         void getChildData(Element element, EVHierarchicalFilter hierFilter, TaskData taskData){
+
+            //System.out.println("--ELEMENT:" + element.getAttribute("name")); //FIXME INTERIM
 
             String thisElementTid = element.getAttribute("tid");
 
@@ -3067,12 +3077,22 @@ public class EVTaskList extends AbstractTreeTableModel
                     
                 String tid = thisElementTid.substring(3);
 
+                //System.out.println("--FOUND:" + element.getAttribute("name")); //FIXME INTERIM
+
+                //FIXME INTERIM
+                if(hierFilter == null && evTaskListFilter.include(tid)){
+                    //Found root of one user's schedule - accumulate and return.
+                    taskData.accumulate(element);
+                    return;
+                }
+
                 if(!evTaskListFilter.include(tid)){
                     return;
                 }
             }
 
-            if(hierFilter.include(thisElementTid)){
+            //FIXME - INTERIM
+            if(hierFilter != null && hierFilter.include(thisElementTid)){
                 //Test if we have found our node.
                 //If we have, roll up into the accumulator + return.
                 taskData.accumulate(element);
