@@ -119,6 +119,16 @@ public class HierarchyInfo {
         return null;
     }
 
+    public void registerEffectivePhasesAsSafe(HierarchyNodeMapper nodeMapper) {
+        for (Node n : nodes) {
+            // personal dashboards contain "Effective_Phase" elements that
+            // happen to name MCF phases. If any such elements were found, add
+            // the specified MCF phase names to our safe list.
+            if (StringUtils.hasValue(n.effectivePhase))
+                nodeMapper.addSafeName(n.effectivePhase);
+        }
+    }
+
     public void registerWorkflowNamesAsSafe(HierarchyNodeMapper nodeMapper) {
         for (Node n : nodes) {
             // When a workflow is applied in the WBS, the top-level node and the

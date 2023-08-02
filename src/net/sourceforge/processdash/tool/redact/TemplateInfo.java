@@ -25,8 +25,11 @@ package net.sourceforge.processdash.tool.redact;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -42,6 +45,7 @@ public class TemplateInfo {
             HierarchyNodeMapper m) throws IOException {
         addMcfPhasesFromBackup(data, m);
         addMcfPhasesFromDashTemplates(m);
+        addRegisteredAdditionalNames(m);
     }
 
     private static void addMcfPhasesFromBackup(RedactFilterData data,
@@ -85,11 +89,26 @@ public class TemplateInfo {
         }
     }
 
+    private static void addRegisteredAdditionalNames(HierarchyNodeMapper m) {
+        if (ADDITIONAL_PHASE_NAMES != null) {
+            for (String name : ADDITIONAL_PHASE_NAMES)
+                m.addSafeName(name);
+        }
+    }
+
+    public static void registerAdditionalPhaseNames(Collection<String> names) {
+        if (ADDITIONAL_PHASE_NAMES == null)
+            ADDITIONAL_PHASE_NAMES = new HashSet<String>();
+        ADDITIONAL_PHASE_NAMES.addAll(names);
+    }
+
     public static void setDashboardContext(DashboardContext ctx) {
         if (ctx instanceof ProcessDashboard) {
             TEMPLATES = ((ProcessDashboard) ctx).getTemplateProperties();
         }
     }
+
+    private static Set<String> ADDITIONAL_PHASE_NAMES = null;
 
     private static DashHierarchy TEMPLATES = null;
 

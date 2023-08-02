@@ -49,6 +49,7 @@ public class RedactFilterHelperInit {
 
         // register MCF phase names as "safe" and not needing scrambling
         TemplateInfo.addSafeNamesOfProcessPhases(data, nodeMapper);
+        hierarchyInfo.registerEffectivePhasesAsSafe(nodeMapper);
 
         // create an object which gathers information about the team projects
         // that are defined in this dashboard.
