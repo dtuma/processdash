@@ -2890,6 +2890,11 @@ public class EVTaskList extends AbstractTreeTableModel
 
     protected EVTaskListFilter evTaskListFilter;
 
+    /*
+        Public accessor to give clients the capability to identify when a task list filter has been applied or not.
+    */
+    public boolean evTaskListFilterApplied() {return evTaskListFilter != null; }
+
     private class BaselineTrendData {
 
         class Point implements Comparable<Point> {
@@ -2971,12 +2976,12 @@ public class EVTaskList extends AbstractTreeTableModel
                 TaskData data = null;
 
                 //FIXME - INTERIM
-                if(filter == null && evTaskListFilter == null){
+                if(filter == null && !evTaskListFilterApplied()){
 
                     //Legacy implementation - no filters at all.
                     data = getPlotDataFromXml(xml);
 
-                } else if(filter == null && evTaskListFilter != null){
+                } else if(filter == null && evTaskListFilterApplied()){
 
                     //No hier filter, just group filter - FIXME - INTERIM
                     data = getPlotDataFromXml(xml, null);
@@ -3070,7 +3075,7 @@ public class EVTaskList extends AbstractTreeTableModel
             //If all these conditions are met, use the TaskListFilter.include method to check whether or not this element is 
             //included in the filter. If not, return early.
             if(
-                evTaskListFilter != null &&
+                evTaskListFilterApplied() &&
                 element.hasAttribute("flag") && 
                 element.getAttribute("flag").equals("plain") &&
                 thisElementTid.startsWith("TL-")){
