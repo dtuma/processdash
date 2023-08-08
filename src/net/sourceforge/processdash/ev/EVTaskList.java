@@ -2975,7 +2975,6 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 TaskData data = null;
 
-                //FIXME - INTERIM
                 if(filter == null && !evTaskListFilterApplied()){
 
                     //Legacy implementation - no filters at all.
@@ -2983,7 +2982,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 } else if(filter == null && evTaskListFilterApplied()){
 
-                    //No hier filter, just group filter - FIXME - INTERIM
+                    //No hier filter, just group filter
                     data = getPlotDataFromXml(xml, null);
                 
                 } else if(filter instanceof EVHierarchicalFilter){
@@ -3050,9 +3049,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 Element parent = XMLUtils.parse(element).getDocumentElement();
 
-                //System.out.println("**** START" + parent.getAttribute("name")); //FIXME INTERIM
                 getChildData(parent,  hierFilter, taskData);
-                //System.out.println("**** END" + parent.getAttribute("name")); //FIXME INTERIM
 
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -3062,8 +3059,6 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         void getChildData(Element element, EVHierarchicalFilter hierFilter, TaskData taskData){
-
-            //System.out.println("--ELEMENT:" + element.getAttribute("name")); //FIXME INTERIM
 
             String thisElementTid = element.getAttribute("tid");
 
@@ -3082,9 +3077,6 @@ public class EVTaskList extends AbstractTreeTableModel
                     
                 String tid = thisElementTid.substring(3);
 
-                //System.out.println("--FOUND:" + element.getAttribute("name")); //FIXME INTERIM
-
-                //FIXME INTERIM
                 if(hierFilter == null && evTaskListFilter.include(tid)){
                     //Found root of one user's schedule - accumulate and return.
                     taskData.accumulate(element);
@@ -3096,7 +3088,6 @@ public class EVTaskList extends AbstractTreeTableModel
                 }
             }
 
-            //FIXME - INTERIM
             if(hierFilter != null && hierFilter.include(thisElementTid)){
                 //Test if we have found our node.
                 //If we have, roll up into the accumulator + return.
