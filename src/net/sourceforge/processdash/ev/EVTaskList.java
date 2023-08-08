@@ -2987,10 +2987,9 @@ public class EVTaskList extends AbstractTreeTableModel
                 
                 } else if(filter instanceof EVHierarchicalFilter){
 
-                    //Only try to build filtered baseline if we have a hierarchical filter in play.
+                    //Filter on hierarchical filter and possibly task list filter.
                     //Note that EVHierarchicalFilter.include(elementTid) will return false if any other filter is 
                     //chained after the EVHierarchicalFilter.
-                    //We also get here if a group filter is in play.
                     EVHierarchicalFilter hierFilter = ((EVHierarchicalFilter)filter);
                     data = getPlotDataFromXml(xml, hierFilter);                    
 
@@ -3030,6 +3029,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
         /*
             This returns summary data (filtered) for a single baseline.
+            Note that hier filter may be null, when a group filter is in play.
         */
         private TaskData getPlotDataFromXml(String xml, EVHierarchicalFilter hierFilter) throws Exception {
 
@@ -3078,18 +3078,19 @@ public class EVTaskList extends AbstractTreeTableModel
                 String tid = thisElementTid.substring(3);
 
                 if(hierFilter == null && evTaskListFilter.include(tid)){
-                    //Found root of one user's schedule - accumulate and return.
+                    //Found root of one user's schedule when a tasklistfilter is in play - accumulate and return.
                     taskData.accumulate(element);
                     return;
                 }
 
                 if(!evTaskListFilter.include(tid)){
+                    //Handle case when task list filter doesn't include this task list. Return and don't search further.
                     return;
                 }
             }
 
             if(hierFilter != null && hierFilter.include(thisElementTid)){
-                //Test if we have found our node.
+                //Test if we have found our node for a hierarchy filter.
                 //If we have, roll up into the accumulator + return.
                 taskData.accumulate(element);
 
