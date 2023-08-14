@@ -2998,7 +2998,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 }
 
                 String comment = "";
-                if(m.getComment() != null ||!m.getComment().isEmpty()){
+
+                if(m.getComment() != null && !m.getComment().isEmpty()){
                     comment = "(" + m.getComment() + ")";  
                 }
 
@@ -3330,8 +3331,8 @@ public class EVTaskList extends AbstractTreeTableModel
             baselineTrendData = new BaselineTrendData(data);
 
         return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
-                    new BaselineTrendSeries      ("pt",  "Plan_Trend"),
-                    new BaselineActiveValueSeries("pt",  "Active_Baseline"),
+                    new BaselineTrendSeries      ("pt",  "Plan_Time_Trend"),
+                    new BaselineActiveValueSeries("pt",  "Active_Time_Baseline"),
                     filter);
     }
 
@@ -3339,10 +3340,10 @@ public class EVTaskList extends AbstractTreeTableModel
         if (baselineTrendData == null)
             baselineTrendData = new BaselineTrendData(data);
         return new BaselineTrendChartData(new EVTaskChartEventAdapter(),
-                    new BaselineTrendSeries      ("pd",  "Plan_Trend"),
+                    new BaselineTrendSeries      ("pd",  "Plan_Date_Trend"),
                     new BaselineTrendSeries      ("rpd", "Replan_Trend"),
                     new BaselineTrendSeries      ("fd",  "Forecast_Trend"),   
-                    new BaselineActiveValueSeries("pd",  "Active_Baseline"),           
+                    new BaselineActiveValueSeries("pd",  "Active_Date_Baseline"),           
                     filter);
     }
 
