@@ -26,19 +26,22 @@ package net.sourceforge.processdash.tool.bridge.bundle;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -63,36 +66,41 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     private Map<FileBundleID, FileBundleManifest> replacementCache;
 
+    private Map<File, Long> packManifestFileSizes;
+
 
     public FileBundleDirectory(File bundleDir) throws IOException {
         this.bundleDir = bundleDir;
         this.deviceID = DeviceID.get();
         this.timeFormat = new FileBundleTimeFormat(getDirTimeZone());
-        this.manifestCache = Collections.synchronizedMap(new ManifestCache());
+        this.manifestCache = Collections.synchronizedMap(new HashMap());
         this.replacementCache = Collections.synchronizedMap(new ManifestCache());
+        this.packManifestFileSizes = Collections.synchronizedMap(new HashMap());
     }
 
     private String getDirTimeZone() throws IOException {
+        // abort if the directory doesn't exist
+        if (!bundleDir.isDirectory())
+            throw new FileNotFoundException(bundleDir.getPath());
+
         // identify the file in the directory that contains the time zone ID
         File timezoneFile = new File(bundleDir, "timezone.txt");
 
-        // try reading the time zone ID from the file
-        String timezone = null;
-        try {
-            timezone = new String(FileUtils.slurpContents( //
-                new FileInputStream(timezoneFile), true), "UTF-8").trim();
-        } catch (IOException ioe) {
+        // if the file exists, read the time zone ID from it. If the file cannot
+        // be read, fail with the IOException that was encountered.
+        if (timezoneFile.exists()) {
+            FileInputStream in = new FileInputStream(timezoneFile);
+            return new String(FileUtils.slurpContents(in, true), "UTF-8").trim();
         }
 
-        // if no time zone could be read, initialize it and write the file
-        if (timezone == null) {
-            timezone = TimeZone.getDefault().getID();
-            Writer out = new OutputStreamWriter(
-                    FileBundleUtils.outputStream(timezoneFile), "UTF-8");
-            out.write(timezone);
-            out.close();
-        }
+        // if the file does not exist, initialize it with a default timezone
+        String timezone = TimeZone.getDefault().getID();
+        Writer out = new OutputStreamWriter(
+                FileBundleUtils.outputStream(timezoneFile), "UTF-8");
+        out.write(timezone);
+        out.close();
 
+        // return the timezone we assigned
         return timezone;
     }
 
@@ -160,7 +168,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             List<FileBundleID> parents, List<FileBundleID> replaces,
             long timestamp) throws IOException {
         // generate an ID for the new bundle
-        FileBundleID bundleID = createNewBundleID(timestamp, bundleName);
+        FileBundleID bundleID = createNewBundleID(timestamp, bundleName,
+            parents, replaces);
 
         // write a ZIP file holding the data for the new bundle
         ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames);
@@ -177,11 +186,12 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return bundleID;
     }
 
-    private FileBundleID createNewBundleID(long timestamp, String bundleName) {
+    private FileBundleID createNewBundleID(long timestamp, String bundleName,
+            List<FileBundleID>... mustComeAfterBundles) {
         // if no timestamp was supplied, use the current time
         boolean implicitTimestamp = timestamp <= 0;
         if (implicitTimestamp)
-            timestamp = System.currentTimeMillis();
+            timestamp = getCurrentTimeOrAfter(mustComeAfterBundles);
 
         // create a bundle ID with the appropriate information
         FileBundleID bid = new FileBundleID(timestamp, timeFormat, deviceID,
@@ -198,14 +208,42 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return bid;
     }
 
+    private long getCurrentTimeOrAfter(List<FileBundleID>... bundles) {
+        // get the current time
+        long time = System.currentTimeMillis();
+
+        // make sure the time falls after the timestamps of any parents.
+        // this guards against overlap during daylight savings "fall-back"
+        String timeStr = timeFormat.format(time);
+        for (List<FileBundleID> oneBundleList : bundles) {
+            for (FileBundleID oneBundle : oneBundleList) {
+                String bundleTimestamp = oneBundle.getTimestamp();
+                if (timeStr.compareTo(bundleTimestamp) <= 0) {
+                    try {
+                        Date bundleTime = timeFormat.parse(bundleTimestamp);
+                        time = bundleTime.getTime() + 10000;
+                        timeStr = timeFormat.format(time);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+
+        return time;
+    }
+
     private boolean bundleExists(FileBundleID bundleID) {
         // if our manifest cache contains this bundle ID, we know it exists
         if (manifestCache.containsKey(bundleID))
             return true;
 
-        // see if the bundle directory contains a manifest file for this bundle
-        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
-        return mf.isFile();
+        // return true if we can load a manifest file for this bundle
+        try {
+            getManifest(bundleID);
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 
     private ResourceListing writeFilesToZip(FileBundleID bundleID,
@@ -217,7 +255,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             return fileInfo;
 
         // open an output stream to write ZIP data
-        File zipFile = getZipFileForBundle(bundleID);
+        File zipFile = getZipFileForBundleID(bundleID);
         ZipOutputStream zipOut = new ZipOutputStream(
                 FileBundleUtils.outputStream(zipFile));
 
@@ -298,25 +336,33 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             ResourceCollection target, List<String> filesToExtract)
             throws IOException {
         // retrieve details about the bundle files we are extracting
-        ResourceCollectionInfo fileInfo = getManifest(bundleID).getFiles();
+        FileBundleManifest manifest = getManifest(bundleID);
+        ResourceCollectionInfo fileInfo = manifest.getFiles();
         if (filesToExtract != null)
             fileInfo = new ResourceListing(fileInfo, filesToExtract);
 
         // if there are no files to be extracted, abort
-        if (fileInfo.listResourceNames().isEmpty())
+        int fileExtractCount = fileInfo.listResourceNames().size();
+        if (fileExtractCount == 0)
             return fileInfo;
 
         // open the ZIP file for reading
-        File zipFile = getZipFileForBundle(bundleID);
+        ZipSource zipSource = getZipSourceForBundle(manifest);
         ZipInputStream zipIn = new ZipInputStream(
-                new BufferedInputStream(new FileInputStream(zipFile)));
+                new BufferedInputStream(new FileInputStream(zipSource.file)));
         ZipEntry e;
 
         // scan the contents of the ZIP and extract files
         while ((e = zipIn.getNextEntry()) != null) {
+            // skip files in a pack ZIP that don't belong to this bundle
+            String filename = e.getName();
+            if (filename.startsWith(zipSource.prefix))
+                filename = filename.substring(zipSource.prefix.length());
+            else
+                continue;
+
             // if a file in the ZIP was not mentioned in the manifest, or was
             // not included in the list of files to extract, ignore it.
-            String filename = e.getName();
             long lastMod = fileInfo.getLastModified(filename);
             if (lastMod <= 0)
                 continue;
@@ -325,6 +371,10 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             OutputStream out = target.getOutputStream(filename, lastMod);
             FileUtils.copyFile(zipIn, out);
             out.close();
+
+            // stop when we've extracted all the files we were looking for
+            if (--fileExtractCount == 0)
+                break;
         }
 
         // close the ZIP file and return the file info
@@ -332,7 +382,15 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return fileInfo;
     }
 
-    private File getZipFileForBundle(FileBundleID bundleID) {
+    private ZipSource getZipSourceForBundle(FileBundleManifest mf) {
+        if (mf.pack == null)
+            return new ZipSource(getZipFileForBundleID(mf.getBundleID()), "");
+        else
+            return new ZipSource(getZipFileForBundleID(mf.pack),
+                    mf.getBundleID().getToken() + "/");
+    }
+
+    private File getZipFileForBundleID(FileBundleID bundleID) {
         return new File(bundleDir, bundleID.getToken() + ".zip");
     }
 
@@ -341,6 +399,9 @@ public class FileBundleDirectory implements FileBundleManifestSource {
     /**
      * Permanently delete a set of bundles from the directory.
      * 
+     * This method will be a no-op for bundles that do not exist, and for
+     * bundles that are part of a pack.
+     * 
      * @param bundleIDs
      *            the set of bundles to delete
      */
@@ -348,7 +409,7 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         for (FileBundleID bid : bundleIDs) {
             File mf = FileBundleManifest.getFileForManifest(bundleDir, bid);
             mf.delete();
-            File zf = getZipFileForBundle(bid);
+            File zf = getZipFileForBundleID(bid);
             zf.delete();
             manifestCache.remove(bid);
         }
@@ -358,24 +419,89 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
     public FileBundleManifest getManifest(FileBundleID bundleID)
             throws IOException {
+        // check to see if we have a cached manifest
         FileBundleManifest result = manifestCache.get(bundleID);
-        if (result == null) {
-            result = new FileBundleManifest(bundleDir, bundleID);
-            manifestCache.put(bundleID, result);
+
+        // if the cached manifest's XML file no longer exists, discard it.
+        // (It might have been moved into a pack by another process.)
+        if (result != null && !result.isManifestFilePresent()) {
+            manifestCache.remove(bundleID);
+            result = null;
         }
+
+        if (result == null) {
+            try {
+                // try reading the manifest from its canonical XML file
+                result = new FileBundleManifest(bundleDir, bundleID);
+                manifestCache.put(bundleID, result);
+
+            } catch (FileBundleManifest.Missing m) {
+                // if this bundle doesn't have a plain manifest file, look for
+                // it in a pack. If not found, throw original error
+                result = findManifestInPack(bundleID);
+                if (result == null)
+                    throw m;
+            }
+        }
+
+        // remember when the manifest was accessed and return it
         result.accessTime = System.currentTimeMillis();
         return result;
+    }
+
+    private FileBundleManifest findManifestInPack(FileBundleID bundleID) {
+        // get the timestamp for the pack that would contain this bundle
+        String packTimestamp = FileBundlePack.getPackTimestamp(bundleID);
+
+        // search the bundle directory for packs with this timestamp
+        for (File file : bundleDir.listFiles()) {
+            if (!FileBundlePack.isPackManifestFilename(file.getName(),
+                packTimestamp))
+                continue;
+
+            // if we've successfully loaded data from this pack manifest, we do
+            // not need to check it again
+            Long lastLength = packManifestFileSizes.get(file);
+            if (lastLength != null && lastLength == file.length())
+                continue;
+
+            try {
+                // load the bundle data from the pack manifest
+                FileBundlePack pack = new FileBundlePack(file);
+                Map<FileBundleID, FileBundleManifest> manifests = pack
+                        .readBundleManifests();
+                addPackManifestsToCache(pack.getManifestFile(), manifests);
+
+                // if this pack contains the bundle we're looking for, return
+                // the bundle's manifest
+                FileBundleManifest result = manifests.get(bundleID);
+                if (result != null)
+                    return result;
+
+            } catch (Exception e) {
+                // cannot read the pack manifest. (Error already logged)
+            }
+        }
+
+        // the bundle was not found inside any pack. return null
+        return null;
+    }
+
+    private void addPackManifestsToCache(File packManifestFile,
+            Map<FileBundleID, FileBundleManifest> packManifests) {
+        packManifestFileSizes.put(packManifestFile, packManifestFile.length());
+        manifestCache.putAll(packManifests);
     }
 
 
     public FileBundleManifest getManifestReplacing(FileBundleID bundleID)
             throws IOException {
         // if the given manifest file actually exists, it wasn't replaced
-        if (manifestCache.get(bundleID) != null)
+        try {
+            getManifest(bundleID);
             return null;
-        File mf = FileBundleManifest.getFileForManifest(bundleDir, bundleID);
-        if (mf.isFile())
-            return null;
+        } catch (IOException ioe) {
+        }
 
         // look for a cached result, return if found
         FileBundleManifest result = replacementCache.get(bundleID);
@@ -384,36 +510,19 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             return result;
         }
 
-        // find all the manifest files in the directory with the same device ID
-        // and bundle name
-        String filename = mf.getName();
-        final String filenameSuffix = filename
-                .substring(bundleID.getTimestamp().length());
-        String[] manifestFilenames = bundleDir.list(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.endsWith(filenameSuffix);
-            }
-        });
-        Arrays.sort(manifestFilenames);
+        // find all the bundle in the directory with the same bundle name and
+        // device ID that come after the given bundle
+        List<FileBundleID> bundles = listBundles(bundleID.getBundleName(),
+            bundleID.getDeviceID(), bundleID.getTimestamp());
 
-        // look at the manifest files, from newest to oldest, until we find one
-        // that precedes the target bundle. When we do, remember the filename
-        // for the bundle that chronologically follows it.
-        String potentialReplacingFilename = null;
-        for (int i = manifestFilenames.length; i-- > 0;) {
-            String oneFilename = manifestFilenames[i];
-            if (oneFilename.compareTo(filename) < 0)
-                break;
-            potentialReplacingFilename = oneFilename;
-        }
-
-        // if no bundle follows the targeted bundleID, abort
-        if (potentialReplacingFilename == null)
+        // if no subsequent matching bundles were found, abort
+        if (bundles.isEmpty())
             return null;
 
         // load the manifest for the potentially replacing bundle. If it isn't
         // a replacement for the given bundle, abort
-        result = getManifest(new FileBundleID(potentialReplacingFilename));
+        FileBundleID potentiallyReplacingBundle = bundles.get(0);
+        result = getManifest(potentiallyReplacingBundle);
         if (!result.isReplacementFor(bundleID))
             return null;
 
@@ -437,9 +546,190 @@ public class FileBundleDirectory implements FileBundleManifestSource {
      */
     public FileBundleCollection getBundleCollection(FileBundleID bundleID)
             throws IOException {
-        return new FileBundleCollection(getManifest(bundleID),
-                getZipFileForBundle(bundleID));
+        FileBundleManifest manifest = getManifest(bundleID);
+        ZipSource zip = getZipSourceForBundle(manifest);
+        return new FileBundleCollection(manifest, zip.file, zip.prefix);
     }
+
+
+    /**
+     * Return a list of bundles in this directory
+     * 
+     * @param bundleName
+     *            only return bundles with this name. Can be null to return
+     *            bundles with any name
+     * @param deviceID
+     *            only return bundles with this device ID. Can be null to return
+     *            bundles written by any device
+     * @param after
+     *            only return bundles whose timestamp is after this time. Can be
+     *            0 to return all bundles
+     * @return a list of bundles IDs for bundles in this directory meeting the
+     *         given criteria, sorted in chronological order
+     */
+    public List<FileBundleID> listBundles(String bundleName, String deviceID,
+            long after) throws IOException {
+        return listBundles(bundleName, deviceID, timeFormat.format(after));
+    }
+
+
+    /**
+     * Return a list of bundles in this directory
+     * 
+     * @param bundleName
+     *            only return bundles with this name. Can be null to return
+     *            bundles with any name
+     * @param deviceID
+     *            only return bundles with this device ID. Can be null to return
+     *            bundles written by any device
+     * @param afterTimestamp
+     *            only return bundles whose timestamp is after this timestamp
+     * @return a list of bundles IDs for bundles in this directory meeting the
+     *         given criteria, sorted in chronological order
+     */
+    public List<FileBundleID> listBundles(String bundleName, String deviceID,
+            String afterTimestamp) throws IOException {
+        // get timestamp of the first pack that might contain a matching bundle
+        String packTimeCutoff = FileBundlePack.getPackTimestamp(afterTimestamp);
+        List<FileBundleID> result = new ArrayList<FileBundleID>();
+
+        // iterate over the files in the bundle directory
+        String[] allFiles = bundleDir.list();
+        if (allFiles == null)
+            throw new FileNotFoundException(bundleDir.getPath());
+        for (String filename : allFiles) {
+            // only examine manifest XML files
+            if (!filename.endsWith(".xml"))
+                continue;
+
+            try {
+                // get the bundleID for this filename. If parsing fails, skip it
+                FileBundleID bid = new FileBundleID(filename);
+
+                if (FileBundlePack.isPack(bid)) {
+                    // if this file is a pack manifest, make sure its timestamp
+                    // isn't before the pack time cutoff
+                    if (bid.getTimestamp().compareTo(packTimeCutoff) < 0)
+                        continue;
+
+                    // read the bundles from the pack manifest
+                    FileBundlePack pack = new FileBundlePack(
+                            new File(bundleDir, filename));
+                    Map<FileBundleID, FileBundleManifest> manifests = pack
+                            .readBundleManifests();
+
+                    // add bundle IDs from the pack that match our search
+                    for (FileBundleID innerBid : manifests.keySet()) {
+                        if (bundleIDMatchesFilter(innerBid, bundleName,
+                            deviceID, afterTimestamp))
+                            result.add(innerBid);
+                    }
+
+                } else {
+                    // if this file is a regular bundle manifest, add it to
+                    // our result if it matches our search filter
+                    if (bundleIDMatchesFilter(bid, bundleName, deviceID,
+                        afterTimestamp)) {
+                        result.add(bid);
+                    }
+                }
+
+            } catch (IllegalArgumentException iae) {
+                // this file is not bundle-related; skip it
+            }
+        }
+
+        // sort the results and return them
+        Collections.sort(result, FileBundleID.CHRONOLOGICAL_ORDER);
+        return result;
+    }
+
+    private boolean bundleIDMatchesFilter(FileBundleID bundleID,
+            String bundleName, String deviceID, String afterTimestamp) {
+        // return false if the bundle name does not match
+        if (bundleName != null && !bundleName.equals(bundleID.getBundleName()))
+            return false;
+
+        // return false if the device ID does not match
+        if (deviceID != null && !deviceID.equals(bundleID.getDeviceID()))
+            return false;
+
+        // return true if the timestamp falls after the cutoff
+        return bundleID.getTimestamp().compareTo(afterTimestamp) > 0;
+    }
+
+
+    /**
+     * Scan the directory for bundles that precede the timestamp. If any are
+     * found, organize them into monthly pack files.
+     * 
+     * @param timestamp
+     *            the cutoff time for pack operations. If a bundle older than
+     *            this time is seen, the entire month containing that bundle
+     *            will be packed (even if the month ends after this timestamp)
+     * @throws IOException
+     *             if the pack operation encountered an error
+     */
+    public void packBundlesThroughMonth(long timestamp) throws IOException {
+        // identify the cutoff timestamp for bundles that should be packaged
+        String cutoffTime = timeFormat.format(timestamp);
+
+        // list the files in the directory
+        String[] files = bundleDir.list();
+        if (files == null)
+            throw new FileNotFoundException(bundleDir.getPath());
+
+        // look for bundles & packs in the directory that precede the timestamp
+        Set<String> packTokens = new TreeSet<String>();
+        for (String file : files) {
+            if (file.endsWith(".xml") && file.compareTo(cutoffTime) < 0) {
+                try {
+                    FileBundleID bundleID = new FileBundleID(file);
+                    String pt = FileBundlePack.getPackTimestamp(bundleID);
+                    packTokens.add(pt);
+                } catch (IllegalArgumentException iae) {
+                    // this XML file is apparently not bundle-related
+                }
+            }
+        }
+
+        // package the bundles for the months we found
+        for (String token : packTokens) {
+            packBundlesForMonth(token);
+        }
+    }
+
+
+    /**
+     * Gather up all the bundles from a particular month, and put them in a
+     * single pack file
+     * 
+     * @param targetTimestampOrToken
+     *            a FileBundleID token or timestamp belonging to the month that
+     *            should be packed
+     * @return the FileBundleID of the pack that was created, or null if no pack
+     *         operation was needed
+     * @throws IOException
+     *             if the pack operation encountered an error
+     */
+    public FileBundleID packBundlesForMonth(String targetTimestampOrToken)
+            throws IOException {
+        // create a pack utility object
+        FileBundlePack pack = new FileBundlePack(bundleDir,
+                targetTimestampOrToken, deviceID);
+
+        // ask the object to perform a merge
+        Map<FileBundleID, FileBundleManifest> pmf = pack.packBundles();
+        if (pmf == null)
+            return null;
+
+        // record all of the manifests that were merged
+        addPackManifestsToCache(pack.getManifestFile(), pmf);
+
+        // return the bundle ID of the merged pack
+        return pack.getPackID();
+    }
+
 
 
     private static class ManifestCache
@@ -459,6 +749,18 @@ public class FileBundleDirectory implements FileBundleManifestSource {
             // discard the oldest entry if it hasn't been accessed in a while
             long cutoff = System.currentTimeMillis() - 5 * DateUtils.MINUTES;
             return eldest.getValue().accessTime < cutoff;
+        }
+    }
+
+    private class ZipSource {
+
+        File file;
+
+        String prefix;
+
+        public ZipSource(File zipFile, String prefix) {
+            this.file = zipFile;
+            this.prefix = prefix;
         }
     }
 

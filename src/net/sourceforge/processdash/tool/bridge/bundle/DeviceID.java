@@ -115,7 +115,7 @@ public class DeviceID {
         // look for letters and numbers in the value and append to our token
         for (int i = 0; i < value.length() && token.length() < maxLen; i++) {
             char c = value.charAt(i);
-            if ((c >= '0' && c <= '9') //
+            if ((c >= '0' && c <= '9') || c == '_' //
                     || (c >= 'A' && c <= 'Z') //
                     || (c >= 'a' && c <= 'z')) {
                 token.append(c);
@@ -144,6 +144,24 @@ public class DeviceID {
         // return the portion of the name that precedes the first "."
         int pos = name.indexOf('.');
         return (pos == -1 ? name : name.substring(0, pos));
+    }
+
+    /**
+     * Use the given tokens to create a string that would be acceptable as a
+     * device ID
+     */
+    public static String createPseudoID(String... tokens) {
+        // append the given tokens to the string, scrubbing chars as we go
+        StringBuilder result = new StringBuilder();
+        for (String token : tokens)
+            append(result, token, LENGTH);
+
+        // pad with deterministic digits to reach the desired length
+        while (result.length() < LENGTH)
+            result.append(Math.abs(result.toString().hashCode()));
+
+        // return a string with the target length
+        return result.substring(0, LENGTH);
     }
 
 }

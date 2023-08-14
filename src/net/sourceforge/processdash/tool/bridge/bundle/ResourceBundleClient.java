@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +41,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.tool.bridge.report.ResourceCollectionDiff;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class ResourceBundleClient {
 
@@ -184,13 +184,16 @@ public class ResourceBundleClient {
         // if any bundles disappeared from the directory, find the names of
         // the files they contained
         for (String obsoleteBundleName : oldBundleNames) {
+            logger.finest(logPrefix + "Deleting bundle " + obsoleteBundleName);
             FileBundleID obsoleteBundleID = oldHeadRefs.get(obsoleteBundleName);
             obsoleteFilenames.addAll(getBundleFilenames(obsoleteBundleID));
+            workingHeads.deleteHeadRef(obsoleteBundleName);
+            madeChange = true;
         }
 
         // if any files are obsolete, delete them
         for (String filename : obsoleteFilenames) {
-            if (!containsIgnoreCase(currentFilenames, filename)) {
+            if (!StringUtils.containsIgnoreCase(currentFilenames, filename)) {
                 logger.finest(logPrefix + "Deleting file " + filename);
                 workingDir.deleteResource(filename);
                 madeChange = true;
@@ -260,16 +263,6 @@ public class ResourceBundleClient {
 
         // return the diff
         return diff;
-    }
-
-    private boolean containsIgnoreCase(Collection<String> set, String item) {
-        if (set.contains(item))
-            return true;
-        for (String oneItem : set) {
-            if (item.equalsIgnoreCase(oneItem))
-                return true;
-        }
-        return false;
     }
 
 
@@ -448,7 +441,7 @@ public class ResourceBundleClient {
         if (singleFilename == null)
             return true;
         else
-            return containsIgnoreCase(filenames, singleFilename);
+            return StringUtils.containsIgnoreCase(filenames, singleFilename);
     }
 
     private void assignModTimeForBundleTimestamp(FileBundleSpec spec) {

@@ -7,12 +7,17 @@
 
 <h1>Install Process Dashboard</h1>
 
+<p>If your team is using the <a href="TeamConfigDirPDES.html">Process
+Dashboard Enterprise Server</a>, individuals will not need to follow the
+steps below.  Instead, they can install the <a href="#pdes">Process
+Dashboard Launcher</a>.</p>
+
 <p>If you have installed the dashboard in the past, you <b><u>do not</u></b>
 need to uninstall.  Just run the new installer and choose the default values
 for all prompts, and it will upgrade you to the latest version.</p>
 
-<p>Run the installation program by following the steps
-described below:</p>
+<p>To install or upgrade the Process Dashboard, follow the steps described
+below:</p>
 
 <h2><a name="windows"></a>Installing on Windows</h2>
 
@@ -23,10 +28,10 @@ described below:</p>
     <li>If you downloaded an EXE file for installing the dashboard,
         double-click on that file.</li>
 
-    <li>If you have a CD-ROM containing the software, insert it into your
+    <li>If you have a thumb drive containing the software, insert it into your
         computer.  The installation process may start automatically.  If it
         does not start automatically, double-click the <tt>setup.exe</tt>
-        file on the CD-ROM.</li>
+        file on the thumb drive.</li>
 
     <li>If you have a ZIP file containing the software, unzip it and
         double-click the extracted file <tt>setup.exe</tt>.<br>&nbsp;</li>
@@ -35,9 +40,9 @@ described below:</p>
 
 <li>The Process Dashboard requires Java to run.  If Java has not already
 been installed on your computer, the EXE installer will display an error
-message; in this case, visit <a href="http://processdash.com/java"
-target="_blank">http://processdash.com/java</a> to download Java.
-(The CD-ROM and ZIP packages include a Java installer, and will launch it
+message; in this case, visit <a href="https://processdash.com/java"
+target="_blank">https://processdash.com/java</a> to download Java.
+(The thumb drive and ZIP packages include a Java installer, and will launch it
 automatically if needed.)  When the Java installer runs, you can choose the
 default values for each prompt.<br>&nbsp;</li>
 
@@ -64,8 +69,13 @@ installer a second time to set the data location correctly.<br>&nbsp;</li>
 
 <li>Team leaders and process mentors will be prompted to identify a directory
 where team configuration information will be stored.  Enter the path to the 
-<a href="TeamConfigDir.html">Team Configuration Directory</a>, which the team
-leader created earlier.
+<a href="TeamConfigDir.html">team data directory</a>, which the team
+leader created earlier.  (If your team is using a 
+<a href="TeamConfigDirLocal.html">network directory</a> for team data,
+you may need to map a network drive to access this folder.  If your
+team is using cloud storage for team data, you may need to perform
+<a href="TeamConfigDirCloud.html#teamShare">extra setup steps</a> to
+sync this directory to your computer.)
 
 <p class="figure"><img src="../Images/installer-team-directory.png"></p></li>
 
@@ -95,7 +105,7 @@ your use:
 <li>If you are a coach or process mentor who needs to access the dashboard for
 several different teams, just rename your Team Dashboard shortcut to something
 unique (such as "ABC Team Dashboard").  Then run the installer again, choose
-the Tools for Team Leaders option, and enter the Team Configuration Directory
+the Tools for Team Leaders option, and enter the team data directory
 for the next team when prompted.  In the final step, the installer will create
 a shortcut called "Team Dashboard" for this second team, which you can rename
 to something unique and descriptive (such as "XYZ Team Dashboard").  You can
@@ -115,7 +125,7 @@ different process.</p>
     <li>If you downloaded an JAR file for installing the dashboard,
         double-click on that file.</li>
 
-    <li>If you have a CD-ROM or ZIP file containing the software, find the
+    <li>If you have a thumb drive or ZIP file containing the software, find the
         file inside called <tt>pdash-install-*-#_#_#.jar</tt>.  It will
         be in a <i>data</i> subdirectory, and the file will contain an
         actual version number rather than <tt>#_#_#</tt>).  Double-click on
@@ -142,13 +152,13 @@ additional steps.</p>
 
 <li>Make certain Java is installed on your computer, by typing
 "<tt>which&nbsp;java</tt>" at a shell prompt.  If Java is not installed,
-you can download it from <a href="http://processdash.com/java"
-target="_blank">http://processdash.com/java</a> or use an appropriate
+you can download it from <a href="https://processdash.com/java"
+target="_blank">https://processdash.com/java</a> or use an appropriate
 package manager.<br>&nbsp;</li>
 
 <li>Obtain the JAR file for installing the Process Dashboard.  (If you have
-a CD-ROM or ZIP file containing the software, find the file inside called
-<tt>pdash-install-*-#_#_#.jar</tt>.  It will be in a <i>data</i>
+a thumb drive or ZIP file containing the software, find the file inside
+called <tt>pdash-install-*-#_#_#.jar</tt>.  It will be in a <i>data</i>
 subdirectory, and the file will contain an actual version number rather
 than <tt>#_#_#</tt>).  At a shell prompt, change to the directory
 containing that file, and type:
@@ -183,6 +193,37 @@ able to create shortcuts:<br>&nbsp;<ul>
 
 </ol>
 
+
+<h2><a name="pdes"></a>Installing Launcher for Enterprise Server</h2>
+
+<p>If your team is using the <a href="TeamConfigDirPDES.html">Process
+Dashboard Enterprise Server</a>, individuals do not need to perform
+any complex installation steps, and do not need to manually upgrade
+when new versions of the software become available.  Instead, they can
+install the Process Dashboard Launcher by taking these steps:</p>
+
+<ol>
+
+<li>Log in to the Enterprise Server.  At the bottom of the "My Datasets"
+page, click the link for the Process Dashboard Launcher
+software.<br>&nbsp;</li>
+
+<li>Download and run the installer for your operating
+system.<br>&nbsp;</li>
+
+<li>The installer will create a "Process Dashboard Launcher" icon for you.
+You can run that application for quick access to all of the team and
+personal dashboards that appear in your "My Datasets" view.<br>&nbsp;</li>
+
+<li>In addition, you can log in to the Enterprise Server in your web
+browser and click links to launch specific datasets.  Those will download
+small files with the <tt>pdlnk</tt> or <tt>tdlnk</tt> extension.  You can
+open those files immediately, or save them on your desktop as a direct
+shortcut to the given dataset.</li>
+
+</ol>
+
+<div class="hideInBook" style="margin-top: 9in">&nbsp;</div>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2014 Tuma Solutions, LLC
+// Copyright (C) 2004-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,10 +23,15 @@
 
 package net.sourceforge.processdash.security;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.security.Policy;
+import java.util.jar.JarFile;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 
@@ -34,6 +39,16 @@ public class DashboardSecurity {
 
     private static final String DISABLE_SECURITY_MANAGER_PROPERTY =
         "net.sourceforge.processdash.disableSecurityManager";
+    private static final String SECURITY_POLICY_PROPERTY =
+            "net.sourceforge.processdash.securityPolicy";
+    private static final String PREF_NODE =
+        "/net/sourceforge/processdash/userPrefs";
+    private static final String POLICY_PREF = "securityPolicy";
+    private static final boolean SECURITY_MANAGER_SUPPORTED =
+        isSecurityManagerSupportPresent();
+    private static final String KEYSTORE_FILENAME = "third-party-certs.p12";
+    private static final String KEYSTORE_TYPE = "PKCS12";
+    private static final String KEYSTORE_PASSWORD = "processdash";
     private static final String SECURE_CODEBASE_URL =
         "process.dashboard.codebase.url";
     private static final String JAVA_SECURITY_POLICY = "java.security.policy";
@@ -45,14 +60,72 @@ public class DashboardSecurity {
 
     private static final Logger logger = Logger.getLogger(DashboardSecurity.class.getName());
 
+
+    private enum DashPolicy {
+        manager, jar, none
+    }
+
+    private static DashPolicy POLICY;
+
+
     public static void setupSecurityManager() throws SecurityException {
         SETUP_SECURITY_MANAGER_PERMISSION.checkPermission();
 
+        loadEnforcementPolicy();
+
+        if (POLICY == DashPolicy.manager)
+            installSecurityManager();
+        else if (POLICY == DashPolicy.jar)
+            installCertificateManager();
+    }
+
+    private static void loadEnforcementPolicy() {
+        // disable security if requested by a specific system property
         if (Boolean.getBoolean(DISABLE_SECURITY_MANAGER_PROPERTY)) {
             logger.warning("Security Manager disabled / not installed.");
+            POLICY = DashPolicy.none;
             return;
         }
 
+        // jar file checking is the default policy
+        POLICY = DashPolicy.jar;
+
+        // choose alternate policy if requested in user settings
+        try {
+            Preferences prefs = Preferences.userRoot().node(PREF_NODE);
+            String pref = prefs.get(POLICY_PREF, null);
+            if (pref == null)
+                pref = System.getProperty(SECURITY_POLICY_PROPERTY);
+            if (pref != null)
+                POLICY = DashPolicy.valueOf(pref.toLowerCase());
+
+            // ignore user's request for manager if JVM doesn't support it
+            if (POLICY == DashPolicy.manager && !SECURITY_MANAGER_SUPPORTED)
+                POLICY = DashPolicy.jar;
+
+        } catch (Exception e) {
+        }
+
+        // log the security policy setting
+        logger.info("Process Dashboard add-on security policy = " + POLICY);
+    }
+
+    private static boolean isSecurityManagerSupportPresent() {
+        try {
+            String javaVersionString = System.getProperty("java.version");
+            String firstDigitString = javaVersionString.split("\\.")[0];
+            int firstDigit = Integer.parseInt(firstDigitString);
+            return (firstDigit < 18);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean isSecurityManagerSupported() {
+        return SECURITY_MANAGER_SUPPORTED;
+    }
+
+    private static void installSecurityManager() {
         URL policyURL = DashboardSecurity.class.getResource("security.policy");
         if (policyURL == null)
             throw new SecurityException("Security policy file not found");
@@ -89,6 +162,28 @@ public class DashboardSecurity {
         } catch (Exception e) {
             throw new SecurityException(e);
         }
+    }
+
+    private static void installCertificateManager() {
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File appTemplateDir = new File(appDir, "Templates");
+        File ksFile = new File(appTemplateDir, KEYSTORE_FILENAME);
+        CertificateManager mgr = new CertificateManager(ksFile, KEYSTORE_TYPE,
+                KEYSTORE_PASSWORD.toCharArray());
+        JarVerifier.EXTERNAL_TRUST_SOURCE = mgr;
+    }
+
+
+    public static CertificateManager getCertificateManager() {
+        return (CertificateManager) JarVerifier.EXTERNAL_TRUST_SOURCE;
+    }
+
+
+    public static boolean checkJar(JarFile jarFile) throws IOException {
+        if (POLICY != DashPolicy.jar)
+            return true;
+        else
+            return JarVerifier.verify(jarFile);
     }
 
 }

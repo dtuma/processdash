@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2022 Tuma Solutions, LLC
+// Copyright (C) 2003-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.CertificateUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -94,6 +95,10 @@ public class DisplayConfig extends TinyCGIBase {
         if (brief) {
             out.print("body { font-size: small }");
             out.print("sup { font-size: small }");
+        } else {
+            out.println("a.plain:link { color:black; text-decoration:none }");
+            out.println("a.plain:visited { color:black; text-decoration:none }");
+            out.println("a.plain:hover { color:blue; text-decoration:underline }");
         }
         out.print("</STYLE>");
 
@@ -117,8 +122,7 @@ public class DisplayConfig extends TinyCGIBase {
 
         if (bundleMode != null) {
             out.print("<DIV>");
-            out.print(resources.format("Bundle_Mode_HTML_FMT", //
-                bundleMode.getName()));
+            out.print(resources.getString("Bundle_Mode_" + bundleMode.getName()));
             out.print("<BR>&nbsp;</DIV>");
         }
 
@@ -168,36 +172,47 @@ public class DisplayConfig extends TinyCGIBase {
                          + "<th>${Add_On.Version}</th>");
 
                 // We want the brief layout to be as compact as possible so we
-                //  don't display the "location" column
+                //  don't display the "location" and "signed by" columns
                 if (!brief) {
-                    printRes("<th>${Add_On.Filename}</th></tr>");
+                    printRes("<th>${Add_On.Filename}</th>");
+                    printRes("<th>${Add_On.SignedBy}</th>");
                 }
+                out.println("</tr>");
 
             for (Iterator<DashPackage> i = packages.iterator(); i.hasNext();) {
                 DashPackage pkg = i.next();
 
-                if (DASHBOARD_PACKAGE_ID.equals(pkg.id))
-                    continue;
-
-                    out.print("<tr><td>");
-                    out.print(HTMLUtils.escapeEntities(pkg.name));
-                    out.print("</td><td>");
-                    out.print(HTMLUtils.escapeEntities(pkg.version));
-                    out.print("</td>");
-
-                    if (!brief) {
-                        out.print("<td>" +
-                                  HTMLUtils.escapeEntities(cleanupFilename(pkg.filename)) +
-                                  "</td>");
-                    }
-
-                    out.println("</tr>");
+                if (!DASHBOARD_PACKAGE_ID.equals(pkg.id))
+                    printDashPackageTableRow(pkg, !brief, true, !brief, !brief);
             }
             maybePrintCustomTranslationPackages(brief);
             out.print("</TABLE>");
         }
 
         out.println("</DIV>");
+
+        List<DashPackage> badPackages = TemplateLoader.getRejectedPackages();
+        if (badPackages != null && !badPackages.isEmpty()) {
+            printRes("&nbsp;<div>${Rejected.Header}");
+            if (!brief)
+                out.print(resources.getHTML("Rejected.Instructions"));
+
+            String color = (brief ? " color='#770000'" : "");
+            printRes("<br>&nbsp;"
+                     + "<table border class='indent' cellpadding='5'" + color + "><tr>"
+                     + "<th>${Add_On.Name}</th>"
+                     + "<th>${Add_On.Filename}</th>");
+            if (!brief)
+                printRes("<th>${Add_On.SignedBy}</th>");
+            out.print("</tr>");
+
+            for (DashPackage pkg : badPackages) {
+                printDashPackageTableRow(pkg, !brief, false, true, !brief);
+            }
+
+            out.print("</table>");
+            out.println("</div>");
+        }
 
         // Showing a link to "more details" if we are in brief mode
         if (brief) {
@@ -207,6 +222,37 @@ public class DisplayConfig extends TinyCGIBase {
         }
 
         out.println("</BODY></HTML>");
+    }
+
+    private void printDashPackageTableRow(DashPackage pkg, boolean printLink,
+            boolean printVersion, boolean printFilename, boolean printSigner) {
+        out.print("<tr>");
+
+        out.print("<td>");
+        if (printLink)
+            out.print("<a class='plain' href='showPackage?pkgId="
+                    + HTMLUtils.urlEncode(pkg.id) + "' target='_blank'>");
+        out.print(HTMLUtils.escapeEntities(pkg.name));
+        if (printLink)
+            out.print("</a>");
+        out.print("</td>");
+
+        if (printVersion)
+            out.print("<td>" + HTMLUtils.escapeEntities(pkg.version) + "</td>");
+
+        if (printFilename)
+            out.print("<td>" + HTMLUtils.escapeEntities(cleanupFilename( //
+                pkg.filename)) + "</td>");
+
+        if (printSigner) {
+            String signer = CertificateUtils.getSignerSimpleName(pkg.signedBy);
+            if (signer == null)
+                out.print("<td align='center'>&mdash;</td>");
+            else
+                out.print("<td>" + HTMLUtils.escapeEntities(signer) + "</td>");
+        }
+
+        out.print("</tr>");
     }
 
     private void maybePrintCustomTranslationPackages(boolean brief) {
@@ -233,6 +279,7 @@ public class DisplayConfig extends TinyCGIBase {
                 if (!brief) {
                     String fn = cleanupFilename(f.getPath());
                     out.print("<td>" + HTMLUtils.escapeEntities(fn) + "</td>");
+                    out.print("<td align='center'>&mdash;</td>");
                 }
 
                 out.println("</tr>");

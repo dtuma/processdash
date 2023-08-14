@@ -81,6 +81,7 @@ import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
+import net.sourceforge.processdash.DeviceLockManager.DeviceLock;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ExternalDataFile;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -148,6 +149,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.HistoricalMode;
@@ -164,8 +166,9 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
-import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingRootFolder;
+import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.launcher.jnlp.JnlpRelauncher;
 import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
 import net.sourceforge.processdash.tool.merge.SyncDeviceSuffixProvider;
@@ -192,11 +195,13 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.JOptionPaneCountdownTimer;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.lib.WindowsFlatMenuBar;
 import net.sourceforge.processdash.ui.lib.WindowsGUIUtils;
+import net.sourceforge.processdash.ui.lib.WrappedOptionPaneText;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -297,7 +302,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception e) {
             logErr("Unable to read settings file", e);
             displayStartupIOError("Errors.Read_File_Error.Settings_File",
-                    e.getMessage(), e);
+                    e.getMessage(), workingDirectory, e);
             System.exit(0);
         }
         File dataDir = workingDirectory.getDirectory();
@@ -328,6 +333,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         ImportDirectoryFactory.getInstance().setBaseDirectory(workingDirectory);
         WorkingDirectoryFactory.getInstance().setBaseDirectory(relativeBaseDir);
+        DeviceLockManager.setWorkingDirectory(workingDirectory);
         DashController.setDataDirectory(dataDir);
         ExternalDataFile.setDataDirectory(dataDir);
         pt.click("Set default directory");
@@ -380,7 +386,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             // if I/O problems prevented reading users/roles, exit with error
             logErr("Unable to read permission files", ioe);
             displayStartupIOError("Errors.Read_File_Error.Permissions_Files",
-                    ioe.getMessage(), ioe);
+                    ioe.getMessage(), workingDirectory, ioe);
             System.exit(1);
         }
 
@@ -542,7 +548,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException e1) {
             logErr("Unable to read time log", e1);
             displayStartupIOError("Errors.Read_File_Error.Time_Log",
-                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME, e1);
+                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME,
+                    workingDirectory, e1);
             System.exit(0);
         }
         pt.click("Initialized time log");
@@ -779,12 +786,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (MissingMapping mm) {
             displayStartupFolderMappingError("Key_Error", mm.getKey());
 
+        } catch (MissingRootFolder mr) {
+            displayStartupFolderMappingError("Root_Error", mr.getKey(),
+                mr.getPath());
+
         } catch (FileNotFoundException fnfe) {
             displayStartupFolderMappingError("Dir_Error", fnfe.getMessage());
 
         } catch (Exception e) {
             displayStartupIOError("Errors.Read_File_Error.Data_Directory",
-                location, e);
+                location, null, e);
         }
         System.exit(1);
         // the following line is not reached, but must be present to keep
@@ -810,7 +821,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     + linkFileName + "' - aborting");
             e.printStackTrace();
             displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
-                linkFileName, e);
+                linkFileName, null, e);
         } finally {
             FileUtils.safelyClose(in);
         }
@@ -838,12 +849,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return mgr.resolvePath(location);
     }
 
-    private void displayStartupFolderMappingError(String resKey, String arg) {
+    private void displayStartupFolderMappingError(String resKey, String... args) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
         Object message = resources.formatStrings(
-            "Errors.Shared_Folder." + resKey + ".Message_FMT", arg);
+            "Errors.Shared_Folder." + resKey + ".Message_FMT", args);
         JOptionPane.showMessageDialog(hideSS(), ssFront(message),
             resources.getString("Errors.Read_File_Error.Title"),
             JOptionPane.ERROR_MESSAGE);
@@ -889,7 +900,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } else {
                 resKey = "Errors.Read_File_Error.Data_Directory";
             }
-            displayStartupIOError(resKey, locationDescr, e);
+            displayStartupIOError(resKey, locationDescr, workingDirectory, e);
             System.exit(1);
         }
 
@@ -927,6 +938,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 logger.severe("The write lock was lost on the "
                         + workingDirectory);
                 showLostLockMessage("Ongoing_Advice");
+                return "OK";
+            }
+            else if (DeviceLockManager.CONCURRENT_LOCK_DETECTED.equals(msg)) {
+                showConcurrentDeviceLockDetected((DeviceLock) e.getSource());
+                return "OK";
+            }
+            else if (DeviceLockManager.CONCURRENT_LOCK_LOST.equals(msg)) {
+                handleConcurrentDeviceLockLost((DeviceLock) e.getSource());
                 return "OK";
             }
             else {
@@ -1421,8 +1440,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         String setting = Settings.getVal("readOnly");
-        if (setting == null) return;
-        if (setting.toLowerCase().startsWith("recommend")) {
+        if (setting == null) {
+            // no readOnly setting to process
+        } else if (setting.toLowerCase().startsWith("recommend")) {
             // Must manually use ResourceBundles until after the
             // TemplateLoader is initialized.
             ResourceBundle res = ResourceBundle.getBundle(
@@ -1449,6 +1469,147 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } else if (setting.equalsIgnoreCase("follow")) {
             InternalSettings.setReadOnlyFollowMode();
         }
+
+        if (Settings.isReadWrite() && Settings.isPersonalMode()) {
+            checkForConcurrentDeviceLocks();
+        }
+    }
+
+    private static final String RES_ECD = "Errors.Concurrent_Device.";
+
+    private void checkForConcurrentDeviceLocks() {
+        // see if any other devices appear to be using this data
+        List<DeviceLock> locks = DeviceLockManager.getConflictingLocks();
+        if (locks.isEmpty())
+            return;
+        DeviceLock newestLock = locks.get(0);
+
+        // display a message advising the user of the lock, and asking if they
+        // wish to continue in read-only mode
+        ResourceBundle res = ResourceBundle
+                .getBundle("Templates.resources.ProcessDashboard");
+        String title = res.getString(RES_ECD + "Title");
+        Object header = getDeviceLockDialogHeader(res, newestLock);
+        Object readOnly = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Read_Only"));
+        Object[] message = new Object[] { header, " ", readOnly };
+        int userChoice = JOptionPane.showConfirmDialog(hideSS(), message, title,
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        // if the user said they wish to continue in read-only mode, make it so
+        if (userChoice == JOptionPane.YES_OPTION) {
+            InternalSettings.setReadOnly(true);
+            return;
+        }
+
+        // display a message with next steps for problem resolution
+        Object advice = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Recovery_Advice"));
+        Object cloud = " ";
+        if (Settings.isCloudStorage())
+            cloud = new Object[] { " ", new WrappedOptionPaneText(
+                    res.getString(RES_ECD + "Cloud_Message")), " " };
+        Object ignore = new WrappedOptionPaneText(
+                res.getString(RES_ECD + "Ignore_Message"));
+        message = new Object[] { header, " ", advice, cloud, ignore };
+        String okOption = res.getString(RES_ECD + "OK");
+        String ignoreOption = res.getString(RES_ECD + "Ignore");
+        userChoice = JOptionPane.showOptionDialog(hideSS(), message, title,
+            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+            new Object[] { okOption, ignoreOption }, okOption);
+
+        // if the user chose to ignore the lock, delete it
+        if (userChoice == 1) {
+            DeviceLockManager.ignore(newestLock);
+            if (locks.size() > 1)
+                // if other locks were present, warn the user about them next
+                checkForConcurrentDeviceLocks();
+
+        } else {
+            // otherwise, exit the app after the user acknowleges the message
+            System.exit(1);
+        }
+    }
+
+    private void showConcurrentDeviceLockDetected(DeviceLock lock) {
+        // write a message to the log
+        logger.severe("Another device may have opened this dataset: " + lock);
+
+        showConcurrentDeviceLockError(lock, new WrappedOptionPaneText(
+                resources.getString(RES_ECD + "Detected.Shutdown_Other")));
+    }
+
+    private void handleConcurrentDeviceLockLost(DeviceLock lock) {
+        // write a message to the log
+        logger.severe("Another device has opened this dataset; shutting down "
+                + "in an attempt to avoid corruption. Other device: " + lock);
+
+        // stop the timer if it is running
+        getTimeLoggingModel().stopTiming();
+
+        // save all data (but don't prompt the user about unsaved changes, as
+        // those prompts would indefinitely stop our shutdown process)
+        saveAllDataImpl(false);
+
+        // disallow further changes in this process
+        InternalSettings.setReadOnly(true);
+
+        // display a "shutting down" message with a countdown timer
+        Object footer = new Object[] {
+                new WrappedOptionPaneText(resources
+                        .getString(RES_ECD + "Detected.Shutdown_Self")),
+                " ", new JOptionPaneCountdownTimer(300) };
+        showConcurrentDeviceLockError(lock, footer);
+
+        // when the timer expires or the user clicks OK, close the application
+        System.exit(1);
+    }
+
+    private void showConcurrentDeviceLockError(DeviceLock lock, Object footer) {
+        // display a message warning the user about concurrent usage
+        String title = resources.getString(RES_ECD + "Detected.Title");
+        Object header = getDeviceLockDialogHeader(resources, lock);
+        Object warning = new WrappedOptionPaneText(
+                resources.getString(RES_ECD + "Detected.Warning"));
+        Object cloud = " ";
+        if (Settings.isCloudStorage())
+            cloud = new Object[] { " ",
+                    new WrappedOptionPaneText(
+                            resources.getString(RES_ECD + "Cloud_Message")),
+                    " " };
+        Object message = new Object[] { header, " ", warning, cloud, footer };
+
+        // offer an "OK" button and a "More Info" button, which displays help
+        String okOption = resources.getString("OK");
+        JButton moreInfo = new JButton(resources.getString(RES_ECD + "More_Info"));
+        moreInfo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Browser.launch("help/frame.html?PersonalStorage.cloudMult");
+            }});
+        Object[] options = new Object[] { okOption, moreInfo };
+
+        JOptionPane.showOptionDialog(this, message, title,
+            JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, options,
+            okOption);
+    }
+
+    private Object getDeviceLockDialogHeader(ResourceBundle res,
+            DeviceLock lock) {
+        return new Object[] { new JOptionPaneTweaker.ToFront(),
+                new WrappedOptionPaneText.Initializer(),
+                new WrappedOptionPaneText(res.getString(RES_ECD + "Header")),
+                " ", //
+                getDeviceLockDescriptionLine(res, "Full_Name", lock.owner),
+                getDeviceLockDescriptionLine(res, "User_Name", lock.username),
+                getDeviceLockDescriptionLine(res, "Host_Name", lock.host) };
+    }
+
+    private String getDeviceLockDescriptionLine(ResourceBundle res, String key,
+            String value) {
+        if (!StringUtils.hasValue(value))
+            return "";
+        else
+            return "        " + res.getString(RES_ECD + key) + "  " + value;
     }
 
     private void tryToLockDataForWriting() {
@@ -1456,6 +1617,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String otherUser = null;
         try {
             workingDirectory.acquireWriteLock(lockMessageHandler,
+                lockOwnerName);
+            DeviceLockManager.writeLockFile(
+                Settings.isPersonalMode() ? lockMessageHandler : null,
                 lockOwnerName);
             return;
         } catch (ReadOnlyLockFailureException ro) {
@@ -1655,7 +1819,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
 
     private void displayStartupIOError(String resourceKey, String filename,
-            Throwable t) {
+            WorkingDirectory wd, Throwable t) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
@@ -1667,9 +1831,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } catch (Exception e) {}
         }
 
+        String messageKey = CloudStorageUtils.isCloudStorage(wd)
+                ? "Cloud_Message_FMT" : "Message_FMT";
+
         ExceptionDialog.showWithSubdialog(hideSS(), //
             resources.getString("Errors.Read_File_Error.Title"), //
-            resources.formatStrings("Errors.Read_File_Error.Message_FMT",
+            resources.formatStrings("Errors.Read_File_Error." + messageKey,
                 resources.getString(resourceKey), filename), " ", //
             "<a>" + resources.getString("More_Information") + "</a>", //
             t);
@@ -1990,6 +2157,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public List saveAllData() {
+        return saveAllDataImpl(true);
+    }
+
+    private List saveAllDataImpl(boolean promptToSaveDirtyGuiData) {
         maybeUpdateRecentDataset();
 
         List unsavedData = new LinkedList();
@@ -1997,8 +2168,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return unsavedData;
 
         // prompt the user to save changes in various GUIs
-        logger.finer("Saving user interface data");
-        saveDirtyGuiData();
+        if (promptToSaveDirtyGuiData) {
+            logger.finer("Saving user interface data");
+            saveDirtyGuiData();
+        }
 
         // save the size of the team dashboard window
         maybeSaveWindowSize();

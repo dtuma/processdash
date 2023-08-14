@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ package net.sourceforge.processdash.tool.export.ui;
 import java.io.IOException;
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -70,6 +71,12 @@ public class ImportNow extends TinyCGIBase {
                 out.print("</li>\n");
             }
             out.print("</ul>\n");
+
+        } else if (Settings.isTeamMode() && Settings.isCloudStorage()) {
+            out.print("<p style='margin-top:30px; font-style:italic'>" //
+                    + "<b>" + resources.getHTML("ExportNote") + "</b>&nbsp;"
+                    + resources.getHTML("Import.Not_Needed.Cloud_Message")
+                    + "</p>");
         }
 
         out.print("</body></html>");

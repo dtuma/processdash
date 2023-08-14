@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ import java.awt.Component;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +67,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
@@ -77,7 +77,7 @@ import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
-import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MissingMapping;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MappingException;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -473,14 +473,21 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         // encoding, try searching for it under the given folder root.
         if (!isValid && FolderMappingManager.isEncodedPath(teamDirectoryPath)
                 && Settings.getBool("syncWBS.searchForDir", true)) {
+            String cloudDirPath = null;
             try {
                 // ask the folder mapping manager to search for the directory
                 FolderMappingManager mgr = FolderMappingManager.getInstance();
                 File newDir = mgr.searchForDirectory(teamDirectoryPath, 2);
 
-                // if a dir is found, build and validate an ImportDirectory
+                // if a dir is found, build an ImportDirectory
                 ImportDirectory nid = ImportDirectoryFactory.getInstance()
                         .get(newDir.getAbsolutePath());
+
+                // if the dir is using cloud storage, save the cloud dir path
+                if (CloudStorageUtils.isCloudStorage(nid))
+                    cloudDirPath = nid.getDescription();
+
+                // validate the directory to ensure readability
                 nid.validate();
 
                 // if we successfully validate a newly found directory, adopt
@@ -492,22 +499,15 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
                 dir = nid;
                 isValid = true;
 
-            } catch (MissingMapping mm) {
-                // display a message if the shared folder is unregistered
-                StringBuffer err = new StringBuffer("?sharedFolderUnknownKey");
-                HTMLUtils.appendQuery(err, "key", mm.getKey());
-                HTMLUtils.appendQuery(err, "relPath",
-                    mm.getRelPath().substring(1));
-                signalError(err.substring(1));
-
-            } catch (FileNotFoundException fnfe) {
-                // display a message if the resolved path is not found
-                String dirPath = fnfe.getMessage();
-                signalError("sharedFolderDirNotFound&teamDir", dirPath);
+            } catch (MappingException me) {
+                // display a message if shared folder errors are encountered
+                signalError(me.asQuery().substring(1) + "&SYNC-IS-NEEDED");
 
             } catch (Exception e) {
                 // if a replacement directory could not be found and validated,
-                // abort and signal an error below
+                // abort. Signal cloud storage errors here, other errors below
+                if (cloudDirPath != null)
+                    signalError("cloudFolderCannotRead&cloudStorageDir", cloudDirPath);
             }
         }
 
@@ -728,7 +728,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
      * display a "please wait" page, then initiate the operation.
      */
     private void maybeSynchronize(HierarchySynchronizer synch)
-        throws HierarchyAlterationException
+        throws HierarchyAlterationException, IOException
     {
         synch.setWhatIfMode(true);
         if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
@@ -738,6 +738,14 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
             synch.enableDebugLogging();
 
         synch.sync();
+
+        // if only miscellaneous changes were made, start the sync over in "run"
+        // mode to apply them. Let that operation display the final output.
+        if (synch.isMiscChangeOnly()) {
+            parameters.put(RUN_PARAM, "t");
+            writeContents();
+            return;
+        }
 
         if (synch.getDebugLogInfo() != null)
             maybeDumpDebugLog(synch);
@@ -750,7 +758,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         }
 
         if (isJsonRequest()) {
-            printJsonResponse(synch.getChanges().isEmpty());
+            printJsonResponse(synch.getChanges().isEmpty(), false);
 
         } else if (synch.getChanges().isEmpty()) {
             printChanges(synch.getChanges());
@@ -1011,14 +1019,13 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
 
 
-    private void printJsonResponse(boolean upToDate) {
+    private void printJsonResponse(boolean upToDate, boolean isMiscOnly) {
         JSONObject response = new JSONObject();
 
-        if (upToDate) {
+        if (upToDate || isMiscOnly) {
             JSONObject message = new JSONObject();
             message.put("title", "Synchronization Complete");
-            message.put("body",
-                "Your personal plan is up to date - no changes were necessary.");
+            message.put("body", getUpToDateMessage(isMiscOnly));
             response.put("message", message);
 
         } else {
@@ -1029,6 +1036,12 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
         response.put("stat", "ok");
         out.print(response.toString());
+    }
+
+    private String getUpToDateMessage(boolean isMiscOnly) {
+        return (isTeam || isMaster ? "Project data" : "Your personal plan")
+                + " is up to date - " + (isMiscOnly ? "only minor" : "no")
+                + " changes were necessary.";
     }
 
 
@@ -1042,12 +1055,16 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
             getDataContext().putValue(CHANGES_DATANAME, null);
         }
 
+        boolean isMiscOnly = HierarchySynchronizer.isMiscChangeOnly(changeList);
+        if (isMiscOnly && isJsonRequest()) {
+            printJsonResponse(true, true);
+            return true;
+        }
+
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
-        if (changeList.isEmpty()) {
-            String message = (isTeam || isMaster ? "Project data"
-                    : "Your personal plan")
-                    + " is up to date - no changes were necessary.";
+        if (changeList.isEmpty() || isMiscOnly) {
+            String message = getUpToDateMessage(isMiscOnly);
             out.print("<p>" + message + "</p>");
 
             if (parameters.containsKey(TriggerURI.IS_TRIGGERING)) {

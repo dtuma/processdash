@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
@@ -126,7 +127,8 @@ public class BundledImportDirectory implements ImportDirectory {
 
     private void maybePurgeOldPdashFiles(String filename) {
         // only purge older PDASH files
-        if (!filename.toLowerCase().endsWith(".pdash"))
+        String filenameLC = filename.toLowerCase();
+        if (!filenameLC.endsWith(".pdash"))
             return;
 
         // see how many PDASH bundles we're configured to retain. 0 == no limit
@@ -142,7 +144,7 @@ public class BundledImportDirectory implements ImportDirectory {
             return;
 
         // Scan files starting with newest, looking for bundles of this file
-        String suffix = "-" + FileBundleID.filenameToBundleName(filename)
+        String suffix = "-" + FileBundleID.filenameToBundleName(filenameLC)
                 + ".xml";
         Arrays.sort(filenames);
         int count = 0;
@@ -171,16 +173,35 @@ public class BundledImportDirectory implements ImportDirectory {
     }
 
     private Integer readPdashRetentionBundleCount() {
+        // if this is a dissemination dir, only retain 3 bundles. Dissemination
+        // dirs are not packed, and old team-data.pdash files have no value
+        File targetDir = workingDir.getTargetDirectory();
+        if (TeamDataConstants.DISSEMINATION_DIRECTORY
+                .equals(targetDir.getName()))
+            return 3;
+
+        // check the dir itself, and also its dashboard dir, for a setting
+        Integer result = readPdashRetentionBundleCount(targetDir);
+        if (result == null) {
+            try {
+                File dashboardDir = targetDir.getParentFile().getParentFile();
+                result = readPdashRetentionBundleCount(dashboardDir);
+            } catch (NullPointerException npe) {
+            }
+        }
+
+        // by default, retain all personal PDASH export bundles
+        return result == null ? 0 : result;
+    }
+
+    private Integer readPdashRetentionBundleCount(File targetDir) {
         try {
-            File targetDir = workingDir.getTargetDirectory();
             Properties p = FileBundleUtils.getBundleProps(targetDir);
             String val = p.getProperty("pdashRetentionBundleCount");
             return Integer.valueOf(val);
         } catch (Throwable t) {
+            return null;
         }
-
-        // default: retain 10 bundles
-        return 10;
     }
 
     private Integer pdashRetentionBundleCount = null;
@@ -215,6 +236,26 @@ public class BundledImportDirectory implements ImportDirectory {
             throw new IOException("Couldn't flush changes to " + filename
                     + " in " + getDescription());
     }
+
+
+    public static boolean isBundled(ImportDirectory dir, FileBundleMode mode) {
+        // retrieve underlying delegate for DynamicImportDirectory
+        if (dir instanceof DynamicImportDirectory)
+            dir = ((DynamicImportDirectory) dir).getDelegate();
+
+        // if this is not a bundled import dir, return null
+        if (!(dir instanceof BundledImportDirectory))
+            return false;
+
+        // if no specific mode was requested, return true
+        if (mode == null)
+            return true;
+
+        // return true if this directory uses the given bundle mode
+        BundledImportDirectory bid = (BundledImportDirectory) dir;
+        return mode.equals(bid.getBundleMode());
+    }
+
 
     public static ForkTracker getSyncBundleForkTracker(ImportDirectory dir) {
         // retrieve underlying delegate for DynamicImportDirectory

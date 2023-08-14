@@ -32,6 +32,7 @@ import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.team.setup.move.CloudStorageDashboardWorker;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -77,6 +78,7 @@ class CloudStorageSetupHelper {
                 System.out.println("Bundling new cloud-based Team Dashboard");
                 FileBundleMigrator.migrate(dir,
                     DashboardInstanceStrategy.INSTANCE, FileBundleMode.Sync);
+                CloudStorageDashboardWorker.getShareableDataDirectoryPath(dir);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -198,6 +200,6 @@ class CloudStorageSetupHelper {
         }
     }
 
-    private static final String CLOUD_SETTING = "dataset.isCloudStorage";
+    private static final String CLOUD_SETTING = Settings.CLOUD_STORAGE_FLAG;
 
 }

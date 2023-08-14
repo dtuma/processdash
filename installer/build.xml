@@ -4,7 +4,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2021 Tuma Solutions, LLC
+Copyright (C) 2001-2023 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -363,14 +363,7 @@ Authors:
 
     <target name="install-CD" depends="init"
             description="Create an installation CD for the dashboard">
-        <fail unless="jreInstDir"
-            message="The jreInstDir property must be set to build a CD"/>
-        <fail unless="jreInstExe"
-            message="The jreInstExe property must be set to build a CD"/>
-        <available file="${jreInstDir}/${jreInstExe}" property="have.JREinst"/>
-	<fail unless="have.JREinst" 
-            message="No JRE installer found at '${jreInstDir}/${jreInstExe}'"/>
-
+        <!-- build the custom installer for the CD -->
         <antcall target="install.xml">
             <param name="install.file" value="install-cd.xml"/>
 	</antcall>
@@ -393,7 +386,15 @@ Authors:
         <antcall target="-install-CD-delete"/>
     </target>
 
-    <target name="-package-CD" depends="init">
+    <target name="-package-CD" depends="init" unless="noBuild.package-CD">
+        <fail unless="jreInstDir"
+            message="The jreInstDir property must be set to build a CD"/>
+        <fail unless="jreInstExe"
+            message="The jreInstExe property must be set to build a CD"/>
+        <available file="${jreInstDir}/${jreInstExe}" property="have.JREinst"/>
+        <fail unless="have.JREinst" 
+            message="No JRE installer found at '${jreInstDir}/${jreInstExe}'"/>
+
 	<echo file="cd-config.ini">1.6
 ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar

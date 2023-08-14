@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2022 Tuma Solutions, LLC
+// Copyright (C) 2005-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,10 +131,10 @@ public class ArchiveMetricsFileExporter implements Runnable,
         try {
             doExport();
             completionStatus = new CompletionStatus(CompletionStatus.SUCCESS,
-                    dest.getTarget(), null);
+                    dest.getTarget(), dest.isCloudStorage(), null);
         } catch (Exception ioe) {
             completionStatus = new CompletionStatus(CompletionStatus.ERROR,
-                    dest.getTarget(), ioe);
+                    dest.getTarget(), dest.isCloudStorage(), ioe);
             ioe.printStackTrace();
             tryCancel();
         }

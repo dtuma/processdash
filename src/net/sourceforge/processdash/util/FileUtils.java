@@ -39,10 +39,14 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
+import java.util.zip.ZipFile;
 
 public class FileUtils {
 
@@ -70,6 +74,29 @@ public class FileUtils {
         }
 
         return new long[] { verify.getValue(), size };
+    }
+
+    /** @since 2.6.11 */
+    public static String computeMD5(File file) throws IOException {
+        DigestInputStream dis = null;
+        try {
+            dis = new DigestInputStream(new FileInputStream(file),
+                    MessageDigest.getInstance("MD5"));
+            byte[] buf = new byte[8192];
+            while (dis.read(buf) != -1)
+                ;
+
+            StringBuilder hash = new StringBuilder();
+            for (byte b : dis.getMessageDigest().digest())
+                hash.append(String.format("%02x", b));
+            return hash.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException(e);
+
+        } finally {
+            safelyClose(dis);
+        }
     }
 
     /** Utility routine: slurp an entire file from an InputStream. */
@@ -169,6 +196,16 @@ public class FileUtils {
         if (c != null) {
             try {
                 c.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
+    public static void safelyClose(ZipFile z) {
+        if (z != null) {
+            try {
+                z.close();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }

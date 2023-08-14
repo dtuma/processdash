@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2021 Tuma Solutions, LLC
+// Copyright (C) 2008-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -66,6 +67,10 @@ public class ExportFileStream {
 
     public Object getTarget() {
         return target;
+    }
+
+    public boolean isCloudStorage() {
+        return CloudStorageUtils.isCloudStorage(destDir);
     }
 
     public void abort() {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.msg.MessageHandler;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
+import net.sourceforge.processdash.team.sync.SyncScanner;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.util.NetworkDriveList;
@@ -119,6 +120,7 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
         saveString(data, TeamDataConstants.TEAM_DIRECTORY_UNC, directoryUNC);
         saveString(data, TeamDataConstants.TEAM_DATA_DIRECTORY_URL, url);
         RepairImportInstruction.maybeRepairForIndividual(data);
+        SyncScanner.requestScan(path);
     }
 
     private String findProject(PropertyKey node, String id) {

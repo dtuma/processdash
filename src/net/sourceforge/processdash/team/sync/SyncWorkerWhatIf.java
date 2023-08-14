@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,12 +38,19 @@ public class SyncWorkerWhatIf extends AbstractSyncWorker {
 
     private DataContext data;
     private DashHierarchy hier;
+    private boolean allowForceData;
 
     private Map localData = new HashMap();
 
     public SyncWorkerWhatIf(DataContext data, DashHierarchy hier) {
         this.data = data;
         this.hier = hier;
+        this.allowForceData = true;
+    }
+
+    public SyncWorkerWhatIf makeSafe() {
+        allowForceData = false;
+        return this;
     }
 
     protected void doAddTemplate(String path, String templateID)
@@ -92,7 +99,10 @@ public class SyncWorkerWhatIf extends AbstractSyncWorker {
 
     public void doPutValueForce(String name, SaveableData value) {
         name = getOriginalPath(name);
-        data.putValue(name, value);
+        if (allowForceData)
+            data.putValue(name, value);
+        else
+            localData.put(name, value);
     }
 
 }

@@ -24,6 +24,7 @@
  <indexitem text="correlation test" target="UsingProbeTool.correlation"/>
  <indexitem text="counting LOC" target="LOCCounter"/>
  <indexitem text="cyclic development" target="UsingHierarchyEditor.cyclic"/>
+ <indexitem text="data directory, personal" target="PersonalStorage"/>
  <indexitem text="defects" target="EnteringDefects">
   <indexitem text="defect dialog" target="EnteringDefects">
    <indexitem text="autostart" target="ConfigurationFile.defectDialog.autostart"/>

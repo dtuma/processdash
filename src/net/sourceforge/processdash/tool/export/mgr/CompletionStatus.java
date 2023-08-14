@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,12 +65,19 @@ public class CompletionStatus {
 
     private String status;
     private Object target;
+    private boolean cloudStorage;
     private Throwable exception;
 
 
     public CompletionStatus(String status, Object target, Throwable exception) {
+        this(status, target, false, exception);
+    }
+
+    public CompletionStatus(String status, Object target, boolean cloudStorage,
+            Throwable exception) {
         this.status = status;
         this.target = target;
+        this.cloudStorage = cloudStorage;
         this.exception = exception;
     }
 
@@ -89,6 +96,11 @@ public class CompletionStatus {
      */
     public Object getTarget() {
         return target;
+    }
+
+    /** Return true if the target is on cloud storage */
+    public boolean isCloudStorage() {
+        return cloudStorage;
     }
 
     /** If an error occurred, this returns the exception.  Otherwise, returns

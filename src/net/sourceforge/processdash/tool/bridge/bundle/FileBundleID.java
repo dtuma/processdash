@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -82,12 +82,17 @@ public class FileBundleID {
 
     public FileBundleID(Date timestamp, FileBundleTimeFormat timeFormat,
             String deviceID, String bundleName) {
+        this(timeFormat.format(timestamp), deviceID, bundleName);
+    }
+
+    protected FileBundleID(String timestamp, String deviceID,
+            String bundleName) {
         // reject null values
         if (timestamp == null || deviceID == null || bundleName == null)
             throw new NullPointerException();
 
         // store values into fields
-        this.timestamp = timeFormat.format(timestamp);
+        this.timestamp = timestamp;
         this.deviceID = deviceID;
         this.bundleName = filenameToBundleName(bundleName);
         this.token = this.timestamp + "-" + deviceID + "-" + this.bundleName;

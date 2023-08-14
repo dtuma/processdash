@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -336,6 +336,14 @@ public class HierarchySynchronizer {
 
     public List getChanges() {
         return changes;
+    }
+
+    public boolean isMiscChangeOnly() {
+        return isMiscChangeOnly(changes) && !isFollowOnWorkNeeded();
+    }
+
+    public static boolean isMiscChangeOnly(List changes) {
+        return changes.size() == 1 && changes.contains(MISC_CHANGE_COMMENT);
     }
 
     public boolean isFollowOnWorkNeeded() {
@@ -1123,7 +1131,8 @@ public class HierarchySynchronizer {
             DashHierarchy mockHierarchy = new DashHierarchy("");
             mockHierarchy.copy(this.hierarchy);
             this.hierarchy = mockHierarchy;
-            syncWorker = new SyncWorkerWhatIf(dataRepository, mockHierarchy);
+            syncWorker = new SyncWorkerWhatIf(dataRepository, mockHierarchy)
+                    .makeSafe();
         } else {
             syncWorker = new SyncWorkerLive(dataRepository,
                     deletionPermissions, completionPermissions);
@@ -2224,7 +2233,7 @@ public class HierarchySynchronizer {
     public static final String PSP_SUBSET = "PSP To Date Subset Prefix";
     private static final String NEEDS_PSP_SUBSET_PROMPT = PSP_SUBSET
             + "///Needs Prompt";
-    static final String MISC_CHANGE_COMMENT =
+    private static final String MISC_CHANGE_COMMENT =
         "Updated miscellaneous project information";
 
 

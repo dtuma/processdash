@@ -16,10 +16,20 @@
   <mapID target="TeamFormsReports" url="Topics/FormsReports.html" />
   <mapID target="TeamFormsReports.org" url="Topics/FormsReports.html#org" />
   <mapID target="TeamFormsReports.cm" url="Topics/FormsReports.html#cm" />
+  <mapID target="TeamDashboardOrg" url="Topics/TeamDashboardOrganization.html" />
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />
-  <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDir.html#pdes" />
+  <mapID target="TeamConfigDir.cloud" url="Topics/TeamConfigDirCloud.html" />
+  <mapID target="TeamConfigDir.cloudCreateTeam" url="Topics/TeamConfigDirCloud.html#createTeam" />
+  <mapID target="TeamConfigDir.cloudMemberSetup" url="Topics/TeamConfigDirCloud.html#memberSetup" />
+  <mapID target="TeamConfigDir.cloudTeamShare" url="Topics/TeamConfigDirCloud.html#teamShare" />
+  <mapID target="TeamConfigDir.cloudMigrate" url="Topics/TeamConfigDirCloud.html#migrate" />
+  <mapID target="TeamConfigDir.pdes" url="Topics/TeamConfigDirPDES.html" />
+  <mapID target="TeamConfigDir.pdesCreateTeam" url="Topics/TeamConfigDirPDES.html#createTeam" />
+  <mapID target="TeamConfigDir.pdesMigrate" url="Topics/TeamConfigDirPDES.html#migrate" />
+  <mapID target="TeamConfigDir.local" url="Topics/TeamConfigDirLocal.html" />
+  <mapID target="TeamConfigDir.localCreateTeam" url="Topics/TeamConfigDirLocal.html#createTeam" />
   <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
   <mapID target="TeamInviteJoin" url="Topics/InviteJoin.html" />
   <mapID target="TeamMemberJoin" url="Topics/MembersJoin.html" />
@@ -49,6 +59,7 @@
   <mapID target="TeamLaunchSnapshot" url="Topics/SaveLaunchSnapshot.html" />
   <mapID target="TeamEditWBS" url="Topics/EditingTheWBS.html" />
   <mapID target="TeamInsertWorkflow" url="Topics/InsertingWorkflows.html" />
+  <mapID target="TeamWorkflowRates" url="Topics/WorkflowRates.html" />
   <mapID target="TeamImportMSProj" url="Topics/ImportFromMSProject.html" />
   <mapID target="TeamEditWBSMetrics" url="Topics/EditingWBSMetrics.html" />
   <mapID target="TeamWBSIndiv" url="Topics/EditingWBSIndiv.html" />
@@ -64,6 +75,9 @@
   <mapID target="TeamMemberManageData.defects" url="Topics/ManagingPersonalMetrics.html#defects" />
   <mapID target="TeamMemberManageData.size" url="Topics/ManagingPersonalMetrics.html#size" />
   <mapID target="TeamMemberManageData.pps" url="Topics/ManagingPersonalMetrics.html#pps" />
+  <mapID target="TeamMemberDataCollab" url="Topics/TeamMemberDataCollab.html" />
+  <mapID target="TeamMemberDataCollab.syncWBS" url="Topics/TeamMemberDataCollab.html#syncWBS" />
+  <mapID target="TeamMemberDataCollab.export" url="Topics/TeamMemberDataCollab.html#export" />
 
   <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
   <mapID target="TeamLeaderProjectReports" url="Topics/TeamLeaderProjectReports.html" />

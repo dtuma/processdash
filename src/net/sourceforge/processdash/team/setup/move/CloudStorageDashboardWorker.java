@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,8 +26,10 @@ package net.sourceforge.processdash.team.setup.move;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Random;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
@@ -35,8 +37,10 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
@@ -71,8 +75,10 @@ public class CloudStorageDashboardWorker {
         // any of the files/directories we'll be writing, or other dashboard
         // related content
         if (newDirectory.isDirectory() && !isDataAlreadyMigrated()) {
-            validateDestFilesNotPresent("bundles", "heads", "global.dat",
-                "pspdash.ini", "datasetID.dat", "state", "timelog.xml",
+            validateDestFilesNotPresent("global.dat", "pspdash.ini",
+                "datasetID.dat", "state", "timelog.xml",
+                FileBundleConstants.BUNDLE_SUBDIR,
+                FileBundleConstants.HEADS_SUBDIR,
                 TeamServerPointerFile.FILE_NAME,
                 ProcessDashboard.DATA_MOVED_FILENAME,
                 TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME);
@@ -154,15 +160,11 @@ public class CloudStorageDashboardWorker {
         File movedFile = getTargetFile(ProcessDashboard.DATA_MOVED_FILENAME);
         try {
             // convert the target into [Shared Folder] encoding if possible
-            SyncClientMappings.initialize(newDirectory);
-            String newLocation = FolderMappingManager.getInstance()
-                    .encodePath(newDirectory.getAbsolutePath());
-            String knownFileSearchQuery = getKnownFileSearchQuery();
+            String newLocation = getShareableDataDirectoryPath(newDirectory);
 
             // write a data moved file with the new location
             Writer out = new FileWriter(movedFile);
             out.write(newLocation);
-            out.write(knownFileSearchQuery);
             out.write(System.getProperty("line.separator"));
             out.close();
 
@@ -179,16 +181,53 @@ public class CloudStorageDashboardWorker {
         }
     }
 
-    private String getKnownFileSearchQuery() {
+    public static String getShareableDataDirectoryPath(File targetDir) {
+        // compute a [Shared Folder] encoded path to this directory. If
+        // is is not encodable, just return the directory path
+        SyncClientMappings.initialize(targetDir);
+        String absolutePath = targetDir.getAbsolutePath();
+        String encodedPath = FolderMappingManager.getInstance()
+                .encodePath(absolutePath);
+        if (!FolderMappingManager.isEncodedPath(encodedPath))
+            return absolutePath;
+
         try {
-            File bundleDir = new File(newDirectory, "bundles");
-            for (File f : bundleDir.listFiles()) {
-                if (f.getName().endsWith("-core.xml"))
-                    return "?bundles/" + f.getName();
+            // if a unique directory tag file already exists, return it
+            String[] targetFiles = targetDir.list();
+            if (targetFiles == null)
+                return encodedPath;
+            for (String oneFile : targetFiles) {
+                if (oneFile.startsWith(UNIQUE_DIRECTORY_ID))
+                    return encodedPath + "?" + oneFile;
             }
+
+            // create a file in the target directory with a random name
+            String tagFilename = UNIQUE_DIRECTORY_ID
+                    + toAlphanumeric(System.currentTimeMillis()) + "-" //
+                    + toAlphanumeric(new Random().nextInt()) + ".txt";
+            File tagFile = new File(targetDir, tagFilename);
+            String newLocation = encodedPath + "?" + tagFilename;
+
+            // write a short explanatory message into that file
+            PrintWriter out = new PrintWriter(new OutputStreamWriter(
+                    FileBundleUtils.outputStream(tagFile), "UTF-8"));
+            for (String line : UNIQUE_TAG_VERBIAGE)
+                out.println(line);
+            out.println(newLocation);
+            out.close();
+            tagFile.setReadOnly();
+
+            // return an encoded path with a search query that can be used to
+            // find this directory
+            return newLocation;
+
         } catch (Exception e) {
+            return encodedPath;
         }
-        return "";
+    }
+
+    private static String toAlphanumeric(long number) {
+        return Long.toString(Math.abs(number), Character.MAX_RADIX);
     }
 
 
@@ -236,5 +275,20 @@ public class CloudStorageDashboardWorker {
     // we don't need the FileBundleMigrator to lock the source directory,
     // because it's already locked by the running dashboard
     private static boolean SOURCE_DIR_IS_ALREADY_LOCKED_FLAG = false;
+
+    // prefix used to create a file for uniquely tagging a directory
+    private static final String UNIQUE_DIRECTORY_ID = "unique-directoryID-";
+
+    // verbiage to write into the unique tag file
+    private static final String[] UNIQUE_TAG_VERBIAGE = { //
+            "The name of this file helps to uniquely identify this directory.",
+            "If you make a manual copy of this entire directory tree (for",
+            "backup, testing, or other purposes), you should generally",
+            "delete this file from the copy so uniqueness is maintained.", //
+            " ", //
+            "Other individuals can create a shortcut to this Team Dashboard",
+            "by running the Process Dashboard installer, enabling the 'Tools",
+            "for Team Leaders' option, and entering the following value for",
+            "the team configuration directory:", " " };
 
 }

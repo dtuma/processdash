@@ -1,0 +1,79 @@
+<table style="margin-left: 1cm">
+<tr><td><b>Under Shared Folder with Key:</b>&nbsp;</td>
+    <td><tt><!--#echo sfKey --></tt></td></tr>
+<!--#if sharedFolderError eq 'MissingSubfolder' -->
+<tr><td style="text-align:right"><b>In Subdirectory:</b>&nbsp;</td>
+    <td><tt><!--#echo sfRelPath --></tt></td></tr>
+<!--#endif-->
+</table>
+
+
+
+<!--#if sharedFolderError eq 'MissingMapping' -->
+
+<p>Unfortunately, you do not have a Shared Folder entry with that key.
+Please contact your team leader for help.  You may need to take one or
+both of the following steps:</p>
+
+<ul>
+
+<li>Install a desktop sync client, if the shared folder is in cloud
+storage (such as OneDrive, Google Drive, DropBox, etc)</li>
+
+<li style="margin-top: 1em">Open "<!--#if datasetMode ne 'team'
+--><img src="/help/Images/cmenu.png"> &rarr; <!--#endif-->Tools &rarr;
+Preferences &rarr; Shared Folders" and add an entry with the key
+"<tt><!--#echo sfKey --></tt>", indicating where the shared folder can
+be found.</li>
+
+</ul>
+
+
+
+<!--#else -->
+
+<!--#if sharedFolderError eq 'MissingRootFolder' -->
+    <p>On this computer, that shared folder key maps to:</p>
+<!--#elif sharedFolderError eq 'MissingSubfolder' -->
+    <p>On this computer, those values map to:</p>
+<!--#endif-->
+
+<pre style="margin-left:1cm"><!--#echo sfPath --></pre>
+
+<p>Unfortunately, that directory could not be found.</p>
+
+<ul>
+
+<li style="margin-top: 1em">If the directory is in <b>cloud storage</b>
+(such as OneDrive, Google Drive, DropBox, etc), make sure:
+
+    <ul>
+    <li style="margin-top: 0.5em">Its owner has shared the
+        directory with you</li>
+    <li>You have added the directory to your personal cloud
+        storage area (via a shortcut, link, alias, etc.)</li>
+    <li>You have installed the desktop client for that cloud
+        service, it is currently running, and it has synchronized
+        that directory to this computer.</li>
+    <li>For more information on these steps, <a target="_blank"
+        href="/teamhelp/frame.html?TeamConfigDir.cloudMemberSetup">click
+        here</a>.</li>
+    </ul>
+
+    </li>
+
+<li style="margin-top: 1em">If the directory is on a <b>network file
+server</b>, check your network connection and try again.  If the
+problem persists, you may need to map a network drive, or you may need
+to be granted read/write file permissions.  Contact your team leader
+for more help.</li>
+
+<li style="margin-top: 1em">If the directory mapping is <b>incorrect</b>,
+Open "<!--#if datasetMode ne 'team' --><img src="/help/Images/cmenu.png">
+&rarr; <!--#endif-->Tools &rarr; Preferences &rarr; Shared Folders" and
+edit the entry with the key "<tt><!--#echo sfKey --></tt>", indicating the
+correct location where the shared folder can be found.</li>
+
+</ul>
+
+<!--#endif-->

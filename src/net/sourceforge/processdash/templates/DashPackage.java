@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2015 Tuma Solutions, LLC
+// Copyright (C) 2003-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,24 +26,29 @@ package net.sourceforge.processdash.templates;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
-import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.VersionUtils;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.VersionUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 
@@ -75,6 +80,9 @@ public class DashPackage {
 
     /** True if this package contains localizable resource bundles */
     public boolean localizable;
+
+    /** Certificates used to sign the jarfile containing the package */
+    public Certificate[] signedBy;
 
     /** the time we last successfully checked for an updated
         version of this package */
@@ -177,9 +185,18 @@ public class DashPackage {
 
         debug("File: " + filename);
 
-        if (id == null) try {
-            lookForDashManifest();
-        } catch (IOException ioe) {}
+        if (filename != null) {
+            JarFile jarFile = null;
+            try {
+                jarFile = new JarFile(filename, true);
+                if (id == null)
+                    readAttrsFromDashManifest(jarFile);
+                signedBy = getJarSigners(jarFile);
+            } catch (Exception e) {
+            } finally {
+                FileUtils.safelyClose(jarFile);
+            }
+        }
 
         if (id==null)
             throw new InvalidDashPackage();
@@ -214,10 +231,7 @@ public class DashPackage {
     }
 
 
-    private void lookForDashManifest() throws IOException {
-        if (filename == null) return;
-
-        JarFile jarFile = new JarFile(filename, false);
+    private void readAttrsFromDashManifest(JarFile jarFile) throws IOException {
         ZipEntry entry = jarFile.getEntry(DASHBOARD_MANIFEST_FILENAME);
         if (entry == null) return;
 
@@ -230,6 +244,28 @@ public class DashPackage {
         requiresDashVersion = p.getProperty(REQUIRE_ATTRIBUTE);
         localizable = "true".equals(p.getProperty(L10N_ATTRIBUTE));
     }
+
+
+    private Certificate[] getJarSigners(JarFile jarFile)
+            throws IOException {
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry e = entries.nextElement();
+            if (e.getName().toUpperCase().startsWith("META-INF/")
+                    || e.isDirectory())
+                continue;
+
+            // read the signatures for the the first entry we encounter
+            InputStream in = jarFile.getInputStream(e);
+            byte[] buf = new byte[8096];
+            while (in.read(buf) != -1)
+                ;
+            in.close();
+            return e.getCertificates();
+        }
+        return null;
+    }
+
 
 
         /** Try to download the update information for this package. */

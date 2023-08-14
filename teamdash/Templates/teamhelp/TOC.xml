@@ -13,11 +13,20 @@
                               image="PageIcon" target="TeamMCF" />
          <tocitem text="Forms &amp; Reports"
                               image="PageIcon" target="TeamFormsReports" />
+         <tocitem text="Plan Team Deployments"
+                              image="PageIcon" target="TeamDashboardOrg" />
       </tocitem>
       <tocitem text="Prep for Team Launch"
                                image="BookIcon" target="TeamLaunchPrep" >
-         <tocitem text="Create Team Directory"
-                              image="PageIcon" target="TeamConfigDir" />
+         <tocitem text="Setup Team Data Storage"
+                              image="BookIcon" target="TeamConfigDir" >
+            <tocitem text="Network Directory"
+                              image="PageIcon" target="TeamConfigDir.local" />
+            <tocitem text="Cloud Storage"
+                              image="PageIcon" target="TeamConfigDir.cloud" />
+            <tocitem text="Enterprise Server"
+                              image="PageIcon" target="TeamConfigDir.pdes" />
+         </tocitem>
          <tocitem text="Installing the Dashboard"
                               image="PageIcon" target="TeamInstall" />
          <tocitem text="Create Project"
@@ -67,6 +76,8 @@
                               image="BookIcon" target="TeamEditWBS" >
             <tocitem text="Inserting Workflows"
                               image="PageIcon" target="TeamInsertWorkflow" />
+            <tocitem text="Using Workflow Rates"
+                              image="PageIcon" target="TeamWorkflowRates" />
             <tocitem text="Importing from MS Project"
                               image="PageIcon" target="TeamImportMSProj" />
             <tocitem text="Editing WBS Metrics"
@@ -95,6 +106,8 @@
                               image="PageIcon" target="TeamMemberManageEV" />
             <tocitem text="Manage Metrics"
                               image="PageIcon" target="TeamMemberManageData" />
+            <tocitem text="Data Collaboration"
+                              image="PageIcon" target="TeamMemberDataCollab" />
       </tocitem>
 
       <tocitem text="Team Leaders" image="BookIcon" target="TeamLeader" >

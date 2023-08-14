@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -48,12 +49,19 @@ public class FileBundleCollection
 
     private File zipFile;
 
+    private String prefix;
+
+    private boolean lightweight;
+
     private ZipFile bundleZip;
 
-    public FileBundleCollection(FileBundleManifest manifest, File zipFile) {
+    public FileBundleCollection(FileBundleManifest manifest, File zipFile,
+            String prefix) {
         this.manifest = manifest;
         this.files = manifest.getFiles();
         this.zipFile = zipFile;
+        this.prefix = prefix;
+        this.lightweight = false;
     }
 
     public FileBundleID getBundleID() {
@@ -76,6 +84,14 @@ public class FileBundleCollection
         return files.getChecksum(resourceName);
     }
 
+    public boolean isLightweight() {
+        return lightweight;
+    }
+
+    public void setLightweight(boolean lightweight) {
+        this.lightweight = lightweight;
+    }
+
     /**
      * Read a file from within this bundle.
      * 
@@ -84,10 +100,16 @@ public class FileBundleCollection
      */
     public synchronized InputStream getInputStream(String resourceName)
             throws IOException {
+        if (lightweight) {
+            String url = "jar:" + zipFile.toURI().toURL() //
+                    + "!/" + prefix + resourceName;
+            return new URL(url).openStream();
+        }
+
         if (bundleZip == null)
             bundleZip = new ZipFile(zipFile);
 
-        ZipEntry e = bundleZip.getEntry(resourceName);
+        ZipEntry e = bundleZip.getEntry(prefix + resourceName);
         if (e == null)
             throw new FileNotFoundException(resourceName);
 

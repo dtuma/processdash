@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2023 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -93,6 +93,8 @@ import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
+import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMigrator;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleUtils;
@@ -111,6 +113,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
+import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MappingException;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -889,7 +892,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         boolean bundleNewProjectsByDefault = //
                 getWorkingDirectory() instanceof BundledWorkingDirectory
-                        || Settings.getBool("dataset.isCloudStorage", false);
+                        || Settings.isCloudStorage();
         if (Settings.getBool("bundle.newProjects", bundleNewProjectsByDefault))
             bundleProjectDataDirectory(projDataDir, isPersonal);
 
@@ -2837,8 +2840,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
      * resolve the team directory to something that will work for the
      * current user, if possible.  */
     protected ImportDirectory resolveTeamDataDirectory() {
+        ImportDirectory result = null;
         try {
-            ImportDirectory result = resolveTeamDataDirectoryImpl();
+            result = resolveTeamDataDirectoryImpl();
             if (result == null)
                 throw new WizardError(IND_DATADIR_ERR_URL);
 
@@ -2846,6 +2850,14 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             return result;
 
         } catch (IOException e) {
+            // if the dir exists and uses cloud storage, display a cloud message
+            if (CloudStorageUtils.isCloudStorage(result))
+                throw new WizardError(IND_DATADIR_ERR_URL)
+                        .param("cloudFolderCannotRead")
+                        .param("cloudStorageDir", result.getDescription());
+
+            // otherwise, display an error about the missing directory or
+            // unreachable server
             throw new WizardError(IND_DATADIR_ERR_URL).causedBy(e);
         }
     }
@@ -2927,6 +2939,10 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             File dir = FolderMappingManager.getInstance()
                     .searchForDirectory(teamDataDirPath, 2);
             return dir.getParentFile().getParentFile().getAbsolutePath();
+
+        } catch (MappingException me) {
+            // display a message if shared folder errors are encountered
+            throw new WizardError(IND_DATADIR_ERR_URL + me.asQuery());
 
         } catch (Exception e) {
             // we were unable to find a directory that matches. Abort so we can
@@ -3238,7 +3254,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static boolean lookForRecentBundleWithActualData(File wbsDir,
             String exportFilename, DataContext data, boolean storeBestBackup) {
         // list the names of files in the bundles subdirectory
-        File bundleDir = new File(wbsDir, "bundles");
+        File bundleDir = new File(wbsDir, FileBundleConstants.BUNDLE_SUBDIR);
         String[] filenames = bundleDir.list();
         if (filenames == null || filenames.length == 0)
             return false;
@@ -3247,8 +3263,9 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         Arrays.sort(filenames);
 
         // prepare variables for filename scan
+        String exportFilenameLC = exportFilename.toLowerCase();
         String bundleFilenameSuffix = "-"
-                + FileBundleID.filenameToBundleName(exportFilename) + ".zip";
+                + FileBundleID.filenameToBundleName(exportFilenameLC) + ".zip";
         int suffixLen = bundleFilenameSuffix.length();
         boolean sawExportFileBundle = false;
 

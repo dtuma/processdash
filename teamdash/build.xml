@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2022 Tuma Solutions, LLC
+Copyright (C) 2002-2023 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="6.2.11"/> 
+  <property name="teamtools.version" value="6.3.1"/>
   <property name="teamtools.requires" value="2.6.6+"/>
 
   <property name="processdash.dir" value=".."/>
@@ -212,6 +212,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.team.group.UserGroupManager"/>
       <root classname="net.sourceforge.processdash.team.mcf.CustomProcess"/>
       <root classname="net.sourceforge.processdash.team.ui.PersonLookupDialog"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator"/>
@@ -247,6 +248,7 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer"/>
       <root classname="net.sourceforge.processdash.ui.lib.WindowUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
+      <root classname="net.sourceforge.processdash.ui.lib.WrappingText"/>
       <root classname="net.sourceforge.processdash.ui.lib.ZoomAction"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.util.DateUtils"/>
@@ -281,7 +283,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 208) {
+        if (classCount > 211) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -400,6 +402,7 @@ class dependency has been added in a dashboard class?)
   <target name="working-dirs-jar" depends="compile">
     <!-- compute the classes needed for working directory logic -->
     <classfileset id="workingDirClasses" dir="${processdash.bin}">
+      <root classname="net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
     </classfileset>

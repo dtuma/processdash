@@ -1,146 +1,99 @@
 <html>
 <head>
-<title>Create Team Configuration Directory (Team Leader)</title>
+<title>Setup Team Dashboard Data Storage (Team Leader)</title>
 <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body>
 
-<h1>Create Team Configuration Directory (Team Leader)</h1>
+<h1>Setup Team Dashboard Data Storage (Team Leader)</h1>
 
-<p>The open-source bundle of the Process Dashboard currently uses a shared
-network directory to facilitate team collaboration.  When a particular team
-begins using the Team Dashboard for the first time, it will be necessary to
-create a network directory for them to use.  (If this is difficult in your
-organization, <a href="#pdes">see below</a> for other options.)</p>
-
-<p>This <i>team configuration directory</i> will contain important team
-planning information, such as the list of all the project iterations the team
-has performed.  In the typical configuration, this directory will also hold
-exported snapshots of individual data, which the Team Dashboard will import
-and use to compute team roll-ups.</p>
-
-<p>This team configuration directory must be accessible, readable, and
-writable by all team members.  Because of this, it should generally be a
-shared network directory. Since the directory will typically hold PSP data
-collected by individuals, you may wish to configure it with permissions that
-forbid file access by non-team members.</p>
-
-<p>If you have several subteams that will be working together closely, and
-those subteams need to roll up their data into a single set of reports, you
-should create a single directory that all of these subteams will share.  If
-you have multiple teams that are not closely related and who will not be
-viewing consolidated reports, those teams should each have their own
-directory.</p>
-
-<p>If your team is performing several projects (or project iterations) one
-after another, you should use a single team configuration directory for all of
-the iterations.</p>
-
-<p>Some projects will already have a shared network directory that is
-used to hold project documents. If this is true for your project,
-simply create a subdirectory for dashboard metrics data.  If your
-project does not already have a shared project directory, work with
-your information technology (IT) support staff to create one.</p>
-
-<p><a name="criteria"></a>For this directory, it is <b><u>critical</u></b> to
-ensure that the following file permissions are in place:</p>
+<p>The Team Dashboard facilitates communication and collaboration
+between the members of a team project.</p>
 
 <ul>
 
-<li>All team members must be able to read/write all files</li>
+<li>If your team <a href="TeamDashboardOrganization.html">already has
+a Team Dashboard</a>, you can skip forward to the 
+<a href="MakeTeamProject.html">project creation</a> step.</li>
 
-<li>Permissions must be set to "inherit" - so that when new files and
-subdirectories are created, all team members can read/write them as
-well.</li>
-
-</ul>
-
-<p>If the members of your team are predominately using the Microsoft
-Windows operating system, the use of a UNC path is strongly
-recommended for configuration purposes.  That is, whenever the
-dashboard asks for the location of this directory, you are encouraged
-to enter the directory path as <tt>\\serverName\path\to\directory</tt>
-instead of <tt>T:\path\to\directory</tt>.</p>
-
-<p>Also, the Team Dashboard must be able to read and write directly to the
-files in this directory.  <b style="color: a00">Do not</b> make use of
-"Offline Folders," "Windows Sync," "Dropbox," "Google Drive," or any other
-similar utilities which create a shadow copy of the files out on the network.
-Use of those utilities will introduce a <b style="color: a00">high probability
-of catastrophic loss</b> of Team Dashboard data.</p>
-
-<p>There will be times in the future that you will need to recall the
-location of the team configuration directory (for example, if a new
-individual needs to install a Team Dashboard shortcut).  If you forget this
-location, you can look it up by opening the Team Dashboard, choosing
-Help&nbsp;&#8594;&nbsp;About Process Dashboard, and clicking the Configuration
-tab.  The first paragraph on the Configuration tab will provide the location
-of the team configuration directory.</p>
-
-<h2><a name="pdes"></a>Alternative: Process Dashboard Enterprise Server</h2>
-
-<p>As stated above, the open-source bundle of the Process Dashboard uses a
-shared network directory to facilitate team collaboration.  That approach was
-selected because it makes use of simple network services that are commonly
-available in the vast majority of organizations. However, it is not a perfect
-fit for every organization:</p>
-
-<ul>
-
-<li style="margin-bottom:12px">Some organizations do not have shared file
-servers in use, or their system administrators are reluctant to create
-them.</li>
-
-<li style="margin-bottom:12px">When a team is comprised of members in multiple
-locations, there may not be a network file server that all team members can
-access.  And even when a particular server is reachable by the entire team,
-some individuals may encounter problems stemming from network latency or poor
-connectivity.</li>
-
-<li style="margin-bottom:12px">When teams are using a mix of Windows, Mac,
-Unix, and/or Linux, there is not a universal way to type the network path that
-is meaningful to all of the operating systems.  In addition, "mount" commands
-on Mac/Unix/Linux may have to be hand-tweaked on each computer to ensure that
-file locking protocols work correctly.  These problems make initial setup
-challenging for some team members.</li>
-
-<li style="margin-bottom:12px">Finding an appropriate server, creating a new
-team directory, and properly adjusting the permissions can take time.  If a
-team forgets to perform these steps in advance, their initial project launch
-may be needlessly delayed while the entire team waits for these tasks to
-finish.</li>
-
-<li style="margin-bottom:12px">It can be a challenge to manage filesystem
-permissions based on changing team membership.  Mistakes in the configuration
-of permission inheritance can sometimes go undetected and cause problems
-later.</li>
-
-<li>In a large organization with a sizeable process improvement initiative,
-many teams may be using the Process Dashboard.  It can be labor-intensive to
-create network directories for each team and help them to overcome the
-problems listed above.  Even worse, the organization's valuable process
-improvement data is then scattered across an unknown number of network
-locations.  This makes it harder for coaches to work with multiple teams;
-makes it challenging to ensure that proper backups are taking place; and makes
-it difficult to perform any sort of organization-wide data analysis.</li>
+<li>Otherwise, you'll need to create a Team Dashboard.  The <b>first
+step</b> in creating a Team Dashboard is configuring the area where it
+will store data.</li>
 
 </ul>
 
-<p>Fortunately, the <a href="http://www.processdash.com/pdes"
-target="_blank">Process Dashboard Enterprise Server</a> solves all of these
-problems.  In addition, it provides teams and organizations with many
-significant new benefits.  (For example, it offers the option to look back in
-time and see reports, charts, and data as they appeared at some point in the
-past.)  For more information on the server, visit:</p>
+<p>To support collaboration, the Team Dashboard needs a data storage
+area that all team members can access.  This storage area will hold
+important team planning information, such as the list of all the
+project iterations the team has performed, the work breakdown
+structures for each, and exported snapshots of individual data, which
+the Team Dashboard will use to compute team roll-ups.</p>
 
-<p style="margin-left:1cm"><a target="_blank"
-    href="http://www.processdash.com/pdes">http://www.processdash.com/pdes</a></p>
+<p>The Team Dashboard supports three different data storage
+approaches, as shown below.  A coach or team leader will need to
+select and configure one of these approaches before team planning can
+begin:</p>
 
+<table border bordercolor="silver" cellpadding="4" cellspacing="0"
+       style="margin-left:30px; margin-top:15px">
 
-<!-- Add blank space to the bottom of the page, so we can scroll to -->
-<!-- all of the HTML anchors named above -->
-<p class="hideInBook">
-&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p>
+<tr>
+<th>&nbsp;</th>
+<th style="padding:5px 15px"><a href="TeamConfigDirLocal.html">Network<br>Directory</a></th>
+<th style="padding:5px 15px"><a href="TeamConfigDirCloud.html">Cloud<br>Storage</a></th>
+<th style="padding:5px 15px"><a href="TeamConfigDirPDES.html">Enterprise<br>Server</a></th>
+</tr>
+
+<tr>
+<td>Ease of setup and ongoing use</td>
+<td align="center">Hard</td>
+<td align="center">Moderate</td>
+<td align="center">Easy</td>
+</tr>
+
+<tr>
+<td>Access team reports from multiple computers&nbsp;&nbsp;</td>
+<td align="center"><img src="../Images/check.png"></td>
+<td align="center"><img src="../Images/check.png"></td>
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Team data backed up automatically</td>
+<td align="center"><b>?</b></td>
+<td align="center"><img src="../Images/check.png"></td>
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Fast access to team data</td>
+<td></td>
+<td align="center"><img src="../Images/check.png"></td> 
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Built-in data sharing controls</td>
+<td></td>
+<td></td>
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Automatic software upgrades</td>
+<td></td>
+<td></td>
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+<tr>
+<td>Time machine for historical data</td>
+<td></td>
+<td></td>
+<td align="center"><img src="../Images/check.png"></td>
+</tr>
+
+</table>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2015 Tuma Solutions, LLC
+// Copyright (C) 2000-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ public class Settings {
     protected static final String DATASET_MODE_TEAM = "team";
     protected static final String DATASET_MODE_PERSONAL = "personal";
     protected static final String DATASET_MODE_HYBRID = "hybrid";
+    protected static final String CLOUD_STORAGE_FLAG = "dataset.isCloudStorage";
     protected static Properties settings = null;
     protected static Properties serializable = null, defaults = null;
     protected static Preferences userPreferences =
@@ -221,6 +222,10 @@ public class Settings {
     public static boolean isHybridMode() {
         String setting = getVal(DATASET_MODE);
         return DATASET_MODE_HYBRID.equals(setting);
+    }
+
+    public static boolean isCloudStorage() {
+        return getBool(CLOUD_STORAGE_FLAG, false);
     }
 
     public static boolean isFollowMode() {

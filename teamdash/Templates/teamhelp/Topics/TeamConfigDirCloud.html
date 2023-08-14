@@ -1,0 +1,410 @@
+<html>
+<head>
+<title>Using Cloud Storage for Team Data</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Using Cloud Storage for Team Data</h1>
+
+<p>Many cloud storage providers - such as OneDrive, Dropbox, Google
+Drive, and others - offer desktop sync clients that copy files from
+your computer to the cloud, and vice versa.  The dashboard can use
+these cloud storage providers to support team collaboration.  The
+tradeoffs of this approach are:</p>
+
+
+<table style="margin-left:20px; margin-top: 15px;
+              border-spacing:5px 10px; border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Cloud service providers offer secure, backed-up storage that is
+compatible with zero-trust architectures.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Team Dashboard performance is not significantly affected by the
+speed of your network.  Startup and shutdown should be relatively
+fast, even over a slow VPN.</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Existing team project data (from past and current projects) can be
+<a href="#migrate">migrated into cloud storage</a> (but cooperation
+from active team members will be required).</td></tr>
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>Team Dashboard setup steps are less complex/error-prone than the
+<a href="TeamConfigDirLocal.html">network fileserver</a> approach,
+especially when team members are connecting from a mix of operating
+systems and/or diverse networks.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Team Dashboard setup steps are still more complex than the
+<a href="TeamConfigDirPDES.html">Enterprise Server</a>, and action is
+required from every team member.  If a team forgets to perform these
+steps in advance, their initial project launch may be needlessly
+delayed while the entire team waits for these tasks to
+finish.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>All team members must be proactive about running their cloud sync
+client and making sure it remains active.  If file synchronization
+stops on a team member's computer for a longer period of time, their
+data will become out of sync with the rest of the team.  This can lead
+to out-of-date info in team reports, and WBS edit conflicts when the
+individual finally comes back online.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>The dashboard cannot force the sync client to immediately publish
+or retrieve files.  This means a Save or Export operation won't be
+fully finished until the sync client gets around to publishing the new
+files.  Similarly, Refresh, Sync, and Import operations won't truly
+retrieve the latest data unless the sync client has copied that data
+from the cloud first.  If your sync client operates quickly, these
+differences may not be noticeable.  But if the sync client has a
+longer lag time, these discrepancies may confuse individuals who are
+trying to collaborate in real-time, or frustrate individuals who
+publish data and hope to see changes immediately.</td></tr>
+
+</table>
+
+
+
+<h2><a name="createTeam"></a>Cloud Storage Team Dashboard
+Creation</h2>
+
+<p>To create a new Team Dashboard in cloud storage, follow these
+steps:</p>
+
+<ol>
+
+<li class="space">Obtain an account with a cloud storage provider, if you
+don't already have one.
+
+    <ul>
+
+    <li>If you already have a Microsoft 365 or Google account, it
+        comes with cloud storage included.  If you don't have one,
+        it's easy to create a free account.</li>
+
+    <li>All team members will need accounts and sync clients from the
+        cloud storage provider you choose, so make sure to select a
+        provider that will work for everyone.  In particular, make
+        sure your provider offers a desktop sync client for all of the
+        operating systems (e.g., Windows, Mac OS X, Linux) that team
+        members are using.  (If you cannot find a provider that works
+        for everyone, you may need to consider using the
+        <a href="TeamConfigDirPDES.html">Enterprise Server</a>
+        instead.)</li>
+
+    </ul></li>
+
+<li class="space"><a name="createDir"></a>Log in to the website for
+your cloud storage provider, and create a new, empty directory for
+team data.
+
+    <ul>
+
+    <li>Depending on the cloud storage provider, you may wish to
+        create this directory within a team area, rather than your
+        personal space.  For example, this might be important to
+        ensure the team data isn't lost if you leave the
+        organization.</li>
+
+    <li>If you choose to create the directory in a shared team space,
+        create a "shortcut" or "link" to include it in your personal
+        drive as well.  See the <a href="#addLink">section below</a>
+        for more information on this step.</li>
+
+    </ul></li>
+
+<li class="space">Download and install the desktop sync client offered by
+your cloud storage provider.  Configure the sync client to start
+automatically each time you log in to your computer.</li>
+
+<li class="space">Find the dedicated folder on your computer that your
+sync client is managing.  (This folder typically has a name like
+"OneDrive," "My Drive," etc.)</li>
+
+<li class="space">Look underneath that managed folder to find the
+locally synced copy of the team data directory you created earlier.
+If you can't find it, make sure your sync client has copied all files
+down from the cloud.</li>
+
+<li class="space">Run the <a href="Installing.html">installer</a> for
+Process Dashboard 2.6.9 or higher, and choose the "Tools for Team
+Leaders" option.  When the installer asks for the location of team
+configuration data, enter the path to the team directory you found in
+the previous step.</li>
+
+<li class="space">The installer will create a Team Dashboard icon.  Use
+that icon to launch the Team Dashboard.  On initial startup, the Team
+Dashboard will ask if the directory is using cloud storage; click Yes.
+
+    <ul>
+
+    <li>If you do not see this prompt from the Team Dashboard, follow
+        the <a href="#registerFolder">steps below</a> to register your
+        cloud storage sync directory.  Then restart the Team
+        Dashboard, and watch for the cloud storage prompt during
+        startup.</li>
+
+    </ul></li>
+
+<li class="space">Ensure your sync client is running, and wait for it to
+publish the team data directory to the cloud.</li>
+
+<li class="space"><a name="share"></a>Log in to the website for your
+cloud storage provider, and share this team data folder with the team
+members, leaders, and coaches who will be collaborating within this Team
+Dashboard.</li>
+
+</ol>
+
+
+
+<h2><a name="memberSetup"></a>Cloud Storage Team Member Setup</h2>
+
+<p>To collaborate with the team, all team members and coaches will
+need to take the following steps:</p>
+
+<ol>
+
+<li class="space">Upgrade to Process Dashboard 2.6.9 or higher.</li>
+
+<li class="space">Obtain an account with the cloud storage provider that
+is being used to host the Team Dashboard.</li>
+
+<li class="space">Download and install the desktop sync client offered by
+this cloud storage provider.  Configure the sync client to start
+automatically each time you log in to your computer.</li>
+
+<li class="space">Log in to the website for your cloud storage provider,
+and look in the "Shared with me" area to find the team data directory.
+If you cannot find it, contact your team leader and make sure they have
+<a href="#share">shared</a> the team data directory with you.</li>
+
+<li class="space"><a name="addLink"></a>Add this shared team data
+directory to your personal drive via a "shortcut" or "link."  (This
+step lets your sync client know the directory should by synchronized
+down to your local computer.)  Exact instructions vary by cloud
+service; here are some examples:
+
+    <ul>
+
+    <li><b>OneDrive:</b> Log into OneDrive in your web browser, and
+        find the team data folder in the "Shared" list.  Right-click
+        on the folder and choose "Add shortcut to My files" from the
+        popup menu.  (<a target="_blank"
+        href="https://www.processdash.com/add-sync-folder/oneDrive">More
+        details here</a>.)</li>
+
+    <li><b>Google Drive:</b> Log into Google Drive in your web
+        browser, and find the team data folder in the "Shared with me"
+        list.  Right-click on the folder and choose "Add shortcut to
+        Drive" from the popup menu.  (<a target="_blank"
+        href="https://www.processdash.com/add-sync-folder/google-drive">More
+        details here</a>.)</li>
+
+    <li><b>Dropbox:</b> Log into Dropbox in your web browser, and find
+        the team data folder in the "Shared" list.  Depending on
+        settings, the folder may have been added to your Dropbox account
+        automatically; if not, hover over the folder, then click the "Add
+        to Dropbox" button that appears.  (<a target="_blank"
+        href="https://www.processdash.com/add-sync-folder/dropbox">More
+        details here</a>.)</li>
+
+    </ul></li>
+
+<li class="space">The previous step will add the team data shortcut to
+your drive at the top level.  But you can move the shortcut elsewhere in
+your drive if you prefer to keep your top-level directory organized.</li>
+
+</ol>
+
+
+
+<h2><a name="teamShare"></a>Cloud Storage Team Dashboard Sharing</h2>
+
+<p>The Team Dashboard reports are useful to many people, including
+team leaders, coaches, and planning/quality managers.  Other people
+can create a Team Dashboard shortcut on their computer by following
+these steps:</p>
+
+<ol>
+
+<li class="space">Perform the <a href="#memberSetup">team member
+setup</a> steps listed above.</li>
+
+<li class="space">Make sure your sync client is running and all synced
+files are up-to-date.  Find the location on your hard drive where the
+team data directory has been copied down from the cloud.</li>
+
+<li class="space">Run the <a href="Installing.html">installer</a> for
+Process Dashboard 2.6.9 or higher, and choose the "Tools for Team
+Leaders" option.  When the installer asks for the location of team
+configuration data, enter the path to the directory you found in the
+previous step.</li>
+
+<li class="space">The installer will create a Team Dashboard shortcut
+icon.  If you expect to access more than one Team Dashboard as part of
+your work, give that newly created icon a unique name.</li>
+
+</ol>
+
+
+
+<h2><a name="migrate"></a>Migrating Existing Team Data to Cloud
+Storage</h2>
+
+<p>Historical data is extremely valuable for team planning, tracking,
+and postmortem analysis. If you've already been using the Team
+Dashboard, it's possible to migrate your existing data into cloud
+storage. The general steps for migration are:</p>
+
+<ol>
+
+<li class="space">Make sure all team leaders and active team members
+have:
+
+    <ul>
+
+    <li>Upgraded to Process Dashboard 2.6.9 or higher.</li>
+
+    <li>Obtained an account with your selected cloud storage
+        provider.</li>
+
+    <li>Installed the desktop sync client on their computer, and
+        configured it to start automatically when they log in.</li>
+
+    </ul></li>
+
+<li class="space">Log in to the website for your cloud storage
+provider, and create a new, empty directory for team data, following
+the <a href="#createDir">general guidance above</a>.</li>
+
+<li class="space">In the website for your cloud storage provider,
+share this team data folder with the team members, leaders, and
+coaches who will be collaborating within this Team Dashboard.</li>
+
+<li class="space">Instruct team members to perform all of the 
+<a href="#memberSetup">team member setup steps</a> above.  Give them
+time and assistance to finish.</li>
+
+<li class="space">Choose a non-project-critical time to perform the
+following steps, in case any team members require assistance after the
+migration.</li>
+
+<li class="space">Contact team members and advise them to close any
+open WBS Editor windows until migration is complete.</li>
+
+<li class="space">Install the desktop sync client on a computer where
+the Team Dashboard is already installed.  Wait for the sync client to
+copy all files from the cloud, including the new empty team data
+directory you created.  Find the locally synced copy of this team data
+directory on your computer.</li>
+
+<li class="space">Open the Team Dashboard.  Choose "Tools &rarr; Migrate
+Data to Cloud Storage," then follow the prompts from the migration
+wizard.
+
+    <ul>
+
+    <li>When it asks for the new location of team data, enter the path
+        to the locally synced copy of the team data directory.</li>
+
+    <li>If the wizard complains that the new location does not appear
+        to be in cloud storage, follow the
+        <a href="#registerFolder">steps below</a> to register your
+        top-level cloud storage sync directory.  Then try the
+        migration operation again.</li>
+
+    </ul></li>
+
+<li class="space">Ensure your sync client is running, and wait for it to
+publish the new team data directory to the cloud.</li>
+
+<li class="space">If team members have completed the steps above,
+their personal dashboards will detect the migration within ten
+minutes, and begin using the new cloud storage directory
+automatically.
+
+    <ul>
+
+    <li>Individuals can verify connectivity by performing a "Sync to
+        WBS" and an "Export My Data Now" operation.  They can also
+        open the "Project Parameters and Settings" page and verify the
+        value in the "Team Project Network Directory" field.</li>
+
+    <li>In the Team Dashboard, you can open "Team Project Tools &rarr;
+        Show Status of Team Member Metrics" and watch to see that
+        individuals are able to successfully export data after the
+        migration.</li>
+
+    <li>If any team member encounters problems, it's likely they
+        missed one of the setup steps.  Work with them to resolve the
+        problem as quickly as possible.</li>
+
+    </ul></li>
+
+</ol>
+
+
+
+<h2><a name="registerFolder"></a>Manual Registration of Less Common
+Cloud Storage Providers</h2>
+
+<p>The dashboard can automatically recognize sync folders for many
+common cloud storage providers.  But if you're using a less-well-known
+provider or a home-grown solution, you may need to tell the dashboard
+where the synced files are stored on your computer:</p>
+
+<ol>
+
+<li class="space">Open the dashboard and choose "Preferences" from the
+"Tools" menu.</li>
+
+<li class="space">In the Preferences dialog, choose "Shared
+Folders."</li>
+
+<li class="space">If the table already contains an entry for the
+directory where your cloud sync client stores synced files, no changes
+are needed.  Otherwise, click the Add button to register a new shared
+folder.</li>
+
+<li class="space">Give the entry a short user-friendly key that describes
+the cloud storage service.
+
+    <ul>
+
+    <li>As an example, the standard providers use keys like "OneDrive"
+        or "Dropbox".</li>
+
+    <li>To streamline collaboration, everyone on your team should use
+        the same key to describe this cloud storage service.</li>
+
+    </ul>
+
+<li class="space">For the shared folder location, choose the top-level
+folder your sync client is managing. Then click OK.</li>
+
+</ol>
+
+<p>The top-level folder you chose will now be recognized as a folder
+that is being synced/shared across devices.  To streamline team
+collaboration, other team members are encouraged to perform this extra
+configuration step as well.  (This is not strictly required, but it
+will make it easier for them to <a href="MembersJoin.html">join</a>
+team projects.)</p>
+
+<p>Note: while the instructions in this help topic consistently refer
+to cloud storage, the instructions apply equally well to any mechanism
+that can automatically synchronize files between a group of computers.
+Older-style solutions like rsync and Offline Folders are possible
+examples.  You'll need to follow the steps in this section to flag the
+folder as "shared," and you'll need to ensure synchronization happens
+frequently to avoid data consistency issues.</p>
+
+<div class="hideInBook" style="margin-top: 9in">&nbsp;</div>
+
+</body>
+</html>

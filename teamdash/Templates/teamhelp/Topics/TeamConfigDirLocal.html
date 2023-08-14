@@ -1,0 +1,188 @@
+<html>
+<head>
+<title>Using a Network Directory for Team Data</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Using a Network Directory for Team Data</h1>
+
+<table border=0><tr>
+
+<td><img width=60 height=24 src="../Images/finger.png"></td>
+
+<td><b>Important Note:</b> In the past, Team Dashboard users were
+instructed to create a shared network directory (described below) for
+team data storage.  But in the current version of the dashboard, the
+best practices are now to use
+<a href="TeamConfigDirCloud.html">cloud storage</a> or the
+<a href="TeamConfigDirPDES.html">Process Dashboard Enterprise
+Server</a>.  Network directories are still allowed to support teams who
+have been using the dashboard for years; but new teams should consider
+the other options instead.  Migration support is also available for
+teams who wish to move away from network directories; see the
+<a href="TeamConfigDirCloud.html#migrate">cloud</a> and
+<a href="TeamConfigDirPDES.html#migrate">server</a> topics for more
+information.</td>
+
+</tr></table>
+
+
+<p>Network directories are <b><u>not</u></b> the preferred location
+for team data storage.  Here are some of the tradeoffs of this
+approach:</p>
+
+<table style="margin-left:20px; margin-top: 15px;
+              border-spacing:5px 10px; border-collapse:separate">
+
+<tr valign="top"><td><b>PRO:</b></td>
+<td>This approach is based on simple file-sharing services that have
+been around for decades.  This makes it an option in nearly every
+environment, including air-gapped networks where other approaches
+would be impossible.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Network file servers are a 1990's style technology that many IT
+departments are reluctant to support.  With the modern preference
+toward zero-trust architectures, many organizations are eliminating
+their network file servers completely.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Project data can only be accessed data when your computer is
+connected to the same network as the network file server, either
+directly or through a VPN.  When a team is comprised of members in multiple
+locations, there may not be a network file server that all team members can
+access.  And even when a particular server is reachable by the entire team,
+some individuals may encounter problems stemming from network latency or poor
+connectivity.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>File sharing protocols often have very slow performance -
+especially over a VPN.  If your network is slow, it can take an
+exceptionally long time for the team dashboard to open or shut down.
+If your network is unreliable, it may result in data loss if the
+network becomes unavailable when an individual needs to save
+changes.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>The network folder must be mapped/mounted on all the computers you
+use. These connections can time out and may need to be reestablished
+manually (especially after changes in network connectivity).</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>File permissions can be tricky to configure.  If file permissions
+are incorrect, or if permission inheritance is not configured
+properly, team members may see read-only error message in the
+dashboard or WBS Editor.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>It can be a challenge to manage filesystem permissions based on
+changing team membership.  Mistakes in the configuration of permission
+inheritance can sometimes go undetected and cause problems
+later.</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>When teams are using a mix of Windows, Mac, Unix, and/or Linux,
+individuals may encounter hard-to-overcome problems stemming from the
+operating systems' differing support for file-sharing protocols.
+(This can manifest itself as a startup error stating that the
+dashboard or WBS was unable to lock files for writing.)</td></tr>
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>Finding an appropriate server, creating a new
+team directory, and properly adjusting the permissions can take time.  If a
+team forgets to perform these steps in advance, their initial project launch
+may be needlessly delayed while the entire team waits for these tasks to
+finish.</td></tr>
+
+
+<tr valign="top"><td><b>CON:</b></td>
+<td>In a large organization with a sizeable process improvement initiative,
+many teams may be using the Process Dashboard.  It can be labor-intensive to
+create network directories for each team and help them to overcome the
+problems listed above.  Even worse, the organization's valuable process
+improvement data is then scattered across an unknown number of network
+locations.  This makes it harder for coaches to work with multiple teams;
+makes it challenging to ensure that proper backups are taking place; and makes
+it difficult to perform any sort of organization-wide data analysis.</td></tr>
+
+</table>
+
+
+<h2><a name="createTeam"></a>Network Directory Team Dashboard
+Creation</h2>
+
+<p>If <a href="TeamConfigDir.html">other options</a> are not
+available, teams can use a shared network directory for team data
+storage.  The general setup steps are:</p>
+
+<ol>
+
+<li class="space">Work with your information technology (IT) support
+staff to identify a network file server.<ul>
+
+    <li>This server must be on a network that is reachable by all team
+        members.  For remote workers and geographically distributed
+        teams, this may require use of a VPN.</li>
+
+    <li>Team data is valuable and difficult to replace, so backups are
+        important.  Work with the IT staff to make sure periodic
+        backups are enabled for the server in question, and for the
+        directory created in the next step.</li>
+
+    </ul></li>
+
+<li class="space">Create a new, empty directory on that file server.
+For this directory, it is <b><u>critical</u></b> to ensure that the
+following file permissions are in place:<ul>
+
+    <li>All team members are able to read/write all files.</li>
+
+    <li>Permissions are set to "inherit" - so that when new files and
+        subdirectories are created, all team members can read/write
+        them as well.</li>
+
+    <li>Since the directory will typically hold personal data
+        collected by individuals, you may wish to configure it with
+        permissions that forbid file access by non-team members.</li>
+
+    </ul></li>
+
+<li class="space">Map or mount the network directory so it is visible
+to your local computer (for example, as a new lettered drive in
+Windows, or as a folder under Volumes in Mac OS X).</li>
+
+<li class="space">When <a href="Installing.html">installing</a> the
+Process Dashboard, choose the "Tools for Team Leaders" option.  When
+the installer asks for the location of team configuration data, enter
+the path to this directory.<ul>
+
+    <li>If the members of your team are predominately using the
+        Microsoft Windows operating system, the use of a UNC path is
+        strongly recommended for configuration purposes.  That is,
+        whenever the dashboard asks for the location of this
+        directory, you are encouraged to enter the directory path
+        as <tt>\\serverName\path\to\directory</tt> instead
+        of <tt>T:\path\to\directory</tt>.</li>
+
+    <li>The installer will create a Team Dashboard shortcut icon.  If
+        you expect to access more than one Team Dashboard as part of
+        your work, give that newly created icon a unique name.</li>
+
+    </ul></li>
+
+</ol>
+
+<p>There will be times in the future that you will need to recall the
+location of the team configuration directory (for example, if a new
+individual needs to install a Team Dashboard shortcut).  If you forget this
+location, you can look it up by opening the Team Dashboard, choosing
+Help&nbsp;&#8594;&nbsp;About Process Dashboard, and clicking the Configuration
+tab.  The first paragraph on the Configuration tab will provide the location
+of the team configuration directory.</p>
+
+<div class="hideInBook" style="margin-top: 9in">&nbsp;</div>
+
+
+</body>
+</html>

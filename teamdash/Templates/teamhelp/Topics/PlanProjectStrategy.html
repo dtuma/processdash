@@ -58,19 +58,24 @@ your conceptual design into the WBS, you should align the tasks you
 create underneath the appropriate high-level components from the
 master project whenever it makes sense to do so.</p>
 
-<p>Most of the items you enter during conceptual design will be
-software components. These items appear in the WBS with a small floppy
-disk icon (<img border=0 width=13 height=13
-src="../Images/icon-floppy.png">). If your conceptual design includes
-documents or tasks, you can alter the type of an item by clicking on
-the icon. A menu will appear that you can use to change the WBS item
-type.</p>
+<p>Your conceptual design may include various components and documents.
+You can alter the type of a WBS item by clicking the node to the left
+of its name; a menu will appear that you can use to change the item
+type.  If you're uncertain, you can reuse the generic Component type
+for most items in your conceptual design.</p>
 
 <p>To complete the conceptual design, the team may wish to produce
 rough size estimates for each item in the WBS. You can enter this data
 by selecting the "Planned Size" tab on the right-hand side of the
-screen.  The sizes of software components can be estimated in lines of
-code (LOC), and documents can be estimated in pages.</p>
+screen.</p>
+
+<p>The initial list of size columns may differ from the ones in the
+image below, based on the
+<a href="MetricsCollectionFramework.html">metrics framework</a> that
+was used to <a href="MakeTeamProject.html">create the project</a>.
+For newer team projects (created using Process Dashboard 2.6.3 or
+higher), you can edit the list of <a href="#sizeMetrics">size
+metrics</a> by choosing "Workflows &rarr; Edit Size Metrics."</p>
 
 <p>For newer team projects (created using Process Dashboard 2.6 or
 higher), you can enter values in more than one size column for a given
@@ -172,6 +177,13 @@ Similarly, the team can make use of the size column only, if they prefer to
 make time estimates using a different technique.  Of course, it is possible to
 enter numbers in all three columns if desired.</p>
 
+<p>When entering values in the Size column, the units (e.g. LOC, Text Pages,
+etc.) must be specified.  For newer projects (created with Process Dashboard
+2.6.3 or higher), you can enter any units you like and the corresponding
+<a href="#sizeMetrics">size metric</a> will be created automatically.  (For
+older projects, the units must be chosen from the list of size metrics
+displayed on the Planned Size tab.)</p>
+
 <p>Best practices for estimation often recommend the use of a logarithmic
 scale for the estimates in the relative size rows.  Accordingly, the proxy
 editor will automatically fill in empty rows for you as soon as you enter one
@@ -209,6 +221,27 @@ particular component, and the WBS Editor will retrieve the corresponding size
 and/or time estimates from your proxy table. This technique can help a team to
 very quickly produce estimates for a large number of components in the Work
 Breakdown Structure.</p>
+
+
+<h2><a name="sizeMetrics"></a>Size Metrics</h2>
+
+<p>Size estimation and measurement are valuable aspects of project planning
+and tracking.  The WBS will provide an initial set of size metrics based on
+the <a href="MetricsCollectionFramework.html">metrics framework</a> that
+was used to <a href="MakeTeamProject.html">create the project</a>.  For
+newer team projects (created using Process Dashboard 2.6.3 or higher), you
+can customize the list of size metrics by choosing "Workflows &rarr; Edit
+Size Metrics."</p>
+
+<p class="figure"><img src="../Images/size-metrics-editor.png"></p>
+
+<p>Size metrics can be created, renamed, and deleted by clicking the
+corresponding buttons on the toolbar.</p>
+
+<p>There is not a Save button on the Size Metrics Editor.  Instead,
+customizations are automatically saved when you save the main work
+breakdown structure.  To save, switch back to the main Work Breakdown
+Structure Editor window and select Save from the File menu.</p>
 
 
 <h2><a name="milestones"></a>Iterations and Milestones</h2>

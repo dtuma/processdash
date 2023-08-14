@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2020 Tuma Solutions, LLC
+// Copyright (C) 1998-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,11 +51,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.jar.JarInputStream;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.w3c.dom.Document;
@@ -74,6 +74,7 @@ import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.team.mcf.MCFManager;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -81,6 +82,7 @@ import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
 import net.sourceforge.processdash.util.PatternList;
@@ -355,6 +357,13 @@ public class TemplateLoader {
 
     private static JarSearchResult searchJarForTemplates(
             DashHierarchy templates, String jarURL, DataRepository data) {
+        File jarFile;
+        try {
+            jarFile = new File(new URL(jarURL).toURI());
+        } catch (Exception ex) {
+            logger.severe("Could not parse template JAR URL " + jarURL);
+            return JarSearchResult.Ignore;
+        }
 
         // special handling for legacy TeamTools.jar file, whose templates
         // should be overridden by those in WBSEditor.jar
@@ -363,29 +372,44 @@ public class TemplateLoader {
 
         boolean foundTemplates = false;
         boolean foundContent = false;
+        JarFile jar = null;
         try {
             debug("searching for templates in " + jarURL);
 
             URL jarFileUrl = new URL(jarURL);
-            JarInputStream jarFile =
-                new JarInputStream((jarFileUrl).openStream());
+            jar = new JarFile(jarFile, true);
 
-            ZipEntry file;
-            String filename;
-            while ((file = jarFile.getNextEntry()) != null) {
-                filename = file.getName().toLowerCase();
-                if (filename.equals(MCF_PROCESS_XML)) {
-                    String baseURL = "jar:" + jarURL + "!/";
-                    InputStream mcfXmlData = MCFManager.getInstance()
-                            .registerMcf(baseURL, jarFile, null, true);
-                    if (mcfXmlData != null) {
-                        String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
-                        loadXMLProcessTemplate(templates, data, n, null,
-                            file.getTime(), mcfXmlData, true);
-                        jarFile.close();
-                        return JarSearchResult.Mcf;
-                    }
+            // if this is an MCF ZIP file, register it with the MCF manager and
+            // skip further processing
+            JarEntry file = jar.getJarEntry(MCF_PROCESS_XML);
+            if (file != null) {
+                String baseURL = "jar:" + jarURL + "!/";
+                InputStream in = jar.getInputStream(file);
+                InputStream mcfXmlData = MCFManager.getInstance()
+                        .registerMcf(baseURL, in, null, true);
+                in.close();
+                if (mcfXmlData != null) {
+                    String n = MCF_PROCESS_XML + " (in " + jarURL + ")";
+                    loadXMLProcessTemplate(templates, data, n, null,
+                        file.getTime(), mcfXmlData, true);
+                    return JarSearchResult.Mcf;
                 }
+            }
+
+            // if jar verification is active and this is an executable JAR that
+            // was not signed with a valid certificate, reject it
+            if (isUntrustedExecutableAddon(jarFile, jar)) {
+                logger.warning("Rejecting unsigned file: " + jarFile);
+                rejectDashPackageForFile(jarFile);
+                return JarSearchResult.Ignore;
+            }
+
+            // scan the entries in the JAR looking for template content
+            String filename;
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                file = entries.nextElement();
+                filename = file.getName().toLowerCase();
 
                 if (startsWithIgnoreCase(filename, TEMPLATE_DIR)) {
                     foundContent = true;
@@ -402,16 +426,18 @@ public class TemplateLoader {
                     debug("loading template: " + filename);
                     String n = file.getName() + " (in " + jarURL + ")";
                     loadXMLProcessTemplate(templates, data, n, jarFileUrl,
-                        file.getTime(), jarFile, false);
+                        file.getTime(), jar.getInputStream(file), true);
                     foundTemplates = true;
                 } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
-                    loadProcessTemplate(templates, jarFile, false);
+                    loadProcessTemplate(templates, jar.getInputStream(file),
+                        true);
                     foundTemplates = true;
                 } else if (filename.endsWith(DATAFILE_SUFFIX)) {
                     try {
                         debug("loading data: " + filename);
-                        data.addGlobalDefinitions(jarFile, false);
+                        data.addGlobalDefinitions(jar.getInputStream(file),
+                            true);
                     } catch (Exception e) {
                         logger.severe
                             ("unable to load global process data from " +
@@ -419,11 +445,13 @@ public class TemplateLoader {
                     }
                 }
             }
-            jarFile.close();
 
         } catch (IOException ioe) {
             logger.severe("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
+            return JarSearchResult.Ignore;
+        } finally {
+            FileUtils.safelyClose(jar);
         }
         // let our caller know what type of content we found in this JAR
         if (foundTemplates)
@@ -435,6 +463,47 @@ public class TemplateLoader {
         else
             // no template-published content was found
             return JarSearchResult.Ignore;
+    }
+
+    private static boolean isUntrustedExecutableAddon(File jarFile, JarFile jar)
+            throws IOException {
+        return hasExecutableEntry(jar) //
+                && !isInExplicitExtraDir(jarFile) //
+                && !DashboardSecurity.checkJar(jar);
+    }
+
+    private static boolean hasExecutableEntry(JarFile jar) {
+        Enumeration<JarEntry> entries = jar.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry entry = (JarEntry) entries.nextElement();
+            String filenameLC = entry.getName().toLowerCase();
+            for (String suffix : EXECUTABLE_FILE_SUFFIXES) {
+                if (filenameLC.endsWith(suffix))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static void rejectDashPackageForFile(File jarFile) {
+        for (DashPackage pkg : dashPackages) {
+            if (pkg.filename != null) {
+                File pkgFile = new File(pkg.filename);
+                if (pkgFile.equals(jarFile)) {
+                    dashPackages.remove(pkg);
+                    rejectedPackages.add(pkg);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static final String[] EXECUTABLE_FILE_SUFFIXES = { ".class", ".jar",
+            "WEB-INF/web.xml", ".jsp", ".exe", ".bat" };
+
+    private static boolean isInExplicitExtraDir(File jarFile) {
+        File jarDirectory = jarFile.getParentFile();
+        return explicitExtraDirs.contains(jarDirectory);
     }
 
     private static boolean searchDirForTemplates(DashHierarchy templates,
@@ -610,6 +679,7 @@ public class TemplateLoader {
             } catch (MalformedURLException e) {}
         }
 
+        List<File> extraDirs = new ArrayList<File>();
         int i = 1;
         while (true) {
             String extraDir = System.getProperty(EXTRA_DIR_SETTING_PREFIX + i);
@@ -617,10 +687,13 @@ public class TemplateLoader {
                 break;
 
             File dirToScan = new File(extraDir);
-            if (dirToScan.isDirectory())
+            if (dirToScan.isDirectory()) {
+                extraDirs.add(dirToScan);
                 scanDirForJarFiles(dirToScan, result);
+            }
             i++;
         }
+        explicitExtraDirs = Collections.unmodifiableList(extraDirs);
 
         String baseDir = getBaseDir();
         if (unpackagedBinaryBaseDir != null)
@@ -683,6 +756,7 @@ public class TemplateLoader {
     }
     private static URL[] template_url_list = null;
     private static List<URL> mcf_url_list = null;
+    private static List<File> explicitExtraDirs = Collections.EMPTY_LIST;
     private static boolean avoidJarCaching = true;
     //private static final String JARFILE_NAME = "pspdash.jar";
     private static final String TEMPLATE_DIRNAME = "Templates";
@@ -824,6 +898,7 @@ public class TemplateLoader {
         removeIncompatiblePackages(packages, urls);
         removeDuplicatePackages(packages, urls);
         dashPackages = new ArrayList(packages.keySet());
+        rejectedPackages = new ArrayList();
     }
 
     private static void deleteDuplicates(Vector list) {
@@ -995,12 +1070,17 @@ public class TemplateLoader {
 
 
 
-    private static ArrayList dashPackages = new ArrayList();
+    private static List<DashPackage> dashPackages = new ArrayList();
+    private static List<DashPackage> rejectedPackages = new ArrayList();
 
     /** Returns a list of all the packages currently installed.
      */
     public static List getPackages() {
         return Collections.unmodifiableList(dashPackages);
+    }
+
+    public static List getRejectedPackages() {
+        return Collections.unmodifiableList(rejectedPackages);
     }
 
 
@@ -1037,6 +1117,15 @@ public class TemplateLoader {
     /** Return the DashPackage object for an installed package, or null if
      *  the package is not installed. */
     public static DashPackage getPackage(String packageID) {
+        return findPackageByID(packageID, dashPackages);
+    }
+
+    public static DashPackage getRejectedPackage(String packageID) {
+        return findPackageByID(packageID, rejectedPackages);
+    }
+
+    private static DashPackage findPackageByID(String packageID,
+            List<DashPackage> dashPackages) {
         // look through the packages for an exact match.
         Iterator i = dashPackages.iterator();
         DashPackage pkg;

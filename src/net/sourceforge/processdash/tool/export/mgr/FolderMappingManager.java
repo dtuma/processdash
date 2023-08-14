@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+
+import net.sourceforge.processdash.util.HTMLUtils;
 
 /**
  * Manages a set of user-defined folder mappings, from string keys to absolute
@@ -258,15 +260,15 @@ public class FolderMappingManager {
      * @throws MissingMapping
      *             if the [key] in the given path does not match any registered
      *             folder mapping
-     * @throws FileNotFoundException
+     * @throws MissingRootFolder
      *             if the root folder for the given [key] does not exist
      * @throws MissingSubfolder
      *             if a matching folder underneath could not be found, or if
      *             multiple folders match equally
      */
     public File searchForDirectory(String path, int minMatchLen)
-            throws IllegalArgumentException, MissingMapping, MissingSubfolder,
-            FileNotFoundException {
+            throws IllegalArgumentException, MissingMapping, MissingRootFolder,
+            MissingSubfolder {
         String[] parsed = parseEncodedPath(path);
         if (parsed == null || parsed.length < 2 || parsed[1].length() == 0)
             throw new IllegalArgumentException(
@@ -282,7 +284,7 @@ public class FolderMappingManager {
             throw new MissingMapping(path, key, relPath);
         File folderDir = new File(folderPath);
         if (!folderDir.isDirectory())
-            throw new FileNotFoundException(folderPath);
+            throw new MissingRootFolder(folderPath, key, relPath);
 
         // see if terminal look-ahead matches were requested
         String[] lookAheads = null;
@@ -420,14 +422,18 @@ public class FolderMappingManager {
     }
 
 
-    public class MissingMapping extends FileNotFoundException {
+    public class MappingException extends FileNotFoundException {
 
         private String key, relPath;
 
-        private MissingMapping(String path, String key, String relPath) {
+        private MappingException(String path, String key, String relPath) {
             super(path);
             this.key = key;
             this.relPath = relPath;
+        }
+
+        public String getPath() {
+            return getMessage();
         }
 
         public String getKey() {
@@ -436,25 +442,34 @@ public class FolderMappingManager {
 
         public String getRelPath() {
             return relPath;
+        }
+
+        public String asQuery() {
+            StringBuffer q = new StringBuffer();
+            HTMLUtils.appendQuery(q, "sharedFolderError",
+                getClass().getSimpleName());
+            HTMLUtils.appendQuery(q, "sfPath", getPath());
+            HTMLUtils.appendQuery(q, "sfKey", getKey());
+            HTMLUtils.appendQuery(q, "sfRelPath", getRelPath().substring(1));
+            return q.toString();
         }
     }
 
-    public class MissingSubfolder extends FileNotFoundException {
+    public class MissingMapping extends MappingException {
+        private MissingMapping(String path, String key, String relPath) {
+            super(path, key, relPath);
+        }
+    }
 
-        private String key, relPath;
+    public class MissingRootFolder extends MappingException {
+        private MissingRootFolder(String path, String key, String relPath) {
+            super(path, key, relPath);
+        }
+    }
 
+    public class MissingSubfolder extends MappingException {
         private MissingSubfolder(String path, String key, String relPath) {
-            super(path);
-            this.key = key;
-            this.relPath = relPath;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getRelPath() {
-            return relPath;
+            super(path, key, relPath);
         }
     }
 
