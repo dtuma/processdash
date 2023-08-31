@@ -868,6 +868,13 @@ Authors:
     </java>
   </target>
 
+  <target name="TeamProcessUniv">
+    <antcall target="TeamProcess">
+      <param name="teamProcess.xml" value="Templates/team/Universal.xml"/>
+      <param name="teamProcess.zip" value="Univ.zip"/>
+    </antcall>
+  </target>
+
   <target name="mcfEditor" depends="ant-tasks,compile"
        description="Build the JAR files for the MCF editor app">
     <property name="mcfEditor.jar" value="${dist}/MCF_Editor.jar"/>
