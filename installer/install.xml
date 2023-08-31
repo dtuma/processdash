@@ -139,6 +139,8 @@
 	          src="../dist/TeamTools.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/WBSEditor.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true" 
+	          src="../dist/Univ.zip" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/api.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
