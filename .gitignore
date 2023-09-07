@@ -6,6 +6,7 @@
 
 /Templates/team/setup/filelist.txt
 /build.properties
+/logging.properties
 
 *.class
 Thumbs.db
