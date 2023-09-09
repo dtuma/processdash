@@ -45,12 +45,12 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class FileBundleManifest {
 
-    public static class Missing extends FileNotFoundException {
+    public static class Missing extends FileBundleFileNotFoundException {
 
         private FileBundleID bundleID;
 
         private Missing(File f, FileBundleID bundleID) {
-            super(f.getPath());
+            super(f);
             this.bundleID = bundleID;
         }
 

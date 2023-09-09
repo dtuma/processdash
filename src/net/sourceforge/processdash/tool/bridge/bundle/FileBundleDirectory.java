@@ -382,7 +382,8 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         return fileInfo;
     }
 
-    private ZipSource getZipSourceForBundle(FileBundleManifest mf) {
+    private ZipSource getZipSourceForBundle(FileBundleManifest mf)
+            throws FileBundleFileNotFoundException {
         if (mf.pack == null)
             return new ZipSource(getZipFileForBundleID(mf.getBundleID()), "");
         else
@@ -758,7 +759,11 @@ public class FileBundleDirectory implements FileBundleManifestSource {
 
         String prefix;
 
-        public ZipSource(File zipFile, String prefix) {
+        public ZipSource(File zipFile, String prefix)
+                throws FileBundleFileNotFoundException {
+            if (!zipFile.isFile())
+                throw new FileBundleFileNotFoundException(zipFile);
+
             this.file = zipFile;
             this.prefix = prefix;
         }
