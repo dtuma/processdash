@@ -170,14 +170,24 @@ public class ResourceBundleClient {
             } else {
                 // extract the new bundle into the directory
                 logger.fine(logPrefix + "Syncing down " + bundleID);
-                ResourceCollectionDiff diff = extractBundle(bundleID,
-                    oldBundleID, false);
-                workingHeads.storeHeadRef(bundleID);
-                madeChange = true;
+                try {
+                    ResourceCollectionDiff diff = extractBundle(bundleID,
+                        oldBundleID, false);
+                    workingHeads.storeHeadRef(bundleID);
+                    madeChange = true;
 
-                // keep track of the old and new files in the working directory
-                obsoleteFilenames.addAll(diff.getOnlyInA());
-                currentFilenames.addAll(diff.getB().listResourceNames());
+                    // keep track of the old and new files in the working dir
+                    obsoleteFilenames.addAll(diff.getOnlyInA());
+                    currentFilenames.addAll(diff.getB().listResourceNames());
+
+                } catch (FileBundleFileNotFoundException fbfnfe) {
+                    // the XML or ZIP file for bundleID is missing. This can
+                    // happen if the computer that wrote the bundle hasn't
+                    // synced all its dirty files to cloud storage yet. Ignore
+                    // the partial upload until all files appear.
+                    if (oldBundleID != null)
+                        currentFilenames.addAll(getBundleFilenames(oldBundleID));
+                }
             }
         }
 
