@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,9 @@ public class ForkTracker {
 
     /** An object for retrieving manifests for this bundle directory */
     private FileBundleManifestSource manifestSource;
+
+    /** An object for testing whether bundle files are intact */
+    private FileBundleValidator bundleValidator;
 
     /** The directory containing HEADs files for this bundle directory */
     private File bundleHeadsDir;
@@ -96,6 +99,11 @@ public class ForkTracker {
 
     public void setManifestSource(FileBundleManifestSource manifestSource) {
         this.manifestSource = manifestSource;
+    }
+
+
+    public void setBundleValidator(FileBundleValidator bundleValidator) {
+        this.bundleValidator = bundleValidator;
     }
 
 
@@ -180,7 +188,7 @@ public class ForkTracker {
         for (Entry<String, ForkList> e : bundleForks.entrySet()) {
             String bundleName = e.getKey();
             ForkList forks = e.getValue();
-            if (forks.size() > 1) {
+            if (forks.size() > 1 && !overwriteBundleNames.contains(bundleName)) {
                 // if a bundle has more than one distinct fork, add to result
                 List<FileBundleID> forkRefs = new ArrayList<FileBundleID>();
                 for (ForkInfo info : forks)
@@ -414,6 +422,11 @@ public class ForkTracker {
 
         // iterate over the distinct heads from newest to oldest
         for (ForkInfo head : distinctHeads) {
+
+            // discard invalid references
+            if (head.isValid == false)
+                continue;
+
             boolean headIsUniqueChild = true;
 
             for (ForkInfo oneChild : uniqueChildren) {
@@ -588,12 +601,15 @@ public class ForkTracker {
 
         private Set<String> parentDevices;
 
+        private boolean isValid;
+
         private int voteCount;
 
         private ForkInfo(FileBundleID forkRef) {
             this.forkRef = forkRef;
             this.directDevices = new HashSet<String>();
             this.parentDevices = new HashSet<String>();
+            this.isValid = bundleValidator.isBundleValid(forkRef);
             this.voteCount = 0;
         }
 

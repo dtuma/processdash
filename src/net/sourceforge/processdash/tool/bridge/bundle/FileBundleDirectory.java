@@ -54,7 +54,8 @@ import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 
-public class FileBundleDirectory implements FileBundleManifestSource {
+public class FileBundleDirectory
+        implements FileBundleManifestSource, FileBundleValidator {
 
     private File bundleDir;
 
@@ -531,6 +532,20 @@ public class FileBundleDirectory implements FileBundleManifestSource {
         replacementCache.put(bundleID, result);
         result.accessTime = System.currentTimeMillis();
         return result;
+    }
+
+
+    /**
+     * Test whether the manifest and ZIP files for a bundle are present.
+     */
+    @Override
+    public boolean isBundleValid(FileBundleID bundleID) {
+        try {
+            getBundleCollection(bundleID);
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -116,8 +116,9 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     protected void makeBundleClient() throws IOException {
         super.makeBundleClient();
 
-        // give the fork tracker a source for reading bundle manifests
+        // give the fork tracker sources for reading and validating bundles
         forkTracker.setManifestSource(client.getManifests());
+        forkTracker.setBundleValidator(client.getBundleDir());
 
         // start a background worker to perform fast-forwards if desired
         if (enableBackgroundFastForward)
