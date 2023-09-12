@@ -44,7 +44,7 @@ function confirm() {
 
 <h2>Team Members Out of Date</h2>
 
-<p>Support for cloud storage was added in Process Dashboard 2.6.9.
+<p>Support for cloud storage was added in Process Dashboard 2.7.
 Unfortunately, the following team members may be using older versions
 of the software:</p>
 
