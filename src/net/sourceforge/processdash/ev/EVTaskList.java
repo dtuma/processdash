@@ -2983,7 +2983,7 @@ public class EVTaskList extends AbstractTreeTableModel
                 } else if(filter == null && evTaskListFilterApplied()){
 
                     //No hier filter, just group filter
-                    data = getPlotDataFromXml(xml, null);
+                    data = getPlotDataFromXmlWithGroupFilter(xml);
                 
                 } else if(filter instanceof EVHierarchicalFilter){
 
@@ -3028,9 +3028,37 @@ public class EVTaskList extends AbstractTreeTableModel
             return new TaskData(XMLUtils.parse(taskXml).getDocumentElement());
         }
 
+        private TaskData getPlotDataFromXmlWithGroupFilter(String xml)
+                throws Exception {
+            TaskData result = null;
+
+            int pos = 0;
+            while (pos < xml.length()) {
+                pos = xml.indexOf(" flag='plain'", pos);
+                if (pos == -1)
+                    break;
+
+                int taskBeg = xml.lastIndexOf('<', pos);
+                int taskEnd = xml.indexOf('>', pos);
+                if (xml.charAt(taskEnd - 1) == '/')
+                    continue;
+                String taskXml = xml.substring(taskBeg, taskEnd) + "/>";
+                Element taskElem = XMLUtils.parse(taskXml).getDocumentElement();
+
+                String taskId = taskElem.getAttribute("tid");
+                if (taskId != null && taskId.startsWith("TL-")
+                        && evTaskListFilter.include(taskId.substring(3))) {
+                    if (result == null)
+                        result = new TaskData();
+                    result.accumulate(taskElem);
+                }
+            }
+
+            return result;
+        }
+
         /*
             This returns summary data (filtered) for a single baseline.
-            Note that hier filter may be null, when a group filter is in play.
         */
         private TaskData getPlotDataFromXml(String xml, EVHierarchicalFilter hierFilter) throws Exception {
 
