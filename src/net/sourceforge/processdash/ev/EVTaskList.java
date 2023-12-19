@@ -3124,7 +3124,7 @@ public class EVTaskList extends AbstractTreeTableModel
             }    
             
             Point p = new Point();
-            p.date = System.currentTimeMillis();
+            p.date = schedule.getEffectiveDate().getTime();
             p.name = "Current value";
             p.taskData = taskData;
             points.add(p);            
