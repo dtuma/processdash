@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,7 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -122,7 +124,9 @@ class JnlpFileRetriever {
 
     private static File tryToDownload(String jnlpHref) {
         try {
-            InputStream in = new URL(jnlpHref).openStream();
+            URL url = new URL(jnlpHref);
+            URLConnection conn = HTTPUtils.getURLFollowRedirects(url);
+            InputStream in = conn.getInputStream();
             File out = TempFileFactory.get().createTempFile("jnlp", ".tmp");
             out.deleteOnExit();
             FileUtils.copyFile(in, out);
