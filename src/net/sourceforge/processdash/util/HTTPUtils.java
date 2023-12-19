@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2021 Tuma Solutions, LLC
+// Copyright (C) 2004-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,7 +24,9 @@
 package net.sourceforge.processdash.util;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 
 import javax.servlet.http.HttpServletRequest;
@@ -228,6 +230,62 @@ public class HTTPUtils {
 
         int colonPos = auth.indexOf(':');
         return (colonPos == -1 ? auth : auth.substring(0, colonPos));
+    }
+
+    /**
+     * Open a connection to a URL, following HTTP redirects.
+     * 
+     * When retrieving the contents of a URL, Java will usually follow HTTP
+     * redirects. One exception occurs when an HTTP URL is redirected to an
+     * HTTPS URL, or vice versa; these redirections are unsupported by the
+     * standard libraries. This method detects this scenario and follows the
+     * redirection.
+     * 
+     * @param url
+     *            a URL to retrieve
+     * @return a connection to the given URL
+     * @throws IOException
+     *             if an IO problem is encountered
+     * @since 2.7.1
+     */
+    public static URLConnection getURLFollowRedirects(URL url)
+            throws IOException {
+        return followRedirects(url.openConnection());
+    }
+
+    /**
+     * Make a connection to a resource, following HTTP redirects.
+     * 
+     * When connecting to a URL, Java will usually follow HTTP redirects. One
+     * exception occurs when an HTTP URL is redirected to an HTTPS URL (or vice
+     * versa); these redirections are unsupported by the standard libraries.
+     * This method detects this scenario and follows the redirection.
+     * 
+     * @param conn
+     *            a URLConnection to open
+     * @return the original connection, or a replacement if a redirect was
+     *         followed
+     * @throws IOException
+     *             if an IO problem is encountered
+     * @since 2.7.1
+     */
+    public static URLConnection followRedirects(URLConnection conn)
+            throws IOException {
+
+        if (conn instanceof HttpURLConnection) {
+            HttpURLConnection hConn = (HttpURLConnection) conn;
+            hConn.setInstanceFollowRedirects(true);
+            hConn.setUseCaches(false);
+            int status = hConn.getResponseCode();
+            if (status / 100 == 3) {
+                URL baseUrl = conn.getURL();
+                String locationHeader = conn.getHeaderField("Location");
+                URL redirectURL = new URL(baseUrl, locationHeader);
+                conn = redirectURL.openConnection();
+            }
+        }
+
+        return conn;
     }
 
 }
