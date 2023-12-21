@@ -207,7 +207,7 @@ public class DisplayConfig extends TinyCGIBase {
             out.print("</tr>");
 
             for (DashPackage pkg : badPackages) {
-                printDashPackageTableRow(pkg, !brief, false, true, !brief);
+                printDashPackageTableRow(pkg, true, false, true, !brief);
             }
 
             out.print("</table>");

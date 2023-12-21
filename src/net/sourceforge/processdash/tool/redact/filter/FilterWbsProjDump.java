@@ -154,9 +154,9 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
     private String filterAttributeTag(String line) {
         // Custom attributes could contain just about anything, and their very
         // presence could indicate the company the data came from. Discard them
-        // if the user has asked us to filter "notes/comments/descriptions."
-        // otherwise, leave them alone.
-        return (filterNotes ? null : line);
+        // if the user has asked us to filter "notes/comments/descriptions" or
+        // "labels." Otherwise, leave them alone.
+        return (filterNotes || filterLabels ? null : line);
     }
 
     private String filterNoteTag(String line) {

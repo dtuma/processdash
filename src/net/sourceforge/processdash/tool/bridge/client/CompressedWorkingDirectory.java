@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -97,7 +97,7 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
 
     public void prepare() throws IOException {
         this.extractDirectory = TempFileFactory.get().createTempDirectory(
-            "pdash-compressed-wd", ".tmp");
+            "pdash-compressed-wd", ".tmp", true, true);
 
         File srcZip = getTargetZipFile();
         if (srcZip == null)
@@ -251,9 +251,11 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
             while ((e = zipIn.getNextEntry()) != null)
                 if (e.getName().equalsIgnoreCase(expectedFile))
                     foundExpectedFile = true;
+            zipIn.close();
         } catch (Exception e) {
+        } finally {
+            FileUtils.safelyClose(in);
         }
-        FileUtils.safelyClose(in);
         return foundExpectedFile;
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,16 +46,20 @@ public class LineFilteringReader extends Reader {
     }
 
     private void getNextLine() throws IOException {
-        String line = in.readLine();
-        if (line == null) {
-            nextLine = null;
-        } else {
+        while (true) {
+            String line = in.readLine();
+            if (line == null) {
+                nextLine = null;
+                break;
+            }
+
             line = lineFilter.getString(line);
             if (line == null)
-                getNextLine();
+                continue;
             else {
                 nextLine = line + "\n";
                 usedChars = 0;
+                break;
             }
         }
     }

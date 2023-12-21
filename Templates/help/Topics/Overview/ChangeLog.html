@@ -8,6 +8,123 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.7</h2>
+
+<ul>
+
+<li>The dashboard now supports the use of cloud storage services (such as
+OneDrive, Google Drive, and DropBox) for team collaboration.
+
+    <ul>
+
+    <li>This is preferred over the previous "shared network directory"
+        approach, since cloud storage is more readily accessible and more
+        secure.</li>
+
+    <li>New Team Dashboards can be created in cloud storage, and existing
+        Team Dashboards can be migrated.</li>
+
+    </ul></li>
+
+<li>It is now possible to edit the list of size metrics used by a
+project:<ul>
+
+    <li>High-maturity software teams can create new size metrics to support
+        specific planning and tracking goals.</li>
+
+    <li>Teams who work in disciplines other than software can create size
+        metrics to precisely support their planning and tracking needs.</li>
+
+    <li>Upgrade considerations:<ul>
+
+        <li>Upgrading to version 2.7 will not affect current or historical
+            team projects, which will continue to use the list of size
+            metrics defined by their metrics collection framework.</li>
+
+        <li>Team projects that are created or relaunched after upgrading will
+            include support for custom size metrics.  To create, rename, or
+            delete metrics, just choose "Edit Size Metrics" from the WBS
+            Editor "Workflow" menu.</li>
+
+        <li>Individuals who have created personal projects can use custom
+            size metrics in those projects simply by upgrading.</li>
+
+        </ul></li>
+
+    </ul></li>
+
+<li>The dashboard includes a new "Universal" metrics framework, which
+supports project planning for diverse teams, including teams that do not
+write software.</li>
+
+<li>A number of enhancements have been made to the WBS Editor:
+
+    <ul>
+
+    <li>The WBS workflow editor has always offered the ability to attach
+        URL-based hyperlinks to workflows and their steps, enabling
+        individuals to have easy access to these links when they follow the
+        process.  This functionality is now easier to use, thanks to a better
+        user interface for entering and editing these links.</li>
+
+    <li>If the task percentages in a workflow do not add up to 100%, the
+        workflow editor will now display the actual sum for informational
+        purposes.  If desired, you can normalize the percentages by
+        double-clicking that sum, or by clicking the new "%" button on the
+        toolbar.</li>
+
+    <li>The Process Dashboard watches for WBS changes in the background, and
+        alerts the user if a sync is needed.  Sometimes, the requisite
+        changes are minor, resulting in an alert that "miscellaneous project
+        information" was updated.  On a busy team, these miscellaneous
+        changes can happen many times a day and become a source of annoyance.
+        To address this problem, the sync operation will now apply these
+        miscellaneous changes silently without bothering the user.</li>
+
+    <li>In the WBS Editor, the "Export to Excel" functionality now includes
+        information on workflows, size metrics, proxy tables, milestones, and
+        team member availability.</li>
+
+    <li>In the WBS Editor, the name of the "PROBE Task" option does not
+        convey an obvious meaning to people outside the PSP/TSP community.
+        So to improve usability, this option has been renamed to
+        "High-Maturity Planning Task" instead.</li>
+
+    </ul></li>
+
+<li>The Task &amp; Schedule window provides new options for sorting tasks:
+
+    <ul>
+
+    <li>The Task &amp; Schedule window now offers the option to sort tasks by
+        label, by the values that were entered in a custom WBS column, or by
+        temporary tags.</li>
+
+    <li>A new option has been added to the Project Parameters and Settings
+        page, allowing an individual to request an automatic "Sort by
+        Milestone" after each WBS sync operation.</li>
+
+    </ul></li>
+
+<li>In the Time and Defect Log Editors, the first column has historically
+displayed the full path of the task where an item was logged.  This column
+now uses intelligent abbreviation, making the tables easier to read.</li>
+
+<li>The Workflow Process Analysis report now includes a navigation link to
+quickly switch between different workflows.</li>
+
+<li>The "Status of Team Member Metrics" table now offers sortable column
+headings, making it easier to identify team members who haven't synced or
+exported recently.</li>
+
+<li>The Process Dashboard is now compatible with Java 18 and above. Teams who
+have developed custom reporting add-ons will need to <a target="_blank"
+href="https://www.processdash.com/jsphelp27">upgrade those add-ons</a> to
+work with version 2.7.</li>
+
+</ul>
+
+
 <h2>Features new in version 2.6</h2>
 
 <ul>

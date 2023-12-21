@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,11 +28,16 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.redact.RedactConfigSourceExtensionManager;
 
 public class RedactFilterConfigDialog {
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.Redact");
+
+    static {
+        RedactConfigSourceExtensionManager.install();
+    }
 
     public static Set<String> promptForFilters() {
         RedactFilterConfigPanel configPanel = new RedactFilterConfigPanel();

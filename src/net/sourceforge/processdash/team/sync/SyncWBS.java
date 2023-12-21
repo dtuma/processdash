@@ -122,6 +122,8 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
     private URL wbsLocation;
     /** The location of the workflow dump file */
     private URL workflowLocation;
+    /** Whether the WBS is in a bundled directory */
+    private boolean wbsIsBundled;
     /** The directory where the dashboard is storing data files */
     private String dataDir;
     /** The initials of the current team member, if applicable */
@@ -223,6 +225,8 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         } catch (HierarchyAlterationException h) {
             showErrorPage("generalError", h.getMessage());
         } catch (IOException ioe) {
+            if (wbsIsBundled)
+                ioe.printStackTrace();
             showErrorPage("generalError", ioe.getMessage());
         }
 
@@ -405,6 +409,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
         // retrieve the latest wbs.xml file for the project
         ImportDirectory wbsDir = getWBSDirectory(
             data.getSubcontext(projectRoot));
+        wbsIsBundled = BundledImportDirectory.isBundled(wbsDir, null);
         checkSyncBundleMerge(wbsDir);
         File wbsFile = new File(wbsDir.getDirectory(), HIER_FILENAME);
 

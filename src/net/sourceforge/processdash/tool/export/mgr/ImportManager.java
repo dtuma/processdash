@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2019 Tuma Solutions, LLC
+// Copyright (C) 2005-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,7 +65,8 @@ public class ImportManager extends AbstractManager {
                 cachePrefSetting.toLowerCase().split(","));
 
         // also, arrange for some directories never to be cached
-        cachePrefSetting = Settings.getVal("import.noCachesFor", "c:\\");
+        cachePrefSetting = Settings.getVal("import.noCachesFor",
+            "c:\\,externalResources");
         ImportDirectoryFactory.getInstance().setNoCachesFor(
             cachePrefSetting.toLowerCase().split(","));
 

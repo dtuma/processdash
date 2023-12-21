@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2023 Tuma Solutions, LLC
+// Copyright (C) 2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,22 +21,16 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.redact.filter;
+package net.sourceforge.processdash.tool.redact;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
-import net.sourceforge.processdash.tool.redact.EnabledFor;
-import net.sourceforge.processdash.tool.redact.LabelMapper;
+import java.util.List;
 
-@EnabledFor(RedactFilterIDs.LABELS)
-public class FilterWbsLabelAttrs extends AbstractWbsAttrFilter {
+import org.w3c.dom.Element;
 
-    @EnabledFor({ "^(Workflow )?Label$", "-CustomText$" })
-    public String scrambleLabels(String labels) {
-        String result = LabelMapper.hashLabelList(labels);
-        if (result == null || result.length() == 0)
-            return null;
-        else
-            return result;
-    }
+public interface RedactConfigSource {
+
+    List<Element> getXmlConfigurationElements(String tagName);
+
+    List getExecutableExtensions(String tagName);
 
 }

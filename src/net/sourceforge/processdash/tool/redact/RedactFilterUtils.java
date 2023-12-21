@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,15 +35,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import net.sourceforge.processdash.templates.ExtensionManager;
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class RedactFilterUtils {
 
+    private static RedactConfigSource configSource;
+
+    public static void setConfigSource(RedactConfigSource rcs) {
+        configSource = rcs;
+    }
+
+    public static List<Element> getXmlConfigurationElements(String tagName) {
+        return configSource.getXmlConfigurationElements(tagName);
+    }
+
     public static List getExtensions(RedactFilterData data, String tagName) {
-        List result = ExtensionManager.getExecutableExtensions(tagName, null);
+        List result = configSource.getExecutableExtensions(tagName);
         for (Iterator i = result.iterator(); i.hasNext();) {
             Object item = i.next();
             if (isDisabled(data, item)) {

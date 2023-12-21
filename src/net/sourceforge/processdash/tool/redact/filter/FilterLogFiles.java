@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2023 Tuma Solutions, LLC
+// Copyright (C) 2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,20 +23,31 @@
 
 package net.sourceforge.processdash.tool.redact.filter;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
-import net.sourceforge.processdash.tool.redact.LabelMapper;
+import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
+import net.sourceforge.processdash.util.PatternList;
 
-@EnabledFor(RedactFilterIDs.LABELS)
-public class FilterWbsLabelAttrs extends AbstractWbsAttrFilter {
+@EnabledFor(RedactFilterIDs.LOG_FILES)
+public class FilterLogFiles extends AbstractLineBasedFilter {
 
-    @EnabledFor({ "^(Workflow )?Label$", "-CustomText$" })
-    public String scrambleLabels(String labels) {
-        String result = LabelMapper.hashLabelList(labels);
-        if (result == null || result.length() == 0)
-            return null;
+    private PatternList linesToKeep;
+
+    public FilterLogFiles() {
+        this.filenamePatterns = new PatternList() //
+                .addLiteralEquals("log.txt") //
+                .addLiteralEquals("histlog.txt");
+        this.linesToKeep = new PatternList()
+                .addLiteralStartsWith("Process Dashboard - logging started at")
+                .addLiteralContains("Process Dashboard version ")
+                .addRegexp("^-------------------------+$");
+    }
+
+    @Override
+    public String getString(String line) {
+        if (line != null && linesToKeep.matches(line))
+            return line;
         else
-            return result;
+            return null;
     }
 
 }

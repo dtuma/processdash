@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,8 +27,8 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.redact.RedactFilterData;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -41,7 +41,7 @@ public class FilterCensoredData implements DataFileEntryFilter {
     public void afterPropertiesSet() {
         censoredDataElements = new PatternList();
 
-        List<Element> cfgXml = ExtensionManager
+        List<Element> cfgXml = RedactFilterUtils
                 .getXmlConfigurationElements("redact-filter-censored-data");
         for (Element xml : cfgXml)
             if (isEnabled(xml))

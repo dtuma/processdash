@@ -1,5 +1,6 @@
 META-INF/
 meta-inf/
+org/netbeans/
 org/openide/
 net/sourceforge/processdash/util/
 Templates/resources/dash/

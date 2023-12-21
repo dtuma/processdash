@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -119,6 +119,16 @@ public class HierarchyInfo {
         return null;
     }
 
+    public void registerEffectivePhasesAsSafe(HierarchyNodeMapper nodeMapper) {
+        for (Node n : nodes) {
+            // personal dashboards contain "Effective_Phase" elements that
+            // happen to name MCF phases. If any such elements were found, add
+            // the specified MCF phase names to our safe list.
+            if (StringUtils.hasValue(n.effectivePhase))
+                nodeMapper.addSafeName(n.effectivePhase);
+        }
+    }
+
     public void registerWorkflowNamesAsSafe(HierarchyNodeMapper nodeMapper) {
         for (Node n : nodes) {
             // When a workflow is applied in the WBS, the top-level node and the
@@ -224,6 +234,8 @@ public class HierarchyInfo {
     private void scanDataFile(RedactFilterData data, Node node)
             throws IOException {
         BufferedReader in = data.getFile(node.dataFile);
+        if (in == null)
+            return;
         String line;
         int pos;
         while ((line = in.readLine()) != null) {

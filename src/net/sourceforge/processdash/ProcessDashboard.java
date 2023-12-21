@@ -1356,12 +1356,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // if this JVM does not explicitly have a logging config set, but one
         // is present in the user's data directory, read it.
         File logConfig = new File(property_directory + "logging-config.dat");
-        if (System.getProperty("java.util.logging.config.file") == null
-                  && logConfig.isFile()) {
-            try {
-                LogManager.getLogManager().readConfiguration(
-                    new FileInputStream(logConfig));
-            } catch (Exception e) {}
+        if (IS_DEFAULT_LOGGING_CFG && logConfig.isFile()) {
+            installLoggingConfigurationFile(logConfig);
         }
 
         // enable the windows look and feel if requested/configured
@@ -2452,6 +2448,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
     }
     private static void mainImpl(String[] args) {
+        loadLoggingConfiguration();
         DashboardSecurity.setupSecurityManager();
 
         LargeFontsHelper.maybeInitialize();
@@ -2517,6 +2514,62 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         dash.aum.maybePerformCheck(dash);
         DataImporter.refreshCachedFiles();
     }
+
+    private static void loadLoggingConfiguration() {
+        File logConfig = findLoggingConfigurationFile();
+        if (logConfig != null)
+            installLoggingConfigurationFile(logConfig);
+    }
+
+    private static File findLoggingConfigurationFile() {
+        // if the user has configured logging via a system property, leave it
+        if (System.getProperty(LOGGING_CONFIG_FILE_PROP) != null)
+            return null;
+
+        // see if the user has configured logging via the application dir
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File f = new File(appDir, "logging.properties");
+        if (f.isFile())
+            return f;
+
+        // no custom configuration has been found, look for defaults
+        IS_DEFAULT_LOGGING_CFG = true;
+
+        // look for a logging config file in the installation directory
+        File selfJar = RuntimeUtils.getClasspathFile(ProcessDashboard.class);
+        if (selfJar != null) {
+            File installDir = selfJar.getParentFile();
+            if (installDir != null) {
+                f = new File(installDir, "logging.properties");
+                if (f.isFile())
+                    return f;
+            }
+        }
+
+        // no logging config found
+        return null;
+    }
+
+    private static void installLoggingConfigurationFile(File logConfig) {
+        try {
+            // set the system property that points to the logging config file.
+            // this will propagate to child properties we launch as well.
+            System.setProperty(LOGGING_CONFIG_FILE_PROP,
+                logConfig.getCanonicalPath());
+
+            // ask the log manager to reread the configuration. It will pick
+            // up the new log config file set on the previous line.
+            LogManager.getLogManager().readConfiguration();
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private static final String LOGGING_CONFIG_FILE_PROP = "java.util.logging.config.file";
+
+    private static boolean IS_DEFAULT_LOGGING_CFG = false;
+
     public DashHierarchy getHierarchy() { return props; }
     public DataRepository getData() { return data; }
     public ObjectCache getCache() { return objectCache; }

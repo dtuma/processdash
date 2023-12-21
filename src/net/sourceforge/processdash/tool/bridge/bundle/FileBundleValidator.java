@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2023 Tuma Solutions, LLC
+// Copyright (C) 2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,22 +21,25 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.redact.filter;
+package net.sourceforge.processdash.tool.bridge.bundle;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
-import net.sourceforge.processdash.tool.redact.EnabledFor;
-import net.sourceforge.processdash.tool.redact.LabelMapper;
+/**
+ * Bundle information is stored in separate XML and ZIP files to optimize
+ * bandwidth and performance. Unfortunately, we don't control third-party sync
+ * clients, and those aren't guaranteed to copy these files atomically.
+ * 
+ * For example, if a user has a large pending sync queue, their client might
+ * publish some of a bundle's files long before it publishes the others.
+ * 
+ * This interface is used to test the validity of a given bundle, checking to
+ * make sure all of its files are present.
+ */
+public interface FileBundleValidator {
 
-@EnabledFor(RedactFilterIDs.LABELS)
-public class FilterWbsLabelAttrs extends AbstractWbsAttrFilter {
-
-    @EnabledFor({ "^(Workflow )?Label$", "-CustomText$" })
-    public String scrambleLabels(String labels) {
-        String result = LabelMapper.hashLabelList(labels);
-        if (result == null || result.length() == 0)
-            return null;
-        else
-            return result;
-    }
+    /**
+     * @return true if all the files for a given bundle are present, false if
+     *         some appear to be missing
+     */
+    public boolean isBundleValid(FileBundleID bundleID);
 
 }

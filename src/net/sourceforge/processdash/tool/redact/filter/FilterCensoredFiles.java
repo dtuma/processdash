@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,36 +33,32 @@ import net.sourceforge.processdash.util.PatternList;
 
 public class FilterCensoredFiles implements RedactFilter {
 
+    @EnabledFor(RedactFilterIDs.LABELS)
+    private boolean deleteLabels;
+
     @EnabledFor(RedactFilterIDs.NOTES)
     private boolean deleteNotes;
 
     @EnabledFor(RedactFilterIDs.EXT_LINKS)
     private boolean deleteExtLinks;
 
-    @EnabledFor(RedactFilterIDs.LOG_FILES)
-    private boolean deleteLogFiles;
-
     private PatternList filenamePatterns;
 
     public void afterPropertiesSet() {
         filenamePatterns = new PatternList()
             .addRegexp("^lic[^/]*\\.dat$")
+            .addLiteralEquals("redact-metadata.txt")
             .addLiteralEndsWith("/changehistory.xml")
             .addLiteralEndsWith("/tabs.xml")
             .addLiteralEndsWith("/workflowdump.xml");
 
-        if (deleteNotes)
+        if (deleteLabels || deleteNotes)
             filenamePatterns.addLiteralEndsWith("/columns.xml");
 
         if (deleteExtLinks)
             filenamePatterns
                 .addLiteralEndsWith("-sync.pdash")
                 .addLiteralEndsWith("/externals.xml");
-
-        if (deleteLogFiles)
-            filenamePatterns
-                .addLiteralEquals("log.txt")
-                .addLiteralEquals("histlog.txt");
     }
 
     public Reader filter(RedactFilterData data, String filename, Reader contents) {

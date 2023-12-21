@@ -37,7 +37,7 @@ public class FilterDataContainingPersonNames extends AbstractDataStringFilter {
             PersonMapper.HASH_PERSON_NAME);
     }
 
-    @EnabledFor("^Owner$")
+    @EnabledFor({ "^Owner$", "^Joined_As_Name$" })
     public String filterDatasetOwner(String owner) {
         return PersonMapper.hashPersonName(owner);
     }

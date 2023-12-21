@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Tuma Solutions, LLC
+// Copyright (C) 2012-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,8 +47,9 @@ public class RedactFilterHelperInit {
         data.putHelper(DefectWorkflowPhaseMapper.class,
             nodeMapper.getDefectWorkflowPhaseMapper());
 
-        // register process phases as "safe" and not needing scrambling
-        TemplateInfo.addSafeNamesOfProcessPhases(nodeMapper);
+        // register MCF phase names as "safe" and not needing scrambling
+        TemplateInfo.addSafeNamesOfProcessPhases(data, nodeMapper);
+        hierarchyInfo.registerEffectivePhasesAsSafe(nodeMapper);
 
         // create an object which gathers information about the team projects
         // that are defined in this dashboard.

@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2012 Tuma Solutions, LLC
+// Copyright (C) 2009-2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -242,6 +243,34 @@ public class TempFileFactory {
             f.createNewFile();
             f.setLastModified(System.currentTimeMillis());
         } catch (IOException e) {}
+
+        // some operating systems (Mac OS X in particular) will delete tmp
+        // files that have not been accessed in a few days. Read a byte from
+        // each file to reset the access time and avoid this cleanup.
+        scanTempDir(dir);
+    }
+
+    private static void scanTempDir(File dir) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory())
+                    scanTempDir(f);
+                else if (f.isFile())
+                    scanTempFile(f);
+            }
+        }
+    }
+
+    private static void scanTempFile(File f) {
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(f);
+            in.read();
+        } catch (Throwable t) {
+        } finally {
+            FileUtils.safelyClose(in);
+        }
     }
 
     private void maybeCleanup(File cleanupDir) {

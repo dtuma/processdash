@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2023 Tuma Solutions, LLC
+// Copyright (C) 2023 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -21,22 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.redact.filter;
+package net.sourceforge.processdash.tool.bridge.bundle;
 
-import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
-import net.sourceforge.processdash.tool.redact.EnabledFor;
-import net.sourceforge.processdash.tool.redact.LabelMapper;
+import java.io.File;
+import java.io.FileNotFoundException;
 
-@EnabledFor(RedactFilterIDs.LABELS)
-public class FilterWbsLabelAttrs extends AbstractWbsAttrFilter {
+public class FileBundleFileNotFoundException extends FileNotFoundException {
 
-    @EnabledFor({ "^(Workflow )?Label$", "-CustomText$" })
-    public String scrambleLabels(String labels) {
-        String result = LabelMapper.hashLabelList(labels);
-        if (result == null || result.length() == 0)
-            return null;
-        else
-            return result;
+    public FileBundleFileNotFoundException(File f) {
+        super(f.getPath());
     }
 
 }
