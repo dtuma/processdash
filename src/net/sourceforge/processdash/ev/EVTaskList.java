@@ -3042,6 +3042,8 @@ public class EVTaskList extends AbstractTreeTableModel
                         result = new TaskData();
                     result.accumulate(taskElem);
                 }
+
+                pos = taskEnd;
             }
 
             return result;
