@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -454,6 +453,12 @@ public class TeamServerSelector {
         if (isTeamServerUseDisabled())
             return null;
 
+        return testServerURL(serverURL, minVersion, permissionToAssert, 0);
+    }
+
+    private static URL testServerURL(String serverURL, String minVersion,
+            Permission permissionToAssert, int redirectDepth)
+            throws HttpException.Unauthorized, HttpException.Forbidden {
         try {
             // construct a URL telling the server that we would like to
             // initiate a session, speaking a particular version of the
@@ -472,10 +477,23 @@ public class TeamServerSelector {
             // make a connection to the server and verify that we get a valid
             // response back.
             URL u = new URL(requestURL.toString());
-            URLConnection conn = u.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+            conn.setInstanceFollowRedirects(false);
+            int status = conn.getResponseCode();
+            if (status / 100 == 3) {
+                // if we were sent an HTTP redirect, follow it
+                String redirectLocation = conn.getHeaderField("Location");
+                if (redirectLocation == null || redirectDepth > 10)
+                    return null;
+                int queryPos = redirectLocation.indexOf('?');
+                if (queryPos > 0)
+                    redirectLocation = redirectLocation.substring(0, queryPos);
+                URL redirectURL = new URL(u, redirectLocation);
+                return testServerURL(redirectURL.toString(), minVersion,
+                    permissionToAssert, redirectDepth + 1);
+            }
             if (permissionToAssert != null)
                 HttpException.checkValid(conn);
-            int status = ((HttpURLConnection) conn).getResponseCode();
             if (status != 403) {
                 InputStream in = new BufferedInputStream(conn.getInputStream());
                 while ((in.read() != -1))
