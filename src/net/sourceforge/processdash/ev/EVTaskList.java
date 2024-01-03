@@ -3030,8 +3030,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
                 int taskBeg = xml.lastIndexOf('<', pos);
                 int taskEnd = xml.indexOf('>', pos);
-                if (xml.charAt(taskEnd - 1) == '/')
-                    continue;
+                pos = taskEnd;
+                if (taskEnd == -1)
+                    break; // malformed/truncated XML
+                else if (xml.charAt(taskEnd - 1) == '/')
+                    continue; // empty task list
+
                 String taskXml = xml.substring(taskBeg, taskEnd) + "/>";
                 Element taskElem = XMLUtils.parse(taskXml).getDocumentElement();
 
@@ -3042,8 +3046,6 @@ public class EVTaskList extends AbstractTreeTableModel
                         result = new TaskData();
                     result.accumulate(taskElem);
                 }
-
-                pos = taskEnd;
             }
 
             return result;
