@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2017 Tuma Solutions, LLC
+// Copyright (C) 2006-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,10 +28,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -140,12 +142,42 @@ public class SnippetDefinition {
         NodeList nodes = xml.getElementsByTagName(tagName);
         for (int i = 0; i < nodes.getLength(); i++) {
             Element e = (Element) nodes.item(i);
-            if (modeSpecific)
+            if (isTagExcludedByConfig(e))
+                continue;
+            else if (modeSpecific)
                 result.add(new ModeSpecificValue(e));
             else
                 result.add(XMLUtils.getTextContents(e));
         }
         return Collections.unmodifiableSet(result);
+    }
+
+    private boolean isTagExcludedByConfig(Element xml) {
+        // check required installed package
+        String requires = xml.getAttribute("requires");
+        if (XMLUtils.hasValue(requires)
+                && !TemplateLoader.meetsPackageRequirement(requires))
+            return true;
+
+        // check forbidden installed package
+        String unless = xml.getAttribute("unless");
+        if (XMLUtils.hasValue(unless)
+                && TemplateLoader.meetsPackageRequirement(unless))
+            return true;
+
+        // check required user setting
+        String enabledBy = xml.getAttribute("enabledBy");
+        if (XMLUtils.hasValue(enabledBy)
+                && !Settings.getBool(enabledBy, false))
+            return true;
+
+        // check forbidden user setting
+        String disabledBy = xml.getAttribute("disabledBy");
+        if (XMLUtils.hasValue(disabledBy)
+                && Settings.getBool(disabledBy, false))
+            return true;
+
+        return false;
     }
 
     private String getElemContent(Element xml, String tagName) {

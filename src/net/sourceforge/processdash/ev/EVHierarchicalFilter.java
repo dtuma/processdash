@@ -25,11 +25,12 @@ package net.sourceforge.processdash.ev;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.sourceforge.processdash.hier.Filter;
 
-public class EVHierarchicalFilter implements EVTaskFilter {
+public class EVHierarchicalFilter implements EVTaskFilter, EVTaskFilterXml {
 
     public static final String HIER_FILTER_ATTR = "hierFilter";
 
@@ -40,17 +41,32 @@ public class EVHierarchicalFilter implements EVTaskFilter {
 
     protected Set includedTasks;
 
+    private final Set<String> includedTaskIds = new HashSet<String>();
+
     protected EVTaskFilter nextFilter;
 
     public EVHierarchicalFilter(String displayName, Set includedTasks) {
         this.displayName = displayName;
         this.includedTasks = includedTasks;
+
+        //Build a set which contains the taskIds. 
+        Iterator it = includedTasks.iterator();
+
+        while(it.hasNext()){
+            EVTask e = (EVTask)it.next();
+
+            if(e.getTaskIDs()!= null){
+                this.includedTaskIds.addAll(e.getTaskIDs());
+            }
+        }
     }
 
     public EVTaskFilter appendFilter(EVTaskFilter filter) {
         this.nextFilter = filter;
         return this;
     }
+
+    /* EvTaskList interface */
 
     public boolean include(EVTask t) {
         if (!includedTasks.contains(t))
@@ -68,6 +84,17 @@ public class EVHierarchicalFilter implements EVTaskFilter {
             return nextFilter.getAttribute(name);
         else
             return null;
+    }
+
+    /* EvTaskListXml interface */
+
+    public boolean include(String elementTid){
+
+        //We only want to filter on elementTid if there are no other filters in operation.
+        //Hence return "false" if we have an additional filter (label filter or group filter) chained after this filter. 
+        return 
+            this.nextFilter == null && 
+            this.includedTaskIds.contains(elementTid); 
     }
 
     public static EVHierarchicalFilter getFilterForMerged(EVTaskList tl,

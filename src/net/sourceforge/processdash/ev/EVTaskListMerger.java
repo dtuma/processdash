@@ -936,7 +936,10 @@ public class EVTaskListMerger {
             return;
 
         EVTaskList mergedBaseline;
-        if (baselineSnapshot == lastSnapshot) {
+
+        //If a tasklist filter has been applied after the merged baseline has already been calculated,
+        //we need to recalculate the baseline.
+        if (baselineSnapshot == lastSnapshot && !taskList.evTaskListFilterApplied()) {
             mergedBaseline = lastMergedBaseline;
         } else {
             EVTaskList baselineTaskList = baselineSnapshot.getTaskList();
