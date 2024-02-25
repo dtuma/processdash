@@ -143,6 +143,8 @@ Authors:
   <property name="slf4j-impl.jar" value="${lib}/slf4j-jdk14-1.7.2.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
+  <property name="autoUpdate.url" value="https://www.processdash.com/cgi-bin/update" />
+
   <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
   <property name="cvsroot"
      value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/processdash"/>
@@ -249,8 +251,7 @@ Authors:
         <attribute name="Dash-Pkg-Version" value="1.3"/>
         <attribute name="Dash-Pkg-Name"
                    value="PSP(SM) Data Import Add-on Process Set"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-URL" value="${autoUpdate.url}"/>
       </manifest>
 
       <fileset dir=".">
@@ -270,8 +271,7 @@ Authors:
         <attribute name="Dash-Pkg-Requires-Version" value="${l10nTool.requires}"/>
         <attribute name="Dash-Pkg-Name"
                    value="Process Dashboard Localization Tool"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-URL" value="${autoUpdate.url}"/>
       </manifest>
 
       <zipfileset src="${l10n-tool.jar}"/>
@@ -306,8 +306,7 @@ Authors:
         <attribute name="Dash-Pkg-Requires-Version" value="${eng.requires}"/>
         <attribute name="Dash-Pkg-Name"
                    value="PSP for Engineers Add-on Process Set"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-URL" value="${autoUpdate.url}"/>
       </manifest>
 
       <fileset dir=".">
@@ -324,8 +323,7 @@ Authors:
         <attribute name="Dash-Pkg-Requires-Version" value="${instr.requires}"/>
         <attribute name="Dash-Pkg-Name"
                    value="PSP for Engineers Instructor Tools"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-URL" value="${autoUpdate.url}"/>
       </manifest>
 
       <fileset dir=".">
@@ -671,8 +669,7 @@ Authors:
         <attribute name="Dash-Pkg-ID" value="pspdash"/>
         <attribute name="Dash-Pkg-Version" value="${version}"/>
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
-        <attribute name="Dash-Pkg-URL"
-                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+        <attribute name="Dash-Pkg-URL" value="${autoUpdate.url}"/>
 
         <attribute name="Specification-Title" value="Process Dashboard"/>
         <attribute name="Implementation-Title" value="Process Dashboard"/>
