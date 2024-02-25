@@ -314,7 +314,7 @@ class dependency has been added in a dashboard class?)
 	<attribute name="Dash-Pkg-Name"
                    value="Work Breakdown Structure Editor"/>
 	<attribute name="Dash-Pkg-URL"
-	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+	           value="https://www.processdash.com/cgi-bin/update"/>
         <attribute name="Specification-Title" value="Work Breakdown Structure Editor"/>
         <attribute name="Implementation-Title" value="Work Breakdown Structure Editor"/>
         <attribute name="Specification-Version" value="${teamtools.version}"/>
