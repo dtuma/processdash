@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -120,7 +120,7 @@ public class TableOfMetrics extends TinyCGIBase {
         }
 
         // write the header row of the table
-        out.write("<p><table><tr><th align=\"left\">");
+        out.write("<p><table id=\"$$$_data\"><tr><th align=\"left\">");
         if (label != null)
             out.write(HTMLUtils.escapeEntities(label));
         out.write("</th>\n");
