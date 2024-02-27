@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -229,6 +229,7 @@ public class EVWeekReport extends TinyCGIBase {
             Date effDate, EVReportSettings settings, EVTaskFilter taskFilter,
             EVTaskListFilter privacyFilter, int purpose) throws IOException {
 
+        String taskListID = evModel.getID();
         EVSchedule schedule = evModel.getSchedule();
         double totalPlanTime = schedule.getMetrics().totalPlan();
         boolean hideNames = settings.getBool(EVReport.CUSTOMIZE_HIDE_NAMES);
@@ -496,7 +497,8 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print("</a></span>");
             }
             out.print("</" + hh + ">");
-            out.print("<table border=1 name='summary'><tr><td></td><td></td>");
+            out.print("<table border=1 name='summary' id='summary-" + taskListID
+                    + "'><tr><td></td><td></td>");
             if (showSummaryDirectHours)
                 interpOut("<td class=header colspan=3>${Summary.Direct_Hours}"
                         + "</td><td></td>");
@@ -621,7 +623,7 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printCompletedTaskTableHeader(showTimeThisWeek, showAssignedTo,
-                    showMilestones, showLabels, monthly, showCosts);
+                    showMilestones, showLabels, monthly, showCosts, taskListID);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -698,7 +700,7 @@ public class EVWeekReport extends TinyCGIBase {
             else {
                 printUncompletedTaskTableHeader(showTimeThisWeek,
                     showAssignedTo, showMilestones, showLabels, true, monthly,
-                    showCosts);
+                    showCosts, taskListID);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -789,7 +791,8 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 printUncompletedTaskTableHeader(false, showAssignedTo,
-                    showMilestones, showLabels, false, monthly, showCosts);
+                    showMilestones, showLabels, false, monthly, showCosts,
+                    taskListID);
 
                 double timeRemaining = 0;
                 for (int i = 0;   i < taskListLen;   i++) {
@@ -1031,8 +1034,10 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printUncompletedTaskTableHeader(boolean showTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean inProgressThisWeek, boolean monthly, boolean showCosts) {
-        String HTMLTableId = (inProgressThisWeek) ? "$$$_progress" : "$$$_due";
+            boolean inProgressThisWeek, boolean monthly, boolean showCosts,
+            String taskListID) {
+        String HTMLTableId = (inProgressThisWeek ? "$$$_progress" : "$$$_due")
+                + taskListID;
 
         interpOut("<table border=1 name='dueTask' class='sortable' id='"
                 + HTMLTableId + "'><tr><td></td>");
@@ -1071,9 +1076,9 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printCompletedTaskTableHeader(boolean showTimeThisWeek,
             boolean showAssignedTo, boolean showMilestones, boolean showLabels,
-            boolean monthly, boolean showCosts) {
+            boolean monthly, boolean showCosts, String taskListID) {
         interpOut("<table border=1 name='compTask' class='sortable' "
-                + "id='$$$_comp'><tr><td></td>");
+                + "id='$$$_comp-" + taskListID + "'><tr><td></td>");
         if (showCosts) {
             interpOut("<td class=header>${Columns.Planned_Time}</td>"
                     + "<td class=header>${Columns.Actual_Time}</td>");

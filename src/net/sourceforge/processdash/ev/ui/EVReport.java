@@ -876,7 +876,7 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
-        out.print("<table name='STATS'>");
+        out.print("<table name='STATS' id='" + namespace + "stats'>");
         for (int i = 0;   i < m.getRowCount();   i++)
             writeMetric(m, i, hidePlan, hideReplan, hideForecast, hideCosts);
         out.print("</table>");
@@ -888,7 +888,7 @@ public class EVReport extends CGIChartBase {
         taskDataWriter.write(out, evModel, taskFilter, settings, namespace);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
-        writeScheduleTable(s, hideCosts);
+        writeScheduleTable(s, hideCosts, namespace);
 
         if (isExporting() && !isSnippet)
             writeExportFooter(out);
@@ -1419,7 +1419,8 @@ public class EVReport extends CGIChartBase {
         writer.writeTree(out, tree);
     }
 
-    void writeScheduleTable(EVSchedule s, boolean hideCosts) throws IOException {
+    void writeScheduleTable(EVSchedule s, boolean hideCosts, String namespace)
+            throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
         customizeTableWriter(writer, s, s.getColumnTooltips());
         setupRenderers(writer, EVSchedule.COLUMN_FORMATS);
@@ -1428,6 +1429,7 @@ public class EVReport extends CGIChartBase {
             hideCostColumns(writer, EVSchedule.COLUMN_FORMATS,
                 EVSchedule.IPERCENT_COLUMN);
         writer.setTableName("SCHEDULE");
+        writer.setTableAttributes("id='" + namespace + "schedule' border='1'");
         writer.writeTable(out, s);
     }
 
