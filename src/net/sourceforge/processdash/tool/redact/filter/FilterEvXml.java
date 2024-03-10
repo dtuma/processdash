@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2019 Tuma Solutions, LLC
+// Copyright (C) 2012-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -157,7 +157,7 @@ public class FilterEvXml extends RedactFilterUtils {
         public String hashEvBaselines(String xml) {
             xmlFilter = getEvXmlFilter(xmlFilter, data);
 
-            String[] tags = xml.split(">", -1);
+            String[] tags = xml.split(">(\\\\n)?", -1);
             xmlFilter.filterXml(tags);
             return StringUtils.join(Arrays.asList(tags), ">");
         }
