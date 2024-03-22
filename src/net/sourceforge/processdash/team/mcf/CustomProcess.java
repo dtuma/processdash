@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2024 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ public class CustomProcess {
     public static final String LONG_NAME = "longName";
     public static final String NAME = "name";
     public static final String TYPE = "type";
+    public static final String COLOR = "color";
     public static final String EST_INJ_RATE = "estDefectInjRate";
     public static final String EST_YIELD = "estYield";
 
