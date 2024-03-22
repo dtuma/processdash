@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2024 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.hier.ui.icons.HierarchyIcons;
 import net.sourceforge.processdash.team.mcf.CustomProcess;
+import net.sourceforge.processdash.team.mcf.CustomProcess.Item;
 
 
 /** Keep track of information the wbs editor needs to know about the
@@ -74,6 +75,9 @@ public class TeamProcess {
 
     /** An immutable map of phase names to phase types. */
     private Map phaseTypes;
+
+    /** A map of colors used for phase icons */
+    private Map<String, Color> phaseColors;
 
     /** An immutable map of node types to node icons. */
     private Map iconMap;
@@ -336,10 +340,12 @@ public class TeamProcess {
     private void buildPhases(CustomProcess process) {
         phases = new ArrayList();
         phaseTypes = new HashMap();
+        phaseColors = new HashMap();
         phaseSizeMetrics = new HashMap();
         phaseYields = new HashMap();
         phaseInjRates = new HashMap();
         Properties phaseDataDefaults = getPhaseDataDefaults();
+        boolean usePhaseColors = shouldUsePhaseColorAttrs(process);
 
         Iterator i = process.getItemList(CustomProcess.PHASE_ITEM).iterator();
         while (i.hasNext()) {
@@ -351,6 +357,10 @@ public class TeamProcess {
             // add each phase type to our map.
             String phaseType = phase.getAttr(CustomProcess.TYPE);
             phaseTypes.put(phaseName, phaseType);
+            // store the phase color if one was provided
+            String phaseColor = phase.getAttr(CustomProcess.COLOR);
+            if (usePhaseColors && phaseColor != null)
+                phaseColors.put(phaseName, Color.decode(phaseColor));
             // add the size metric for the phase to our map
             String sizeMetric = phase.getAttr(CustomProcess.SIZE_METRIC);
             if (sizeMetric == null) {
@@ -383,6 +393,18 @@ public class TeamProcess {
             in.close();
         } catch (Exception e) {}
         return result;
+    }
+
+    private boolean shouldUsePhaseColorAttrs(CustomProcess process) {
+        // see if this process has specified the use of color attributes
+        for (Item param : process.getItemList(CustomProcess.PARAM_ITEM)) {
+            String paramName = param.getAttr(CustomProcess.NAME);
+            if (USE_PHASE_COLORS_PARAM.equals(paramName))
+                return true;
+        }
+
+        // by default, do not use color attributes for the WBS
+        return false;
     }
 
     private String supplyDefaultSizeMetric(String type) {
@@ -430,7 +452,11 @@ public class TeamProcess {
         int numPhases = phases.size();
         for (int phaseNum = 0; phaseNum < numPhases; phaseNum++) {
             String phase = (String) phases.get(phaseNum);
-            Color phaseColor = getPhaseColor(phaseNum, numPhases);
+            Color phaseColor = phaseColors.get(phase);
+            if (phaseColor == null) {
+                phaseColor = getPhaseColor(phaseNum, numPhases);
+                phaseColors.put(phase, phaseColor);
+            }
             iconMap.put(phase + TASK_SUFFIX,
                 HierarchyIcons.getTaskIcon(phaseColor));
             iconMap.put(phase + WORKFLOW_TASK_SUFFIX,
@@ -596,6 +622,7 @@ public class TeamProcess {
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
     private static final String INSPECTED_PREFIX = "Inspected ";
+    private static final String USE_PHASE_COLORS_PARAM = "wbsUsesPhaseColors";
 
     private static final String TEXT_UNITS = "Text Pages";
     private static final String REQ_UNITS = "Req Pages";
