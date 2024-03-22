@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <custom-process name="Universal" abbr="Univ" version="" generator="/team/lib/script-v1.xml">
 
-    <phase longName="Planning" name="Planning" type="PLAN" />
-    <phase longName="Action" name="Action" type="develop" />
-    <phase longName="Creation" name="Creation" type="develop" />
-    <phase longName="Inspection" name="Inspection" type="appraisal" />
-    <phase longName="Validation" name="Validation" type="failure" />
-    <phase longName="Retrospective" name="Retrospective" type="PM" />
-    <phase longName="Miscellaneous" name="Miscellaneous" type="overhead" />
+    <phase color="#ffc800" longName="Planning" name="Planning" type="PLAN" />
+    <phase color="#fff600" longName="Action" name="Action" type="develop" />
+    <phase color="#9cff00" longName="Creation" name="Creation" type="develop" />
+    <phase color="#00bfff" longName="Inspection" name="Inspection" type="appraisal" />
+    <phase color="#0540ff" longName="Validation" name="Validation" type="failure" />
+    <phase color="#9252ff" longName="Retrospective" name="Retrospective" type="PM" />
+    <phase color="#bfbfbf" longName="Miscellaneous" name="Miscellaneous" type="overhead" />
 
     <sizeMetric longName="Pages" name="Pages" />
     <sizeMetric longName="Words" name="Words" />
     <sizeMetric longName="Story Points" name="Story Points" />
 
+    <param name="wbsUsesPhaseColors" />
     <param name="hideSoftwareComponent" />
     <param name="hideSizeInventory" />
 
