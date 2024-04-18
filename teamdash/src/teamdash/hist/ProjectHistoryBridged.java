@@ -1,4 +1,4 @@
-// Copyright (C) 2015-2020 Tuma Solutions, LLC
+// Copyright (C) 2015-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.util.ClientHttpRequest;
@@ -121,6 +122,7 @@ public class ProjectHistoryBridged extends ProjectHistoryBridgedAbstract {
         if (cookies != null)
             req.getConnection().setRequestProperty("Cookie", cookies);
         req.setParameter("rc", getResourceCollectionID(baseUrl));
+        req.setParameter("tz", TimeZone.getDefault().getID());
         for (String filename : FILES_OF_INTEREST)
             req.setParameter("include", filename);
         if (startDate != null)
