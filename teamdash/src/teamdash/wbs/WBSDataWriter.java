@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2024 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -719,7 +719,7 @@ public class WBSDataWriter {
     private HashMap buildAttributeWriters() {
         HashMap result = new HashMap();
         result.put(PROJECT_TAG, new ProjectAttributeWriter());
-        SizeAttributeWriter sw = new SizeAttributeWriter();
+        ComponentAttributeWriter sw = new ComponentAttributeWriter();
         result.put(SOFTWARE_TAG, sw);
         result.put(DOCUMENT_TAG, sw);
 
@@ -798,6 +798,20 @@ public class WBSDataWriter {
                     dataModel.getValueAt(node, sizeAccountingColumns[i]);
                 writeAttr(out, SIZE_ACCOUNTING_ATTRS[i], formatNumber(size));
             }
+        }
+    }
+
+
+
+    /** AttributeWriter which writes information about a component
+     */
+    private class ComponentAttributeWriter extends SizeAttributeWriter {
+        public void writeAttributes(Writer out, WBSNode node) throws IOException {
+            super.writeAttributes(out, node);
+
+            if (teamMemberColumns != null && node
+                    .getNumericAttribute(TeamTimeColumn.TEAM_TIME_ATTR) > 0)
+                writeAttr(out, COMPONENT_TIME_ATTR, buildTeamMemberTimeString(node));
         }
     }
 
@@ -1017,6 +1031,7 @@ public class WBSDataWriter {
     private static final String TIME_ATTR = "time";
     private static final String SYNC_TIME_ATTR = "syncTime";
     private static final String DEFERRED_TIME_ATTR = "deferredTime";
+    private static final String COMPONENT_TIME_ATTR = "componentTime";
     private static final String UNITS_ATTR = "sizeUnits";
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";
