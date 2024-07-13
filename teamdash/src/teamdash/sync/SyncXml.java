@@ -32,6 +32,7 @@ import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -64,11 +65,13 @@ public class SyncXml implements SyncXmlConstants {
         XmlNodeSet nodeSet = new XmlNodeSet(xml,
                 args.length > 2 ? args[2] : null);
 
+        Properties config = new Properties();
+
         // perform the synchronization operation
         DaemonMetadata daemonMetadata = TeamProjectDataTargetFactory
                 .getDaemonMetadata(dataTarget, extSystemID);
         ExtSyncCoordinator coord = new ExtSyncCoordinator(dataTarget,
-                extSystemName, extSystemID, null, daemonMetadata);
+                extSystemName, extSystemID, config, daemonMetadata);
         coord.run(nodeSet);
 
         // dispose of resources
