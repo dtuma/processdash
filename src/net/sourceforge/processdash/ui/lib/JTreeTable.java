@@ -119,6 +119,9 @@ public class JTreeTable extends JTable {
     }
 
     public void setTreeTableModel(TreeTableModel treeTableModel) {
+        // remove the selection model from the outgoing tree, so it doesn't
+        // become shared by multiple trees
+        tree.setSelectionModel(null);
 
         if (trees.containsKey(treeTableModel)) {
             // reuse the previously created tree object, and its associated
@@ -137,13 +140,13 @@ public class JTreeTable extends JTable {
             adapter = new TreeTableModelAdapter(treeTableModel, tree);
             adapters.put(treeTableModel, adapter);
 
-            // Force the JTable and JTree to share their row selection models.
-            tree.setSelectionModel(selectionWrapper);
-
             // Set the row height to be the same as the table
             if (getRowHeight() > 1)
                 tree.setRowHeight(getRowHeight());
         }
+
+        // Force the JTable and JTree to share their row selection models.
+        tree.setSelectionModel(selectionWrapper);
 
         // install the data model for the table.
         super.setModel(adapter);
