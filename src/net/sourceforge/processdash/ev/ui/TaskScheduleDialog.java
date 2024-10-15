@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2023 Tuma Solutions, LLC
+// Copyright (C) 2001-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2933,28 +2933,52 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
     private static final String XML_QUERY_SUFFIX = "?xml";
 
-    /** delete the currently selected task.
+    /** delete the currently selected task(s).
      */
     protected void deleteTask() {
         if (!canEdit()) return;
 
-        TreePath selPath = treeTable.getTree().getSelectionPath();
-        if (selPath == null) return;
-        if (isFlatView()) {
+        TreePath[] selPaths = treeTable.getTree().getSelectionPaths();
+        if (selPaths == null || selPaths.length == 0)
+            return;
+
+        boolean madeChange = false;
+        Object targetingPrunedTasks = null;
+        for (TreePath selPath : selPaths) {
             EVTask selectedTask = (EVTask) selPath.getLastPathComponent();
-            selPath = new TreePath(selectedTask.getPath());
+            if (isFlatView()) {
+                selPath = new TreePath(selectedTask.getPath());
+            } else if (!isRollup()) {
+                // the removeTask() line below has different effects based on
+                // whether a task is a direct child of the root, a pruned task,
+                // or a regular task. But we want deletion operations to be
+                // coherent (performing the same operation on all selected
+                // items). Keep track of the operation we performed for the
+                // first item, and skip subsequent tasks that would require a
+                // different operation.
+                Object taskIsPruned = selPath.getPathCount() == 2 ? "NO"
+                        : selectedTask.isUserPruned();
+                if (targetingPrunedTasks == null)
+                    targetingPrunedTasks = taskIsPruned;
+                else if (!targetingPrunedTasks.equals(taskIsPruned))
+                    continue;
+            }
+
+            int pathLen = selPath.getPathCount();
+            if (isRollup()) {
+                if (pathLen != 2 || !confirmDelete(selPath)) continue;
+            } else {
+                if (pathLen < 2) continue;
+                if (pathLen == 2 && !confirmDelete(selPath)) continue;
+            }
+
+            // make the change.
+            if (model.removeTask(selPath)) {
+                madeChange = true;
+            }
         }
 
-        int pathLen = selPath.getPathCount();
-        if (isRollup()) {
-            if (pathLen != 2 || !confirmDelete(selPath)) return;
-        } else {
-            if (pathLen < 2) return;
-            if (pathLen == 2 && !confirmDelete(selPath)) return;
-        }
-
-        // make the change.
-        if (model.removeTask(selPath)) {
+        if (madeChange) {
             setDirty(true);
             recalcAll();
             enableTaskButtons();
@@ -3356,7 +3380,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         boolean oneTaskSelected = firstRowNum > 0 && firstRowNum == lastRowNum;
         boolean enableDelete = (disableTaskPruning == false
-                && oneTaskSelected);
+                && lastRowNum > 0);
 
         boolean enableUp = (lastRowNum - treeTable.getSelectedRowCount() > 0);
         boolean enableDown = (lastRowNum > 0 && (firstRowNum + treeTable
