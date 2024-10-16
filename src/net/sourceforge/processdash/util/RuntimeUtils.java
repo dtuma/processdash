@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2020 Tuma Solutions, LLC
+// Copyright (C) 2007-2024 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -208,30 +208,49 @@ public class RuntimeUtils {
      * @since 1.15.0.4
      */
     public static long getSuggestedMaxJvmHeapSize() {
+        // check to see if the user set a system property on the cmd line
+        Integer systemProp = Integer.getInteger("maxMemory");
+        if (systemProp != null)
+            return systemProp;
+
+        // check to see if the user set an environment variable
+        try {
+            String envVar = System.getenv("PDASH_MAX_MEMORY");
+            if (envVar != null)
+                return Integer.parseInt(envVar);
+        } catch (Throwable t) {
+        }
+
+        // choose a default size that won't exceed JVM memory constraints
+        long result = is64BitJvm() ? 4000 : 1000;
+
+        // reduce the default if it exceeds half of system memory
         try {
             Object bean = ManagementFactory.getOperatingSystemMXBean();
             OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
             long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
             long systemMemoryMegabytes = systemMemoryBytes >> 20;
             long halfOfMemory = systemMemoryMegabytes / 2;
-            long result = halfOfMemory;
+            result = Math.min(halfOfMemory, result);
 
-            // Systems today may have a lot of memory - 4 or 6GB - and half
-            // of that value will still be excessive.  In addition, requesting
-            // half of 4GB would result in a process that exceeds the memory
-            // limitations of a 32-bit JVM.  Look at the type of system we are
-            // running, and choose a more conservative limit as appropriate.
-            if ("64".equals(System.getProperty("sun.arch.data.model")))
-                result = Math.min(halfOfMemory, 2000);
-            else
-                result = Math.min(halfOfMemory, 1000);
-
-            return result;
         } catch (Throwable t) {
             // If we are not running in a Sun JVM, the code above will fail.
-            // In that case, use a conservative threshhold.
-            return 800;
+            // In that case, continue with our default JVM-based size.
         }
+
+        return result;
+    }
+
+    private static boolean is64BitJvm() {
+        // Oracle JVMs provide a direct property with the value "64" or "32"
+        String dataModel = System.getProperty("sun.arch.data.model",
+            System.getProperty("com.ibm.vm.bitmode"));
+        if (dataModel != null)
+            return "64".equals(dataModel);
+
+        // check the architecture system property for presence of "64"
+        String osArch = System.getProperty("os.arch");
+        return (osArch != null && osArch.contains("64"));
     }
 
     /**
