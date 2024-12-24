@@ -214,15 +214,9 @@ Authors:
         </antcall>
     </target>
 
-    <target name="maybe-sign-exe" if="sign-exe.alias">
+    <target name="maybe-sign-exe" if="sign-exe.enabled">
         <exec executable="${launch4j.dir}\sign4j\sign4j.exe">
-            <arg value="${java.home}\bin\java.exe"/>
-            <arg value="-jar"/> <arg value="${jsign.dir}/jsign-2.0.jar"/>
-            <arg value="--keystore"/> <arg value="${sign-exe.keystore}"/>
-            <arg value="--storepass"/> <arg value="${sign-exe.storepass}"/>
-            <arg value="--alias"/> <arg value="${sign-exe.alias}"/>
-            <arg value="--tsaurl"/> <arg value="${sign-exe.tsaurl}"/>
-            <arg value="--url"/> <arg value="http://www.processdash.com/"/>
+            <arg line="${sign-exe.command}"/>
             <arg value="${sign-exe.file}"/>
         </exec>
     </target>
