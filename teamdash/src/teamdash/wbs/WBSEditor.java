@@ -112,6 +112,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
+import net.sourceforge.processdash.tool.bridge.impl.TLSConfig;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.ui.LookAndFeelUtil;
@@ -2573,6 +2574,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         args = maybeParseJnlpArgs(args);
         LookAndFeelUtil.setDefaultLAF();
 
+        TLSConfig.autoConfigure();
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
         for (String prop : PROPS_TO_PROPAGATE)
