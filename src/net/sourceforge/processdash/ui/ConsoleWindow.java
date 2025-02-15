@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2023 Tuma Solutions, LLC
+// Copyright (C) 2001-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,9 +45,9 @@ import javax.swing.SwingUtilities;
 public class ConsoleWindow extends JFrame {
 
     private static ConsoleWindow INSTALLED_CONSOLE_WINDOW = null;
+    private static final PrintStream ORIG_OUT = System.out, ORIG_ERR = System.err;
     JTextArea textArea;
-    ConsoleOutputStream outputStream = null;
-    PrintStream printStream = null;
+    ConsoleOutputStream outputStream = null, errStream = null;
     OutputStream copy = null;
 
     public ConsoleWindow() { this(true); }
@@ -94,19 +94,15 @@ public class ConsoleWindow extends JFrame {
 
         copy = c;
     }
-    public OutputStream getOutputStream() {
+    public synchronized void install() {
         if (outputStream == null)
-            outputStream = new ConsoleOutputStream(System.out);
-        return outputStream;
-    }
-    public PrintStream getPrintStream() {
-        if (printStream == null)
-            printStream = new PrintStream(getOutputStream(), true);
-        return printStream;
-    }
-    public void install() {
-        System.setOut(getPrintStream());
-        System.setErr(getPrintStream());
+            outputStream = new ConsoleOutputStream(ORIG_OUT);
+        System.setOut(outputStream.printStream);
+
+        if (errStream == null)
+            errStream = new ConsoleOutputStream(ORIG_ERR);
+        System.setErr(errStream.printStream);
+
         INSTALLED_CONSOLE_WINDOW = this;
     }
     public static ConsoleWindow getInstalledConsole() {
@@ -120,7 +116,11 @@ public class ConsoleWindow extends JFrame {
     // WARNING - doesn't correctly translate bytes to chars.
     private class ConsoleOutputStream extends OutputStream {
         OutputStream orig;
-        public ConsoleOutputStream(OutputStream o) { orig = o; }
+        PrintStream printStream;
+        public ConsoleOutputStream(OutputStream o) {
+            orig = o;
+            printStream = new PrintStream(this, true);
+        }
         public void write(int b) throws IOException {
             orig.write(b);
             if (copy != null) copy.write(b);
