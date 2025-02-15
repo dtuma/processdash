@@ -29,6 +29,9 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -103,6 +106,8 @@ public class ConsoleWindow extends JFrame {
             errStream = new ConsoleOutputStream(ORIG_ERR);
         System.setErr(errStream.printStream);
 
+        new LoggingHander().install();
+
         INSTALLED_CONSOLE_WINDOW = this;
     }
     public static ConsoleWindow getInstalledConsole() {
@@ -113,23 +118,42 @@ public class ConsoleWindow extends JFrame {
             INSTALLED_CONSOLE_WINDOW.setVisible(true);
     }
 
+    // The default ConsoleHandler (created by the java.util.logging facility)
+    // grabs a copy of System.err and does not see our replacement. As a result,
+    // we must add our own handler to intercept and copy logging output.
+    private class LoggingHander extends ConsoleHandler {
+        @Override
+        public void setLevel(Level ignored) throws SecurityException {
+            // ignore default configuration and pass along all log levels
+            super.setLevel(Level.ALL);
+        }
+        @Override
+        protected void setOutputStream(OutputStream ignored) throws SecurityException {
+            // use our own stream instead of System.err
+            super.setOutputStream(new ConsoleOutputStream(null));
+        }
+        private void install() {
+            LogManager.getLogManager().getLogger("").addHandler(this);
+        }
+    }
+
     // WARNING - doesn't correctly translate bytes to chars.
     private class ConsoleOutputStream extends OutputStream {
-        OutputStream orig;
-        PrintStream printStream;
+        final OutputStream orig;
+        final PrintStream printStream;
         public ConsoleOutputStream(OutputStream o) {
             orig = o;
             printStream = new PrintStream(this, true);
         }
         public void write(int b) throws IOException {
-            orig.write(b);
+            if (orig != null) orig.write(b);
             if (copy != null) copy.write(b);
             byte[] buf = new byte[1];
             buf[0] = (byte) b;
             textAreaAppend(new String(buf));
         }
         public void write(byte[] b, int off, int len) throws IOException {
-            orig.write(b, off, len);
+            if (orig != null) orig.write(b, off, len);
             if (copy != null) copy.write(b, off, len);
             textAreaAppend(new String(b, off, len));
         }
