@@ -522,6 +522,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         IntList incomingIDs = new IntList();
         IntList collidingIDs = new IntList();
         for (WBSNode node : nodes) {
+            node.setWbsModel(this);
             tweakNodeForInsertion(node);
 
             int oneID = node.getUniqueID();
