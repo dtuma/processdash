@@ -130,6 +130,11 @@ public class WBSNode implements Cloneable {
         return wbsModel;
     }
 
+    /** Change the WBSModel that this node belongs to. */
+    void setWbsModel(WBSModel model) {
+        this.wbsModel = model;
+    }
+
     /** Get the name of this node.
      * @return The name of this node.  */
     public String getName() { return name; }
