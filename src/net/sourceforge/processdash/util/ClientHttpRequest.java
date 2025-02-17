@@ -42,7 +42,7 @@ public class ClientHttpRequest implements ClientPostRequest {
 
     protected void write(String s) throws IOException {
         connect();
-        _os.write(s.getBytes("US-ASCII"));
+        _os.write(s.getBytes("UTF-8"));
     }
 
     protected void newline() throws IOException {
