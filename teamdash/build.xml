@@ -30,7 +30,7 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="5.8.1"/>
+  <property name="teamtools.version" value="5.8.2"/>
   <property name="teamtools.requires" value="2.6.6+"/>
   <property name="workingdirs.version" value="2.7.2"/>
 
