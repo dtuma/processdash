@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2021 Tuma Solutions, LLC
+// Copyright (C) 2017-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.sync;
+
+import static teamdash.sync.ExtSyncCoordinator.NO_EXT_CHANGES;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -60,7 +62,7 @@ public class ExtSyncDaemonWBS {
 
     public ExtSyncDaemonWBS(ExtSyncDaemon parent, String wbsLocation) {
         this.log = parent.log;
-        this.globalConfig = parent.globalConfig;
+        this.globalConfig = new Properties(parent.globalConfig);
         this.systemName = parent.systemName;
         this.systemID = parent.systemID;
         this.connection = parent.connection;
@@ -91,6 +93,8 @@ public class ExtSyncDaemonWBS {
             log.warning("No " + systemName + " sync spec found, exiting");
             return;
         }
+        if ("true".equals(targetConfig.getAttribute(NO_EXT_CHANGES)))
+            globalConfig.put(NO_EXT_CHANGES, "true");
 
         // create objects to perform the synchronization of this target
         daemonMetadata = TeamProjectDataTargetFactory
