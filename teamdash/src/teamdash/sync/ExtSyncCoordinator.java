@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2021 Tuma Solutions, LLC
+// Copyright (C) 2017-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,8 @@ public class ExtSyncCoordinator {
 
     protected SyncDataFile syncData;
 
+    private Properties config;
+
     private String noExternalChanges;
 
     private DaemonMetadata daemonMetadata;
@@ -85,7 +87,7 @@ public class ExtSyncCoordinator {
         this.syncData = new SyncDataFile(dataTarget,
                 extSystemID + "-sync.pdash");
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
-        this.noExternalChanges = config.getProperty(NO_EXT_CHANGES);
+        this.config = config;
         this.daemonMetadata = daemonMetadata;
         this.log = syncData.getLogger();
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
@@ -136,6 +138,7 @@ public class ExtSyncCoordinator {
 
     private void prepareForSyncRun() throws IOException {
         // get the most recent data and load the team project
+        syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
         ResourceCollection collection = dataTarget.getCollection();
         String name = collection.getDescription();
         int pos = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
@@ -143,6 +146,7 @@ public class ExtSyncCoordinator {
         log.fine(logPrefix + "Checking for changes");
         dataTarget.update();
         syncData.checkComodification();
+        noExternalChanges = config.getProperty(NO_EXT_CHANGES);
         metadata = syncData.getMetadata();
         metadata.setStr(noExternalChanges, NO_EXT_CHANGES);
         teamProject = new ExtSyncTeamProject(collection);
