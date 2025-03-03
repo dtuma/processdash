@@ -181,12 +181,14 @@ public class ExtSyncUtil {
 
         // read configuration properties from the XML tag
         InterpolatingProperties result = new InterpolatingProperties(defaults);
-        try {
-            result.load(new StringReader(XMLUtils.getTextContents(configXml)));
-        } catch (IOException e) {
-        }
-        copyAttr(result, configXml, "name", "systemName");
-        copyAttr(result, configXml, "id", "systemID");
+        synchronized (configXml.getOwnerDocument()) {
+            try {
+                result.load(new StringReader(XMLUtils.getTextContents(configXml)));
+            } catch (IOException e) {
+            }
+            copyAttr(result, configXml, "name", "systemName");
+            copyAttr(result, configXml, "id", "systemID");
+        } 
 
         // return the final result
         return result;
