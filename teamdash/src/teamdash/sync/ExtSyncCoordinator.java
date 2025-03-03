@@ -39,6 +39,7 @@ import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import teamdash.sync.DaemonMetadata.State;
 import teamdash.sync.ExtNodeSet.ExportCreationCapable;
 import teamdash.sync.ExtNodeSet.LifecycleAware;
+import teamdash.sync.ExtNodeSet.WithConfig;
 import teamdash.wbs.ChangeHistory;
 import teamdash.wbs.TeamProject;
 
@@ -110,6 +111,11 @@ public class ExtSyncCoordinator {
         // closed projects require no synchronization
         if (teamProject.getBoolUserSetting("projectClosed"))
             return;
+
+        // debug print configuration properties if requested
+        if (log.isLoggable(Level.FINE) && nodeSet instanceof WithConfig)
+            log.fine(ExtSyncUtil.dumpTargetProperties(logPrefix,
+                ((WithConfig) nodeSet).getEffectiveConfig()));
 
         // inform the node set that a sync pass is starting
         daemonMetadata.setState(State.Start, 100);

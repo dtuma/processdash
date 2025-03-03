@@ -26,9 +26,14 @@ package teamdash.sync;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.w3c.dom.Element;
 
@@ -194,6 +199,23 @@ public class ExtSyncUtil {
             p.put(prop, value);
         else
             p.remove(prop);
+    }
+
+    /** @since 6.4.4 */
+    public static String dumpTargetProperties(String prefix, Properties p) {
+        Set<String> keys = new LinkedHashSet();
+        keys.addAll(Arrays.asList("systemID", "systemName"));
+        keys.addAll(new TreeSet(Collections.list(p.propertyNames())));
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix);
+        sb.append("Effective ext-sync config properties:");
+        String nl = System.lineSeparator() + "    ";
+        for (String key : keys) {
+            String value = p.getProperty(key);
+            if (value != null)
+                sb.append(nl).append(key).append(" = ").append(value);
+        }
+        return sb.toString();
     }
 
     /**
