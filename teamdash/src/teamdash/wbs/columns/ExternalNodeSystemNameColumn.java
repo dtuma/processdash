@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2025 Tuma Solutions, LLC
+// Copyright (C) 2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,28 +28,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.ExternalSystemManager.ExtSystem;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.WBSNode;
-import teamdash.wbs.ExternalSystemManager.ExtSystem;
 
-public class ExternalNodeOwnerColumn extends AbstractDataColumn
+public class ExternalNodeSystemNameColumn extends AbstractDataColumn
         implements ExternalSystemPrimaryColumn, CalculatedDataColumn {
 
-    private final Map<String, String> valueAttrs;
+    private Map<String, String> systemNames;
 
-    public ExternalNodeOwnerColumn(Collection<ExtSystem> systems) {
-        this.columnID = "External Owner";
-        this.columnName = resources.getString("External_Owner.Name");
-        this.preferredWidth = 200;
+    public ExternalNodeSystemNameColumn(Collection<ExtSystem> systems) {
+        this.columnID = "External System Name";
+        this.columnName = resources.getString("External_System.Name");
+        this.preferredWidth = 100;
 
-        Map<String, String> valueAttrs = new HashMap<String, String>();
+        Map<String, String> systemNames = new HashMap<String, String>();
         for (ExtSystem sys : systems) {
-            String systemID = sys.getID();
-            valueAttrs.put(systemID, ExtSyncUtil.getExtOwnerAttr(systemID));
+            systemNames.put(sys.getID(), sys.getName());
         }
-        this.valueAttrs = Collections.unmodifiableMap(valueAttrs);
+        this.systemNames = Collections.unmodifiableMap(systemNames);
     }
 
     @Override
@@ -59,12 +57,8 @@ public class ExternalNodeOwnerColumn extends AbstractDataColumn
 
     @Override
     public Object getValueAt(WBSNode node) {
-        Object systemID = node.getAttribute(EXT_SYSTEM_ID_ATTR);
-        if (systemID == null)
-            return null;
-
-        String valueAttr = valueAttrs.get(systemID);
-        Object value = node.getAttribute(valueAttr);
+        Object systemId = node.getAttribute(EXT_SYSTEM_ID_ATTR);
+        String value = (systemId == null ? null : systemNames.get(systemId));
         return (value == null ? null : new ReadOnlyValue(value));
     }
 

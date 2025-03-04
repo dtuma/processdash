@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,11 @@
 
 package teamdash.wbs.columns;
 
+import teamdash.sync.ExtSyncUtil;
 import teamdash.wbs.DataColumn;
 
 public interface ExternalSystemPrimaryColumn extends DataColumn {
+
+    String EXT_SYSTEM_ID_ATTR = ExtSyncUtil.EXT_SYSTEM_ID_ATTR;
 
 }

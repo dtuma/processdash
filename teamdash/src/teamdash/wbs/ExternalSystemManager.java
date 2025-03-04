@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,6 +53,7 @@ import teamdash.sync.SyncDataFile;
 import teamdash.sync.SyncMetadata;
 import teamdash.wbs.columns.ExternalNodeIDColumn;
 import teamdash.wbs.columns.ExternalNodeOwnerColumn;
+import teamdash.wbs.columns.ExternalNodeSystemNameColumn;
 import teamdash.wbs.columns.ExternalNodeTypeColumn;
 import teamdash.wbs.icons.ScalableSvgIcon;
 
@@ -95,18 +97,22 @@ public class ExternalSystemManager {
 
 
     public void createDataColumns(WBSDataModel data) {
-        for (ExtSystem ext : extSystems.values()) {
+        Collection<ExtSystem> systems = extSystems.values();
+        if (!systems.isEmpty()) {
+            // create a data column to display the system name
+            DataColumn col = new ExternalNodeSystemNameColumn(systems);
+            data.addDataColumn(col);
+
             // create a data column to display the external node ID
-            DataColumn col = new ExternalNodeIDColumn(ext.sysID, ext.sysName);
+            col = new ExternalNodeIDColumn(systems);
             data.addDataColumn(col);
 
             // create a data column to display the external node type
-            col = new ExternalNodeTypeColumn(data, ext.sysID, ext.sysName,
-                    getNodeTypes(ext));
+            col = new ExternalNodeTypeColumn();
             data.addDataColumn(col);
 
             // create a data column to display the external node owner
-            col = new ExternalNodeOwnerColumn(ext.sysID, ext.sysName);
+            col = new ExternalNodeOwnerColumn(systems);
             data.addDataColumn(col);
         }
     }
