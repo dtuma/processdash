@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2020 Tuma Solutions, LLC
+// Copyright (C) 2018-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.wbs;
+
+import static teamdash.sync.ExtSyncDaemon.EXT_SYSTEM_NAME;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -247,8 +249,15 @@ public class ExternalSystemManager {
             // read the specification of an external system from the XML tag
             this.type = ext.getAttribute("type");
             this.sysID = XMLUtils.getAttribute(ext, "id", type);
-            this.sysName = XMLUtils.getAttribute(ext, "name", type);
+            this.sysName = ext.getAttribute("name");
             this.syncData = new SyncDataFile(wbsDir, sysID + "-sync.pdash");
+            if (!XMLUtils.hasValue(this.sysName)) {
+                try {
+                    sysName = syncData.getMetadata().getStr(EXT_SYSTEM_NAME);
+                } catch (IOException ioe) {
+                    sysName = sysID;
+                }
+            }
             extSystems.put(sysID, this);
         }
 
