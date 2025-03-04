@@ -23,6 +23,7 @@
 
 package teamdash.sync;
 
+import static teamdash.sync.ExtSyncDaemon.EXT_SYSTEM_NAME;
 import static teamdash.wbs.WBSFilenameConstants.CHANGE_HISTORY_FILE;
 
 import java.io.ByteArrayOutputStream;
@@ -155,6 +156,7 @@ public class ExtSyncCoordinator {
         noExternalChanges = config.getProperty(NO_EXT_CHANGES);
         metadata = syncData.getMetadata();
         metadata.setStr(noExternalChanges, NO_EXT_CHANGES);
+        metadata.setStr(extSystemName, EXT_SYSTEM_NAME);
         teamProject = new ExtSyncTeamProject(collection);
         wbsNeedsSave = false;
     }
