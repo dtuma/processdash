@@ -274,7 +274,8 @@ public class ExtSyncUtil {
      */
     public static boolean isExtSyncTrigger(String filename) {
         String name = filename.toLowerCase();
-        return name.endsWith("-data.pdash") || name.equals("projdump.xml");
+        return name.endsWith("-data.pdash") || name.equals("projdump.xml")
+                || name.equals(EXT_SPEC_FILE);
     }
 
 }
