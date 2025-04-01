@@ -148,7 +148,8 @@ public class ExtSyncCoordinator {
         syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
         ResourceCollection collection = dataTarget.getCollection();
         String name = collection.getDescription();
-        int pos = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
+        int pos = Math.max(name.lastIndexOf(' '),
+            Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'))) + 1;
         logPrefix = "[" + extSystemID + "/" + name.substring(pos) + "] - ";
         log.fine(logPrefix + "Checking for changes");
         dataTarget.update();
