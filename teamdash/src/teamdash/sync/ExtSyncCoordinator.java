@@ -46,6 +46,8 @@ import teamdash.wbs.TeamProject;
 
 public class ExtSyncCoordinator {
 
+    public static final String FIRST_RUN_FLAG = "extSyncFirstRun";
+
     public static final String NO_EXT_CHANGES = "noExternalChanges";
 
 
@@ -114,9 +116,12 @@ public class ExtSyncCoordinator {
             return;
 
         // debug print configuration properties if requested
-        if (log.isLoggable(Level.FINE) && nodeSet instanceof WithConfig)
-            log.fine(ExtSyncUtil.dumpTargetProperties(logPrefix,
-                ((WithConfig) nodeSet).getEffectiveConfig()));
+        if (nodeSet instanceof WithConfig) {
+            Level level = isFirstSyncRun() ? Level.INFO : Level.FINE;
+            if (log.isLoggable(level))
+                log.log(level, ExtSyncUtil.dumpTargetProperties(logPrefix,
+                    ((WithConfig) nodeSet).getEffectiveConfig()));
+        }
 
         // inform the node set that a sync pass is starting
         daemonMetadata.setState(State.Start, 100);
@@ -160,6 +165,14 @@ public class ExtSyncCoordinator {
         metadata.setStr(extSystemName, EXT_SYSTEM_NAME);
         teamProject = new ExtSyncTeamProject(collection);
         wbsNeedsSave = false;
+    }
+
+    private boolean isFirstSyncRun() {
+        try {
+            return config.remove(FIRST_RUN_FLAG) != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void createExportedWbsNodes(ExportCreationCapable nodeSet)

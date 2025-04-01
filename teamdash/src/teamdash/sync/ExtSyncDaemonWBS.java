@@ -23,6 +23,7 @@
 
 package teamdash.sync;
 
+import static teamdash.sync.ExtSyncCoordinator.FIRST_RUN_FLAG;
 import static teamdash.sync.ExtSyncCoordinator.NO_EXT_CHANGES;
 
 import java.io.BufferedInputStream;
@@ -93,6 +94,7 @@ public class ExtSyncDaemonWBS {
             log.warning("No " + systemName + " sync spec found, exiting");
             return;
         }
+        globalConfig.put(FIRST_RUN_FLAG, "true");
         if ("true".equals(targetConfig.getAttribute(NO_EXT_CHANGES)))
             globalConfig.put(NO_EXT_CHANGES, "true");
 
