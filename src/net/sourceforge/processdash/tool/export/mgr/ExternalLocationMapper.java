@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2022 Tuma Solutions, LLC
+// Copyright (C) 2007-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ public class ExternalLocationMapper {
 
     Map generalizedRemappings = null;
 
+    String dataDirMapping = null;
+
     String datasetUrl = null;
 
     public ExternalLocationMapper() {}
@@ -101,7 +103,7 @@ public class ExternalLocationMapper {
             generalizedRemappings = new HashMap();
 
         File dataDir = new File(dataDirParent, "data");
-        pathRemappings.put("./data", dataDir.getPath());
+        dataDirMapping = dataDir.getPath();
     }
 
     private boolean isEmpty(Map m) {
@@ -148,6 +150,13 @@ public class ExternalLocationMapper {
                 .hasNext();) {
             String remappedPath = performGeneralizedRemapping(
                     origNormalizedPath, (Map.Entry) i.next());
+            if (remappedPath != null)
+                return denormalize(remappedPath);
+        }
+
+        if (dataDirMapping != null) {
+            String remappedPath = performAbsoluteRemapping(origNormalizedPath,
+                "./data", dataDirMapping);
             if (remappedPath != null)
                 return denormalize(remappedPath);
         }
