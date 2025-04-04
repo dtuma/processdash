@@ -211,7 +211,7 @@ public class ExtSyncUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix);
         sb.append("Effective ext-sync config properties:");
-        String nl = System.lineSeparator() + "    ";
+        String nl = System.getProperty("line.separator") + "    ";
         for (String key : keys) {
             String value = p.getProperty(key);
             if (value != null)
