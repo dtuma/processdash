@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NonclosingInputStream;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 import teamdash.XMLUtils;
@@ -124,6 +125,8 @@ public class WBSSynchronizer {
 
     private boolean sizeDataIncomplete = false;
 
+    private Set<String> joinedMemberInitials;
+
     private Set<String> reloadedMemberNames;
 
     private Map<String, SyncHandler> handlers;
@@ -162,6 +165,7 @@ public class WBSSynchronizer {
         this.teamProject = teamProject;
         this.dataModel = dataModel;
         this.explicitDumpData = explicitDumpData;
+        this.joinedMemberInitials = new HashSet<String>();
         this.reloadedMemberNames = new HashSet<String>();
         this.handlers = createSyncHandlers();
     }
@@ -179,6 +183,7 @@ public class WBSSynchronizer {
         changedTimeEstimates = false;
         createdNewTasks = foundActualData = needsWbsEvent = false;
         foundActualSizeData = sizeDataIncomplete = false;
+        joinedMemberInitials.clear();
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
         nodeMap = teamProject.getWBS().getNodeMap();
@@ -197,6 +202,8 @@ public class WBSSynchronizer {
                 .iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
+            if (dump != null && !XMLUtils.hasValue(dump.getAttribute("virtual")))
+                joinedMemberInitials.add(m.getInitials().toLowerCase());
             addDatasetIdMapping(datasetIDMap, dump);
             syncTeamMember(m, dump);
             if (dump == directDumpData || teamProject.isPersonalProject())
@@ -331,6 +338,15 @@ public class WBSSynchronizer {
         Set<String> result = reloadedMemberNames;
         reloadedMemberNames = new HashSet<String>();
         return result;
+    }
+
+    /**
+     * Return true if an individual with the given initials has joined the
+     * project.
+     */
+    public boolean hasMemberJoined(String initials) {
+        return (StringUtils.hasValue(initials)
+                && joinedMemberInitials.contains(initials.toLowerCase()));
     }
 
     /**
