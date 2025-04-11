@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2024 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -744,14 +744,7 @@ public class WBSDataWriter {
 
         public void writeAttributes(Writer out, WBSNode node)
                 throws IOException {
-            String version = null;
-            try {
-                version = WBSDataWriter.class.getPackage()
-                        .getImplementationVersion();
-            } catch (Exception e) {}
-            if (version == null)
-                version = "999";
-            writeAttr(out, VERSION_ATTR, version);
+            writeAttr(out, VERSION_ATTR, getDumpVersion());
             writeAttr(out, SAVE_DATE_ATTR, new Date());
             writeAttr(out, MAX_CLIENT_IDS_ATTR,
                 WBSSynchronizer.getMaxClientIdStr(node));
@@ -766,6 +759,15 @@ public class WBSDataWriter {
             else
                 return (String) userSettings.get(name);
         }
+    }
+
+    static String getDumpVersion() {
+        String version = null;
+        try {
+            version = WBSDataWriter.class.getPackage()
+                    .getImplementationVersion();
+        } catch (Exception e) {}
+        return (version == null ? "999" : version);
     }
 
 
