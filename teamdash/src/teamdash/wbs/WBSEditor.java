@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2023 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -211,6 +211,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     WBSSynchronizer reverseSynchronizer;
+    VirtualPdashWriter virtualPdashWriter;
     MergeConflictDialog mergeConflictDialog;
     TeamProjectMergeCoordinator mergeCoordinator;
     TeamProjectMergeDebugger mergeDebugger;
@@ -330,6 +331,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             try {
                 workingDirectory.doBackup("startup");
             } catch (IOException e) {}
+            if (reverseSynchronizer != null && !isMode(MODE_PERSONAL))
+                virtualPdashWriter = new VirtualPdashWriter(teamProject,
+                    workingDirectory.getDescription(), reverseSynchronizer);
         }
         this.owner = owner;
 
@@ -1938,6 +1942,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             workflowWriter.write(workflowDumpFile);
             if (teamProject.getBoolUserSetting(WBSDataWriter.NEEDS_DUMP_SETTING))
                 teamProject.putUserSetting(WBSDataWriter.NEEDS_DUMP_SETTING, null);
+
+            // publish PDASH files for unjoined/virtual users
+            if (virtualPdashWriter != null)
+                virtualPdashWriter.writeVirtualPdashFiles(dataDumpFile.lastModified());
 
             // write out custom tabs file, if the tabs have changed
             if (tabPanel != null)
