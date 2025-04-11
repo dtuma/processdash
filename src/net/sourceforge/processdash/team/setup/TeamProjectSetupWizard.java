@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2023 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 
 package net.sourceforge.processdash.team.setup;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -110,6 +111,7 @@ import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.SyncClientMappings;
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
 import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
@@ -2375,10 +2377,12 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             throws IOException, URISyntaxException {
         List<String> filenames = Arrays.asList(teamDataDir.list());
         Set<String> result = new HashSet<String>();
-        for (String oneFile : filenames) {
-            oneFile = oneFile.toLowerCase();
-            if (oneFile.endsWith(PDASH_DATA_FILE_SUFFIX))
-                result.add(oneFile.substring(0, oneFile.length() - 11));
+        for (String name : filenames) {
+            String nameLC = name.toLowerCase();
+            if (nameLC.endsWith(PDASH_DATA_FILE_SUFFIX)
+                    && pdashFileIsForJoinedPerson(new File(teamDataDir, name)))
+                result.add(nameLC.substring(0,
+                    nameLC.length() - PDASH_DATA_FILE_SUFFIX.length()));
         }
         return result;
     }
@@ -3231,8 +3235,8 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
             e.printStackTrace();
         }
 
-        // return true if we found an existing pdash file
-        return f.isFile();
+        // return true if we found an existing pdash file for a nonvirtual user
+        return pdashFileIsForJoinedPerson(f);
     }
 
     private static void lookForRecentPdashWithActualData(File dir,
@@ -3313,6 +3317,33 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         } finally {
             FileUtils.safelyClose(zip);
         }
+        return false;
+    }
+
+    /** @return true if a pdash file was written by a person (not the WBS) */
+    private static boolean pdashFileIsForJoinedPerson(File file) {
+        if (file == null || !file.isFile())
+            return false;
+
+        ZipInputStream zip = null;
+        try {
+            zip = new ZipInputStream(
+                    new BufferedInputStream(new FileInputStream(file)));
+            ZipEntry e;
+            while ((e = zip.getNextEntry()) != null) {
+                if (ArchiveMetricsXmlConstants.MANIFEST_FILE_NAME
+                        .equalsIgnoreCase(e.getName())) {
+                    Element xml = XMLUtils.parse(zip).getDocumentElement();
+                    return !XMLUtils.hasValue(xml.getAttribute( //
+                        ArchiveMetricsXmlConstants.VIRTUAL_ATTR));
+                }
+            }
+        } catch (Exception e) {
+            // file is unreadable
+        } finally {
+            FileUtils.safelyClose(zip);
+        }
+        // ZIP did not include a manifest.xml file
         return false;
     }
 
