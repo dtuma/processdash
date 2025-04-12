@@ -26,10 +26,13 @@ package teamdash.wbs;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -39,6 +42,8 @@ import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.WeekData;
 import teamdash.team.WeeklySchedule;
+import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -64,12 +69,15 @@ public class VirtualEVModel {
 
     private TaskData taskRoot;
 
+    private List<TaskData> leafTasks;
+
     private double totalPlanTime;
 
-    private Date planFinishDate;
+    private Date planStartDate, planFinishDate;
 
     public void recalc() {
         buildTaskTree();
+        assignMilestoneBoundaryPlanDates();
     }
 
 
@@ -80,6 +88,7 @@ public class VirtualEVModel {
         // prepare frequently used values
         timeAttr = TeamMemberTimeColumn.getMemberNodeDataAttrName(m);
         assignedAttr = TeamTimeColumn.getMemberAssignedZeroAttrName(m);
+        leafTasks = new ArrayList();
 
         // scan the WBS and build tasks for the items assigned to this member
         TaskData tree = buildTaskTree(wbs.getRoot());
@@ -89,17 +98,11 @@ public class VirtualEVModel {
             tree = new TaskData(wbs.getRoot());
             tree.planTime = 0;
             tree.children = Collections.EMPTY_LIST;
+            leafTasks.add(tree);
         }
 
         // read the total plan time from the root node
         totalPlanTime = tree.planTime;
-
-        // calculate the date when that effort could be completed
-        planFinishDate = m.getSchedule().getDateForEffort(totalPlanTime);
-        if (planFinishDate == null)
-            planFinishDate = NEVER;
-        else
-            planFinishDate = truncDate(planFinishDate);
 
         // save the tree we built
         taskRoot = tree;
@@ -116,6 +119,7 @@ public class VirtualEVModel {
                 TaskData result = new TaskData(node);
                 result.planTime = nodePlanTime > 0 ? nodePlanTime : 0;
                 result.children = Collections.EMPTY_LIST;
+                leafTasks.add(result);
                 return result;
             } else {
                 // if this leaf is not assigned to the given team member,
@@ -139,6 +143,74 @@ public class VirtualEVModel {
 
             return parent;
         }
+    }
+
+
+
+    private void assignMilestoneBoundaryPlanDates() {
+        // calculate the dates when each milestone will begin and end
+        Map<Integer, DateRange> milestonePlan = getMilestonePlan();
+
+        // scan the leaf tasks and set their planned dates
+        for (TaskData task : leafTasks) {
+            // get the milestone ID of this task, or -1 if no milestone
+            int milestoneID = MilestoneColumn.getMilestoneID(task.node,
+                teamProject.getMilestones());
+
+            // look up the date range for the associated milestone
+            DateRange r = milestonePlan.get(milestoneID);
+
+            // align the planned task dates with the milestone boundary
+            if (r != null)
+                task.addDates(DateType.Plan, r);
+        }
+    }
+
+    private Map<Integer, DateRange> getMilestonePlan() {
+        // get the list of milestones in the project (including "none")
+        List<WBSNode> milestones = new ArrayList(
+                Arrays.asList(teamProject.getMilestones().getMilestones()));
+        milestones.add(null);
+
+        // get the amount of planned time this person has for each milestone
+        // (precalculated by the TeamActualTimeColumn)
+        String attr = TeamActualTimeColumn.getMilestonePlanTimeAttr(m);
+        Map<Integer, Double> milestoneEffort = (Map<Integer, Double>) wbs
+                .getRoot().getAttribute(attr);
+
+        // calculate the date ranges for each milestone
+        Map<Integer, DateRange> result = new LinkedHashMap();
+        planStartDate = truncDate(m.getSchedule().getStartDate());
+        Date milestoneStart = planStartDate;
+        Date scheduleEnd = m.getEndDate();
+        int cumPlanTime = 0;
+        for (WBSNode milestone : milestones) {
+            // get the planned effort for this milestone
+            int milestoneID = (milestone == null ? NO_MILESTONE_ID
+                    : milestone.getUniqueID());
+            Double effortVal = milestoneEffort.get(milestoneID);
+            double effort = (effortVal == null ? 0 : effortVal.doubleValue());
+
+            // calculate the cumulative planned effort and effective date
+            cumPlanTime += effort;
+            Date milestoneEnd = m.getSchedule().getDateForEffort(cumPlanTime);
+            if (milestoneEnd == null)
+                milestoneEnd = NEVER;
+            else if (scheduleEnd != null && milestoneEnd.after(scheduleEnd))
+                milestoneEnd = NEVER;
+            else
+                milestoneEnd = truncDate(milestoneEnd);
+
+            // create a task for this milestone and add to result
+            DateRange r = new DateRange(milestoneStart, milestoneEnd);
+            result.put(milestoneID, r);
+
+            // prepare for the next milestone
+            milestoneStart = planFinishDate = milestoneEnd;
+        }
+
+        // return the list of milestone data we built
+        return result;
     }
 
 
@@ -193,6 +265,14 @@ public class VirtualEVModel {
         xml.attribute(null, "name", task.node.getName());
         xml.attribute(null, "pt", xmlTime(task.planTime));
         xml.attribute(null, "at", ZERO_TIME);
+
+        for (DateType type : DateType.values()) {
+            DateRange r = task.dates[type.ordinal()];
+            if (type.startAttr != null && r.start != null)
+                xml.attribute(null, type.startAttr, xmlDate(r.start));
+            if (type.endAttr != null && r.end != null)
+                xml.attribute(null, type.endAttr, xmlDate(r.end));
+        }
 
         if (tid == null) {
             int nid = task.node.getTreeNodeID();
@@ -322,12 +402,23 @@ public class VirtualEVModel {
 
         double planTime;
 
+        DateRange[] dates;
+
         TaskData parent;
 
         List<TaskData> children;
 
         TaskData(WBSNode node) {
             this.node = node;
+            this.dates = new DateRange[DateType.values().length];
+            for (int i = dates.length; i-- > 0;)
+                dates[i] = new DateRange();
+        }
+
+        void addDates(DateType type, DateRange range) {
+            dates[type.ordinal()].add(range);
+            if (parent != null)
+                parent.addDates(type, range);
         }
 
         void addChild(TaskData child) {
@@ -355,9 +446,45 @@ public class VirtualEVModel {
 
 
 
+    private static class DateRange {
+
+        Date start, end;
+
+        public DateRange() {}
+
+        public DateRange(Date start, Date end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        void add(DateRange that) {
+            this.start = min(this.start, that.start);
+            this.end = max(this.end, that.end);
+        }
+    }
+
+
+
+    private static enum DateType {
+
+        Plan("psd", "pd");
+
+        String startAttr, endAttr;
+
+        private DateType(String startAttr, String endAttr) {
+            this.startAttr = startAttr;
+            this.endAttr = endAttr;
+        }
+
+    }
+
+
+
     private static final String ENCODING = "UTF-8";
 
     private static final String ZERO_TIME = "0.0";
+
+    private static final int NO_MILESTONE_ID = -1;
 
     private static final Date NEVER = new Date(Long.MAX_VALUE);
 
