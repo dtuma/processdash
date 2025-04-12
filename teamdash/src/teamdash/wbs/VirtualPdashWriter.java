@@ -97,6 +97,9 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
             // write a manifest.xml file into the ZIP
             writeManifest(zipOut, m, exportTimestamp);
 
+            // write an ev.xml file into the ZIP
+            writeEV(zipOut, m);
+
             // close the ZIP
             zipOut.finish();
             zipOut.flush();
@@ -146,6 +149,13 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
         // finish the <exported> block
         xml.endTag(null, EXPORTED_TAG);
 
+        // write a <file> entry for ev.xml
+        xml.startTag(null, FILE_ELEM);
+        xml.attribute(null, FILE_NAME_ATTR, EV_FILE_NAME);
+        xml.attribute(null, TYPE_ATTR, FILE_TYPE_EARNED_VALUE);
+        xml.attribute(null, VERSION_ATTR, "1");
+        xml.endTag(null, FILE_ELEM);
+
         // finalize the document and close the ZIP entry
         xml.endTag(null, ARCHIVE_ELEM);
         xml.endDocument();
@@ -167,6 +177,22 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
         return uuid.toString();
     }
 
+
+    private void writeEV(ZipOutputStream zipOut, TeamMember m)
+            throws IOException {
+        // build and calculate the EV data
+        VirtualEVModel evModel = new VirtualEVModel(teamProject, m);
+        evModel.recalc();
+
+        // start an entry in the ZIP for ev.xml and write the EV data
+        zipOut.putNextEntry(new ZipEntry(EV_FILE_NAME));
+        evModel.writeEV(zipOut);
+        zipOut.closeEntry();
+    }
+
+
     private static final String WBS_EDITOR_PKG_ID = "teamToolsB";
+
+    private static final String EV_FILE_NAME = "ev.xml";
 
 }
