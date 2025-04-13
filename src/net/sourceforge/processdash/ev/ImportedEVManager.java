@@ -1,4 +1,4 @@
-// Copyright (C) 2013-2018 Tuma Solutions, LLC
+// Copyright (C) 2013-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -285,7 +285,24 @@ public class ImportedEVManager {
         if (result == null && Settings.getBool("ev.imports.matchByName", true))
             result = getImportedTaskListByUniqueDisplayName(taskListName);
 
+        // if we were expecting a schedule from a real person, but instead found
+        // one written on behalf of a virtual user (or vice versa), reject it
+        if (isVirtualUserMismatch(taskListID, result))
+            return null;
+
         return result;
+    }
+
+    private boolean isVirtualUserMismatch(String expectedID,
+            ImportedTaskList found) {
+        return expectedID != null //
+                && found != null && found.taskListID != null //
+                && isVirtualTaskListID(expectedID) != //
+                        isVirtualTaskListID(found.taskListID);
+    }
+
+    private boolean isVirtualTaskListID(String taskListID) {
+        return taskListID != null && taskListID.contains(".00");
     }
 
 
