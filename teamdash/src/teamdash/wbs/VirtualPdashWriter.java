@@ -23,16 +23,22 @@
 
 package teamdash.wbs;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -88,6 +94,10 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
                 + WBSFilenameConstants.EXPORT_FILENAME_ENDING;
         File f = new File(teamProject.getStorageDirectory(), filename);
 
+        // if this virtual user already has a PDASH file, get the checksum
+        // of its ev.xml file
+        long oldChecksum = getEvXmlChecksum(f);
+
         // open an output stream to write data
         RobustFileOutputStream out = new RobustFileOutputStream(f);
         ZipOutputStream zipOut = new ZipOutputStream(
@@ -98,16 +108,46 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
             writeManifest(zipOut, m, exportTimestamp);
 
             // write an ev.xml file into the ZIP
-            writeEV(zipOut, m);
+            long newChecksum = writeEV(zipOut, m);
 
-            // close the ZIP
-            zipOut.finish();
-            zipOut.flush();
-            zipOut.close();
+            if (oldChecksum == newChecksum) {
+                // if the exported data has not changed, discard the new PDASH
+                // file we've been creating and leave the old one in place
+                out.abort();
+
+            } else {
+                // close the ZIP, saving changes
+                zipOut.finish();
+                zipOut.flush();
+                zipOut.close();
+            }
+
         } catch (IOException ioe) {
             out.abort();
             throw ioe;
         }
+    }
+
+
+    private long getEvXmlChecksum(File f) throws IOException {
+        ZipInputStream zipIn = null;
+        try {
+            if (f.isFile()) {
+                zipIn = new ZipInputStream(
+                        new BufferedInputStream(new FileInputStream(f)));
+                ZipEntry e;
+                while ((e = zipIn.getNextEntry()) != null) {
+                    if (EV_FILE_NAME.equals(e.getName())) {
+                        return FileUtils.computeChecksum(zipIn, new Adler32(),
+                            false);
+                    }
+                }
+            }
+        } catch (Exception e) {
+        } finally {
+            FileUtils.safelyClose(zipIn);
+        }
+        return -1;
     }
 
 
@@ -178,7 +218,7 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
     }
 
 
-    private void writeEV(ZipOutputStream zipOut, TeamMember m)
+    private long writeEV(ZipOutputStream zipOut, TeamMember m)
             throws IOException {
         // build and calculate the EV data
         VirtualEVModel evModel = new VirtualEVModel(teamProject, m);
@@ -186,8 +226,13 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
         // start an entry in the ZIP for ev.xml and write the EV data
         zipOut.putNextEntry(new ZipEntry(EV_FILE_NAME));
-        evModel.writeEV(zipOut);
+        CheckedOutputStream cc = new CheckedOutputStream(zipOut, new Adler32());
+        evModel.writeEV(cc);
+        cc.flush();
         zipOut.closeEntry();
+
+        // return the checksum of the ev.xml file we just wrote
+        return cc.getChecksum().getValue();
     }
 
 
