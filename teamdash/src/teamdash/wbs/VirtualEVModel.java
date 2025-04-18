@@ -58,11 +58,19 @@ public class VirtualEVModel {
     /** The team member we are calculating EV for */
     private TeamMember m;
 
+    /** The time zone to use for the exported schedule */
+    private TimeZone timeZone;
 
-    public VirtualEVModel(TeamProject teamProject, TeamMember m) {
+    /** The offset from the local timezone to the target */
+    private long tzDelta;
+
+
+    public VirtualEVModel(TeamProject teamProject, TeamMember m, TimeZone tz) {
         this.teamProject = teamProject;
         this.wbs = teamProject.getWBS();
         this.m = m;
+        this.timeZone = tz;
+        this.tzDelta = TimeZone.getDefault().getRawOffset() - tz.getRawOffset();
     }
 
 
@@ -231,7 +239,7 @@ public class VirtualEVModel {
         xml.startTag(null, "EVModel");
         xml.attribute(null, "rct", "false");
         xml.attribute(null, "tlid", taskListID);
-        xml.attribute(null, "tz", TimeZone.getDefault().getID());
+        xml.attribute(null, "tz", timeZone.getID());
 
         // write top-level <task> tag representing the task list root
         startTaskTag(xml, taskRoot, "TL-" + taskListID);
@@ -368,9 +376,10 @@ public class VirtualEVModel {
             return "";
     }
 
-    private static Date truncDate(Date d) {
+    private Date truncDate(Date d) {
         Calendar c = Calendar.getInstance();
-        c.setTime(d);
+        c.setTimeZone(timeZone);
+        c.setTimeInMillis(d.getTime() + tzDelta);
         c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);

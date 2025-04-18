@@ -28,6 +28,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
@@ -48,6 +49,8 @@ import teamdash.team.TeamMember;
 public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
     public static final String USER_SETTING = "virtualEV";
+
+    public static final String TIME_ZONE_SETTING = "timeZone";
 
 
     /** The team project */
@@ -74,10 +77,12 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
                 .equals(teamProject.getUserSetting(USER_SETTING));
         if (exportTimestamp <= 0)
             exportTimestamp = System.currentTimeMillis();
+        String tzs = teamProject.getUserSetting(TIME_ZONE_SETTING);
+        TimeZone tz = TimeZone.getTimeZone(tzs == null ? "GMT" : tzs);
 
         for (TeamMember m : teamProject.getTeamMemberList().getTeamMembers()) {
             if (isValid(m) && !hasJoined(m)) {
-                writeVirtualPdashFile(m, enabled, exportTimestamp);
+                writeVirtualPdashFile(m, enabled, exportTimestamp, tz);
             }
         }
     }
@@ -93,7 +98,7 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
 
     private void writeVirtualPdashFile(TeamMember m, boolean enabled,
-            long exportTimestamp) throws IOException {
+            long exportTimestamp, TimeZone tz) throws IOException {
         // identify the PDASH file where data should be written
         String filename = m.getInitials()
                 + WBSFilenameConstants.EXPORT_FILENAME_ENDING;
@@ -119,7 +124,7 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
             writeManifest(zipOut, m, exportTimestamp);
 
             // write an ev.xml file into the ZIP
-            long newChecksum = writeEV(zipOut, m);
+            long newChecksum = writeEV(zipOut, m, tz);
 
             if (oldChecksum == newChecksum) {
                 // if the exported data has not changed, discard the new PDASH
@@ -229,10 +234,10 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
     }
 
 
-    private long writeEV(ZipOutputStream zipOut, TeamMember m)
+    private long writeEV(ZipOutputStream zipOut, TeamMember m, TimeZone tz)
             throws IOException {
         // build and calculate the EV data
-        VirtualEVModel evModel = new VirtualEVModel(teamProject, m);
+        VirtualEVModel evModel = new VirtualEVModel(teamProject, m, tz);
         evModel.recalc();
 
         // start an entry in the ZIP for ev.xml and write the EV data
