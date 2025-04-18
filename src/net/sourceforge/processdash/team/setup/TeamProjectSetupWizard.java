@@ -286,6 +286,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
     private static final String IGNORE_DUPS = "setup//Ignore_Duplicate_Projects";
+    private static final String VIRTUAL_EV_POLICY = "virtualEV";
     private static final String INITIALS_POLICY = "initialsPolicy";
     private static final String INITIALS_POLICY_USERNAME = "username";
     private static final String INITIALS_LABEL = "setup//Initials_Label";
@@ -1065,6 +1066,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String initialsPolicy = getValue("/Team_Project_Policy/Initials_Policy");
         if (StringUtils.hasValue(initialsPolicy))
             result.put("initialsPolicy", initialsPolicy);
+
+        // record the global virtual EV policy, if one is registered
+        String evPolicy = getValue("/Team_Project_Policy/Virtual_EV_Policy");
+        if (StringUtils.hasValue(evPolicy))
+            result.put(VIRTUAL_EV_POLICY, evPolicy);
 
         // write default hours per week if applicable
         String defaultHoursPerWeek = getValue(isPersonal ? IND_HOURS

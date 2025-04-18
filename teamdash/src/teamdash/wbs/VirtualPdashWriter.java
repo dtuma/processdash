@@ -47,6 +47,9 @@ import teamdash.team.TeamMember;
 
 public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
+    public static final String USER_SETTING = "virtualEV";
+
+
     /** The team project */
     private TeamProject teamProject;
 
@@ -67,12 +70,14 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
     public void writeVirtualPdashFiles(long exportTimestamp)
             throws IOException {
+        boolean enabled = "enabled"
+                .equals(teamProject.getUserSetting(USER_SETTING));
         if (exportTimestamp <= 0)
             exportTimestamp = System.currentTimeMillis();
 
         for (TeamMember m : teamProject.getTeamMemberList().getTeamMembers()) {
             if (isValid(m) && !hasJoined(m)) {
-                writeVirtualPdashFile(m, exportTimestamp);
+                writeVirtualPdashFile(m, enabled, exportTimestamp);
             }
         }
     }
@@ -87,12 +92,18 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
     }
 
 
-    private void writeVirtualPdashFile(TeamMember m, long exportTimestamp)
-            throws IOException {
+    private void writeVirtualPdashFile(TeamMember m, boolean enabled,
+            long exportTimestamp) throws IOException {
         // identify the PDASH file where data should be written
         String filename = m.getInitials()
                 + WBSFilenameConstants.EXPORT_FILENAME_ENDING;
         File f = new File(teamProject.getStorageDirectory(), filename);
+
+        // if virtual EV is disabled, delete the file if it exists and abort
+        if (!enabled) {
+            f.delete();
+            return;
+        }
 
         // if this virtual user already has a PDASH file, get the checksum
         // of its ev.xml file

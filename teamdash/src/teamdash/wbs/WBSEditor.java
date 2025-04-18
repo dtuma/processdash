@@ -252,6 +252,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
+    private static final String VIRTUAL_EV_SETTING = VirtualPdashWriter.USER_SETTING;
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
     public static final String PROJECT_CLOSED_SETTING = "projectClosed";
 
@@ -1111,6 +1112,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         allowSimulEdit.setSelected(simulEditSetting);
         allowSimulEdit.setEnabled(!indivRestrictedMode && !isSyncBundleDir);
 
+        JCheckBox virtualEV = null;
+        boolean virtualEVEnabled = false;
+        if (virtualPdashWriter != null) {
+            virtualEV = new JCheckBox(
+                    resources.getString("Preferences.Virtual_EV"));
+            String setting = teamProject.getUserSetting(VIRTUAL_EV_SETTING);
+            virtualEVEnabled = "enabled".equals(setting);
+            virtualEV.setSelected(virtualEVEnabled);
+            virtualEV.setEnabled(!indivRestrictedMode);
+        }
+
         JCheckBox initialsPolicy = null;
         String globalInitialsPolicy = System
                 .getProperty("teamdash.wbs.globalInitialsPolicy");
@@ -1142,7 +1154,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             message = new Object[] { projectClosed };
         else
             message = new Object[] { readOnlyPrompt, membersCanEdit,
-                allowSimulEdit, initialsPolicy, projectClosed };
+                allowSimulEdit, virtualEV, initialsPolicy, projectClosed };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
             resources.getString("Preferences.Dialog_Title"),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -1172,6 +1184,14 @@ public class WBSEditor implements WindowListener, SaveListener,
                 newSimulEditSetting);
             madeChange = true;
             restartRequired = true;
+        }
+
+        boolean newVirtualEVEnabled = virtualEV != null
+                && virtualEV.isSelected();
+        if (newVirtualEVEnabled != virtualEVEnabled) {
+            teamProject.putUserSetting(VIRTUAL_EV_SETTING,
+                newVirtualEVEnabled ? "enabled" : "disabled");
+            madeChange = true;
         }
 
         if (initialsPolicy != null) {
