@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1071,6 +1072,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         String evPolicy = getValue("/Team_Project_Policy/Virtual_EV_Policy");
         if (StringUtils.hasValue(evPolicy))
             result.put(VIRTUAL_EV_POLICY, evPolicy);
+        result.put("timeZone", TimeZone.getDefault().getID());
 
         // write default hours per week if applicable
         String defaultHoursPerWeek = getValue(isPersonal ? IND_HOURS

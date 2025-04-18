@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.prefs.Preferences;
@@ -253,6 +254,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
     private static final String VIRTUAL_EV_SETTING = VirtualPdashWriter.USER_SETTING;
+    private static final String TIME_ZONE_SETTING = VirtualPdashWriter.TIME_ZONE_SETTING;
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
     public static final String PROJECT_CLOSED_SETTING = "projectClosed";
 
@@ -1191,6 +1193,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (newVirtualEVEnabled != virtualEVEnabled) {
             teamProject.putUserSetting(VIRTUAL_EV_SETTING,
                 newVirtualEVEnabled ? "enabled" : "disabled");
+            if (teamProject.getUserSetting(TIME_ZONE_SETTING) == null)
+                teamProject.putUserSetting(TIME_ZONE_SETTING,
+                    TimeZone.getDefault().getID());
             madeChange = true;
         }
 
