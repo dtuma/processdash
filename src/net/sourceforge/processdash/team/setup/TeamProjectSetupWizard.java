@@ -1027,7 +1027,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
 
         // write the userSettings.ini file
         Properties wbsUserSettings = getWbsUserSettings(isPersonal,
-            relaunchSourceID);
+            relaunchSourceDir, relaunchSourceID);
         if (!wbsUserSettings.isEmpty())
             files.add(new UserSettingsWriter(wbsUserSettings));
 
@@ -1060,7 +1060,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     }
 
     private Properties getWbsUserSettings(boolean isPersonal,
-            String relaunchSourceID) {
+            File relaunchSourceDir, String relaunchSourceID) {
         Properties result = new Properties();
 
         // record the global initials policy, if one is registered
@@ -1091,10 +1091,32 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         if (shouldEnableWbsManagedSizeData())
             result.put(WBS_MANAGED_SIZE_WBS_SETTING, "true");
 
+        // retain previously configured settings from the relaunched project
+        maybeCopyUserSettingsFromRelaunchSource(relaunchSourceDir, result,
+            "initialsPolicy", VIRTUAL_EV_POLICY, "allowSimultaneousEditing",
+            "readOnlyForIndividuals", "promptForReadOnly");
+
         return result;
     }
 
     private static final String WBS_MANAGED_SIZE_WBS_SETTING = "wbsManagedSize";
+
+    private void maybeCopyUserSettingsFromRelaunchSource(File relaunchSourceDir,
+            Properties destProps, String... propNames) {
+        // if this is not a relaunched project, exit
+        if (relaunchSourceDir == null || !relaunchSourceDir.isDirectory())
+            return;
+
+        // load the user settings from the relaunch source project
+        Properties srcProps = retrieveWbsUserSettings(relaunchSourceDir);
+
+        // copy the named properties from the source project
+        for (String prop : propNames) {
+            String val = srcProps.getProperty(prop);
+            if (StringUtils.hasValue(val))
+                destProps.put(prop, val);
+        }
+    }
 
     private class UserSettingsWriter implements WriteFileTask {
         private Properties userSettings;
