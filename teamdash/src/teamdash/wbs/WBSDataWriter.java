@@ -749,6 +749,8 @@ public class WBSDataWriter {
             writeAttr(out, MAX_CLIENT_IDS_ATTR,
                 WBSSynchronizer.getMaxClientIdStr(node));
             // writeAttr(out, "workflowPhaseMatch", "relaxed");
+            if ("enabled".equals(getUserSetting(VirtualPdashWriter.USER_SETTING)))
+                writeAttr(out, "virtualPdash", "enabled");
             if ("true".equals(getUserSetting(PROJECT_CLOSED_SETTING)))
                 writeAttr(out, PROJECT_CLOSED_SETTING, "true");
         }
