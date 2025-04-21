@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -363,6 +363,10 @@ public class JoinTeamProject extends TinyCGIBase implements TeamDataConstants {
     }
 
     private String calculatePackageRequirements(DataContext data) {
+        // if the project is using virtual PDASH files, return the min version
+        if (testData(data, VIRTUAL_PDASH_DATA_NAME))
+            return "pspdash version 2.7.3; teamToolsB version 6.5.0";
+
         // see if this project is using custom size metrics
         boolean isCustomSize = testData(data, WBS_CUSTOM_SIZE_DATA_NAME);
 
