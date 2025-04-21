@@ -2479,6 +2479,13 @@ public class HierarchySynchronizer {
                 maybeFixPreviouslyClobberedTeamTimeElement(pathPrefix);
                 if (!isTeam())
                     maybeSaveNote(pathPrefix, node, ROOT_NODE_PSEUDO_ID);
+                else {
+                    String virtualPdash = node.getAttribute("virtualPdash");
+                    SimpleData sd = XMLUtils.hasValue(virtualPdash)
+                            ? StringData.create(virtualPdash) : null;
+                    forceData(pathPrefix,
+                        TeamDataConstants.VIRTUAL_PDASH_DATA_NAME, sd);
+                }
             } catch (Exception e) {}
 
             return super.syncNode(worker, pathPrefix, node);

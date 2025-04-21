@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,7 @@ public interface TeamDataConstants {
         "Project_Workflow_URL_List";
     public static final String WBS_SIZE_DATA_NAME = "WBS_Managed_Size_Data";
     public static final String WBS_CUSTOM_SIZE_DATA_NAME = "WBS_Custom_Size_Metrics";
+    public static final String VIRTUAL_PDASH_DATA_NAME = "Virtual_Pdash_Data_Enabled";
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
     public static final String USER_ACTIVITY_TIMESTAMP = "Data_Activity_Timestamp";
     public static final String USER_DONE_TIMESTAMP = "Project_Is_Done";
