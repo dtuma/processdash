@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2023 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -98,11 +98,15 @@ public class SyncWorkerWhatIf extends AbstractSyncWorker {
     }
 
     public void doPutValueForce(String name, SaveableData value) {
+        SaveableData currVal = getValue(name);
         name = getOriginalPath(name);
         if (allowForceData)
             data.putValue(name, value);
-        else
+        else {
             localData.put(name, value);
+            if (!dataEquals(value, currVal))
+                noteDataChange(name);
+        }
     }
 
 }
