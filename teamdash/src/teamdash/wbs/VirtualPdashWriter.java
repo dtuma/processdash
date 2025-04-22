@@ -52,6 +52,8 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
     public static final String TIME_ZONE_SETTING = "timeZone";
 
+    public static final String MIN_WBS_VERSION = "6.5";
+
 
     /** The team project */
     private TeamProject teamProject;

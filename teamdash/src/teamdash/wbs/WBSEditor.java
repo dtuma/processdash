@@ -1196,6 +1196,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (teamProject.getUserSetting(TIME_ZONE_SETTING) == null)
                 teamProject.putUserSetting(TIME_ZONE_SETTING,
                     TimeZone.getDefault().getID());
+            if (newVirtualEVEnabled)
+                teamProject.requireWbsVersion(VirtualPdashWriter.MIN_WBS_VERSION);
             madeChange = true;
         }
 

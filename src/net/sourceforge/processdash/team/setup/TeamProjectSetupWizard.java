@@ -118,6 +118,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager;
 import net.sourceforge.processdash.tool.export.mgr.FolderMappingManager.MappingException;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.quicklauncher.TeamToolsVersionManager;
 import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
@@ -288,6 +289,7 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
     private static final String IGNORE_DUPS = "setup//Ignore_Duplicate_Projects";
     private static final String VIRTUAL_EV_POLICY = "virtualEV";
+    private static final String VIRTUAL_EV_MIN_WBS_VERSION = "6.5";
     private static final String INITIALS_POLICY = "initialsPolicy";
     private static final String INITIALS_POLICY_USERNAME = "username";
     private static final String INITIALS_LABEL = "setup//Initials_Label";
@@ -1095,6 +1097,11 @@ public class TeamProjectSetupWizard extends TinyCGIBase implements
         maybeCopyUserSettingsFromRelaunchSource(relaunchSourceDir, result,
             "initialsPolicy", VIRTUAL_EV_POLICY, "allowSimultaneousEditing",
             "readOnlyForIndividuals", "promptForReadOnly");
+
+        // register a min WBS version if virtual PDASH files are enabled
+        if ("enabled".equals(result.get(VIRTUAL_EV_POLICY)))
+            result.put(TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT,
+                VIRTUAL_EV_MIN_WBS_VERSION);
 
         return result;
     }
