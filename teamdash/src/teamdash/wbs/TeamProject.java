@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -506,11 +506,23 @@ public class TeamProject implements WBSFilenameConstants {
         }
     }
 
-    private void requireVersion(String attr, String minVersion) {
+    /** @since 2.5.0 */
+    public void requireWbsVersion(String minVersion) {
+        boolean madeChange = requireVersion(
+            TeamToolsVersionManager.WBS_EDITOR_VERSION_REQUIREMENT, minVersion);
+        if (madeChange && !readOnly)
+            saveUserSettings(directory);
+    }
+
+    private boolean requireVersion(String attr, String minVersion) {
         String currVersion = userSettings.getProperty(attr);
         if (currVersion == null
-                || VersionUtils.compareVersions(currVersion, minVersion) < 0)
+                || VersionUtils.compareVersions(currVersion, minVersion) < 0) {
             userSettings.put(attr, minVersion);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     protected ImportDirectory getProjectDataDirectory(Element e, boolean checkExists) {
