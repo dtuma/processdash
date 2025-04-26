@@ -28,6 +28,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.zip.Adler32;
@@ -38,11 +39,13 @@ import java.util.zip.ZipOutputStream;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 import teamdash.team.TeamMember;
 
@@ -61,6 +64,9 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
     /** The human-readable location of the team project */
     private String location;
 
+    /** The location of the project, if it is stored on a PDES */
+    private URL locationUrl;
+
     /** The reverse synchronizer. */
     private WBSSynchronizer reverseSynchronizer;
 
@@ -69,6 +75,12 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
             WBSSynchronizer reverseSynchronizer) {
         this.teamProject = teamProject;
         this.location = location;
+        if (location.startsWith("http")) {
+            try {
+                locationUrl = new URL(location);
+            } catch (IOException e) {
+            }
+        }
         this.reverseSynchronizer = reverseSynchronizer;
     }
 
@@ -108,7 +120,7 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
         // if virtual EV is disabled, delete the file if it exists and abort
         if (!enabled) {
-            f.delete();
+            deletePdashFile(f);
             return;
         }
 
@@ -138,6 +150,7 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
                 zipOut.finish();
                 zipOut.flush();
                 zipOut.close();
+                flushPdashFile(f);
             }
 
         } catch (IOException ioe) {
@@ -166,6 +179,38 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
             FileUtils.safelyClose(zipIn);
         }
         return -1;
+    }
+
+
+    private void deletePdashFile(File f) throws IOException {
+        try {
+            // delete the file from our team project directory
+            f.delete();
+
+            // if this is a bridged team project directory, delete from server
+            if (locationUrl != null)
+                ResourceBridgeClient.deleteSingleFile(locationUrl, f.getName());
+
+        } catch (LockFailureException e) {
+            // can't happen - PDASH files don't require locks
+        }
+    }
+
+
+    private void flushPdashFile(File f) throws IOException {
+        FileInputStream in = null;
+        try {
+            // if this is a bridged team project directory, upload to server
+            if (locationUrl != null) {
+                in = new FileInputStream(f);
+                ResourceBridgeClient.uploadSingleFile(locationUrl, f.getName(),
+                    in);
+            }
+        } catch (LockFailureException lfe) {
+            // can't happen - PDASH files don't require locks
+        } finally {
+            FileUtils.safelyClose(in);
+        }
     }
 
 
