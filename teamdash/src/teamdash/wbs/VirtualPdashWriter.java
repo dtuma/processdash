@@ -39,8 +39,10 @@ import java.util.zip.ZipOutputStream;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsXmlConstants;
+import net.sourceforge.processdash.tool.export.impl.DataXmlConstantsv1;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
@@ -49,7 +51,8 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 
 import teamdash.team.TeamMember;
 
-public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
+public class VirtualPdashWriter implements ArchiveMetricsXmlConstants,
+        DataXmlConstantsv1, TeamDataConstants {
 
     public static final String USER_SETTING = "virtualEV";
 
@@ -136,6 +139,9 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
         try {
             // write a manifest.xml file into the ZIP
             writeManifest(zipOut, m, exportTimestamp);
+
+            // write a data.xml file into the ZIP
+            writeData(zipOut, m);
 
             // write an ev.xml file into the ZIP
             long newChecksum = writeEV(zipOut, m, tz);
@@ -252,6 +258,13 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
         // finish the <exported> block
         xml.endTag(null, EXPORTED_TAG);
 
+        // write a <file> entry for data.xml
+        xml.startTag(null, FILE_ELEM);
+        xml.attribute(null, FILE_NAME_ATTR, DATA_FILE_NAME);
+        xml.attribute(null, TYPE_ATTR, FILE_TYPE_METRICS);
+        xml.attribute(null, VERSION_ATTR, "1");
+        xml.endTag(null, FILE_ELEM);
+
         // write a <file> entry for ev.xml
         xml.startTag(null, FILE_ELEM);
         xml.attribute(null, FILE_NAME_ATTR, EV_FILE_NAME);
@@ -281,6 +294,41 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
     }
 
 
+    private void writeData(ZipOutputStream zipOut, TeamMember m)
+            throws IOException {
+        // start an entry in the ZIP for the manifest
+        zipOut.putNextEntry(new ZipEntry(DATA_FILE_NAME));
+
+        // start the XML document and write the root <metricsData> tag
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(zipOut, ENCODING);
+        xml.startDocument(ENCODING, Boolean.TRUE);
+        xml.startTag(null, DATA_ELEM);
+
+        // write minimal data for a project root node
+        xml.startTag(null, NODE_ELEM);
+        xml.attribute(null, NAME_ATTR, teamProject.getProjectName());
+        writeDataTag(xml, TAG_ELEM, "Virtual Root Tag", null);
+        writeDataTag(xml, STRING_ELEM, INDIV_INITIALS, m.getInitials());
+        writeDataTag(xml, STRING_ELEM, PROJECT_ID, teamProject.getProjectID());
+        xml.endTag(null, NODE_ELEM);
+
+        // finalize the document and close the ZIP entry
+        xml.endTag(null, DATA_ELEM);
+        xml.endDocument();
+        zipOut.closeEntry();
+    }
+
+    private void writeDataTag(XmlSerializer xml, String tag, String name,
+            String value) throws IOException {
+        xml.startTag(null, tag);
+        xml.attribute(null, NAME_ATTR, name);
+        if (value != null)
+            xml.text(value);
+        xml.endTag(null, tag);
+    }
+
+
     private long writeEV(ZipOutputStream zipOut, TeamMember m, TimeZone tz)
             throws IOException {
         // build and calculate the EV data
@@ -300,6 +348,8 @@ public class VirtualPdashWriter implements ArchiveMetricsXmlConstants {
 
 
     private static final String WBS_EDITOR_PKG_ID = "teamToolsB";
+
+    private static final String DATA_FILE_NAME = "data.xml";
 
     private static final String EV_FILE_NAME = "ev.xml";
 
