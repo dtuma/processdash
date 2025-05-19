@@ -34,9 +34,16 @@ public class WBSNodeIDMatcherTest extends TestCase {
     public void testAssignUniqueIDs() {
         // new nodes added to both branches; ensure that the incoming nodes
         // are assigned new, unique IDs
-        assertMatch("R{a1,b2,c3}", "R{a1{aa4}b2{bb5}c3{cc6}dd7}",
+        assertMatch("R{a1,b2,c3}", "R{a1{aa4}b2{bb5}c3{cc9}dd7}",
+            "R{a1{aaa4}b2{bbb5}c3{ccc10}ddd6}",
+            "R{a1{aaa12}b2{bbb13}c3{ccc10}ddd11}");
+
+        // test relaxed mode assignment, in which incoming nodes can retain
+        // their IDs as long as they don't actively collide
+        assertMatch("R{a1,b2,c3}", "R{a1{aa4}b2{bb5}c3{cc9}dd7}",
             "R{a1{aaa4}b2{bbb5}c3{ccc8}ddd6}",
-            "R{a1{aaa10}b2{bbb11}c3{ccc8}ddd9}");
+            "R{a1{aaa10}b2{bbb11}c3{ccc8}ddd6}",
+            WBSNodeIDMatcher.RELAX_INCOMING_ID_REASSIGNMENT);
     }
 
     public void testAliasedNodes() {
