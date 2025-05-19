@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2020 Tuma Solutions, LLC
+// Copyright (C) 2012-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,19 @@ import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class TeamProjectNodeIDMatcher {
 
+    protected Map<Integer, Integer> workflowIDMappings;
+
+    protected Map<Integer, Integer> sizeMetricNodeIDMappings;
+
+    protected Map<String, String> sizeMetricIDMappings;
+
+    protected Map<Integer, Integer> proxyIDMappings;
+
+    protected Map<Integer, Integer> milestoneIDMappings;
+
+    protected Map<Integer, Integer> wbsIDMappings;
+
+
     /**
      * In preparation for a 3-way merge, examine the data for the WBS, for the
      * workflows, and for the milestones. Reassign node IDs in the incoming team
@@ -46,31 +59,31 @@ public class TeamProjectNodeIDMatcher {
      * 
      * @return true if any node IDs were changed, false otherwise.
      */
-    public static boolean performMatch(TeamProject base, TeamProject main,
+    public boolean performMatch(TeamProject base, TeamProject main,
             TeamProject incoming) {
 
         // First, remap node IDs in the workflow model
-        Map<Integer, Integer> workflowIDMappings = matchWBS(
+        workflowIDMappings = matchWBS(
             base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
 
         // Next, remap node IDs in the size metrics model
-        Map<Integer, Integer> sizeMetricNodeIDMappings = matchSizeMetricsWBS(
+        sizeMetricNodeIDMappings = matchSizeMetricsWBS(
             base.getSizeMetrics(), main.getSizeMetrics(),
             incoming.getSizeMetrics());
-        Map<String, String> sizeMetricIDMappings = SizeMetricsWBSModel
+        sizeMetricIDMappings = SizeMetricsWBSModel
                 .getMetricIdRemappings(sizeMetricNodeIDMappings);
 
         // Next, remap node IDs in the proxies model
-        Map<Integer, Integer> proxyIDMappings = matchWBS(base.getProxies(),
+        proxyIDMappings = matchWBS(base.getProxies(),
             main.getProxies(), incoming.getProxies());
 
         // Next, remap node IDs in the milestones model
-        Map<Integer, Integer> milestoneIDMappings = matchWBS(
+        milestoneIDMappings = matchWBS(
             base.getMilestones(), main.getMilestones(),
             incoming.getMilestones());
 
         // Next, remap node IDs in the main WBS
-        Map<Integer, Integer> wbsIDMappings = matchWBS(base.getWBS(),
+        wbsIDMappings = matchWBS(base.getWBS(),
             main.getWBS(), incoming.getWBS(), WBS_ALIAS_ATTRS);
 
         // propagate size metric ID changes into various affected models
@@ -88,6 +101,10 @@ public class TeamProjectNodeIDMatcher {
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);
 
+        return hasMappings();
+    }
+
+    public boolean hasMappings() {
         // return true if any node IDs were remapped
         return !workflowIDMappings.isEmpty()
                 || !sizeMetricNodeIDMappings.isEmpty()
