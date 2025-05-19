@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2022 Tuma Solutions, LLC
+// Copyright (C) 2012-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ public class TeamProjectMerger {
 
     List<MergeConflictNotification> conflicts;
 
+    private TeamProjectNodeIDMatcher nodeIdMatcher;
+
     private Map<Integer, Integer> teamMemberIDChanges;
 
     public TeamProjectMerger(TeamProject base, TeamProject main,
@@ -75,7 +77,8 @@ public class TeamProjectMerger {
 
     public void run() {
         // alter the node IDs in the incoming branch to ensure the best match.
-        TeamProjectNodeIDMatcher.performMatch(base, main, incoming);
+        nodeIdMatcher = new TeamProjectNodeIDMatcher();
+        nodeIdMatcher.performMatch(base, main, incoming);
 
         // merge the various data structures in the team project.
         TeamMemberList team = mergeTeams();
@@ -127,7 +130,7 @@ public class TeamProjectMerger {
         // calculate the merged workflows
         WorkflowMerger workflowMerger = new WorkflowMerger(base, main,
                 incoming);
-        workflowMerger.run();
+        workflowMerger.run(nodeIdMatcher.workflowIDMappings);
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(workflowMerger.getConflictNotifications());
@@ -138,7 +141,7 @@ public class TeamProjectMerger {
     private ProxyWBSModel mergeProxies() {
         // calculate the merged proxies
         ProxyMerger proxyMerger = new ProxyMerger(base, main, incoming);
-        proxyMerger.run();
+        proxyMerger.run(nodeIdMatcher.proxyIDMappings);
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(proxyMerger.getConflictNotifications());
@@ -150,7 +153,7 @@ public class TeamProjectMerger {
         // calculate the merged milestones
         MilestonesMerger milestonesMerger = new MilestonesMerger(base, main,
                 incoming);
-        milestonesMerger.run();
+        milestonesMerger.run(nodeIdMatcher.milestoneIDMappings);
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(milestonesMerger.getConflictNotifications());
@@ -172,7 +175,7 @@ public class TeamProjectMerger {
     private WBSModel mergeWBS() {
         // calculate the merged WBS
         WBSMerger wbsMerger = new WBSMerger(base, main, incoming);
-        wbsMerger.run();
+        wbsMerger.run(nodeIdMatcher.wbsIDMappings);
 
         // record any conflicts that occurred during the merge
         conflicts.addAll(wbsMerger.getConflictNotifications());

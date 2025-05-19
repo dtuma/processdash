@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2015 Tuma Solutions, LLC
+// Copyright (C) 2012-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -104,7 +104,7 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
             return treeMerger.getMergedUndeletedNodeIDs();
     }
 
-    public void run() {
+    public void run(Map<Integer, Integer> remappedNodeIDs) {
         if (main.isEqualTo(base)) {
             merged = incoming;
 
@@ -118,6 +118,7 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
                     contentMerger);
             treeMerger.run();
             merged = buildWBS(treeMerger.getMergedTree());
+            merged.setRemappedNodeIDs(remappedNodeIDs);
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1760,6 +1760,40 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         fireTableDataChanged();
     }
 
+    private Map<Integer, Integer> remappedNodeIDs = null;
+
+    void setRemappedNodeIDs(Map<Integer, Integer> remappedNodeIDs) {
+        this.remappedNodeIDs = remappedNodeIDs;
+    }
+
+    public int remapNodeID(int nodeID) {
+        Integer remapped = null;
+        if (remappedNodeIDs != null)
+            remapped = remappedNodeIDs.get(nodeID);
+        return (remapped == null ? nodeID : remapped);
+    }
+
+    public Set<Integer> remapNodeIDs(Set nodeIDs) {
+        if (remappedNodeIDs == null || remappedNodeIDs.isEmpty()
+                || nodeIDs == null || nodeIDs.isEmpty()) {
+            return nodeIDs;
+        } else {
+            Set<Integer> result = new HashSet();
+            for (Object item : nodeIDs) {
+                Integer nodeID;
+                if (item instanceof Integer)
+                    nodeID = (Integer) item;
+                else if (item instanceof String)
+                    nodeID = Integer.parseInt((String) item);
+                else
+                    continue;
+                Integer remapped = remappedNodeIDs.get(nodeID);
+                result.add(remapped == null ? nodeID : remapped);
+            }
+            return result;
+        }
+    }
+
     public void copyNodeExpansionStates(WBSModel src, WBSNodeComparator comp) {
         for (Iterator i = this.wbsNodes.iterator(); i.hasNext();) {
             WBSNode destNode = (WBSNode) i.next();
@@ -1790,9 +1824,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     private void setExpandedNodeIDs(Set expandedNodes, boolean notify) {
+        boolean stringCmp = !expandedNodes.isEmpty()
+                && expandedNodes.iterator().next() instanceof String;
         for (int i = 1;  i < wbsNodes.size(); i++) {
             WBSNode node = (WBSNode) wbsNodes.get(i);
-            String nodeID = Integer.toString(node.getUniqueID());
+            Object nodeID = node.getUniqueID();
+            if (stringCmp)
+                nodeID = nodeID.toString();
             node.setExpanded(expandedNodes.contains(nodeID));
         }
         if (notify)

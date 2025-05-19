@@ -1590,6 +1590,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void replaceWBS(TeamProject src) {
         tabPanel.stopCellEditing();
         Set<Integer> hiddenNodes = teamProject.getWBS().getHiddenNodeIDs();
+        hiddenNodes = src.getWBS().remapNodeIDs(hiddenNodes);
         replaceWBSModel(teamProject.getWBS(), src.getWBS(), tabPanel.wbsTable);
         teamProject.getWBS().setHiddenNodeIDs(hiddenNodes);
         tabPanel.undoList.clear();
@@ -1599,7 +1600,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         // record the WBS nodes that are currently selected, and arrange
         // for them to be restored later
         if (table != null)
-            new WBSTableSelectionRestorer(dest, table);
+            new WBSTableSelectionRestorer(dest, src, table);
 
         // check to see if the source and target WBS are the same. If so, we
         // don't need to perform any model replacement and we can return
@@ -1612,6 +1613,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         // copy the set of expanded nodes from this project to the new data
         Set expandedNodes = dest.getExpandedNodeIDs();
+        expandedNodes = src.remapNodeIDs(expandedNodes);
         src.setExpandedNodeIDs(expandedNodes);
 
         // copy the WBS from the source to this dest
@@ -1624,7 +1626,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         private WBSModel wbsModel;
         private WBSJTable table;
         private List<Integer> selectedNodeIDs;
-        private WBSTableSelectionRestorer(WBSModel model, WBSJTable table) {
+        private WBSTableSelectionRestorer(WBSModel model, WBSModel remapper,
+                WBSJTable table) {
             this.wbsModel = model;
             this.table = table;
 
@@ -1633,7 +1636,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 return;
             this.selectedNodeIDs = new ArrayList();
             for (WBSNode node : wbsModel.getNodesForRows(selectedRows, true))
-                selectedNodeIDs.add(node.getUniqueID());
+                selectedNodeIDs.add(remapper.remapNodeID(node.getUniqueID()));
 
             SwingUtilities.invokeLater(this);
         }
