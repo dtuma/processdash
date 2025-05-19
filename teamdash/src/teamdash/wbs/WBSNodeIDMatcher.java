@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.wbs;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +42,16 @@ import java.util.Map.Entry;
  */
 public class WBSNodeIDMatcher {
 
+    /**
+     * By default, this class will aggressively assign new IDs to nodes that
+     * were added in the incoming WBS to avoid the potential for collisions with
+     * main. Provide this value as one of the aliasAttrs to indicate that only
+     * <b>active</b> collisions warrant a reassignment.
+     */
+    public static final String RELAX_INCOMING_ID_REASSIGNMENT = //
+            "** RELAX_INCOMING_ID_REASSIGNMENT **";
+
+
     /** The base ancestor in the 3-way merge */
     private WBSModel base;
 
@@ -52,6 +63,9 @@ public class WBSNodeIDMatcher {
 
     /** A list of attributes that can be used to detect common added nodes */
     private String[] aliasAttrs;
+
+    /** true to use relaxed reassignment logic for incoming node IDs */
+    private boolean relaxIncomingIdReassignment;
 
     /** A map of changes that were made to the IDs in the incoming data. */
     private Map<Integer, Integer> remappedIDs;
@@ -83,6 +97,8 @@ public class WBSNodeIDMatcher {
         this.main = main;
         this.incoming = incoming;
         this.aliasAttrs = aliasAttrs;
+        this.relaxIncomingIdReassignment = Arrays.asList(aliasAttrs)
+                .contains(RELAX_INCOMING_ID_REASSIGNMENT);
         performMatch();
     }
 
@@ -116,8 +132,6 @@ public class WBSNodeIDMatcher {
     private Set<Integer> newMainIDs;
 
     private Set<Integer> newIncomingIDs;
-
-    private int nextUniqueID;
 
 
     private void performMatch() {
@@ -155,7 +169,9 @@ public class WBSNodeIDMatcher {
      * ID ordered by their node depth in the tree (shallowest nodes first).
      */
     private Set<Integer> assignUniqueIDsToNewIncomingNodes() {
-        nextUniqueID = getMaxIdInUse() + 1;
+        int maxMainID = getMaxIdInUse(main.getRoot().getUniqueID(), //
+            baseNodeMap, mainNodeMap);
+        int nextUniqueID = getMaxIdInUse(maxMainID, incomingNodeMap) + 1;
 
         Set<Integer> idsOfNewIncomingNodes = new LinkedHashSet<Integer>();
         List<WBSNode> parentNodes = Collections.singletonList(incoming
@@ -174,9 +190,14 @@ public class WBSNodeIDMatcher {
                         // this node was not present in the base tree, so it
                         // has been added in the incoming branch.
 
-                        // Check and see if its ID collides with a node added to
-                        // the main branch.  If so, assign it a new unique ID.
-                        if (mainNodeMap.containsKey(incomingNodeID)) {
+                        // By default, we assign the incoming node a new unique
+                        // ID if it falls within the range of IDs the main
+                        // branch has *ever* used.  If relaxed mode is enabled,
+                        // we only reassign if an active collision is detected.
+                        boolean collision = relaxIncomingIdReassignment
+                                ? mainNodeMap.containsKey(incomingNodeID)
+                                : incomingNodeID <= maxMainID;
+                        if (collision) {
                             incomingNodeID = nextUniqueID++;
                             changeIncomingNodeID(incomingNode, incomingNodeID);
                         }
@@ -194,17 +215,13 @@ public class WBSNodeIDMatcher {
         return idsOfNewIncomingNodes;
     }
 
-    private int getMaxIdInUse() {
-        int result = 1;
-        for (Integer i : baseNodeMap.keySet())
-            if (i != null)
-                result = Math.max(result, i);
-        for (Integer i : mainNodeMap.keySet())
-            if (i != null)
-                result = Math.max(result, i);
-        for (Integer i : incomingNodeMap.keySet())
-            if (i != null)
-                result = Math.max(result, i);
+    private int getMaxIdInUse(int start, Map<Integer, WBSNode>... nodeMaps) {
+        int result = start;
+        for (Map<Integer, WBSNode> nodeMap : nodeMaps) {
+            for (Integer i : nodeMap.keySet())
+                if (i != null && i > result)
+                    result = i;
+        }
         return result;
     }
 
@@ -221,6 +238,10 @@ public class WBSNodeIDMatcher {
 
         // iterate over each of the alias attributes we know about.
         for (String aliasAttr : aliasAttrs) {
+
+            // ignore the "relax assignment" pseudo-alias
+            if (RELAX_INCOMING_ID_REASSIGNMENT.equals(aliasAttr))
+                continue;
 
             // find new incoming nodes that have a value for this alias attr.
             Map<Object, Integer> incomingAliasMap = buildMapForAliasAttr(

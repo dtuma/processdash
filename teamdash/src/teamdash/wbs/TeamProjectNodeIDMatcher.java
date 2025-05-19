@@ -117,7 +117,7 @@ public class TeamProjectNodeIDMatcher {
 
         // perform the match, using our case insensitive alias to merge nodes
         Map<Integer, Integer> result = matchWBS(base, main, incoming,
-            SIZE_METRIC_ALIAS);
+            SIZE_METRIC_ALIAS, WBSNodeIDMatcher.RELAX_INCOMING_ID_REASSIGNMENT);
 
         // discard our temporary alias attribute from each model
         base.removeAttributes(SIZE_METRIC_ALIAS_PAT);
