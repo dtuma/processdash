@@ -23,6 +23,7 @@
 
 package teamdash.wbs;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import net.sourceforge.processdash.util.PatternList;
@@ -111,6 +112,21 @@ public class TeamProjectNodeIDMatcher {
                 || !proxyIDMappings.isEmpty()
                 || !milestoneIDMappings.isEmpty()
                 || !wbsIDMappings.isEmpty();
+    }
+
+    public Map<String, Map> getMappings() {
+        Map<String, Map> result = new LinkedHashMap();
+        addMappings(result, "size", sizeMetricIDMappings);
+        addMappings(result, "proxy", proxyIDMappings);
+        addMappings(result, "workflow", workflowIDMappings);
+        addMappings(result, "milestone", milestoneIDMappings);
+        addMappings(result, "wbs", wbsIDMappings);
+        return result;
+    }
+
+    private void addMappings(Map<String, Map> dest, String key, Map mappings) {
+        if (mappings != null && !mappings.isEmpty())
+            dest.put(key, mappings);
     }
 
     private static Map<Integer, Integer> matchWBS(WBSModel baseWBS,

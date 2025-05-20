@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,9 @@
 
 package teamdash.wbs;
 
-import static teamdash.wbs.WBSFilenameConstants.DATA_DUMP_FILE;
 import static teamdash.wbs.WBSFilenameConstants.CHANGE_HISTORY_FILE;
+import static teamdash.wbs.WBSFilenameConstants.DATA_DUMP_FILE;
+import static teamdash.wbs.WBSFilenameConstants.MERGE_METADATA_FILE;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,11 +35,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
+import org.xmlpull.v1.XmlSerializer;
 
 import net.sourceforge.processdash.tool.bridge.ReadableResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
@@ -48,6 +52,7 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.merge.ui.MergeConflictNotification;
 
@@ -104,6 +109,9 @@ public class TeamProjectBundleMerger implements BundleMerger {
 
         // write a history file with an entry for the changes we just merged
         writeChangeHistoryForMerge(first, second, dest);
+
+        // write merge metadata if needed
+        maybeWriteMergeMetadata(merger, dest);
 
         // copy the projDump.xml file from the first branch
         copyFile(DATA_DUMP_FILE, first, dest);
@@ -163,6 +171,43 @@ public class TeamProjectBundleMerger implements BundleMerger {
         }
 
         return result == null ? "Various individuals" : result;
+    }
+
+    private void maybeWriteMergeMetadata(TeamProjectMerger merger,
+            ResourceCollection dest) throws IOException {
+        // see if any incoming node IDs were remapped during the merge
+        Map<String, Map> idRemappings = merger.getIdRemappings();
+        if (idRemappings.isEmpty())
+            return;
+
+        // start writing the document
+        OutputStream out = dest.getOutputStream(MERGE_METADATA_FILE, 0);
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(out, "UTF-8");
+        xml.startDocument("UTF-8", null);
+        xml.startTag(null, "mergeMetadata");
+
+        // write document sections for each model type
+        for (String model : idRemappings.keySet()) {
+            Map<Object, Object> changes = idRemappings.get(model);
+            if (!changes.isEmpty()) {
+                xml.startTag(null, model);
+                changes = new TreeMap(changes);
+                for (Map.Entry e : changes.entrySet()) {
+                    xml.startTag(null, "nodeIdChange");
+                    xml.attribute(null, "old", e.getKey().toString());
+                    xml.attribute(null, "new", e.getValue().toString());
+                    xml.endTag(null, "nodeIdChange");
+                }
+                xml.endTag(null, model);
+            }
+        }
+
+        // finalize the document
+        xml.endTag(null, "mergeMetadata");
+        xml.endDocument();
+        out.flush();
+        out.close();
     }
 
     /** Find any files in src that don't appear in dest, and copy them over. */

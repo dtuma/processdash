@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,14 +23,18 @@
 
 package teamdash.wbs;
 
+import static teamdash.wbs.WBSFilenameConstants.MERGE_METADATA_FILE;
+
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.bundle.BundleMergeCoordinator;
 import net.sourceforge.processdash.tool.bridge.bundle.BundleMerger;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
+import net.sourceforge.processdash.tool.bridge.bundle.FileBundleSpec;
 
 import teamdash.merge.ui.MergeConflictNotification;
 
@@ -122,6 +126,12 @@ public class TeamProjectBundleMergeCoordinator extends BundleMergeCoordinator {
             // device back into the team's branch
             return super.mergeBundleForks(Arrays.asList(teamRef, selfRef));
         }
+    }
+
+    @Override
+    protected void tweakSpec(FileBundleSpec spec) {
+        if (spec.filenames.remove(MERGE_METADATA_FILE))
+            spec.metadata = Collections.singletonList(MERGE_METADATA_FILE);
     }
 
     private static final String WBS_BUNDLE_NAME = "wbs";

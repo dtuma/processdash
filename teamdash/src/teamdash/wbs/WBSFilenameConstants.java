@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2021 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,8 @@ public interface WBSFilenameConstants {
     String CUSTOM_TABS_FILE = "tabs.xml";
 
     String CHANGE_HISTORY_FILE = "changeHistory.xml";
+
+    String MERGE_METADATA_FILE = "mergeMetadata.xml";
 
     String DATA_DUMP_FILE = "projDump.xml";
 
