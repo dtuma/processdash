@@ -75,6 +75,13 @@ public class TeamProjectMerger {
         return teamMemberIDChanges;
     }
 
+    public Map<String, Map> getIdRemappings() {
+        Map<String, Map> result = nodeIdMatcher.getMappings();
+        if (teamMemberIDChanges != null && !teamMemberIDChanges.isEmpty())
+            result.put("team", teamMemberIDChanges);
+        return result;
+    }
+
     public void run() {
         // alter the node IDs in the incoming branch to ensure the best match.
         nodeIdMatcher = new TeamProjectNodeIDMatcher();
