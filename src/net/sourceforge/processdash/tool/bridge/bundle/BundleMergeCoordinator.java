@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Tuma Solutions, LLC
+// Copyright (C) 2022-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -181,6 +181,7 @@ public abstract class BundleMergeCoordinator {
                 FileBundleRetentionGranularity.All);
         spec.filenames = working.listResourceNames();
         spec.parents = bundleIDs;
+        tweakSpec(spec);
         FileBundleID mergedBundleID = bundleDir.storeBundle(spec);
 
         // return the ID of the merged bundle we just published
@@ -202,5 +203,7 @@ public abstract class BundleMergeCoordinator {
             }
         }
     }
+
+    protected void tweakSpec(FileBundleSpec spec) {}
 
 }

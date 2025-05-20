@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,6 +64,8 @@ public class FileBundleManifest {
 
     private ResourceCollectionInfo files;
 
+    private List<String> metadata;
+
     private List<FileBundleID> parents;
 
     private List<FileBundleID> replaces;
@@ -81,6 +83,10 @@ public class FileBundleManifest {
 
     public ResourceCollectionInfo getFiles() {
         return files;
+    }
+
+    public List<String> getMetadata() {
+        return metadata;
     }
 
     public List<FileBundleID> getParents() {
@@ -146,12 +152,19 @@ public class FileBundleManifest {
     public FileBundleManifest(FileBundleID bundleID,
             ResourceCollectionInfo files, List<FileBundleID> parents,
             List<FileBundleID> replaces) {
+        this(bundleID, files, Collections.EMPTY_LIST, parents, replaces);
+    }
+
+    public FileBundleManifest(FileBundleID bundleID,
+            ResourceCollectionInfo files, List<String> metadata,
+            List<FileBundleID> parents, List<FileBundleID> replaces) {
         if (bundleID == null || files == null || parents == null
-                || replaces == null)
+                || replaces == null || metadata == null)
             throw new NullPointerException();
 
         this.bundleID = bundleID;
         this.files = files;
+        this.metadata = metadata;
         this.parents = parents;
         this.replaces = replaces;
     }
@@ -186,6 +199,7 @@ public class FileBundleManifest {
         // extract bundle data from the file
         this.bundleID = new FileBundleID(xml.getAttribute(ID_ATTR));
         this.files = XmlCollectionListing.parseListing(xml);
+        this.metadata = extractMetadataList(xml);
         this.parents = extractBundleList(xml, PARENTS_TAG);
         this.replaces = extractBundleList(xml, REPLACES_TAG);
     }
@@ -198,6 +212,20 @@ public class FileBundleManifest {
             throw new IOException("Could not parse file bundle manifest " //
                     + src.getPath(), e);
         }
+    }
+
+    private List<String> extractMetadataList(Element xml) {
+        NodeList nl = xml.getElementsByTagName(METADATA_TAG);
+        if (nl == null || nl.getLength() == 0)
+            return Collections.EMPTY_LIST;
+
+        List<String> result = new ArrayList<String>();
+        Element metaTag = (Element) nl.item(0);
+        for (Element entry : XMLUtils.getChildElements(metaTag)) {
+            String name = entry.getAttribute(ENTRY_NAME_ATTR);
+            result.add(name);
+        }
+        return Collections.unmodifiableList(result);
     }
 
     private List<FileBundleID> extractBundleList(Element xml, String tagName) {
@@ -241,6 +269,9 @@ public class FileBundleManifest {
         // write the list of files
         XmlCollectionListing.runReport(files, files.listResourceNames(), xml);
 
+        // write the metadata entries
+        writeMetadataList(xml);
+
         // write the list of parent bundles
         writeBundleList(xml, PARENTS_TAG, parents);
 
@@ -252,6 +283,21 @@ public class FileBundleManifest {
         xml.endTag(null, DOCUMENT_TAG);
         xml.endDocument();
         out.close();
+    }
+
+    private void writeMetadataList(XmlSerializer xml) throws IOException {
+        // do not write a metadata tag if this bundle contains no metadata
+        if (metadata == null || metadata.isEmpty())
+            return;
+
+        // write a metadata block containing the given entries
+        xml.startTag(null, METADATA_TAG);
+        for (String name : metadata) {
+            xml.startTag(null, ENTRY_TAG);
+            xml.attribute(null, ENTRY_NAME_ATTR, name);
+            xml.endTag(null, ENTRY_TAG);
+        }
+        xml.endTag(null, METADATA_TAG);
     }
 
     private void writeBundleList(XmlSerializer xml, String tagName,
@@ -277,6 +323,12 @@ public class FileBundleManifest {
 
 
     static final String DOCUMENT_TAG = "fileBundle";
+
+    private static final String METADATA_TAG = "metadata";
+
+    private static final String ENTRY_TAG = "entry";
+
+    private static final String ENTRY_NAME_ATTR = "name";
 
     private static final String PARENTS_TAG = "parents";
 

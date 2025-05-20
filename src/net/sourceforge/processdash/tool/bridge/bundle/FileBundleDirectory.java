@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -138,8 +139,8 @@ public class FileBundleDirectory
     public FileBundleID storeBundle(FileBundleSpec bundleSpec)
             throws IOException {
         return storeBundle(bundleSpec.bundleName, bundleSpec.source,
-            bundleSpec.filenames, bundleSpec.parents, bundleSpec.replaces,
-            bundleSpec.timestamp);
+            bundleSpec.filenames, bundleSpec.metadata, bundleSpec.parents,
+            bundleSpec.replaces, bundleSpec.timestamp);
     }
 
 
@@ -151,8 +152,11 @@ public class FileBundleDirectory
      * @param source
      *            the resource collection where source files are located
      * @param filenames
-     *            the names of the file in <tt>srcDir</tt> that should be placed
-     *            in the bundle
+     *            the names of the files in <tt>srcDir</tt> that should be
+     *            placed in the bundle
+     * @param metadata
+     *            the names of the files in <tt>srcDir</tt> that should be
+     *            placed in the bundle metadata
      * @param parents
      *            the {@link FileBundleID}s of parent bundles
      * @param replaces
@@ -166,18 +170,19 @@ public class FileBundleDirectory
      */
     public FileBundleID storeBundle(String bundleName,
             ReadableResourceCollection source, List<String> filenames,
-            List<FileBundleID> parents, List<FileBundleID> replaces,
-            long timestamp) throws IOException {
+            List<String> metadata, List<FileBundleID> parents,
+            List<FileBundleID> replaces, long timestamp) throws IOException {
         // generate an ID for the new bundle
         FileBundleID bundleID = createNewBundleID(timestamp, bundleName,
             parents, replaces);
 
         // write a ZIP file holding the data for the new bundle
-        ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames);
+        ResourceListing fileInfo = writeFilesToZip(bundleID, source, filenames,
+            metadata);
 
         // write a manifest for the bundle
         FileBundleManifest manifest = new FileBundleManifest(bundleID, fileInfo,
-                parents, replaces);
+                metadata, parents, replaces);
         manifest.write(bundleDir);
 
         // add the manifest to our in-memory cache
@@ -248,8 +253,8 @@ public class FileBundleDirectory
     }
 
     private ResourceListing writeFilesToZip(FileBundleID bundleID,
-            ReadableResourceCollection source, List<String> filenames)
-            throws IOException {
+            ReadableResourceCollection source, List<String> filenames,
+            List<String> metadata) throws IOException {
         // if there are no files to write, abort without creating a ZIP file
         ResourceListing fileInfo = new ResourceListing();
         if (filenames.isEmpty())
@@ -261,7 +266,9 @@ public class FileBundleDirectory
                 FileBundleUtils.outputStream(zipFile));
 
         // write each of the files into the ZIP
-        for (String filename : filenames) {
+        List<String> allFiles = new ArrayList<String>(filenames);
+        allFiles.addAll(metadata);
+        for (String filename : allFiles) {
             // retrieve the file modification time and checksum. Skip if missing
             long modTime = source.getLastModified(filename);
             Long cksum = source.getChecksum(filename);
@@ -269,7 +276,9 @@ public class FileBundleDirectory
                 continue;
 
             // add a new entry to the ZIP file
-            ZipEntry e = new ZipEntry(filename);
+            boolean isMeta = metadata.contains(filename);
+            String entryName = (isMeta ? METADATA_PREFIX + filename : filename);
+            ZipEntry e = new ZipEntry(entryName);
             if (isCompressedFile(filename)) {
                 e.setMethod(ZipEntry.STORED);
                 long[] checkData = FileUtils.computeChecksumAndSize(
@@ -288,7 +297,8 @@ public class FileBundleDirectory
             zipOut.closeEntry();
 
             // add the file to our resource listing
-            fileInfo.addResource(filename, modTime, cksum);
+            if (!isMeta)
+                fileInfo.addResource(filename, modTime, cksum);
         }
 
         // close the ZIP file
@@ -381,6 +391,33 @@ public class FileBundleDirectory
         // close the ZIP file and return the file info
         zipIn.close();
         return fileInfo;
+    }
+
+    /**
+     * Read a metadata entry from a bundle
+     * 
+     * @param bundleID
+     *            the ID of a bundle to read
+     * @param entryName
+     *            the name of a metadata entry
+     * @return a stream that reads data from the given metadata entry, or null
+     *         if this bundle does not contain a metadata entry with that name
+     */
+    public InputStream readMetadata(FileBundleID bundleID, String entryName)
+            throws IOException {
+        // retrieve the manifest for the given bundle. If it doesn't contain
+        // a metadata entry with this name, return null
+        FileBundleManifest manifest = getManifest(bundleID);
+        if (!manifest.getMetadata().contains(entryName))
+            return null;
+
+        // find the ZIP containing the given bundle, and open an input stream
+        // for the requested metadata entry
+        ZipSource zipSource = getZipSourceForBundle(manifest);
+        String zipUrl = zipSource.file.toURI().toURL().toString();
+        String metadataEntryUrl = "jar:" + zipUrl + "!/" + zipSource.prefix
+                + METADATA_PREFIX + entryName;
+        return new URL(metadataEntryUrl).openStream();
     }
 
     private ZipSource getZipSourceForBundle(FileBundleManifest mf)
@@ -783,5 +820,7 @@ public class FileBundleDirectory
             this.prefix = prefix;
         }
     }
+
+    public static final String METADATA_PREFIX = "metadata/";
 
 }
