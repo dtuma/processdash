@@ -1,4 +1,4 @@
-// Copyright (C) 2022-2023 Tuma Solutions, LLC
+// Copyright (C) 2022-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -226,6 +226,47 @@ public class ForkTracker {
      */
     public FileBundleID findSharedAncestor(FileBundleID a, FileBundleID b,
             int maxDepth) throws IOException {
+        return findSharedAncestorImpl(a, b, maxDepth, null);
+    }
+
+    /**
+     * Track the lineage from a parent to a child, and return that lineage as a
+     * list.
+     * 
+     * In the lineage list, the first element will be the parent, and the last
+     * element will be the child. Within the list, each item(n) is a parent of
+     * item(n+1).
+     * 
+     * @param parent
+     *            a parent bundle
+     * @param child
+     *            a bundle which we expect to be a direct descendant of the
+     *            given parent, through some arbitrary number of generations
+     * @return a list containing the lineage, or null if parent is not an
+     *         ancestor of child.
+     * @throws IOException
+     *             if any necessary files could not be read, or if any bundles
+     *             in the parentage are missing
+     * @since 2.7.4
+     */
+    public List<FileBundleID> getLineage(FileBundleID parent,
+            FileBundleID child) throws IOException {
+        Map<FileBundleID, FileBundleID> lineage = new HashMap();
+        FileBundleID bid = findSharedAncestorImpl(child, parent, -1, lineage);
+        if (bid == null || !bid.equals(parent))
+            return null;
+
+        List<FileBundleID> result = new ArrayList<FileBundleID>();
+        while (bid != null) {
+            result.add(bid);
+            bid = lineage.get(bid);
+        }
+        return result;
+    }
+
+    private FileBundleID findSharedAncestorImpl(FileBundleID a, FileBundleID b,
+            int maxDepth, Map<FileBundleID, FileBundleID> aLineage)
+            throws IOException {
         // check for null and abort
         if (a == null || b == null)
             return null;
@@ -264,6 +305,10 @@ public class ForkTracker {
             if (FileBundleID.REVERSE_ORDER.compare(aNewest, bNewest) < 0) {
                 newest = aNewest;
                 newestSet = aa;
+            } else if (aLineage != null) {
+                // if the caller wants to track a direct lineage from A to B,
+                // and we've already walked past that possibility, return null
+                return null;
             } else {
                 newest = bNewest;
                 newestSet = bb;
@@ -275,6 +320,12 @@ public class ForkTracker {
             newestSet.remove(newest);
             FileBundleManifest mf = getManifestForAncestorTracing(newest);
             newestSet.addAll(mf.getParents());
+
+            // keep track of the lineage of A if requested
+            if (aLineage != null) {
+                for (FileBundleID parent : mf.getParents())
+                    aLineage.put(parent, newest);
+            }
         }
 
         return null;
