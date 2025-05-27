@@ -2458,6 +2458,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static void setupSyncWorkingDir(BundledWorkingDirectorySync sync) {
+        if (Boolean.getBoolean("teamdash.wbs.disableBundleMerge"))
+            return;
         sync.setBundleMergeCoordinator(
             new TeamProjectBundleMergeCoordinator(sync));
     }
