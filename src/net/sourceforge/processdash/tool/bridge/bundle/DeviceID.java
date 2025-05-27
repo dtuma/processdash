@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,10 +32,13 @@ import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.ComputerName;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 public class DeviceID {
+
+    private static final String SYSTEM_PROPERTY = DeviceID.class.getName();
 
     private static final int LENGTH = 25;
 
@@ -54,10 +57,21 @@ public class DeviceID {
     }
 
     private static synchronized String readOrCreate() throws IOException {
+        String prop = getSystemProp();
+        if (prop != null)
+            return prop;
         File storage = getStorageFile();
         String result = readFromStorage(storage);
         if (result == null)
             result = createAndStore(storage);
+        return result;
+    }
+
+    private static final String getSystemProp() {
+        String result = System.getProperty(SYSTEM_PROPERTY);
+        if (!StringUtils.hasValue(result))
+            return null;
+        RuntimeUtils.addPropagatedSystemProperty(SYSTEM_PROPERTY, result);
         return result;
     }
 
