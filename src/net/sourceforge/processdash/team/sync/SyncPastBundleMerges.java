@@ -23,14 +23,21 @@
 
 package net.sourceforge.processdash.team.sync;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -40,19 +47,24 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleManifest;
+import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class SyncPastBundleMerges implements TeamDataConstants {
 
     private BundledWorkingDirectorySync wbsDir;
+
+    private String dataDirectory;
 
     private DashHierarchy hierarchy;
 
@@ -67,9 +79,10 @@ public class SyncPastBundleMerges implements TeamDataConstants {
 
 
     public SyncPastBundleMerges(BundledWorkingDirectorySync wbsDir,
-            DashHierarchy hierarchy, DataRepository data,
+            String dataDirectory, DashHierarchy hierarchy, DataRepository data,
             String projectRoot, String projectID) {
         this.wbsDir = wbsDir;
+        this.dataDirectory = dataDirectory;
         this.hierarchy = hierarchy;
         this.data = data;
         this.projectRoot = projectRoot;
@@ -170,7 +183,7 @@ public class SyncPastBundleMerges implements TeamDataConstants {
     }
 
 
-    private void applyChanges(Element mergeMetadata) {
+    private void applyChanges(Element mergeMetadata) throws IOException {
         PropertyKey projKey = hierarchy.findExistingKey(projectRoot);
 
         Map<String, String> wbsIDs = getIdChanges(mergeMetadata, WBS_MODEL_TAG);
@@ -179,6 +192,7 @@ public class SyncPastBundleMerges implements TeamDataConstants {
         Map<String, String> wbsUIDs = makeQualified(wbsIDs);
         replaceDataValues(projKey, wbsUIDs, "EV_Task_IDs");
         replaceDataValues(PropertyKey.ROOT, wbsUIDs, "EV_Task_Dependencies");
+        updateEVBaselines(wbsUIDs);
     }
 
     private Map<String, String> getIdChanges(Element mergeMetadata,
@@ -242,6 +256,75 @@ public class SyncPastBundleMerges implements TeamDataConstants {
 
 
     /**
+     * Propagate WBS node ID changes into locally saved baselines
+     */
+    private void updateEVBaselines(Map<String, String> wbsUIDs)
+            throws IOException {
+        if (!wbsUIDs.isEmpty()) {
+            updateBaselinesInData(wbsUIDs);
+            updateBaselinesInExtData(wbsUIDs);
+        }
+    }
+
+    private void updateBaselinesInData(Map<String, String> wbsUIDs) {
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (SNAPSHOT_DATA_NAME_PAT.matcher(dataName).find()) {
+                replaceDataValues("", data, wbsUIDs, dataName);
+            }
+        }
+    }
+
+    private void updateBaselinesInExtData(final Map<String, String> wbsUIDs)
+            throws IOException {
+        Set<String> files = EVTaskList.getAllExtDataFilenames(data);
+        for (String file : files) {
+            if (replaceAllInFile(file, wbsUIDs))
+                log.info("Updated baselines in " + file);
+        }
+    }
+
+
+    /**
+     * Scan a file and replace all occurrences of the given strings
+     */
+    private boolean replaceAllInFile(String filename,
+            Map<String, String> replacements) throws IOException {
+        // identify the file to modify. If it doesn't exist or is empty, abort
+        File dest = new File(dataDirectory, filename);
+        if (!dest.isFile() || dest.length() == 0 || replacements.isEmpty())
+            return false;
+
+        // open streams for reading and writing
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(new FileInputStream(dest), "UTF-8"));
+        RobustFileWriter out = new RobustFileWriter(dest, "UTF-8");
+
+        // copy the file, applying changes
+        boolean madeChange = false;
+        String line;
+        while ((line = in.readLine()) != null) {
+            String newLine = replaceAll(line, replacements);
+            if (!newLine.equals(line))
+                madeChange = true;
+            out.write(newLine);
+            out.write(NEWLINE);
+        }
+
+        // close and finalize the streams
+        in.close();
+        if (madeChange)
+            out.close();
+        else
+            out.abort();
+
+        // let our caller know if a change was made
+        return madeChange;
+    }
+
+
+    /**
      * Scan a set of named data elements for a specific node of the hierarchy,
      * and replace strings within the values of those elements
      */
@@ -292,5 +375,10 @@ public class SyncPastBundleMerges implements TeamDataConstants {
     private static final String OLD_ID_ATTR = "old";
 
     private static final String NEW_ID_ATTR = "new";
+
+    private static final Pattern SNAPSHOT_DATA_NAME_PAT = Pattern
+            .compile("^/Task-Schedule/.*/Snapshot/");
+
+    private static final String NEWLINE = System.getProperty("line.separator");
 
 }

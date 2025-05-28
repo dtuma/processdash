@@ -1206,7 +1206,8 @@ public class HierarchySynchronizer {
     private void syncDownPastBundleMerges() throws IOException {
         // scan metadata from past bundle merges and apply changes
         SyncPastBundleMerges spbm = new SyncPastBundleMerges(syncBundleDir,
-                hierarchy, dataRepository, projectPath, projectID);
+                dataDirectory, hierarchy, dataRepository, projectPath,
+                projectID);
         boolean madeChange = (whatIfMode ? spbm.needsUpdate() : spbm.run());
         if (madeChange)
             madeMiscChange();
