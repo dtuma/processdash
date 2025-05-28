@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -191,6 +191,15 @@ public class BundledWorkingDirectoryLocal extends LocalWorkingDirectory
     @Override
     public File getDirectory() {
         return workingDirectory;
+    }
+
+    public FileBundleID getWorkingHeadRef(String bundleName)
+            throws IOException {
+        return client.getWorkingHeads().getHeadRef(bundleName);
+    }
+
+    public FileBundleManifestSource getCachedManifests() {
+        return client.getManifests();
     }
 
 

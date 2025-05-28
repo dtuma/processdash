@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2023 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -100,6 +100,7 @@ import net.sourceforge.processdash.team.sync.SyncWorker.DataSyncResult;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HttpException;
@@ -118,6 +119,7 @@ public class HierarchySynchronizer {
     private DataRepository dataRepository;
     private DataContext data;
     private String dataDirectory;
+    private BundledWorkingDirectorySync syncBundleDir;
     private String projectPath;
     private PropertyKey projectKey;
     private String processID;
@@ -215,12 +217,14 @@ public class HierarchySynchronizer {
                                  boolean fullCopyMode,
                                  String defaultPspSubset,
                                  boolean promptForPspSubset,
+                                 BundledWorkingDirectorySync syncBundleDir,
                                  String dataDirectory,
                                  DashHierarchy hierarchy,
                                  DataRepository data) throws IOException {
         this.projectPath = projectPath;
         this.processID = processID;
         this.workflowLocation = workflowLocation;
+        this.syncBundleDir = syncBundleDir;
         this.dataDirectory = dataDirectory;
         this.hierarchy = hierarchy;
         this.data = this.dataRepository = data;
@@ -1084,7 +1088,7 @@ public class HierarchySynchronizer {
         out.write(String.valueOf(projectXML));
     }
 
-    public void sync() throws HierarchyAlterationException {
+    public void sync() throws HierarchyAlterationException, IOException {
         try {
             if (!whatIfMode) getProjectSyncLock();
             if (backgroundMode) ThreadThrottler.beginThrottling(0.2);
@@ -1094,7 +1098,14 @@ public class HierarchySynchronizer {
             releaseProjectSyncLock();
         }
     }
-    private void doSync() throws HierarchyAlterationException {
+    private void doSync() throws HierarchyAlterationException, IOException {
+        changes = new ArrayList();
+        discrepancies = new ListData();
+        discrepancies.add(new Date());
+
+        if (syncBundleDir != null && !isTeam())
+            syncDownPastBundleMerges();
+
         phaseIDs = initPhaseIDs(processID);
         ListData nodeOrderData = new ListData();
         collectNodeOrderData(projectXML, nodeOrderData);
@@ -1120,9 +1131,6 @@ public class HierarchySynchronizer {
             getScheduleData(projectXML);
         }
 
-        changes = new ArrayList();
-        discrepancies = new ListData();
-        discrepancies.add(new Date());
         syncActions = buildSyncActions();
 
         SyncWorker syncWorker;
@@ -1193,6 +1201,15 @@ public class HierarchySynchronizer {
                 t.printStackTrace();
             }
         }
+    }
+
+    private void syncDownPastBundleMerges() throws IOException {
+        // scan metadata from past bundle merges and apply changes
+        SyncPastBundleMerges spbm = new SyncPastBundleMerges(syncBundleDir,
+                hierarchy, dataRepository, projectPath, projectID);
+        boolean madeChange = (whatIfMode ? spbm.needsUpdate() : spbm.run());
+        if (madeChange)
+            madeMiscChange();
     }
 
     private void syncAttrLabelSortOrder(Element projectXML) {
@@ -2156,7 +2173,7 @@ public class HierarchySynchronizer {
         } else {
             ThreadThrottler.tick();
         }
-        if (whatIfBrief && !changes.isEmpty())
+        if (whatIfBrief && foundNonMiscChange())
             return null;
         String type = node.getTagName();
         SyncNode s = (SyncNode) syncActions.get(type);
@@ -2165,6 +2182,13 @@ public class HierarchySynchronizer {
             return s.getName(node);
         } else
             return null;
+    }
+    private boolean foundNonMiscChange() {
+        for (Object item : changes) {
+            if (item != null)
+                return true;
+        }
+        return false;
     }
 
     private static final String NAME_ATTR = "name";

@@ -71,6 +71,7 @@ public interface TeamDataConstants {
     public static final String WBS_CUSTOM_SIZE_DATA_NAME = "WBS_Custom_Size_Metrics";
     public static final String VIRTUAL_PDASH_DATA_NAME = "Virtual_Pdash_Data_Enabled";
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
+    public static final String LAST_SYNC_BUNDLE_ID = "WBS_Last_Sync_Bundle_ID";
     public static final String USER_ACTIVITY_TIMESTAMP = "Data_Activity_Timestamp";
     public static final String USER_DONE_TIMESTAMP = "Project_Is_Done";
 

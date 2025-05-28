@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -257,7 +257,7 @@ public class BundledImportDirectory implements ImportDirectory {
     }
 
 
-    public static ForkTracker getSyncBundleForkTracker(ImportDirectory dir) {
+    public static BundledWorkingDirectorySync getSyncBundleDir(ImportDirectory dir) {
         // retrieve underlying delegate for DynamicImportDirectory
         if (dir instanceof DynamicImportDirectory)
             dir = ((DynamicImportDirectory) dir).getDelegate();
@@ -268,11 +268,10 @@ public class BundledImportDirectory implements ImportDirectory {
 
         // if the import isn't using a sync working dir, return null
         BundledImportDirectory bid = (BundledImportDirectory) dir;
-        if (!(bid.workingDir instanceof BundledWorkingDirectorySync))
+        if (bid.workingDir instanceof BundledWorkingDirectorySync)
+            return (BundledWorkingDirectorySync) bid.workingDir;
+        else
             return null;
-
-        // retrieve the fork tracker from the working directory
-        return ((BundledWorkingDirectorySync) bid.workingDir).getForkTracker();
     }
 
     private static final TeamDataDirStrategy STRATEGY = TeamDataDirStrategy.INSTANCE;

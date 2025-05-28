@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2023 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.team.setup.RepairImportInstruction;
 import net.sourceforge.processdash.team.ui.SelectPspRollup;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledImportDirectory;
+import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
 import net.sourceforge.processdash.tool.bridge.bundle.CloudStorageUtils;
 import net.sourceforge.processdash.tool.bridge.bundle.FileBundleID;
 import net.sourceforge.processdash.tool.bridge.bundle.ForkTracker;
@@ -124,6 +125,8 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
     private URL workflowLocation;
     /** Whether the WBS is in a bundled directory */
     private boolean wbsIsBundled;
+    /** The working directory if this WBS uses sync bundle storage */
+    private BundledWorkingDirectorySync syncBundleDir;
     /** The directory where the dashboard is storing data files */
     private String dataDir;
     /** The initials of the current team member, if applicable */
@@ -200,8 +203,8 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
             HierarchySynchronizer synch = new HierarchySynchronizer
                 (projectRoot, processID, wbsLocation, workflowLocation,
                  initials, getOwner(), fullCopyMode, pspToDateSubset,
-                 promptForPspToDateSubset, dataDir, getPSPProperties(),
-                 getDataRepository());
+                 promptForPspToDateSubset, syncBundleDir, dataDir,
+                 getPSPProperties(), getDataRepository());
 
             // double-check individual initials
             if (checkForMismatchedIndivInitials(synch))
@@ -535,9 +538,12 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
     private void checkSyncBundleMerge(ImportDirectory importDir)
             throws IOException {
         // if this is not a sync bundle directory, do nothing
-        ForkTracker forkTracker = BundledImportDirectory
-                .getSyncBundleForkTracker(importDir);
-        if (forkTracker == null)
+        syncBundleDir = BundledImportDirectory.getSyncBundleDir(importDir);
+        if (syncBundleDir == null)
+            return;
+
+        // abort if WBS bundle merging is disabled
+        if (Boolean.getBoolean("teamdash.wbs.disableBundleMerge"))
             return;
 
         // if we're currently running a sync operation, do nothing
@@ -565,6 +571,7 @@ public class SyncWBS extends TinyCGIBase implements TeamDataConstants {
 
         // if a merge operation is needed, display a page asking the user if
         // they are ready to launch one.
+        ForkTracker forkTracker = syncBundleDir.getForkTracker();
         if (isProjDumpNeeded(importDir) || isForkMergeNeeded(forkTracker))
             signalError(MERGE_CONFIRM);
     }
