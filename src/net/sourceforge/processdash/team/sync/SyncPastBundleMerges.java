@@ -45,12 +45,14 @@ import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.team.TeamDataConstants;
 import net.sourceforge.processdash.tool.bridge.bundle.BundledWorkingDirectorySync;
@@ -193,6 +195,11 @@ public class SyncPastBundleMerges implements TeamDataConstants {
         replaceDataValues(projKey, wbsUIDs, "EV_Task_IDs");
         replaceDataValues(PropertyKey.ROOT, wbsUIDs, "EV_Task_Dependencies");
         updateEVBaselines(wbsUIDs);
+
+        Map<String, String> sizeIDs = getIdChanges(mergeMetadata, SIZE_MODEL_TAG);
+        replaceDataValues(projKey, sizeIDs, "Size Units ID",
+            "Size_Metric_ID_List");
+        renameDataValues(projectRoot, sizeIDs, "/Sized_Objects/");
     }
 
     private Map<String, String> getIdChanges(Element mergeMetadata,
@@ -350,6 +357,42 @@ public class SyncPastBundleMerges implements TeamDataConstants {
     }
 
 
+    /**
+     * Scan the repository for data elements starting with the given prefix and
+     * containing one of the given name parts, and rename them if they contain
+     * one of the keys in the replacements map
+     */
+    private void renameDataValues(String prefix,
+            Map<String, String> replacements, String... nameParts) {
+        if (!replacements.isEmpty()) {
+            Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+            while (i.hasNext()) {
+                String oneName = (String) i.next();
+                if (!Filter.pathMatches(oneName, prefix))
+                    continue;
+                if (!namePartMatches(oneName, nameParts))
+                    continue;
+                String newName = replaceAll(oneName, replacements);
+                if (newName.equals(oneName))
+                    continue;
+
+                log.info("Rename data [" + oneName + "] -> [" + newName + "]");
+                SaveableData sd = data.getValue(oneName);
+                data.putValue(newName, sd);
+                data.putValue(oneName, null);
+            }
+        }
+    }
+
+    private boolean namePartMatches(String oneName, String... nameParts) {
+        for (String part : nameParts) {
+            if (oneName.contains(part))
+                return true;
+        }
+        return false;
+    }
+
+
     private static String replaceAll(String text,
             Map<String, String> replacements) {
         if (replacements.isEmpty())
@@ -369,6 +412,8 @@ public class SyncPastBundleMerges implements TeamDataConstants {
     private static final String MERGE_METADATA_FILE = "mergeMetadata.xml";
 
     private static final String WBS_MODEL_TAG = "wbs";
+
+    private static final String SIZE_MODEL_TAG = "size";
 
     private static final String ID_CHANGE_TAG = "nodeIdChange";
 
