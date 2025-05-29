@@ -200,6 +200,11 @@ public class SyncPastBundleMerges implements TeamDataConstants {
         replaceDataValues(projKey, sizeIDs, "Size Units ID",
             "Size_Metric_ID_List");
         renameDataValues(projectRoot, sizeIDs, "/Sized_Objects/");
+
+        Map<String, String> workflowIDs = getIdChanges(mergeMetadata,
+            WORKFLOW_MODEL_TAG);
+        replaceDataValues(projKey, workflowIDs, "Workflow_Source_ID");
+        renameDataValues(projectRoot, workflowIDs, "/Workflow_Param/");
     }
 
     private Map<String, String> getIdChanges(Element mergeMetadata,
@@ -414,6 +419,8 @@ public class SyncPastBundleMerges implements TeamDataConstants {
     private static final String WBS_MODEL_TAG = "wbs";
 
     private static final String SIZE_MODEL_TAG = "size";
+
+    private static final String WORKFLOW_MODEL_TAG = "workflow";
 
     private static final String ID_CHANGE_TAG = "nodeIdChange";
 
