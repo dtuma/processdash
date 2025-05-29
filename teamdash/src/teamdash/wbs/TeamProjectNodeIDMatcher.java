@@ -99,6 +99,8 @@ public class TeamProjectNodeIDMatcher {
         ProxyEstTypeColumn.remapNodeIDs(incoming.getWBS(), proxyIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
         SizeDataColumn.remapSizeDataAttrs(incoming.getWBS(), sizeMetricIDMappings);
+        WorkflowSizeUnitsColumn.remapNodeIDs(incoming.getWBS(),
+            sizeMetricIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);
 

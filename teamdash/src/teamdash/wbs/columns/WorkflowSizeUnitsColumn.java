@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2021 Tuma Solutions, LLC
+// Copyright (C) 2010-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import teamdash.wbs.ErrorValue;
 import teamdash.wbs.SizeMetric;
 import teamdash.wbs.SizeMetricsWBSModel;
 import teamdash.wbs.TeamProcess;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowDataModel;
 import teamdash.wbs.WorkflowUtil;
@@ -194,7 +195,7 @@ public class WorkflowSizeUnitsColumn extends AbstractDataColumn
         return metric;
     }
 
-    public static void remapNodeIDs(WorkflowWBSModel model,
+    public static void remapNodeIDs(WBSModel model,
             Map<String, String> sizeMetricIDMappings) {
         SizeMetricsWBSModel.remapSizeMetricIdAttrValues(model,
             sizeMetricIDMappings, METRIC_ID_ATTR);
