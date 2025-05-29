@@ -205,6 +205,8 @@ public class SyncPastBundleMerges implements TeamDataConstants {
             WORKFLOW_MODEL_TAG);
         replaceDataValues(projKey, workflowIDs, "Workflow_Source_ID");
         renameDataValues(projectRoot, workflowIDs, "/Workflow_Param/");
+        Map<String, String> workflowUIDs = makeQualified(workflowIDs);
+        updateDefectPhases(projKey, workflowUIDs);
     }
 
     private Map<String, String> getIdChanges(Element mergeMetadata,
@@ -294,6 +296,29 @@ public class SyncPastBundleMerges implements TeamDataConstants {
         for (String file : files) {
             if (replaceAllInFile(file, wbsUIDs))
                 log.info("Updated baselines in " + file);
+        }
+    }
+
+
+    /**
+     * Propagate workflow ID changes into defect injection/removal phases
+     */
+    private void updateDefectPhases(PropertyKey node,
+            Map<String, String> workflowUIDs) throws IOException {
+        // abort if no replacements need to be made
+        if (workflowUIDs.isEmpty())
+            return;
+
+        // update the injected/removed IDs in this node's defect log
+        String logFile = hierarchy.pget(node).getDefectLog();
+        if (StringUtils.hasValue(logFile)
+                && replaceAllInFile(logFile, workflowUIDs))
+            log.info("Updated defect phases in " + logFile);
+
+        // recurse over hierarchy children
+        for (int i = hierarchy.getNumChildren(node); i-- > 0;) {
+            PropertyKey child = hierarchy.getChildKey(node, i);
+            updateDefectPhases(child, workflowUIDs);
         }
     }
 
