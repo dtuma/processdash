@@ -217,6 +217,11 @@ public class ForkTracker {
      *            the maximum levels of parentage to consider. If the shared
      *            ancestor is further than this many generations back, returns
      *            null. Use -1 for no limit.
+     * @param directOnly
+     *            true if only direct parents should be followed. A direct
+     *            parent is one that appears in the first (or only) position of
+     *            a bundle's parents list. false if we should consider incoming
+     *            merged parents as well.
      * @return the ID of a bundle that is either equal to, or a parent of, both
      *         specified bundles. returns null if no shared ancestor could be
      *         found.
@@ -225,8 +230,8 @@ public class ForkTracker {
      *             in the parentage are missing
      */
     public FileBundleID findSharedAncestor(FileBundleID a, FileBundleID b,
-            int maxDepth) throws IOException {
-        return findSharedAncestorImpl(a, b, maxDepth, null);
+            int maxDepth, boolean directOnly) throws IOException {
+        return findSharedAncestorImpl(a, b, maxDepth, directOnly, null);
     }
 
     /**
@@ -252,7 +257,12 @@ public class ForkTracker {
     public List<FileBundleID> getLineage(FileBundleID parent,
             FileBundleID child) throws IOException {
         Map<FileBundleID, FileBundleID> lineage = new HashMap();
-        FileBundleID bid = findSharedAncestorImpl(child, parent, -1, lineage);
+        FileBundleID bid;
+        // try to find a direct ancestor first
+        bid = findSharedAncestorImpl(child, parent, -1, true, lineage);
+        // if that fails, accept an ancestor that included an incoming merge
+        if (bid == null)
+            bid = findSharedAncestorImpl(child, parent, -1, false, lineage);
         if (bid == null || !bid.equals(parent))
             return null;
 
@@ -265,8 +275,8 @@ public class ForkTracker {
     }
 
     private FileBundleID findSharedAncestorImpl(FileBundleID a, FileBundleID b,
-            int maxDepth, Map<FileBundleID, FileBundleID> aLineage)
-            throws IOException {
+            int maxDepth, boolean directOnly,
+            Map<FileBundleID, FileBundleID> aLineage) throws IOException {
         // check for null and abort
         if (a == null || b == null)
             return null;
@@ -319,7 +329,10 @@ public class ForkTracker {
             // a common ancestor.
             newestSet.remove(newest);
             FileBundleManifest mf = getManifestForAncestorTracing(newest);
-            newestSet.addAll(mf.getParents());
+            if (directOnly == false)
+                newestSet.addAll(mf.getParents());
+            else if (!mf.getParents().isEmpty())
+                newestSet.add(mf.getParents().get(0));
 
             // keep track of the lineage of A if requested
             if (aLineage != null) {

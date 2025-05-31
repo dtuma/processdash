@@ -150,8 +150,8 @@ public abstract class BundleMergeCoordinator {
             ReadableResourceCollection right = getCollection(rightBundleID);
 
             // find a shared ancestor of the two bundles we'll be merging
-            FileBundleID parentBundleID = forkTracker
-                    .findSharedAncestor(leftBundleID, rightBundleID, 500);
+            FileBundleID parentBundleID = forkTracker.findSharedAncestor(
+                leftBundleID, rightBundleID, 500, false);
             ReadableResourceCollection parent = getCollection(parentBundleID);
 
             // perform a 3-way merge of the given bundles
