@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2022 Tuma Solutions, LLC
+// Copyright (C) 2002-2025 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -97,6 +97,10 @@ public class UserDataWriter extends TinyCGIBase {
             TeamDataConstants.JOIN_AS_UUID, DashController.getDatasetID(false));
         if (hasValue(datasetID))
             ser.attribute(null, DATASET_ID_ATTR, datasetID);
+
+        String bundleID = getStringValue(TeamDataConstants.LAST_SYNC_BUNDLE_ID);
+        if (hasValue(bundleID))
+            ser.attribute(null, "wbsBundleID", bundleID);
 
         ser.attribute(null, TIMESTAMP_ATTR, XMLUtils.saveDate(timestamp));
 
