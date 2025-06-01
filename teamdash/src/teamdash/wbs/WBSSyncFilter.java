@@ -110,6 +110,14 @@ public class WBSSyncFilter {
             return activeFilter.recognizedWbsNodeIDs.contains(nodeID);
     }
 
+    public boolean acceptSizeMetricsID(String sizeID) {
+        // if the filter is disabled, accept any size metric
+        if (activeFilter == NONE || activeFilter == null)
+            return true;
+        else
+            return activeFilter.recognizedSizeMetricIDs.contains(sizeID);
+    }
+
 
 
     public void setActiveDumpData(Element xml) {
@@ -182,6 +190,9 @@ public class WBSSyncFilter {
             filter.recognizedWbsNodeIDs = loadIDsFromXml(bundleFiles,
                 WBSFilenameConstants.WBS_FILENAME, WBSNode.ELEMENT_NAME, "id",
                 true);
+            filter.recognizedSizeMetricIDs = loadIDsFromXml(bundleFiles,
+                WBSFilenameConstants.DATA_DUMP_FILE, "sizeMetric", "metricID",
+                false);
         } finally {
             bundleFiles.close();
         }
@@ -230,6 +241,8 @@ public class WBSSyncFilter {
     private static class BundleFilter {
 
         Set<Integer> recognizedWbsNodeIDs;
+
+        Set<String> recognizedSizeMetricIDs;
 
     }
 

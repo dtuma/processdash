@@ -936,6 +936,8 @@ public class WBSSynchronizer {
                 return;
 
             String metricID = sizeChangeTag.getAttribute(SIZE_METRIC_ID_ATTR);
+            if (syncFilter != null && !syncFilter.acceptSizeMetricsID(metricID))
+                return;
             if (isLockedPspOrProbeTask(node, metricID, individual.getInitials()))
                 return;
 
