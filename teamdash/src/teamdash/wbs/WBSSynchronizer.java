@@ -114,6 +114,8 @@ public class WBSSynchronizer {
 
     private boolean createMissingTeamMembers = false;
 
+    private WBSSyncFilter syncFilter = null;
+
     private boolean needsWbsEvent = false;
 
     private boolean changedTimeEstimates = false;
@@ -176,6 +178,10 @@ public class WBSSynchronizer {
         this.createMissingTeamMembers = createMissingTeamMembers;
     }
 
+    public void setSyncFilter(WBSSyncFilter syncFilter) {
+        this.syncFilter = syncFilter;
+    }
+
     public void run() {
         effectiveDate = new Date(0);
         changedTimeEstimates = false;
@@ -190,6 +196,8 @@ public class WBSSynchronizer {
         maxPastClientIDs = buildMaxClientIdMap(wbsRoot);
         Map<String, String> datasetIDMap = new HashMap<String, String>();
 
+        if (syncFilter != null)
+            syncFilter.syncStarting();
         for (Object h : handlers.values()) {
             if (h instanceof SyncHandler2)
                 ((SyncHandler2) h).startSync(teamProject);
@@ -722,6 +730,10 @@ public class WBSSynchronizer {
 
         logger.log(Level.FINE, "Reverse synchronizing data for {0}", m
                 .getName());
+
+        // if a sync filter is present, configure it for this dump file
+        if (syncFilter != null)
+            syncFilter.setActiveDumpData(dumpData);
 
         String dumpVersion = dumpData.getAttribute(DUMP_VERSION_ATTR);
         if (VersionUtils.compareVersions(dumpVersion, MIN_SIZEDATA_VERSION) < 0)
@@ -1342,6 +1354,8 @@ public class WBSSynchronizer {
         Integer nodeID = clientIdMap.get(idStr);
         if (nodeID == null)
             nodeID = XMLUtils.getXMLInt(tag, attrName);
+        if (syncFilter != null && !syncFilter.acceptWbsNodeID(nodeID))
+            return null;
         return nodeMap.get(nodeID);
     }
 

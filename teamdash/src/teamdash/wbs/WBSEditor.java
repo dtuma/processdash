@@ -298,6 +298,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
             if (Boolean.getBoolean("teamdash.wbs.reverseSyncNewMembers"))
                 reverseSynchronizer.setCreateMissingTeamMembers(true);
+            if (isSyncBundleWorkingDirectory())
+                reverseSynchronizer.setSyncFilter(new WBSSyncFilter(
+                        (BundledWorkingDirectorySync) workingDirectory));
             reverseSynchronizer.run();
             reverseSynchronizer.setCreateMissingTeamMembers(false);
             showActualData = reverseSynchronizer.getFoundActualData();
