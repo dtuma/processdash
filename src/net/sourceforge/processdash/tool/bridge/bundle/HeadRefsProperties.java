@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import net.sourceforge.processdash.util.SortedProperties;
 
@@ -129,6 +130,24 @@ public class HeadRefsProperties implements HeadRefs {
         props.remove(bundleName + REF_PROP);
         props.setProperty(bundleName + MOD_PROP, now);
         flush();
+    }
+
+
+    /**
+     * Return the newest head ref modification time within a set of properties.
+     */
+    protected static long getRefModTimestamp(Properties p) {
+        long result = -1;
+        for (String key : p.stringPropertyNames()) {
+            if (key.endsWith(MOD_PROP)) {
+                try {
+                    String value = p.getProperty(key);
+                    result = Math.max(result, Long.valueOf(value));
+                } catch (NumberFormatException nfe) {
+                }
+            }
+        }
+        return result;
     }
 
 

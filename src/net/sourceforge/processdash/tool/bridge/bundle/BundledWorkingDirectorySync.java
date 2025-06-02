@@ -1,4 +1,4 @@
-// Copyright (C) 2022-2023 Tuma Solutions, LLC
+// Copyright (C) 2022-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -98,7 +98,7 @@ public class BundledWorkingDirectorySync extends BundledWorkingDirectoryLocal {
     protected HeadRefs makeBundleHeads(File bundleHeadsDir) throws IOException {
         // the fork tracker creates the HEAD management object for a sync dir
         this.forkTracker = new ForkTracker(bundleHeadsDir, HEADS_FILE_PREFIX,
-                DeviceID.get(), getOverwriteBundleNames());
+                DeviceID.get(), getOverwriteBundleNames(), getMetadataDir());
         return this.forkTracker.getSelfHeadRefs();
     }
 

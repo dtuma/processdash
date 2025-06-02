@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,18 +31,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ConcurrentModificationException;
+import java.util.Properties;
 
+import net.sourceforge.processdash.util.DateUtils;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.SortedProperties;
 
 public class HeadRefsPropertiesFile extends HeadRefsProperties {
 
     private File storage;
 
+    private File published;
+
     private long lastModified, lastSize;
 
     public HeadRefsPropertiesFile(File file) {
         this.storage = file;
-        this.lastModified = this.lastSize = 0;
+        this.published = null;
+        this.lastModified = -1; // force an initial update
+        this.lastSize = 0;
+    }
+
+    protected void setPublishedFile(File published) {
+        this.published = published;
     }
 
 
@@ -56,7 +67,10 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
     protected boolean needsUpdate() {
         // an update is needed if the file's size or timestamp have changed
         return storage.lastModified() != lastModified
-                || storage.length() != lastSize;
+                || storage.length() != lastSize
+                // also update if a published file exists with a different size
+                || (published != null && published.isFile()
+                        && published.length() != lastSize);
     }
 
     private void doUpdate() throws IOException {
@@ -65,6 +79,7 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
         while (true) {
             try {
                 // if we update successfully, return
+                maybeRestoreFromPublished();
                 doUpdateImpl();
                 return;
 
@@ -83,6 +98,68 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
                 retryOrAbort(errCount++, ioe, 100, 250, 500, 500);
             }
         }
+    }
+
+    private void maybeRestoreFromPublished() throws IOException {
+        // if no published file is configured, abort
+        if (published == null)
+            return;
+
+        // abort if the parent directory is unavailable (e.g., lost network)
+        if (published.getParentFile().isDirectory() == false)
+            throw new FileNotFoundException(published.getParent());
+
+        // don't restore if the published file does not exist, is empty, or
+        // can't be read
+        long publishedSize = published.length();
+        long publishedTime = published.lastModified();
+        if (publishedSize == 0 || publishedTime == 0)
+            return;
+
+        // Our main restoration scenarios will be:
+        //
+        // (a) the storage file has been unexpectedly lost. Restore from backup
+        //
+        // (b) this publish-aware logic is running for the first time. Our
+        // storage location has changed, and published points to the location
+        // where it was written by the old logic. Initialize our storage to
+        // match what was written by the old software.
+        //
+        // (c) someone is still using the old version of the software
+        // concurrently, and is writing data to the old location (which we now
+        // consider "published"). Pick up their changes.
+        //
+        // In all of these, it only makes sense to restore if the published
+        // file is at least a minute newer than our storage file.
+        long storageTime = storage.lastModified();
+        long newer = publishedTime - storageTime;
+        if (newer < DateUtils.MINUTE)
+            return;
+
+        // Scenario (c) described above should be exceedingly rare. If it looks
+        // like it's actually happening, double check the data inside the files
+        // to make sure we're not being led astray by spurious file timestamps.
+        if (storageTime > 0 && storage.length() > 0) {
+            long publishedDataTime = getDataTimestamp(published);
+            long storageDataTime = getDataTimestamp(storage);
+            if (publishedDataTime <= storageDataTime)
+                return;
+        }
+
+        // restore the storage file from the published version
+        OutputStream out = FileBundleUtils.outputStream(storage);
+        FileUtils.copyFile(published, out);
+        out.close();
+        storage.setLastModified(publishedTime);
+    }
+
+    private long getDataTimestamp(File f) throws IOException {
+        // read the properties from the file
+        Properties p = new Properties();
+        InputStream in = new BufferedInputStream(new FileInputStream(f));
+        p.load(in);
+        in.close();
+        return getRefModTimestamp(p);
     }
 
     private void doUpdateImpl() throws IOException {
@@ -132,6 +209,14 @@ public class HeadRefsPropertiesFile extends HeadRefsProperties {
         // make a note of the storage file's time/size
         this.lastModified = storage.lastModified();
         this.lastSize = storage.length();
+
+        // publish a copy of the data, if so configured
+        if (published != null) {
+            out = FileBundleUtils.outputStream(published);
+            FileUtils.copyFile(storage, out);
+            out.close();
+            published.setLastModified(lastModified);
+        }
     }
 
     private void tweakNonce() {

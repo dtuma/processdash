@@ -81,14 +81,16 @@ public class ForkTracker {
 
 
     public ForkTracker(File bundleHeadsDir, String filenamePrefix,
-            String selfDeviceID, Set<String> overwriteBundleNames) {
+            String selfDeviceID, Set<String> overwriteBundleNames,
+            File headStorageDir) {
         this.bundleHeadsDir = bundleHeadsDir;
         this.filenamePrefix = filenamePrefix;
         this.selfDeviceID = selfDeviceID;
         this.overwriteBundleNames = overwriteBundleNames;
 
         this.selfHeadsFile = getHeadsFileForDevice(selfDeviceID);
-        this.selfHeadRefs = new SelfHeadRefs(selfHeadsFile);
+        File selfStorageFile = new File(headStorageDir, selfHeadsFile.getName());
+        this.selfHeadRefs = new SelfHeadRefs(selfStorageFile, selfHeadsFile);
 
         this.deviceHeadRefs = Collections.synchronizedMap(new HashMap());
         this.deviceHeadRefs.put(selfHeadsFile, selfHeadRefs);
@@ -606,8 +608,9 @@ public class ForkTracker {
      */
     private class SelfHeadRefs extends HeadRefsPropertiesFileLocking {
 
-        public SelfHeadRefs(File file) {
-            super(file);
+        public SelfHeadRefs(File storage, File published) {
+            super(storage);
+            setPublishedFile(published);
         }
 
         @Override
