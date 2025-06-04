@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2022 Tuma Solutions, LLC
+// Copyright (C) 2021-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,12 +103,20 @@ public class HeadRefsPegFiles implements HeadRefs {
             File newPegFile = new File(pegFileDirectory, newFilename);
 
             // see if this device has written a file in the past we can reuse
-            String reuseFilename = getPegFileToReuse(pegFilenames, bundleID);
-            if (reuseFilename != null) {
+            File fileToReuse = getOldPegFileForBundle(pegFilenames, bundleID);
+            if (fileToReuse != null) {
                 // rename the old peg file to the new name
-                File fileToReuse = new File(pegFileDirectory, reuseFilename);
                 FileUtils.renameFile(fileToReuse, newPegFile);
-                pegFilenames.remove(reuseFilename);
+
+                // delete other leftover peg files that exist for this bundle
+                while (true) {
+                    File fileToDelete = getOldPegFileForBundle(pegFilenames,
+                        bundleID);
+                    if (fileToDelete != null)
+                        fileToDelete.delete();
+                    else
+                        break;
+                }
 
             } else {
                 // write a new peg file to store the new HEAD ref
@@ -119,15 +127,18 @@ public class HeadRefsPegFiles implements HeadRefs {
         }
     }
 
-    private String getPegFileToReuse(List<String> pegFilenames,
+    private File getOldPegFileForBundle(List<String> pegFilenames,
             FileBundleID newBundleID) {
         // look through the existing peg files for one that was written by this
         // device for this bundle
         String deviceAndBundleNameSuffix = newBundleID.getToken()
-                .substring(FileBundleID.TIMESTAMP_LEN) + ".txt";
-        for (String onePegFile : pegFilenames) {
-            if (onePegFile.endsWith(deviceAndBundleNameSuffix))
-                return onePegFile;
+                .substring(FileBundleID.TIMESTAMP_LEN);
+        for (Iterator<String> i = pegFilenames.iterator(); i.hasNext();) {
+            String onePegFile = i.next();
+            if (onePegFile.contains(deviceAndBundleNameSuffix)) {
+                i.remove();
+                return new File(pegFileDirectory, onePegFile);
+            }
         }
         return null;
     }
