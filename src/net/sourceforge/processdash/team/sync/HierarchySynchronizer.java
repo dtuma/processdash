@@ -737,6 +737,7 @@ public class HierarchySynchronizer {
         if (isTeam())
             return Collections.EMPTY_SET;
 
+        fixCollidingDeletedWbsIDs(projectKey);
         assignClientIDs();
         getDeletableIndivNodes();
 
@@ -829,6 +830,37 @@ public class HierarchySynchronizer {
             return id;
 
         return getPseudoWbsIdForKey(key.getParent()) + "/" + key.name();
+    }
+
+    private void fixCollidingDeletedWbsIDs(PropertyKey key) {
+        String path = key.path();
+        boolean isDeletedWbsNode = testData(
+            getData(path, TeamDataConstants.WBS_DELETED_DATA_NAME));
+        if (isDeletedWbsNode) {
+            // this node existed in the past, but was deleted from the WBS. We
+            // kept it in our personal plan because it had actual data. And we
+            // left its obsolete WBS ID to assist with EV task merging, data
+            // warehouse ETL logic, etc.
+            String nodeID = getWbsIdForPath(path);
+            if (isNodeStillPresentInWbs(nodeID)) {
+                // But now, a new node in the WBS has the same ID. We know
+                // this must be a coincidence caused by merge ID collisions.
+                // Change this node's ID in the personal plan so it won't match.
+                String newID = nodeID;
+                while (isNodeStillPresentInWbs(newID))
+                    newID = newID.substring(1); // discard initial digit
+                putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
+                    StringData.create(newID));
+                setTaskIDs(path, "");
+                logger.warning("Changing colliding WBS ID (" + nodeID + " --> "
+                        + newID + ") for orphaned task '" + path + "'");
+            }
+        }
+
+        // recurse over children
+        for (int i = hierarchy.getNumChildren(key); i-- > 0;) {
+            fixCollidingDeletedWbsIDs(hierarchy.getChildKey(key, i));
+        }
     }
 
     private String clientIdPrefix;
@@ -2105,10 +2137,12 @@ public class HierarchySynchronizer {
             worker.deleteNode(path);
 
         } else if (isLeaf) {
+            maybeFlagWbsNodeDeletion(path);
             worker.markLeafComplete(path);
 
         } else {
             setTaskIDs(path, "");
+            maybeFlagWbsNodeDeletion(path);
             if (isPSPTask(key))
                 worker.markPSPTaskComplete(path);
             else {
@@ -2119,6 +2153,15 @@ public class HierarchySynchronizer {
                     completeOrDeleteNode(worker, (PropertyKey) i.next());
             }
         }
+    }
+
+    private void maybeFlagWbsNodeDeletion(String path) {
+        // if this node has a WBS ID that no longer exists in the WBS, write
+        // a flag to indicate this status
+        String wbsID = getWbsIdForPath(path);
+        if (StringUtils.hasValue(wbsID) && !isNodeStillPresentInWbs(wbsID))
+            forceData(path, TeamDataConstants.WBS_DELETED_DATA_NAME,
+                ImmutableDoubleData.TRUE);
     }
 
     private boolean isPSPTask(PropertyKey key) {
@@ -2671,6 +2714,7 @@ public class HierarchySynchronizer {
             try {
                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));
+                putData(path, TeamDataConstants.WBS_DELETED_DATA_NAME, null);
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
                 if (workflowURLsSupported)

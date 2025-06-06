@@ -63,6 +63,7 @@ public interface TeamDataConstants {
     public static final String JOIN_AS_NAME = "Joined_As_Name";
     public static final String JOIN_AS_UUID = "Joined_As_UUID";
     public static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
+    public static final String WBS_DELETED_DATA_NAME = "WBS_Node_Deleted";
     public static final String CLIENT_ID_DATA_NAME = "Client_Unique_ID";
     public static final String WORKFLOW_ID_DATA_NAME = "Workflow_Source_ID";
     public static final String PROJECT_WORKFLOW_URLS_DATA_NAME =
