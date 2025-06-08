@@ -215,10 +215,19 @@ Authors:
     </target>
 
     <target name="maybe-sign-exe" if="sign-exe.enabled">
-        <exec executable="${launch4j.dir}\sign4j\sign4j.exe">
+        <exec executable="${launch4j.dir}\sign4j\sign4j.exe"
+              failonerror="true">
             <arg line="${sign-exe.command}"/>
             <arg value="${sign-exe.file}"/>
         </exec>
+    </target>
+
+    <target name="re-sign-exe">
+        <copy file="../dist/${re-sign-exe}-presign.exe"
+              tofile="../dist/${re-sign-exe}.exe" overwrite="true"/>
+        <antcall target="maybe-sign-exe">
+            <param name="sign-exe.file" value="../dist/${re-sign-exe}.exe"/>
+        </antcall>
     </target>
 
 
@@ -290,6 +299,8 @@ Authors:
         <launch4j configFile="${launch4j.config}"
             jar="${dist}/${izpack.output}.jar"
             outfile="${dist}/${izpack.output}.exe"/>
+        <copy file="${dist}/${izpack.output}.exe" overwrite="true"
+              tofile="${dist}/${izpack.output}-presign.exe"/>
         <antcall target="maybe-sign-exe">
             <param name="sign-exe.file" value="${dist}/${izpack.output}.exe"/>
         </antcall>
