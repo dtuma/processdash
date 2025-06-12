@@ -4,7 +4,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2023 Tuma Solutions, LLC
+Copyright (C) 2001-2025 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -65,7 +65,7 @@ Authors:
 
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
-    <property name="jsign.dir" location="${launch4j.dir}/jsign" />
+    <property name="anttask.dir" location="${processdash}/lib/src" />
     <property name="dashboard.exe" value="ProcessDashboard.exe" />
     <property name="launcher.exe" value="Launcher.exe" />
     <property name="quick-launcher.exe" value="QuickLauncher.exe" />
@@ -103,6 +103,9 @@ Authors:
         <taskdef name="launch4j"
             classname="net.sf.launch4j.ant.Launch4jTask"
             classpath="${launch4j.dir}/launch4j.jar" />
+        <!-- Allows us to use the azToken Ant task -->
+        <taskdef name="azToken" classpath="${anttask.dir}"
+            classname="net.sourceforge.processdash.GetAzureAccessToken"/>
         <!-- Check to see if we are running on Windows -->
         <condition property="isWindows"><os family="windows"/></condition>
     </target>
@@ -214,10 +217,17 @@ Authors:
         </antcall>
     </target>
 
-    <target name="maybe-sign-exe" if="sign-exe.enabled">
+    <target name="-get-az-token" depends="init" if="sign-exe.token-command">
+        <azToken property="sign-exe.token" quotes="true"
+                 file="${sign-exe.token-file}"
+                 command="${sign-exe.token-command}"/>
+    </target>
+
+    <target name="maybe-sign-exe" depends="-get-az-token" if="sign-exe.enabled">
+        <property name="sign-exe.token" value=""/>
         <exec executable="${launch4j.dir}\sign4j\sign4j.exe"
               failonerror="true">
-            <arg line="${sign-exe.command}"/>
+            <arg line="${sign-exe.command} ${sign-exe.token}"/>
             <arg value="${sign-exe.file}"/>
         </exec>
     </target>
