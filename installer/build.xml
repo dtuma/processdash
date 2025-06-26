@@ -103,6 +103,9 @@ Authors:
         <taskdef name="launch4j"
             classname="net.sf.launch4j.ant.Launch4jTask"
             classpath="${launch4j.dir}/launch4j.jar" />
+        <!-- Allows us to use the sign4j Ant task -->
+        <taskdef resource="com/tuma_solutions/sign4j/antlib.xml"
+            classpath="${processdash}/lib/sign4j-java.jar"/>
         <!-- Allows us to use the azToken Ant task -->
         <taskdef name="azToken" classpath="${anttask.dir}"
             classname="net.sourceforge.processdash.GetAzureAccessToken"/>
@@ -225,21 +228,11 @@ Authors:
 
     <target name="maybe-sign-exe" depends="-get-az-token" if="sign-exe.enabled">
         <property name="sign-exe.token" value=""/>
-        <exec executable="${launch4j.dir}\sign4j\sign4j.exe"
-              failonerror="true">
+        <sign4j backup="${sign-exe.backup}" verbose="${sign-exe.verbose}">
             <arg line="${sign-exe.command} ${sign-exe.token}"/>
             <arg value="${sign-exe.file}"/>
-        </exec>
+        </sign4j>
     </target>
-
-    <target name="re-sign-exe">
-        <copy file="../dist/${re-sign-exe}-presign.exe"
-              tofile="../dist/${re-sign-exe}.exe" overwrite="true"/>
-        <antcall target="maybe-sign-exe">
-            <param name="sign-exe.file" value="../dist/${re-sign-exe}.exe"/>
-        </antcall>
-    </target>
-
 
 
     <target name="install.xml"
@@ -309,8 +302,6 @@ Authors:
         <launch4j configFile="${launch4j.config}"
             jar="${dist}/${izpack.output}.jar"
             outfile="${dist}/${izpack.output}.exe"/>
-        <copy file="${dist}/${izpack.output}.exe" overwrite="true"
-              tofile="${dist}/${izpack.output}-presign.exe"/>
         <antcall target="maybe-sign-exe">
             <param name="sign-exe.file" value="${dist}/${izpack.output}.exe"/>
         </antcall>
