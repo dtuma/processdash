@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,11 @@ public class PDESPersonalDatasetLauncher {
     }
 
     private static String getServerUrl() {
+        // if a forced URL is configured, return it
+        String forcedUrl = System.getProperty(PDESMain.FORCED_SERVER_URL);
+        if (forcedUrl != null)
+            return forcedUrl;
+
         // if a default server is configured, return it
         Preferences prefs = PDESUtil.getPdesPrefs();
         String defaultUrl = prefs.get(PDESUtil.DEFAULT_SERVER_PREF, null);

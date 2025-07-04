@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2021 Tuma Solutions, LLC
+// Copyright (C) 2018-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -85,7 +85,8 @@ public class PDESDatasetChooser extends JPanel {
             .getDashBundle("Launcher.PDES");
 
 
-    public PDESDatasetChooser(List<String> knownServers) {
+    public PDESDatasetChooser(List<String> knownServers,
+            boolean allowServerSelection) {
         super(new BorderLayout(0, 3));
         add(new JOptionPaneTweaker.MakeResizable(), BorderLayout.WEST);
 
@@ -98,7 +99,8 @@ public class PDESDatasetChooser extends JPanel {
         // create a combo box for selecting a server
         serverSelector = new JComboBox(serverUrls);
         serverSelector.setSelectedIndex(0);
-        add(serverSelector, BorderLayout.NORTH);
+        if (allowServerSelection)
+            add(serverSelector, BorderLayout.NORTH);
 
         // create a component to display the list of datasets
         list = new LaunchableDatasetList();
@@ -118,7 +120,7 @@ public class PDESDatasetChooser extends JPanel {
         // if we weren't given any known servers, prompt for one immediately
         maybePromptForNewServerUrl(null);
 
-        if (getNumServers() == 1) {
+        if (getNumServers() == 1 || allowServerSelection == false) {
             // if we only have one server in the list, load its datasets
             // synchronously. We do this so our caller can know if the chooser
             // should be displayed at all, or if they can jump directly to

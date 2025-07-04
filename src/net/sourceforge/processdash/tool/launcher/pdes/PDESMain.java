@@ -1,4 +1,4 @@
-// Copyright (C) 2018 Tuma Solutions, LLC
+// Copyright (C) 2018-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.launcher.pdes;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.prefs.Preferences;
@@ -60,7 +61,8 @@ public class PDESMain {
         List<String> servers = getKnownServers();
 
         // build an object for selecting datasets
-        PDESDatasetChooser chooser = new PDESDatasetChooser(servers);
+        PDESDatasetChooser chooser = new PDESDatasetChooser(servers,
+                System.getProperty(FORCED_SERVER_URL) == null);
 
         // if the user cancelled one of the initial prompts, abort
         if (chooser.userCancelledStartup())
@@ -89,6 +91,11 @@ public class PDESMain {
     }
 
     private static List<String> getKnownServers() {
+        // if a forced URL is configured, use it only
+        String forcedUrl = System.getProperty(FORCED_SERVER_URL);
+        if (forcedUrl != null)
+            return Collections.singletonList(forcedUrl);
+
         LinkedHashSet<String> result = new LinkedHashSet<String>();
 
         // if a default server is configured, add it to the result
@@ -143,5 +150,8 @@ public class PDESMain {
         // abort if there were problems or if the file did not contain a URL
         return null;
     }
+
+    public static final String FORCED_SERVER_URL = PDESMain.class.getPackage()
+            .getName() + ".forcedUrl";
 
 }
