@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2023 Tuma Solutions, LLC
+// Copyright (C) 1998-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -174,6 +174,7 @@ import net.sourceforge.processdash.tool.merge.DashboardMergeCoordinator;
 import net.sourceforge.processdash.tool.merge.SyncDeviceSuffixProvider;
 import net.sourceforge.processdash.tool.perm.PermissionsManager;
 import net.sourceforge.processdash.tool.perm.UserAccountFlagErrorMessage;
+import net.sourceforge.processdash.tool.perm.WhoAmI;
 import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.ui.AlwaysOnTopManager;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
@@ -1682,6 +1683,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // So if we get this far, we'll only prompt them for their name if
         // they are opening a dashboard instance served by a remote server.
         if (workingDirectory instanceof BridgedWorkingDirectory) {
+            try {
+                // try using the new whoami REST API first. This will succeed
+                // on newer versions of the PDES
+                WhoAmI who = new WhoAmI(workingDirectory.getDescription());
+                String name = who.getDisplayName();
+                if (name != null)
+                    return name;
+            } catch (Exception e) {
+            }
+
+            // ask the user who they are
             ResourceBundle res = ResourceBundle
                     .getBundle("Templates.resources.ProcessDashboard");
             String title = res.getString("Enter_Name_Dialog.Title");

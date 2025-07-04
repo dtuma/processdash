@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2021 Tuma Solutions, LLC
+// Copyright (C) 2017-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,8 @@ public class WhoAmI {
 
     private String username;
 
+    private String displayName;
+
     private boolean legacyPdesMode;
 
     private List<String> externalPermissionGrants;
@@ -68,6 +70,7 @@ public class WhoAmI {
 
     public WhoAmI(String pdesUrl) throws HttpException.Unauthorized {
         username = null;
+        displayName = null;
         legacyPdesMode = false;
         externalPermissionGrants = Collections.EMPTY_LIST;
         userAccountFlags = Collections.EMPTY_LIST;
@@ -76,6 +79,10 @@ public class WhoAmI {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public boolean isLegacyPdesMode() {
@@ -117,6 +124,7 @@ public class WhoAmI {
             JSONObject json = makeRestApiCall(whoamiUrl);
             Map user = (Map) json.get("user");
             this.username = (String) user.get("username");
+            this.displayName = (String) user.get("name");
             logger.info("From PDES, current user is " + username);
 
             // see if this user should have extra permissions
