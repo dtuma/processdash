@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2022 Tuma Solutions, LLC
+// Copyright (C) 2009-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -438,6 +438,12 @@ public class JnlpDatasetLauncher implements JnlpClientConstants {
     }
 
     private boolean isDistrSecurityPolicyMismatch() {
+        // if this class is running out of the distribution directory, there is
+        // no mismatch
+        File selfJar = RuntimeUtils.getClasspathFile(JnlpDatasetLauncher.class);
+        if (selfJar != null && distrDir.equals(selfJar.getParentFile()))
+            return false;
+
         // this method could use complex logic to compare digital signatures and
         // security policy files between this launcher and the target
         // distribution. But to keep things simple, we just check the

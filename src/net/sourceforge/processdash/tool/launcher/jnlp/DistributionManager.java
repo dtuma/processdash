@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2022 Tuma Solutions, LLC
+// Copyright (C) 2009-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 import com.tuma_solutions.teamserver.jnlp.client.JarVerifier;
@@ -92,6 +93,15 @@ public class DistributionManager implements JnlpPackagingConstants {
         String userInstallPath = prefs.get(INSTALLATION_DIR_KEY, null);
         if (userInstallPath != null && userInstallPath.length() > 0)
             return userInstallPath;
+
+        // check to see if this code is running out of a full installation
+        File selfJar = RuntimeUtils.getClasspathFile(DistributionManager.class);
+        if (selfJar != null && selfJar.isFile()) {
+            File parentDir = selfJar.getParentFile();
+            File targetJar = new File(parentDir, TARGET_JARFILE);
+            if (parentDir != null && targetJar.isFile())
+                return parentDir.getPath();
+        }
 
         // the current user did not install the dashboard - but perhaps some
         // other user on this computer did. Try looking in the typical places,
