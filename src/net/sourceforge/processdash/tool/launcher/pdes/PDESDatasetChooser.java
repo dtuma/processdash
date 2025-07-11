@@ -381,7 +381,8 @@ public class PDESDatasetChooser extends JPanel {
 
             if (this != currentLoader) {
                 // if another loader has replaced us, abort
-            } else if (Thread.currentThread() != this) {
+            } else if (Thread.currentThread() != this
+                    && result instanceof DatasetListReady) {
                 // if we are running synchronously, publish data immediately
                 result.run();
             } else {
