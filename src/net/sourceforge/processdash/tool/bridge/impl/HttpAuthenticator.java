@@ -1,4 +1,4 @@
-// Copyright (C) 2014-2020 Tuma Solutions, LLC
+// Copyright (C) 2014-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,6 +72,10 @@ public class HttpAuthenticator extends Authenticator {
 
     private State state;
 
+    private boolean rememberMeDefault;
+
+    private boolean rememberMeAlways;
+
     private float rememberMeDays;
 
     private String lastUrl;
@@ -90,6 +94,12 @@ public class HttpAuthenticator extends Authenticator {
 
     private static final String ENABLED_SETTING_NAME = SETTING_PREFIX
             + "enabled";
+
+    public static final String REMEMBER_ME_DEFAULT_SETTING_NAME = SETTING_PREFIX
+            + "rememberMeDefault";
+
+    public static final String REMEMBER_ME_ALWAYS_SETTING_NAME = SETTING_PREFIX
+            + "rememberMeAlways";
 
     public static final String REMEMBER_ME_SETTING_NAME = SETTING_PREFIX
             + "rememberMeDays";
@@ -124,6 +134,10 @@ public class HttpAuthenticator extends Authenticator {
 
     private void initRememberMeDays() {
         if (Keyring.isPersistent()) {
+            this.rememberMeDefault = Boolean
+                    .getBoolean(REMEMBER_ME_DEFAULT_SETTING_NAME);
+            this.rememberMeAlways = Boolean
+                    .getBoolean(REMEMBER_ME_ALWAYS_SETTING_NAME);
             try {
                 this.rememberMeDays = Float.parseFloat(System
                         .getProperty(REMEMBER_ME_SETTING_NAME));
@@ -195,7 +209,7 @@ public class HttpAuthenticator extends Authenticator {
         if (rememberMeDays < 0)
             initRememberMeDays();
         JCheckBox rememberMe = null;
-        if (rememberMeDays > 0) {
+        if (rememberMeDays > 0 && !rememberMeAlways) {
             rememberMe = new JCheckBox(
                     resources.getString("Remember_Me.Prompt"));
             rememberMe.setToolTipText(resources.format(
@@ -203,6 +217,7 @@ public class HttpAuthenticator extends Authenticator {
             Font f = rememberMe.getFont();
             f = f.deriveFont(f.getSize2D() * 0.8f);
             rememberMe.setFont(f);
+            rememberMe.setSelected(rememberMeDefault);
         }
 
         // prompt the user for credentials
@@ -250,7 +265,8 @@ public class HttpAuthenticator extends Authenticator {
 
         if (userChoice[0] == JOptionPane.OK_OPTION) {
             // if the user entered credentials, return them.
-            if (rememberMe != null && rememberMe.isSelected())
+            if ((rememberMe != null && rememberMe.isSelected())
+                    || rememberMeAlways)
                 savePasswordToKeyring(lastUsername, password.getPassword());
             lastPassword = mask(password.getPassword());
             return new PasswordAuthentication(lastUsername,
