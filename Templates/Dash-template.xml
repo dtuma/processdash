@@ -286,6 +286,10 @@ The author(s) may be contacted at:
         <onDataChange>Workflow Completed</onDataChange>
   </background-task>
 
+  <background-task runAtStartup="true" whenDefault="-1"
+     class="net.sourceforge.processdash.team.setup.move.TeamServerManualImportCleanup$BGTask"
+     enabledWith="teamServerManualImportCleanup.enabled"/>
+
 
   <!-- definitions for snippets that are provided by the dashboard -->
 
