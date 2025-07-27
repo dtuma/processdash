@@ -79,6 +79,8 @@ public class ExtSyncCoordinator {
 
     private Logger log;
 
+    private Throwable lastException;
+
     private static final Logger debug = ExtSynchronizer.debug;
 
 
@@ -108,6 +110,26 @@ public class ExtSyncCoordinator {
      * set of external nodes.
      */
     public void run(ExtNodeSet nodeSet) throws IOException {
+        try {
+            // perform the round-trip synchronization run
+            runImpl(nodeSet);
+            lastException = null;
+
+        } catch (IOException ioe) {
+            // publish errors to the sync metadata log file
+            boolean isRepeatedError = (lastException != null
+                    && lastException.getMessage().equals(ioe.getMessage()));
+            log.log(isRepeatedError ? Level.FINE : Level.SEVERE,
+                "Encountered problem while synchronizing", ioe);
+            trySaveMetadata();
+
+            // save the error and rethrow
+            lastException = ioe;
+            throw ioe;
+        }
+    }
+
+    private void runImpl(ExtNodeSet nodeSet) throws IOException {
         // refresh the data target and create a team project for this run
         prepareForSyncRun();
 

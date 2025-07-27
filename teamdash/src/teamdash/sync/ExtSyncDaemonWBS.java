@@ -146,7 +146,7 @@ public class ExtSyncDaemonWBS {
                 return;
             } catch (Exception e) {
                 log.log(errCount == 0 ? Level.SEVERE : Level.FINE,
-                    "Encountered problem while synchronizing", e);
+                    "Encountered unexpected problem while synchronizing");
                 connection.disconnect();
                 errCount++;
             }
