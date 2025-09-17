@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2023 Tuma Solutions, LLC
+// Copyright (C) 2003-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ import net.sourceforge.processdash.tool.bridge.bundle.FileBundleMode;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.CertificateUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -133,6 +134,14 @@ public class DisplayConfig extends TinyCGIBase {
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(dataURL));
             out.println("   </PRE></DIV>");
+        }
+
+        if (username != null) {
+            out.print("<DIV>");
+            out.print(resources.getHTML("PDES_Username"));
+            out.print("<TT>&nbsp;");
+            out.println(HTMLUtils.escapeEntities(username));
+            out.println("</TT><BR>&nbsp;</DIV>");
         }
 
         if (installationDirectory != null) {
@@ -296,6 +305,7 @@ public class DisplayConfig extends TinyCGIBase {
     File appTemplateDirectory;
     File configFile;
     String dataURL;
+    String username;
     String jvmInfo;
 
     private void loadConfigurationInformation() {
@@ -309,6 +319,7 @@ public class DisplayConfig extends TinyCGIBase {
         if (workingDir instanceof BridgedWorkingDirectory) {
             BridgedWorkingDirectory bwd = (BridgedWorkingDirectory) workingDir;
             dataURL = bwd.getDescription();
+            username = HttpAuthenticator.getLastUsername(dataURL);
             dataDirectory = bwd.getTargetDirectory();
             if (dataDirectory == null)
                 configFile = null;
