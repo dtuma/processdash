@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2022 Tuma Solutions, LLC
+// Copyright (C) 1999-2025 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -156,6 +156,7 @@ public class ConfigureButton extends WindowsFlatMenuBar
         menu.add(new DataAnalysisWatcher(makeMenuItem(DATA_ANALYSIS)).menuItem);
         menu.add(buildToolMenu(true));
         menu.add(buildHelpMenu());
+        menu.add(new LogoutMenuItem(parent));
         menu.add(makeMenuItem(EXIT_PROGRAM));
     }
 
@@ -180,6 +181,7 @@ public class ConfigureButton extends WindowsFlatMenuBar
         fileMenu.add(new OpenDatasetAction(parent, saveBackupAction));
         fileMenu.addSeparator();
 
+        fileMenu.add(new LogoutMenuItem(parent));
         fileMenu.add(makeMenuItem(EXIT_PROGRAM));
 
         return fileMenu;
