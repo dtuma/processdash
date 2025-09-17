@@ -30,9 +30,9 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="5.8.4"/>
+  <property name="teamtools.version" value="5.8.5"/>
   <property name="teamtools.requires" value="2.6.6+"/>
-  <property name="workingdirs.version" value="2.7.4"/>
+  <property name="workingdirs.version" value="2.7.5"/>
 
   <property name="processdash.dir" value=".."/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
