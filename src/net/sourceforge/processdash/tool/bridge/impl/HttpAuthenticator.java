@@ -347,8 +347,22 @@ public class HttpAuthenticator extends Authenticator {
         Keyring.save(ringKey(username), password, null);
     }
 
+    private String getLastUsernameForUrl(String url) {
+        String key = prefsKey(getBaseURL(url), LAST_USERNAME);
+        return prefs.get(key, null);
+    }
+
+    private void expirePassword(String url) {
+        String key = prefsKey(getBaseURL(url), REMEMBER_ME_UNTIL);
+        prefs.putLong(key, 0);
+    }
+
     private String prefsKey(String suffix) {
-        String result = getBaseURL();
+        return prefsKey(getBaseURL(), suffix);
+    }
+
+    private String prefsKey(String baseUrl, String suffix) {
+        String result = baseUrl;
         result = result.replace(':', ';');
         result = result.replace('/', ',');
         if (suffix != null)
@@ -416,6 +430,17 @@ public class HttpAuthenticator extends Authenticator {
     /** @since 2.1.10 */
     public static String getLastUsername() {
         return (INSTANCE == null ? null : INSTANCE.lastUsername);
+    }
+
+    /** @since 2.7.5 */
+    public static String getLastUsername(String url) {
+        return (INSTANCE == null || url == null ? null
+                : INSTANCE.getLastUsernameForUrl(url));
+    }
+
+    /** @since 2.7.5 */
+    public static void logout(String url) {
+        if (INSTANCE != null) INSTANCE.expirePassword(url);
     }
 
     private static HttpAuthenticator INSTANCE = null;
