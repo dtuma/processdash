@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2020 Tuma Solutions, LLC
+// Copyright (C) 2017-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -266,6 +266,11 @@ public class ExtSynchronizer {
         String extName = WBSClipSelection.scrubName(extNode.getName());
         oldWbsNodes.remove(extID);
 
+        // identify the WBS type that should be used for this node
+        String wbsType = extNode.getWbsType();
+        if (!StringUtils.hasValue(wbsType))
+            wbsType = TeamProcess.COMPONENT_TYPE;
+
         // look for the external node in our WBS
         WBSNode node = extNodeMap.get(extID);
         if (node == null)
@@ -273,8 +278,7 @@ public class ExtSynchronizer {
 
         if (node == null) {
             // if the node does not exist, create it.
-            node = new WBSNode(wbs, extName, TeamProcess.COMPONENT_TYPE, 2,
-                    false);
+            node = new WBSNode(wbs, extName, wbsType, 2, false);
             node.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
             node.setAttribute(extIDAttr, extID);
             node.setReadOnly(true);
@@ -298,8 +302,8 @@ public class ExtSynchronizer {
             // disappeared from our query in the past (and was "scrubbed" as a
             // result), but has just returned. Add the attributes we need to
             // mark it as an external node again.
-            if (node.isReadOnly() == false) {
-                node.setType(TeamProcess.COMPONENT_TYPE);
+            if (node.isReadOnly() == false || !wbsType.equals(node.getType())) {
+                node.setType(wbsType);
                 node.setAttribute(ExtSyncUtil.EXT_SYSTEM_ID_ATTR, extSystemID);
                 node.setReadOnly(true);
                 wbsChanged = true;
