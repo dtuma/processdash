@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2020 Tuma Solutions, LLC
+// Copyright (C) 2018-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,6 +76,11 @@ public interface SyncXmlConstants {
      * Attribute holding the ID in an external node for a node's type
      */
     String TYPE_ID_ATTR = "typeID";
+
+    /**
+     * Attribute holding the WBS node type to use for an external node
+     */
+    String WBS_TYPE_ATTR = "wbsType";
 
     /**
      * Attribute holding the owner of an external node
