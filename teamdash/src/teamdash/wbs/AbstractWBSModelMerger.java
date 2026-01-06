@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2025 Tuma Solutions, LLC
+// Copyright (C) 2012-2026 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -203,15 +203,14 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
 
         WBSNode node;
 
-        boolean readOnly;
-
         public WBSNodeContent() {}
 
         public WBSNodeContent(WBSNode node) {
             this.node = node;
-            this.readOnly = node.isReadOnly();
             put(NODE_NAME, node.getName());
             put(NODE_TYPE, node.getType());
+            if (node.isReadOnly())
+                put(NODE_RO, "true");
 
             Map<String, Object> attrs = node.getAttributeMap(true, true);
             for (Map.Entry<String, Object> e : attrs.entrySet()) {
@@ -237,15 +236,17 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
                     dest.setName((String) value);
                 else if (attrName.equals(NODE_TYPE))
                     dest.setType((String) value);
+                else if (attrName.equals(NODE_RO))
+                    dest.setReadOnly(value != null);
                 else
                     dest.setAttribute(attrName, value);
             }
-            dest.setReadOnly(this.readOnly);
         }
     }
 
     public static final String NODE_NAME = "WBSNode_Name";
     public static final String NODE_TYPE = "WBSNode_Type";
+    public static final String NODE_RO = "WBSNode_ReadOnly";
 
     protected static final AttributeMerger SILENTLY_PREFER_MAIN =
         DefaultAttributeMerger.SILENTLY_PREFER_MAIN;
