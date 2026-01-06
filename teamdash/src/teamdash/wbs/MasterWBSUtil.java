@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2020 Tuma Solutions, LLC
+// Copyright (C) 2002-2026 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -145,7 +145,10 @@ public class MasterWBSUtil {
         }
 
         public void mergeNodes(WBSNode src, WBSNode dest) {
-            dest.setReadOnly(src != null);
+            if (src != null)
+                dest.setReadOnly(true);
+            else if (isMasterNode(dest))
+                dest.setReadOnly(false);
             copyAttr(src, dest, MASTER_NODE_ID, true);
             copyAttr(src, dest, MASTER_PARENT_ID, true);
             copyAttr(src, dest, MilestoneCommitDateColumn.MASTER_VALUE_ATTR, true);
