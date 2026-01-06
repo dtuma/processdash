@@ -23,6 +23,8 @@
 
 package teamdash.sync.db;
 
+import static teamdash.sync.ExtSyncCoordinator.NO_EXT_CHANGES;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,12 +51,14 @@ import net.sourceforge.processdash.util.InterpolatingProperties;
 import teamdash.sync.ExtChange;
 import teamdash.sync.ExtNode;
 import teamdash.sync.ExtNodeSet;
+import teamdash.sync.ExtNodeTypeMetadata;
 import teamdash.sync.ExtSyncUtil;
 import teamdash.sync.SyncDataFile;
 import teamdash.sync.SyncMetadata;
 
 
-public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig {
+public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
+        ExtNodeSet.LifecycleAware {
 
     private SyncDatabaseConnection sync;
 
@@ -72,6 +77,8 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig {
             itemUrlTextFmt;
 
     private int itemIdIdx, estHoursIdx, remHoursIdx, actualHoursIdx;
+
+    private Map<String, ExtNodeTypeMetadata> extNodeTypes;
 
     private String wbsNodeType;
 
@@ -165,6 +172,7 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig {
 
         List<ExtNode> result = new ArrayList<ExtNode>();
         Set<String> itemIdsNeeded = new HashSet(includingIDs);
+        extNodeTypes = new TreeMap<String, ExtNodeTypeMetadata>();
         try {
             getExtNodes(result, itemIdsNeeded, conn, false);
             getExtNodes(result, itemIdsNeeded, conn, true);
@@ -204,8 +212,30 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig {
                 rowData[i] = rs.getObject(i);
             DatabaseNode node = new DatabaseNode(rowData);
             itemsNeeded.remove(node.getID());
+            loadExtNodeType(node);
             result.add(node);
         }
+    }
+
+    private void loadExtNodeType(DatabaseNode node) {
+        // if we've already created metadata for this node type, abort
+        if (extNodeTypes.containsKey(node.getTypeID()))
+            return;
+
+        // create a metadata object and store the node's type name and ID
+        ExtNodeTypeMetadata md = new ExtNodeTypeMetadata();
+        md.id = node.getTypeID();
+        md.name = node.getType();
+        md.creatable = false;
+
+        // find the URL for the icon, if provided
+        String url = getProperty("itemIconUrl." + md.name);
+        if (url == null)
+            url = getProperty("itemIconUrl");
+        md.iconUrl = url;
+
+        // add this metadata object to our collection
+        extNodeTypes.put(md.id, md);
     }
 
 
@@ -213,6 +243,22 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig {
     public void applyWbsChanges(List<ExtChange> changes, SyncMetadata metadata)
             throws IOException {
         // bidirectional sync is not supported; do nothing
+    }
+
+
+    @Override
+    public void syncStarting() throws IOException {}
+
+    @Override
+    public void syncFinishing() throws IOException {
+        // Tell the WBS this synchronizer does not support external changes
+        syncData.getMetadata().setStr("true", NO_EXT_CHANGES);
+
+        // save node type metadata
+        if (!extNodeTypes.isEmpty()) {
+            ExtNodeTypeMetadata.storeNodeTypeMetadata(syncData,
+                new ArrayList<ExtNodeTypeMetadata>(extNodeTypes.values()));
+        }
     }
 
 
