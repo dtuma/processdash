@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2021 Tuma Solutions, LLC
+// Copyright (C) 2020-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -128,7 +128,7 @@ public class ExtNodeTypeMetadata {
             byte[] data = FileUtils.slurpContents(conn.getInputStream(), true);
 
             // discard the icon if we don't recognize its content type
-            String fileSuffix = getIconFileSuffix(contentType);
+            String fileSuffix = getIconFileSuffix(contentType, type.iconUrl);
             if (fileSuffix == null)
                 return;
 
@@ -149,11 +149,19 @@ public class ExtNodeTypeMetadata {
         }
     }
 
-    private static String getIconFileSuffix(String iconContentType) {
+    private static String getIconFileSuffix(String iconContentType,
+            String iconUrl) {
         if (iconContentType != null) {
             for (int i = 0; i < ICON_FILE_TYPES.length; i += 2) {
                 if (iconContentType.contains(ICON_FILE_TYPES[i]))
                     return ICON_FILE_TYPES[i + 1];
+            }
+        }
+        if (iconUrl != null) {
+            iconUrl = iconUrl.toLowerCase();
+            for (int i = 1; i < ICON_FILE_TYPES.length; i += 2) {
+                if (iconUrl.endsWith(ICON_FILE_TYPES[i]))
+                    return ICON_FILE_TYPES[i];
             }
         }
         return null;
