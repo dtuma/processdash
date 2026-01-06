@@ -452,6 +452,7 @@ teamdash/hist/ProjectHistoryLocal*
       <!-- include nonclass resources referenced by sync logic -->
       <fileset dir="${src}">
           <include name="teamdash/**/default-user-settings.txt"/>
+          <include name="teamdash/**/db-defaults.properties"/>
       </fileset>
       <!-- include compiled classes needed from the dashboard -->
       <fileset dir="${processdash.bin}">
