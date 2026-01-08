@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2025 Tuma Solutions, LLC
+// Copyright (C) 2017-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -143,6 +143,11 @@ public class ExtSyncDaemonWBS {
             } catch (SyncDataFile.ComodificationException sdfce) {
                 // another sync daemon process has started; we should exit
                 log.info("A new sync daemon has started; old daemon will exit");
+                return;
+            } catch (ExtSyncConfigProblem cfg) {
+                // the configuration provided to this daemon is bad; exit
+                daemonMetadata.setState(State.Error, 1000);
+                log.info("Invalid configuration provided; daemon aborting");
                 return;
             } catch (Exception e) {
                 log.log(errCount == 0 ? Level.SEVERE : Level.FINE,

@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2025 Tuma Solutions, LLC
+// Copyright (C) 2017-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -95,6 +95,7 @@ public class ExtSyncCoordinator {
         this.syncData.setLogGlobal(config.getProperty(GLOBAL_LOG_SETTING));
         this.config = config;
         this.daemonMetadata = daemonMetadata;
+        this.logPrefix = "";
         this.log = syncData.getLogger();
         this.exportTime = new ElapsedTimeMonitor(20, 5000);
         this.inboundTime = new ElapsedTimeMonitor(20, 5000);
@@ -115,12 +116,23 @@ public class ExtSyncCoordinator {
             runImpl(nodeSet);
             lastException = null;
 
+        } catch (ExtSyncConfigProblem cfg) {
+            // if the configuration is poor, log an error and abort
+            log.log(Level.WARNING, logPrefix + "Problem with configuration; "
+                    + "skipping this synchronization task", cfg);
+            daemonMetadata.setState(State.Error, 1000);
+            trySaveMetadata();
+
+            // save the error and rethrow
+            lastException = cfg;
+            throw cfg;
+
         } catch (IOException ioe) {
             // publish errors to the sync metadata log file
             boolean isRepeatedError = (lastException != null
                     && lastException.getMessage().equals(ioe.getMessage()));
             log.log(isRepeatedError ? Level.FINE : Level.SEVERE,
-                "Encountered problem while synchronizing", ioe);
+                logPrefix + "Encountered problem while synchronizing", ioe);
             trySaveMetadata();
 
             // save the error and rethrow
@@ -209,8 +221,9 @@ public class ExtSyncCoordinator {
         } else if (noExternalChanges != null) {
             // abort if we're in "no changes" mode, log messages instead
             for (ExportedWbsNode expNode : exportedNodes) {
-                log.fine("External changes disabled; skipping creation of "
-                        + expNode.getType() + " '" + expNode.getName() + "'");
+                log.fine(logPrefix + "External changes disabled; "
+                        + "skipping creation of " + expNode.getType() + " '"
+                        + expNode.getName() + "'");
             }
             return;
         }
@@ -340,8 +353,9 @@ public class ExtSyncCoordinator {
         } else if (noExternalChanges != null) {
             // abort if we're in "no changes" mode, log messages instead
             for (ExtChange c : changes)
-                log.fine("External changes disabled; skipping modification of "
-                        + c.extNode.getName() + "' - " + c.attrValues);
+                log.fine(logPrefix + "External changes disabled; "
+                        + "skipping modification of " + c.extNode.getName()
+                        + "' - " + c.attrValues);
         } else {
             // start tracking the time required for outbound sync
             outboundTime.start();
