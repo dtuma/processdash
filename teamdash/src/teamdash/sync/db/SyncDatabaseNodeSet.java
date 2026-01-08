@@ -52,6 +52,7 @@ import teamdash.sync.ExtChange;
 import teamdash.sync.ExtNode;
 import teamdash.sync.ExtNodeSet;
 import teamdash.sync.ExtNodeTypeMetadata;
+import teamdash.sync.ExtSyncConfigProblem;
 import teamdash.sync.ExtSyncUtil;
 import teamdash.sync.SyncDataFile;
 import teamdash.sync.SyncMetadata;
@@ -67,6 +68,8 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
     private SyncDataFile syncData;
 
     private Logger log;
+
+    private ExtSyncConfigProblem configProblem;
 
     private NamedParamQuery baseQuery, itemQuery;
 
@@ -93,7 +96,11 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
         this.syncData = syncData;
         this.syncData.setLogLevel(properties.getProperty("logLevel"));
         this.log = syncData.getLogger();
-        initializeMetadata();
+        try {
+            initializeMetadata();
+        } catch (ExtSyncConfigProblem cfg) {
+            this.configProblem = cfg;
+        }
     }
 
     private void initializeMetadata() {
@@ -101,7 +108,7 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
         this.baseQuery = new NamedParamQuery("query");
         this.itemQuery = new NamedParamQuery("itemQuery");
         if (itemQuery.keyParamPos == -1)
-            throw new RuntimeException("Expected itemQuery to contain a "
+            throw new ExtSyncConfigProblem("Expected itemQuery to contain a "
                     + "'idColumnName in (:keys)' clause.");
         this.itemIdColumnType = getProperty("itemIdType");
 
@@ -136,7 +143,7 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
                 return null;
             return new MessageFormat(fmt);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(
+            throw new ExtSyncConfigProblem(
                     "Invalid message format for '" + attr + "' property.");
         }
     }
@@ -148,7 +155,7 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
                 return -1;
             return Integer.parseInt(idx);
         } catch (NumberFormatException nfe) {
-            throw new RuntimeException(
+            throw new ExtSyncConfigProblem(
                     "Invalid number provided for the '" + attr + "' property");
         }
     }
@@ -247,7 +254,10 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
 
 
     @Override
-    public void syncStarting() throws IOException {}
+    public void syncStarting() throws IOException {
+        if (configProblem != null)
+            throw configProblem;
+    }
 
     @Override
     public void syncFinishing() throws IOException {
@@ -280,7 +290,7 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
 
             String baseSql = getProperty(sqlProperty);
             if (baseSql == null)
-                throw new RuntimeException("An SQL statement must be "
+                throw new ExtSyncConfigProblem("An SQL statement must be "
                         + "specified via the '" + sqlProperty + "' property");
 
             StringBuffer sb = new StringBuffer();
