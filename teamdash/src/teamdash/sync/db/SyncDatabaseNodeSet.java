@@ -303,6 +303,10 @@ public class SyncDatabaseNodeSet implements ExtNodeSet, ExtNodeSet.WithConfig,
                     m.appendReplacement(sb, "?");
                     if (KEYS.equals(param))
                         keyParamPos = sb.length() - 1;
+                    else if (getProperty(param) == null)
+                        throw new ExtSyncConfigProblem(
+                                "A value must be provided for the '" + param
+                                        + "' property");
                 } else {
                     // if we find a string literal, add it to the query without
                     // making any changes
