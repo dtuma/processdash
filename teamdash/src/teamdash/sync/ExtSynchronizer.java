@@ -116,6 +116,8 @@ public class ExtSynchronizer {
     private void getWbsNodesToExport(List<ExportedWbsNode> result,
             WBSNode parentNode) {
         for (WBSNode node : wbs.getChildren(parentNode)) {
+            if (node == incomingNodeParent)
+                return;
             if (needsExport(node))
                 result.add(new ExportedWbsNode(node, extSystemID, metadata));
             getWbsNodesToExport(result, node);
@@ -561,6 +563,11 @@ public class ExtSynchronizer {
         if (node == null)
             return;
 
+        // if the user hasn't moved this node out of the "incoming" branch,
+        // don't publish any external changes
+        if (isIncomingExtNode(node))
+            return;
+
         // if the user has placed one external node inside another in the WBS,
         // don't try to sync both time estimates.
         if (isNestedExtNode(node))
@@ -709,6 +716,11 @@ public class ExtSynchronizer {
         if (node == null)
             return;
 
+        // if the user hasn't moved this node out of the "incoming" branch,
+        // don't publish any external changes
+        if (isIncomingExtNode(node))
+            return;
+
         // if the user has placed one external node inside another in the WBS,
         // don't try to sync both time values.
         if (isNestedExtNode(node))
@@ -723,6 +735,16 @@ public class ExtSynchronizer {
             ExtChange change = getExtChange(extNode);
             change.attrValues.put(ExtChange.ACT_TIME_ATTR, wbsTime);
         }
+    }
+
+    /** @return true if the given node is the "incoming" branch of the tree */
+    private boolean isIncomingExtNode(WBSNode node) {
+        if (node == null || node.getIndentLevel() == 0)
+            return false;
+        else if (node == incomingNodeParent)
+            return true;
+        else
+            return isIncomingExtNode(wbs.getParent(node));
     }
 
     private boolean isNestedExtNode(WBSNode node) {
