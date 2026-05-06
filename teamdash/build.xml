@@ -95,6 +95,9 @@ The author(s) may be contacted at:
     <taskdef name="svgToImage"
              classname="net.sourceforge.processdash.SVGToImage"
              classpath="${dashlibsrc};${svg.jar}"/>
+    <taskdef name="checkClassCount"
+             classname="net.sourceforge.processdash.CheckClassCount"
+             classpath="${dashlibsrc}"/>
     <taskdef name="maybeSignJar"
              classname="net.sourceforge.processdash.MaybeSign"
              classpath="${dashlibsrc}"/>
@@ -270,31 +273,15 @@ The author(s) may be contacted at:
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
-    <pathconvert property="dashClassesPath" refid="dashClasses" pathsep=";">
+    <checkClassCount property="dashClasses" refid="dashClasses" expected="214">
         <regexpmapper from=".*/antbin/(.*).class" to="\1" handledirsep="true"/>
-    </pathconvert>
-    <script language="javascript"> <![CDATA[
-        classCount = 0;
-        dashClassesList = dashClassesPath.split(";").sort();
-        dashClassesMsg = "";
-        for (i = 0;  i < dashClassesList.length;  i++) {
-            // do not count the number of inner classes
-            if (dashClassesList[i].indexOf("$") == -1) {
-	        classCount++;
-                dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
-            }
-        }
-        if (classCount > 214) {
-            project.setProperty("dashClasses.overflowCount", classCount);
-            project.setProperty("dashClasses.overflowing", dashClassesMsg);
-        }
-    ]]> </script>
+    </checkClassCount>
 
     <!-- abort if the processdash class list was larger than expected -->
     <fail if="dashClasses.overflowing">Unexpected number of
-processdash classes (${dashClasses.overflowCount}) referenced by WBSEditor.jar (Perhaps a runaway
+processdash classes (${dashClasses.count}) referenced by WBSEditor.jar (Perhaps a runaway
 class dependency has been added in a dashboard class?)
-    ${dashClasses.overflowing}
+    ${dashClasses.list}
     </fail>
 
     <!-- Determine whether to exclude libs that are not GPLv2 compatible -->
