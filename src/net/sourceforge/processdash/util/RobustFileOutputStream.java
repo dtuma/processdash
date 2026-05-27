@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2026 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.SyncFailedException;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
@@ -37,6 +38,7 @@ public class RobustFileOutputStream extends OutputStream {
 
     boolean origFileExists;
     File outFile, backupFile, destFile;
+    FileOutputStream outStream;
     OutputStream out;
     Checksum checksum;
     boolean closed = false;
@@ -76,7 +78,7 @@ public class RobustFileOutputStream extends OutputStream {
         origFileExists = destFile.isFile();
 
         checksum = makeChecksum();
-        OutputStream outStream = new FileOutputStream(outFile);
+        outStream = new FileOutputStream(outFile);
         out = new CheckedOutputStream(outStream, checksum);
     }
 
@@ -120,7 +122,13 @@ public class RobustFileOutputStream extends OutputStream {
         else
             closed = true;
 
-        // close the temporary files
+        // flush data to disk and close the temporary file
+        out.flush();
+        try {
+            outStream.getFD().sync();
+        } catch (SyncFailedException sfe) {
+            // degrade gracefully on unsupported filesystems
+        }
         out.close();
 
         // get the checksum calculated from writing the file
